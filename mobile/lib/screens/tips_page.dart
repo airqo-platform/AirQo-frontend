@@ -1,4 +1,5 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:app/utils/string_extension.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -31,7 +32,7 @@ class _TipsPageState extends State<TipsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: knowYourAirAppBar(context),
+      appBar: knowYourAirAppBar(context, 'Know Your Air'),
       body: Container(
         child: Stack(children: [
           Container(
@@ -105,7 +106,8 @@ class _TipsPageState extends State<TipsPage> {
                                   style: ButtonStyle(
                                       foregroundColor: currentPage == 0
                                           ? MaterialStateProperty.all<Color>(
-                                              ColorConstants.greyColor)
+                                              ColorConstants.appColorBlack
+                                                  .withOpacity(0.5))
                                           : MaterialStateProperty.all<Color>(
                                               ColorConstants.appColorBlue),
                                       elevation: MaterialStateProperty.all(0)),
@@ -138,7 +140,8 @@ class _TipsPageState extends State<TipsPage> {
                                       foregroundColor: currentPage ==
                                               slides.length - 1
                                           ? MaterialStateProperty.all<Color>(
-                                              ColorConstants.greyColor)
+                                              ColorConstants.appColorBlack
+                                                  .withOpacity(0.5))
                                           : MaterialStateProperty.all<Color>(
                                               ColorConstants.appColorBlue),
                                       elevation: MaterialStateProperty.all(0)),
@@ -234,34 +237,38 @@ class _TipsPageState extends State<TipsPage> {
   }
 
   Widget slideHeadCard() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(8.0))),
-      width: MediaQuery.of(context).size.width * 0.9,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Image.asset(
-            'assets/images/skate.png',
-            height: 150,
-          ),
-          const Text(
-            'Together, let\'s reduce '
-            'air pollution to breathe clean!',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
+    return Padding(
+      padding: const EdgeInsets.only(left: 10, right: 10),
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.all(Radius.circular(8.0))),
+        width: MediaQuery.of(context).size.width * 0.9,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/images/skate.png',
+              height: 150,
             ),
-          ),
-          const Text(
-              'Here are 9 ways you can get '
-              'involved and reduce air pollutions',
+            const Text(
+              'Together, let\'s reduce '
+              'air pollution to breathe clean!',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-        ],
+              style: TextStyle(
+                fontSize: 16,
+              ),
+            ),
+            Text(
+                'Here are 9 ways you can get involved and reduce air pollutions'
+                    .toTitleCase(),
+                textAlign: TextAlign.center,
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          ],
+        ),
       ),
     );
   }

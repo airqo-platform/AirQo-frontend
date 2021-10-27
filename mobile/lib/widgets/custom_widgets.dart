@@ -1,6 +1,7 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/measurement.dart';
+import 'package:app/screens/air_pollution_ways_page.dart';
 import 'package:app/screens/tip_page.dart';
 import 'package:app/utils/pm.dart';
 import 'package:flutter/material.dart';
@@ -311,7 +312,7 @@ Widget insightsAvatar(
   // );
 }
 
-PreferredSizeWidget knowYourAirAppBar(context) {
+PreferredSizeWidget knowYourAirAppBar(context, title) {
   return AppBar(
     centerTitle: true,
     elevation: 0,
@@ -321,8 +322,8 @@ PreferredSizeWidget knowYourAirAppBar(context) {
       padding: const EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
       child: backButton(context),
     ),
-    title: const Text(
-      'Know Your Air',
+    title: Text(
+      title,
       style: TextStyle(color: Colors.white),
     ),
   );
@@ -456,7 +457,7 @@ Widget locationTileV1(Measurement measurement) {
         height: 80,
         decoration: BoxDecoration(
             color: ColorConstants.appBodyColor,
-            borderRadius: BorderRadius.all(Radius.circular(10.0))),
+            borderRadius: const BorderRadius.all(Radius.circular(10.0))),
         child: const Icon(
           Icons.arrow_forward_ios_rounded,
           color: Colors.black,
@@ -467,27 +468,33 @@ Widget locationTileV1(Measurement measurement) {
   );
 }
 
-Widget tipWidget(context) {
+Widget tipWidget(context, header) {
   return Container(
-    padding: const EdgeInsets.fromLTRB(8.0, 8.0, 8.0, 8.0),
+    padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
     decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.all(Radius.circular(8.0))),
+        borderRadius: BorderRadius.all(Radius.circular(16.0))),
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(
           child: Column(
-            // crossAxisAlignment: CrossAxisAlignment.start,
-            // mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('The Tid Tips On Air Quality!',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  )),
+              GestureDetector(
+                onTap: () async {
+                  await Navigator.push(context,
+                      MaterialPageRoute(builder: (context) {
+                    return const AirPollutionWaysPage();
+                  }));
+                },
+                child: Text(header,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    )),
+              ),
               const SizedBox(
                 height: 28,
               ),
@@ -495,14 +502,14 @@ Widget tipWidget(context) {
                 onTap: () async {
                   await Navigator.push(context,
                       MaterialPageRoute(builder: (context) {
-                    return const TipPage();
+                    return const AirPollutionWaysPage();
                   }));
                 },
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    Text('Start learning',
+                    Text('Start reading',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.center,
@@ -521,22 +528,26 @@ Widget tipWidget(context) {
                   ],
                 ),
               ),
-              const SizedBox(
-                height: 2,
-              ),
             ],
           ),
         ),
         const SizedBox(
           width: 16,
         ),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(5.0),
-          child: Image.asset(
-            'assets/images/know-your-air.png',
-            height: 104,
-            width: 104,
-            fit: BoxFit.cover,
+        GestureDetector(
+          onTap: () async {
+            await Navigator.push(context, MaterialPageRoute(builder: (context) {
+              return const AirPollutionWaysPage();
+            }));
+          },
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8.0),
+            child: Image.asset(
+              'assets/images/know-your-air.png',
+              width: 104,
+              height: 104,
+              fit: BoxFit.cover,
+            ),
           ),
         ),
       ],

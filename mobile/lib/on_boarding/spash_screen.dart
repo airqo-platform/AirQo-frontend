@@ -1,5 +1,4 @@
 import 'package:app/on_boarding/welcome_screen.dart';
-import 'package:app/screens/home_page.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';

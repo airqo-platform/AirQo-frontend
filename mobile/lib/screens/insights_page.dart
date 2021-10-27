@@ -128,7 +128,7 @@ class _InsightsPageState extends State<InsightsPage>
 
   @override
   void initState() {
-    super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    super.initState();
   }
 }

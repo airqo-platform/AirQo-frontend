@@ -20,9 +20,12 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
         child: ListView.builder(
           itemBuilder: (context, index) => Padding(
             padding: const EdgeInsets.only(bottom: 10),
-            child: tipWidget(context),
+            child: tipWidget(
+                context,
+                'Actions You Can Take to '
+                'Reduce Air Pollution'),
           ),
-          itemCount: 5,
+          itemCount: 1,
         ));
   }
 }

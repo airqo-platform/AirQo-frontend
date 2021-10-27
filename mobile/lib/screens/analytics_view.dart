@@ -2,8 +2,8 @@ import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/screens/search_location_page.dart';
 import 'package:app/services/local_storage.dart';
-import 'package:app/widgets/analytics_card.dart';
 import 'package:app/widgets/custom_shimmer.dart';
+import 'package:app/widgets/favourite_place_card.dart';
 import 'package:flutter/material.dart';
 
 class AnalyticsView extends StatefulWidget {
@@ -67,10 +67,8 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                   color: ColorConstants.appColor,
                   onRefresh: refreshData,
                   child: ListView.builder(
-                    itemBuilder: (context, index) => Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: AnalyticsCard(favouritePlaces[index]),
-                    ),
+                    itemBuilder: (context, index) =>
+                        MiniAnalyticsCard(favouritePlaces[index]),
                     itemCount: favouritePlaces.length,
                   ),
                 );

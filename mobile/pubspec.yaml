@@ -112,7 +112,6 @@ flutter:
     # svg
     - assets/icon/home_icon.svg
     - assets/icon/toggle_icon.svg
-    - assets/icon/fav_icon.svg
     - assets/icon/share_icon.svg
     - assets/icon/tips_image.svg
     - assets/icon/search.svg
@@ -137,6 +136,7 @@ flutter:
     - assets/icon/star.svg
     - assets/icon/sparkles.svg
     - assets/icon/heart.svg
+    - assets/icon/heart_dislike.svg
     - assets/icon/add_avator.svg
     - assets/icon/globe.svg
     - assets/icon/next_arrow.svg
@@ -145,6 +145,7 @@ flutter:
     - assets/icon/cog.svg
     - assets/icon/empty_notifications.svg
     - assets/icon/floating_bg.svg
+    - assets/icon/close.svg
 
     # Language Translation files
     - assets/i18n/en.json

@@ -1,6 +1,7 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/utils/string_extension.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 part 'site.g.dart';
 
@@ -162,6 +163,13 @@ class Sites {
 }
 
 extension ParseSite on Site {
+  Future<bool> isFav() async {
+    var prefs = await SharedPreferences.getInstance();
+    var favouritePlaces =
+        prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
+    return favouritePlaces.contains(id.trim().toLowerCase());
+  }
+
   String getTopic(PollutantLevel pollutantLevel) {
     if (pollutantLevel == PollutantLevel.good) {
       return '$id-good'.trim().toLowerCase();

@@ -1,20 +1,31 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
+import 'package:app/models/site.dart';
 import 'package:app/screens/insights_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import 'custom_widgets.dart';
 
-class FavouritePlacesCard extends StatelessWidget {
+class MiniAnalyticsCard extends StatefulWidget {
   final Measurement measurement;
 
-  const FavouritePlacesCard(this.measurement, {Key? key}) : super(key: key);
+  const MiniAnalyticsCard(this.measurement, {Key? key}) : super(key: key);
+
+  @override
+  _FavouritePlacesCard createState() => _FavouritePlacesCard(this.measurement);
+}
+
+class _FavouritePlacesCard extends State<MiniAnalyticsCard> {
+  final Measurement measurement;
+  bool isFav = false;
+
+  _FavouritePlacesCard(this.measurement);
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+      padding: const EdgeInsets.fromLTRB(0.0, 8.0, 0.0, 8.0),
       child: Container(
           decoration: BoxDecoration(
               color: Colors.white,
@@ -59,9 +70,11 @@ class FavouritePlacesCard extends StatelessWidget {
                     const SizedBox(
                       width: 12,
                     ),
-                    SvgPicture.asset(
-                      'assets/icon/fav_icon.svg',
-                      semanticsLabel: 'Favorite',
+                    Visibility(
+                      visible: isFav,
+                      child: SvgPicture.asset(
+                        'assets/icon/heart.svg',
+                      ),
                     ),
                   ],
                 ),
@@ -128,5 +141,15 @@ class FavouritePlacesCard extends StatelessWidget {
             ],
           )),
     );
+  }
+
+  @override
+  void initState() {
+    measurement.site.isFav().then((value) => {
+          setState(() {
+            isFav = value;
+          })
+        });
+    super.initState();
   }
 }

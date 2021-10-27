@@ -25,6 +25,7 @@ class _DailyViewState extends State<DailyView> with TickerProviderStateMixin {
   String pollutant = '';
   bool pm10 = false;
   bool pm2_5 = true;
+  bool isFav = false;
 
   _DailyViewState(this.site);
 
@@ -107,7 +108,9 @@ class _DailyViewState extends State<DailyView> with TickerProviderStateMixin {
                     },
                     child: iconTextButton(
                         SvgPicture.asset(
-                          'assets/icon/fav_icon.svg',
+                          isFav
+                              ? 'assets/icon/heart.svg'
+                              : 'assets/icon/heart_dislike.svg',
                           semanticsLabel: 'Favorite',
                         ),
                         'Favorite'),
@@ -172,6 +175,11 @@ class _DailyViewState extends State<DailyView> with TickerProviderStateMixin {
   @override
   void initState() {
     initialize();
+    site.isFav().then((value) => {
+          setState(() {
+            isFav = value;
+          })
+        });
     super.initState();
   }
 

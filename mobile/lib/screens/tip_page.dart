@@ -15,7 +15,7 @@ class _TipPageState extends State<TipPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: knowYourAirAppBar(context),
+      appBar: knowYourAirAppBar(context, 'Know Your Air'),
       body: AnimatedSwitcher(
           duration: const Duration(seconds: 3),
           transitionBuilder: (Widget child, Animation<double> animation) {

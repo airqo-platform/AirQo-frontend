@@ -17,11 +17,13 @@ import 'package:app/utils/pm.dart';
 import 'package:app/utils/settings.dart';
 import 'package:app/widgets/analytics_card.dart';
 import 'package:app/widgets/custom_shimmer.dart';
+import 'package:app/widgets/custom_widgets.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'air_pollution_ways_page.dart';
 import 'favourite_places.dart';
 import 'for_you_page.dart';
 
@@ -125,7 +127,7 @@ class _DashboardViewState extends State<DashboardView> {
                   onTap: () async {
                     var response = await Navigator.push(context,
                         MaterialPageRoute(builder: (context) {
-                      return const TipsPage();
+                      return const AirPollutionWaysPage();
                     }));
                     if (response == null) {
                       await initialize();
@@ -150,7 +152,7 @@ class _DashboardViewState extends State<DashboardView> {
                   onTap: () async {
                     var response = await Navigator.push(context,
                         MaterialPageRoute(builder: (context) {
-                      return const TipsPage();
+                      return const AirPollutionWaysPage();
                     }));
                     if (response == null) {
                       await initialize();
@@ -191,7 +193,7 @@ class _DashboardViewState extends State<DashboardView> {
             onTap: () async {
               var response = await Navigator.push(context,
                   MaterialPageRoute(builder: (context) {
-                return const TipsPage();
+                return const AirPollutionWaysPage();
               }));
               if (response == null) {
                 await initialize();
@@ -831,12 +833,16 @@ class _DashboardViewState extends State<DashboardView> {
             const SizedBox(
               height: 12,
             ),
-            if (measurementData != null) AnalyticsCard(measurementData),
-            if (measurementData == null) loadingAnimation(253.0),
+            Visibility(
+                visible: measurementData != null,
+                child: AnalyticsCard(measurementData)),
+            Visibility(
+                visible: measurementData == null,
+                child: loadingAnimation(253.0)),
             const SizedBox(
               height: 16,
             ),
-            actionsSection(),
+            tipWidget(context, 'Actions You Can Take to Reduce Air Pollution'),
             const SizedBox(
               height: 16,
             ),

@@ -348,6 +348,59 @@ String pmToEmoji(double pm2_5) {
   }
 }
 
+String pmToInfoDialog(double pm2_5) {
+  if (pm2_5 <= 12.09) {
+    //good
+    return 'Air quality is safe for everyone!';
+  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
+    //moderate
+    return 'Sensitive people should consider reducing prolonged '
+        'or heavy exertion. Everyone should avoid prolonged or heavy exertion';
+  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
+    //sensitive
+    return 'Sensitive people should consider reducing prolonged '
+        'or heavy exertion. Everyone should avoid prolonged or heavy exertion';
+  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
+    // unhealthy
+    return 'Sensitive people should consider reducing prolonged '
+        'or heavy exertion. Everyone should avoid prolonged or heavy exertion';
+  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
+    // very unhealthy
+    return 'Sensitive people should consider reducing prolonged '
+        'or heavy exertion. Everyone should avoid prolonged or heavy exertion';
+  } else if (pm2_5 >= 250.5) {
+    // hazardous
+    return 'Sensitive people should consider reducing prolonged '
+        'or heavy exertion. Everyone should avoid prolonged or heavy exertion';
+  } else {
+    return '';
+  }
+}
+
+String pmToLongString(double pm2_5) {
+  if (pm2_5 <= 12.09) {
+    //good
+    return 'Good';
+  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
+    //moderate
+    return 'Moderate';
+  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
+    //sensitive
+    return 'Unhealthy for Sensitive Groups';
+  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
+    // unhealthy
+    return 'Unhealthy';
+  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
+    // very unhealthy
+    return 'Very Unhealthy';
+  } else if (pm2_5 >= 250.5) {
+    // hazardous
+    return 'Hazardous';
+  } else {
+    return '';
+  }
+}
+
 Future<BitmapDescriptor> pmToMarker(double pm2_5) async {
   var width = 55;
   var value = pm2_5;

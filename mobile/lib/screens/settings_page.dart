@@ -1,19 +1,12 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/userDetails.dart';
-import 'package:app/screens/signup_page.dart';
 import 'package:app/screens/tips_page.dart';
-import 'package:app/screens/view_profile_page.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/widgets/custom_widgets.dart';
-import 'package:app/widgets/text_fields.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 
 import 'faqs_page.dart';
-import 'favourite_places.dart';
-import 'for_you_page.dart';
-import 'notification_page.dart';
 
 class SettingsPage extends StatefulWidget {
   SettingsPage({Key? key}) : super(key: key);

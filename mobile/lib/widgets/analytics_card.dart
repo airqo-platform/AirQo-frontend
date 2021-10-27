@@ -1,5 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
+import 'package:app/models/site.dart';
 import 'package:app/screens/insights_page.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/date.dart';
@@ -22,6 +23,7 @@ class AnalyticsCard extends StatefulWidget {
 
 class _AnalyticsCardState extends State<AnalyticsCard> {
   final Measurement measurement;
+  bool isFav = false;
 
   _AnalyticsCardState(this.measurement);
 
@@ -37,7 +39,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
           children: [
             GestureDetector(
               onTap: () {
-                infoDialog(context, PollutantBio.pm2_5);
+                pmInfoDialog(context, measurement);
               },
               child: Container(
                 padding: const EdgeInsets.only(right: 12),
@@ -70,7 +72,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                     Row(
                       children: [
                         analyticsAvatar(measurement, 104, 40, 12),
-                        const SizedBox(width: 8.0),
+                        const SizedBox(width: 16.0),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -99,7 +101,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                 decoration: BoxDecoration(
                                     borderRadius: const BorderRadius.all(
                                         Radius.circular(40.0)),
-                                    color: pm2_5TextColor(
+                                    color: pm2_5ToColor(
                                             measurement.getPm2_5Value())
                                         .withOpacity(0.4),
                                     border:
@@ -217,7 +219,9 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                   },
                   child: iconTextButton(
                       SvgPicture.asset(
-                        'assets/icon/fav_icon.svg',
+                        isFav
+                            ? 'assets/icon/heart.svg'
+                            : 'assets/icon/heart_dislike.svg',
                         semanticsLabel: 'Favorite',
                       ),
                       'Favorite'),
@@ -229,5 +233,15 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
             ),
           ],
         ));
+  }
+
+  @override
+  void initState() {
+    measurement.site.isFav().then((value) => {
+          setState(() {
+            isFav = value;
+          })
+        });
+    super.initState();
   }
 }

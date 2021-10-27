@@ -703,23 +703,23 @@ class DBHelper {
     var favouritePlaces =
         prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
 
-    var name = site.id.trim().toLowerCase();
-    if (favouritePlaces.contains(name)) {
+    var id = site.id.trim().toLowerCase();
+    if (favouritePlaces.contains(id)) {
       var updatedList = <String>[];
 
       for (var fav in favouritePlaces) {
-        if (name != fav.trim().toLowerCase()) {
+        if (id != fav.trim().toLowerCase()) {
           updatedList.add(fav.trim().toLowerCase());
         }
       }
       favouritePlaces = updatedList;
     } else {
-      favouritePlaces.add(name);
+      favouritePlaces.add(id);
     }
 
     await prefs.setStringList(PrefConstant.favouritePlaces, favouritePlaces);
 
-    if (favouritePlaces.contains(name)) {
+    if (favouritePlaces.contains(id)) {
       await showSnackBar(
           context, '${site.getName()} has been added to your places');
     } else {
@@ -727,7 +727,7 @@ class DBHelper {
           context, '${site.getName()} has been removed from your places');
     }
 
-    return favouritePlaces.contains(name);
+    return favouritePlaces.contains(id);
   }
 
   Future<bool> updateSiteAlerts(

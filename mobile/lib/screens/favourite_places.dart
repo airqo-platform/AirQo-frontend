@@ -91,8 +91,10 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
                     color: ColorConstants.appColor,
                     onRefresh: refreshData,
                     child: ListView.builder(
-                      itemBuilder: (context, index) =>
-                          FavouritePlacesCard(favouritePlaces[index]),
+                      itemBuilder: (context, index) => Padding(
+                        padding: const EdgeInsets.only(left: 16, right: 16),
+                        child: MiniAnalyticsCard(favouritePlaces[index]),
+                      ),
                       itemCount: favouritePlaces.length,
                     ),
                   );
