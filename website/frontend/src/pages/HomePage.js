@@ -17,8 +17,7 @@ const Icon = ({ icon }) => (
         <div className="icon">{icon}</div>
 );
 
-const HomePage = () => (
-    <div className="HomePage">
+const Intro = () => (
         <div className="intro-container">
             <div className="container">
                 <div className="text-container">
@@ -32,6 +31,9 @@ const HomePage = () => (
                 <PlaceHolder />
             </div>
         </div>
+);
+
+const AirQuality = () => (
         <div className="air-quality-section">
             <div className="text-primary">Air quality analytics for all</div>
             <div className="text-secondary">We use low-cost technologies and Artificial intelligence to close the gaps in air quality data across the African continent. </div>
@@ -67,7 +69,7 @@ const HomePage = () => (
                                 <UnChecked width={10} height={10} />
                                 <div>93% tested sensor uptime</div>
                             </div>
-                        </div>
+                       </div>
                     </div>
                     <div className="detail-wrapper">
                         <div className="circle" />
@@ -90,6 +92,9 @@ const HomePage = () => (
                 <div className="floating-image" />
             </div>
         </div>
+);
+
+const Partners = () => (
         <div className="partner-section">
             <div>
                 <div className="text">Our Partners</div>
@@ -105,6 +110,9 @@ const HomePage = () => (
                 </div>
             </div>
         </div>
+);
+
+const Newsletter = () => (
         <div className="subscribe-container">
             <div className="text-primary">Get air quality updates!</div>
             <div className="text-secondary">Subscribe to our newsletter and learn about the quality of the air you are breathing</div>
@@ -113,6 +121,14 @@ const HomePage = () => (
                 <div className="button">Subscribe</div>
             </div>
         </div>
+);
+
+const HomePage = () => (
+    <div className="HomePage">
+        <Intro />
+        <AirQuality />
+        <Partners />
+        <Newsletter />
     </div>
 );
 
