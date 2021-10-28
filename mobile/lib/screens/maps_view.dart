@@ -136,38 +136,11 @@ class _MapViewState extends State<MapView> {
       children: <Widget>[
         const SizedBox(height: 8),
         draggingHandle(),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            const Spacer(),
-            GestureDetector(
-              onTap: showLocation,
-              child: closeDetails(),
-            ),
-          ],
-        ),
-        AnalyticsCard(locationMeasurement),
+        const SizedBox(height: 24),
+        MapAnalyticsCard(locationMeasurement, showLocation),
+        const SizedBox(height: 16),
       ],
     );
-    return Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: <Widget>[
-            const SizedBox(height: 8),
-            draggingHandle(),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                const Spacer(),
-                GestureDetector(
-                  onTap: showLocation,
-                  child: closeDetails(),
-                ),
-              ],
-            ),
-            AnalyticsCard(locationMeasurement),
-          ],
-        ));
   }
 
   Widget mapWidget() {

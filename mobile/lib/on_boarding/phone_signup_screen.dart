@@ -1,5 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/on_boarding/profile_setup_screen.dart';
+import 'package:app/screens/home_page.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
@@ -14,14 +15,11 @@ class PhoneSignupScreen extends StatefulWidget {
   PhoneSignupScreen(this.enableBackButton);
 
   @override
-  PhoneSignupScreenState createState() =>
-      PhoneSignupScreenState(enableBackButton);
+  PhoneSignupScreenState createState() => PhoneSignupScreenState();
 }
 
 class PhoneSignupScreenState extends State<PhoneSignupScreen> {
-  final bool enableBackButton;
   final _phoneFormKey = GlobalKey<FormState>();
-  final _codeFormKey = GlobalKey<FormState>();
   bool phoneFormValid = false;
   bool codeFormValid = false;
   var phoneNumber = '';
@@ -40,13 +38,11 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
 
   var smsCode = <String>['', '', '', '', '', ''];
 
-  PhoneSignupScreenState(this.enableBackButton);
-
   void autoVerifyPhoneFn(PhoneAuthCredential credential) {
     _customAuth.logIn(credential).then((value) => {
           Navigator.pushAndRemoveUntil(context,
               MaterialPageRoute(builder: (context) {
-            return ProfileSetupScreen();
+            return ProfileSetupScreen(widget.enableBackButton);
           }), (r) => false)
         });
   }
@@ -78,8 +74,8 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                     ),
                     Text(
                       phoneSignUp
-                          ? 'Enter the 6 digit code sent to\n'
-                              '$prefixValue$phoneNumber'
+                          ? 'Enter the 6 digits code sent to your\n'
+                              'number that ends with ...${phoneNumber.substring(phoneNumber.length - 3)}'
                           : 'Enter the 6 digit code sent to\n'
                               '$emailAddress',
                       textAlign: TextAlign.center,
@@ -95,6 +91,15 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                     ),
                     const SizedBox(
                       height: 24,
+                    ),
+                    Visibility(
+                      visible: !resendCode,
+                      child: Text(
+                        'The code should arrive with in 5 sec',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            fontSize: 12, color: Colors.black.withOpacity(0.5)),
+                      ),
                     ),
                     GestureDetector(
                       onTap: () async {
@@ -174,7 +179,8 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                                 .then((value) => {
                                       Navigator.pushAndRemoveUntil(context,
                                           MaterialPageRoute(builder: (context) {
-                                        return ProfileSetupScreen();
+                                        return ProfileSetupScreen(
+                                            widget.enableBackButton);
                                       }), (r) => false)
                                     });
                           } on FirebaseAuthException catch (e) {
@@ -263,7 +269,7 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                         ),
                       ),
                       Visibility(
-                        visible: !phoneSignUp,
+                        visible: false,
                         child: emailInputField(),
                       ),
                       const SizedBox(
@@ -389,9 +395,17 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
         now.difference(exitTime!) > const Duration(seconds: 2)) {
       exitTime = now;
 
-      showSnackBar(context, 'Tap again to exit !');
+      showSnackBar(context, 'Tap again to cancel !');
       return Future.value(false);
     }
+
+    if (widget.enableBackButton) {
+      Navigator.pushAndRemoveUntil(context,
+          MaterialPageRoute(builder: (context) {
+        return HomePage();
+      }), (r) => false);
+    }
+
     return Future.value(true);
   }
 

@@ -1,4 +1,5 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:app/screens/home_page.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
@@ -8,6 +9,10 @@ import 'package:flutter/rendering.dart';
 import 'location_setup_screen.dart';
 
 class NotificationsSetupScreen extends StatefulWidget {
+  bool enableBackButton;
+
+  NotificationsSetupScreen(this.enableBackButton);
+
   @override
   NotificationsSetupScreenState createState() =>
       NotificationsSetupScreenState();
@@ -50,7 +55,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
                 NotificationService().requestPermission().then((value) => {
                       Navigator.pushAndRemoveUntil(context,
                           MaterialPageRoute(builder: (context) {
-                        return LocationSetupScreen();
+                        return LocationSetupScreen(widget.enableBackButton);
                       }), (r) => false)
                     });
                 // Navigator.push(context, MaterialPageRoute(builder: (context) {
@@ -68,7 +73,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
             onTap: () {
               Navigator.pushAndRemoveUntil(context,
                   MaterialPageRoute(builder: (context) {
-                return LocationSetupScreen();
+                return LocationSetupScreen(widget.enableBackButton);
               }), (r) => false);
             },
             child: Text(
@@ -98,6 +103,14 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
       showSnackBar(context, 'Tap again to exit !');
       return Future.value(false);
     }
+
+    if (widget.enableBackButton) {
+      Navigator.pushAndRemoveUntil(context,
+          MaterialPageRoute(builder: (context) {
+        return HomePage();
+      }), (r) => false);
+    }
+
     return Future.value(true);
   }
 }

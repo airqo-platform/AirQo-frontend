@@ -1,6 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/on_boarding/phone_signup_screen.dart';
-import 'package:app/on_boarding/verify_code_screen.dart';
+import 'package:app/screens/home_page.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:flutter/material.dart';
@@ -63,7 +63,7 @@ class EmailSignupScreenState extends State<EmailSignupScreen> {
                     onTap: () {
                       Navigator.push(context,
                           MaterialPageRoute(builder: (context) {
-                        return VerifyCodeScreen();
+                        return HomePage();
                       }));
                     },
                     child: nextButton('Let’s go', ColorConstants.appColorBlue),

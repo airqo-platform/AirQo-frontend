@@ -118,6 +118,7 @@ class CustomAuth {
 
     var userDetails = UserDetails.initialize()
       ..userId = _preferences.getString('userId') ?? ''
+      ..title = _preferences.getString('title') ?? ''
       ..firstName = _preferences.getString('firstName') ?? ''
       ..lastName = _preferences.getString('lastName') ?? ''
       ..phoneNumber = _preferences.getString('phoneNumber') ?? ''
@@ -160,6 +161,7 @@ class CustomAuth {
     var _preferences = await SharedPreferences.getInstance();
 
     await _firebaseAuth.signOut().then((value) => {
+          _preferences.remove('title'),
           _preferences.remove('firstName'),
           _preferences.remove('lastName'),
           _preferences.remove('phoneNumber'),
@@ -241,6 +243,7 @@ class CustomAuth {
       // await firebaseUser.updateEmail(userDetails.emailAddress);
 
       var _preferences = await SharedPreferences.getInstance();
+      await _preferences.setString('title', userDetails.title);
       await _preferences.setString('firstName', userDetails.firstName);
       await _preferences.setString('lastName', userDetails.lastName);
       await _preferences.setString('phoneNumber', userDetails.phoneNumber);

@@ -158,7 +158,7 @@ class _SearchPageState extends State<SearchPage> {
             height: 8.0,
           ),
           Container(
-              padding: const EdgeInsets.only(right: 8, bottom: 8, left: 8),
+              padding: const EdgeInsets.only(bottom: 8),
               decoration: BoxDecoration(
                   color: ColorConstants.appBodyColor,
                   shape: BoxShape.rectangle,
@@ -178,7 +178,7 @@ class _SearchPageState extends State<SearchPage> {
                         },
                         child: Padding(
                           padding: const EdgeInsets.only(bottom: 10),
-                          child: locationTile(nearbySites[index]),
+                          child: searchLocationTile(nearbySites[index]),
                         )),
                     itemCount: nearbySites.length,
                     // separatorBuilder: (BuildContext context, int index) {
@@ -239,7 +239,7 @@ class _SearchPageState extends State<SearchPage> {
                 ),
                 const Text(
                   'You don\'t have nearby air quality stations',
-                  textAlign: TextAlign.start,
+                  textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(
@@ -416,7 +416,7 @@ class _SearchPageState extends State<SearchPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-              padding: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+              padding: const EdgeInsets.only(bottom: 8),
               // decoration: const BoxDecoration(
               //     color: Colors.white,
               //     shape: BoxShape.rectangle,
@@ -484,7 +484,7 @@ class _SearchPageState extends State<SearchPage> {
                             },
                             child: Padding(
                               padding: const EdgeInsets.only(bottom: 10),
-                              child: locationTile(searchSites[index]),
+                              child: searchLocationTile(searchSites[index]),
                             )),
                         itemCount: searchSites.length,
                         // separatorBuilder: (BuildContext context, int index) {

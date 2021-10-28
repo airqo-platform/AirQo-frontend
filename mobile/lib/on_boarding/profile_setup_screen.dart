@@ -1,5 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/userDetails.dart';
+import 'package:app/screens/home_page.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
@@ -11,6 +12,10 @@ import 'package:flutter/rendering.dart';
 import 'notifications_setup_screen.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
+  bool enableBackButton;
+
+  ProfileSetupScreen(this.enableBackButton);
+
   @override
   ProfileSetupScreenState createState() => ProfileSetupScreenState();
 }
@@ -24,6 +29,9 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   Color nextBtnColor = ColorConstants.appColorDisabled;
   bool isSaving = false;
   bool nameFormValid = false;
+  bool showDropDown = false;
+  String title = 'Ms.';
+  List<String> titleOptions = ['Ms.', 'Mr.', 'Rather Not Say'];
 
   @override
   Widget build(BuildContext context) {
@@ -68,6 +76,18 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         ],
                       ),
                     ),
+                    const SizedBox(
+                      height: 8,
+                    ),
+                    Visibility(
+                      visible: showDropDown,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          titleDropdownList(),
+                        ],
+                      ),
+                    ),
                     const Spacer(),
                     GestureDetector(
                       onTap: () async {
@@ -84,7 +104,8 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       onTap: () {
                         Navigator.pushAndRemoveUntil(context,
                             MaterialPageRoute(builder: (context) {
-                          return NotificationsSetupScreen();
+                          return NotificationsSetupScreen(
+                              widget.enableBackButton);
                         }), (r) => false);
                       },
                       child: Text(
@@ -117,7 +138,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
         alignment: Alignment.center,
         padding: const EdgeInsets.only(left: 15),
         decoration: BoxDecoration(
-            borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+            borderRadius: const BorderRadius.all(Radius.circular(8.0)),
             border: Border.all(color: ColorConstants.appColorBlue)),
         child: Center(
             child: TextFormField(
@@ -173,6 +194,14 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
       showSnackBar(context, 'Tap again to exit !');
       return Future.value(false);
     }
+
+    if (widget.enableBackButton) {
+      Navigator.pushAndRemoveUntil(context,
+          MaterialPageRoute(builder: (context) {
+        return HomePage();
+      }), (r) => false);
+    }
+
     return Future.value(true);
   }
 
@@ -184,13 +213,14 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
           isSaving = true;
         });
         var userDetails = UserDetails.initialize()
+          ..title = title
           ..firstName = UserDetails.getNames(fullName).first
           ..lastName = UserDetails.getNames(fullName).last;
 
         await _customAuth.updateProfile(userDetails).then((value) => {
               Navigator.pushAndRemoveUntil(context,
                   MaterialPageRoute(builder: (context) {
-                return NotificationsSetupScreen();
+                return NotificationsSetupScreen(widget.enableBackButton);
               }), (r) => false)
             });
       }
@@ -205,6 +235,70 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   }
 
   Widget titleDropdown() {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          showDropDown = true;
+        });
+      },
+      child: Container(
+          width: 70,
+          padding:
+              const EdgeInsets.only(left: 10, right: 10, top: 15, bottom: 15),
+          decoration: BoxDecoration(
+              color: const Color(0xffF4F4F4),
+              borderRadius: BorderRadius.circular(8)),
+          child: Center(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('${title.substring(0, 2)}.'),
+                const Icon(
+                  Icons.keyboard_arrow_down_sharp,
+                  color: Colors.black,
+                ),
+              ],
+            ),
+          )),
+    );
+  }
+
+  Widget titleDropdownList() {
+    return Container(
+        width: 140,
+        height: 100,
+        padding: const EdgeInsets.only(left: 10, right: 10),
+        decoration: BoxDecoration(
+            color: const Color(0xffF4F4F4),
+            borderRadius: BorderRadius.circular(8)),
+        child: MediaQuery.removePadding(
+            context: context,
+            removeTop: true,
+            child: ListView.builder(
+              itemBuilder: (BuildContext context, int index) {
+                return GestureDetector(
+                  onTap: () {
+                    updateTitle(titleOptions[index]);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 8, left: 12),
+                    child: Text(
+                      '${titleOptions[index]}',
+                      style: TextStyle(
+                          fontSize: 14,
+                          color: title == titleOptions[index]
+                              ? ColorConstants.appColorBlack
+                              : ColorConstants.appColorBlack.withOpacity(0.32)),
+                    ),
+                  ),
+                );
+              },
+              itemCount: titleOptions.length,
+            )));
+  }
+
+  Widget titleDropdownV1() {
     return Container(
         width: 70,
         padding: const EdgeInsets.only(left: 10, right: 10),
@@ -241,41 +335,11 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
         ));
   }
 
-  Widget titleDropdownList() {
-    return Container(
-        width: 70,
-        padding: const EdgeInsets.only(left: 10, right: 10),
-        decoration: BoxDecoration(
-            color: ColorConstants.greyColor.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(10)),
-        child: Center(
-          child: DropdownButton<String>(
-            value: 'Ms.',
-            icon: const Icon(
-              Icons.keyboard_arrow_down_sharp,
-              color: Colors.black,
-            ),
-            iconSize: 10,
-            dropdownColor: ColorConstants.greyColor.withOpacity(0.2),
-            elevation: 0,
-            underline: const Visibility(visible: false, child: SizedBox()),
-            style: const TextStyle(color: Colors.black),
-            onChanged: (String? newValue) {},
-            borderRadius: BorderRadius.circular(10.0),
-            items: <String>['Ms.', 'Mr.', 'Ra']
-                .map<DropdownMenuItem<String>>((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(
-                  value,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 3,
-                  style: TextStyle(fontSize: 14),
-                ),
-              );
-            }).toList(),
-          ),
-        ));
+  void updateTitle(String text) {
+    setState(() {
+      title = text;
+      showDropDown = false;
+    });
   }
 
   void valueChange(text) {

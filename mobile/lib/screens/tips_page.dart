@@ -125,12 +125,7 @@ class _TipsPageState extends State<TipsPage> {
                                               const Duration(milliseconds: 200),
                                           curve: Curves.bounceIn);
                                       if (controller.page != null) {
-                                        await SharedPreferences.getInstance()
-                                            .then((preferences) => {
-                                                  preferences.setDouble(
-                                                      PrefConstant.tipsProgress,
-                                                      controller.page! / 10)
-                                                });
+                                        updateProgress();
                                       }
                                     } else {
                                       controller.jumpToPage(slides.length - 1);
@@ -271,5 +266,20 @@ class _TipsPageState extends State<TipsPage> {
         ),
       ),
     );
+  }
+
+  Future<void> updateProgress() async {
+    try {
+      var preferences = await SharedPreferences.getInstance();
+
+      var progress = preferences.getDouble(PrefConstant.tipsProgress) ?? 0.0;
+      var newProgress = (controller.page! / 10) + 0.1;
+
+      if (newProgress > progress) {
+        await preferences.setDouble(PrefConstant.tipsProgress, newProgress);
+      }
+    } catch (e) {
+      print(e);
+    }
   }
 }

@@ -27,75 +27,9 @@ import 'air_pollution_ways_page.dart';
 import 'favourite_places.dart';
 import 'for_you_page.dart';
 
-class CircularBorder extends StatelessWidget {
-  final Color color = ColorConstants.inactiveColor;
-  final double size = 25;
-  final double width = 1.0;
-
-  CircularBorder({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: size,
-      width: size,
-      alignment: Alignment.center,
-      child: Stack(
-        alignment: Alignment.center,
-        children: <Widget>[
-          Icon(
-            Icons.add,
-            size: 20,
-            color: ColorConstants.inactiveColor,
-          ),
-          CustomPaint(
-            size: Size(size, size),
-            foregroundPainter: MyPainter(completeColor: color, width: width),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class DashboardView extends StatefulWidget {
   @override
   _DashboardViewState createState() => _DashboardViewState();
-}
-
-class MyPainter extends CustomPainter {
-  Color lineColor = Colors.transparent;
-  Color completeColor;
-  double width;
-
-  MyPainter({required this.completeColor, required this.width});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    var complete = Paint()
-      ..color = completeColor
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = width;
-
-    var center = Offset(size.width / 2, size.height / 2);
-    var radius = min(size.width / 2, size.height / 2);
-    var percent = (size.width * 0.001) / 2;
-
-    var arcAngle = 2 * pi * percent;
-
-    for (var i = 0; i < 8; i++) {
-      var init = (-pi / 2) * (i / 2);
-
-      canvas.drawArc(Rect.fromCircle(center: center, radius: radius), init,
-          arcAngle, false, complete);
-    }
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) {
-    return true;
-  }
 }
 
 class _DashboardViewState extends State<DashboardView> {
@@ -396,7 +330,7 @@ class _DashboardViewState extends State<DashboardView> {
     }
   }
 
-  Future<void> getLocationMeasurements() async {
+  void getLocationMeasurements() async {
     try {
       await Settings().dashboardMeasurement().then((value) => {
             if (value != null)
@@ -444,7 +378,7 @@ class _DashboardViewState extends State<DashboardView> {
     setGreetings();
     getStories();
     _getLatestMeasurements();
-    await getLocationMeasurements();
+    getLocationMeasurements();
     getFavouritePlaces();
     var preferences = await SharedPreferences.getInstance();
     setState(() {
@@ -530,6 +464,9 @@ class _DashboardViewState extends State<DashboardView> {
                   onTap: () async {
                     var response = await Navigator.push(context,
                         MaterialPageRoute(builder: (context) {
+                      if (tipsProgress >= 1.0) {
+                        return ForYouPage();
+                      }
                       return const TipsPage();
                     }));
                     if (response == null) {
@@ -553,6 +490,9 @@ class _DashboardViewState extends State<DashboardView> {
                   onTap: () async {
                     var response = await Navigator.push(context,
                         MaterialPageRoute(builder: (context) {
+                      if (tipsProgress >= 1.0) {
+                        return ForYouPage();
+                      }
                       return const TipsPage();
                     }));
                     if (response == null) {
@@ -583,7 +523,7 @@ class _DashboardViewState extends State<DashboardView> {
                               fontSize: 12,
                               color: ColorConstants.appColorBlue,
                             )),
-                      if (tipsProgress == 1.0)
+                      if (tipsProgress >= 1.0)
                         const Text('Complete! Move to ',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -591,7 +531,7 @@ class _DashboardViewState extends State<DashboardView> {
                             style: TextStyle(
                               fontSize: 12,
                             )),
-                      if (tipsProgress == 1.0)
+                      if (tipsProgress >= 1.0)
                         Text('For You',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -614,12 +554,17 @@ class _DashboardViewState extends State<DashboardView> {
                 const SizedBox(
                   height: 2,
                 ),
-                LinearProgressIndicator(
-                  color: ColorConstants.appColorBlue,
-                  value: tipsProgress,
-                  backgroundColor:
-                      ColorConstants.appColorDisabled.withOpacity(0.2),
-                )
+                Container(
+                    height: 4,
+                    decoration: const BoxDecoration(
+                      borderRadius: BorderRadius.all(Radius.circular(8.0)),
+                    ),
+                    child: LinearProgressIndicator(
+                      color: ColorConstants.appColorBlue,
+                      value: tipsProgress,
+                      backgroundColor:
+                          ColorConstants.appColorDisabled.withOpacity(0.2),
+                    )),
               ],
             ),
           ),
@@ -630,6 +575,9 @@ class _DashboardViewState extends State<DashboardView> {
             onTap: () async {
               var response = await Navigator.push(context,
                   MaterialPageRoute(builder: (context) {
+                if (tipsProgress >= 1.0) {
+                  return ForYouPage();
+                }
                 return const TipsPage();
               }));
               if (response == null) {
@@ -835,7 +783,7 @@ class _DashboardViewState extends State<DashboardView> {
             ),
             Visibility(
                 visible: measurementData != null,
-                child: AnalyticsCard(measurementData)),
+                child: AnalyticsCard(measurementData, initialize)),
             Visibility(
                 visible: measurementData == null,
                 child: loadingAnimation(255.0, 16.0)),

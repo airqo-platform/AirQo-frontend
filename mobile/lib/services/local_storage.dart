@@ -9,7 +9,6 @@ import 'package:app/models/site.dart';
 import 'package:app/models/story.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:app/models/userDetails.dart';
-import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/distance.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:path/path.dart';
@@ -719,13 +718,13 @@ class DBHelper {
 
     await prefs.setStringList(PrefConstant.favouritePlaces, favouritePlaces);
 
-    if (favouritePlaces.contains(id)) {
-      await showSnackBar(
-          context, '${site.getName()} has been added to your places');
-    } else {
-      await showSnackBar(
-          context, '${site.getName()} has been removed from your places');
-    }
+    // if (favouritePlaces.contains(id)) {
+    //   await showSnackBar(
+    //       context, '${site.getName()} has been added to your places');
+    // } else {
+    //   await showSnackBar(
+    //       context, '${site.getName()} has been removed from your places');
+    // }
 
     return favouritePlaces.contains(id);
   }

@@ -1,7 +1,7 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/userDetails.dart';
+import 'package:app/on_boarding/phone_signup_screen.dart';
 import 'package:app/screens/settings_page.dart';
-import 'package:app/screens/signup_page.dart';
 import 'package:app/screens/tips_page.dart';
 import 'package:app/screens/view_profile_page.dart';
 import 'package:app/services/fb_notifications.dart';
@@ -78,7 +78,7 @@ class _ProfileViewState extends State<ProfileView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Visibility(
-                          visible: !isLoggedIn,
+                          visible: isLoggedIn,
                           child: Expanded(
                             child: ListView(
                               shrinkWrap: true,
@@ -109,7 +109,7 @@ class _ProfileViewState extends State<ProfileView> {
                             ),
                           )),
                       Visibility(
-                        visible: !isLoggedIn,
+                        visible: isLoggedIn,
                         child: logoutSection(
                             'Logout',
                             'assets/icon/location.svg',
@@ -117,7 +117,7 @@ class _ProfileViewState extends State<ProfileView> {
                             logOut),
                       ),
                       Visibility(
-                          visible: isLoggedIn,
+                          visible: !isLoggedIn,
                           child: Expanded(
                             child: ListView(
                               shrinkWrap: true,
@@ -142,11 +142,8 @@ class _ProfileViewState extends State<ProfileView> {
                                 const SizedBox(
                                   height: 16,
                                 ),
-                                cardSection(
-                                    'Settings',
-                                    'assets/icon/location.svg',
-                                    ColorConstants.appColorBlue,
-                                    dummyFn),
+                                cardSection('Settings', 'assets/icon/cog.svg',
+                                    ColorConstants.appColorBlue, settings),
                               ],
                             ),
                           )),
@@ -226,7 +223,7 @@ class _ProfileViewState extends State<ProfileView> {
       onTap: callBackFn,
       child: Container(
         height: 48,
-        padding: EdgeInsets.only(top: 12, bottom: 12),
+        padding: const EdgeInsets.only(top: 12, bottom: 12),
         decoration: BoxDecoration(
             color: ColorConstants.appColorBlue.withOpacity(0.1),
             borderRadius: BorderRadius.all(Radius.circular(8.0))),
@@ -320,7 +317,7 @@ class _ProfileViewState extends State<ProfileView> {
             onTap: () async {
               var saved = await Navigator.push(context,
                   MaterialPageRoute(builder: (context) {
-                return SignUpPage();
+                return PhoneSignupScreen(true);
               }));
               if (saved != null && saved) {
                 await initialize();

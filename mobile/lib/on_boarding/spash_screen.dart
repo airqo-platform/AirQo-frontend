@@ -1,4 +1,5 @@
 import 'package:app/on_boarding/welcome_screen.dart';
+import 'package:app/screens/home_page.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
@@ -37,15 +38,14 @@ class SplashScreenState extends State<SplashScreen> {
     });
 
     _customAuth.isFirstUse().then((value) => {
-          Future.delayed(const Duration(seconds: 8), () async {
+          Future.delayed(const Duration(seconds: 7), () async {
             await Navigator.pushAndRemoveUntil(context,
                 MaterialPageRoute(builder: (context) {
-              // if (value) {
-              //   return WelcomeScreen();
-              // } else {
-              //   return HomePage();
-              // }
-              return WelcomeScreen();
+              if (value) {
+                return WelcomeScreen();
+              } else {
+                return HomePage();
+              }
             }), (r) => false);
           }),
         });

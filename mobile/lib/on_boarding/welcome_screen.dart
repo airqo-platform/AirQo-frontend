@@ -6,8 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/svg.dart';
 
-import 'notifications_setup_screen.dart';
-
 class WelcomeScreen extends StatefulWidget {
   @override
   WelcomeScreenState createState() => WelcomeScreenState();
@@ -75,8 +73,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
                 onTap: () {
                   Navigator.pushAndRemoveUntil(context,
                       MaterialPageRoute(builder: (context) {
-                    // return PhoneSignupScreen(false);
-                    return NotificationsSetupScreen();
+                    return PhoneSignupScreen(false);
                   }), (r) => false);
                 },
                 child: nextButton('Let’s go', ColorConstants.appColorBlue),

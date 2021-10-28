@@ -4,6 +4,10 @@ import 'package:app/utils/dialogs.dart';
 import 'package:flutter/material.dart';
 
 class SetUpCompleteScreen extends StatefulWidget {
+  bool enableBackButton;
+
+  SetUpCompleteScreen(this.enableBackButton);
+
   @override
   SetUpCompleteScreenState createState() => SetUpCompleteScreenState();
 }
@@ -69,6 +73,13 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
       showSnackBar(context, 'Tap again to exit !');
       return Future.value(false);
     }
+    if (widget.enableBackButton) {
+      Navigator.pushAndRemoveUntil(context,
+          MaterialPageRoute(builder: (context) {
+        return HomePage();
+      }), (r) => false);
+    }
+
     return Future.value(true);
   }
 }

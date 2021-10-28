@@ -4,6 +4,7 @@ part 'userDetails.g.dart';
 
 @JsonSerializable()
 class UserDetails {
+  String title;
   String firstName;
   String userId;
   String lastName;
@@ -12,8 +13,8 @@ class UserDetails {
   String device;
   String photoUrl;
 
-  UserDetails(this.firstName, this.userId, this.lastName, this.emailAddress,
-      this.phoneNumber, this.device, this.photoUrl);
+  UserDetails(this.title, this.firstName, this.userId, this.lastName,
+      this.emailAddress, this.phoneNumber, this.device, this.photoUrl);
 
   factory UserDetails.fromJson(Map<String, dynamic> json) =>
       _$UserDetailsFromJson(json);
@@ -67,6 +68,6 @@ class UserDetails {
   }
 
   static UserDetails initialize() {
-    return UserDetails('', '', '', '', '', '', '');
+    return UserDetails('', '', '', '', '', '', '', '');
   }
 }

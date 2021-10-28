@@ -1,5 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/on_boarding/setup_complete_screeen.dart';
+import 'package:app/screens/home_page.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
@@ -8,6 +9,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 class LocationSetupScreen extends StatefulWidget {
+  bool enableBackButton;
+
+  LocationSetupScreen(this.enableBackButton);
+
   @override
   LocationSetupScreenState createState() => LocationSetupScreenState();
 }
@@ -50,7 +55,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
                 LocationService().getLocation().then((value) => {
                       Navigator.pushAndRemoveUntil(context,
                           MaterialPageRoute(builder: (context) {
-                        return SetUpCompleteScreen();
+                        return SetUpCompleteScreen(widget.enableBackButton);
                       }), (r) => false)
                     });
               },
@@ -65,7 +70,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
             onTap: () {
               Navigator.pushAndRemoveUntil(context,
                   MaterialPageRoute(builder: (context) {
-                return SetUpCompleteScreen();
+                return SetUpCompleteScreen(widget.enableBackButton);
               }), (r) => false);
             },
             child: Text(
@@ -95,6 +100,13 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
       showSnackBar(context, 'Tap again to exit !');
       return Future.value(false);
     }
+    if (widget.enableBackButton) {
+      Navigator.pushAndRemoveUntil(context,
+          MaterialPageRoute(builder: (context) {
+        return HomePage();
+      }), (r) => false);
+    }
+
     return Future.value(true);
   }
 }

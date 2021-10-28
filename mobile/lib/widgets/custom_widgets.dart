@@ -2,7 +2,6 @@ import 'package:app/constants/app_constants.dart';
 import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/screens/air_pollution_ways_page.dart';
-import 'package:app/screens/tip_page.dart';
 import 'package:app/utils/pm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -236,38 +235,6 @@ PreferredSizeWidget knowYourAirAppBar(context, title) {
   );
 }
 
-Widget locationTile(Measurement measurement) {
-  return Container(
-    padding: const EdgeInsets.all(8.0),
-    decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: const BorderRadius.all(Radius.circular(16.0)),
-        border: Border.all(color: Colors.transparent)),
-    child: ListTile(
-      contentPadding: const EdgeInsets.only(left: 0.0),
-      title: Text(
-        '${measurement.site.getName()}',
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-      ),
-      subtitle: Text(
-        '${measurement.site.getLocation()}',
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(color: Colors.black.withOpacity(0.3), fontSize: 14),
-      ),
-      trailing: SvgPicture.asset(
-        'assets/icon/more_arrow.svg',
-        semanticsLabel: 'more',
-        height: 6.99,
-        width: 4,
-      ),
-      leading: analyticsAvatar(measurement, 40, 15, 5),
-    ),
-  );
-}
-
 Widget locationTileV1(Measurement measurement) {
   return ListTile(
     title: Text(
@@ -371,6 +338,38 @@ Widget locationTileV1(Measurement measurement) {
           size: 15,
         ),
       ),
+    ),
+  );
+}
+
+Widget searchLocationTile(Measurement measurement) {
+  return Container(
+    padding: const EdgeInsets.only(left: 16.0, right: 30.0),
+    decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+        border: Border.all(color: Colors.transparent)),
+    child: ListTile(
+      contentPadding: const EdgeInsets.only(left: 0.0),
+      title: Text(
+        '${measurement.site.getName()}',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+      ),
+      subtitle: Text(
+        '${measurement.site.getLocation()}',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(color: Colors.black.withOpacity(0.3), fontSize: 14),
+      ),
+      trailing: SvgPicture.asset(
+        'assets/icon/more_arrow.svg',
+        semanticsLabel: 'more',
+        height: 6.99,
+        width: 4,
+      ),
+      leading: analyticsAvatar(measurement, 40, 15, 5),
     ),
   );
 }
