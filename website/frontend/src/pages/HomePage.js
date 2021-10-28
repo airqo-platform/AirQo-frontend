@@ -13,6 +13,7 @@ import Checked from 'icons/homepage/checked.svg';
 import UnChecked from 'icons/homepage/unchecked.svg';
 import PlaceHolderLong from 'icons/homepage/placeholder_long.svg';
 import ArrowRight from 'icons/homepage/arrow-right.svg';
+import MapIcon from 'icons/homepage/map.svg';
 import NavTab from '../components/nav/NavTab';
 
 const Icon = ({ icon }) => (
@@ -187,12 +188,35 @@ const AirQoAnalytics = () => (
         </div>
 );
 
+const Map = () => (
+        <div className="map-section">
+            <div className="content-map">
+                <div className="map-title">Monitor by map </div>
+                <div className="map-text-main">Leverage our wide reach in Ugandan cities.</div>
+                <div className="map-text-secondary">We use low-cost technologies and Artificial intelligence to close the gaps in air quality data across the African continent. </div>
+                <div className="map-demo">View the map <ArrowRight width={15} height={10} style={{ marginLeft: '8px' }} /></div>
+            </div>
+            <div className="map-container">
+                <MapIcon className="airqo-map" height={536} width={633} />
+                <div className="map-label">
+                    <div className="value">50</div>
+                    <div>
+                        <span className="location">Kampala</span>
+                        <span className="region">Central Region, Uganda</span>
+                        <span className="category">Good</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+);
+
 const HomePage = () => (
     <div className="HomePage">
         <Intro />
         <AirQuality />
         <AirQoAPI />
         <AirQoAnalytics />
+        <Map />
         <Partners />
         <Newsletter />
     </div>
