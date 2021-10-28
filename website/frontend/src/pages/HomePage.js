@@ -210,6 +210,34 @@ const Map = () => (
         </div>
 );
 
+const AirQoMonitor = () => (
+        <div className="monitor-section">
+            <div className="content-api">
+                <div className="api-title">AirQo Monitors</div>
+                <div className="api-text-main">Access air quality data through our API</div>
+                <div className="api-text-secondary">We use low-cost technologies and Artificial intelligence to close the gaps in air quality data across the African continent. </div>
+                <div className="api-demo">Request a Demo <ArrowRight width={15} height={10} style={{ marginLeft: '8px' }} /></div>
+                <div className="api-details-wrapper">
+                    <div className="api-details bg-light">
+                        <div className="api-circle-wrapper">
+                            <div className="api-circle" />
+                        </div>
+                        <div className="api-details-text-primary">We use low-cost technologies </div>
+                        <div className="api-details-text-secondary">We use low-cost technologies and Artificial intelligence to close the gaps in air quality data across the African continent. </div>
+                    </div>
+                    <div className="api-details">
+                        <div className="api-circle-wrapper">
+                            <div className="api-circle" />
+                        </div>
+                        <div className="api-details-text-primary">We use low-cost technologies </div>
+                        <div className="api-details-text-secondary">We use low-cost technologies and Artificial intelligence to close the gaps in air quality data across the African continent. </div>
+                    </div>
+                </div>
+            </div>
+            <PlaceHolderLong height={668} width={520} />
+        </div>
+);
+
 const HomePage = () => (
     <div className="HomePage">
         <Intro />
@@ -217,6 +245,7 @@ const HomePage = () => (
         <AirQoAPI />
         <AirQoAnalytics />
         <Map />
+        <AirQoMonitor />
         <Partners />
         <Newsletter />
     </div>

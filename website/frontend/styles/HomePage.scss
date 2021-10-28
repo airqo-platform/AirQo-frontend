@@ -313,7 +313,7 @@ $home-padding: 80px;
     }
   }
 
-  .api-section, .analytics-section {
+  .api-section, .analytics-section, .monitor-section {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -525,8 +525,12 @@ $home-padding: 80px;
     }
   }
 
-  .analytics-section {
+  .analytics-section, .monitor-section {
     background: #FFFFFF;
+  }
+
+  .bg-light {
+    background: #FFFFFF !important;
   }
 
   .map-section {
