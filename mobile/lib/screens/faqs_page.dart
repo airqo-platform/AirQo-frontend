@@ -2,13 +2,6 @@ import 'package:app/constants/app_constants.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
 
-class AboutAirQo extends StatefulWidget {
-  const AboutAirQo({Key? key}) : super(key: key);
-
-  @override
-  _AboutAirQoState createState() => _AboutAirQoState();
-}
-
 class ContactUsPage extends StatefulWidget {
   const ContactUsPage({Key? key}) : super(key: key);
 
@@ -28,17 +21,6 @@ class TermsAndPolicy extends StatefulWidget {
 
   @override
   _TermsAndPolicyState createState() => _TermsAndPolicyState();
-}
-
-class _AboutAirQoState extends State<AboutAirQo> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: appTopBar(context, 'About AirQo'),
-        body: Container(
-          color: ColorConstants.appBodyColor,
-        ));
-  }
 }
 
 class _ContactUsPageState extends State<ContactUsPage> {

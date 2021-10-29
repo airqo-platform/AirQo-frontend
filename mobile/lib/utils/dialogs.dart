@@ -308,23 +308,6 @@ void pmInfoDialog(context, Measurement measurement) {
   );
 }
 
-void showInfoDialog(BuildContext context, String text) {
-  showDialog<void>(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        content: Text(text),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('CLOSE'),
-          ),
-        ],
-      );
-    },
-  );
-}
-
 Future<void> showSnackBar(context, String message) async {
   var snackBar = SnackBar(
     shape: RoundedRectangleBorder(
@@ -332,25 +315,6 @@ Future<void> showSnackBar(context, String message) async {
     ),
     elevation: 10,
     behavior: SnackBarBehavior.floating,
-    content: Text(
-      message,
-      softWrap: true,
-      textAlign: TextAlign.center,
-      style: const TextStyle(
-        color: Colors.white,
-      ),
-    ),
-    backgroundColor: ColorConstants.snackBarBgColor,
-  );
-  ScaffoldMessenger.of(context).showSnackBar(snackBar);
-}
-
-Future<void> showSnackBar2(context, String message) async {
-  var snackBar = SnackBar(
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(10),
-    ),
-    elevation: 20,
     content: Text(
       message,
       softWrap: true,

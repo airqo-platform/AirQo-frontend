@@ -2,11 +2,15 @@ import 'package:app/constants/app_constants.dart';
 import 'package:app/models/userDetails.dart';
 import 'package:app/screens/tips_page.dart';
 import 'package:app/services/fb_notifications.dart';
+import 'package:app/services/native_api.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import 'about_page.dart';
 import 'faqs_page.dart';
+import 'feedback_page.dart';
 
 class SettingsPage extends StatefulWidget {
   SettingsPage({Key? key}) : super(key: key);
@@ -18,6 +22,8 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   var userProfile = UserDetails.initialize();
   final CustomAuth _customAuth = CustomAuth(FirebaseAuth.instance);
+  bool allowNotification = false;
+  bool allowLocation = false;
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +53,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ))));
   }
 
-  Widget cardSection(text) {
+  Widget cardSection(String text) {
     return Container(
         height: 56,
         decoration: const BoxDecoration(
@@ -83,6 +89,18 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> initialize() async {
+    await NotificationService().checkPermission().then((value) => {
+          setState(() {
+            allowNotification = value;
+          }),
+        });
+
+    await LocationService().checkPermission().then((value) => {
+          setState(() {
+            allowLocation = value;
+          }),
+        });
+
     await _customAuth.getProfile().then((value) => {
           setState(() {
             userProfile = value;
@@ -111,20 +129,82 @@ class _SettingsPageState extends State<SettingsPage> {
                 return const TipsPage();
               }));
             },
-            child: cardSection('Location'),
+            child: Container(
+                height: 56,
+                decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.all(Radius.circular(0.0))),
+                child: ListTile(
+                  title: const Text(
+                    'Location',
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  trailing: CupertinoSwitch(
+                    activeColor: ColorConstants.green,
+                    onChanged: (bool value) {
+                      if (value) {
+                        LocationService()
+                            .requestLocationAccess()
+                            .then((response) => {
+                                  setState(() {
+                                    allowLocation = response;
+                                  })
+                                });
+                      } else {
+                        NotificationService()
+                            .revokePermission()
+                            .then((response) => {
+                                  setState(() {
+                                    allowLocation = response;
+                                  })
+                                });
+                      }
+                    },
+                    value: allowLocation,
+                  ),
+                )),
           ),
           Divider(
             color: ColorConstants.appBodyColor,
           ),
           GestureDetector(
-            onTap: () async {
-              await Navigator.push(context,
-                  MaterialPageRoute(builder: (context) {
-                return const TipsPage();
-              }));
-            },
-            child: cardSection('Notification'),
-          ),
+              onTap: () async {
+                await Navigator.push(context,
+                    MaterialPageRoute(builder: (context) {
+                  return const TipsPage();
+                }));
+              },
+              child: ListTile(
+                title: const Text(
+                  'Notification',
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 16),
+                ),
+                trailing: CupertinoSwitch(
+                  activeColor: ColorConstants.green,
+                  onChanged: (bool value) {
+                    if (value) {
+                      NotificationService()
+                          .requestPermission()
+                          .then((response) => {
+                                setState(() {
+                                  allowNotification = response;
+                                })
+                              });
+                    } else {
+                      NotificationService()
+                          .revokePermission()
+                          .then((response) => {
+                                setState(() {
+                                  allowNotification = response;
+                                })
+                              });
+                    }
+                  },
+                  value: allowNotification,
+                ),
+              )),
           Divider(
             color: ColorConstants.appBodyColor,
           ),
@@ -144,10 +224,10 @@ class _SettingsPageState extends State<SettingsPage> {
             onTap: () async {
               await Navigator.push(context,
                   MaterialPageRoute(builder: (context) {
-                return ContactUsPage();
+                return FeedbackPage();
               }));
             },
-            child: cardSection('Contact us'),
+            child: cardSection('Send feedback'),
           ),
           Divider(
             color: ColorConstants.appBodyColor,
@@ -159,7 +239,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 return TermsAndPolicy();
               }));
             },
-            child: cardSection('Terms & Privacy'),
+            child: cardSection('Rate the AirQo App'),
           ),
           Divider(
             color: ColorConstants.appBodyColor,
@@ -171,7 +251,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 return AboutAirQo();
               }));
             },
-            child: cardSection('About AirQo'),
+            child: cardSection('About'),
           ),
         ],
       ),

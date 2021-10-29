@@ -467,7 +467,7 @@ class _DashboardViewState extends State<DashboardView> {
                       if (tipsProgress >= 1.0) {
                         return ForYouPage();
                       }
-                      return const TipsPage();
+                      return const AirPollutionWaysPage();
                     }));
                     if (response == null) {
                       await initialize();
@@ -493,7 +493,7 @@ class _DashboardViewState extends State<DashboardView> {
                       if (tipsProgress >= 1.0) {
                         return ForYouPage();
                       }
-                      return const TipsPage();
+                      return const AirPollutionWaysPage();
                     }));
                     if (response == null) {
                       await initialize();
@@ -578,7 +578,7 @@ class _DashboardViewState extends State<DashboardView> {
                 if (tipsProgress >= 1.0) {
                   return ForYouPage();
                 }
-                return const TipsPage();
+                return const AirPollutionWaysPage();
               }));
               if (response == null) {
                 await initialize();
@@ -790,10 +790,10 @@ class _DashboardViewState extends State<DashboardView> {
             const SizedBox(
               height: 16,
             ),
-            tipWidget(context, 'Actions You Can Take to Reduce Air Pollution'),
-            const SizedBox(
-              height: 16,
-            ),
+            // tipWidget(context, 'Actions You Can Take to Reduce Air Pollution'),
+            // const SizedBox(
+            //   height: 16,
+            // ),
             tipsSection(),
             const SizedBox(
               height: 12,

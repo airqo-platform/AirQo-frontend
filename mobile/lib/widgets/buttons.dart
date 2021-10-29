@@ -4,6 +4,59 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+Widget containerBackButton(String text, Color buttonColor) {
+  return Container(
+    height: 48,
+    width: 120,
+    padding: const EdgeInsets.all(13),
+    decoration: BoxDecoration(
+        color: buttonColor,
+        borderRadius: const BorderRadius.all(Radius.circular(8.0))),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          text,
+          textAlign: TextAlign.center,
+          style: TextStyle(color: ColorConstants.appColorBlue, fontSize: 14),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget containerNextButton(String text, Color buttonColor) {
+  return Container(
+    height: 48,
+    width: 120,
+    padding: const EdgeInsets.all(13),
+    decoration: BoxDecoration(
+        color: buttonColor,
+        borderRadius: const BorderRadius.all(Radius.circular(8.0))),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          text,
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: Colors.white, fontSize: 14),
+        ),
+        const SizedBox(
+          width: 11,
+        ),
+        SvgPicture.asset(
+          'assets/icon/next_arrow.svg',
+          semanticsLabel: 'Share',
+          height: 17.42,
+          width: 10.9,
+        ),
+      ],
+    ),
+  );
+}
+
 Widget countryDropDown(String text) {
   return Container(
     padding: const EdgeInsets.all(20),
@@ -61,7 +114,7 @@ Widget nextButton(String text, Color buttonColor) {
     constraints: const BoxConstraints(minWidth: double.infinity),
     decoration: BoxDecoration(
         color: buttonColor,
-        borderRadius: const BorderRadius.all(Radius.circular(10.0))),
+        borderRadius: const BorderRadius.all(Radius.circular(8.0))),
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.center,

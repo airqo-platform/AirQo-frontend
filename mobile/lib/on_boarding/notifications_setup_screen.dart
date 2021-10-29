@@ -58,9 +58,6 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
                         return LocationSetupScreen(widget.enableBackButton);
                       }), (r) => false)
                     });
-                // Navigator.push(context, MaterialPageRoute(builder: (context) {
-                //   return LocationSetupScreen();
-                // }));
               },
               child:
                   nextButton('Yes, keep me safe', ColorConstants.appColorBlue),

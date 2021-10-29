@@ -69,7 +69,7 @@ class _InsightsCardState extends State<InsightsCard> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              chartDateTimeToString(
+                              insightsChartDateTimeToString(
                                   selectedMeasurement.formattedTime),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -139,11 +139,16 @@ class _InsightsCardState extends State<InsightsCard> {
                     decoration: BoxDecoration(
                         borderRadius:
                             const BorderRadius.all(Radius.circular(40.0)),
-                        color: pollutant == 'pm2.5'
-                            ? pm2_5ToColor(selectedMeasurement.getPm2_5Value())
-                                .withOpacity(0.4)
-                            : pm10TextColor(selectedMeasurement.getPm10Value())
-                                .withOpacity(0.4),
+                        color: selectedMeasurement.formattedTime
+                                .isAfter(DateTime.now())
+                            ? ColorConstants.appColorPaleBlue
+                            : pollutant == 'pm2.5'
+                                ? pm2_5ToColor(
+                                        selectedMeasurement.getPm2_5Value())
+                                    .withOpacity(0.4)
+                                : pm10ToColor(
+                                        selectedMeasurement.getPm10Value())
+                                    .withOpacity(0.4),
                         border: Border.all(color: Colors.transparent)),
                     child: Text(
                       pmToString(selectedMeasurement.getPm2_5Value()),
@@ -152,10 +157,14 @@ class _InsightsCardState extends State<InsightsCard> {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 14,
-                        color: pollutant == 'pm2.5'
-                            ? pm2_5TextColor(
-                                selectedMeasurement.getPm2_5Value())
-                            : pm10TextColor(selectedMeasurement.getPm10Value()),
+                        color: selectedMeasurement.formattedTime
+                                .isAfter(DateTime.now())
+                            ? ColorConstants.appColorBlue
+                            : pollutant == 'pm2.5'
+                                ? pm2_5TextColor(
+                                    selectedMeasurement.getPm2_5Value())
+                                : pm10TextColor(
+                                    selectedMeasurement.getPm10Value()),
                       ),
                     ),
                   ),
@@ -184,9 +193,10 @@ class _InsightsCardState extends State<InsightsCard> {
                             width: 10,
                             decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: viewDay == 'tomorrow'
+                                color: selectedMeasurement.formattedTime
+                                        .isAfter(DateTime.now())
                                     ? ColorConstants.appColorBlue
-                                    : ColorConstants.appColorDisabled,
+                                    : ColorConstants.appColorPaleBlue,
                                 border: Border.all(color: Colors.transparent))),
                         const SizedBox(
                           width: 8.0,
@@ -194,11 +204,7 @@ class _InsightsCardState extends State<InsightsCard> {
                         Text(
                           'Forecast',
                           style: TextStyle(
-                            fontSize: 12,
-                            color: viewDay == 'tomorrow'
-                                ? ColorConstants.appColorBlue
-                                : ColorConstants.appColorDisabled,
-                          ),
+                              fontSize: 12, color: ColorConstants.appColorBlue),
                         )
                       ],
                     ),

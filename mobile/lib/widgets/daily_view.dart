@@ -108,8 +108,12 @@ class _DailyViewState extends State<DailyView> with TickerProviderStateMixin {
                     width: 60,
                   ),
                   GestureDetector(
-                    onTap: () {
-                      DBHelper().updateFavouritePlaces(site, context);
+                    onTap: () async {
+                      var result =
+                          await DBHelper().updateFavouritePlaces(site, context);
+                      setState(() {
+                        isFav = result;
+                      });
                     },
                     child: iconTextButton(
                         SvgPicture.asset(
@@ -117,6 +121,8 @@ class _DailyViewState extends State<DailyView> with TickerProviderStateMixin {
                               ? 'assets/icon/heart.svg'
                               : 'assets/icon/heart_dislike.svg',
                           semanticsLabel: 'Favorite',
+                          height: 16.67,
+                          width: 16.67,
                         ),
                         'Favorite'),
                   ),
@@ -141,15 +147,18 @@ class _DailyViewState extends State<DailyView> with TickerProviderStateMixin {
             const SizedBox(
               height: 11,
             ),
-            SizedBox(
-              height: 128,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemBuilder: (context, index) => Padding(
-                  padding: const EdgeInsets.all(5),
-                  child: recommendationContainer(_recommendations[index]),
+            Visibility(
+              visible: viewDay == 'today' || viewDay == 'tomorrow',
+              child: SizedBox(
+                height: 128,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemBuilder: (context, index) => Padding(
+                    padding: const EdgeInsets.all(5),
+                    child: recommendationContainer(_recommendations[index]),
+                  ),
+                  itemCount: _recommendations.length,
                 ),
-                itemCount: _recommendations.length,
               ),
             ),
             const SizedBox(
@@ -161,7 +170,7 @@ class _DailyViewState extends State<DailyView> with TickerProviderStateMixin {
 
   void callBackFn(HistoricalMeasurement measurement) {
     var offSet = DateTime.now().timeZoneOffset.inHours;
-    var time = DateTime.parse(measurement.time).add(Duration(hours: offSet));
+    var time = measurement.formattedTime;
     var tomorrow = DateTime.now().add(const Duration(days: 1));
     setState(() {
       _recommendations = getHealthRecommendations(measurement.getPm2_5Value());

@@ -269,24 +269,27 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                         ),
                       ),
                       Visibility(
-                        visible: false,
+                        visible: !phoneSignUp,
                         child: emailInputField(),
                       ),
                       const SizedBox(
                         height: 36,
                       ),
-                      GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            phoneSignUp = !phoneSignUp;
-                            clearPhoneCallBack();
-                            clearEmailCallBack();
-                          });
-                        },
-                        child: signButton(phoneSignUp
-                            ? 'Sign up with email instead'
-                            : 'Sign up with a'
-                                ' mobile number instead'),
+                      Visibility(
+                        visible: false,
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              phoneSignUp = !phoneSignUp;
+                              clearPhoneCallBack();
+                              clearEmailCallBack();
+                            });
+                          },
+                          child: signButton(phoneSignUp
+                              ? 'Sign up with email instead'
+                              : 'Sign up with a'
+                                  ' mobile number instead'),
+                        ),
                       ),
                       const SizedBox(
                         height: 212,
@@ -348,7 +351,7 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
         alignment: Alignment.center,
         padding: const EdgeInsets.only(left: 15),
         decoration: BoxDecoration(
-            borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+            borderRadius: const BorderRadius.all(Radius.circular(8.0)),
             border: Border.all(color: ColorConstants.appColorBlue)),
         child: Center(
             child: TextFormField(

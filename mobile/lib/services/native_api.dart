@@ -10,6 +10,18 @@ import 'package:location/location.dart';
 class LocationService {
   Location location = Location();
 
+  Future<bool> checkPermission() async {
+    try {
+      var status = await location.hasPermission();
+      if (status == PermissionStatus.granted) {
+        return true;
+      }
+    } catch (e) {
+      print(e);
+    }
+    return false;
+  }
+
   bool containsWord(String body, String term) {
     var words = body.toLowerCase().split(' ');
     var terms = term.toLowerCase().split(' ');
@@ -165,8 +177,16 @@ class LocationService {
     return nearestSites;
   }
 
-  Future<void> requestLocationAccess() async {
-    await location.requestPermission();
+  Future<bool> requestLocationAccess() async {
+    try {
+      var status = await location.requestPermission();
+      if (status == PermissionStatus.granted) {
+        return true;
+      }
+    } catch (e) {
+      print(e);
+    }
+    return false;
   }
 
   Future<List<Measurement>> searchNearestSites(

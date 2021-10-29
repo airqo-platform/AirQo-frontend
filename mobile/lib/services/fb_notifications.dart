@@ -301,21 +301,49 @@ class CustomAuth {
 class NotificationService {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
+  Future<bool> checkPermission() async {
+    try {
+      var settings = await _firebaseMessaging.getNotificationSettings();
+
+      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+        return true;
+      }
+    } catch (e) {
+      print(e);
+    }
+
+    return false;
+  }
+
   Future<String?> getToken() async {
     var token = await _firebaseMessaging.getToken();
     return token;
   }
 
-  Future<void> requestPermission() async {
-    await _firebaseMessaging.requestPermission(
-      alert: true,
-      announcement: false,
-      badge: true,
-      carPlay: false,
-      criticalAlert: false,
-      provisional: false,
-      sound: true,
-    );
+  Future<bool> requestPermission() async {
+    try {
+      var settings = await _firebaseMessaging.requestPermission(
+        alert: true,
+        announcement: false,
+        badge: true,
+        carPlay: false,
+        criticalAlert: false,
+        provisional: false,
+        sound: true,
+      );
+      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+        return true;
+      }
+    } catch (e) {
+      print(e);
+    }
+
+    return false;
+  }
+
+  Future<bool> revokePermission() async {
+    // TODO: implement revoke permission
+    return false;
   }
 
   Future<void> subscribeToNewsFeed(

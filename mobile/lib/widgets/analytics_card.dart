@@ -225,6 +225,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                       SvgPicture.asset(
                         'assets/icon/share_icon.svg',
                         semanticsLabel: 'Share',
+                        color: ColorConstants.greyColor,
                       ),
                       'Share'),
                 ),

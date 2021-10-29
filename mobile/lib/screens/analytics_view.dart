@@ -46,17 +46,6 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                           style: TextStyle(color: ColorConstants.appColor),
                         ),
                       ),
-                      // child: Text(
-                      //   'You haven\'t added any locations you'
-                      //   ' care about '
-                      //   'to MyPlaces yet, use the add icon at '
-                      //   'the top to add them to your list',
-                      //   softWrap: true,
-                      //   textAlign: TextAlign.center,
-                      //   style: TextStyle(
-                      //     color: ColorConstants.appColor,
-                      //   ),
-                      // ),
                     ),
                   );
                 }
@@ -73,19 +62,22 @@ class _AnalyticsViewState extends State<AnalyticsView> {
               } else {
                 return ListView(
                   children: [
-                    loadingAnimation(253.0, 16.0),
                     const SizedBox(
                       height: 10,
                     ),
-                    loadingAnimation(253.0, 16.0),
+                    loadingAnimation(120.0, 16.0),
                     const SizedBox(
-                      height: 10,
+                      height: 15,
                     ),
-                    loadingAnimation(253.0, 16.0),
+                    loadingAnimation(120.0, 16.0),
                     const SizedBox(
-                      height: 10,
+                      height: 15,
                     ),
-                    loadingAnimation(253.0, 16.0),
+                    loadingAnimation(120.0, 16.0),
+                    const SizedBox(
+                      height: 15,
+                    ),
+                    loadingAnimation(120.0, 16.0),
                   ],
                 );
               }

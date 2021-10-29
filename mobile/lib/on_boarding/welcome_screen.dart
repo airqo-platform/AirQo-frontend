@@ -47,7 +47,6 @@ class WelcomeScreenState extends State<WelcomeScreen> {
             welcomeSection(
                 'Save your favorite places',
                 'Keep track of air quality in locations that matter to you',
-                const Color(0xffFBC110),
                 'assets/icon/onboarding_fav.svg'),
             const SizedBox(
               height: 22,
@@ -55,8 +54,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
             welcomeSection(
                 'New experiences for You',
                 'Access analytics and content curated just for you',
-                const Color(0xff9492B8),
-                ''),
+                'assets/icon/onboarding_hash_tag.svg'),
             const SizedBox(
               height: 22,
             ),
@@ -64,8 +62,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
                 'Know your air on the go',
                 'An easy way to plan your outdoor activities to minimise'
                     ' excessive exposure to bad air quality ',
-                const Color(0xff55B7A1),
-                ''),
+                'assets/icon/onboarding_profile_icon.svg'),
             const Spacer(),
             Padding(
               padding: const EdgeInsets.only(bottom: 96.0),
@@ -116,20 +113,15 @@ class WelcomeScreenState extends State<WelcomeScreen> {
   Widget welcomeSection(
     String header,
     String body,
-    Color color,
     String svg,
   ) {
     return ListTile(
         contentPadding: const EdgeInsets.only(left: 0.0, right: 40),
-        leading: svg == ''
-            ? CircleAvatar(
-                backgroundColor: color,
-              )
-            : SvgPicture.asset(
-                svg,
-                height: 40,
-                width: 40,
-              ),
+        leading: SvgPicture.asset(
+          svg,
+          height: 40,
+          width: 40,
+        ),
         title: Text(
           header,
           style: const TextStyle(

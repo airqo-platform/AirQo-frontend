@@ -1,3 +1,5 @@
+
+import 'package:app/constants/app_constants.dart';
 import 'package:app/models/chartData.dart';
 import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/predict.dart';
@@ -38,6 +40,13 @@ List<charts.Series<TimeSeriesData, DateTime>> forecastChartData(
       // displayName: 'Forecast',
     )
   ];
+}
+
+charts.Color getChartBarColor(HistoricalMeasurement series, pollutant) {
+  if (series.formattedTime.isAfter(DateTime.now())) {
+    return charts.ColorUtil.fromDartColor(ColorConstants.appColorPaleBlue);
+  }
+  return pmToChartColor(series.getPm2_5Value(), pollutant);
 }
 
 List<charts.Series<TimeSeriesData, DateTime>> historicalChartData(
@@ -91,7 +100,7 @@ List<charts.Series<HistoricalMeasurement, DateTime>> insightsChartData(
       charts.Series<HistoricalMeasurement, DateTime>(
         id: 'Historical',
         colorFn: (HistoricalMeasurement series, _) =>
-            pmToChartColor(series.getPm2_5Value(), 'pm2.5'),
+            getChartBarColor(series, 'pm2.5'),
         domainFn: (HistoricalMeasurement data, _) => data.formattedTime,
         measureFn: (HistoricalMeasurement data, _) => data.getPm2_5Value(),
         // measureLowerBoundFn: (TimeSeriesData data, _) => data.value - 5,
@@ -106,7 +115,7 @@ List<charts.Series<HistoricalMeasurement, DateTime>> insightsChartData(
     charts.Series<HistoricalMeasurement, DateTime>(
       id: 'Historical',
       colorFn: (HistoricalMeasurement series, _) =>
-          pmToChartColor(series.getPm10Value(), 'pm10'),
+          getChartBarColor(series, 'pm10'),
       domainFn: (HistoricalMeasurement data, _) => data.formattedTime,
       measureFn: (HistoricalMeasurement data, _) => data.getPm10Value(),
       // measureLowerBoundFn: (TimeSeriesData data, _) => data.value - 5,
