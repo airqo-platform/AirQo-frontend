@@ -283,7 +283,13 @@ class AirqoApiClient {
             'color': '#3067e2',
             'title': 'Mobile App feedback',
             'fields': [
-              {'title': 'Message', 'value': '${feedback.feedback}'},
+              {
+                'title': '${feedback.contactDetails}',
+              },
+              {
+                'title': '${feedback.feedbackType}',
+                'value': '${feedback.message}'
+              },
             ],
             'footer': 'AirQo Mobile App'
           }

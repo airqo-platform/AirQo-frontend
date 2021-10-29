@@ -1,17 +1,14 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/screens/profile_view.dart';
-import 'package:app/screens/settings_page.dart';
 import 'package:app/screens/share_picture.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dialogs.dart';
-import 'package:app/utils/share.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import 'dashboard_view.dart';
-import 'help_page.dart';
 import 'maps_view.dart';
 
 class HomePage extends StatefulWidget {
@@ -103,35 +100,6 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     initialize();
-  }
-
-  Widget navIcon(name) {
-    return SvgPicture.asset('assets/icon/home_icon.svg',
-        semanticsLabel: 'Home');
-  }
-
-  void navigateToMenuItem(dynamic position) {
-    var menuItem = position.toString();
-
-    if (menuItem.trim().toLowerCase() == 'share') {
-      shareApp();
-    } else if (menuItem.trim().toLowerCase() == 'aqi index') {
-      Navigator.push(
-        context,
-        MaterialPageRoute<void>(
-          builder: (BuildContext context) => const HelpPage(
-            initialIndex: 0,
-          ),
-          fullscreenDialog: true,
-        ),
-      );
-    } else if (menuItem.trim().toLowerCase() == 'camera') {
-      takePhoto();
-    } else {
-      Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return SettingsPage();
-      }));
-    }
   }
 
   Future<bool> onWillPop() {

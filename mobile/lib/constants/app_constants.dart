@@ -109,6 +109,10 @@ class Links {
 
   static String get airqoFeedbackEmail => feedbackEmail;
 
+  static String get appStoreUrl => iOSLink;
+
+  static String get appWhatsappUrl => whatsAppLink;
+
   static String get blogUrl => airqoBlog;
 
   static String get contactUsUrl => contactUs;
@@ -116,8 +120,6 @@ class Links {
   static String get facebookUrl => facebook;
 
   static String get faqsUrl => faqs;
-
-  static String get iOSUrl => iOSLink;
 
   static String get linkedinUrl => linkedin;
 

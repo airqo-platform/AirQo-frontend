@@ -457,6 +457,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                   child: iconTextButton(
                       SvgPicture.asset(
                         'assets/icon/share_icon.svg',
+                        color: ColorConstants.greyColor,
                         semanticsLabel: 'Share',
                       ),
                       'Share'),

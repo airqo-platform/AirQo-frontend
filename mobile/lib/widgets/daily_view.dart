@@ -101,6 +101,7 @@ class _DailyViewState extends State<DailyView> with TickerProviderStateMixin {
                         SvgPicture.asset(
                           'assets/icon/share_icon.svg',
                           semanticsLabel: 'Share',
+                          color: ColorConstants.greyColor,
                         ),
                         'Share'),
                   ),

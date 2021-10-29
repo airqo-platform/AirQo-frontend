@@ -361,9 +361,6 @@ PODS:
   - Firebase/Messaging (8.7.0):
     - Firebase/CoreOnly
     - FirebaseMessaging (~> 8.7.0)
-  - Firebase/Storage (8.7.0):
-    - Firebase/CoreOnly
-    - FirebaseStorage (~> 8.7.0)
   - firebase_auth (3.1.3):
     - Firebase/Auth (= 8.7.0)
     - firebase_core
@@ -373,10 +370,6 @@ PODS:
     - Flutter
   - firebase_messaging (10.0.6):
     - Firebase/Messaging (= 8.7.0)
-    - firebase_core
-    - Flutter
-  - firebase_storage (10.0.5):
-    - Firebase/Storage (= 8.7.0)
     - firebase_core
     - Flutter
   - FirebaseAuth (8.7.0):
@@ -420,10 +413,14 @@ PODS:
     - GoogleUtilities/Reachability (~> 7.4)
     - GoogleUtilities/UserDefaults (~> 7.4)
     - nanopb (~> 2.30908.0)
-  - FirebaseStorage (8.7.0):
-    - FirebaseCore (~> 8.0)
-    - GTMSessionFetcher/Core (~> 1.5)
   - Flutter (1.0.0)
+  - flutter_inappwebview (0.0.1):
+    - Flutter
+    - flutter_inappwebview/Core (= 0.0.1)
+    - OrderedSet (~> 5.0)
+  - flutter_inappwebview/Core (0.0.1):
+    - Flutter
+    - OrderedSet (~> 5.0)
   - flutter_local_notifications (0.0.1):
     - Flutter
   - FMDB (2.7.5):
@@ -489,6 +486,8 @@ PODS:
   - GTMSessionFetcher/Core (1.7.0)
   - image_picker (0.0.1):
     - Flutter
+  - in_app_review (0.2.0):
+    - Flutter
   - leveldb-library (1.22.1)
   - location (0.0.1):
     - Flutter
@@ -497,6 +496,7 @@ PODS:
     - nanopb/encode (= 2.30908.0)
   - nanopb/decode (2.30908.0)
   - nanopb/encode (2.30908.0)
+  - OrderedSet (5.0.0)
   - path_provider (0.0.1):
     - Flutter
   - PromisesObjC (2.0.0)
@@ -509,12 +509,6 @@ PODS:
     - FMDB (>= 2.7.5)
   - url_launcher (0.0.1):
     - Flutter
-  - video_player (0.0.1):
-    - Flutter
-  - wakelock (0.0.1):
-    - Flutter
-  - webview_flutter (0.0.1):
-    - Flutter
 
 DEPENDENCIES:
   - camera (from `.symlinks/plugins/camera/ios`)
@@ -522,22 +516,20 @@ DEPENDENCIES:
   - firebase_auth (from `.symlinks/plugins/firebase_auth/ios`)
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
   - firebase_messaging (from `.symlinks/plugins/firebase_messaging/ios`)
-  - firebase_storage (from `.symlinks/plugins/firebase_storage/ios`)
   - Flutter (from `Flutter`)
+  - flutter_inappwebview (from `.symlinks/plugins/flutter_inappwebview/ios`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
   - geocoder (from `.symlinks/plugins/geocoder/ios`)
   - geolocator_apple (from `.symlinks/plugins/geolocator_apple/ios`)
   - google_maps_flutter (from `.symlinks/plugins/google_maps_flutter/ios`)
   - image_picker (from `.symlinks/plugins/image_picker/ios`)
+  - in_app_review (from `.symlinks/plugins/in_app_review/ios`)
   - location (from `.symlinks/plugins/location/ios`)
   - path_provider (from `.symlinks/plugins/path_provider/ios`)
   - share (from `.symlinks/plugins/share/ios`)
   - shared_preferences (from `.symlinks/plugins/shared_preferences/ios`)
   - sqflite (from `.symlinks/plugins/sqflite/ios`)
   - url_launcher (from `.symlinks/plugins/url_launcher/ios`)
-  - video_player (from `.symlinks/plugins/video_player/ios`)
-  - wakelock (from `.symlinks/plugins/wakelock/ios`)
-  - webview_flutter (from `.symlinks/plugins/webview_flutter/ios`)
 
 SPEC REPOS:
   trunk:
@@ -550,7 +542,6 @@ SPEC REPOS:
     - FirebaseFirestore
     - FirebaseInstallations
     - FirebaseMessaging
-    - FirebaseStorage
     - FMDB
     - GoogleDataTransport
     - GoogleMaps
@@ -560,6 +551,7 @@ SPEC REPOS:
     - GTMSessionFetcher
     - leveldb-library
     - nanopb
+    - OrderedSet
     - PromisesObjC
 
 EXTERNAL SOURCES:
@@ -573,10 +565,10 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/firebase_core/ios"
   firebase_messaging:
     :path: ".symlinks/plugins/firebase_messaging/ios"
-  firebase_storage:
-    :path: ".symlinks/plugins/firebase_storage/ios"
   Flutter:
     :path: Flutter
+  flutter_inappwebview:
+    :path: ".symlinks/plugins/flutter_inappwebview/ios"
   flutter_local_notifications:
     :path: ".symlinks/plugins/flutter_local_notifications/ios"
   geocoder:
@@ -587,6 +579,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/google_maps_flutter/ios"
   image_picker:
     :path: ".symlinks/plugins/image_picker/ios"
+  in_app_review:
+    :path: ".symlinks/plugins/in_app_review/ios"
   location:
     :path: ".symlinks/plugins/location/ios"
   path_provider:
@@ -599,12 +593,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/sqflite/ios"
   url_launcher:
     :path: ".symlinks/plugins/url_launcher/ios"
-  video_player:
-    :path: ".symlinks/plugins/video_player/ios"
-  wakelock:
-    :path: ".symlinks/plugins/wakelock/ios"
-  webview_flutter:
-    :path: ".symlinks/plugins/webview_flutter/ios"
 
 SPEC CHECKSUMS:
   abseil: 6c8eb7892aefa08d929b39f9bb108e5367e3228f
@@ -615,15 +603,14 @@ SPEC CHECKSUMS:
   firebase_auth: 25f34550b0023cbc3824731240608cd0aa515ca2
   firebase_core: f5ac1f2726a2bd0468cea0161eddeea3d83d7e3e
   firebase_messaging: 03a25e7a4e68198c149a92dbfcffd86739d88f35
-  firebase_storage: d4ced699e5106374a16961d8f2028a0ed34b748d
   FirebaseAuth: 2e7d029977648c67a5d51a263d4cbab76d34cf12
   FirebaseCore: f4804c1d3f4bbbefc88904d15653038f2c99ddf7
   FirebaseCoreDiagnostics: fe77f42da6329d6d83d21fd9d621a6b704413bfc
   FirebaseFirestore: e722ba956610c45d368d9787689e2aa41b809e68
   FirebaseInstallations: 2563cb18a723ef9c6ef18318a49519b75dce613c
   FirebaseMessaging: 93227dd71d7888e200baef65043f81acb2b6596e
-  FirebaseStorage: 2e6e58fe31fb0061fdce3f156d0ebc964e9de6ba
   Flutter: 50d75fe2f02b26cc09d224853bb45737f8b3214a
+  flutter_inappwebview: bfd58618f49dc62f2676de690fc6dcda1d6c3721
   flutter_local_notifications: 0c0b1ae97e741e1521e4c1629a459d04b9aec743
   FMDB: 2ce00b547f966261cd18927a3ddb07cb6f3db82a
   geocoder: 3cfab70531a0b367e917bafe82df4c30f6d4c45a
@@ -636,18 +623,17 @@ SPEC CHECKSUMS:
   gRPC-Core: 4afa11bfbedf7cdecd04de535a9e046893404ed5
   GTMSessionFetcher: 43748f93435c2aa068b1cbe39655aaf600652e91
   image_picker: 9aa50e1d8cdacdbed739e925b7eea16d014367e6
+  in_app_review: 4a97249f7a2f539a0f294c2d9196b7fe35e49541
   leveldb-library: 50c7b45cbd7bf543c81a468fe557a16ae3db8729
   location: 3a2eed4dd2fab25e7b7baf2a9efefe82b512d740
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
+  OrderedSet: aaeb196f7fef5a9edf55d89760da9176ad40b93c
   path_provider: abfe2b5c733d04e238b0d8691db0cfd63a27a93c
   PromisesObjC: 68159ce6952d93e17b2dfe273b8c40907db5ba58
   share: 0b2c3e82132f5888bccca3351c504d0003b3b410
   shared_preferences: af6bfa751691cdc24be3045c43ec037377ada40d
   sqflite: 6d358c025f5b867b29ed92fc697fd34924e11904
   url_launcher: 6fef411d543ceb26efce54b05a0a40bfd74cbbef
-  video_player: 9cc823b1d9da7e8427ee591e8438bfbcde500e6e
-  wakelock: d0fc7c864128eac40eba1617cb5264d9c940b46f
-  webview_flutter: 3603125dfd3bcbc9d8d418c3f80aeecf331c068b
 
 PODFILE CHECKSUM: 33ffc231a2995648080d34db5f5e3204d4631561
 

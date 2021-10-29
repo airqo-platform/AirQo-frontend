@@ -8,13 +8,15 @@ part of 'feedback.dart';
 
 UserFeedback _$UserFeedbackFromJson(Map<String, dynamic> json) {
   return UserFeedback(
-    email: json['email'] as String,
-    feedback: json['feedback'] as String,
+    json['contactDetails'] as String,
+    json['message'] as String,
+    json['feedbackType'] as String,
   );
 }
 
 Map<String, dynamic> _$UserFeedbackToJson(UserFeedback instance) =>
     <String, dynamic>{
-      'email': instance.email,
-      'feedback': instance.feedback,
+      'contactDetails': instance.contactDetails,
+      'message': instance.message,
+      'feedbackType': instance.feedbackType,
     };

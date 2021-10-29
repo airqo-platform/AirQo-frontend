@@ -1,16 +1,18 @@
+import 'dart:io';
+
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/userDetails.dart';
 import 'package:app/screens/tips_page.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/native_api.dart';
+import 'package:app/utils/wev_view.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:in_app_review/in_app_review.dart';
 
-import 'about_page.dart';
-import 'faqs_page.dart';
 import 'feedback_page.dart';
+import 'home_page.dart';
 
 class SettingsPage extends StatefulWidget {
   SettingsPage({Key? key}) : super(key: key);
@@ -20,7 +22,7 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  var userProfile = UserDetails.initialize();
+  bool isSignedIn = false;
   final CustomAuth _customAuth = CustomAuth(FirebaseAuth.instance);
   bool allowNotification = false;
   bool allowLocation = false;
@@ -44,7 +46,10 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                       settingsSection(),
                       const Spacer(),
-                      deleteAccountSection(),
+                      Visibility(
+                        visible: _customAuth.isLoggedIn(),
+                        child: deleteAccountSection(),
+                      ),
                       const SizedBox(
                         height: 32,
                       ),
@@ -70,7 +75,9 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget deleteAccountSection() {
     return GestureDetector(
-      onTap: () {},
+      onTap: () {
+        showConfirmationDialog(context);
+      },
       child: Container(
           height: 56,
           decoration: const BoxDecoration(
@@ -98,12 +105,6 @@ class _SettingsPageState extends State<SettingsPage> {
     await LocationService().checkPermission().then((value) => {
           setState(() {
             allowLocation = value;
-          }),
-        });
-
-    await _customAuth.getProfile().then((value) => {
-          setState(() {
-            userProfile = value;
           }),
         });
   }
@@ -210,10 +211,11 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           GestureDetector(
             onTap: () async {
-              await Navigator.push(context,
-                  MaterialPageRoute(builder: (context) {
-                return FaqsPage();
-              }));
+              openUrl(Links.faqsUrl);
+              // await Navigator.push(context,
+              //     MaterialPageRoute(builder: (context) {
+              //   return FaqsPage();
+              // }));
             },
             child: cardSection('FAQs'),
           ),
@@ -234,10 +236,13 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           GestureDetector(
             onTap: () async {
-              await Navigator.push(context,
-                  MaterialPageRoute(builder: (context) {
-                return TermsAndPolicy();
-              }));
+              if (Platform.isAndroid ||
+                  Platform.isLinux ||
+                  Platform.isWindows) {
+                openUrl(Links.playStoreUrl);
+              } else if (Platform.isIOS || Platform.isMacOS) {
+                openUrl(Links.appStoreUrl);
+              }
             },
             child: cardSection('Rate the AirQo App'),
           ),
@@ -246,15 +251,51 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           GestureDetector(
             onTap: () async {
-              await Navigator.push(context,
-                  MaterialPageRoute(builder: (context) {
-                return AboutAirQo();
-              }));
+              final inAppReview = InAppReview.instance;
+
+              if (await inAppReview.isAvailable()) {
+                await inAppReview.requestReview();
+              }
             },
             child: cardSection('About'),
           ),
         ],
       ),
+    );
+  }
+
+  void showConfirmationDialog(BuildContext context) {
+    Widget okButton = TextButton(
+      child: const Text('Yes'),
+      onPressed: () {
+        var _customAuth = CustomAuth(FirebaseAuth.instance);
+        _customAuth.deleteAccount().then((value) => {
+              Navigator.pushAndRemoveUntil(context,
+                  MaterialPageRoute(builder: (context) {
+                return HomePage();
+              }), (r) => false)
+            });
+      },
+    );
+
+    Widget cancelButton = TextButton(
+      child: const Text('No'),
+      onPressed: () {
+        Navigator.of(context).pop();
+      },
+    );
+
+    var alert = AlertDialog(
+      title: const Text('Delete Account'),
+      content: const Text('Are you sure toy want to delete your account ? '),
+      actions: [okButton, cancelButton],
+    );
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
     );
   }
 }

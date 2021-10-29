@@ -1,4 +1,5 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:app/utils/wev_view.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -53,7 +54,9 @@ class _AboutAirQoState extends State<AboutAirQo> {
                   ),
                   const Spacer(),
                   GestureDetector(
-                    onTap: () {},
+                    onTap: () {
+                      openUrl(Links.termsUrl);
+                    },
                     child: Text(
                       'Terms & Privacy Policy',
                       style: TextStyle(

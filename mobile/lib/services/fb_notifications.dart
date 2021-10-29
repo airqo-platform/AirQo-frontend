@@ -99,6 +99,17 @@ class CustomAuth {
 
   CustomAuth(this._firebaseAuth);
 
+  Future<void> deleteAccount() async {
+    var currentUser = _firebaseAuth.currentUser;
+    if (currentUser != null) {
+      try {
+        await currentUser.delete().then((value) => {logOut()});
+      } catch (e) {
+        print(e);
+      }
+    }
+  }
+
   String getDisplayName() {
     if (_firebaseAuth.currentUser == null) {
       return '';

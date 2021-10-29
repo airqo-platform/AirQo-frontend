@@ -52,7 +52,7 @@ void shareApp() {
   Share.share(
       'Download the ${AppConfig.name} app from Play Store '
       ' ${Links.playStoreUrl} '
-      'or App Store ${Links.iOSUrl}',
+      'or App Store ${Links.appStoreUrl}',
       subject: '${AppConfig.name} app!');
 }
 
