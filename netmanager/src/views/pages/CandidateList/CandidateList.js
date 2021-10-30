@@ -4,6 +4,7 @@ import { makeStyles } from "@material-ui/styles";
 import PropTypes from "prop-types";
 import usersStateConnector from "views/stateConnectors/usersStateConnector";
 import CandidatesTable from "./components/CandidatesTable";
+import ErrorBoundary from "views/ErrorBoundary/ErrorBoundary";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -24,11 +25,13 @@ const CandidateList = (props) => {
   }, []);
 
   return (
-      <div className={classes.root}>
-        <div className={classes.content}>
-          <CandidatesTable candidates={candidates} />
+      <ErrorBoundary>
+        <div className={classes.root}>
+          <div className={classes.content}>
+            <CandidatesTable candidates={candidates} />
+          </div>
         </div>
-      </div>
+      </ErrorBoundary>
   );
 };
 

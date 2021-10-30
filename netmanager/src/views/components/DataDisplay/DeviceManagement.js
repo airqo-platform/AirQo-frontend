@@ -39,6 +39,7 @@ import {
   useInitScrollTop,
 } from "utils/customHooks";
 import MapBoxMap from "./Map/MapBoxMap";
+import ErrorBoundary from "views/ErrorBoundary/ErrorBoundary";
 
 // css style
 import "chartjs-plugin-annotation";
@@ -373,134 +374,138 @@ export default function DeviceManagement() {
   ];
 
   return (
-    <div className={"container-wrapper"}>
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          alignItems: "center",
-          justifyContent: "space-between",
-          position: "absolute",
-          width: "100%",
-          zIndex: 20,
-        }}
-      >
-        <Hidden mdDown>
-          {cardsData.map((data, key) => {
-            return (
-              <OverviewCard
-                label={data.label}
-                value={data.value}
-                icon={data.icon}
-                filterActive={data.filterActive}
-                onClick={data.onClick}
-                key={key}
-              />
-            );
-          })}
-        </Hidden>
-        <Hidden lgUp>
-          {cardsData.map((data, key) => {
-            return (
-              <OverviewCardMini
-                label={data.label}
-                value={data.value}
-                icon={data.icon}
-                filterActive={data.filterActive}
-                onClick={data.onClick}
-                key={key}
-              />
-            );
-          })}
-        </Hidden>
-      </div>
-      <MapBoxMap devices={filteredDevices} />
-
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <ApexChart
-          options={timeSeriesChartOptions({
-            yaxis: {
-              min: 0,
-              max: 100,
-            },
-          })}
-          title={"Network uptime"}
-          series={series}
-          lastUpdated={
-            networkUptimeData.length > 0 && networkUptimeData[0].created_at
-          }
-          type="area"
-          blue
-        />
-        <ApexChart
-          options={createPieChartOptions(
-            ["#FF2E2E", "#00A300"],
-            ["Offline", "Online"]
-          )}
-          series={pieChartStatusValues}
-          title={"online status"}
-          lastUpdated={devicesStatusData.created_at}
-          type="pie"
-          green
-          centerItems
-          disableController
-        />
-
-        <ChartContainer
-          title={"leaderboard"}
-          controller={
-            devicesUptimeDescending ? (
-              <SortAscendingIcon
-                onClick={handleSortIconClick}
-                style={{ fill: "white" }}
-              />
-            ) : (
-              <SortDescendingIcon
-                onClick={handleSortIconClick}
-                style={{ fill: "white" }}
-              />
-            )
-          }
-          blue
+    <ErrorBoundary>
+      <div className={"container-wrapper"}>
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            justifyContent: "space-between",
+            position: "absolute",
+            width: "100%",
+            zIndex: 20,
+          }}
         >
-          <div>
-            <div className={`m-device-uptime-row uptime-table-header`}>
-              <span>device name</span>
-              <span>downtime (%)</span>
-              <span>uptime (%)</span>
-            </div>
-            {devicesUptime.map(({ long_name, device_name, uptime }, index) => {
-              uptime = uptime <= 100 ? uptime : 100;
-              const style =
-                uptime >= 80
-                  ? "uptime-success"
-                  : uptime >= 50
-                  ? "uptime-warning"
-                  : "uptime-danger";
+          <Hidden mdDown>
+            {cardsData.map((data, key) => {
               return (
-                <div
-                  className={`m-device-uptime-row`}
-                  key={`device-${device_name}-${index}`}
-                  onClick={() =>
-                    history.push(`/device/${device_name}/overview`)
-                  }
-                >
-                  <span>{long_name}</span>
-                  <span>{(100 - uptime).toFixed(2)}</span>
-                  <span className={`${style}`}>{uptime.toFixed(2)}</span>
-                </div>
+                <OverviewCard
+                  label={data.label}
+                  value={data.value}
+                  icon={data.icon}
+                  filterActive={data.filterActive}
+                  onClick={data.onClick}
+                  key={key}
+                />
               );
             })}
-          </div>
-        </ChartContainer>
+          </Hidden>
+          <Hidden lgUp>
+            {cardsData.map((data, key) => {
+              return (
+                <OverviewCardMini
+                  label={data.label}
+                  value={data.value}
+                  icon={data.icon}
+                  filterActive={data.filterActive}
+                  onClick={data.onClick}
+                  key={key}
+                />
+              );
+            })}
+          </Hidden>
+        </div>
+        <MapBoxMap devices={filteredDevices} />
+
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <ApexChart
+            options={timeSeriesChartOptions({
+              yaxis: {
+                min: 0,
+                max: 100,
+              },
+            })}
+            title={"Network uptime"}
+            series={series}
+            lastUpdated={
+              networkUptimeData.length > 0 && networkUptimeData[0].created_at
+            }
+            type="area"
+            blue
+          />
+          <ApexChart
+            options={createPieChartOptions(
+              ["#FF2E2E", "#00A300"],
+              ["Offline", "Online"]
+            )}
+            series={pieChartStatusValues}
+            title={"online status"}
+            lastUpdated={devicesStatusData.created_at}
+            type="pie"
+            green
+            centerItems
+            disableController
+          />
+
+          <ChartContainer
+            title={"leaderboard"}
+            controller={
+              devicesUptimeDescending ? (
+                <SortAscendingIcon
+                  onClick={handleSortIconClick}
+                  style={{ fill: "white" }}
+                />
+              ) : (
+                <SortDescendingIcon
+                  onClick={handleSortIconClick}
+                  style={{ fill: "white" }}
+                />
+              )
+            }
+            blue
+          >
+            <div>
+              <div className={`m-device-uptime-row uptime-table-header`}>
+                <span>device name</span>
+                <span>downtime (%)</span>
+                <span>uptime (%)</span>
+              </div>
+              {devicesUptime.map(
+                ({ long_name, device_name, uptime }, index) => {
+                  uptime = uptime <= 100 ? uptime : 100;
+                  const style =
+                    uptime >= 80
+                      ? "uptime-success"
+                      : uptime >= 50
+                      ? "uptime-warning"
+                      : "uptime-danger";
+                  return (
+                    <div
+                      className={`m-device-uptime-row`}
+                      key={`device-${device_name}-${index}`}
+                      onClick={() =>
+                        history.push(`/device/${device_name}/overview`)
+                      }
+                    >
+                      <span>{long_name}</span>
+                      <span>{(100 - uptime).toFixed(2)}</span>
+                      <span className={`${style}`}>{uptime.toFixed(2)}</span>
+                    </div>
+                  );
+                }
+              )}
+            </div>
+          </ChartContainer>
+        </div>
       </div>
-    </div>
+    </ErrorBoundary>
   );
 }
