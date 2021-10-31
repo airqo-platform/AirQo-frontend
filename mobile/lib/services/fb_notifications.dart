@@ -96,6 +96,7 @@ class CloudStore {
 
 class CustomAuth {
   final FirebaseAuth _firebaseAuth;
+  final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
 
   CustomAuth(this._firebaseAuth);
 
@@ -103,7 +104,13 @@ class CustomAuth {
     var currentUser = _firebaseAuth.currentUser;
     if (currentUser != null) {
       try {
-        await currentUser.delete().then((value) => {logOut()});
+        await currentUser.delete().then((value) => {
+              logOut(),
+              _firebaseFirestore
+                  .collection(CloudStorage.usersCollection)
+                  .doc(currentUser.uid)
+                  .delete()
+            });
       } catch (e) {
         print(e);
       }
@@ -164,6 +171,16 @@ class CustomAuth {
     return _firebaseAuth.currentUser == null ? false : true;
   }
 
+  Future<bool> isValidEmailCode(
+      String subjectCode, String verificationLink) async {
+    final signInLink = Uri.parse(verificationLink);
+    var code = signInLink.queryParameters['oobCode'];
+    if (code != null && code == subjectCode) {
+      return true;
+    }
+    return false;
+  }
+
   Future<void> logIn(AuthCredential authCredential) async {
     await _firebaseAuth.signInWithCredential(authCredential);
   }
@@ -197,60 +214,15 @@ class CustomAuth {
     }
   }
 
-  Future<bool> signUpProfile(UserDetails userDetails) async {
-    var hasConnection = await isConnected();
-    if (hasConnection) {
-      try {
-        var savedUser = userDetails;
-        var createdUser = await FirebaseAuth.instance
-            .createUserWithEmailAndPassword(
-                email: userDetails.emailAddress,
-                password: userDetails.emailAddress);
-
-        if (createdUser.user != null) {
-          await createdUser.user!.updatePhotoURL(userDetails.photoUrl);
-          savedUser.emailAddress = createdUser.user!.email ?? '';
-          savedUser.lastName = userDetails.lastName;
-          savedUser.firstName = userDetails.firstName;
-          savedUser.phoneNumber = createdUser.user!.phoneNumber ?? '';
-          savedUser.emailAddress = createdUser.user!.email ?? '';
-          savedUser.photoUrl = createdUser.user!.photoURL ?? '';
-          // savedUser.id = createdUser.user!.uid ?? '';
-        }
-        await FirebaseFirestore.instance
-            .collection(CloudStorage.alertsCollection)
-            .doc(savedUser.userId)
-            .set(savedUser.toJson());
-        return true;
-      } catch (e) {
-        print(e);
-        return false;
-      }
-    } else {
-      return false;
-    }
-  }
-
   Future<bool> signUpWithEmailAddress(String emailAddress, String link) async {
-    var confirmation =
-    await FirebaseAuth.instance.signInWithEmailLink(emailLink: link,
-      email: emailAddress);
+    var confirmation = await FirebaseAuth.instance
+        .signInWithEmailLink(emailLink: link, email: emailAddress);
 
     if (confirmation.user == null) {
       return false;
     } else {
       return true;
     }
-  }
-
-  Future<bool> isValidEmailCode(String subjectCode, String verificationLink)
-  async {
-    final signInLink = Uri.parse(verificationLink);
-    var code = signInLink.queryParameters['oobCode'];
-    if(code != null && code == subjectCode){
-      return true;
-    }
-    return false;
   }
 
   Future<bool> signUpWithPhoneNumber(String phoneNumber) async {
@@ -287,7 +259,7 @@ class CustomAuth {
       userDetails.userId = firebaseUser.uid;
 
       var _userJson = userDetails.toJson();
-      await FirebaseFirestore.instance
+      await _firebaseFirestore
           .collection(CloudStorage.usersCollection)
           .doc(firebaseUser.uid)
           .set(_userJson);

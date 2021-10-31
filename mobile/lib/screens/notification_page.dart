@@ -4,6 +4,7 @@ import 'package:app/services/local_storage.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({Key? key}) : super(key: key);
@@ -14,6 +15,8 @@ class NotificationPage extends StatefulWidget {
 
 class _NotificationPageState extends State<NotificationPage> {
   var favouritePlaces = <Measurement>[];
+  var isViewNotification = false;
+  var selectedNotification;
 
   @override
   Widget build(BuildContext context) {
@@ -31,114 +34,149 @@ class _NotificationPageState extends State<NotificationPage> {
           style: TextStyle(color: Colors.black),
         ),
       ),
-      body: Container(
-          color: ColorConstants.appBodyColor,
-          child: FutureBuilder(
-              future: DBHelper().getLatestMeasurements(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  favouritePlaces = snapshot.data as List<Measurement>;
-
-                  if (favouritePlaces.isEmpty) {
-                    return Center(
-                      child: Container(
-                        padding:
-                            const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                        child: Text(
-                          'No notifications',
-                          style: TextStyle(color: ColorConstants.appColor),
-                        ),
-                      ),
-                    );
-                  }
-
-                  return RefreshIndicator(
-                    color: ColorConstants.appColor,
-                    onRefresh: refreshData,
-                    child: ListView.builder(
-                      itemBuilder: (context, index) => Padding(
-                        padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
-                        child: notificationCard(),
-                      ),
-                      itemCount: 7,
-                    ),
-                  );
-                } else {
-                  return ListView(
-                    children: [
-                      Padding(
-                        padding:
-                            const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                        child: loadingAnimation(115.0, 16.0),
-                      ),
-                      Padding(
-                        padding:
-                            const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                        child: loadingAnimation(115.0, 16.0),
-                      ),
-                      Padding(
-                        padding:
-                            const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                        child: loadingAnimation(115.0, 16.0),
-                      ),
-                      Padding(
-                        padding:
-                            const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                        child: loadingAnimation(115.0, 16.0),
-                      ),
-                      Padding(
-                        padding:
-                            const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                        child: loadingAnimation(115.0, 16.0),
-                      ),
-                      Padding(
-                        padding:
-                            const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                        child: loadingAnimation(115.0, 16.0),
-                      ),
-                      Padding(
-                        padding:
-                            const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                        child: loadingAnimation(115.0, 16.0),
-                      ),
-                    ],
-                  );
-                }
-              })),
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 800),
+        transitionBuilder: (Widget child, Animation<double> animation) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+        child: _renderWidget(),
+      ),
     );
   }
 
-  Widget notificationCard() {
+  Widget mainSection() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(8.0, 8.0, 8.0, 8.0),
+        color: ColorConstants.appBodyColor,
+        child: FutureBuilder(
+            future: DBHelper().getLatestMeasurements(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                favouritePlaces = snapshot.data as List<Measurement>;
+
+                if (favouritePlaces.isEmpty) {
+                  return Center(
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+                      child: Text(
+                        'No notifications',
+                        style: TextStyle(color: ColorConstants.appColor),
+                      ),
+                    ),
+                  );
+                }
+
+                return RefreshIndicator(
+                  color: ColorConstants.appColor,
+                  onRefresh: refreshData,
+                  child: ListView.builder(
+                    itemBuilder: (context, index) => Padding(
+                      padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                      child: notificationCard(favouritePlaces[index]),
+                    ),
+                    itemCount: favouritePlaces.length,
+                  ),
+                );
+              } else {
+                return ListView(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+                      child: loadingAnimation(115.0, 16.0),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+                      child: loadingAnimation(115.0, 16.0),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+                      child: loadingAnimation(115.0, 16.0),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+                      child: loadingAnimation(115.0, 16.0),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+                      child: loadingAnimation(115.0, 16.0),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+                      child: loadingAnimation(115.0, 16.0),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+                      child: loadingAnimation(115.0, 16.0),
+                    ),
+                  ],
+                );
+              }
+            }));
+  }
+
+  Widget notificationCard(Measurement notification) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 24.0),
       decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(8.0))),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Text('Check out the air quality in Bugolobi',
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                )),
+          borderRadius: BorderRadius.all(Radius.circular(16.0))),
+      child: ListTile(
+        onTap: () {
+          setState(() {
+            selectedNotification = notification;
+            isViewNotification = true;
+          });
+        },
+        horizontalTitleGap: 12,
+        contentPadding: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        tileColor: Colors.white,
+        leading: Container(
+          padding: const EdgeInsets.all(10.0),
+          decoration: BoxDecoration(
+            color: ColorConstants.appColorPaleBlue,
+            shape: BoxShape.circle,
           ),
-          const SizedBox(
-            width: 16,
+          child: SvgPicture.asset(
+            'assets/icon/airqo_home.svg',
+            height: 16,
+            width: 24,
+            semanticsLabel: 'Search',
           ),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10.0),
-            child: Image.asset(
-              'assets/images/know-your-air.png',
-              width: 104,
-              height: 104,
-              fit: BoxFit.cover,
+        ),
+        trailing: Container(
+            padding: const EdgeInsets.fromLTRB(8.0, 1.0, 8.0, 1.0),
+            constraints: const BoxConstraints(
+              maxHeight: 16,
+              maxWidth: 43.35,
             ),
-          ),
-        ],
+            decoration: BoxDecoration(
+                color: ColorConstants.appColorPaleBlue,
+                borderRadius: const BorderRadius.all(Radius.circular(535.87))),
+            child: Column(
+              children: [
+                Text(
+                  'New',
+                  style: TextStyle(
+                      fontSize: 10, color: ColorConstants.appColorBlue),
+                ),
+              ],
+            )),
+        title: Text(
+          'Welcome to AirQo!',
+          style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: ColorConstants.appColorBlack),
+        ),
+        subtitle: Text(
+          'Begin your journey to Knowing '
+          'Your Air and Breathe Clean',
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+              fontSize: 12,
+              color: ColorConstants.appColorBlack.withOpacity(0.4)),
+        ),
       ),
     );
   }
@@ -152,5 +190,182 @@ class _NotificationPageState extends State<NotificationPage> {
               })
             }
         });
+  }
+
+  Widget singleSection() {
+    return AnimatedOpacity(
+      opacity: 1.0,
+      duration: const Duration(milliseconds: 100),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 8.0),
+        color: ColorConstants.appBodyColor,
+        child: Column(
+          children: [
+            Container(
+                padding: const EdgeInsets.all(8.0),
+                decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.all(Radius.circular(16.0))),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              isViewNotification = false;
+                            });
+                          },
+                          child: SvgPicture.asset(
+                            'assets/icon/close.svg',
+                            semanticsLabel: 'Pm2.5',
+                            height: 20,
+                            width: 20,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(
+                      height: 12,
+                    ),
+                    Container(
+                      padding: const EdgeInsets.only(
+                          left: 54.0, right: 54.0, bottom: 54.0),
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(15.0),
+                            decoration: BoxDecoration(
+                              color: ColorConstants.appColorPaleBlue,
+                              shape: BoxShape.circle,
+                            ),
+                            child: SvgPicture.asset(
+                              'assets/icon/airqo_home.svg',
+                              height: 24,
+                              width: 36,
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 17,
+                          ),
+                          Text(
+                            'Welcome to AirQo!',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: ColorConstants.appColorBlack),
+                          ),
+                          const SizedBox(
+                            height: 8.0,
+                          ),
+                          Text(
+                            'Begin your journey to Knowing '
+                            'Your Air and Breathe Clean',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                fontSize: 14,
+                                color: ColorConstants.appColorBlack
+                                    .withOpacity(0.4)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ))
+          ],
+        ),
+      ),
+    );
+    return Container(
+      padding: const EdgeInsets.fromLTRB(8.0, 24.0, 8.0, 8.0),
+      color: ColorConstants.appBodyColor,
+      child: Column(
+        children: [
+          Container(
+              padding: const EdgeInsets.all(8.0),
+              decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.all(Radius.circular(16.0))),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            isViewNotification = false;
+                          });
+                        },
+                        child: SvgPicture.asset(
+                          'assets/icon/close.svg',
+                          semanticsLabel: 'Pm2.5',
+                          height: 20,
+                          width: 20,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 12,
+                  ),
+                  Container(
+                    padding: const EdgeInsets.only(
+                        left: 54.0, right: 54.0, bottom: 54.0),
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(15.0),
+                          decoration: BoxDecoration(
+                            color: ColorConstants.appColorPaleBlue,
+                            shape: BoxShape.circle,
+                          ),
+                          child: SvgPicture.asset(
+                            'assets/icon/airqo_home.svg',
+                            height: 24,
+                            width: 36,
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 17,
+                        ),
+                        Text(
+                          'Welcome to AirQo!',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: ColorConstants.appColorBlack),
+                        ),
+                        const SizedBox(
+                          height: 8.0,
+                        ),
+                        Text(
+                          'Begin your journey to Knowing '
+                          'Your Air and Breathe Clean',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontSize: 14,
+                              color: ColorConstants.appColorBlack
+                                  .withOpacity(0.4)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ))
+        ],
+      ),
+    );
+  }
+
+  Widget _renderWidget() {
+    return isViewNotification ? singleSection() : mainSection();
   }
 }

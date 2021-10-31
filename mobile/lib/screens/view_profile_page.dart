@@ -203,6 +203,12 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
     ));
   }
 
+  @override
+  void initState() {
+    profilePic = userDetails.photoUrl;
+    super.initState();
+  }
+
   InputDecoration profileFormFieldDecoration() {
     return InputDecoration(
       filled: true,
@@ -222,12 +228,6 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
         width: 20,
       ),
     );
-  }
-
-  @override
-  void initState() {
-    profilePic = userDetails.photoUrl;
-    super.initState();
   }
 
   @Deprecated('No longer used')
