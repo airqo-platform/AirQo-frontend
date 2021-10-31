@@ -231,6 +231,28 @@ class CustomAuth {
     }
   }
 
+  Future<bool> signUpWithEmailAddress(String emailAddress, String link) async {
+    var confirmation =
+    await FirebaseAuth.instance.signInWithEmailLink(emailLink: link,
+      email: emailAddress);
+
+    if (confirmation.user == null) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  Future<bool> isValidEmailCode(String subjectCode, String verificationLink)
+  async {
+    final signInLink = Uri.parse(verificationLink);
+    var code = signInLink.queryParameters['oobCode'];
+    if(code != null && code == subjectCode){
+      return true;
+    }
+    return false;
+  }
+
   Future<bool> signUpWithPhoneNumber(String phoneNumber) async {
     var confirmation =
         await FirebaseAuth.instance.signInWithPhoneNumber(phoneNumber);

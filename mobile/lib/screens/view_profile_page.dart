@@ -12,6 +12,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:camera/camera.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 
@@ -151,7 +152,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                   cursorWidth: 1,
                   cursorColor: ColorConstants.appColorBlue,
                   keyboardType: TextInputType.name,
-                  decoration: formFieldsDecoration(),
+                  decoration: profileFormFieldDecoration(),
                   onChanged: (text) {
                     userDetails.firstName = text;
                   },
@@ -181,7 +182,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                   cursorWidth: 1,
                   cursorColor: ColorConstants.appColorBlue,
                   keyboardType: TextInputType.name,
-                  decoration: formFieldsDecoration(),
+                  decoration: profileFormFieldDecoration(),
                   onChanged: (text) {
                     userDetails.lastName = text;
                   },
@@ -202,23 +203,23 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
     ));
   }
 
-  InputDecoration formFieldsDecoration() {
+  InputDecoration profileFormFieldDecoration() {
     return InputDecoration(
       filled: true,
       fillColor: Colors.white,
       hintText: '-',
       focusedBorder: OutlineInputBorder(
         borderSide: const BorderSide(color: Colors.transparent, width: 1.0),
-        borderRadius: BorderRadius.circular(10.0),
+        borderRadius: BorderRadius.circular(8.0),
       ),
       enabledBorder: OutlineInputBorder(
         borderSide: const BorderSide(color: Colors.transparent, width: 1.0),
-        borderRadius: BorderRadius.circular(10.0),
+        borderRadius: BorderRadius.circular(8.0),
       ),
-      suffixIcon: Icon(
-        Icons.edit,
-        size: 20.0,
-        color: ColorConstants.appColorBlue,
+      suffixIcon: SvgPicture.asset(
+        'assets/icon/profile_edit.svg',
+        height: 20,
+        width: 20,
       ),
     );
   }
