@@ -859,4 +859,68 @@ $home-padding: 80px;
     }
   }
 
+  .get-app-section {
+    display: grid;
+    align-content: center;
+    justify-content: center;
+    width: 1440px;
+    height: 900px;
+    position: relative;
+
+    background: #FFFFFF;
+
+    .content {
+      display: grid;
+      align-content: center;
+      width: 1088px;
+      height: 400px;
+      padding-left: 56px;
+
+      background: #EDF3FF;
+      border-radius: 8px;
+
+      .main {
+        display: flex;
+        align-items: center;
+        width: 234px;
+        height: 48px;
+
+        font-style: normal;
+        font-weight: bold;
+        font-size: 40px;
+        line-height: 48px;
+
+        color: #145DFF;
+      }
+
+      .secondary {
+        display: flex;
+        align-items: center;
+        width: 269px;
+        height: 52px;
+
+        font-style: normal;
+        font-weight: normal;
+        font-size: 18px;
+        line-height: 26px;
+
+        color: #145DFF;
+
+        margin-bottom: 40px;
+      }
+
+      .icon-mr-32 {
+        margin-right: 32px;
+      }
+
+    }
+
+    .placeholder {
+        position: absolute;
+        height: 562px;
+        left: 825px;
+        right: 269px;
+        top: 169px;
+      }
+  }
 }
