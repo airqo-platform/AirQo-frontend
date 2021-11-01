@@ -6,16 +6,14 @@ part of 'alert.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-Alert _$AlertFromJson(Map<String, dynamic> json) {
-  return Alert(
-    json['receiver'] as String,
-    json['siteId'] as String,
-    json['type'] as String,
-    json['hour'] as int,
-    json['airQuality'] as String,
-    json['siteName'] as String,
-  );
-}
+Alert _$AlertFromJson(Map<String, dynamic> json) => Alert(
+      json['receiver'] as String,
+      json['siteId'] as String,
+      json['type'] as String,
+      json['hour'] as int,
+      json['airQuality'] as String,
+      json['siteName'] as String,
+    );
 
 Map<String, dynamic> _$AlertToJson(Alert instance) => <String, dynamic>{
       'receiver': instance.receiver,

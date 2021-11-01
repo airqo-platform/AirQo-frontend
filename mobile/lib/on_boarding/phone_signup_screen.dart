@@ -30,7 +30,7 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
   var prefix = '+256(0) ';
   var prefixValue = '+256';
   var nextBtnColor = ColorConstants.appColorDisabled;
-  final CustomAuth _customAuth = CustomAuth(FirebaseAuth.instance);
+  final CustomAuth _customAuth = CustomAuth();
   final TextEditingController _phoneInputController = TextEditingController();
   final TextEditingController _emailInputController = TextEditingController();
   DateTime? exitTime;

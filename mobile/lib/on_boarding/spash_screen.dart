@@ -3,7 +3,6 @@ import 'package:app/screens/home_page.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -14,7 +13,7 @@ class SplashScreen extends StatefulWidget {
 
 class SplashScreenState extends State<SplashScreen> {
   int _widgetId = 0;
-  final CustomAuth _customAuth = CustomAuth(FirebaseAuth.instance);
+  final CustomAuth _customAuth = CustomAuth();
   bool _visible = false;
 
   @override

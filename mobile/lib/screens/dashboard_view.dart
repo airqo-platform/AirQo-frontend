@@ -16,7 +16,6 @@ import 'package:app/utils/pm.dart';
 import 'package:app/utils/settings.dart';
 import 'package:app/widgets/analytics_card.dart';
 import 'package:app/widgets/custom_shimmer.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -41,7 +40,7 @@ class _DashboardViewState extends State<DashboardView> {
   var greetings = '';
   double tipsProgress = 0.0;
 
-  final CustomAuth _customAuth = CustomAuth(FirebaseAuth.instance);
+  final CustomAuth _customAuth = CustomAuth();
 
   Widget actionsSection() {
     return Container(

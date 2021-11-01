@@ -31,7 +31,7 @@ class SignUpPageState extends State<SignUpPage> {
   var prefix = '+256(0) ';
   var prefixValue = '+256';
   var nextBtnColor = ColorConstants.appColorDisabled;
-  final CustomAuth _customAuth = CustomAuth(FirebaseAuth.instance);
+  final CustomAuth _customAuth = CustomAuth();
   TextEditingController controller = TextEditingController();
 
   var smsCode = <String>['', '', '', '', '', ''];

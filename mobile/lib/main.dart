@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:app/models/notification.dart';
 import 'package:app/providers/LocalProvider.dart';
 import 'package:firebase_core/firebase_core.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
@@ -63,6 +64,7 @@ class AirQoApp extends StatelessWidget {
           child: MultiProvider(
             providers: [
               ChangeNotifierProvider(create: (_) => LocaleProvider()),
+              ChangeNotifierProvider(create: (context) => NotificationModel()),
             ],
             builder: (context, child) {
               final provider = Provider.of<LocaleProvider>(context);

@@ -7,7 +7,10 @@ part of 'suggestion.dart';
 // **************************************************************************
 
 Suggestion _$SuggestionFromJson(Map<String, dynamic> json) {
-  $checkKeys(json, requiredKeys: const ['place_id']);
+  $checkKeys(
+    json,
+    requiredKeys: const ['place_id'],
+  );
   return Suggestion(
     placeId: json['place_id'] as String,
     description: json['description'] as String,

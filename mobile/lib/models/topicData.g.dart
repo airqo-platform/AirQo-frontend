@@ -7,7 +7,10 @@ part of 'topicData.dart';
 // **************************************************************************
 
 TopicData _$TopicDataFromJson(Map<String, dynamic> json) {
-  $checkKeys(json, requiredKeys: const ['message']);
+  $checkKeys(
+    json,
+    requiredKeys: const ['message'],
+  );
   return TopicData(
     message: json['message'] as String,
     siteId: json['site_id'] as String,

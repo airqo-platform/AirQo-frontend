@@ -23,7 +23,7 @@ class ProfileSetupScreen extends StatefulWidget {
 class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   var fullName = '';
   final _formKey = GlobalKey<FormState>();
-  final CustomAuth _customAuth = CustomAuth(FirebaseAuth.instance);
+  final CustomAuth _customAuth = CustomAuth();
   TextEditingController controller = TextEditingController();
   DateTime? exitTime;
   Color nextBtnColor = ColorConstants.appColorDisabled;

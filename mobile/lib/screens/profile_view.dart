@@ -1,4 +1,5 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:app/models/notification.dart';
 import 'package:app/models/userDetails.dart';
 import 'package:app/on_boarding/phone_signup_screen.dart';
 import 'package:app/screens/settings_page.dart';
@@ -6,9 +7,9 @@ import 'package:app/screens/tips_page.dart';
 import 'package:app/screens/view_profile_page.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/widgets/text_fields.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
 
 import 'favourite_places.dart';
 import 'for_you_page.dart';
@@ -23,7 +24,8 @@ class ProfileView extends StatefulWidget {
 
 class _ProfileViewState extends State<ProfileView> {
   var userProfile = UserDetails.initialize();
-  final CustomAuth _customAuth = CustomAuth(FirebaseAuth.instance);
+  final CustomAuth _customAuth = CustomAuth();
+  final CloudStore _cloudStore = CloudStore();
   bool isLoggedIn = false;
 
   Widget appNavBar() {
@@ -45,10 +47,21 @@ class _ProfileViewState extends State<ProfileView> {
               decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.all(Radius.circular(8.0))),
-              child: SvgPicture.asset(
-                'assets/icon/empty_notifications.svg',
-                height: 20,
-                width: 16,
+              child: Consumer<NotificationModel>(
+                builder: (context, notifications, child) {
+                  if (!notifications.hasNotifications()) {
+                    return SvgPicture.asset(
+                      'assets/icon/empty_notifications.svg',
+                      height: 20,
+                      width: 16,
+                    );
+                  }
+                  return SvgPicture.asset(
+                    'assets/icon/has_notifications.svg',
+                    height: 20,
+                    width: 16,
+                  );
+                },
               ),
             ),
           ),
@@ -201,6 +214,7 @@ class _ProfileViewState extends State<ProfileView> {
     setState(() {
       isLoggedIn = _customAuth.isLoggedIn();
     });
+
     await _customAuth.getProfile().then((value) => {
           setState(() {
             userProfile = value;

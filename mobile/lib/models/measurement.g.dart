@@ -7,13 +7,16 @@ part of 'measurement.dart';
 // **************************************************************************
 
 Measurement _$MeasurementFromJson(Map<String, dynamic> json) {
-  $checkKeys(json, requiredKeys: const [
-    'time',
-    'average_pm2_5',
-    'average_pm10',
-    'siteDetails',
-    'device_number'
-  ]);
+  $checkKeys(
+    json,
+    requiredKeys: const [
+      'time',
+      'average_pm2_5',
+      'average_pm10',
+      'siteDetails',
+      'device_number'
+    ],
+  );
   return Measurement(
     json['time'] as String,
     MeasurementValue.fromJson(json['average_pm2_5'] as Map<String, dynamic>),
@@ -28,13 +31,11 @@ Measurement _$MeasurementFromJson(Map<String, dynamic> json) {
   );
 }
 
-Measurements _$MeasurementsFromJson(Map<String, dynamic> json) {
-  return Measurements(
-    measurements: (json['measurements'] as List<dynamic>)
-        .map((e) => Measurement.fromJson(e as Map<String, dynamic>))
-        .toList(),
-  );
-}
+Measurements _$MeasurementsFromJson(Map<String, dynamic> json) => Measurements(
+      measurements: (json['measurements'] as List<dynamic>)
+          .map((e) => Measurement.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
 
 Map<String, dynamic> _$MeasurementsToJson(Measurements instance) =>
     <String, dynamic>{

@@ -407,9 +407,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
                         controller.jumpToPage(slides.length - 1);
                       }
 
-                      setState(() {
-                        tipsProgress = tipsProgress + 0.1;
-                      });
+                      await updateProgress();
                     },
                     child: circularButton('assets/icon/next_arrow.svg')),
               ],
@@ -430,13 +428,14 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
   Future<void> updateProgress() async {
     try {
       var preferences = await SharedPreferences.getInstance();
-
       var progress = preferences.getDouble(PrefConstant.tipsProgress) ?? 0.0;
-      var newProgress = (controller.page! / 10);
 
-      if (newProgress > progress) {
-        print(tipsProgress);
-        await preferences.setDouble(PrefConstant.tipsProgress, newProgress);
+      setState(() {
+        tipsProgress = tipsProgress + 0.1;
+      });
+
+      if (tipsProgress > progress) {
+        await preferences.setDouble(PrefConstant.tipsProgress, tipsProgress);
       }
     } catch (e) {
       print(e);

@@ -1,6 +1,6 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/measurement.dart';
-import 'package:app/services/local_storage.dart';
+import 'package:app/models/notification.dart';
+import 'package:app/services/fb_notifications.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
@@ -14,9 +14,11 @@ class NotificationPage extends StatefulWidget {
 }
 
 class _NotificationPageState extends State<NotificationPage> {
-  var favouritePlaces = <Measurement>[];
+  var notifications = <UserNotification>[];
   var isViewNotification = false;
-  var selectedNotification;
+  late UserNotification selectedNotification;
+  final CloudStore _cloudStore = CloudStore();
+  final CustomAuth _customAuth = CustomAuth();
 
   @override
   Widget build(BuildContext context) {
@@ -48,12 +50,12 @@ class _NotificationPageState extends State<NotificationPage> {
     return Container(
         color: ColorConstants.appBodyColor,
         child: FutureBuilder(
-            future: DBHelper().getLatestMeasurements(),
+            future: _cloudStore.getNotifications(_customAuth.getId()),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
-                favouritePlaces = snapshot.data as List<Measurement>;
+                notifications = snapshot.data as List<UserNotification>;
 
-                if (favouritePlaces.isEmpty) {
+                if (notifications.isEmpty) {
                   return Center(
                     child: Container(
                       padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
@@ -71,9 +73,9 @@ class _NotificationPageState extends State<NotificationPage> {
                   child: ListView.builder(
                     itemBuilder: (context, index) => Padding(
                       padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
-                      child: notificationCard(favouritePlaces[index]),
+                      child: notificationCard(notifications[index]),
                     ),
-                    itemCount: favouritePlaces.length,
+                    itemCount: 2,
                   ),
                 );
               } else {
@@ -113,7 +115,7 @@ class _NotificationPageState extends State<NotificationPage> {
             }));
   }
 
-  Widget notificationCard(Measurement notification) {
+  Widget notificationCard(UserNotification notification) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 24.0),
       decoration: const BoxDecoration(
@@ -143,34 +145,42 @@ class _NotificationPageState extends State<NotificationPage> {
             semanticsLabel: 'Search',
           ),
         ),
-        trailing: Container(
-            padding: const EdgeInsets.fromLTRB(8.0, 1.0, 8.0, 1.0),
-            constraints: const BoxConstraints(
-              maxHeight: 16,
-              maxWidth: 43.35,
-            ),
-            decoration: BoxDecoration(
-                color: ColorConstants.appColorPaleBlue,
-                borderRadius: const BorderRadius.all(Radius.circular(535.87))),
-            child: Column(
-              children: [
-                Text(
-                  'New',
-                  style: TextStyle(
-                      fontSize: 10, color: ColorConstants.appColorBlue),
+        trailing: notification.isNew
+            ? Container(
+                padding: const EdgeInsets.fromLTRB(8.0, 1.0, 8.0, 1.0),
+                constraints: const BoxConstraints(
+                  maxHeight: 16,
+                  maxWidth: 43.35,
                 ),
-              ],
-            )),
+                decoration: BoxDecoration(
+                    color: ColorConstants.appColorPaleBlue,
+                    borderRadius:
+                        const BorderRadius.all(Radius.circular(535.87))),
+                child: Column(
+                  children: [
+                    Text(
+                      'New',
+                      style: TextStyle(
+                          fontSize: 10, color: ColorConstants.appColorBlue),
+                    ),
+                  ],
+                ))
+            : Container(
+                color: Colors.transparent,
+                constraints: const BoxConstraints(
+                  maxHeight: 16,
+                  maxWidth: 43.35,
+                ),
+              ),
         title: Text(
-          'Welcome to AirQo!',
+          notification.title,
           style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
               color: ColorConstants.appColorBlack),
         ),
         subtitle: Text(
-          'Begin your journey to Knowing '
-          'Your Air and Breathe Clean',
+          notification.message,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
@@ -182,11 +192,11 @@ class _NotificationPageState extends State<NotificationPage> {
   }
 
   Future<void> refreshData() async {
-    await DBHelper().getFavouritePlaces().then((value) => {
+    await _cloudStore.getNotifications(_customAuth.getId()).then((value) => {
           if (mounted)
             {
               setState(() {
-                favouritePlaces = value;
+                notifications = value;
               })
             }
         });
@@ -252,7 +262,7 @@ class _NotificationPageState extends State<NotificationPage> {
                             height: 17,
                           ),
                           Text(
-                            'Welcome to AirQo!',
+                            selectedNotification.title,
                             textAlign: TextAlign.center,
                             style: TextStyle(
                                 fontSize: 16,
@@ -263,8 +273,7 @@ class _NotificationPageState extends State<NotificationPage> {
                             height: 8.0,
                           ),
                           Text(
-                            'Begin your journey to Knowing '
-                            'Your Air and Breathe Clean',
+                            selectedNotification.message,
                             textAlign: TextAlign.center,
                             style: TextStyle(
                                 fontSize: 14,
@@ -278,89 +287,6 @@ class _NotificationPageState extends State<NotificationPage> {
                 ))
           ],
         ),
-      ),
-    );
-    return Container(
-      padding: const EdgeInsets.fromLTRB(8.0, 24.0, 8.0, 8.0),
-      color: ColorConstants.appBodyColor,
-      child: Column(
-        children: [
-          Container(
-              padding: const EdgeInsets.all(8.0),
-              decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.all(Radius.circular(16.0))),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            isViewNotification = false;
-                          });
-                        },
-                        child: SvgPicture.asset(
-                          'assets/icon/close.svg',
-                          semanticsLabel: 'Pm2.5',
-                          height: 20,
-                          width: 20,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 12,
-                  ),
-                  Container(
-                    padding: const EdgeInsets.only(
-                        left: 54.0, right: 54.0, bottom: 54.0),
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(15.0),
-                          decoration: BoxDecoration(
-                            color: ColorConstants.appColorPaleBlue,
-                            shape: BoxShape.circle,
-                          ),
-                          child: SvgPicture.asset(
-                            'assets/icon/airqo_home.svg',
-                            height: 24,
-                            width: 36,
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 17,
-                        ),
-                        Text(
-                          'Welcome to AirQo!',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: ColorConstants.appColorBlack),
-                        ),
-                        const SizedBox(
-                          height: 8.0,
-                        ),
-                        Text(
-                          'Begin your journey to Knowing '
-                          'Your Air and Breathe Clean',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              fontSize: 14,
-                              color: ColorConstants.appColorBlack
-                                  .withOpacity(0.4)),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ))
-        ],
       ),
     );
   }

@@ -1,12 +1,13 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:app/models/notification.dart';
 import 'package:app/screens/profile_view.dart';
-import 'package:app/screens/share_picture.dart';
+import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dialogs.dart';
-import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
 
 import 'dashboard_view.dart';
 import 'maps_view.dart';
@@ -17,9 +18,11 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  String title = '${AppConfig.name}';
+  String title = AppConfig.name;
   bool showAddPlace = true;
   DateTime? exitTime;
+
+  final CustomAuth _customAuth = CustomAuth();
 
   int _selectedIndex = 0;
   final List<Widget> _widgetOptions = <Widget>[
@@ -67,14 +70,36 @@ class _HomePageState extends State<HomePage> {
               label: 'AirQo Map',
             ),
             BottomNavigationBarItem(
-              icon: SvgPicture.asset(
-                'assets/icon/profile.svg',
-                color: _selectedIndex == 2
-                    ? ColorConstants.appColorBlue
-                    : ColorConstants.appColorBlack.withOpacity(0.4),
-                semanticsLabel: 'Search',
+              icon: Stack(
+                children: [
+                  SvgPicture.asset(
+                    'assets/icon/profile.svg',
+                    color: _selectedIndex == 2
+                        ? ColorConstants.appColorBlue
+                        : ColorConstants.appColorBlack.withOpacity(0.4),
+                    semanticsLabel: 'Search',
+                  ),
+                  Consumer<NotificationModel>(
+                    builder: (context, notifications, child) {
+                      if (!notifications.hasNotifications()) {
+                        return Container(
+                          height: 0.1,
+                          width: 0.1,
+                          decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.transparent),
+                        );
+                      }
+                      return Container(
+                        height: 4,
+                        width: 4,
+                        decoration: BoxDecoration(
+                            shape: BoxShape.circle, color: ColorConstants.red),
+                      );
+                    },
+                  ),
+                ],
               ),
-              // Icon(Icons.account_circle_sharp),
               label: 'Profile',
             ),
           ],
@@ -91,9 +116,11 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void initialize() {
+  Future<void> initialize() async {
     _getLatestMeasurements();
-    _getStories();
+    if (_customAuth.isLoggedIn()) {
+      CloudStore().monitorNotifications(context, _customAuth.getId());
+    }
   }
 
   @override
@@ -124,73 +151,9 @@ class _HomePageState extends State<HomePage> {
     return Future.value(true);
   }
 
-  void switchTitle(tile) {
-    switch (tile) {
-      case 0:
-        setState(() {
-          title = '${AppConfig.name}';
-          showAddPlace = true;
-          _selectedIndex = 0;
-        });
-        break;
-      case 1:
-        setState(() {
-          title = 'MyPlaces';
-          showAddPlace = false;
-          _selectedIndex = 1;
-        });
-        break;
-      case 2:
-        setState(() {
-          title = 'News Feed';
-          showAddPlace = false;
-          _selectedIndex = 2;
-        });
-        break;
-      case 3:
-        setState(() {
-          title = 'Settings';
-          showAddPlace = false;
-          _selectedIndex = 3;
-        });
-        break;
-      default:
-        setState(() {
-          title = '${AppConfig.name}';
-          showAddPlace = true;
-          _selectedIndex = 0;
-        });
-        break;
-    }
-  }
-
-  Future<void> takePhoto() async {
-    // Obtain a list of the available cameras on the phone.
-    final cameras = await availableCameras();
-
-    // Get a specific camera from the list of available cameras.
-    if (cameras.isEmpty) {
-      await showSnackBar(context, 'Could not open AQI camera');
-      return;
-    }
-    final firstCamera = cameras.first;
-
-    await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return TakePicture(
-        camera: firstCamera,
-      );
-    }));
-  }
-
   void _getLatestMeasurements() {
     AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
           if (value.isNotEmpty) {DBHelper().insertLatestMeasurements(value)}
-        });
-  }
-
-  void _getStories() {
-    AirqoApiClient(context).fetchLatestStories().then((value) => {
-          if (value.isNotEmpty) {DBHelper().insertLatestStories(value)}
         });
   }
 

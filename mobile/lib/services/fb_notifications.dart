@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/alert.dart';
+import 'package:app/models/notification.dart';
 import 'package:app/models/site.dart';
 import 'package:app/models/topicData.dart';
 import 'package:app/models/userDetails.dart';
@@ -9,19 +10,32 @@ import 'package:app/utils/dialogs.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'local_notifications.dart';
 
 class CloudStore {
-  FirebaseFirestore _firestore;
+  final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
 
-  CloudStore(this._firestore);
+  CloudStore();
+
+  Future<void> deleteAccount(id) async {
+    try {
+      await _firebaseFirestore
+          .collection(CloudStorage.usersCollection)
+          .doc(id)
+          .delete();
+    } catch (e) {
+      print(e);
+    }
+  }
 
   Future<bool> deleteAlert(Alert alert) async {
     var hasConnection = await isConnected();
     if (hasConnection) {
-      await FirebaseFirestore.instance
+      await _firebaseFirestore
           .collection(CloudStorage.alertsCollection)
           .doc(alert.getAlertDbId())
           .delete();
@@ -29,6 +43,34 @@ class CloudStore {
       return true;
     } else {
       return false;
+    }
+  }
+
+  Future<List<UserNotification>> getNotifications(String id) async {
+    if (id == '') {
+      return [];
+    }
+
+    var hasConnection = await isConnected();
+    if (hasConnection) {
+      var notificationsJson = await _firebaseFirestore
+          .collection('${CloudStorage.notificationCollection}/$id/$id')
+          .get();
+
+      var notifications = <UserNotification>[];
+
+      var notificationDocs = notificationsJson.docs;
+      for (var doc in notificationDocs) {
+        var notification =
+            await compute(UserNotification.parseNotification, doc.data());
+        if (notification != null) {
+          notifications.add(notification);
+        }
+      }
+
+      return notifications;
+    } else {
+      return [];
     }
   }
 
@@ -44,12 +86,33 @@ class CloudStore {
     }
   }
 
+  void monitorNotifications(context, String id) {
+    try {
+      _firebaseFirestore
+          .collection('${CloudStorage.notificationCollection}/$id/$id')
+          .where('isNew', isEqualTo: true)
+          .snapshots()
+          .listen((result) async {
+        result.docs.forEach((result) async {
+          var notification =
+              await compute(UserNotification.parseNotification, result.data());
+          if (notification != null) {
+            Provider.of<NotificationModel>(context, listen: false)
+                .add(notification);
+          }
+        });
+      });
+    } catch (e) {
+      print(e);
+    }
+  }
+
   Future<bool> saveAlert(Alert alert) async {
     var hasConnection = await isConnected();
     if (hasConnection) {
       var alertJson = alert.toJson();
       alertJson['platform'] = Platform.isIOS ? 'ios' : 'android';
-      await _firestore
+      await _firebaseFirestore
           .collection(CloudStorage.alertsCollection)
           .doc(alert.getAlertDbId())
           .set(alertJson);
@@ -92,25 +155,34 @@ class CloudStore {
       return false;
     }
   }
+
+  Future<void> updateProfile(UserDetails userDetails, String id) async {
+    var hasConnection = await isConnected();
+    if (hasConnection) {
+      var _userJson = userDetails.toJson();
+      await _firebaseFirestore
+          .collection(CloudStorage.usersCollection)
+          .doc(id)
+          .set(_userJson);
+    } else {
+      throw Exception(ErrorMessages.timeoutException);
+    }
+  }
 }
 
 class CustomAuth {
-  final FirebaseAuth _firebaseAuth;
-  final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
-  CustomAuth(this._firebaseAuth);
+  final CloudStore _firebaseFirestore = CloudStore();
+
+  CustomAuth();
 
   Future<void> deleteAccount() async {
     var currentUser = _firebaseAuth.currentUser;
     if (currentUser != null) {
       try {
-        await currentUser.delete().then((value) => {
-              logOut(),
-              _firebaseFirestore
-                  .collection(CloudStorage.usersCollection)
-                  .doc(currentUser.uid)
-                  .delete()
-            });
+        await currentUser.delete().then((value) =>
+            {logOut(), _firebaseFirestore.deleteAccount(currentUser.uid)});
       } catch (e) {
         print(e);
       }
@@ -126,7 +198,7 @@ class CustomAuth {
 
   String getId() {
     if (!isLoggedIn()) {
-      throw Exception('Not logged in');
+      return '';
     }
     return _firebaseAuth.currentUser!.uid;
   }
@@ -258,11 +330,7 @@ class CustomAuth {
 
       userDetails.userId = firebaseUser.uid;
 
-      var _userJson = userDetails.toJson();
-      await _firebaseFirestore
-          .collection(CloudStorage.usersCollection)
-          .doc(firebaseUser.uid)
-          .set(_userJson);
+      await _firebaseFirestore.updateProfile(userDetails, firebaseUser.uid);
     } else {
       throw Exception(ErrorMessages.timeoutException);
     }

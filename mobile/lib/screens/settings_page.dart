@@ -6,7 +6,6 @@ import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/utils/wev_view.dart';
 import 'package:app/widgets/custom_widgets.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:in_app_review/in_app_review.dart';
@@ -23,7 +22,7 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   bool isSignedIn = false;
-  final CustomAuth _customAuth = CustomAuth(FirebaseAuth.instance);
+  final CustomAuth _customAuth = CustomAuth();
   bool allowNotification = false;
   bool allowLocation = false;
 
@@ -268,7 +267,7 @@ class _SettingsPageState extends State<SettingsPage> {
     Widget okButton = TextButton(
       child: const Text('Yes'),
       onPressed: () {
-        var _customAuth = CustomAuth(FirebaseAuth.instance);
+        var _customAuth = CustomAuth();
         _customAuth.deleteAccount().then((value) => {
               Navigator.pushAndRemoveUntil(context,
                   MaterialPageRoute(builder: (context) {

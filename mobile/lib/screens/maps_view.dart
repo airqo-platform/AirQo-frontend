@@ -437,10 +437,13 @@ class _MapViewState extends State<MapView> {
                 const SizedBox(
                   height: 80,
                 ),
-                SvgPicture.asset(
-                  'assets/icon/globe.svg',
+                Image.asset(
+                  'assets/icon/coming_soon.png',
                   height: 80,
                   width: 80,
+                ),
+                const SizedBox(
+                  height: 16,
                 ),
                 Padding(
                     padding: const EdgeInsets.only(left: 30, right: 30),
@@ -477,13 +480,13 @@ class _MapViewState extends State<MapView> {
     return ListTile(
       contentPadding: const EdgeInsets.only(left: 0.0),
       title: Text(
-        '${measurement.site.getName()}',
+        measurement.site.getName(),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
       ),
       subtitle: Text(
-        '${measurement.site.getLocation()}',
+        measurement.site.getLocation(),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(color: Colors.black.withOpacity(0.3), fontSize: 14),

@@ -8,13 +8,16 @@ part of 'historicalMeasurement.dart';
 
 HistoricalMeasurement _$HistoricalMeasurementFromJson(
     Map<String, dynamic> json) {
-  $checkKeys(json, requiredKeys: const [
-    'time',
-    'average_pm2_5',
-    'average_pm10',
-    'site_id',
-    'device_number'
-  ]);
+  $checkKeys(
+    json,
+    requiredKeys: const [
+      'time',
+      'average_pm2_5',
+      'average_pm10',
+      'site_id',
+      'device_number'
+    ],
+  );
   return HistoricalMeasurement(
     json['time'] as String,
     MeasurementValue.fromJson(json['average_pm2_5'] as Map<String, dynamic>),
@@ -30,13 +33,12 @@ HistoricalMeasurement _$HistoricalMeasurementFromJson(
 }
 
 HistoricalMeasurements _$HistoricalMeasurementsFromJson(
-    Map<String, dynamic> json) {
-  return HistoricalMeasurements(
-    measurements: (json['measurements'] as List<dynamic>)
-        .map((e) => HistoricalMeasurement.fromJson(e as Map<String, dynamic>))
-        .toList(),
-  );
-}
+        Map<String, dynamic> json) =>
+    HistoricalMeasurements(
+      measurements: (json['measurements'] as List<dynamic>)
+          .map((e) => HistoricalMeasurement.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
 
 Map<String, dynamic> _$HistoricalMeasurementsToJson(
         HistoricalMeasurements instance) =>

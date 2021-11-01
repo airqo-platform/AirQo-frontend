@@ -10,7 +10,6 @@ import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:camera/camera.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
@@ -29,7 +28,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
   final _formKey = GlobalKey<FormState>();
   UserDetails userDetails;
   bool updating = false;
-  final CustomAuth _customAuth = CustomAuth(FirebaseAuth.instance);
+  final CustomAuth _customAuth = CustomAuth();
   String profilePic = '';
   bool changeImage = false;
 

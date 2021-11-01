@@ -92,6 +92,7 @@ flutter:
     - assets/images/skate.png
     - assets/icon/enable_location_icon.png
     - assets/icon/floating_bg.png
+    - assets/icon/coming_soon.png
 
    # icons
     - assets/icon/airqo_logo.png
@@ -145,6 +146,7 @@ flutter:
     - assets/icon/previous_arrow.svg
     - assets/icon/learn_complete.svg
     - assets/icon/profile_edit.svg
+    - assets/icon/has_notifications.svg
 
     # Language Translation files
     - assets/i18n/en.json

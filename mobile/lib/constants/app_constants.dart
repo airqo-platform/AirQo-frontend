@@ -36,6 +36,8 @@ class AppConfig {
 class CloudStorage {
   static String get alertsCollection => alertsDb;
 
+  static String get notificationCollection => notificationDb;
+
   static String get usersCollection => usersDb;
 }
 
