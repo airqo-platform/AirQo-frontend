@@ -3,7 +3,6 @@ import 'package:app/models/feedback.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/string_extension.dart';
-import 'package:app/utils/wev_view.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/widgets/text_fields.dart';
@@ -11,6 +10,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class FeedbackPage extends StatefulWidget {
   FeedbackPage({Key? key}) : super(key: key);
@@ -208,11 +208,11 @@ class _FeedbackPageState extends State<FeedbackPage> {
                         },
                       ),
                       GestureDetector(
-                        onTap: () {
+                        onTap: () async {
                           if (_index == 1 && feedbackChannel != '') {
                             if (feedbackChannel == 'Email') {
                               if (!_emailInputController.text.isValidEmail()) {
-                                showSnackBar(context,
+                                await showSnackBar(context,
                                     'Please enter a valid email address');
                               } else {
                                 setState(() {
@@ -220,14 +220,18 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                 });
                               }
                             } else if (feedbackChannel == 'WhatsApp') {
-                              openUrl('${Links.appWhatsappUrl}'
-                                  'text=$feedbackType');
+                              try {
+                                await launch('${Links.appWhatsappUrl}'
+                                    'text=$feedbackType');
+                              } catch (e) {
+                                print(e);
+                              }
                               Navigator.of(context).pop();
                             }
                           } else if (_index == 2 &&
                               feedbackChannel == 'Email') {
                             if (_emailFeedbackController.text == '') {
-                              showSnackBar(
+                              await showSnackBar(
                                   context, 'Please provide your feedback');
                             } else {
                               var feedback = UserFeedback(
@@ -237,7 +241,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                               setState(() {
                                 isSendingFeedback = true;
                               });
-                              AirqoApiClient(context)
+                              await AirqoApiClient(context)
                                   .sendFeedback(feedback)
                                   .then((value) => {
                                         if (value)

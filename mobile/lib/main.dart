@@ -71,16 +71,16 @@ class AirQoApp extends StatelessWidget {
 
               return MaterialApp(
                 debugShowCheckedModeBanner: false,
-                localizationsDelegates: [
+                localizationsDelegates: const [
                   CustomLocalizations.delegate,
                   GlobalMaterialLocalizations.delegate,
                   GlobalWidgetsLocalizations.delegate,
                   GlobalCupertinoLocalizations.delegate,
                   LgMaterialLocalizations.delegate,
                 ],
-                supportedLocales: [const Locale('en'), const Locale('lg')],
+                supportedLocales: const [Locale('en'), Locale('lg')],
                 locale: provider.locale,
-                title: '${AppConfig.name}',
+                title: AppConfig.name,
                 theme: _buildCurrentTheme(),
                 home: SplashScreen(),
               );

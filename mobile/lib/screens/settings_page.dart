@@ -9,7 +9,9 @@ import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:in_app_review/in_app_review.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import 'about_page.dart';
 import 'feedback_page.dart';
 import 'home_page.dart';
 
@@ -25,6 +27,7 @@ class _SettingsPageState extends State<SettingsPage> {
   final CustomAuth _customAuth = CustomAuth();
   bool allowNotification = false;
   bool allowLocation = false;
+  final InAppReview inAppReview = InAppReview.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -235,12 +238,26 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           GestureDetector(
             onTap: () async {
+              // final inAppReview = InAppReview.instance;
+              //
+              // if (await inAppReview.isAvailable()) {
+              //   await inAppReview.requestReview();
+              // }
+
               if (Platform.isAndroid ||
                   Platform.isLinux ||
                   Platform.isWindows) {
-                openUrl(Links.playStoreUrl);
+                try {
+                  await launch(Links.playStoreUrl);
+                } catch (e) {
+                  print(e);
+                }
               } else if (Platform.isIOS || Platform.isMacOS) {
-                openUrl(Links.appStoreUrl);
+                try {
+                  await launch(Links.appStoreUrl);
+                } catch (e) {
+                  print(e);
+                }
               }
             },
             child: cardSection('Rate the AirQo App'),
@@ -250,11 +267,10 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           GestureDetector(
             onTap: () async {
-              final inAppReview = InAppReview.instance;
-
-              if (await inAppReview.isAvailable()) {
-                await inAppReview.requestReview();
-              }
+              await Navigator.push(context,
+                  MaterialPageRoute(builder: (context) {
+                return AboutAirQo();
+              }));
             },
             child: cardSection('About'),
           ),

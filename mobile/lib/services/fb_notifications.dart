@@ -364,7 +364,7 @@ class CustomAuth {
           callBackFn(verificationId);
         },
         codeAutoRetrievalTimeout: (String verificationId) async {
-          // TODO Implement auto code retrieval
+          // TODO Implement auto code retrieval timeout
           // await showSnackBar(context, 'codeAutoRetrievalTimeout');
         },
         timeout: const Duration(minutes: 1));

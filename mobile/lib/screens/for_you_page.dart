@@ -110,9 +110,9 @@ class _ForYouPageState extends State<ForYouPage>
                 child: TabBarView(
               controller: _tabController,
               physics: const NeverScrollableScrollPhysics(),
-              children: <Widget>[
-                const AnalyticsView(),
-                const KnowYourAirView(),
+              children: const <Widget>[
+                AnalyticsView(),
+                KnowYourAirView(),
               ],
             )),
           ],

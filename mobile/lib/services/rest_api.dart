@@ -261,6 +261,24 @@ class AirqoApiClient {
     }
   }
 
+  Future<String> requestEmailVerificationCode(String emailAddress) async {
+    try {
+      Map<String, String> headers = HashMap()
+        ..putIfAbsent('Content-Type', () => 'application/json');
+
+      var body = {'email': emailAddress};
+
+      final response = await http.post(
+          Uri.parse(AirQoUrls().requestEmailVerification),
+          headers: headers,
+          body: jsonEncode(body));
+      return json.decode(response.body)['link'];
+    } catch (e) {
+      print(e);
+      return '';
+    }
+  }
+
   Future<bool> saveAlert(Alert alert) async {
     try {
       var body = alert.toJson();

@@ -1,4 +1,6 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:app/on_boarding/login_screen.dart';
+import 'package:app/on_boarding/signup_screen.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -104,6 +106,76 @@ Widget locationIconV1(height, width) {
     semanticsLabel: 'location',
     height: height,
     width: width,
+  );
+}
+
+Widget loginOptions(context) {
+  return Column(
+    children: [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Don\'t have an account',
+            textAlign: TextAlign.center,
+            style:
+                TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.6)),
+          ),
+          const SizedBox(
+            width: 2,
+          ),
+          GestureDetector(
+            onTap: () {
+              Navigator.pushAndRemoveUntil(context,
+                  MaterialPageRoute(builder: (context) {
+                return SignupScreen(false);
+              }), (r) => false);
+            },
+            child: Text(
+              'Sign up',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: ColorConstants.appColorBlue),
+            ),
+          )
+        ],
+      ),
+      const SizedBox(
+        height: 4,
+      ),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Proceed as',
+            textAlign: TextAlign.center,
+            style:
+                TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.6)),
+          ),
+          const SizedBox(
+            width: 2,
+          ),
+          GestureDetector(
+            onTap: () {
+              Navigator.pushAndRemoveUntil(context,
+                  MaterialPageRoute(builder: (context) {
+                return HomePage();
+              }), (r) => false);
+            },
+            child: Text(
+              'Guest',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: ColorConstants.appColorBlue),
+            ),
+          )
+        ],
+      ),
+    ],
   );
 }
 
@@ -334,7 +406,7 @@ Widget signUpOptions(context) {
             onTap: () {
               Navigator.pushAndRemoveUntil(context,
                   MaterialPageRoute(builder: (context) {
-                return HomePage();
+                return const LoginScreen();
               }), (r) => false);
             },
             child: Text(

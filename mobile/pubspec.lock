@@ -484,14 +484,14 @@ packages:
       name: geolocator_apple
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.2.0"
+    version: "1.2.2"
   geolocator_platform_interface:
     dependency: transitive
     description:
       name: geolocator_platform_interface
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.3.4"
+    version: "2.3.6"
   geolocator_web:
     dependency: transitive
     description:

@@ -1,5 +1,5 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/on_boarding/phone_signup_screen.dart';
+import 'package:app/on_boarding/signup_screen.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:flutter/material.dart';
@@ -70,7 +70,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
                 onTap: () {
                   Navigator.pushAndRemoveUntil(context,
                       MaterialPageRoute(builder: (context) {
-                    return PhoneSignupScreen(false);
+                    return SignupScreen(false);
                   }), (r) => false);
                 },
                 child: nextButton('Let’s go', ColorConstants.appColorBlue),
@@ -86,7 +86,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
     Future.delayed(const Duration(seconds: 4), () async {
       await Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (context) {
-        return PhoneSignupScreen(false);
+        return SignupScreen(false);
       }));
     });
   }

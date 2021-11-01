@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 List<Widget> createTips(double value) {
-  var tips = getTips(value);
+  var tips = [];
 
   var tipsWidgets = <Widget>[];
 

@@ -1,5 +1,4 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/on_boarding/profile_setup_screen.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/utils/dialogs.dart';
@@ -9,16 +8,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-class PhoneSignupScreen extends StatefulWidget {
-  final bool enableBackButton;
-
-  PhoneSignupScreen(this.enableBackButton);
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({Key? key}) : super(key: key);
 
   @override
-  PhoneSignupScreenState createState() => PhoneSignupScreenState();
+  LoginScreenState createState() => LoginScreenState();
 }
 
-class PhoneSignupScreenState extends State<PhoneSignupScreen> {
+class LoginScreenState extends State<LoginScreen> {
   final _phoneFormKey = GlobalKey<FormState>();
   bool phoneFormValid = false;
   bool codeFormValid = false;
@@ -42,7 +39,7 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
     _customAuth.logIn(credential).then((value) => {
           Navigator.pushAndRemoveUntil(context,
               MaterialPageRoute(builder: (context) {
-            return ProfileSetupScreen(widget.enableBackButton);
+            return HomePage();
           }), (r) => false)
         });
   }
@@ -179,8 +176,7 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                                 .then((value) => {
                                       Navigator.pushAndRemoveUntil(context,
                                           MaterialPageRoute(builder: (context) {
-                                        return ProfileSetupScreen(
-                                            widget.enableBackButton);
+                                        return HomePage();
                                       }), (r) => false)
                                     });
                           } on FirebaseAuthException catch (e) {
@@ -228,7 +224,7 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                         height: 42,
                       ),
                       const Text(
-                        'Sign up with your email\nor mobile number',
+                        'Log in with your email\nor mobile number',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
@@ -276,7 +272,7 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                         height: 36,
                       ),
                       Visibility(
-                        visible: false,
+                        visible: true,
                         child: GestureDetector(
                           onTap: () {
                             setState(() {
@@ -286,8 +282,8 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                             });
                           },
                           child: signButton(phoneSignUp
-                              ? 'Sign up with email instead'
-                              : 'Sign up with a'
+                              ? 'Login with email instead'
+                              : 'Login with a'
                                   ' mobile number instead'),
                         ),
                       ),
@@ -313,7 +309,7 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
                       const SizedBox(
                         height: 20,
                       ),
-                      signUpOptions(context),
+                      loginOptions(context),
                       const SizedBox(
                         height: 36,
                       ),
@@ -402,12 +398,9 @@ class PhoneSignupScreenState extends State<PhoneSignupScreen> {
       return Future.value(false);
     }
 
-    if (widget.enableBackButton) {
-      Navigator.pushAndRemoveUntil(context,
-          MaterialPageRoute(builder: (context) {
-        return HomePage();
-      }), (r) => false);
-    }
+    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) {
+      return HomePage();
+    }), (r) => false);
 
     return Future.value(true);
   }
