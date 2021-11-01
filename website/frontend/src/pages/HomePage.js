@@ -14,6 +14,9 @@ import UnChecked from 'icons/homepage/unchecked.svg';
 import PlaceHolderLong from 'icons/homepage/placeholder_long.svg';
 import ArrowRight from 'icons/homepage/arrow-right.svg';
 import MapIcon from 'icons/homepage/map.svg';
+import AppleStore from 'icons/homepage/apple-store.svg';
+import GoogleStore from 'icons/homepage/google-play.svg';
+import PlaceholderMeduim from 'icons/homepage/placeholder-medium.svg';
 import NavTab from '../components/nav/NavTab';
 
 const Icon = ({ icon }) => (
@@ -238,6 +241,20 @@ const AirQoMonitor = () => (
         </div>
 );
 
+const GetApp = () => (
+        <div className="get-app-section">
+            <div className="content">
+                <div className="main">Get the App</div>
+                <div className="secondary">Discover the quality of the air you are breathing</div>
+                <div>
+                    <AppleStore className="icon-mr-32" height={60.44} width={178.14} />
+                    <GoogleStore height={60.44} width={178.14} />
+                </div>
+            </div>
+            <PlaceholderMeduim className="placeholder" height={562} width={346} />
+        </div>
+);
+
 const HomePage = () => (
     <div className="HomePage">
         <Intro />
@@ -246,6 +263,7 @@ const HomePage = () => (
         <AirQoAnalytics />
         <Map />
         <AirQoMonitor />
+        <GetApp />
         <Partners />
         <Newsletter />
     </div>
