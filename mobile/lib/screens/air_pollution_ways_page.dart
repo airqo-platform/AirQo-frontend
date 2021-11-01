@@ -33,6 +33,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
     }
 
     if (showLastPage) {
+      completeProgress();
       Future.delayed(const Duration(seconds: 3), () async {
         await Navigator.pushAndRemoveUntil(context,
             MaterialPageRoute(builder: (context) {
@@ -59,6 +60,11 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
         color: ColorConstants.appColorBlue,
       ),
     );
+  }
+
+  Future<void> completeProgress() async {
+    await SharedPreferences.getInstance()
+        .then((value) => {value.setDouble(PrefConstant.tipsProgress, 2.0)});
   }
 
   Widget finalView() {

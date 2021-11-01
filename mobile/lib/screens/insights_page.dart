@@ -109,8 +109,8 @@ class _InsightsPageState extends State<InsightsPage>
               controller: _tabController,
               physics: const NeverScrollableScrollPhysics(),
               children: <Widget>[
-                DailyView(site),
-                DailyView(site),
+                DailyView(site, false),
+                DailyView(site, true),
                 // MonthlyView(site),
               ],
             )),

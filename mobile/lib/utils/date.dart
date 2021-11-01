@@ -156,7 +156,7 @@ String getWeekday() {
   }
 }
 
-String insightsChartDateTimeToString(DateTime dateTime) {
+String insightsChartDateTimeToString(DateTime dateTime, bool daily) {
   try {
     var now = DateTime.now();
     if (now.day == dateTime.day) {
@@ -165,16 +165,25 @@ String insightsChartDateTimeToString(DateTime dateTime) {
       if (now.isAfter(dateTime)) {
         var yesterday = now.subtract(const Duration(hours: 24));
         if (dateTime.day == yesterday.day) {
+          if (daily) {
+            return 'Yesterday';
+          }
           return 'Yesterday, ${DateFormat('hh:mm a').format(dateTime)}';
         } else {
-          return '${DateFormat('d MMM, hh:mm a').format(dateTime)}';
+          if (daily) {
+            return DateFormat('d MMM').format(dateTime);
+          }
+          return DateFormat('d MMM, hh:mm a').format(dateTime);
         }
       } else {
         var tomorrow = now.add(const Duration(hours: 24));
         if (tomorrow.day == dateTime.day) {
+          if (daily) {
+            return 'Tomorrow';
+          }
           return 'Tomorrow, ${DateFormat('hh:mm a').format(dateTime)}';
         } else {
-          return '${DateFormat('d MMM, hh:mm a').format(dateTime)}';
+          return DateFormat('d MMM, hh:mm a').format(dateTime);
         }
       }
     }

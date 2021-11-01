@@ -13,8 +13,9 @@ import 'insights_card.dart';
 
 class DailyView extends StatefulWidget {
   Site site;
+  bool daily;
 
-  DailyView(this.site);
+  DailyView(this.site, this.daily);
 
   @override
   _DailyViewState createState() => _DailyViewState(this.site);
@@ -75,11 +76,11 @@ class _DailyViewState extends State<DailyView> with TickerProviderStateMixin {
             ),
             Visibility(
               visible: pm2_5,
-              child: InsightsCard(site, callBackFn, 'pm2.5'),
+              child: InsightsCard(site, callBackFn, 'pm2.5', widget.daily),
             ),
             Visibility(
               visible: !pm2_5,
-              child: InsightsCard(site, callBackFn, 'pm10'),
+              child: InsightsCard(site, callBackFn, 'pm10', widget.daily),
             ),
             const SizedBox(
               height: 16,

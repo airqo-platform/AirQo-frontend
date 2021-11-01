@@ -4,7 +4,6 @@ import 'package:app/constants/app_constants.dart';
 import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/predict.dart';
-import 'package:app/models/site.dart';
 import 'package:app/models/story.dart';
 import 'package:app/screens/search_page.dart';
 import 'package:app/services/fb_notifications.dart';
@@ -231,102 +230,6 @@ class _DashboardViewState extends State<DashboardView> {
         });
   }
 
-  void getLocationForecastMeasurements(Measurement measurement) async {
-    try {
-      await DBHelper()
-          .getForecastMeasurements(measurement.site.id)
-          .then((value) => {
-                if (value.isNotEmpty)
-                  {
-                    if (mounted)
-                      {
-                        setState(() {
-                          forecastData = value;
-                        })
-                      }
-                  }
-              });
-    } on Error catch (e) {
-      print('Getting forecast data locally error: $e');
-    } finally {
-      try {
-        await AirqoApiClient(context)
-            .fetchForecast(measurement.deviceNumber)
-            .then((value) => {
-                  if (value.isNotEmpty)
-                    {
-                      if (mounted)
-                        {
-                          setState(() {
-                            forecastData = value;
-                          }),
-                        },
-                      DBHelper().insertForecastMeasurements(
-                          value, measurement.site.id)
-                    },
-                });
-      } catch (e) {
-        print('Getting forecast data from api error: $e');
-      }
-    }
-  }
-
-  void getLocationHistoricalMeasurements(Site site) async {
-    try {
-      await DBHelper().getHistoricalMeasurements(site.id).then((value) => {
-            if (value.isNotEmpty)
-              {
-                if (mounted)
-                  {
-                    setState(() {
-                      historicalData = value;
-                    })
-                  }
-              }
-          });
-    } catch (e) {
-      print('Historical data is currently not available.');
-    } finally {
-      try {
-        await AirqoApiClient(context)
-            .fetchSiteHistoricalMeasurements(site)
-            .then((value) => {
-                  if (value.isNotEmpty)
-                    {
-                      if (mounted)
-                        {
-                          setState(() {
-                            historicalData = value;
-                          }),
-                        },
-                      DBHelper()
-                          .insertSiteHistoricalMeasurements(value, site.id)
-                    }
-                });
-      } catch (e) {
-        print('Historical data is currently not available.');
-      }
-    }
-
-    try {
-      await AirqoApiClient(context)
-          .fetchSiteHistoricalMeasurements(site)
-          .then((value) => {
-                if (value.isNotEmpty)
-                  {
-                    if (mounted)
-                      {
-                        setState(() {
-                          historicalData = value;
-                        }),
-                      },
-                  }
-              });
-    } catch (e) {
-      print('Historical data is currently not available.');
-    }
-  }
-
   void getLocationMeasurements() async {
     try {
       await Settings().dashboardMeasurement().then((value) => {
@@ -337,8 +240,6 @@ class _DashboardViewState extends State<DashboardView> {
                     setState(() {
                       measurementData = value;
                     }),
-                    getLocationHistoricalMeasurements(value.site),
-                    // getLocationForecastMeasurements(value.site),
                     updateCurrentLocation()
                   },
               }
@@ -708,8 +609,6 @@ class _DashboardViewState extends State<DashboardView> {
                       setState(() {
                         measurementData = value;
                       }),
-                      getLocationHistoricalMeasurements(value.site),
-                      // getLocationForecastMeasurements(value.site),
                     }
                 },
             });
@@ -731,8 +630,6 @@ class _DashboardViewState extends State<DashboardView> {
                     setState(() {
                       measurementData = value;
                     }),
-                    getLocationHistoricalMeasurements(value.site),
-                    // getLocationForecastMeasurements(value.site),
                   },
               }
           });
