@@ -22,3 +22,8 @@ export const DOWNLOAD_DATA = `${BASE_ANALYTICS_URL}/analytics/data/download?type
 export const GET_MONITORING_SITES_URI = `${BASE_ANALYTICS_URL}/analytics/dashboard/monitoringsites?organisation_name=KCCA`;
 
 export const GET_DATA_MAP = `${BASE_ANALYTICS_URL}/analytics/dashboard/monitoringsites?organisation_name=KCCA&pm25_category=`;
+
+// Reports endpoints
+export const REPORTS_URL = `${BASE_ANALYTICS_URL}/analytics/reports`;
+
+export const REPORTS_ATTRIBUTE_DATA = `${BASE_ANALYTICS_URL}/analytics/reports/attribute/data`;
