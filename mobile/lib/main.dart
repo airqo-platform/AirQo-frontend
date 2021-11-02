@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'constants/app_constants.dart';
@@ -46,7 +47,12 @@ Future<void> main() async {
   final prefs = await SharedPreferences.getInstance();
   final themeController = ThemeController(prefs);
 
-  runApp(AirQoApp(themeController: themeController));
+  await SentryFlutter.init(
+    (options) {
+      options.dsn = AppConfig.sentryUrl;
+    },
+    appRunner: () => runApp(AirQoApp(themeController: themeController)),
+  );
 }
 
 class AirQoApp extends StatelessWidget {

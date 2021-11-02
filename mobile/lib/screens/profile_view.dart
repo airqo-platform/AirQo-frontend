@@ -141,12 +141,6 @@ class _ProfileViewState extends State<ProfileView> {
                                       fontSize: 24,
                                       fontWeight: FontWeight.bold),
                                 ),
-                                Text(
-                                  'Edit profile',
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      color: ColorConstants.inactiveColor),
-                                ),
                                 Padding(
                                   padding: const EdgeInsets.fromLTRB(
                                       0.0, 16.0, 0.0, 0.0),
@@ -175,7 +169,7 @@ class _ProfileViewState extends State<ProfileView> {
         height: 56,
         decoration: const BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.all(Radius.circular(10.0))),
+            borderRadius: BorderRadius.all(Radius.circular(8.0))),
         child: ListTile(
           leading: Container(
               height: 40,
@@ -297,7 +291,7 @@ class _ProfileViewState extends State<ProfileView> {
     return Container(
       decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(10.0))),
+          borderRadius: BorderRadius.all(Radius.circular(8.0))),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -343,8 +337,7 @@ class _ProfileViewState extends State<ProfileView> {
                 constraints: const BoxConstraints(minWidth: double.infinity),
                 decoration: BoxDecoration(
                     color: ColorConstants.appColorBlue,
-                    borderRadius:
-                        const BorderRadius.all(Radius.circular(10.0))),
+                    borderRadius: const BorderRadius.all(Radius.circular(8.0))),
                 child: const Tab(
                     child: Text(
                   'Sign up',

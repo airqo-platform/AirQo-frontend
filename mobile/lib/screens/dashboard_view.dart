@@ -36,6 +36,7 @@ class _DashboardViewState extends State<DashboardView> {
   var storyIsSet = false;
   var greetings = '';
   double tipsProgress = 0.0;
+  bool isRefreshing = false;
 
   final CustomAuth _customAuth = CustomAuth();
 
@@ -201,7 +202,7 @@ class _DashboardViewState extends State<DashboardView> {
           color: ColorConstants.appBodyColor,
           child: RefreshIndicator(
               onRefresh: initialize,
-              color: ColorConstants.appColor,
+              color: ColorConstants.appColorBlue,
               child: Padding(
                 padding:
                     const EdgeInsets.only(left: 16.0, right: 16.0, top: 24),
@@ -261,6 +262,7 @@ class _DashboardViewState extends State<DashboardView> {
                   {
                     setState(() {
                       measurementData = value;
+                      isRefreshing = false;
                     }),
                     updateCurrentLocation()
                   },
@@ -295,6 +297,9 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   Future<void> initialize() async {
+    setState(() {
+      isRefreshing = true;
+    });
     setGreetings();
     getStories();
     _getLatestMeasurements();
@@ -672,7 +677,8 @@ class _DashboardViewState extends State<DashboardView> {
             ),
             Visibility(
                 visible: measurementData != null,
-                child: AnalyticsCard(measurementData, initialize)),
+                child:
+                    AnalyticsCard(measurementData, initialize, isRefreshing)),
             Visibility(
                 visible: measurementData == null,
                 child: loadingAnimation(255.0, 16.0)),

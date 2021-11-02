@@ -5,7 +5,9 @@ import 'package:app/models/site.dart';
 import 'package:flutter/material.dart';
 
 class AppConfig {
-  static final String _androidApiKey = googleKey;
+  static const String _androidApiKey = googleKey;
+
+  static const String sentryUrl = sentryDsn;
 
   static final String imageUploadApiKey = imageApiKey;
 

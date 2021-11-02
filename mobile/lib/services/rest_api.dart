@@ -19,6 +19,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 class AirqoApiClient {
   final BuildContext context;
@@ -38,13 +39,14 @@ class AirqoApiClient {
       if (responseBody != null) {
         return compute(Predict.parsePredictions, responseBody['predictions']);
       } else {
-        print('Predictions are null');
         return <Predict>[];
       }
-    } on Error catch (e) {
-      print('Predictions error: $e');
+    } on Error catch (exception, stackTrace) {
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
     }
-
     return <Predict>[];
   }
 
@@ -54,7 +56,7 @@ class AirqoApiClient {
       var date = DateFormat('yyyy-MM-dd').format(startTimeUtc);
       var time = '${startTimeUtc.hour}';
 
-      if ('$time'.length == 1) {
+      if (time.length == 1) {
         time = '0$time';
       }
       var startTime = '${date}T$time:00:00Z';
@@ -73,11 +75,13 @@ class AirqoApiClient {
       if (responseBody != null) {
         return compute(HistoricalMeasurement.parseMeasurements, responseBody);
       } else {
-        print('Historical Measurements are null');
         return <HistoricalMeasurement>[];
       }
-    } on Error catch (e) {
-      print('Get Historical measurements error: $e');
+    } on Error catch (exception, stackTrace) {
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
     }
 
     return <HistoricalMeasurement>[];
@@ -97,11 +101,13 @@ class AirqoApiClient {
       if (responseBody != null) {
         return compute(Measurement.parseMeasurements, responseBody);
       } else {
-        // print('Measurements are null');
         return <Measurement>[];
       }
-    } on Error catch (e) {
-      print('Get Latest measurements error: $e');
+    } on Error catch (exception, stackTrace) {
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
     }
 
     return <Measurement>[];
@@ -116,8 +122,11 @@ class AirqoApiClient {
       } else {
         return <Story>[];
       }
-    } on Error catch (e) {
-      print('Get Latest stories error: $e');
+    } on Error catch (exception, stackTrace) {
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
     }
 
     return <Story>[];
@@ -147,11 +156,13 @@ class AirqoApiClient {
       if (responseBody != null) {
         return compute(HistoricalMeasurement.parseMeasurements, responseBody);
       } else {
-        // print('Measurements are null');
         return <HistoricalMeasurement>[];
       }
-    } on Error {
-      // print('Get site historical measurements error: $e');
+    } on Error catch (exception, stackTrace) {
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
     }
 
     return <HistoricalMeasurement>[];
@@ -193,11 +204,13 @@ class AirqoApiClient {
       if (responseBody != null) {
         return compute(HistoricalMeasurement.parseMeasurements, responseBody);
       } else {
-        // print('Measurements are null');
         return <HistoricalMeasurement>[];
       }
-    } on Error {
-      // print('Get site historical measurements error: $e');
+    } on Error catch (exception, stackTrace) {
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
     }
 
     return <HistoricalMeasurement>[];
@@ -219,11 +232,13 @@ class AirqoApiClient {
       if (responseBody != null) {
         return compute(Measurement.parseMeasurement, responseBody);
       } else {
-        // print('Site latest measurements are null');
         throw Exception('site does not exist');
       }
-    } on Error {
-      // print('Get site latest measurements error: $e');
+    } on Error catch (exception, stackTrace) {
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
       throw Exception('site does not exist');
     }
   }
@@ -240,20 +255,14 @@ class AirqoApiClient {
       // 'public_id': name,
       // 'api_key': AppConfig.imageUploadApiKey
 
-      final response = await http.post(
-          Uri.parse('${AirQoUrls().imageUploadUrl}'),
+      final response = await http.post(Uri.parse(AirQoUrls().imageUploadUrl),
           headers: {'Content-Type': 'application/json'},
           body: json.encode(body));
 
-      print(response.statusCode);
       if (response.statusCode == 200) {
         var body = json.decode(response.body);
         return body['url'];
       } else {
-        print('Unexpected status code ${response.statusCode}:'
-            ' ${response.reasonPhrase}');
-        print('Body ${response.body}:');
-        print('uri: ${AirQoUrls().imageUploadUrl}');
         throw Exception('Error');
       }
     } on SocketException {
@@ -262,9 +271,12 @@ class AirqoApiClient {
     } on TimeoutException {
       await showSnackBar(context, ErrorMessages.timeoutException);
       throw Exception('Error');
-    } on Error catch (e) {
-      print('Image upload error: $e');
-      throw Exception('Error');
+    } on Error catch (exception, stackTrace) {
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+      return '';
     }
   }
 
@@ -280,10 +292,13 @@ class AirqoApiClient {
           headers: headers,
           body: jsonEncode(body));
       return json.decode(response.body)['link'];
-    } catch (e) {
-      print(e);
-      return '';
+    } catch (exception, stackTrace) {
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
     }
+    return '';
   }
 
   Future<bool> saveAlert(Alert alert) async {
@@ -292,10 +307,13 @@ class AirqoApiClient {
       final response = await _performPostRequest(
           <String, dynamic>{}, AirQoUrls().alerts, jsonEncode(body));
       return response;
-    } on Error catch (e) {
-      print('Save alert error: $e');
-      return false;
+    } on Error catch (exception, stackTrace) {
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
     }
+    return false;
   }
 
   Future<bool> sendFeedback(UserFeedback feedback) async {
@@ -309,12 +327,9 @@ class AirqoApiClient {
             'title': 'Mobile App feedback',
             'fields': [
               {
-                'title': '${feedback.contactDetails}',
+                'title': feedback.contactDetails,
               },
-              {
-                'title': '${feedback.feedbackType}',
-                'value': '${feedback.message}'
-              },
+              {'title': feedback.feedbackType, 'value': feedback.message},
             ],
             'footer': 'AirQo Mobile App'
           }
@@ -324,10 +339,14 @@ class AirqoApiClient {
       final response = await _performPostRequest(
           <String, dynamic>{}, AirQoUrls().feedbackUrl, jsonEncode(body));
       return response;
-    } on Error catch (e) {
-      print('Send Feedback: $e');
-      return false;
+    } on Error catch (exception, stackTrace) {
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
     }
+
+    return false;
   }
 
   Future<dynamic> _performGetRequest(
@@ -352,18 +371,17 @@ class AirqoApiClient {
       if (response.statusCode == 200) {
         return json.decode(response.body);
       } else {
-        print(response.statusCode);
-        print('Unexpected status code ${response.statusCode}:'
-            ' ${response.reasonPhrase}');
-        // print('Body ${response.body}:');
-        // print('uri: $url');
         return null;
       }
     } on SocketException {
       await showSnackBar(context, ErrorMessages.socketException);
     } on TimeoutException {
       await showSnackBar(context, ErrorMessages.timeoutException);
-    } on Error {
+    } on Error catch (exception, stackTrace) {
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
       await showSnackBar(context, ErrorMessages.appException);
     }
 
@@ -393,7 +411,11 @@ class AirqoApiClient {
       await showSnackBar(context, ErrorMessages.socketException);
     } on TimeoutException {
       await showSnackBar(context, ErrorMessages.timeoutException);
-    } on Error {
+    } on Error catch (exception, stackTrace) {
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
       await showSnackBar(context, ErrorMessages.appException);
     }
 
@@ -423,9 +445,6 @@ class AirqoApiClient {
       if (response.statusCode == 200) {
         return true;
       } else {
-        print(response.statusCode);
-        print('Unexpected status code ${response.statusCode}:'
-            ' ${response.reasonPhrase}');
         return false;
       }
     } on SocketException {
@@ -434,7 +453,11 @@ class AirqoApiClient {
     } on TimeoutException {
       await showSnackBar(context, ErrorMessages.timeoutException);
       return false;
-    } on Error {
+    } on Error catch (exception, stackTrace) {
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
       await showSnackBar(context, ErrorMessages.appException);
       return false;
     }
@@ -470,7 +493,11 @@ class SearchApi {
       throw Exception(ErrorMessages.socketException);
     } on TimeoutException {
       throw Exception(ErrorMessages.timeoutException);
-    } on Error {
+    } on Error catch (exception, stackTrace) {
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
       throw Exception('Cannot get suggestions, please try again later');
     }
   }
@@ -489,9 +516,12 @@ class SearchApi {
       var place = Place.fromJson(responseBody['result']);
 
       return place;
-    } on Error catch (e) {
-      print('Getting place details : $e');
-      throw Exception('$e');
+    } on Error catch (exception, stackTrace) {
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+      throw Exception('$exception');
     }
   }
 
@@ -514,18 +544,17 @@ class SearchApi {
       if (response.statusCode == 200) {
         return json.decode(response.body);
       } else {
-        print(response.statusCode);
-        print('Unexpected status code ${response.statusCode}:'
-            ' ${response.reasonPhrase}');
-        // print('Body ${response.body}:');
-        // print('uri: $url');
         return null;
       }
     } on SocketException {
       throw Exception(ErrorMessages.timeoutException);
     } on TimeoutException {
       throw Exception(ErrorMessages.timeoutException);
-    } on Error {
+    } on Error catch (exception, stackTrace) {
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
       throw Exception('Cannot get details, please try again later');
     }
   }

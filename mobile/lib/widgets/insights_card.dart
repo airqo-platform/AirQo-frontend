@@ -97,26 +97,40 @@ class _InsightsCardState extends State<InsightsCard> {
                           context, selectedMeasurement, 64, pollutant),
                     ],
                   ),
-
                   widget.daily
                       ? chart()
                       : SingleChildScrollView(
                           controller: _scrollController,
                           scrollDirection: Axis.horizontal,
-                          child: chart())
-
-                  // const SizedBox(height: 13.0,),
-                  //
-                  // Row(
-                  //   mainAxisAlignment: MainAxisAlignment.start,
-                  //   children: [
-                  //     Text('Updated today at 08:44',
-                  //       style: TextStyle(
-                  //           fontSize: 8,
-                  //           color: Colors.black.withOpacity(0.3)
-                  //       ),),
-                  //   ],
-                  // ),
+                          child: chart()),
+                  const SizedBox(
+                    height: 13.0,
+                  ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                          constraints: BoxConstraints(
+                              maxWidth: MediaQuery.of(context).size.width / 2),
+                          child: Text(
+                            dateToString(selectedMeasurement.time, true),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                                fontSize: 8,
+                                color: Colors.black.withOpacity(0.3)),
+                          )),
+                      const SizedBox(
+                        width: 8.0,
+                      ),
+                      SvgPicture.asset(
+                        'assets/icon/loader.svg',
+                        semanticsLabel: 'loader',
+                        height: 8,
+                        width: 8,
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),

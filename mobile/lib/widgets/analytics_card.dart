@@ -15,8 +15,10 @@ import 'custom_widgets.dart';
 class AnalyticsCard extends StatefulWidget {
   final Measurement measurement;
   final callBackFn;
+  final isRefreshing;
 
-  const AnalyticsCard(this.measurement, this.callBackFn, {Key? key})
+  const AnalyticsCard(this.measurement, this.callBackFn, this.isRefreshing,
+      {Key? key})
       : super(key: key);
 
   @override
@@ -135,40 +137,49 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                               const SizedBox(
                                 height: 8,
                               ),
-                              Text(
-                                dateToString(measurement.time, true),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    fontSize: 8,
-                                    color: Colors.black.withOpacity(0.3)),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                      constraints: BoxConstraints(
+                                          maxWidth: MediaQuery.of(context)
+                                                  .size
+                                                  .width /
+                                              3.2),
+                                      child: Text(
+                                        dateToString(measurement.time, true),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                            fontSize: 8,
+                                            color:
+                                                Colors.black.withOpacity(0.3)),
+                                      )),
+                                  const SizedBox(
+                                    width: 8.0,
+                                  ),
+                                  Visibility(
+                                    visible: widget.isRefreshing,
+                                    child: SizedBox(
+                                      height: 8.0,
+                                      width: 8.0,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 1.2,
+                                        color: ColorConstants.appColorBlue,
+                                      ),
+                                    ),
+                                  ),
+                                  Visibility(
+                                    visible: !widget.isRefreshing,
+                                    child: SvgPicture.asset(
+                                      'assets/icon/loader.svg',
+                                      semanticsLabel: 'loader',
+                                      height: 8.0,
+                                      width: 8.0,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              // SizedBox(
-                              //   width: MediaQuery.of(context).size.width / 3,
-                              //   child:  Row(
-                              //     crossAxisAlignment: CrossAxisAlignment.start,
-                              //     children: [
-                              //       Expanded(child: Text(
-                              //         '${dateToString(measurement.time, true)}',
-                              //         maxLines: 1,
-                              //         overflow: TextOverflow.ellipsis,
-                              //         style: TextStyle(
-                              //             fontSize: 8,
-                              //             color: Colors.black.withOpacity(0.3)),
-                              //       ),),
-                              //
-                              //       const SizedBox(
-                              //         width: 8.0,
-                              //       ),
-                              //       SvgPicture.asset(
-                              //         'assets/icon/loader.svg',
-                              //         semanticsLabel: 'loader',
-                              //         height: 8,
-                              //         width: 8,
-                              //       ),
-                              //     ],
-                              //   ),
-                              // ),
                             ],
                           ),
                         )
@@ -368,40 +379,35 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                               const SizedBox(
                                 height: 8,
                               ),
-                              Text(
-                                dateToString(measurement.time, true),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    fontSize: 8,
-                                    color: Colors.black.withOpacity(0.3)),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                      constraints: BoxConstraints(
+                                          maxWidth: MediaQuery.of(context)
+                                                  .size
+                                                  .width /
+                                              3.2),
+                                      child: Text(
+                                        dateToString(measurement.time, true),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                            fontSize: 8,
+                                            color:
+                                                Colors.black.withOpacity(0.3)),
+                                      )),
+                                  const SizedBox(
+                                    width: 8.0,
+                                  ),
+                                  SvgPicture.asset(
+                                    'assets/icon/loader.svg',
+                                    semanticsLabel: 'loader',
+                                    height: 8,
+                                    width: 8,
+                                  ),
+                                ],
                               ),
-                              // SizedBox(
-                              //   width: MediaQuery.of(context).size.width / 3,
-                              //   child:  Row(
-                              //     crossAxisAlignment: CrossAxisAlignment.start,
-                              //     children: [
-                              //       Expanded(child: Text(
-                              //         '${dateToString(measurement.time, true)}',
-                              //         maxLines: 1,
-                              //         overflow: TextOverflow.ellipsis,
-                              //         style: TextStyle(
-                              //             fontSize: 8,
-                              //             color: Colors.black.withOpacity(0.3)),
-                              //       ),),
-                              //
-                              //       const SizedBox(
-                              //         width: 8.0,
-                              //       ),
-                              //       SvgPicture.asset(
-                              //         'assets/icon/loader.svg',
-                              //         semanticsLabel: 'loader',
-                              //         height: 8,
-                              //         width: 8,
-                              //       ),
-                              //     ],
-                              //   ),
-                              // ),
                             ],
                           ),
                         )
