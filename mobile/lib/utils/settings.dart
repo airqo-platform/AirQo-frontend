@@ -33,19 +33,6 @@ class Settings {
       print(e);
       return null;
     }
-
-    // if(lastKnown == null){
-    //   return _defaultLocation();
-    // }
-    //
-    // var measurement = await db.getMeasurement(lastKnown.last);
-    //
-    // if(measurement == null){
-    //   return null;
-    // }
-    //
-    // measurement.site.userLocation = lastKnown.first;
-    // return measurement;
   }
 
   Future<Measurement?> _defaultLocation() async {

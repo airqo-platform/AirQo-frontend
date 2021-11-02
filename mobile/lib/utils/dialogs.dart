@@ -269,41 +269,6 @@ void pmInfoDialog(context, Measurement measurement) {
               ],
             )),
       );
-      return Container(
-          height: 237.7,
-          width: 280,
-          decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.all(Radius.circular(8.0))),
-          child: Column(
-            children: [
-              const SizedBox(
-                height: 16,
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 16, right: 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Know Your Air',
-                      style: TextStyle(
-                          color: ColorConstants.appColorBlue,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold),
-                    )
-                  ],
-                ),
-              ),
-              const SizedBox(
-                height: 11,
-              ),
-              Divider(
-                height: 1,
-                color: ColorConstants.appColorBlack.withOpacity(0.7),
-              )
-            ],
-          ));
     },
   );
 }

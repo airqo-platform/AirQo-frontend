@@ -50,14 +50,14 @@ class _FavouritePlacesCard extends State<MiniAnalyticsCard> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           Text(
-                            '${measurement.site.getName()}',
+                            measurement.site.getName(),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                           Text(
-                            '${measurement.site.getLocation()}',
+                            measurement.site.getLocation(),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(

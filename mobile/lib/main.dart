@@ -11,7 +11,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'constants/app_constants.dart';
-import 'languages/CustomLocalizations.dart';
+import 'languages/custom_localizations.dart';
 import 'languages/lg_intl.dart';
 import 'on_boarding/spash_screen.dart';
 import 'providers/ThemeProvider.dart';

@@ -11,7 +11,7 @@ import 'location_setup_screen.dart';
 class NotificationsSetupScreen extends StatefulWidget {
   bool enableBackButton;
 
-  NotificationsSetupScreen(this.enableBackButton);
+  NotificationsSetupScreen(this.enableBackButton, {Key? key}) : super(key: key);
 
   @override
   NotificationsSetupScreenState createState() =>

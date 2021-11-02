@@ -3,7 +3,6 @@ import 'dart:ui';
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/chartData.dart';
 import 'package:app/models/measurement.dart';
-import 'package:app/models/pollutant.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -152,59 +151,6 @@ List<Recommendation> getHealthRecommendations(double pm2_5) {
           'For elderly people',
           'Reduce the intensity of your outdoor activities',
           'assets/icon/search.svg'));
-  } else {}
-
-  return recommendations;
-}
-
-List<Tip> getTips(double pm2_5) {
-  var recommendations = <Tip>[];
-  if (pm2_5 <= 12.09) {
-    //good
-    recommendations.add(Tip(
-        'Everyone',
-        'Air quality is satisfactory, and air pollution'
-            ' poses little or no risk.'));
-  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
-    //moderate
-    recommendations
-      ..add(Tip(
-        'sensitive people',
-        'Consider reducing prolonged or heavy exertion.',
-      ))
-      ..add(Tip('Elderly and children ', 'You the groups most at risk.'));
-  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
-    //sensitive
-    recommendations
-      ..add(Tip('The elderly and children ', 'Limit prolonged exertion.'))
-      ..add(Tip('Sensitive people ', 'Reduce prolonged or heavy exertion.'));
-  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
-    // unhealthy
-    recommendations
-      ..add(Tip(
-        'People with respiratory or heart disease,'
-            ' the elderly and children should',
-        'Avoid prolonged exertion.',
-      ))
-      ..add(Tip(
-        'Everyone else',
-        'limit prolonged exertion.',
-      ));
-  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
-    // very unhealthy
-    recommendations
-      ..add(Tip(
-        'People with respiratory or heart disease',
-        'Avoid any outdoor activity',
-      ))
-      ..add(Tip('Everyone else ', 'Limit prolonged exertion.'));
-  } else if (pm2_5 >= 250.5) {
-    // hazardous
-    recommendations.add(Tip(
-        'Everyone ',
-        'Avoid any outdoor exertion. '
-            'People with respiratory or heart disease,'
-            ' the elderly and children should remain indoors.'));
   } else {}
 
   return recommendations;
@@ -539,28 +485,6 @@ BitmapDescriptor pmToMarkerPoint(double pm2_5) {
   }
 }
 
-Future<BitmapDescriptor> pmToMarkerV2(double pm2_5) async {
-  var width = 40;
-  var bgColor = pm2_5ToColor(pm2_5);
-
-  final pictureRecorder = PictureRecorder();
-  final canvas = Canvas(pictureRecorder);
-  final paint = Paint()..color = bgColor;
-  final radius = width / 2;
-  canvas.drawCircle(
-    Offset(radius, radius),
-    radius,
-    paint,
-  );
-
-  final image = await pictureRecorder.endRecording().toImage(
-        radius.toInt() * 2,
-        radius.toInt() * 2,
-      );
-  final data = await image.toByteData(format: ImageByteFormat.png);
-  return BitmapDescriptor.fromBytes(data!.buffer.asUint8List());
-}
-
 String pmToString(double pm2_5) {
   if (pm2_5 <= 12.09) {
     //good
@@ -580,51 +504,6 @@ String pmToString(double pm2_5) {
   } else if (pm2_5 >= 250.5) {
     // hazardous
     return 'Hazardous';
-  } else {
-    return '';
-  }
-}
-
-Pollutant pollutantDetails(String pollutantConstant) {
-  pollutantConstant = pollutantConstant.trim();
-
-  if (pollutantConstant == PollutantConstant.pm2_5.trim()) {
-    return Pollutant(
-        pollutantToString(PollutantConstant.pm2_5),
-        PollutantDescription.pm2_5,
-        PollutantSource.pm2_5,
-        PollutantEffect.pm2_5,
-        PollutantReduction.pm2_5);
-  } else if (pollutantConstant == PollutantConstant.pm10.trim()) {
-    return Pollutant(
-        pollutantToString(PollutantConstant.pm10),
-        PollutantDescription.pm10,
-        PollutantSource.pm10,
-        PollutantEffect.pm10,
-        PollutantReduction.pm10);
-  } else if (pollutantConstant == PollutantConstant.temperature.trim()) {
-    return Pollutant(pollutantToString(PollutantConstant.temperature),
-        PollutantDescription.temperature, '', '', '');
-  } else if (pollutantConstant == PollutantConstant.humidity.trim()) {
-    return Pollutant(pollutantToString(PollutantConstant.humidity),
-        PollutantDescription.humidity, '', '', '');
-  } else {
-    return Pollutant(pollutantToString(PollutantConstant.pm2_5),
-        PollutantDescription.pm2_5, '', '', '');
-  }
-}
-
-String pollutantToString(String pollutantConstant) {
-  pollutantConstant = pollutantConstant.trim();
-
-  if (pollutantConstant == PollutantConstant.pm2_5) {
-    return 'PM2.5';
-  } else if (pollutantConstant == PollutantConstant.pm10) {
-    return 'PM10';
-  } else if (pollutantConstant == PollutantConstant.humidity) {
-    return 'Humidity';
-  } else if (pollutantConstant == PollutantConstant.temperature) {
-    return 'Temperature';
   } else {
     return '';
   }

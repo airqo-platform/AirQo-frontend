@@ -92,14 +92,14 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '${measurement.site.getName()}',
+                                measurement.site.getName(),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
                                     fontWeight: FontWeight.bold, fontSize: 20),
                               ),
                               Text(
-                                '${measurement.site.getLocation()}',
+                                measurement.site.getLocation(),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
@@ -136,7 +136,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                 height: 8,
                               ),
                               Text(
-                                '${dateToString(measurement.time, true)}',
+                                dateToString(measurement.time, true),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
@@ -325,14 +325,14 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '${measurement.site.getName()}',
+                                measurement.site.getName(),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
                                     fontWeight: FontWeight.bold, fontSize: 20),
                               ),
                               Text(
-                                '${measurement.site.getLocation()}',
+                                measurement.site.getLocation(),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
@@ -369,7 +369,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                 height: 8,
                               ),
                               Text(
-                                '${dateToString(measurement.time, true)}',
+                                dateToString(measurement.time, true),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(

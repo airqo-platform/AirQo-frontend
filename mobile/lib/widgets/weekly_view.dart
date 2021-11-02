@@ -10,10 +10,10 @@ import 'custom_shimmer.dart';
 class WeeklyView extends StatefulWidget {
   Site site;
 
-  WeeklyView(this.site);
+  WeeklyView(this.site, {Key? key}) : super(key: key);
 
   @override
-  _WeeklyViewState createState() => _WeeklyViewState(this.site);
+  _WeeklyViewState createState() => _WeeklyViewState(site);
 }
 
 class _WeeklyViewState extends State<WeeklyView> with TickerProviderStateMixin {
@@ -52,7 +52,7 @@ class _WeeklyViewState extends State<WeeklyView> with TickerProviderStateMixin {
               },
               isScrollable: true,
               tabs: <Widget>[
-                Container(
+                SizedBox(
                   width: 50.0,
                   child: Tab(
                       child: tabLayout(

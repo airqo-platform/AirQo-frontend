@@ -11,21 +11,21 @@ String chartDateToString(String formattedString, bool format) {
         DateTime.parse(formattedString).add(Duration(hours: offSet));
 
     if (now.day == formattedDate.day) {
-      return '${DateFormat('hh:mm a').format(formattedDate)}';
+      return DateFormat('hh:mm a').format(formattedDate);
     } else {
       if (now.isAfter(formattedDate)) {
         var yesterday = now.subtract(const Duration(hours: 24));
         if (formattedDate.day == yesterday.day) {
           return 'Yesterday, ${DateFormat('hh:mm a').format(formattedDate)}';
         } else {
-          return '${DateFormat('d MMM, hh:mm a').format(formattedDate)}';
+          return DateFormat('d MMM, hh:mm a').format(formattedDate);
         }
       } else {
         var tomorrow = now.add(const Duration(hours: 24));
         if (tomorrow.day == formattedDate.day) {
           return 'Tomorrow, ${DateFormat('hh:mm a').format(formattedDate)}';
         } else {
-          return '${DateFormat('d MMM, hh:mm a').format(formattedDate)}';
+          return DateFormat('d MMM, hh:mm a').format(formattedDate);
         }
       }
     }
@@ -68,7 +68,7 @@ String dateToString(String formattedString, bool addOffset) {
         if (tomorrow.day == formattedDate.day) {
           return 'Tomorrow, ${DateFormat('hh:mm a').format(formattedDate)}';
         } else {
-          return '${DateFormat('d MMM, hh:mm a').format(formattedDate)}';
+          return DateFormat('d MMM, hh:mm a').format(formattedDate);
         }
       }
     }

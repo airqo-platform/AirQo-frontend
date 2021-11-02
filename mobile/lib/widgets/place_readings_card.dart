@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/chartData.dart';
-import 'package:app/models/historicalMeasurement.dart';
+import 'package:app/models/historical_measurement.dart';
 import 'package:app/models/site.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/data_formatter.dart';
@@ -48,7 +48,7 @@ class PlaceReadingsCard extends StatefulWidget {
 
   final List<HistoricalMeasurement> historicalData;
 
-  PlaceReadingsCard(
+  const PlaceReadingsCard(
     this.site,
     this.historicalData, {
     Key? key,
@@ -183,7 +183,7 @@ class _PlaceReadingsCardState extends State<PlaceReadingsCard> {
   }
 
   Widget gaugeChart() {
-    return Container(
+    return SizedBox(
       height: 110.0,
       width: 110.0,
       child: Stack(

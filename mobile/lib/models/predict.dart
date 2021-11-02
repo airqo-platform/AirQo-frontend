@@ -1,9 +1,9 @@
-import 'package:app/models/historicalMeasurement.dart';
+import 'package:app/models/historical_measurement.dart';
 import 'package:app/models/site.dart';
 import 'package:intl/intl.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import 'measurementValue.dart';
+import 'measurement_value.dart';
 
 part 'predict.g.dart';
 
@@ -74,20 +74,20 @@ class Predict {
 
   static Map<String, dynamic> mapFromDb(Map<String, dynamic> json) {
     return {
-      'prediction_time': json['${dbTime()}'] as String,
-      'prediction_value': json['${dbValue()}'] as double,
-      'lower_ci': json['${dbLower()}'] as double,
-      'upper_ci': json['${dbUpper()}'] as double,
+      'prediction_time': json[dbTime()] as String,
+      'prediction_value': json[dbValue()] as double,
+      'lower_ci': json[dbLower()] as double,
+      'upper_ci': json[dbUpper()] as double,
     };
   }
 
   static Map<String, dynamic> mapToDb(Predict predict, String siteId) {
     return {
-      '${dbTime()}': predict.time,
-      '${Site.dbId()}': siteId,
-      '${dbValue()}': predict.value,
-      '${dbLower()}': predict.lower,
-      '${dbUpper()}': predict.upper
+      dbTime(): predict.time,
+      Site.dbId(): siteId,
+      dbValue(): predict.value,
+      dbLower(): predict.lower,
+      dbUpper(): predict.upper
     };
   }
 

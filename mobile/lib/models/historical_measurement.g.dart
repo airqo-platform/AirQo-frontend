@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'historicalMeasurement.dart';
+part of 'historical_measurement.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator

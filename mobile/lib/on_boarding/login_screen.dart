@@ -245,7 +245,7 @@ class LoginScreenState extends State<LoginScreen> {
                       ),
                       Visibility(
                         visible: phoneSignUp,
-                        child: Container(
+                        child: SizedBox(
                           height: 48,
                           child: Row(
                             children: [

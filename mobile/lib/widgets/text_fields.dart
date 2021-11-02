@@ -376,11 +376,11 @@ Widget signupInputField(String placeholder) {
       fillColor: Colors.white,
       hintText: placeholder,
       focusedBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: Colors.transparent, width: 1.0),
+        borderSide: const BorderSide(color: Colors.transparent, width: 1.0),
         borderRadius: BorderRadius.circular(10.0),
       ),
       enabledBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: Colors.transparent, width: 1.0),
+        borderSide: const BorderSide(color: Colors.transparent, width: 1.0),
         borderRadius: BorderRadius.circular(10.0),
       ),
       suffixIcon: Icon(
@@ -484,7 +484,7 @@ Widget titleDropdown() {
                 value,
                 overflow: TextOverflow.ellipsis,
                 maxLines: 3,
-                style: TextStyle(fontSize: 14),
+                style: const TextStyle(fontSize: 14),
               ),
             );
           }).toList(),

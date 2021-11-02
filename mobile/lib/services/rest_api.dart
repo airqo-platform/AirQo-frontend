@@ -7,7 +7,7 @@ import 'package:app/constants/api.dart';
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/alert.dart';
 import 'package:app/models/feedback.dart';
-import 'package:app/models/historicalMeasurement.dart';
+import 'package:app/models/historical_measurement.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place.dart';
 import 'package:app/models/predict.dart';

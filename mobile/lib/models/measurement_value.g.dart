@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'measurementValue.dart';
+part of 'measurement_value.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator

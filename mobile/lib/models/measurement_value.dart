@@ -1,6 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
-part 'measurementValue.g.dart';
+part 'measurement_value.g.dart';
 
 @JsonSerializable()
 class MeasurementValue {

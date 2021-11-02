@@ -51,7 +51,7 @@ class TitleSection extends StatelessWidget {
                       color: ColorConstants.appColor),
                 ),
                 Text(
-                  '${data.getPm2_5Value().toStringAsFixed(2)}',
+                  data.getPm2_5Value().toStringAsFixed(2),
                   maxLines: 4,
                   softWrap: true,
                   style:
@@ -89,7 +89,7 @@ class _AirQualityCardState extends State<AirQualityCard> {
                 TitleSection(
                   data: widget.data,
                 ),
-                Text('${dateToString(widget.data.time, true)}',
+                Text(dateToString(widget.data.time, true),
                     style: TextStyle(
                       fontSize: 13,
                       color: ColorConstants.appColor,

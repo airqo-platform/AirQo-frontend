@@ -5,7 +5,7 @@ import 'package:app/models/alert.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/models/site.dart';
 import 'package:app/models/topicData.dart';
-import 'package:app/models/userDetails.dart';
+import 'package:app/models/user_details.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';

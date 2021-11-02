@@ -2,9 +2,9 @@ import 'package:app/models/measurement.dart';
 import 'package:app/models/site.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import 'measurementValue.dart';
+import 'measurement_value.dart';
 
-part 'historicalMeasurement.g.dart';
+part 'historical_measurement.g.dart';
 
 @JsonSerializable()
 class HistoricalMeasurement {
@@ -107,27 +107,27 @@ class HistoricalMeasurement {
 
   static Map<String, dynamic> mapFromDb(Map<String, dynamic> json) {
     return {
-      'site_id': json['${Site.dbId()}'] as String,
-      'time': json['${dbTime()}'] as String,
-      'average_pm2_5': {'value': json['${dbPm25()}'] as double},
-      'average_pm10': {'value': json['${dbPm10()}'] as double},
-      'externalTemperature': {'value': json['${dbTemperature()}'] as double},
-      'externalHumidity': {'value': json['${dbHumidity()}'] as double},
-      'speed': {'value': json['${dbSpeed()}'] as double},
-      'altitude': {'value': json['${dbAltitude()}'] as double},
+      'site_id': json[Site.dbId()] as String,
+      'time': json[dbTime()] as String,
+      'average_pm2_5': {'value': json[dbPm25()] as double},
+      'average_pm10': {'value': json[dbPm10()] as double},
+      'externalTemperature': {'value': json[dbTemperature()] as double},
+      'externalHumidity': {'value': json[dbHumidity()] as double},
+      'speed': {'value': json[dbSpeed()] as double},
+      'altitude': {'value': json[dbAltitude()] as double},
     };
   }
 
   static Map<String, dynamic> mapToDb(HistoricalMeasurement measurement) {
     return {
-      '${dbTime()}': measurement.time,
-      '${dbPm25()}': measurement.getPm2_5Value(),
-      '${dbPm10()}': measurement.pm10.value,
-      '${dbAltitude()}': measurement.altitude.value,
-      '${dbSpeed()}': measurement.speed.value,
-      '${dbTemperature()}': measurement.temperature.value,
-      '${dbHumidity()}': measurement.humidity.value,
-      '${Site.dbId()}': measurement.siteId
+      dbTime(): measurement.time,
+      dbPm25(): measurement.getPm2_5Value(),
+      dbPm10(): measurement.pm10.value,
+      dbAltitude(): measurement.altitude.value,
+      dbSpeed(): measurement.speed.value,
+      dbTemperature(): measurement.temperature.value,
+      dbHumidity(): measurement.humidity.value,
+      Site.dbId(): measurement.siteId
     };
   }
 

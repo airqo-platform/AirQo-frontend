@@ -14,7 +14,7 @@ class ReadingsBarChart extends StatefulWidget {
 }
 
 class _ReadingsBarChartState extends State<ReadingsBarChart> {
-  var display = null;
+  var display;
 
   @override
   Widget build(BuildContext context) {

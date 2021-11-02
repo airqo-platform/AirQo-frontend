@@ -44,7 +44,7 @@ Widget recommendationContainer(Recommendation recommendation) {
             // )
           ),
           title: Text(
-            '${recommendation.title}',
+            recommendation.title,
             maxLines: 4,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
@@ -53,7 +53,7 @@ Widget recommendationContainer(Recommendation recommendation) {
                 fontSize: 16),
           ),
           subtitle: Text(
-            '${recommendation.body}',
+            recommendation.body,
             maxLines: 4,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
@@ -72,13 +72,13 @@ class TipCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
+    var screenWidth = MediaQuery.of(context).size.width;
 
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
           color: Colors.white,
           shape: BoxShape.rectangle,
-          borderRadius: const BorderRadius.all(Radius.circular(10.0))),
+          borderRadius: BorderRadius.all(Radius.circular(10.0))),
       padding: const EdgeInsets.all(8.0),
       child: Row(
         // crossAxisAlignment: CrossAxisAlignment.start,

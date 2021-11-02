@@ -1,5 +1,5 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/userDetails.dart';
+import 'package:app/models/user_details.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/utils/dialogs.dart';

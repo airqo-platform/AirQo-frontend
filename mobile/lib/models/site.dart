@@ -105,14 +105,14 @@ class Site {
   static String dropTableStmt() => 'DROP TABLE IF EXISTS ${sitesDbName()}';
 
   static Map<String, dynamic> fromDbMap(Map<String, dynamic> json) => {
-        'name': json['${dbSiteName()}'] as String,
-        'description': json['${dbDescription()}'] as String,
-        'region': json['${dbRegion()}'] as String,
-        '_id': json['${dbId()}'] as String,
-        'country': json['${dbCountry()}'] as String,
-        'district': json['${dbDistrict()}'] as String,
-        'latitude': json['${dbLatitude()}'] as double,
-        'longitude': json['${dbLongitude()}'] as double,
+        'name': json[dbSiteName()] as String,
+        'description': json[dbDescription()] as String,
+        'region': json[dbRegion()] as String,
+        '_id': json[dbId()] as String,
+        'country': json[dbCountry()] as String,
+        'district': json[dbDistrict()] as String,
+        'latitude': json[dbLatitude()] as double,
+        'longitude': json[dbLongitude()] as double,
       };
 
   static List<Site> parseSites(dynamic jsonBody) {
@@ -138,14 +138,14 @@ class Site {
   static String sitesDbName() => 'sites';
 
   static Map<String, dynamic> toDbMap(Site site) => {
-        '${dbSiteName()}': site.name,
-        '${dbDescription()}': site.description,
-        '${dbRegion()}': site.region,
-        '${dbId()}': site.id,
-        '${dbCountry()}': site.country,
-        '${dbDistrict()}': site.district,
-        '${dbLatitude()}': site.latitude,
-        '${dbLongitude()}': site.longitude
+        dbSiteName(): site.name,
+        dbDescription(): site.description,
+        dbRegion(): site.region,
+        dbId(): site.id,
+        dbCountry(): site.country,
+        dbDistrict(): site.district,
+        dbLatitude(): site.latitude,
+        dbLongitude(): site.longitude
       };
 }
 

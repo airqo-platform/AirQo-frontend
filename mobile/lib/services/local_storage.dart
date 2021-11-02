@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/alert.dart';
-import 'package:app/models/historicalMeasurement.dart';
+import 'package:app/models/historical_measurement.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/predict.dart';
 import 'package:app/models/site.dart';
 import 'package:app/models/story.dart';
 import 'package:app/models/suggestion.dart';
-import 'package:app/models/userDetails.dart';
+import 'package:app/models/user_details.dart';
 import 'package:app/utils/distance.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:path/path.dart';

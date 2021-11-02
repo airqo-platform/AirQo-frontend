@@ -14,7 +14,7 @@ class MonthlyView extends StatefulWidget {
   MonthlyView(this.site);
 
   @override
-  _MonthlyViewState createState() => _MonthlyViewState(this.site);
+  _MonthlyViewState createState() => _MonthlyViewState(site);
 }
 
 class _MonthlyViewState extends State<MonthlyView>

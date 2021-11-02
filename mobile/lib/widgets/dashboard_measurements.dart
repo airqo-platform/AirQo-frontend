@@ -6,7 +6,8 @@ class DashboardBarChart extends StatefulWidget {
   final List<charts.Series<TimeSeriesData, DateTime>> seriesList;
   final String header;
 
-  DashboardBarChart(this.seriesList, this.header);
+  const DashboardBarChart(this.seriesList, this.header, {Key? key})
+      : super(key: key);
 
   @override
   _DashboardBarChartState createState() => _DashboardBarChartState();

@@ -39,7 +39,7 @@ Future<void> reportPlace(Site site, context) async {
 
   final _emailFeedbackUri = Uri(
       scheme: 'mailto',
-      path: '${Links.airqoFeedbackEmail}',
+      path: Links.airqoFeedbackEmail,
       queryParameters: {
         'subject': 'Mobile\bApp\bFeedback\bon\b${site.getName()}!'
       }).toString();

@@ -1,6 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/notification.dart';
-import 'package:app/models/userDetails.dart';
+import 'package:app/models/user_details.dart';
 import 'package:app/on_boarding/signup_screen.dart';
 import 'package:app/screens/settings_page.dart';
 import 'package:app/screens/tips_page.dart';

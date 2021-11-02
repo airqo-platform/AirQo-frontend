@@ -1,5 +1,5 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/historicalMeasurement.dart';
+import 'package:app/models/historical_measurement.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/screens/air_pollution_ways_page.dart';
 import 'package:app/utils/pm.dart';
@@ -45,7 +45,7 @@ Widget analyticsAvatar(
           color: pm2_5TextColor(measurement.getPm2_5Value()),
         ),
         Text(
-          '${measurement.getPm2_5Value().toStringAsFixed(0)}',
+          measurement.getPm2_5Value().toStringAsFixed(0),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: GoogleFonts.robotoMono(
@@ -213,7 +213,7 @@ Widget insightsAvatar(
                   : pm10TextColor(measurement.getPm10Value()),
         ),
         Text(
-          '${measurement.getPm2_5Value().toStringAsFixed(0)}',
+          measurement.getPm2_5Value().toStringAsFixed(0),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: GoogleFonts.robotoMono(
@@ -263,13 +263,13 @@ PreferredSizeWidget knowYourAirAppBar(context, title) {
 Widget locationTileV1(Measurement measurement) {
   return ListTile(
     title: Text(
-      '${measurement.site.getName()}',
+      measurement.site.getName(),
       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
     ),
     subtitle: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('${measurement.site.getLocation()}',
+        Text(measurement.site.getLocation(),
             style:
                 TextStyle(color: ColorConstants.inactiveColor, fontSize: 12)),
         const SizedBox(
@@ -304,7 +304,8 @@ Widget locationTileV1(Measurement measurement) {
                     width: 2,
                   ),
                   Text(
-                      '${pmToString(measurement.getPm2_5Value()).replaceAll('\n', ' ')}',
+                      pmToString(measurement.getPm2_5Value())
+                          .replaceAll('\n', ' '),
                       style: TextStyle(
                           fontSize: 6,
                           color: pm2_5TextColor(measurement.getPm2_5Value()))),
@@ -377,13 +378,13 @@ Widget searchLocationTile(Measurement measurement) {
     child: ListTile(
       contentPadding: const EdgeInsets.only(left: 0.0),
       title: Text(
-        '${measurement.site.getName()}',
+        measurement.site.getName(),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
       ),
       subtitle: Text(
-        '${measurement.site.getLocation()}',
+        measurement.site.getLocation(),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(color: Colors.black.withOpacity(0.3), fontSize: 14),

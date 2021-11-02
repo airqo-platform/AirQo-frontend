@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:app/constants/app_constants.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/native_api.dart';
-import 'package:app/utils/wev_view.dart';
+import 'package:app/utils/web_view.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';

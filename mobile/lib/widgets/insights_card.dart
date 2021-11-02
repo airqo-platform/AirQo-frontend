@@ -1,7 +1,5 @@
-import 'dart:math';
-
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/historicalMeasurement.dart';
+import 'package:app/models/historical_measurement.dart';
 import 'package:app/models/predict.dart';
 import 'package:app/models/site.dart';
 import 'package:app/services/rest_api.dart';
@@ -40,10 +38,6 @@ class _InsightsCardState extends State<InsightsCard> {
   final ScrollController _scrollController = ScrollController();
   String viewDay = 'today';
   final callBackFn;
-
-  // num _sliderDomainValue;
-  // String _sliderDragState;
-  // Point<int> _sliderPosition;
 
   _InsightsCardState(this.site, this.callBackFn, this.pollutant);
 
@@ -193,29 +187,27 @@ class _InsightsCardState extends State<InsightsCard> {
                     ),
                   ),
                   const Spacer(),
-                  Container(
-                    child: Row(
-                      children: [
-                        Container(
-                            height: 10,
-                            width: 10,
-                            decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: selectedMeasurement.formattedTime
-                                        .isAfter(DateTime.now())
-                                    ? ColorConstants.appColorBlue
-                                    : ColorConstants.appColorPaleBlue,
-                                border: Border.all(color: Colors.transparent))),
-                        const SizedBox(
-                          width: 8.0,
-                        ),
-                        Text(
-                          'Forecast',
-                          style: TextStyle(
-                              fontSize: 12, color: ColorConstants.appColorBlue),
-                        )
-                      ],
-                    ),
+                  Row(
+                    children: [
+                      Container(
+                          height: 10,
+                          width: 10,
+                          decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: selectedMeasurement.formattedTime
+                                      .isAfter(DateTime.now())
+                                  ? ColorConstants.appColorBlue
+                                  : ColorConstants.appColorPaleBlue,
+                              border: Border.all(color: Colors.transparent))),
+                      const SizedBox(
+                        width: 8.0,
+                      ),
+                      Text(
+                        'Forecast',
+                        style: TextStyle(
+                            fontSize: 12, color: ColorConstants.appColorBlue),
+                      )
+                    ],
                   ),
                 ],
               ),
@@ -234,34 +226,24 @@ class _InsightsCardState extends State<InsightsCard> {
         defaultRenderer: charts.BarRendererConfig<DateTime>(
             strokeWidthPx: 0, stackedBarPaddingPx: 0),
         defaultInteractions: true,
-        domainAxis: charts.DateTimeAxisSpec(
-            tickProviderSpec: const charts.DayTickProviderSpec(increments: [1]),
-            tickFormatterSpec: charts.AutoDateTimeTickFormatterSpec(
-              day: widget.daily
-                  ? const charts.TimeFormatterSpec(
-                      format: 'EEE', transitionFormat: 'EEE', noonFormat: 'EEE')
-                  : const charts.TimeFormatterSpec(
-                      format: 'hh a',
-                      transitionFormat: 'hh a',
-                      noonFormat: 'hh a'),
-            )),
+        domainAxis: widget.daily
+            ? const charts.DateTimeAxisSpec(
+                tickProviderSpec: charts.DayTickProviderSpec(increments: [1]),
+                tickFormatterSpec: charts.AutoDateTimeTickFormatterSpec(
+                    day: charts.TimeFormatterSpec(
+                        format: 'EEE',
+                        transitionFormat: 'EEE',
+                        noonFormat: 'EEE')))
+            : const charts.DateTimeAxisSpec(
+                tickFormatterSpec: charts.AutoDateTimeTickFormatterSpec(
+                    day: charts.TimeFormatterSpec(
+                        format: 'hh a',
+                        noonFormat: 'hh a',
+                        transitionFormat: 'EEE, hh a'))),
         behaviors: [
-          // charts.SeriesLegend(
-          //   position: charts.BehaviorPosition.top,
-          //   horizontalFirst: false,
-          //   desiredMaxRows: 2,
-          //   cellPadding: const EdgeInsets.only(right: 4.0, bottom: 4.0),
-          // ),
-
-          // charts.Slider(
-          //     initialDomainValue: chartData.first.data[0].formattedTime,
-          //     onChangeCallback: _onSliderChange),
           charts.DomainHighlighter(),
           charts.SelectNearest(
               eventTrigger: charts.SelectionTrigger.tapAndDrag),
-          // charts.LinePointHighlighter(
-          //   symbolRenderer: CustomCircleSymbolRenderer(size: size),
-          // ),
         ],
         selectionModels: [
           charts.SelectionModelConfig(
@@ -280,8 +262,19 @@ class _InsightsCardState extends State<InsightsCard> {
           })
         ],
         primaryMeasureAxis: const charts.NumericAxisSpec(
-            tickProviderSpec:
-                charts.BasicNumericTickProviderSpec(desiredTickCount: 5)),
+          tickProviderSpec: charts.StaticNumericTickProviderSpec(
+            <charts.TickSpec<double>>[
+              charts.TickSpec<double>(0),
+              charts.TickSpec<double>(125),
+              charts.TickSpec<double>(250),
+              charts.TickSpec<double>(375),
+              charts.TickSpec<double>(500),
+            ],
+          ),
+        ),
+        // primaryMeasureAxis: const charts.NumericAxisSpec(
+        //     tickProviderSpec:
+        //         charts.BasicNumericTickProviderSpec(desiredTickCount: 5)),
       ),
     );
   }
@@ -350,23 +343,5 @@ class _InsightsCardState extends State<InsightsCard> {
         viewDay = 'tomorrow';
       });
     }
-  }
-
-  _onSliderChange(Point<int> point, dynamic domain, String roleId,
-      charts.SliderListenerDragState dragState) {
-    print(point);
-    print(domain);
-    print(roleId);
-    print(dragState.toString());
-
-    // void rebuild(_) {
-    //   setState(() {
-    //     _sliderDomainValue = (domain * 10).round() / 10;
-    //     _sliderDragState = dragState.toString();
-    //     _sliderPosition = point;
-    //   });
-    // }
-    //
-    // SchedulerBinding.instance!.addPostFrameCallback(rebuild);
   }
 }
