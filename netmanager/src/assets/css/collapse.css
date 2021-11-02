@@ -1,0 +1,22 @@
+
+.Collapse-container {
+    border: 1px solid #dee2e6;
+    border-radius: 2px;
+    margin: 0 25px 10px 25px;
+}
+
+.Collapse-header {
+    display: flex;
+    align-items: center;
+    background-color: #f8f9fa;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+.Collapse-content {
+    padding: 20px;
+}
+
+.expanded .Collapse-header {
+    border-bottom: 1px solid #dee2e6;
+}

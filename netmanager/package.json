@@ -75,6 +75,7 @@
         "spin.js": "^4.1.0",
         "styled-components": "^5.1.0",
         "underscore": "^1.11.0",
+        "urijs": "^1.19.7",
         "validate.js": "^0.13.1",
         "worker-loader": "^3.0.8",
         "yarn": "^1.22.4"
