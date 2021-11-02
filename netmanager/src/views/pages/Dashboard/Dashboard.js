@@ -19,6 +19,7 @@ import { useEventsMapData } from "redux/MapData/selectors";
 import { PM_25_CATEGORY } from "utils/categories";
 import { isEmpty } from "underscore";
 import { useInitScrollTop } from "utils/customHooks";
+import ErrorBoundary from "views/ErrorBoundary/ErrorBoundary";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -116,83 +117,85 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <div className={classes.root}>
-      <Grid container spacing={4}>
-        <Grid item lg={2} sm={6} xl={2} xs={12}>
-          <PollutantCategory
-            pm25level="Good"
-            pm25levelCount={pm2_5SiteCount.Good}
-            iconClass="pm25Good"
-          />
-        </Grid>
-        <Grid item lg={2} sm={6} xl={2} xs={12}>
-          <PollutantCategory
-            pm25level="Moderate"
-            pm25levelCount={pm2_5SiteCount.Moderate}
-            iconClass="pm25Moderate"
-          />
-        </Grid>
-        <Grid item lg={2} sm={6} xl={2} xs={12}>
-          <PollutantCategory
-            pm25level="UHFSG"
-            pm25levelCount={pm2_5SiteCount.UHFSG}
-            iconClass="pm25UH4SG"
-          />
+    <ErrorBoundary>
+      <div className={classes.root}>
+        <Grid container spacing={4}>
+          <Grid item lg={2} sm={6} xl={2} xs={12}>
+            <PollutantCategory
+              pm25level="Good"
+              pm25levelCount={pm2_5SiteCount.Good}
+              iconClass="pm25Good"
+            />
+          </Grid>
+          <Grid item lg={2} sm={6} xl={2} xs={12}>
+            <PollutantCategory
+              pm25level="Moderate"
+              pm25levelCount={pm2_5SiteCount.Moderate}
+              iconClass="pm25Moderate"
+            />
+          </Grid>
+          <Grid item lg={2} sm={6} xl={2} xs={12}>
+            <PollutantCategory
+              pm25level="UHFSG"
+              pm25levelCount={pm2_5SiteCount.UHFSG}
+              iconClass="pm25UH4SG"
+            />
+          </Grid>
+
+          <Grid item lg={2} sm={6} xl={2} xs={12}>
+            <PollutantCategory
+              pm25level="Unhealthy"
+              pm25levelCount={pm2_5SiteCount.Unhealthy}
+              iconClass="pm25UnHealthy"
+            />
+          </Grid>
+
+          <Grid item lg={2} sm={6} xl={2} xs={12}>
+            <PollutantCategory
+              pm25level="Very Unhealthy"
+              pm25levelCount={pm2_5SiteCount.VeryUnhealthy}
+              iconClass="pm25VeryUnHealthy"
+            />
+          </Grid>
+          <Grid item lg={2} sm={6} xl={2} xs={12}>
+            <PollutantCategory
+              pm25level="Hazardous"
+              pm25levelCount={pm2_5SiteCount.Hazardous}
+              iconClass="pm25Harzadous"
+            />
+          </Grid>
         </Grid>
 
-        <Grid item lg={2} sm={6} xl={2} xs={12}>
-          <PollutantCategory
-            pm25level="Unhealthy"
-            pm25levelCount={pm2_5SiteCount.Unhealthy}
-            iconClass="pm25UnHealthy"
-          />
-        </Grid>
+        <Grid container spacing={4}>
+          <AveragesChart classes={classes} />
 
-        <Grid item lg={2} sm={6} xl={2} xs={12}>
-          <PollutantCategory
-            pm25level="Very Unhealthy"
-            pm25levelCount={pm2_5SiteCount.VeryUnhealthy}
-            iconClass="pm25VeryUnHealthy"
-          />
-        </Grid>
-        <Grid item lg={2} sm={6} xl={2} xs={12}>
-          <PollutantCategory
-            pm25level="Hazardous"
-            pm25levelCount={pm2_5SiteCount.Hazardous}
-            iconClass="pm25Harzadous"
-          />
-        </Grid>
-      </Grid>
+          <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
+            <ExceedancesChart
+              className={clsx(classes.chartCard)}
+              date={dateValue}
+              chartContainer={classes.chartContainer}
+              idSuffix="exceedances"
+            />
+          </Grid>
 
-      <Grid container spacing={4}>
-        <AveragesChart classes={classes} />
+          {userDefaultGraphs &&
+            userDefaultGraphs.map((filter, key) => {
+              return (
+                <CustomisableChart
+                  className={clsx(classes.customChartCard)}
+                  defaultFilter={filter}
+                  idSuffix={`custom-${key + 1}`}
+                  key={key}
+                />
+              );
+            })}
 
-        <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
-          <ExceedancesChart
-            className={clsx(classes.chartCard)}
-            date={dateValue}
-            chartContainer={classes.chartContainer}
-            idSuffix="exceedances"
-          />
+          <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
+            <AddChart className={classes.customChartCard} />
+          </Grid>
         </Grid>
-
-        {userDefaultGraphs &&
-          userDefaultGraphs.map((filter, key) => {
-            return (
-              <CustomisableChart
-                className={clsx(classes.customChartCard)}
-                defaultFilter={filter}
-                idSuffix={`custom-${key + 1}`}
-                key={key}
-              />
-            );
-          })}
-
-        <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
-          <AddChart className={classes.customChartCard} />
-        </Grid>
-      </Grid>
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 };
 

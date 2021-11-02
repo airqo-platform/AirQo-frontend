@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import { makeStyles } from "@material-ui/styles";
 import PropTypes from "prop-types";
 import usrsStateConnector from "views/stateConnectors/usersStateConnector";
+import ErrorBoundary from "views/ErrorBoundary/ErrorBoundary";
 
 import UsersTable from "./components/UsersTable";
 import UsersToolbar from "./components/UsersToolbar";
@@ -26,12 +27,14 @@ const UserList = (props) => {
   }, []);
 
   return (
-    <div className={classes.root}>
-      <UsersToolbar />
-      <div className={classes.content}>
-        <UsersTable users={users} />
-      </div>
-    </div>
+      <ErrorBoundary>
+        <div className={classes.root}>
+          <UsersToolbar />
+          <div className={classes.content}>
+            <UsersTable users={users} />
+          </div>
+        </div>
+      </ErrorBoundary>
   );
 };
 
