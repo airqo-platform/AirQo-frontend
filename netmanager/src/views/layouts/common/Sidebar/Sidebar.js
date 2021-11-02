@@ -15,6 +15,7 @@ import EditLocationIcon from "@material-ui/icons/EditLocation";
 import AspectRatioIcon from "@material-ui/icons/AspectRatio";
 import SupervisedUserCircleIcon from "@material-ui/icons/SupervisedUserCircle";
 import CloudDownloadIcon from "@material-ui/icons/CloudDownload";
+import AnalyticsIcon from '@material-ui/icons/Assessment';
 import { useOrgData } from "redux/Join/selectors";
 import { Profile, SidebarNav, SidebarWidgets } from "./components";
 import usersStateConnector from "views/stateConnectors/usersStateConnector";
@@ -114,6 +115,11 @@ const allMainPages = [
     title: "Site Registry",
     href: "/sites",
     icon: <EditLocationIcon />,
+  },
+    {
+    title: "Reports",
+    href: "/reports",
+    icon: <AnalyticsIcon />,
   },
 ];
 
