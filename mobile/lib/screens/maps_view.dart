@@ -91,7 +91,7 @@ class _MapViewState extends State<MapView> {
         Visibility(
           visible: isSearching,
           child: searchResultsList(),
-        )
+        ),
       ],
     );
   }
@@ -217,8 +217,11 @@ class _MapViewState extends State<MapView> {
 
   Widget scrollViewContent() {
     return Card(
+      margin: EdgeInsets.zero,
       elevation: 12.0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(16), topRight: Radius.circular(16))),
       child: Container(
         padding: const EdgeInsets.fromLTRB(32.0, 0, 32.0, 16.0),
         child: showLocationDetails ? locationContent() : defaultContent(),
@@ -468,7 +471,7 @@ class _MapViewState extends State<MapView> {
                           fontSize: 14, color: Colors.black.withOpacity(0.4)),
                     )),
                 const SizedBox(
-                  height: 80,
+                  height: 158,
                 ),
               ],
             ))

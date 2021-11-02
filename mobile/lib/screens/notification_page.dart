@@ -126,6 +126,7 @@ class _NotificationPageState extends State<NotificationPage> {
           setState(() {
             selectedNotification = notification;
             isViewNotification = true;
+            updateNotification(notification);
           });
         },
         horizontalTitleGap: 12,
@@ -168,8 +169,8 @@ class _NotificationPageState extends State<NotificationPage> {
             : Container(
                 color: Colors.transparent,
                 constraints: const BoxConstraints(
-                  maxHeight: 16,
-                  maxWidth: 43.35,
+                  maxHeight: 0,
+                  maxWidth: 0,
                 ),
               ),
         title: Text(
@@ -289,6 +290,11 @@ class _NotificationPageState extends State<NotificationPage> {
         ),
       ),
     );
+  }
+
+  Future<void> updateNotification(UserNotification notification) async {
+    await _cloudStore.markNotificationAsRead(
+        _customAuth.getId(), notification.id);
   }
 
   Widget _renderWidget() {

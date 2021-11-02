@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:app/constants/app_constants.dart';
-import 'package:app/screens/tips_page.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/utils/wev_view.dart';
@@ -68,7 +67,7 @@ class _SettingsPageState extends State<SettingsPage> {
             borderRadius: BorderRadius.all(Radius.circular(0.0))),
         child: ListTile(
           title: Text(
-            '$text',
+            text,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontSize: 16),
           ),
@@ -125,89 +124,61 @@ class _SettingsPageState extends State<SettingsPage> {
           borderRadius: BorderRadius.all(Radius.circular(8.0))),
       child: Column(
         children: [
-          GestureDetector(
-            onTap: () async {
-              await Navigator.push(context,
-                  MaterialPageRoute(builder: (context) {
-                return const TipsPage();
-              }));
-            },
-            child: Container(
-                height: 56,
-                decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.all(Radius.circular(0.0))),
-                child: ListTile(
-                  title: const Text(
-                    'Location',
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  trailing: CupertinoSwitch(
-                    activeColor: ColorConstants.green,
-                    onChanged: (bool value) {
-                      if (value) {
-                        LocationService()
-                            .requestLocationAccess()
-                            .then((response) => {
-                                  setState(() {
-                                    allowLocation = response;
-                                  })
-                                });
-                      } else {
-                        NotificationService()
-                            .revokePermission()
-                            .then((response) => {
-                                  setState(() {
-                                    allowLocation = response;
-                                  })
-                                });
-                      }
-                    },
-                    value: allowLocation,
-                  ),
-                )),
+          ListTile(
+            title: const Text(
+              'Location',
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 16),
+            ),
+            trailing: CupertinoSwitch(
+              activeColor: ColorConstants.green,
+              onChanged: (bool value) {
+                if (value) {
+                  LocationService().requestLocationAccess().then((response) => {
+                        setState(() {
+                          allowLocation = response;
+                        })
+                      });
+                } else {
+                  NotificationService().revokePermission().then((response) => {
+                        setState(() {
+                          allowLocation = response;
+                        })
+                      });
+                }
+              },
+              value: allowLocation,
+            ),
           ),
           Divider(
             color: ColorConstants.appBodyColor,
           ),
-          GestureDetector(
-              onTap: () async {
-                await Navigator.push(context,
-                    MaterialPageRoute(builder: (context) {
-                  return const TipsPage();
-                }));
+          ListTile(
+            title: const Text(
+              'Notification',
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 16),
+            ),
+            trailing: CupertinoSwitch(
+              activeColor: ColorConstants.green,
+              onChanged: (bool value) {
+                if (value) {
+                  NotificationService().requestPermission().then((response) => {
+                        setState(() {
+                          allowNotification = response;
+                        })
+                      });
+                } else {
+                  NotificationService().revokePermission().then((response) => {
+                        setState(() {
+                          allowNotification = response;
+                        })
+                      });
+                }
               },
-              child: ListTile(
-                title: const Text(
-                  'Notification',
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 16),
-                ),
-                trailing: CupertinoSwitch(
-                  activeColor: ColorConstants.green,
-                  onChanged: (bool value) {
-                    if (value) {
-                      NotificationService()
-                          .requestPermission()
-                          .then((response) => {
-                                setState(() {
-                                  allowNotification = response;
-                                })
-                              });
-                    } else {
-                      NotificationService()
-                          .revokePermission()
-                          .then((response) => {
-                                setState(() {
-                                  allowNotification = response;
-                                })
-                              });
-                    }
-                  },
-                  value: allowNotification,
-                ),
-              )),
+              value: allowNotification,
+            ),
+          ),
           Divider(
             color: ColorConstants.appBodyColor,
           ),

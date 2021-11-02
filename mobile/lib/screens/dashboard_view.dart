@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/historicalMeasurement.dart';
 import 'package:app/models/measurement.dart';
@@ -219,6 +217,30 @@ class _DashboardViewState extends State<DashboardView> {
     );
   }
 
+  Widget favPlaceAvatar(double rightPadding, int index) {
+    return Positioned(
+        right: rightPadding,
+        child: Container(
+          height: 32.0,
+          width: 32.0,
+          padding: const EdgeInsets.all(2.0),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.white, width: 2),
+            color: pm2_5ToColor(favouritePlaces[index].getPm2_5Value()),
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: Text(
+              '${favouritePlaces[index].getPm2_5Value()}',
+              style: TextStyle(
+                  fontSize: 7,
+                  color:
+                      pm2_5TextColor(favouritePlaces[index].getPm2_5Value())),
+            ),
+          ),
+        ));
+  }
+
   void getFavouritePlaces() {
     DBHelper().getFavouritePlaces().then((value) => {
           if (mounted)
@@ -290,19 +312,6 @@ class _DashboardViewState extends State<DashboardView> {
     initialize();
   }
 
-  int pickStory(int size) {
-    var random = Random();
-    var index = 0 + random.nextInt(size - 0);
-    if (featuredStory == null) {
-      setState(() {
-        featuredStory = index;
-      });
-    } else {
-      return featuredStory;
-    }
-    return index;
-  }
-
   void setGreetings() {
     setState(() {
       greetings = getGreetings(_customAuth.getDisplayName());
@@ -311,38 +320,24 @@ class _DashboardViewState extends State<DashboardView> {
 
   List<Widget> showFavourites() {
     var widgets = <Widget>[];
-    for (var index = 2; index >= 0; index--) {
-      var padding = 0.0;
-      if (index == 1) {
-        padding = 7;
-      }
-      if (index == 2) {
-        padding = 14;
-      }
-      try {
-        widgets.add(Positioned(
-            left: padding,
-            child: Container(
-              height: 32.0,
-              width: 32.0,
-              padding: const EdgeInsets.all(2.0),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.white, width: 2),
-                color: pm2_5ToColor(favouritePlaces[index].getPm2_5Value()),
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: Text(
-                  '${favouritePlaces[index].getPm2_5Value()}',
-                  style: TextStyle(
-                      fontSize: 7,
-                      color: pm2_5TextColor(
-                          favouritePlaces[index].getPm2_5Value())),
-                ),
-              ),
-            )));
-      } catch (e) {}
+
+    try {
+      if (favouritePlaces.length == 1) {
+        widgets.add(favPlaceAvatar(0, 0));
+      } else if (favouritePlaces.length == 2) {
+        widgets
+          ..add(favPlaceAvatar(0, 0))
+          ..add(favPlaceAvatar(7, 1));
+      } else if (favouritePlaces.length >= 3) {
+        widgets
+          ..add(favPlaceAvatar(0, 0))
+          ..add(favPlaceAvatar(7, 1))
+          ..add(favPlaceAvatar(14, 2));
+      } else {}
+    } catch (e) {
+      print(e);
     }
+
     return widgets;
   }
 
@@ -533,7 +528,7 @@ class _DashboardViewState extends State<DashboardView> {
                     'assets/icon/add_avator.svg',
                   ),
                 if (favouritePlaces.isNotEmpty)
-                  Container(
+                  SizedBox(
                     height: 32,
                     width: 44,
                     child: Stack(

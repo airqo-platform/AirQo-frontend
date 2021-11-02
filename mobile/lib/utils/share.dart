@@ -1,4 +1,5 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:app/models/air_quality_tip.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/site.dart';
 import 'package:app/utils/pm.dart';
@@ -50,24 +51,42 @@ Future<void> reportPlace(Site site, context) async {
 
 void shareApp() {
   Share.share(
-      'Download the ${AppConfig.name} app from Play Store '
-      ' ${Links.playStoreUrl} '
-      'or App Store ${Links.appStoreUrl}',
+      'Get the ${AppConfig.name} app from Play Store '
+      '\n\n${Links.playStoreUrl} '
+      '\nor App Store \n\n${Links.appStoreUrl}',
       subject: '${AppConfig.name} app!');
 }
 
 void shareLocation(Site site) {
   Share.share(
-      'Checkout the air quality of '
-      '${site.getName()} '
-      ' ${Links.websiteUrl}',
+      'Checkout the Air Quality of '
+      '${site.getName()}\n'
+      ' ${Links.websiteUrl}\n\n'
+      'Source: AiQo App',
       subject: '${AppConfig.name}, ${site.getName()}!');
 }
 
 void shareMeasurement(Measurement measurement) {
+  var recommendationList =
+      getHealthRecommendations(measurement.getPm2_5Value());
+  var recommendations = '';
+  for (var value in recommendationList) {
+    recommendations = '$recommendations\n- ${value.body}';
+  }
   Share.share(
-      '${measurement.site.getName()} air quality readings \n'
-      'PM 2.5 : ${measurement.getPm2_5Value().toStringAsFixed(2)} µg/m\u00B3 (${pmToString(measurement.getPm2_5Value())}) \n'
-      'PM 10 : ${measurement.getPm10Value().toStringAsFixed(2)} µg/m\u00B3 ',
+      '${measurement.site.getName()}, Current Air Quality. \n\n'
+      'PM2.5 : ${measurement.getPm2_5Value().toStringAsFixed(2)} µg/m\u00B3 (${pmToString(measurement.getPm2_5Value())}) \n'
+      'PM10 : ${measurement.getPm10Value().toStringAsFixed(2)} µg/m\u00B3 \n'
+      '$recommendations\n\n'
+      'Source: AiQo App',
       subject: '${AppConfig.name}, ${measurement.site.getName()}!');
+}
+
+void shareTip(AirQualityTip airQualityTip) {
+  Share.share(
+      'AIr Quality Tips \n\n'
+      '${airQualityTip.title} \n'
+      '${airQualityTip.message}\n\n'
+      'Source: AiQo App',
+      subject: 'Air Quality Tips (AiQo App)');
 }

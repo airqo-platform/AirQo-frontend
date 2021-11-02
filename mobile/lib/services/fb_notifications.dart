@@ -86,6 +86,28 @@ class CloudStore {
     }
   }
 
+  Future<bool> markNotificationAsRead(
+      String userId, String notificationId) async {
+    if (userId == '' || notificationId == '') {
+      return false;
+    }
+
+    var hasConnection = await isConnected();
+    if (hasConnection) {
+      var updated = false;
+      await _firebaseFirestore
+          .collection('${CloudStorage.notificationCollection}/$userId/$userId')
+          .doc(notificationId)
+          .update({'isNew': false})
+          .then((value) => {updated = true})
+          .catchError((error) => print('Failed to update notification'));
+
+      return updated;
+    } else {
+      return false;
+    }
+  }
+
   void monitorNotifications(context, String id) {
     try {
       _firebaseFirestore

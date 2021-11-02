@@ -1,5 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/air_quality_tip.dart';
+import 'package:app/utils/share.dart';
 import 'package:app/utils/string_extension.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/custom_widgets.dart';
@@ -260,15 +261,14 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
 
   Widget slideCard(AirQualityTip tip, int index) {
     return Card(
-      shadowColor: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      elevation: 10,
-      color: Colors.white,
+      elevation: 20,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -380,7 +380,6 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
                   },
                   child: SvgPicture.asset(
                     'assets/icon/close.svg',
-                    semanticsLabel: 'Pm2.5',
                     height: 20,
                     width: 20,
                   ),
@@ -398,15 +397,25 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
                 const SizedBox(
                   width: 7,
                 ),
-                SvgPicture.asset(
-                  'assets/icon/share_icon.svg',
-                  color: ColorConstants.greyColor,
-                  semanticsLabel: 'Share',
-                )
+                GestureDetector(
+                  onTap: () {
+                    try {
+                      shareTip(slides[currentPage]);
+                    } catch (e) {
+                      shareTip(slides[0]);
+                    }
+                  },
+                  child: SvgPicture.asset(
+                    'assets/icon/share_icon.svg',
+                    color: ColorConstants.greyColor,
+                    height: 16,
+                    width: 16,
+                  ),
+                ),
               ],
             ),
-            Container(
-              color: Colors.transparent,
+            SizedBox(
+              // color: Colors.transparent,
               height: 450,
               child: PageView.builder(
                 scrollDirection: Axis.horizontal,

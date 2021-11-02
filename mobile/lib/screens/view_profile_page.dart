@@ -56,7 +56,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                     const Spacer(),
                     GestureDetector(
                       onTap: updateProfile,
-                      child: Container(
+                      child: SizedBox(
                         height: 40,
                         width: 40,
                         child: Text(
@@ -221,15 +221,17 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
         borderSide: const BorderSide(color: Colors.transparent, width: 1.0),
         borderRadius: BorderRadius.circular(8.0),
       ),
-      suffixIcon: SvgPicture.asset(
-        'assets/icon/profile_edit.svg',
+      suffixIcon: Container(
+        padding: const EdgeInsets.all(10),
         height: 20,
         width: 20,
+        child: SvgPicture.asset(
+          'assets/icon/profile_edit.svg',
+        ),
       ),
     );
   }
 
-  @Deprecated('No longer used')
   Widget profilePicSection() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,

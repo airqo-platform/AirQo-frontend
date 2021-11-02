@@ -97,7 +97,7 @@ class _ProfileViewState extends State<ProfileView> {
                               shrinkWrap: true,
                               children: <Widget>[
                                 Text(
-                                  '${userProfile.getFullName()}',
+                                  userProfile.getFullName(),
                                   style: const TextStyle(
                                       fontSize: 24,
                                       fontWeight: FontWeight.bold),
@@ -240,7 +240,7 @@ class _ProfileViewState extends State<ProfileView> {
         padding: const EdgeInsets.only(top: 12, bottom: 12),
         decoration: BoxDecoration(
             color: ColorConstants.appColorBlue.withOpacity(0.1),
-            borderRadius: BorderRadius.all(Radius.circular(8.0))),
+            borderRadius: const BorderRadius.all(Radius.circular(8.0))),
         child: Center(
           child: Text(
             'Log Out',
