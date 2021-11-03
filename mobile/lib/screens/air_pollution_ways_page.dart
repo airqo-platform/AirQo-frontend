@@ -28,7 +28,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (showSlides && tipsProgress < 1.0) {
+    if (showSlides) {
       return slidesView();
     }
 
@@ -243,6 +243,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
                       onTap: () {
                         setState(() {
                           showSlides = true;
+                          showLastPage = false;
                         });
                       },
                       child: nextButton('Begin', ColorConstants.appColorBlue),
@@ -279,7 +280,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
                 image: DecorationImage(
-                  fit: BoxFit.fill,
+                  fit: BoxFit.cover,
                   image: AssetImage(
                     tip.imageUrl,
                   ),
@@ -423,7 +424,6 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
                             tipsProgress = tipsProgress - 0.1;
                           });
                         }
-                        print(tipsProgress);
                       }
 
                       if (currentPage == 0) {
@@ -435,7 +435,12 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
                     child: circularButton('assets/icon/previous_arrow.svg')),
                 GestureDetector(
                     onTap: () async {
-                      if (currentPage != slides.length - 1) {
+                      if (currentPage == slides.length - 1) {
+                        setState(() {
+                          showLastPage = true;
+                          showSlides = false;
+                        });
+                      } else if (currentPage <= slides.length - 1) {
                         await controller.animateToPage(currentPage + 1,
                             duration: const Duration(milliseconds: 200),
                             curve: Curves.bounceIn);

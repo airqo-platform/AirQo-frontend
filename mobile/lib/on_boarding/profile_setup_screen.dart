@@ -217,6 +217,8 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
           ..firstName = UserDetails.getNames(fullName).first
           ..lastName = UserDetails.getNames(fullName).last;
 
+        await showSnackBar(context, 'Updating your profile');
+
         await _customAuth.updateProfile(userDetails).then((value) => {
               Navigator.pushAndRemoveUntil(context,
                   MaterialPageRoute(builder: (context) {

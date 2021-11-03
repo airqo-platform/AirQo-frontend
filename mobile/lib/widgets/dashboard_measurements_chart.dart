@@ -44,7 +44,7 @@ class _DashboardBarChartState extends State<DashboardBarChart> {
             Column(
               children: [
                 Text(
-                  pmToString(display['value']).replaceAll('\n', ' '),
+                  pm2_5ToString(display['value']).replaceAll('\n', ' '),
                   style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w600,

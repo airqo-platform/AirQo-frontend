@@ -123,7 +123,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                     border:
                                         Border.all(color: Colors.transparent)),
                                 child: Text(
-                                  pmToString(measurement.getPm2_5Value()),
+                                  pm2_5ToString(measurement.getPm2_5Value()),
                                   maxLines: 1,
                                   textAlign: TextAlign.center,
                                   overflow: TextOverflow.ellipsis,
@@ -365,7 +365,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                     border:
                                         Border.all(color: Colors.transparent)),
                                 child: Text(
-                                  pmToString(measurement.getPm2_5Value()),
+                                  pm2_5ToString(measurement.getPm2_5Value()),
                                   maxLines: 1,
                                   textAlign: TextAlign.center,
                                   overflow: TextOverflow.ellipsis,

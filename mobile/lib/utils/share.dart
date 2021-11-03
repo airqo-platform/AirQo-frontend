@@ -75,7 +75,7 @@ void shareMeasurement(Measurement measurement) {
   }
   Share.share(
       '${measurement.site.getName()}, Current Air Quality. \n\n'
-      'PM2.5 : ${measurement.getPm2_5Value().toStringAsFixed(2)} µg/m\u00B3 (${pmToString(measurement.getPm2_5Value())}) \n'
+      'PM2.5 : ${measurement.getPm2_5Value().toStringAsFixed(2)} µg/m\u00B3 (${pm2_5ToString(measurement.getPm2_5Value())}) \n'
       'PM10 : ${measurement.getPm10Value().toStringAsFixed(2)} µg/m\u00B3 \n'
       '$recommendations\n\n'
       'Source: AiQo App',

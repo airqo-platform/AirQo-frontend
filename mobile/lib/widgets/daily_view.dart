@@ -4,7 +4,7 @@ import 'package:app/models/site.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/utils/share.dart';
-import 'package:app/widgets/tips.dart';
+import 'package:app/widgets/recomendation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -18,11 +18,10 @@ class DailyView extends StatefulWidget {
   DailyView(this.site, this.daily);
 
   @override
-  _DailyViewState createState() => _DailyViewState(this.site);
+  _DailyViewState createState() => _DailyViewState();
 }
 
 class _DailyViewState extends State<DailyView> with TickerProviderStateMixin {
-  Site site;
   String viewDay = 'today';
   String pollutant = '';
   bool pm10 = false;
@@ -30,7 +29,7 @@ class _DailyViewState extends State<DailyView> with TickerProviderStateMixin {
   bool isFav = false;
   List<Recommendation> _recommendations = [];
 
-  _DailyViewState(this.site);
+  _DailyViewState();
 
   @override
   Widget build(BuildContext context) {
@@ -50,22 +49,25 @@ class _DailyViewState extends State<DailyView> with TickerProviderStateMixin {
                   style: TextStyle(
                       fontSize: 12, color: Colors.black.withOpacity(0.3)),
                 ),
-                GestureDetector(
-                  onTap: togglePollutant,
-                  child: Container(
-                    height: 32,
-                    width: 32,
-                    padding: const EdgeInsets.all(6.0),
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(8.0)),
-                        border: Border.all(color: Colors.transparent)),
-                    child: SvgPicture.asset(
-                      'assets/icon/toggle_icon.svg',
-                      semanticsLabel: 'Toggle',
-                      height: 16,
-                      width: 20,
+                Visibility(
+                  visible: false,
+                  child: GestureDetector(
+                    onTap: togglePollutant,
+                    child: Container(
+                      height: 32,
+                      width: 32,
+                      padding: const EdgeInsets.all(6.0),
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(8.0)),
+                          border: Border.all(color: Colors.transparent)),
+                      child: SvgPicture.asset(
+                        'assets/icon/toggle_icon.svg',
+                        semanticsLabel: 'Toggle',
+                        height: 16,
+                        width: 20,
+                      ),
                     ),
                   ),
                 )
@@ -76,11 +78,13 @@ class _DailyViewState extends State<DailyView> with TickerProviderStateMixin {
             ),
             Visibility(
               visible: pm2_5,
-              child: InsightsCard(site, callBackFn, 'pm2.5', widget.daily),
+              child:
+                  InsightsCard(widget.site, callBackFn, 'pm2.5', widget.daily),
             ),
             Visibility(
               visible: !pm2_5,
-              child: InsightsCard(site, callBackFn, 'pm10', widget.daily),
+              child:
+                  InsightsCard(widget.site, callBackFn, 'pm10', widget.daily),
             ),
             const SizedBox(
               height: 16,
@@ -96,7 +100,7 @@ class _DailyViewState extends State<DailyView> with TickerProviderStateMixin {
                 children: [
                   GestureDetector(
                     onTap: () {
-                      shareLocation(site);
+                      shareLocation(widget.site);
                     },
                     child: iconTextButton(
                         SvgPicture.asset(
@@ -111,8 +115,8 @@ class _DailyViewState extends State<DailyView> with TickerProviderStateMixin {
                   ),
                   GestureDetector(
                     onTap: () async {
-                      var result =
-                          await DBHelper().updateFavouritePlaces(site, context);
+                      var result = await DBHelper()
+                          .updateFavouritePlaces(widget.site, context);
                       setState(() {
                         isFav = result;
                       });
@@ -172,7 +176,6 @@ class _DailyViewState extends State<DailyView> with TickerProviderStateMixin {
   }
 
   void callBackFn(HistoricalMeasurement measurement) {
-    var offSet = DateTime.now().timeZoneOffset.inHours;
     var time = measurement.formattedTime;
     var tomorrow = DateTime.now().add(const Duration(days: 1));
     setState(() {
@@ -198,7 +201,7 @@ class _DailyViewState extends State<DailyView> with TickerProviderStateMixin {
   @override
   void initState() {
     initialize();
-    site.isFav().then((value) => {
+    widget.site.isFav().then((value) => {
           setState(() {
             isFav = value;
           })

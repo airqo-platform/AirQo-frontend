@@ -29,44 +29,41 @@ class _ProfileViewState extends State<ProfileView> {
   bool isLoggedIn = false;
 
   Widget appNavBar() {
-    return Container(
-      padding: const EdgeInsets.only(top: 24),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          profilePicWidget(
-              40, 40, 10, 12, 17.0, userProfile.photoUrl, 27.0, false),
-          const Spacer(),
-          GestureDetector(
-            onTap: notifications,
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              height: 40,
-              width: 40,
-              decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.all(Radius.circular(8.0))),
-              child: Consumer<NotificationModel>(
-                builder: (context, notifications, child) {
-                  if (!notifications.hasNotifications()) {
-                    return SvgPicture.asset(
-                      'assets/icon/empty_notifications.svg',
-                      height: 20,
-                      width: 16,
-                    );
-                  }
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        profilePicWidget(
+            40, 40, 10, 12, 17.0, userProfile.photoUrl, 27.0, false),
+        const Spacer(),
+        GestureDetector(
+          onTap: notifications,
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            height: 40,
+            width: 40,
+            decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.all(Radius.circular(8.0))),
+            child: Consumer<NotificationModel>(
+              builder: (context, notifications, child) {
+                if (!notifications.hasNotifications()) {
                   return SvgPicture.asset(
-                    'assets/icon/has_notifications.svg',
+                    'assets/icon/empty_notifications.svg',
                     height: 20,
                     width: 16,
                   );
-                },
-              ),
+                }
+                return SvgPicture.asset(
+                  'assets/icon/has_notifications.svg',
+                  height: 20,
+                  width: 16,
+                );
+              },
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -83,7 +80,7 @@ class _ProfileViewState extends State<ProfileView> {
             color: ColorConstants.appBodyColor,
             child: RefreshIndicator(
                 onRefresh: initialize,
-                color: ColorConstants.appColor,
+                color: ColorConstants.appColorBlue,
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
                   child: Column(
@@ -209,10 +206,13 @@ class _ProfileViewState extends State<ProfileView> {
       isLoggedIn = _customAuth.isLoggedIn();
     });
 
-    await _customAuth.getProfile().then((value) => {
-          setState(() {
-            userProfile = value;
-          }),
+    await _cloudStore.getProfile(_customAuth.getId()).then((value) => {
+          if (value != null)
+            {
+              setState(() {
+                userProfile = value;
+              })
+            }
         });
   }
 
@@ -223,7 +223,10 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   void logOut() {
-    _customAuth.logOut().then((value) => {initialize()});
+    setState(() {
+      userProfile = UserDetails.initialize();
+    });
+    _customAuth.logOut(context).then((value) => {initialize()});
   }
 
   Widget logoutSection(text, icon, iconColor, callBackFn) {

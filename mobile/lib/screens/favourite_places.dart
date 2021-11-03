@@ -88,7 +88,7 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
                   }
 
                   return RefreshIndicator(
-                    color: ColorConstants.appColor,
+                    color: ColorConstants.appColorBlue,
                     onRefresh: refreshData,
                     child: ListView.builder(
                       itemBuilder: (context, index) => Padding(

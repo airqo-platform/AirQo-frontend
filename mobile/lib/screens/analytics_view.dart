@@ -51,7 +51,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                 }
 
                 return RefreshIndicator(
-                  color: ColorConstants.appColor,
+                  color: ColorConstants.appColorBlue,
                   onRefresh: refreshData,
                   child: ListView.builder(
                     itemBuilder: (context, index) =>

@@ -70,4 +70,8 @@ class UserDetails {
   static UserDetails initialize() {
     return UserDetails('', '', '', '', '', '', '', '');
   }
+
+  static UserDetails parseUserDetails(dynamic jsonBody) {
+    return UserDetails.fromJson(jsonBody);
+  }
 }

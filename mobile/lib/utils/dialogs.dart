@@ -227,7 +227,7 @@ void pmInfoDialog(context, Measurement measurement) {
                             borderRadius:
                                 const BorderRadius.all(Radius.circular(537.0))),
                         child: Text(
-                          pmToString(measurement.getPm2_5Value()),
+                          pm2_5ToString(measurement.getPm2_5Value()),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(

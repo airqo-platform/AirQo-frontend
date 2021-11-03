@@ -183,7 +183,8 @@ class SignupScreenState extends State<SignupScreen> {
                       height: 42,
                     ),
                     const Text(
-                      'Sign up with your email\nor mobile number',
+                      // 'Sign up with your email\nor mobile number',
+                      'Sign up with your mobile number',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                           fontWeight: FontWeight.bold,
@@ -237,7 +238,7 @@ class SignupScreenState extends State<SignupScreen> {
                       height: 36,
                     ),
                     Visibility(
-                      visible: true,
+                      visible: false,
                       child: GestureDetector(
                         onTap: () {
                           setState(() {

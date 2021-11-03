@@ -36,7 +36,7 @@ class _SettingsPageState extends State<SettingsPage> {
             color: ColorConstants.appBodyColor,
             child: RefreshIndicator(
                 onRefresh: initialize,
-                color: ColorConstants.appColor,
+                color: ColorConstants.appColorBlue,
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
                   child: Column(
@@ -255,7 +255,7 @@ class _SettingsPageState extends State<SettingsPage> {
       child: const Text('Yes'),
       onPressed: () {
         var _customAuth = CustomAuth();
-        _customAuth.deleteAccount().then((value) => {
+        _customAuth.deleteAccount(context).then((value) => {
               Navigator.pushAndRemoveUntil(context,
                   MaterialPageRoute(builder: (context) {
                 return HomePage();

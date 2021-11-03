@@ -74,6 +74,33 @@ class CloudStore {
     }
   }
 
+  Future<UserDetails?> getProfile(String id) async {
+    if (id == '') {
+      return null;
+    }
+    var hasConnection = await isConnected();
+    if (hasConnection) {
+      var userJson = await _firebaseFirestore
+          .collection(CloudStorage.usersCollection)
+          .doc(id)
+          .get();
+
+      return await compute(UserDetails.parseUserDetails, userJson.data());
+    } else {
+      var _preferences = await SharedPreferences.getInstance();
+      var userDetails = UserDetails.initialize()
+        ..userId = _preferences.getString('userId') ?? ''
+        ..title = _preferences.getString('title') ?? ''
+        ..firstName = _preferences.getString('firstName') ?? ''
+        ..lastName = _preferences.getString('lastName') ?? ''
+        ..phoneNumber = _preferences.getString('phoneNumber') ?? ''
+        ..emailAddress = _preferences.getString('emailAddress') ?? ''
+        ..photoUrl = _preferences.getString('photoUrl') ?? '';
+
+      return userDetails;
+    }
+  }
+
   Future<bool> isConnected() async {
     try {
       final result = await InternetAddress.lookup('firebase.google.com');
@@ -100,7 +127,7 @@ class CloudStore {
           .doc(notificationId)
           .update({'isNew': false})
           .then((value) => {updated = true})
-          .catchError((error) => print('Failed to update notification'));
+          .catchError((error) => debugPrint('Failed to update notification'));
 
       return updated;
     } else {
@@ -129,6 +156,22 @@ class CloudStore {
     }
   }
 
+  Future<bool> profileExists(String id) async {
+    var hasConnection = await isConnected();
+    if (hasConnection) {
+      try {
+        var data = await _firebaseFirestore
+            .collection(CloudStorage.usersCollection)
+            .doc(id)
+            .get();
+        return data.exists;
+      } catch (e) {
+        debugPrint(e.toString());
+      }
+    }
+    return false;
+  }
+
   Future<bool> saveAlert(Alert alert) async {
     var hasConnection = await isConnected();
     if (hasConnection) {
@@ -144,37 +187,23 @@ class CloudStore {
     }
   }
 
-  Future<bool> signUpProfile(UserDetails userDetails) async {
+  Future<void> sendWelcomeNotification(String id) async {
     var hasConnection = await isConnected();
     if (hasConnection) {
       try {
-        var savedUser = userDetails;
-        var createdUser = await FirebaseAuth.instance
-            .createUserWithEmailAndPassword(
-                email: userDetails.emailAddress,
-                password: userDetails.emailAddress);
-
-        if (createdUser.user != null) {
-          await createdUser.user!.updatePhotoURL(userDetails.photoUrl);
-          savedUser.emailAddress = createdUser.user!.email ?? '';
-          savedUser.lastName = userDetails.lastName;
-          savedUser.firstName = userDetails.firstName;
-          savedUser.phoneNumber = createdUser.user!.phoneNumber ?? '';
-          savedUser.emailAddress = createdUser.user!.email ?? '';
-          savedUser.photoUrl = createdUser.user!.photoURL ?? '';
-          // savedUser.id = createdUser.user!.uid ?? '';
-        }
-        await FirebaseFirestore.instance
-            .collection(CloudStorage.alertsCollection)
-            .doc(savedUser.userId)
-            .set(savedUser.toJson());
-        return true;
+        var notificationId = DateTime.now().millisecondsSinceEpoch.toString();
+        var notification = UserNotification(
+            notificationId,
+            'Welcome to AirQo!',
+            'Begin your journey to Knowing Your Air and Breathe Clean... ',
+            true);
+        await _firebaseFirestore
+            .collection('${CloudStorage.notificationCollection}/$id/$id')
+            .doc(notificationId)
+            .set(notification.toJson());
       } catch (e) {
-        print(e);
-        return false;
+        debugPrint(e.toString());
       }
-    } else {
-      return false;
     }
   }
 
@@ -199,14 +228,16 @@ class CustomAuth {
 
   CustomAuth();
 
-  Future<void> deleteAccount() async {
+  Future<void> deleteAccount(context) async {
     var currentUser = _firebaseAuth.currentUser;
     if (currentUser != null) {
       try {
-        await currentUser.delete().then((value) =>
-            {logOut(), _firebaseFirestore.deleteAccount(currentUser.uid)});
+        await currentUser.delete().then((value) => {
+              logOut(context),
+              _firebaseFirestore.deleteAccount(currentUser.uid)
+            });
       } catch (e) {
-        print(e);
+        debugPrint(e.toString());
       }
     }
   }
@@ -223,21 +254,6 @@ class CustomAuth {
       return '';
     }
     return _firebaseAuth.currentUser!.uid;
-  }
-
-  Future<UserDetails> getProfile() async {
-    var _preferences = await SharedPreferences.getInstance();
-
-    var userDetails = UserDetails.initialize()
-      ..userId = _preferences.getString('userId') ?? ''
-      ..title = _preferences.getString('title') ?? ''
-      ..firstName = _preferences.getString('firstName') ?? ''
-      ..lastName = _preferences.getString('lastName') ?? ''
-      ..phoneNumber = _preferences.getString('phoneNumber') ?? ''
-      ..emailAddress = _preferences.getString('emailAddress') ?? ''
-      ..photoUrl = _preferences.getString('photoUrl') ?? '';
-
-    return userDetails;
   }
 
   Future<bool> isConnected() async {
@@ -276,10 +292,25 @@ class CustomAuth {
   }
 
   Future<void> logIn(AuthCredential authCredential) async {
-    await _firebaseAuth.signInWithCredential(authCredential);
+    var userCredential =
+        await _firebaseAuth.signInWithCredential(authCredential);
+    if (userCredential.user != null) {
+      var user = userCredential.user;
+      try {
+        if (user != null) {
+          await _firebaseFirestore.profileExists(user.uid).then((value) => {
+                if (!value)
+                  {_firebaseFirestore.sendWelcomeNotification(user.uid)}
+              });
+        }
+      } catch (e) {
+        debugPrint(e.toString());
+      }
+    }
   }
 
-  Future<void> logOut() async {
+  Future<void> logOut(context) async {
+    Provider.of<NotificationModel>(context, listen: false).removeAll();
     var _preferences = await SharedPreferences.getInstance();
 
     await _firebaseAuth.signOut().then((value) => {

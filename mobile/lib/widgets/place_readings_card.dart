@@ -9,7 +9,6 @@ import 'package:app/utils/data_formatter.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/utils/share.dart';
 import 'package:app/widgets/readings_dashboard.dart';
-import 'package:app/widgets/tips.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 
@@ -197,10 +196,12 @@ class _PlaceReadingsCardState extends State<PlaceReadingsCard> {
               startAngle: 4 / 5 * pi,
               arcLength: 7 / 5 * pi,
               strokeWidthPx: 0,
-              // arcRendererDecorators: [new charts.ArcLabelDecorator(
-              //   showLeaderLines: false,
-              //   labelPosition: charts.ArcLabelPosition.inside,
-              // )],
+              arcRendererDecorators: [
+                charts.ArcLabelDecorator(
+                  showLeaderLines: false,
+                  labelPosition: charts.ArcLabelPosition.inside,
+                )
+              ],
             ),
           ),
           Column(
@@ -232,7 +233,6 @@ class _PlaceReadingsCardState extends State<PlaceReadingsCard> {
   void initState() {
     if (historicalData.isNotEmpty) {
       var measurement = historicalData[historicalData.length - 1];
-      tips = createTips(measurement.getPm2_5Value());
       gaugeValue = measurement.getPm2_5Value();
       pmColor = pm2_5ToColor(measurement.getPm2_5Value());
     } else {
@@ -247,7 +247,6 @@ class _PlaceReadingsCardState extends State<PlaceReadingsCard> {
       setState(() {
         pmColor = pm2_5ToColor(value);
         gaugeValue = value;
-        tips = createTips(value);
       });
     } catch (e) {
       gaugeValue = 0.0;
@@ -309,7 +308,7 @@ class _PlaceReadingsCardState extends State<PlaceReadingsCard> {
                     ],
                   ),
                 )),
-            Text(pmToString(gaugeValue),
+            Text(pm2_5ToString(gaugeValue),
                 softWrap: true,
                 maxLines: 2,
                 textAlign: TextAlign.start,

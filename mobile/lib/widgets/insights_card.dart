@@ -25,21 +25,17 @@ class InsightsCard extends StatefulWidget {
       : super(key: key);
 
   @override
-  _InsightsCardState createState() =>
-      _InsightsCardState(site, callBackFn, pollutant);
+  _InsightsCardState createState() => _InsightsCardState();
 }
 
 class _InsightsCardState extends State<InsightsCard> {
-  final Site site;
-  final String pollutant;
   List<HistoricalMeasurement> measurements = [];
   var selectedMeasurement;
   List<charts.Series<dynamic, DateTime>> chartData = [];
   final ScrollController _scrollController = ScrollController();
   String viewDay = 'today';
-  final callBackFn;
 
-  _InsightsCardState(this.site, this.callBackFn, this.pollutant);
+  _InsightsCardState();
 
   @override
   Widget build(BuildContext context) {
@@ -75,14 +71,14 @@ class _InsightsCardState extends State<InsightsCard> {
                                   color: Colors.black.withOpacity(0.3)),
                             ),
                             Text(
-                              site.getName(),
+                              widget.site.getName(),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 16),
                             ),
                             Text(
-                              site.getLocation(),
+                              widget.site.getLocation(),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -94,7 +90,7 @@ class _InsightsCardState extends State<InsightsCard> {
                       ),
                       const SizedBox(width: 16),
                       insightsAvatar(
-                          context, selectedMeasurement, 64, pollutant),
+                          context, selectedMeasurement, 64, widget.pollutant),
                     ],
                   ),
                   widget.daily
@@ -158,7 +154,7 @@ class _InsightsCardState extends State<InsightsCard> {
                         color: selectedMeasurement.formattedTime
                                 .isAfter(DateTime.now())
                             ? ColorConstants.appColorPaleBlue
-                            : pollutant == 'pm2.5'
+                            : widget.pollutant == 'pm2.5'
                                 ? pm2_5ToColor(
                                         selectedMeasurement.getPm2_5Value())
                                     .withOpacity(0.4)
@@ -167,7 +163,9 @@ class _InsightsCardState extends State<InsightsCard> {
                                     .withOpacity(0.4),
                         border: Border.all(color: Colors.transparent)),
                     child: Text(
-                      pmToString(selectedMeasurement.getPm2_5Value()),
+                      widget.pollutant == 'pm2.5'
+                          ? pm2_5ToString(selectedMeasurement.getPm2_5Value())
+                          : pm10ToString(selectedMeasurement.getPm10Value()),
                       maxLines: 1,
                       textAlign: TextAlign.center,
                       overflow: TextOverflow.ellipsis,
@@ -176,7 +174,7 @@ class _InsightsCardState extends State<InsightsCard> {
                         color: selectedMeasurement.formattedTime
                                 .isAfter(DateTime.now())
                             ? ColorConstants.appColorBlue
-                            : pollutant == 'pm2.5'
+                            : widget.pollutant == 'pm2.5'
                                 ? pm2_5TextColor(
                                     selectedMeasurement.getPm2_5Value())
                                 : pm10TextColor(
@@ -190,7 +188,7 @@ class _InsightsCardState extends State<InsightsCard> {
                   GestureDetector(
                     onTap: () {
                       var measurement =
-                          selectedMeasurement.getMeasurement(site);
+                          selectedMeasurement.getMeasurement(widget.site);
                       pmInfoDialog(context, measurement);
                     },
                     child: SvgPicture.asset(
@@ -232,7 +230,9 @@ class _InsightsCardState extends State<InsightsCard> {
 
   Widget chart() {
     return SizedBox(
-      width: MediaQuery.of(context).size.width * 2,
+      width: widget.pollutant == 'pm2.5'
+          ? MediaQuery.of(context).size.width * 2
+          : MediaQuery.of(context).size.width,
       height: 150,
       child: charts.TimeSeriesChart(
         chartData,
@@ -268,7 +268,6 @@ class _InsightsCardState extends State<InsightsCard> {
                 if (value != null) {
                   updateUI(model.selectedSeries[0].data[value]);
                 }
-                setState(() {});
               } on Error catch (e) {
                 print(e);
               }
@@ -298,24 +297,24 @@ class _InsightsCardState extends State<InsightsCard> {
 
     if (predictions.isNotEmpty) {
       var predictedValues =
-          Predict.getMeasurements(predictions, site.id, deviceNumber);
+          Predict.getMeasurements(predictions, widget.site.id, deviceNumber);
       var combined = value..addAll(predictedValues);
 
       setState(() {
         measurements = combined;
-        chartData = insightsChartData(measurements, pollutant);
+        chartData = insightsChartData(measurements, widget.pollutant);
       });
     } else {
       setState(() {
         measurements = value;
-        chartData = insightsChartData(measurements, pollutant);
+        chartData = insightsChartData(measurements, widget.pollutant);
       });
     }
   }
 
   Future<void> getMeasurements() async {
     await AirqoApiClient(context)
-        .fetchSiteHistoricalMeasurements(site, widget.daily)
+        .fetchSiteHistoricalMeasurements(widget.site, widget.daily)
         .then((value) => {
               if (value.isNotEmpty && mounted)
                 {
@@ -324,10 +323,13 @@ class _InsightsCardState extends State<InsightsCard> {
                     if (widget.daily) {
                       setState(() {
                         measurements = value;
-                        chartData = insightsChartData(measurements, pollutant);
+                        chartData =
+                            insightsChartData(measurements, widget.pollutant);
                       });
                     } else {
-                      getForecast(selectedMeasurement.deviceNumber, value);
+                      if (widget.pollutant == 'pm2.5') {
+                        getForecast(selectedMeasurement.deviceNumber, value);
+                      }
                     }
                   }),
                 }
@@ -341,7 +343,7 @@ class _InsightsCardState extends State<InsightsCard> {
   }
 
   void updateUI(HistoricalMeasurement measurement) {
-    callBackFn(measurement);
+    widget.callBackFn(measurement);
     setState(() {
       selectedMeasurement = measurement;
     });

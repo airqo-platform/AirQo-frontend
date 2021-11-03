@@ -304,7 +304,7 @@ Widget locationTileV1(Measurement measurement) {
                     width: 2,
                   ),
                   Text(
-                      pmToString(measurement.getPm2_5Value())
+                      pm2_5ToString(measurement.getPm2_5Value())
                           .replaceAll('\n', ' '),
                       style: TextStyle(
                           fontSize: 6,

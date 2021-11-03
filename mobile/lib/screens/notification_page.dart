@@ -5,6 +5,7 @@ import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({Key? key}) : super(key: key);
@@ -68,48 +69,22 @@ class _NotificationPageState extends State<NotificationPage> {
                 }
 
                 return RefreshIndicator(
-                  color: ColorConstants.appColor,
+                  color: ColorConstants.appColorBlue,
                   onRefresh: refreshData,
                   child: ListView.builder(
                     itemBuilder: (context, index) => Padding(
                       padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
                       child: notificationCard(notifications[index]),
                     ),
-                    itemCount: 2,
+                    itemCount: notifications.length,
                   ),
                 );
               } else {
-                return ListView(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                      child: loadingAnimation(115.0, 16.0),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                      child: loadingAnimation(115.0, 16.0),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                      child: loadingAnimation(115.0, 16.0),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                      child: loadingAnimation(115.0, 16.0),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                      child: loadingAnimation(115.0, 16.0),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                      child: loadingAnimation(115.0, 16.0),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                      child: loadingAnimation(115.0, 16.0),
-                    ),
-                  ],
+                return ListView.builder(
+                  itemBuilder: (BuildContext context, int index) {
+                    return placeHolder();
+                  },
+                  itemCount: 7,
                 );
               }
             }));
@@ -189,6 +164,13 @@ class _NotificationPageState extends State<NotificationPage> {
               color: ColorConstants.appColorBlack.withOpacity(0.4)),
         ),
       ),
+    );
+  }
+
+  Widget placeHolder() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+      child: loadingAnimation(100.0, 16.0),
     );
   }
 
@@ -293,6 +275,7 @@ class _NotificationPageState extends State<NotificationPage> {
   }
 
   Future<void> updateNotification(UserNotification notification) async {
+    Provider.of<NotificationModel>(context, listen: false).removeAll();
     await _cloudStore.markNotificationAsRead(
         _customAuth.getId(), notification.id);
   }

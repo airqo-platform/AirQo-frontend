@@ -58,7 +58,7 @@ class TitleSection extends StatelessWidget {
                       TextStyle(fontSize: 15, color: ColorConstants.appColor),
                 ),
                 Text(
-                  pmToString(data.getPm2_5Value()).replaceAll('\n', ' '),
+                  pm2_5ToString(data.getPm2_5Value()).replaceAll('\n', ' '),
                   maxLines: 4,
                   softWrap: true,
                   style:

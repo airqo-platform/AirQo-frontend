@@ -1,7 +1,9 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/fb_notifications.dart';
+import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dialogs.dart';
+import 'package:app/utils/string_extension.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -17,10 +19,13 @@ class LoginScreen extends StatefulWidget {
 
 class LoginScreenState extends State<LoginScreen> {
   final _phoneFormKey = GlobalKey<FormState>();
+  final _emailFormKey = GlobalKey<FormState>();
   bool phoneFormValid = false;
+  bool emailFormValid = false;
   bool codeFormValid = false;
   var phoneNumber = '';
   var emailAddress = '';
+  var emailVerificationLink = '';
   var requestCode = false;
   var verifyId = '';
   var resendCode = false;
@@ -59,7 +64,7 @@ class LoginScreenState extends State<LoginScreen> {
                       height: 42,
                     ),
                     const Text(
-                      'Verify your account!',
+                      'Confirm login!',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                           fontWeight: FontWeight.bold,
@@ -72,7 +77,8 @@ class LoginScreenState extends State<LoginScreen> {
                     Text(
                       phoneSignUp
                           ? 'Enter the 6 digits code sent to your\n'
-                              'number that ends with ...${phoneNumber.substring(phoneNumber.length - 3)}'
+                              'number that ends with ...'
+                              '${phoneNumber.substring(phoneNumber.length - 3)}'
                           : 'Enter the 6 digit code sent to\n'
                               '$emailAddress',
                       textAlign: TextAlign.center,
@@ -101,11 +107,7 @@ class LoginScreenState extends State<LoginScreen> {
                     GestureDetector(
                       onTap: () async {
                         if (resendCode) {
-                          await _customAuth.verifyPhone(
-                              '$prefixValue$phoneNumber',
-                              context,
-                              verifyPhoneFn,
-                              autoVerifyPhoneFn);
+                          await resendVerificationCode();
                         }
                       },
                       child: Text(
@@ -161,51 +163,7 @@ class LoginScreenState extends State<LoginScreen> {
                     ),
                     GestureDetector(
                       onTap: () async {
-                        var code = smsCode.join('');
-                        if (code.length == 6) {
-                          setState(() {
-                            nextBtnColor = ColorConstants.appColorBlue;
-                          });
-
-                          var credential = PhoneAuthProvider.credential(
-                              verificationId: verifyId,
-                              smsCode: smsCode.join(''));
-                          try {
-                            await _customAuth
-                                .logIn(credential)
-                                .then((value) => {
-                                      Navigator.pushAndRemoveUntil(context,
-                                          MaterialPageRoute(builder: (context) {
-                                        return HomePage();
-                                      }), (r) => false)
-                                    });
-                          } on FirebaseAuthException catch (e) {
-                            if (e.code == 'invalid-verification-code') {
-                              await showSnackBar(context, 'Invalid Code');
-                            }
-                            if (e.code == 'session-expired') {
-                              await _customAuth.verifyPhone(
-                                  '$prefixValue$phoneNumber',
-                                  context,
-                                  verifyPhoneFn,
-                                  autoVerifyPhoneFn);
-                              await showSnackBar(
-                                  context,
-                                  'Your verification '
-                                  'has timed out. we have sent your'
-                                  ' another verification code');
-                            }
-                          } catch (e) {
-                            await showSnackBar(context, 'Try again later');
-                            print(e);
-                          }
-                        } else {
-                          setState(() {
-                            nextBtnColor = ColorConstants.appColorDisabled;
-                          });
-                          await showSnackBar(
-                              context, 'Enter all the code digits');
-                        }
+                        await verifySentCode();
                       },
                       child: nextButton('Next', nextBtnColor),
                     ),
@@ -217,34 +175,35 @@ class LoginScreenState extends State<LoginScreen> {
                       height: 36,
                     ),
                   ])
-                : Form(
-                    key: _phoneFormKey,
-                    child: ListView(children: [
-                      const SizedBox(
-                        height: 42,
-                      ),
-                      const Text(
-                        'Log in with your email\nor mobile number',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 24,
-                            color: Colors.black),
-                      ),
-                      const SizedBox(
-                        height: 8,
-                      ),
-                      Text(
-                        'We’ll send you a verification code',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            fontSize: 14, color: Colors.black.withOpacity(0.6)),
-                      ),
-                      const SizedBox(
-                        height: 32,
-                      ),
-                      Visibility(
-                        visible: phoneSignUp,
+                : ListView(children: [
+                    const SizedBox(
+                      height: 42,
+                    ),
+                    const Text(
+                      // 'Sign up with your email\nor mobile number',
+                      'Login with your mobile number',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 24,
+                          color: Colors.black),
+                    ),
+                    const SizedBox(
+                      height: 8,
+                    ),
+                    Text(
+                      'We’ll send you a verification code',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          fontSize: 14, color: Colors.black.withOpacity(0.6)),
+                    ),
+                    const SizedBox(
+                      height: 32,
+                    ),
+                    Visibility(
+                      visible: phoneSignUp,
+                      child: Form(
+                        key: _phoneFormKey,
                         child: SizedBox(
                           height: 48,
                           child: Row(
@@ -264,56 +223,50 @@ class LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ),
-                      Visibility(
-                        visible: !phoneSignUp,
+                    ),
+                    Visibility(
+                      visible: !phoneSignUp,
+                      child: Form(
+                        key: _emailFormKey,
                         child: emailInputField(),
                       ),
-                      const SizedBox(
-                        height: 36,
-                      ),
-                      Visibility(
-                        visible: true,
-                        child: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              phoneSignUp = !phoneSignUp;
-                              clearPhoneCallBack();
-                              clearEmailCallBack();
-                            });
-                          },
-                          child: signButton(phoneSignUp
-                              ? 'Login with email instead'
-                              : 'Login with a'
-                                  ' mobile number instead'),
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 212,
-                      ),
-                      GestureDetector(
-                        onTap: () async {
-                          _phoneFormKey.currentState!.validate();
-                          if (phoneFormValid) {
-                            setState(() {
-                              nextBtnColor = ColorConstants.appColorDisabled;
-                            });
-                            await _customAuth.verifyPhone(
-                                '$prefixValue$phoneNumber',
-                                context,
-                                verifyPhoneFn,
-                                autoVerifyPhoneFn);
-                          }
+                    ),
+                    const SizedBox(
+                      height: 36,
+                    ),
+                    Visibility(
+                      visible: false,
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            phoneSignUp = !phoneSignUp;
+                            clearPhoneCallBack();
+                            clearEmailCallBack();
+                          });
                         },
-                        child: nextButton('Next', nextBtnColor),
+                        child: signButton(phoneSignUp
+                            ? 'Sign up with email instead'
+                            : 'Sign up with a'
+                                ' mobile number instead'),
                       ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      loginOptions(context),
-                      const SizedBox(
-                        height: 36,
-                      ),
-                    ]))),
+                    ),
+                    const SizedBox(
+                      height: 212,
+                    ),
+                    GestureDetector(
+                      onTap: () async {
+                        await requestVerification();
+                      },
+                      child: nextButton('Next', nextBtnColor),
+                    ),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    loginOptions(context),
+                    const SizedBox(
+                      height: 36,
+                    ),
+                  ])),
       ),
     ));
   }
@@ -357,8 +310,25 @@ class LoginScreenState extends State<LoginScreen> {
           cursorWidth: 1,
           cursorColor: ColorConstants.appColorBlue,
           keyboardType: TextInputType.emailAddress,
-          onChanged: (text) {},
+          onChanged: emailValueChange,
           validator: (value) {
+            if (value == null || value.isEmpty) {
+              showSnackBar(context, 'Please enter your email address');
+              setState(() {
+                emailFormValid = false;
+              });
+            } else {
+              if (!value.isValidEmail()) {
+                showSnackBar(context, 'Please enter a valid email address');
+                setState(() {
+                  emailFormValid = false;
+                });
+              } else {
+                setState(() {
+                  emailFormValid = true;
+                });
+              }
+            }
             return null;
           },
           decoration: InputDecoration(
@@ -375,6 +345,22 @@ class LoginScreenState extends State<LoginScreen> {
                 )),
           ),
         )));
+  }
+
+  void emailValueChange(text) {
+    if (text.toString().isEmpty) {
+      setState(() {
+        nextBtnColor = ColorConstants.appColorDisabled;
+      });
+    } else {
+      setState(() {
+        nextBtnColor = ColorConstants.appColorBlue;
+      });
+    }
+
+    setState(() {
+      emailAddress = text;
+    });
   }
 
   void initialize() {
@@ -472,6 +458,58 @@ class LoginScreenState extends State<LoginScreen> {
     });
   }
 
+  Future<void> requestVerification() async {
+    if (phoneSignUp) {
+      _phoneFormKey.currentState!.validate();
+      if (phoneFormValid) {
+        setState(() {
+          nextBtnColor = ColorConstants.appColorDisabled;
+        });
+        await _customAuth.verifyPhone('$prefixValue$phoneNumber', context,
+            verifyPhoneFn, autoVerifyPhoneFn);
+      }
+    } else {
+      _emailFormKey.currentState!.validate();
+      if (emailFormValid) {
+        setState(() {
+          nextBtnColor = ColorConstants.appColorDisabled;
+        });
+
+        var verificationLink = await AirqoApiClient(context)
+            .requestEmailVerificationCode(emailAddress);
+
+        if (verificationLink == '') {
+          await showSnackBar(context, 'email signup verification failed');
+          return;
+        }
+
+        setState(() {
+          emailVerificationLink = verificationLink;
+          requestCode = true;
+        });
+      }
+    }
+  }
+
+  Future<void> resendVerificationCode() async {
+    if (phoneSignUp) {
+      await _customAuth.verifyPhone('$prefixValue$phoneNumber', context,
+          verifyPhoneFn, autoVerifyPhoneFn);
+    } else {
+      var verificationLink = await AirqoApiClient(context)
+          .requestEmailVerificationCode(emailAddress);
+
+      if (verificationLink == '') {
+        await showSnackBar(context, 'email signup verification failed');
+        return;
+      }
+
+      setState(() {
+        emailVerificationLink = verificationLink;
+      });
+    }
+  }
+
   void setCode(value, position) {
     setState(() {
       smsCode[position] = value;
@@ -499,5 +537,59 @@ class LoginScreenState extends State<LoginScreen> {
         resendCode = true;
       });
     });
+  }
+
+  Future<void> verifySentCode() async {
+    var code = smsCode.join('');
+    if (code.length == 6) {
+      setState(() {
+        nextBtnColor = ColorConstants.appColorBlue;
+      });
+
+      if (phoneSignUp) {
+        var credential = PhoneAuthProvider.credential(
+            verificationId: verifyId, smsCode: smsCode.join(''));
+        try {
+          await _customAuth.logIn(credential).then((value) => {
+                Navigator.pushAndRemoveUntil(context,
+                    MaterialPageRoute(builder: (context) {
+                  return HomePage();
+                }), (r) => false)
+              });
+        } on FirebaseAuthException catch (e) {
+          if (e.code == 'invalid-verification-code') {
+            await showSnackBar(context, 'Invalid Code');
+          }
+          if (e.code == 'session-expired') {
+            await _customAuth.verifyPhone('$prefixValue$phoneNumber', context,
+                verifyPhoneFn, autoVerifyPhoneFn);
+            await showSnackBar(
+                context,
+                'Your verification '
+                'has timed out. we have sent your'
+                ' another verification code');
+          }
+        } catch (e) {
+          await showSnackBar(context, 'Try again later');
+          print(e);
+        }
+      } else {
+        var success = await _customAuth.signUpWithEmailAddress(
+            emailAddress, emailVerificationLink);
+        if (success) {
+          await Navigator.pushAndRemoveUntil(context,
+              MaterialPageRoute(builder: (context) {
+            return HomePage();
+          }), (r) => false);
+        } else {
+          await showSnackBar(context, 'Try again later');
+        }
+      }
+    } else {
+      setState(() {
+        nextBtnColor = ColorConstants.appColorDisabled;
+      });
+      await showSnackBar(context, 'Enter all the 6 code digits');
+    }
   }
 }

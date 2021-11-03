@@ -238,6 +238,30 @@ Color pm10ToColor(double pm10) {
   }
 }
 
+String pm10ToString(double pm10) {
+  if (pm10 <= 50.99) {
+    //good
+    return 'Good';
+  } else if (pm10 >= 51.00 && pm10 <= 100.99) {
+    //moderate
+    return 'Moderate';
+  } else if (pm10 >= 101.00 && pm10 <= 250.99) {
+    //sensitive
+    return 'Unhealthy FSGs';
+  } else if (pm10 >= 251.00 && pm10 <= 350.99) {
+    // unhealthy
+    return 'Unhealthy';
+  } else if (pm10 >= 351.00 && pm10 <= 430.99) {
+    // very unhealthy
+    return 'Very Unhealthy';
+  } else if (pm10 >= 431.00) {
+    // hazardous
+    return 'Hazardous';
+  } else {
+    return '';
+  }
+}
+
 Color pm2_5TextColor(double pm2_5) {
   if (pm2_5 <= 12.09) {
     //good
@@ -283,6 +307,30 @@ Color pm2_5ToColor(double pm2_5) {
     return ColorConstants.maroon;
   } else {
     return ColorConstants.appColor;
+  }
+}
+
+String pm2_5ToString(double pm2_5) {
+  if (pm2_5 <= 12.09) {
+    //good
+    return 'Good';
+  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
+    //moderate
+    return 'Moderate';
+  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
+    //sensitive
+    return 'Unhealthy FSGs';
+  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
+    // unhealthy
+    return 'Unhealthy';
+  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
+    // very unhealthy
+    return 'Very Unhealthy';
+  } else if (pm2_5 >= 250.5) {
+    // hazardous
+    return 'Hazardous';
+  } else {
+    return '';
   }
 }
 
@@ -482,30 +530,6 @@ BitmapDescriptor pmToMarkerPoint(double pm2_5) {
         HSVColor.fromColor(ColorConstants.maroon).hue);
   } else {
     return BitmapDescriptor.defaultMarker;
-  }
-}
-
-String pmToString(double pm2_5) {
-  if (pm2_5 <= 12.09) {
-    //good
-    return 'Good';
-  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
-    //moderate
-    return 'Moderate';
-  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
-    //sensitive
-    return 'Unhealthy FSGs';
-  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
-    // unhealthy
-    return 'Unhealthy';
-  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
-    // very unhealthy
-    return 'Very Unhealthy';
-  } else if (pm2_5 >= 250.5) {
-    // hazardous
-    return 'Hazardous';
-  } else {
-    return '';
   }
 }
 
