@@ -13,6 +13,7 @@ import userPreferenceReducer from "./UserPreference/reducer";
 import urlsReducer from "./Urls/reducers";
 import siteRegistryReducer from "./SiteRegistry/reducers";
 import airQloudReducer from "./AirQloud/reducers";
+import reportsReducer from "./reports/reducers";
 
 export default combineReducers({
   auth: authReducer,
@@ -29,4 +30,5 @@ export default combineReducers({
   urls: urlsReducer,
   siteRegistry: siteRegistryReducer,
   airqloudRegistry: airQloudReducer,
+  reportRegistry: reportsReducer,
 });
