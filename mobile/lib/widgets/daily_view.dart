@@ -157,7 +157,8 @@ class _DailyViewState extends State<DailyView> with TickerProviderStateMixin {
                   scrollDirection: Axis.horizontal,
                   itemBuilder: (context, index) => Padding(
                     padding: const EdgeInsets.all(5),
-                    child: recommendationContainer(_recommendations[index]),
+                    child: recommendationContainer(
+                        _recommendations[index], context),
                   ),
                   itemCount: _recommendations.length,
                 ),

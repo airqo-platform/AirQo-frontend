@@ -336,23 +336,24 @@ class CustomAuth {
       var firebaseUser = _firebaseAuth.currentUser;
       if (firebaseUser == null) {
         throw Exception('You are not signed in');
+      } else {
+        await firebaseUser.updateDisplayName(userDetails.firstName);
+        await firebaseUser.updatePhotoURL(userDetails.photoUrl);
+        // await firebaseUser.updateEmail(userDetails.emailAddress);
+        userDetails.userId = firebaseUser.uid;
+
+        var _preferences = await SharedPreferences.getInstance();
+        await _preferences.setString('title', userDetails.title);
+        await _preferences.setString('firstName', userDetails.firstName);
+        await _preferences.setString('lastName', userDetails.lastName);
+        await _preferences.setString(
+            'phoneNumber', firebaseUser.phoneNumber ?? '');
+        await _preferences.setString('emailAddress', firebaseUser.email ?? '');
+        await _preferences.setString('photoUrl', firebaseUser.photoURL ?? '');
+        await _preferences.setString('userId', firebaseUser.uid);
+
+        await _firebaseFirestore.updateProfile(userDetails, firebaseUser.uid);
       }
-      await firebaseUser.updateDisplayName(userDetails.firstName);
-      await firebaseUser.updatePhotoURL(userDetails.photoUrl);
-      // await firebaseUser.updateEmail(userDetails.emailAddress);
-
-      var _preferences = await SharedPreferences.getInstance();
-      await _preferences.setString('title', userDetails.title);
-      await _preferences.setString('firstName', userDetails.firstName);
-      await _preferences.setString('lastName', userDetails.lastName);
-      await _preferences.setString('phoneNumber', userDetails.phoneNumber);
-      await _preferences.setString('emailAddress', userDetails.emailAddress);
-      await _preferences.setString('photoUrl', userDetails.photoUrl);
-      await _preferences.setString('userId', firebaseUser.uid);
-
-      userDetails.userId = firebaseUser.uid;
-
-      await _firebaseFirestore.updateProfile(userDetails, firebaseUser.uid);
     } else {
       throw Exception(ErrorMessages.timeoutException);
     }
@@ -387,9 +388,9 @@ class CustomAuth {
         },
         codeAutoRetrievalTimeout: (String verificationId) async {
           // TODO Implement auto code retrieval timeout
-          // await showSnackBar(context, 'codeAutoRetrievalTimeout');
+          await showSnackBar(context, 'codeAutoRetrievalTimeout');
         },
-        timeout: const Duration(minutes: 1));
+        timeout: const Duration(minutes: 2));
   }
 }
 

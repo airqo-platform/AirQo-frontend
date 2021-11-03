@@ -20,7 +20,76 @@ List<Widget> createTips(double value) {
   return tipsWidgets;
 }
 
-Widget recommendationContainer(Recommendation recommendation) {
+Widget recommendationContainer(Recommendation recommendation, context) {
+  return Container(
+      width: 304,
+      height: 128,
+      padding: const EdgeInsets.all(8.0),
+      decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.all(Radius.circular(8.0))),
+      child: Row(
+        children: [
+          Container(
+            constraints: const BoxConstraints(
+              maxWidth: 83,
+              maxHeight: 112,
+              minWidth: 83,
+              minHeight: 112,
+            ),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8.0),
+              image: DecorationImage(
+                fit: BoxFit.cover,
+                image: AssetImage(
+                  recommendation.imageUrl,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(
+            width: 12,
+          ),
+          Expanded(
+              child: Container(
+            constraints: const BoxConstraints(
+              maxWidth: 189,
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  recommendation.title,
+                  maxLines: 4,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                      color: ColorConstants.appColorBlack,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16),
+                ),
+                const SizedBox(
+                  height: 4,
+                ),
+                Text(
+                  recommendation.body,
+                  maxLines: 4,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                      color: ColorConstants.appColorBlack.withOpacity(0.5),
+                      fontSize: 14),
+                )
+              ],
+            ),
+          )),
+          const SizedBox(
+            width: 12,
+          ),
+        ],
+      ));
+}
+
+Widget recommendationContainerV1(Recommendation recommendation, context) {
   return Container(
       width: 304,
       height: 128,
@@ -32,16 +101,16 @@ Widget recommendationContainer(Recommendation recommendation) {
           contentPadding: const EdgeInsets.all(8.0),
           leading: Container(
             width: 83,
-            height: 112,
-            decoration: const BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(8.0))),
-            child: Image.asset(
-              'assets/images/know-your-air.png',
-              fit: BoxFit.cover,
+            height: MediaQuery.of(context).size.height,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8.0),
+              image: DecorationImage(
+                fit: BoxFit.fill,
+                image: AssetImage(
+                  recommendation.imageUrl,
+                ),
+              ),
             ),
-            // child: SvgPicture.asset(
-            //   '${recommendation.imageUrl}',
-            // )
           ),
           title: Text(
             recommendation.title,

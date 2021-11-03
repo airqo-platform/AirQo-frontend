@@ -33,19 +33,19 @@ List<Recommendation> getHealthRecommendations(double pm2_5) {
       ..add(Recommendation(
           'For everyone',
           'Great air here today! Zero air pollution Zero worries',
-          'assets/icon/search.svg'))
+          'assets/images/family.png'))
       ..add(Recommendation(
           'For children',
           'Perfect time to let your kids enjoy the park',
-          'assets/icon/search.svg'))
+          'assets/images/child.png'))
       ..add(Recommendation(
           'For pregnant women',
           'Great time to enjoy a bleeze outdoor with caution',
-          'assets/icon/search.svg'))
+          'assets/images/pregnant_woman.png'))
       ..add(Recommendation(
           'For elderly people',
           'Great time to enjoy a bleeze outdoor with caution',
-          'assets/icon/search.svg'));
+          'assets/images/old_man.png'));
   } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
     //moderate
     recommendations
@@ -53,20 +53,20 @@ List<Recommendation> getHealthRecommendations(double pm2_5) {
           'For everyone',
           'Reduce the intensity of your outdoor activities,'
               ' If possible stay indoor',
-          'assets/icon/search.svg'))
+          'assets/images/family.png'))
       ..add(Recommendation(
           'For children',
           'Reduce the intensity of your outdoor activities',
-          'assets/icon/search.svg'))
+          'assets/images/child.png'))
       ..add(Recommendation(
           'For pregnant women',
           'To keep you and your baby healthy, reduce'
               ' the intensity of your outdoor activities',
-          'assets/icon/search.svg'))
+          'assets/images/pregnant_woman.png'))
       ..add(Recommendation(
           'For elderly people',
           'Reduce the intensity of your outdoor activities',
-          'assets/icon/search.svg'));
+          'assets/images/old_man.png'));
   } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
     //sensitive
     recommendations
@@ -74,20 +74,20 @@ List<Recommendation> getHealthRecommendations(double pm2_5) {
           'For everyone',
           'Reduce the intensity of your outdoor activities,'
               ' If possible stay indoor',
-          'assets/icon/search.svg'))
+          'assets/images/family.png'))
       ..add(Recommendation(
           'For children',
           'Reduce the intensity of your outdoor activities',
-          'assets/icon/search.svg'))
+          'assets/images/child.png'))
       ..add(Recommendation(
           'For pregnant women',
           'To keep you and your baby healthy, reduce'
               ' the intensity of your outdoor activities',
-          'assets/icon/search.svg'))
+          'assets/images/pregnant_woman.png'))
       ..add(Recommendation(
           'For elderly people',
           'Reduce the intensity of your outdoor activities',
-          'assets/icon/search.svg'));
+          'assets/images/old_man.png'));
   } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
     // unhealthy
     recommendations
@@ -95,20 +95,20 @@ List<Recommendation> getHealthRecommendations(double pm2_5) {
           'For everyone',
           'Reduce the intensity of your outdoor activities,'
               ' If possible stay indoor',
-          'assets/icon/search.svg'))
+          'assets/images/family.png'))
       ..add(Recommendation(
           'For children',
           'Reduce the intensity of your outdoor activities',
-          'assets/icon/search.svg'))
+          'assets/images/child.png'))
       ..add(Recommendation(
           'For pregnant women',
           'To keep you and your baby healthy, reduce'
               ' the intensity of your outdoor activities',
-          'assets/icon/search.svg'))
+          'assets/images/pregnant_woman.png'))
       ..add(Recommendation(
           'For elderly people',
           'Reduce the intensity of your outdoor activities',
-          'assets/icon/search.svg'));
+          'assets/images/old_man.png'));
   } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
     // very unhealthy
     recommendations
@@ -116,20 +116,20 @@ List<Recommendation> getHealthRecommendations(double pm2_5) {
           'For everyone',
           'Reduce the intensity of your outdoor activities,'
               ' If possible stay indoor',
-          'assets/icon/search.svg'))
+          'assets/images/family.png'))
       ..add(Recommendation(
           'For children',
           'Reduce the intensity of your outdoor activities',
-          'assets/icon/search.svg'))
+          'assets/images/child.png'))
       ..add(Recommendation(
           'For pregnant women',
           'To keep you and your baby healthy, reduce'
               ' the intensity of your outdoor activities',
-          'assets/icon/search.svg'))
+          'assets/images/pregnant_woman.png'))
       ..add(Recommendation(
           'For elderly people',
           'Reduce the intensity of your outdoor activities',
-          'assets/icon/search.svg'));
+          'assets/images/old_man.png'));
   } else if (pm2_5 >= 250.5) {
     // hazardous
     recommendations
@@ -137,20 +137,20 @@ List<Recommendation> getHealthRecommendations(double pm2_5) {
           'For everyone',
           'Reduce the intensity of your outdoor activities,'
               ' If possible stay indoor',
-          'assets/icon/search.svg'))
+          'assets/images/family.png'))
       ..add(Recommendation(
           'For children',
           'Reduce the intensity of your outdoor activities',
-          'assets/icon/search.svg'))
+          'assets/images/child.png'))
       ..add(Recommendation(
           'For pregnant women',
           'To keep you and your baby healthy, reduce'
               ' the intensity of your outdoor activities',
-          'assets/icon/search.svg'))
+          'assets/images/pregnant_woman.png'))
       ..add(Recommendation(
           'For elderly people',
           'Reduce the intensity of your outdoor activities',
-          'assets/icon/search.svg'));
+          'assets/images/old_man.png'));
   } else {}
 
   return recommendations;

@@ -70,13 +70,12 @@ class SignUpPageState extends State<SignUpPage> {
             .updateProfile(userDetails)
             .then((value) => {switchWidget('location_widget', false)});
       }
-    } on FirebaseAuthException catch (e) {
+    } on Exception catch (e) {
       setState(() {
         nextBtnColor = ColorConstants.appColorBlue;
         isLoading = false;
       });
       await showSnackBar(context, 'Failed to update profile. Try again later');
-      print(e);
     }
   }
 

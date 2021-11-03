@@ -59,7 +59,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     const SizedBox(
                       height: 42,
                     ),
-                    Container(
+                    SizedBox(
                       height: 48,
                       child: Row(
                         children: <Widget>[

@@ -603,11 +603,12 @@ class _DashboardViewState extends State<DashboardView> {
               if (value != null)
                 {
                   prefs.setStringList(PrefConstant.lastKnownLocation,
-                      ['${value.site.getUserLocation()}', '${value.site.id}']),
+                      [(value.site.getUserLocation()), (value.site.id)]),
                   if (mounted)
                     {
                       setState(() {
                         measurementData = value;
+                        isRefreshing = false;
                       }),
                     }
                 },

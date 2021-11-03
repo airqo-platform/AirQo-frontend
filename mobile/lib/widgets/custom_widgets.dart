@@ -475,7 +475,7 @@ Widget tipWidget(context, header) {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(8.0),
             child: Image.asset(
-              'assets/images/know-your-air.png',
+              'assets/images/backyard_trash_burning.png',
               width: 104,
               height: 104,
               fit: BoxFit.cover,

@@ -1,7 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/air_quality_tip.dart';
 import 'package:app/utils/share.dart';
-import 'package:app/utils/string_extension.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/cupertino.dart';
@@ -119,52 +118,52 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
             'Avoid burning garbage',
             'Burning your household garbage is dangerous'
                 ' to your health and our environment',
-            'assets/images/skate.png'))
+            'assets/images/trash_burning.png'))
         ..add(AirQualityTip(
             'Walk or cycle',
             'Walk or cycle to get the steps in '
                 'and improve your physical well-being',
-            'assets/images/skate.png'))
+            'assets/images/trash_burning.png'))
         ..add(AirQualityTip(
             'Use public transport',
             'Burning your household garbage is'
                 ' dangerous to your health and our environment',
-            'assets/images/skate.png'))
+            'assets/images/trash_burning.png'))
         ..add(AirQualityTip(
             'Service your car/boda boda regularly',
             'Regular inspections can maximise fuel '
                 'efficiency, which reduces vehicle emissions.',
-            'assets/images/skate.png'))
+            'assets/images/trash_burning.png'))
         ..add(AirQualityTip(
             'Cut down on single-use plastic products',
             'Avoid using plastic bags, they take longer to '
                 'decompose. Use paper bags or baskets for your shopping',
-            'assets/images/skate.png'))
+            'assets/images/trash_burning.png'))
         ..add(AirQualityTip(
             'Avoid idling your car engine in traffic',
             'Vehicles produce particularly unhealthy exhaust.'
                 ' Switch off your engine while in traffic',
-            'assets/images/skate.png'))
+            'assets/images/trash_burning.png'))
         ..add(AirQualityTip(
             'Turn off electronics and lights when not in use',
             'Don\'t leave your electronic devices, TV sets and '
                 'computers on standby mode. Switch them off completely',
-            'assets/images/skate.png'))
+            'assets/images/trash_burning.png'))
         ..add(AirQualityTip(
             'Use LED bulbs',
             'Use energy saving fluorescent lights to help '
                 'the environment. They use less power and last longer',
-            'assets/images/skate.png'))
+            'assets/images/trash_burning.png'))
         ..add(AirQualityTip(
             'Become a champion for clean air',
             'Join our air quality champion and '
                 'advocate for clean air in your community',
-            'assets/images/skate.png'))
+            'assets/images/trash_burning.png'))
         ..add(AirQualityTip(
             'Become a champion for clean air',
             'Join our air quality champion and advocate '
                 'for clean air in your community',
-            'assets/images/skate.png'));
+            'assets/images/trash_burning.png'));
     });
   }
 
@@ -265,24 +264,35 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
         borderRadius: BorderRadius.circular(16),
       ),
       elevation: 20,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.asset(
-                'assets/images/skate.png',
-                height: 180,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const SizedBox(
+            height: 8.0,
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+            child: Container(
+              width: MediaQuery.of(context).size.width,
+              height: 180,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                image: DecorationImage(
+                  fit: BoxFit.fill,
+                  image: AssetImage(
+                    tip.imageUrl,
+                  ),
+                ),
               ),
             ),
-            const SizedBox(
-              height: 24,
-            ),
-            Text(
+          ),
+          const SizedBox(
+            height: 12,
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 36, right: 36),
+            child: Text(
               tip.title,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -292,67 +302,34 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
                   fontSize: 20,
                   fontWeight: FontWeight.bold),
             ),
-            const SizedBox(
-              height: 8.0,
-            ),
-            Text(
-              tip.message,
-              maxLines: 4,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  color: ColorConstants.appColorBlack.withOpacity(0.5),
-                  fontSize: 16),
-            ),
-            const SizedBox(
-              height: 31.89,
-            ),
-            SvgPicture.asset(
-              'assets/icon/tips_graphics.svg',
-              semanticsLabel: 'tips_graphics',
-            ),
-            const SizedBox(
-              height: 40.89,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget slideHeadCard() {
-    return Padding(
-      padding: const EdgeInsets.only(left: 10, right: 10),
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.all(Radius.circular(8.0))),
-        width: MediaQuery.of(context).size.width * 0.9,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Image.asset(
-              'assets/images/skate.png',
-              height: 150,
-            ),
-            const Text(
-              'Together, let\'s reduce '
-              'air pollution to breathe clean!',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
+          ),
+          const SizedBox(
+            height: 8.0,
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 16, right: 16),
+              child: Text(
+                tip.message,
+                maxLines: 4,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    color: Colors.black.withOpacity(0.5), fontSize: 16),
               ),
             ),
-            Text(
-                'Here are 9 ways you can get involved and reduce air pollutions'
-                    .toTitleCase(),
-                textAlign: TextAlign.center,
-                style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          ],
-        ),
+          ),
+          const SizedBox(
+            height: 30,
+          ),
+          SvgPicture.asset(
+            'assets/icon/tips_graphics.svg',
+            semanticsLabel: 'tips_graphics',
+          ),
+          const SizedBox(
+            height: 30,
+          ),
+        ],
       ),
     );
   }
@@ -416,7 +393,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
             ),
             SizedBox(
               // color: Colors.transparent,
-              height: 450,
+              height: 410,
               child: PageView.builder(
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
