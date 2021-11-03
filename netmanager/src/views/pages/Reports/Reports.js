@@ -1,13 +1,13 @@
 import React from "react";
-import ErrorBoundary from "../../ErrorBoundary/ErrorBoundary";
-import { useReportsData } from "utils/customHooks/ReportsHooks";
-import { Button } from "@material-ui/core";
-import CustomMaterialTable from "../../components/Table/CustomMaterialTable";
-import ConfirmDialog from "../../containers/ConfirmDialog";
+import { useHistory } from "react-router-dom";
 import Tooltip from "@material-ui/core/Tooltip";
 import EditIcon from "@material-ui/icons/EditOutlined";
 import DeleteIcon from "@material-ui/icons/DeleteOutlineOutlined";
+import { Button } from "@material-ui/core";
 import { makeStyles } from "@material-ui/styles";
+import ErrorBoundary from "../../ErrorBoundary/ErrorBoundary";
+import { useReportsData } from "utils/customHooks/ReportsHooks";
+import CustomMaterialTable from "../../components/Table/CustomMaterialTable";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -18,7 +18,6 @@ const useStyles = makeStyles((theme) => ({
 const reportsColumns = [
   {
     title: "Title",
-    // render: (data) => <Cell fieldValue={data.long_name} />,
     field: "name",
     width: "80%",
   },
@@ -57,6 +56,7 @@ const reportsColumns = [
 const Reports = () => {
   const classes = useStyles();
   const reports = useReportsData();
+  const history = useHistory();
 
   return (
     <ErrorBoundary>
@@ -73,7 +73,7 @@ const Reports = () => {
             color="primary"
             type="submit"
             align="right"
-            // onClick={() => setRegisterOpen(true)}
+            onClick={() => history.push("/reports/new-report")}
           >
             {" "}
             Add Report
@@ -86,10 +86,10 @@ const Reports = () => {
           userPreferencePaginationKey={"reports"}
           columns={reportsColumns}
           data={reports}
-          // onRowClick={(event, rowData) => {
-          //   event.preventDefault();
-          //   return history.push(`/device/${rowData.name}/overview`);
-          // }}
+          onRowClick={(event, rowData) => {
+            event.preventDefault();
+            return history.push(`/reports/${rowData._id}`);
+          }}
           options={{
             search: true,
             exportButton: true,
@@ -105,15 +105,6 @@ const Reports = () => {
             },
           }}
         />
-
-        {/*<ConfirmDialog*/}
-        {/*  open={delDevice.open}*/}
-        {/*  title={"Delete a device?"}*/}
-        {/*  message={`Are you sure you want to delete this ${delDevice.name} device`}*/}
-        {/*  close={() => setDelDevice({ open: false, name: "" })}*/}
-        {/*  confirm={handleDeleteDevice}*/}
-        {/*  error*/}
-        {/*/>*/}
       </div>
     </ErrorBoundary>
   );

@@ -29,6 +29,8 @@ const Settings = lazy(() => import("./views/pages/Settings"));
 const SiteRegistry = lazy(() => import("./views/components/Sites/SiteRegistry"));
 const SiteView = lazy(() => import("./views/components/Sites/SiteView"));
 const Reports = lazy(() => import("./views/pages/Reports/Reports"));
+const AddReport = lazy(() => import("./views/pages/Reports/AddReport"));
+const ViewReport = lazy(() => import("./views/pages/Reports/ViewReport"));
 
 const AppRoutes = () => {
   useJiraHelpDesk();
@@ -124,6 +126,18 @@ const AppRoutes = () => {
             exact
             path="/reports"
             component={Reports}
+            layout={MainLayout}
+          />
+          <PrivateRoute
+            exact
+            path="/reports/new-report"
+            component={AddReport}
+            layout={MainLayout}
+          />
+          <PrivateRoute
+            exact
+            path="/reports/:id"
+            component={ViewReport}
             layout={MainLayout}
           />
         </Suspense>
