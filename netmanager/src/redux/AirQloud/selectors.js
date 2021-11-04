@@ -4,3 +4,7 @@ import { useSelector } from "react-redux";
 export const _useAirqloudsData = () => {
   return useSelector((state) => state.airqloudRegistry.airqlouds);
 };
+
+export const useCurrentAirQloudData = () => {
+  return useSelector((state) => state.airqloudRegistry.currentAirQloud);
+};
