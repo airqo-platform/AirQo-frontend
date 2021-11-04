@@ -58,11 +58,18 @@ export const refreshFilterLocationData = () => {
 export const loadUserDefaultGraphData = () => {
   return async (dispatch, getState) => {
     const userID = getState().auth.user._id;
-    return await getUserChartDefaultsApi(userID, userID)
-      .then((userDefaultsData) => {
+    const airQloudID = getState().airqloudRegistry.currentAirQloud._id;
+
+    return await getUserChartDefaultsApi(userID, airQloudID)
+      .then(async (userDefaultsData) => {
+        let data = userDefaultsData;
+
+        if (isEmpty(data.defaults)) {
+          data = await getUserChartDefaultsApi(userID, userID);
+        }
         dispatch({
           type: LOAD_USER_DEFAULT_GRAPHS_SUCCESS,
-          payload: userDefaultsData.defaults || [],
+          payload: data.defaults || [],
         });
       })
       .catch((err) => {

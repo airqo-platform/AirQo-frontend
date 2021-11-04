@@ -32,10 +32,11 @@ export const loadAirQloudsData = () => async (dispatch) => {
 };
 
 export const setCurrentAirQloudData = (airqloud) => (dispatch) => {
-  localStorage.setItem(CURRENT_AIRQLOUD_KEY, JSON.stringify(airqloud));
+  const new_airqloud = createAirqloudSiteOptions(airqloud);
+  localStorage.setItem(CURRENT_AIRQLOUD_KEY, JSON.stringify(new_airqloud));
   dispatch({
     type: SET_CURRENT_AIRQLOUD_SUCCESS,
-    payload: createAirqloudSiteOptions(airqloud),
+    payload: createAirqloudSiteOptions(new_airqloud),
   });
 };
 
