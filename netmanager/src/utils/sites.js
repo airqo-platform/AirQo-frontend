@@ -1,7 +1,10 @@
 import { isEmpty } from "underscore";
 
-const siteLabel = (name, description, generated_name) =>
-  `${name || description || generated_name} (${generated_name})`;
+const siteLabel = (name, description, generated_name) => {
+  let label = `${name || description || generated_name}`;
+  if (generated_name) label = `${label} (${generated_name})`;
+  return label;
+};
 
 export const createSiteOptions = (sites) => {
   const siteOptions = [];
