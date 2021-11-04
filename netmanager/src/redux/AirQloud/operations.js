@@ -51,7 +51,7 @@ export const setDefaultAirQloud = () => async (dispatch) => {
     const current = airqlouds.filter(
       (airqloud) => airqloud.long_name === "Uganda"
     );
-    dispatch(setCurrentAirQloudData(current));
+    dispatch(setCurrentAirQloudData((current.length > 0 && current[0]) || {}));
     dispatch({
       type: LOAD_ALL_AIRQLOUDS_SUCCESS,
       payload: transformArray(airqlouds, "_id"),
