@@ -1,32 +1,32 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/historical_measurement.dart';
-import 'package:app/models/site.dart';
+import 'package:app/models/place_details.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/utils/share.dart';
 import 'package:app/widgets/recomendation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
 
 import 'custom_widgets.dart';
 import 'insights_card.dart';
 
 class DailyView extends StatefulWidget {
-  Site site;
+  PlaceDetails placeDetails;
   bool daily;
 
-  DailyView(this.site, this.daily);
+  DailyView(this.placeDetails, this.daily);
 
   @override
   _DailyViewState createState() => _DailyViewState();
 }
 
-class _DailyViewState extends State<DailyView> with TickerProviderStateMixin {
+class _DailyViewState extends State<DailyView> {
   String viewDay = 'today';
   String pollutant = '';
   bool pm10 = false;
   bool pm2_5 = true;
-  bool isFav = false;
   List<Recommendation> _recommendations = [];
 
   _DailyViewState();
@@ -78,13 +78,13 @@ class _DailyViewState extends State<DailyView> with TickerProviderStateMixin {
             ),
             Visibility(
               visible: pm2_5,
-              child:
-                  InsightsCard(widget.site, callBackFn, 'pm2.5', widget.daily),
+              child: InsightsCard(
+                  widget.placeDetails, callBackFn, 'pm2.5', widget.daily),
             ),
             Visibility(
               visible: !pm2_5,
-              child:
-                  InsightsCard(widget.site, callBackFn, 'pm10', widget.daily),
+              child: InsightsCard(
+                  widget.placeDetails, callBackFn, 'pm10', widget.daily),
             ),
             const SizedBox(
               height: 16,
@@ -100,7 +100,7 @@ class _DailyViewState extends State<DailyView> with TickerProviderStateMixin {
                 children: [
                   GestureDetector(
                     onTap: () {
-                      shareLocation(widget.site);
+                      shareLocation(widget.placeDetails);
                     },
                     child: iconTextButton(
                         SvgPicture.asset(
@@ -113,24 +113,27 @@ class _DailyViewState extends State<DailyView> with TickerProviderStateMixin {
                   const SizedBox(
                     width: 60,
                   ),
-                  GestureDetector(
-                    onTap: () async {
-                      var result = await DBHelper()
-                          .updateFavouritePlaces(widget.site, context);
-                      setState(() {
-                        isFav = result;
-                      });
+                  Consumer<PlaceDetailsModel>(
+                    builder: (context, placeDetailsModel, child) {
+                      return GestureDetector(
+                        onTap: () async {
+                          await DBHelper().updateFavouritePlaces(
+                              widget.placeDetails, context);
+                        },
+                        child: iconTextButton(
+                            SvgPicture.asset(
+                              PlaceDetails.isFavouritePlace(
+                                      placeDetailsModel.favouritePlaces,
+                                      widget.placeDetails)
+                                  ? 'assets/icon/heart.svg'
+                                  : 'assets/icon/heart_dislike.svg',
+                              semanticsLabel: 'Favorite',
+                              height: 16.67,
+                              width: 16.67,
+                            ),
+                            'Favorite'),
+                      );
                     },
-                    child: iconTextButton(
-                        SvgPicture.asset(
-                          isFav
-                              ? 'assets/icon/heart.svg'
-                              : 'assets/icon/heart_dislike.svg',
-                          semanticsLabel: 'Favorite',
-                          height: 16.67,
-                          width: 16.67,
-                        ),
-                        'Favorite'),
                   ),
                 ],
               ),
@@ -201,11 +204,6 @@ class _DailyViewState extends State<DailyView> with TickerProviderStateMixin {
   @override
   void initState() {
     initialize();
-    widget.site.isFav().then((value) => {
-          setState(() {
-            isFav = value;
-          })
-        });
     super.initState();
   }
 

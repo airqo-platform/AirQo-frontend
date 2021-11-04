@@ -1,6 +1,6 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/measurement.dart';
 import 'package:app/models/notification.dart';
+import 'package:app/models/place_details.dart';
 import 'package:app/screens/profile_view.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
@@ -158,7 +158,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _getFavPlaces() {
-    Provider.of<MeasurementModel>(context, listen: false)
+    Provider.of<PlaceDetailsModel>(context, listen: false)
         .reloadFavouritePlaces();
   }
 

@@ -4,6 +4,7 @@ import 'package:app/constants/app_constants.dart';
 import 'package:app/models/alert.dart';
 import 'package:app/models/historical_measurement.dart';
 import 'package:app/models/measurement.dart';
+import 'package:app/models/place_details.dart';
 import 'package:app/models/predict.dart';
 import 'package:app/models/site.dart';
 import 'package:app/models/story.dart';
@@ -66,6 +67,7 @@ class DBHelper {
       await db.execute(Story.dropTableStmt());
       await db.execute(Alert.dropTableStmt());
       await db.execute(UserDetails.dropTableStmt());
+      await db.execute(PlaceDetails.dropTableStmt());
       await prefs.setBool(PrefConstant.reLoadDb, false);
     }
 
@@ -77,6 +79,7 @@ class DBHelper {
     await db.execute(Story.createTableStmt());
     await db.execute(Alert.createTableStmt());
     await db.execute(UserDetails.createTableStmt());
+    await db.execute(PlaceDetails.createTableStmt());
   }
 
   Future<bool> deleteAlert(Alert alert) async {
@@ -130,7 +133,25 @@ class DBHelper {
     }
   }
 
-  Future<List<Measurement>> getFavouritePlaces() async {
+  Future<List<PlaceDetails>> getFavouritePlaces() async {
+    try {
+      final db = await database;
+
+      var res = await db.query(PlaceDetails.dbFavPlacesName());
+
+      return res.isNotEmpty
+          ? List.generate(res.length, (i) {
+              return PlaceDetails.fromJson(res[i]);
+            })
+          : <PlaceDetails>[];
+    } catch (e) {
+      debugPrint(e.toString());
+
+      return <PlaceDetails>[];
+    }
+  }
+
+  Future<List<Measurement>> getFavouritePlacesV1() async {
     try {
       final db = await database;
 
@@ -264,7 +285,8 @@ class DBHelper {
                   nearestMeasurement = nearestMeasurements.first,
                   for (var m in nearestMeasurements)
                     {
-                      if (nearestMeasurement.site.distance > m.site.distance)
+                      if (nearestMeasurement.placeDetails.distance >
+                          m.site.distance)
                         {nearestMeasurement = m}
                     }
                 }
@@ -298,7 +320,7 @@ class DBHelper {
                             nearestMeasurement = nearestMeasurements.first,
                             for (var m in nearestMeasurements)
                               {
-                                if (nearestMeasurement.site.distance >
+                                if (nearestMeasurement.placeDetails.distance >
                                     m.site.distance)
                                   {nearestMeasurement = m}
                               }
@@ -362,7 +384,8 @@ class DBHelper {
                 nearestMeasurement = nearestMeasurements.first,
                 for (var m in nearestMeasurements)
                   {
-                    if (nearestMeasurement.site.distance > m.site.distance)
+                    if (nearestMeasurement.placeDetails.distance >
+                        m.site.distance)
                       {nearestMeasurement = m}
                   },
               }
@@ -487,6 +510,25 @@ class DBHelper {
       //   createDefaultTables(db);
       // },
     );
+  }
+
+  Future<void> insertFavPlace(PlaceDetails placeDetails) async {
+    try {
+      final db = await database;
+
+      try {
+        var jsonData = placeDetails.toJson();
+        await db.insert(
+          PlaceDetails.dbFavPlacesName(),
+          jsonData,
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      } catch (e) {
+        debugPrint(e.toString());
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+    }
   }
 
   Future<void> insertForecastMeasurements(
@@ -665,6 +707,24 @@ class DBHelper {
     }
   }
 
+  Future<void> removeFavPlace(PlaceDetails placeDetails) async {
+    try {
+      final db = await database;
+
+      try {
+        await db.delete(
+          PlaceDetails.dbFavPlacesName(),
+          where: 'siteId = ?',
+          whereArgs: [placeDetails.siteId],
+        );
+      } catch (e) {
+        debugPrint(e.toString());
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
   Future<bool> saveUserData(UserDetails userDetails) async {
     try {
       final db = await database;
@@ -689,12 +749,12 @@ class DBHelper {
     }
   }
 
-  Future<bool> updateFavouritePlaces(Site site, context) async {
+  Future<bool> updateFavouritePlacesV1(String siteId, context) async {
     var prefs = await SharedPreferences.getInstance();
     var favouritePlaces =
         prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
 
-    var id = site.id.trim().toLowerCase();
+    var id = siteId.trim().toLowerCase();
     if (favouritePlaces.contains(id)) {
       var updatedList = <String>[];
 
@@ -710,7 +770,7 @@ class DBHelper {
 
     await prefs.setStringList(PrefConstant.favouritePlaces, favouritePlaces);
 
-    await Provider.of<MeasurementModel>(context, listen: false)
+    await Provider.of<PlaceDetailsModel>(context, listen: false)
         .reloadFavouritePlaces();
 
     // if (favouritePlaces.contains(id)) {
@@ -722,6 +782,22 @@ class DBHelper {
     // }
 
     return favouritePlaces.contains(id);
+  }
+
+  Future<void> updateFavouritePlaces(PlaceDetails placeDetails, context) async {
+    final db = await database;
+
+    var res = await db.query(PlaceDetails.dbFavPlacesName(),
+        where: 'siteId = ?', whereArgs: [placeDetails.siteId]);
+
+    if (res.isEmpty) {
+      await insertFavPlace(placeDetails).then((value) => {
+            Provider.of<PlaceDetailsModel>(context, listen: false)
+                .reloadFavouritePlaces()
+          });
+    } else {
+      await removeFavPlace(placeDetails);
+    }
   }
 
   Future<bool> updateSiteAlerts(

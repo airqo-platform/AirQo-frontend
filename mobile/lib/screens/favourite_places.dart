@@ -1,5 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
+import 'package:app/models/place_details.dart';
 import 'package:app/screens/search_page.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/widgets/favourite_place_card.dart';
@@ -35,9 +36,9 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
       ),
       body: Container(
           color: ColorConstants.appBodyColor,
-          child: Consumer<MeasurementModel>(
-            builder: (context, measurementModel, child) {
-              if (measurementModel.favouritePlaces.isEmpty) {
+          child: Consumer<PlaceDetailsModel>(
+            builder: (context, placeDetailsModel, child) {
+              if (placeDetailsModel.favouritePlaces.isEmpty) {
                 return emptyPlaces();
               }
 
@@ -48,9 +49,9 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
                   itemBuilder: (context, index) => Padding(
                     padding: const EdgeInsets.only(left: 16, right: 16),
                     child: MiniAnalyticsCard(
-                        measurementModel.favouritePlaces[index]),
+                        placeDetailsModel.favouritePlaces[index]),
                   ),
-                  itemCount: measurementModel.favouritePlaces.length,
+                  itemCount: placeDetailsModel.favouritePlaces.length,
                 ),
               );
             },
@@ -107,7 +108,7 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
   }
 
   Future<void> refreshData() async {
-    await Provider.of<MeasurementModel>(context, listen: false)
+    await Provider.of<PlaceDetailsModel>(context, listen: false)
         .reloadFavouritePlaces();
   }
 }

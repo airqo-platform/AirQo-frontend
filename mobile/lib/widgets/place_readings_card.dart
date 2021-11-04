@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/chartData.dart';
 import 'package:app/models/historical_measurement.dart';
+import 'package:app/models/place_details.dart';
 import 'package:app/models/site.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/data_formatter.dart';
@@ -137,7 +138,7 @@ class _PlaceReadingsCardState extends State<PlaceReadingsCard> {
             ),
             child: GestureDetector(
               onTap: () {
-                shareLocation(site);
+                shareLocation(PlaceDetails.siteToPLace(site));
               },
               child: Center(
                 child: Text('Share',
@@ -151,7 +152,8 @@ class _PlaceReadingsCardState extends State<PlaceReadingsCard> {
           const Spacer(),
           GestureDetector(
             onTap: () async {
-              await DBHelper().updateFavouritePlaces(site, context);
+              await DBHelper().updateFavouritePlaces(
+                  PlaceDetails.siteToPLace(site), context);
             },
             child: Container(
               height: 36,

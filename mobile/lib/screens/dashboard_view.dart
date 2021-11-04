@@ -1,13 +1,14 @@
+import 'dart:math';
+
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
+import 'package:app/models/place_details.dart';
 import 'package:app/screens/search_page.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
-import 'package:app/services/native_api.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/pm.dart';
-import 'package:app/utils/settings.dart';
 import 'package:app/widgets/analytics_card.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:flutter/material.dart';
@@ -25,10 +26,11 @@ class DashboardView extends StatefulWidget {
 }
 
 class _DashboardViewState extends State<DashboardView> {
-  var measurementData;
+  List<PlaceDetails> dashBoardPlaces = [];
   var greetings = '';
   double tipsProgress = 0.0;
   bool isRefreshing = false;
+  List<Widget> dashboardCards = [];
 
   final CustomAuth _customAuth = CustomAuth();
 
@@ -191,22 +193,31 @@ class _DashboardViewState extends State<DashboardView> {
         backgroundColor: ColorConstants.appBodyColor,
       ),
       body: Container(
+          padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 24),
           color: ColorConstants.appBodyColor,
-          child: RefreshIndicator(
-              onRefresh: initialize,
-              color: ColorConstants.appColorBlue,
-              child: Padding(
-                padding:
-                    const EdgeInsets.only(left: 16.0, right: 16.0, top: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Expanded(
-                      child: _dashboardItems(),
-                    ),
-                  ],
-                ),
-              ))),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                greetings,
+                style:
+                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(
+                height: 16,
+              ),
+              topTabs(),
+              const SizedBox(
+                height: 25,
+              ),
+              Expanded(
+                  child: RefreshIndicator(
+                onRefresh: initialize,
+                color: ColorConstants.appColorBlue,
+                child: _dashboardItems(),
+              )),
+            ],
+          )),
     );
   }
 
@@ -233,35 +244,25 @@ class _DashboardViewState extends State<DashboardView> {
         ));
   }
 
-  void getLocationMeasurements() async {
-    try {
-      await Settings().dashboardMeasurement().then((value) => {
-            if (value != null)
-              {
-                if (mounted)
-                  {
-                    setState(() {
-                      measurementData = value;
-                      isRefreshing = false;
-                    }),
-                    updateCurrentLocation()
-                  },
-              }
-            else
-              {}
-          });
-    } catch (e) {
-      debugPrint('error getting data : $e');
+  Future<void> getDashboardLocations() async {
+    var measurements = await DBHelper().getLatestMeasurements();
+
+    for (var i = 0; i < 4; i++) {
+      var random = 0 + Random().nextInt(measurements.length - 0);
+      setState(() {
+        dashBoardPlaces
+            .add(PlaceDetails.measurementToPLace(measurements[random]));
+      });
     }
+    loadDashboardCards();
   }
 
   Future<void> initialize() async {
-    setState(() {
-      isRefreshing = true;
-    });
     setGreetings();
     _getLatestMeasurements();
-    getLocationMeasurements();
+    _getLocationMeasurements();
+    loadDashboardCards();
+    getDashboardLocations();
     var preferences = await SharedPreferences.getInstance();
     setState(() {
       tipsProgress = preferences.getDouble(PrefConstant.tipsProgress) ?? 0.0;
@@ -274,31 +275,94 @@ class _DashboardViewState extends State<DashboardView> {
     initialize();
   }
 
+  void loadDashboardCards() {
+    setState(() {
+      dashboardCards
+        ..clear()
+        ..add(
+          Text(
+            getDateTime(),
+            style: TextStyle(
+              color: Colors.black.withOpacity(0.6),
+              fontSize: 12,
+            ),
+          ),
+        )
+        ..add(const Text(
+          'Today’s air quality',
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+          ),
+        ))
+        ..add(
+          const SizedBox(
+            height: 12,
+          ),
+        )
+        ..add(locationCard(0))
+        ..add(const SizedBox(
+          height: 16,
+        ))
+        ..add(tipsSection())
+        ..add(const SizedBox(
+          height: 16,
+        ))
+        ..add(locationCard(1))
+        ..add(const SizedBox(
+          height: 16,
+        ))
+        ..add(locationCard(2))
+        ..add(const SizedBox(
+          height: 16,
+        ))
+        ..add(locationCard(3))
+        ..add(const SizedBox(
+          height: 12,
+        ));
+    });
+  }
+
+  Widget locationCard(position) {
+    if (dashBoardPlaces.isNotEmpty) {
+      try {
+        return AnalyticsCard(dashBoardPlaces[position], isRefreshing);
+      } catch (e) {
+        return Visibility(
+            visible: dashBoardPlaces.isEmpty,
+            child: loadingAnimation(255.0, 16.0));
+      }
+    }
+    return Visibility(
+        visible: dashBoardPlaces.isEmpty, child: loadingAnimation(255.0, 16.0));
+  }
+
   void setGreetings() {
     setState(() {
       greetings = getGreetings(_customAuth.getDisplayName());
     });
   }
 
-  List<Widget> showFavourites(List<Measurement> favouritePlaces) {
+  List<Widget> showFavourites(List<PlaceDetails> favouritePlaces) {
     var widgets = <Widget>[];
 
-    try {
-      if (favouritePlaces.length == 1) {
-        widgets.add(favPlaceAvatar(0, favouritePlaces[0]));
-      } else if (favouritePlaces.length == 2) {
-        widgets
-          ..add(favPlaceAvatar(0, favouritePlaces[0]))
-          ..add(favPlaceAvatar(7, favouritePlaces[1]));
-      } else if (favouritePlaces.length >= 3) {
-        widgets
-          ..add(favPlaceAvatar(0, favouritePlaces[0]))
-          ..add(favPlaceAvatar(7, favouritePlaces[1]))
-          ..add(favPlaceAvatar(14, favouritePlaces[2]));
-      } else {}
-    } catch (e) {
-      debugPrint(e.toString());
-    }
+    // try {
+    //   if (favouritePlaces.length == 1) {
+    //     widgets.add(favPlaceAvatar(0, favouritePlaces[0]));
+    //   } else if (favouritePlaces.length == 2) {
+    //     widgets
+    //       ..add(favPlaceAvatar(0, favouritePlaces[0]))
+    //       ..add(favPlaceAvatar(7, favouritePlaces[1]));
+    //   } else if (favouritePlaces.length >= 3) {
+    //     widgets
+    //       ..add(favPlaceAvatar(0, favouritePlaces[0]))
+    //       ..add(favPlaceAvatar(7, favouritePlaces[1]))
+    //       ..add(favPlaceAvatar(14, favouritePlaces[2]));
+    //   } else {}
+    // } catch (e) {
+    //   debugPrint(e.toString());
+    // }
 
     return widgets;
   }
@@ -482,9 +546,9 @@ class _DashboardViewState extends State<DashboardView> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Consumer<MeasurementModel>(
-                  builder: (context, measurementModel, child) {
-                    if (measurementModel.favouritePlaces.isEmpty) {
+                Consumer<PlaceDetailsModel>(
+                  builder: (context, placeDetailsModel, child) {
+                    if (placeDetailsModel.favouritePlaces.isEmpty) {
                       return SvgPicture.asset(
                         'assets/icon/add_avator.svg',
                       );
@@ -494,7 +558,7 @@ class _DashboardViewState extends State<DashboardView> {
                       width: 44,
                       child: Stack(
                         children:
-                            showFavourites(measurementModel.favouritePlaces),
+                            showFavourites(placeDetailsModel.favouritePlaces),
                       ),
                     );
                   },
@@ -554,51 +618,30 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   void updateCurrentLocation() async {
-    try {
-      var prefs = await SharedPreferences.getInstance();
-      var dashboardSite = prefs.getString(PrefConstant.dashboardSite) ?? '';
-
-      if (dashboardSite == '') {
-        await LocationService().getCurrentLocationReadings().then((value) => {
-              if (value != null)
-                {
-                  prefs.setStringList(PrefConstant.lastKnownLocation,
-                      [(value.site.getUserLocation()), (value.site.id)]),
-                  if (mounted)
-                    {
-                      setState(() {
-                        measurementData = value;
-                        isRefreshing = false;
-                      }),
-                    }
-                },
-            });
-      }
-    } catch (e) {
-      debugPrint(e.toString());
-    }
-  }
-
-  Future<void> updateLocationMeasurements() async {
-    var prefs = await SharedPreferences.getInstance();
-    var dashboardMeasurement =
-        prefs.getString(PrefConstant.dashboardSite) ?? '';
-    if (dashboardMeasurement != '') {}
-    try {
-      await Settings().dashboardMeasurement().then((value) => {
-            if (value != null)
-              {
-                if (mounted)
-                  {
-                    setState(() {
-                      measurementData = value;
-                    }),
-                  },
-              }
-          });
-    } catch (e) {
-      debugPrint('error getting data $e');
-    }
+    // try {
+    //   var prefs = await SharedPreferences.getInstance();
+    //   var dashboardSite = prefs.getString(PrefConstant.dashboardSite) ?? '';
+    //
+    //   if (dashboardSite == '') {
+    //     await LocationService().getCurrentLocationReadings().then((value) => {
+    //           if (value != null)
+    //             {
+    //               prefs.setStringList(PrefConstant.lastKnownLocation,
+    //                   [(value.site.getUserLocation()), (value.site.id)]),
+    //               if (mounted)
+    //                 {
+    //                   setState(() {
+    //                     measurementData = value;
+    //                     isRefreshing = false;
+    //                     print(measurementData);
+    //                   }),
+    //                 }
+    //             },
+    //         });
+    //   }
+    // } catch (e) {
+    //   debugPrint(e.toString());
+    // }
   }
 
   Widget _dashboardItems() {
@@ -608,55 +651,7 @@ class _DashboardViewState extends State<DashboardView> {
         child: ListView(
           controller: ScrollController(),
           shrinkWrap: true,
-          children: <Widget>[
-            Text(
-              greetings,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(
-              height: 16,
-            ),
-            topTabs(),
-            const SizedBox(
-              height: 25,
-            ),
-            Text(
-              getDateTime(),
-              style: TextStyle(
-                color: Colors.black.withOpacity(0.6),
-                fontSize: 12,
-              ),
-            ),
-            const Text(
-              'Today’s air quality',
-              style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-                fontSize: 24,
-              ),
-            ),
-            const SizedBox(
-              height: 12,
-            ),
-            Visibility(
-                visible: measurementData != null,
-                child: AnalyticsCard(measurementData, isRefreshing)),
-            Visibility(
-                visible: measurementData == null,
-                child: loadingAnimation(255.0, 16.0)),
-            const SizedBox(
-              height: 16,
-            ),
-            // tipWidget(context, 'Actions You Can Take to Reduce Air
-            // Pollution'),
-            // const SizedBox(
-            //   height: 16,
-            // ),
-            tipsSection(),
-            const SizedBox(
-              height: 12,
-            ),
-          ],
+          children: dashboardCards,
         ));
   }
 
@@ -664,5 +659,29 @@ class _DashboardViewState extends State<DashboardView> {
     await AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
           if (value.isNotEmpty) {DBHelper().insertLatestMeasurements(value)}
         });
+  }
+
+  void _getLocationMeasurements() async {
+    // try {
+    //   await Settings().dashboardMeasurement().then((value) => {
+    //         if (value != null)
+    //           {
+    //             if (mounted)
+    //               {
+    //                 setState(() {
+    //                   measurementData = value;
+    //                   isRefreshing = false;
+    //                 }),
+    //                 updateCurrentLocation()
+    //               },
+    //           }
+    //         else
+    //           {
+    //
+    //           }
+    //       });
+    // } catch (e) {
+    //   debugPrint('error getting data : $e');
+    // }
   }
 }

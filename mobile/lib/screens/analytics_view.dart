@@ -1,6 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
-import 'package:app/screens/search_page.dart';
+import 'package:app/models/place_details.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/favourite_place_card.dart';
@@ -31,18 +31,13 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                     child: Container(
                       padding: const EdgeInsets.all(16.0),
                       child: OutlinedButton(
-                        onPressed: () async {
-                          await Navigator.push(context,
-                              MaterialPageRoute(builder: (context) {
-                            return const SearchPage();
-                          }));
-                        },
+                        onPressed: () async {},
                         style: OutlinedButton.styleFrom(
                           shape: const CircleBorder(),
                           padding: const EdgeInsets.all(24),
                         ),
                         child: Text(
-                          'Add',
+                          'No analytics at the moment',
                           style: TextStyle(color: ColorConstants.appColor),
                         ),
                       ),
@@ -54,8 +49,9 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                   color: ColorConstants.appColorBlue,
                   onRefresh: refreshData,
                   child: ListView.builder(
-                    itemBuilder: (context, index) =>
-                        MiniAnalyticsCard(favouritePlaces[index]),
+                    itemBuilder: (context, index) => MiniAnalyticsCard(
+                        PlaceDetails.measurementToPLace(
+                            favouritePlaces[index])),
                     itemCount: favouritePlaces.length,
                   ),
                 );

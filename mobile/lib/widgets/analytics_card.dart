@@ -1,5 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
+import 'package:app/models/place_details.dart';
 import 'package:app/screens/insights_page.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/date.dart';
@@ -10,13 +11,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 
+import 'custom_shimmer.dart';
 import 'custom_widgets.dart';
 
 class AnalyticsCard extends StatefulWidget {
-  final Measurement measurement;
+  final PlaceDetails placeDetails;
   final isRefreshing;
 
-  const AnalyticsCard(this.measurement, this.isRefreshing, {Key? key})
+  const AnalyticsCard(this.placeDetails, this.isRefreshing, {Key? key})
       : super(key: key);
 
   @override
@@ -35,10 +37,16 @@ class MapAnalyticsCard extends StatefulWidget {
 }
 
 class _AnalyticsCardState extends State<AnalyticsCard> {
+  Measurement? measurement;
+
   _AnalyticsCardState();
 
   @override
   Widget build(BuildContext context) {
+    if (measurement == null) {
+      return loadingAnimation(255.0, 16.0);
+    }
+
     return Container(
         padding: const EdgeInsets.only(top: 12, bottom: 12),
         decoration: BoxDecoration(
@@ -49,7 +57,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
           children: [
             GestureDetector(
               onTap: () {
-                pmInfoDialog(context, widget.measurement);
+                pmInfoDialog(context, measurement!);
               },
               child: Container(
                 padding: const EdgeInsets.only(right: 12),
@@ -71,7 +79,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
             GestureDetector(
               onTap: () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) {
-                  return InsightsPage(widget.measurement.site);
+                  return InsightsPage(widget.placeDetails);
                 }));
               },
               child: Container(
@@ -81,21 +89,21 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                     // Details section
                     Row(
                       children: [
-                        analyticsAvatar(widget.measurement, 104, 40, 12),
+                        analyticsAvatar(measurement!, 104, 40, 12),
                         const SizedBox(width: 16.0),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                widget.measurement.site.getName(),
+                                widget.placeDetails.name,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
                                     fontWeight: FontWeight.bold, fontSize: 20),
                               ),
                               Text(
-                                widget.measurement.site.getLocation(),
+                                widget.placeDetails.location,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
@@ -112,20 +120,19 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                     borderRadius: const BorderRadius.all(
                                         Radius.circular(40.0)),
                                     color: pm2_5ToColor(
-                                            widget.measurement.getPm2_5Value())
+                                            measurement!.getPm2_5Value())
                                         .withOpacity(0.4),
                                     border:
                                         Border.all(color: Colors.transparent)),
                                 child: Text(
-                                  pm2_5ToString(
-                                      widget.measurement.getPm2_5Value()),
+                                  pm2_5ToString(measurement!.getPm2_5Value()),
                                   maxLines: 1,
                                   textAlign: TextAlign.center,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: pm2_5TextColor(
-                                        widget.measurement.getPm2_5Value()),
+                                        measurement!.getPm2_5Value()),
                                   ),
                                 ),
                               ),
@@ -142,8 +149,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                                   .width /
                                               3.2),
                                       child: Text(
-                                        dateToString(
-                                            widget.measurement.time, true),
+                                        dateToString(measurement!.time, true),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
@@ -154,19 +160,19 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                   const SizedBox(
                                     width: 8.0,
                                   ),
+                                  // Visibility(
+                                  //   visible: widget.isRefreshing,
+                                  //   child: SizedBox(
+                                  //     height: 8.0,
+                                  //     width: 8.0,
+                                  //     child: CircularProgressIndicator(
+                                  //       strokeWidth: 1.2,
+                                  //       color: ColorConstants.appColorBlue,
+                                  //     ),
+                                  //   ),
+                                  // ),
                                   Visibility(
                                     visible: widget.isRefreshing,
-                                    child: SizedBox(
-                                      height: 8.0,
-                                      width: 8.0,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 1.2,
-                                        color: ColorConstants.appColorBlue,
-                                      ),
-                                    ),
-                                  ),
-                                  Visibility(
-                                    visible: !widget.isRefreshing,
                                     child: SvgPicture.asset(
                                       'assets/icon/loader.svg',
                                       semanticsLabel: 'loader',
@@ -226,7 +232,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
               children: [
                 GestureDetector(
                   onTap: () {
-                    shareMeasurement(widget.measurement);
+                    shareMeasurement(measurement!);
                   },
                   child: iconTextButton(
                       SvgPicture.asset(
@@ -238,14 +244,14 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                 ),
                 GestureDetector(
                   onTap: () async {
-                    await DBHelper().updateFavouritePlaces(
-                        widget.measurement.site, context);
+                    await DBHelper()
+                        .updateFavouritePlaces(widget.placeDetails, context);
                   },
-                  child: iconTextButton(Consumer<MeasurementModel>(
-                    builder: (context, measurementModel, child) {
-                      if (Measurement.isFavouritePlace(
-                          measurementModel.favouritePlaces,
-                          widget.measurement)) {
+                  child: iconTextButton(Consumer<PlaceDetailsModel>(
+                    builder: (context, placeDetailsModel, child) {
+                      if (PlaceDetails.isFavouritePlace(
+                          placeDetailsModel.favouritePlaces,
+                          widget.placeDetails)) {
                         return SvgPicture.asset(
                           'assets/icon/heart.svg',
                           semanticsLabel: 'Favorite',
@@ -269,6 +275,23 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
             ),
           ],
         ));
+  }
+
+  void getMeasurement() {
+    DBHelper().getMeasurement(widget.placeDetails.siteId).then((value) => {
+          if (value != null)
+            {
+              setState(() {
+                measurement = value;
+              })
+            }
+        });
+  }
+
+  @override
+  void initState() {
+    getMeasurement();
+    super.initState();
   }
 }
 
@@ -308,7 +331,8 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
             GestureDetector(
               onTap: () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) {
-                  return InsightsPage(widget.measurement.site);
+                  return InsightsPage(
+                      PlaceDetails.measurementToPLace(widget.measurement));
                 }));
               },
               child: Container(
@@ -462,13 +486,15 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                 GestureDetector(
                   onTap: () {
                     DBHelper().updateFavouritePlaces(
-                        widget.measurement.site, context);
+                        PlaceDetails.measurementToPLace(widget.measurement),
+                        context);
                   },
-                  child: iconTextButton(Consumer<MeasurementModel>(
-                    builder: (context, measurementModel, child) {
-                      if (Measurement.isFavouritePlace(
-                          measurementModel.favouritePlaces,
-                          widget.measurement)) {
+                  child: iconTextButton(Consumer<PlaceDetailsModel>(
+                    builder: (context, placeDetailModel, child) {
+                      if (PlaceDetails.isFavouritePlace(
+                          placeDetailModel.favouritePlaces,
+                          PlaceDetails.measurementToPLace(
+                              widget.measurement))) {
                         return SvgPicture.asset(
                           'assets/icon/heart.svg',
                           semanticsLabel: 'Favorite',

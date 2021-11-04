@@ -1,4 +1,4 @@
-import 'package:app/models/measurement.dart';
+import 'package:app/models/place_details.dart';
 import 'package:app/on_boarding/welcome_screen.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/fb_notifications.dart';
@@ -7,6 +7,7 @@ import 'package:app/services/rest_api.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -34,6 +35,7 @@ class SplashScreenState extends State<SplashScreen> {
   void initialize() {
     _getLatestMeasurements();
     _getFavPlaces();
+    SearchApi(const Uuid().v4()).fetchSuggestions('kampala');
     Future.delayed(const Duration(seconds: 2), () async {
       _updateWidget();
     });
@@ -107,7 +109,7 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   void _getFavPlaces() {
-    Provider.of<MeasurementModel>(context, listen: false)
+    Provider.of<PlaceDetailsModel>(context, listen: false)
         .reloadFavouritePlaces();
   }
 

@@ -1,7 +1,4 @@
-import 'dart:collection';
-
 import 'package:app/models/site.dart';
-import 'package:app/services/local_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -102,16 +99,6 @@ class Measurement {
   static String dropTableStmt() =>
       'DROP TABLE IF EXISTS ${latestMeasurementsDb()}';
 
-  static bool isFavouritePlace(
-      List<Measurement> favouritePlaces, Measurement subject) {
-    for (var measurement in favouritePlaces) {
-      if (measurement.site.id == subject.site.id) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   static String latestMeasurementsDb() => 'latest_measurements';
 
   static Map<String, dynamic> mapFromDb(Map<String, dynamic> json) {
@@ -158,7 +145,7 @@ class Measurement {
           measurements.add(measurement);
         }
       } catch (e) {
-        print(e);
+        debugPrint(e.toString());
       }
     }
     return measurements.first;
@@ -176,40 +163,15 @@ class Measurement {
           measurements.add(measurement);
         }
       } catch (e) {
-        print(e);
+        debugPrint(e.toString());
       }
     }
-
     measurements.sort((siteA, siteB) => siteA.site
         .getName()
         .toLowerCase()
         .compareTo(siteB.site.getName().toLowerCase()));
 
     return measurements;
-  }
-}
-
-class MeasurementModel extends ChangeNotifier {
-  final List<Measurement> _favouritePlaces = [];
-
-  UnmodifiableListView<Measurement> get favouritePlaces =>
-      UnmodifiableListView(_favouritePlaces);
-
-  bool isFavouritePlace(Measurement subject) {
-    for (var measurement in _favouritePlaces) {
-      if (measurement.site.id == subject.site.id) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  Future<void> reloadFavouritePlaces() async {
-    _favouritePlaces.clear();
-
-    await DBHelper()
-        .getFavouritePlaces()
-        .then((value) => {_favouritePlaces.addAll(value), notifyListeners()});
   }
 }
 

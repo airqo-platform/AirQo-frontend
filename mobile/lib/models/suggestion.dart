@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'suggestion.g.dart';
@@ -7,19 +8,15 @@ class Suggestion {
   @JsonKey(name: 'place_id', required: true)
   final String placeId;
 
-  final String description;
+  @JsonKey(name: 'structured_formatting')
+  final SuggestionDetails suggestionDetails;
 
-  Suggestion({required this.placeId, required this.description});
+  Suggestion(this.placeId, this.suggestionDetails);
 
   factory Suggestion.fromJson(Map<String, dynamic> json) =>
       _$SuggestionFromJson(json);
 
   Map<String, dynamic> toJson() => _$SuggestionToJson(this);
-
-  @override
-  String toString() {
-    return '$description';
-  }
 
   static String createTableStmt() => 'CREATE TABLE IF NOT EXISTS ${dbName()}('
       '${dbPlaceId()} TEXT PRIMARY KEY, '
@@ -42,9 +39,25 @@ class Suggestion {
         var measurement = Suggestion.fromJson(jsonElement);
         suggestions.add(measurement);
       } catch (e) {
-        print(e);
+        debugPrint(e.toString());
       }
     }
     return suggestions;
   }
+}
+
+@JsonSerializable()
+class SuggestionDetails {
+  @JsonKey(name: 'main_text', required: true)
+  final String mainText;
+
+  @JsonKey(name: 'secondary_text', required: true)
+  final String secondaryText;
+
+  SuggestionDetails(this.mainText, this.secondaryText);
+
+  factory SuggestionDetails.fromJson(Map<String, dynamic> json) =>
+      _$SuggestionDetailsFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SuggestionDetailsToJson(this);
 }

@@ -104,7 +104,7 @@ class _MonthlyViewState extends State<MonthlyView>
   void getMeasurements() async {
     for (var dateIndex = 0; dateIndex < placeHolders.length; dateIndex++) {
       await AirqoApiClient(context)
-          .fetchSiteDayMeasurements(site, getDate(dateIndex))
+          .fetchSiteDayMeasurements(site.id, getDate(dateIndex))
           .then((measurements) => {
                 if (measurements.isEmpty)
                   {

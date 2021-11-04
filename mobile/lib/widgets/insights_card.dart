@@ -1,7 +1,7 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/historical_measurement.dart';
+import 'package:app/models/place_details.dart';
 import 'package:app/models/predict.dart';
-import 'package:app/models/site.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/data_formatter.dart';
 import 'package:app/utils/date.dart';
@@ -15,12 +15,13 @@ import 'custom_shimmer.dart';
 import 'custom_widgets.dart';
 
 class InsightsCard extends StatefulWidget {
-  final Site site;
+  final PlaceDetails placeDetails;
   final bool daily;
   final callBackFn;
   final String pollutant;
 
-  const InsightsCard(this.site, this.callBackFn, this.pollutant, this.daily,
+  const InsightsCard(
+      this.placeDetails, this.callBackFn, this.pollutant, this.daily,
       {Key? key})
       : super(key: key);
 
@@ -71,14 +72,14 @@ class _InsightsCardState extends State<InsightsCard> {
                                   color: Colors.black.withOpacity(0.3)),
                             ),
                             Text(
-                              widget.site.getName(),
+                              widget.placeDetails.name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 16),
                             ),
                             Text(
-                              widget.site.getLocation(),
+                              widget.placeDetails.location,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -187,8 +188,8 @@ class _InsightsCardState extends State<InsightsCard> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      var measurement =
-                          selectedMeasurement.getMeasurement(widget.site);
+                      var measurement = selectedMeasurement
+                          .getMeasurement(widget.placeDetails);
                       pmInfoDialog(context, measurement);
                     },
                     child: SvgPicture.asset(
@@ -296,8 +297,8 @@ class _InsightsCardState extends State<InsightsCard> {
     var predictions = await AirqoApiClient(context).fetchForecast(deviceNumber);
 
     if (predictions.isNotEmpty) {
-      var predictedValues =
-          Predict.getMeasurements(predictions, widget.site.id, deviceNumber);
+      var predictedValues = Predict.getMeasurements(
+          predictions, widget.placeDetails.siteId, deviceNumber);
       var combined = value..addAll(predictedValues);
 
       setState(() {
@@ -314,7 +315,8 @@ class _InsightsCardState extends State<InsightsCard> {
 
   Future<void> getMeasurements() async {
     await AirqoApiClient(context)
-        .fetchSiteHistoricalMeasurements(widget.site, widget.daily)
+        .fetchSiteHistoricalMeasurements(
+            widget.placeDetails.siteId, widget.daily)
         .then((value) => {
               if (value.isNotEmpty && mounted)
                 {

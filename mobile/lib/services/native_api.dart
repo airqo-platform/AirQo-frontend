@@ -3,6 +3,7 @@ import 'package:app/models/measurement.dart';
 import 'package:app/models/site.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/distance.dart';
+import 'package:flutter/material.dart';
 import 'package:geocoder/geocoder.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:location/location.dart';
@@ -76,7 +77,8 @@ class LocationService {
         if (nearestMeasurements.isNotEmpty) {
           nearestMeasurement = nearestMeasurements.first;
           for (var measurement in nearestMeasurements) {
-            if (nearestMeasurement.site.distance > measurement.site.distance) {
+            if (nearestMeasurement.placeDetails.distance >
+                measurement.site.distance) {
               nearestMeasurement = measurement;
             }
           }
@@ -133,24 +135,29 @@ class LocationService {
       var nearestSites = <Site>[];
       double distanceInMeters;
 
-      await DBHelper().getSites().then((sites) => {
-            for (var site in sites)
-              {
-                distanceInMeters = metersToKmDouble(Geolocator.distanceBetween(
-                    site.latitude, site.longitude, latitude, longitude)),
-                site.distance = distanceInMeters,
-                nearestSites.add(site),
-              },
-            nearestSite = nearestSites.first,
-            for (var site in nearestSites)
-              {
-                if (nearestSite.distance > site.distance) {nearestSite = site}
-              },
-          });
+      var measurements = await DBHelper().getLatestMeasurements();
+
+      for (var measurement in measurements) {
+        distanceInMeters = metersToKmDouble(Geolocator.distanceBetween(
+            measurement.site.latitude,
+            measurement.site.longitude,
+            latitude,
+            longitude));
+        measurement.site.distance = distanceInMeters;
+        nearestSites.add(measurement.site);
+      }
+
+      nearestSite = nearestSites.first;
+
+      for (var site in nearestSites) {
+        if (nearestSite.distance > site.distance) {
+          nearestSite = site;
+        }
+      }
 
       return nearestSite;
     } catch (e) {
-      print('error $e');
+      debugPrint('error $e');
       return null;
     }
   }

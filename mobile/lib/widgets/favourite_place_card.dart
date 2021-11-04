@@ -1,24 +1,26 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
-import 'package:app/models/site.dart';
+import 'package:app/models/place_details.dart';
 import 'package:app/screens/insights_page.dart';
 import 'package:app/services/local_storage.dart';
+import 'package:app/widgets/custom_shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
 
 import 'custom_widgets.dart';
 
 class MiniAnalyticsCard extends StatefulWidget {
-  final Measurement measurement;
+  final PlaceDetails placeDetails;
 
-  const MiniAnalyticsCard(this.measurement, {Key? key}) : super(key: key);
+  const MiniAnalyticsCard(this.placeDetails, {Key? key}) : super(key: key);
 
   @override
   _MiniAnalyticsCard createState() => _MiniAnalyticsCard();
 }
 
 class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
-  bool isFav = false;
+  Measurement? measurement;
 
   _MiniAnalyticsCard();
 
@@ -40,7 +42,9 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                 padding: const EdgeInsets.only(left: 32, right: 32),
                 child: Row(
                   children: [
-                    analyticsAvatar(widget.measurement, 40, 15, 5),
+                    if (measurement != null)
+                      analyticsAvatar(measurement!, 40, 15, 5),
+                    if (measurement == null) circularLoadingAnimation(40),
                     const SizedBox(
                       width: 12,
                     ),
@@ -50,14 +54,14 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           Text(
-                            widget.measurement.site.getName(),
+                            widget.placeDetails.name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                           Text(
-                            widget.measurement.site.getLocation(),
+                            widget.placeDetails.location,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -70,17 +74,27 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                     const SizedBox(
                       width: 12,
                     ),
-                    GestureDetector(
-                      onTap: () {
-                        DBHelper().updateFavouritePlaces(
-                            widget.measurement.site, context);
+                    Consumer<PlaceDetailsModel>(
+                      builder: (context, placeDetailsModel, child) {
+                        return GestureDetector(
+                          onTap: () async {
+                            await DBHelper().updateFavouritePlaces(
+                                widget.placeDetails, context);
+                          },
+                          child: iconTextButton(
+                              SvgPicture.asset(
+                                PlaceDetails.isFavouritePlace(
+                                        placeDetailsModel.favouritePlaces,
+                                        widget.placeDetails)
+                                    ? 'assets/icon/heart.svg'
+                                    : 'assets/icon/heart_dislike.svg',
+                                semanticsLabel: 'Favorite',
+                                height: 16.67,
+                                width: 16.67,
+                              ),
+                              'Favorite'),
+                        );
                       },
-                      child: Visibility(
-                        visible: isFav,
-                        child: SvgPicture.asset(
-                          'assets/icon/heart.svg',
-                        ),
-                      ),
                     )
                   ],
                 ),
@@ -95,7 +109,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
               GestureDetector(
                 onTap: () {
                   Navigator.push(context, MaterialPageRoute(builder: (context) {
-                    return InsightsPage(widget.measurement.site);
+                    return InsightsPage(widget.placeDetails);
                   }));
                 },
                 child: Container(
@@ -149,13 +163,20 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
     );
   }
 
+  void getMeasurement() {
+    DBHelper().getMeasurement(widget.placeDetails.siteId).then((value) => {
+          if (value != null)
+            {
+              setState(() {
+                measurement = value;
+              })
+            }
+        });
+  }
+
   @override
   void initState() {
-    widget.measurement.site.isFav().then((value) => {
-          setState(() {
-            isFav = value;
-          })
-        });
+    getMeasurement();
     super.initState();
   }
 }

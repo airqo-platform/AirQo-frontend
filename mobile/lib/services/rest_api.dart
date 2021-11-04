@@ -133,7 +133,7 @@ class AirqoApiClient {
   }
 
   Future<List<HistoricalMeasurement>> fetchSiteDayMeasurements(
-      Site site, DateTime dateTime) async {
+      String siteId, DateTime dateTime) async {
     try {
       var nowUtc = dateTime.toUtc();
       var date = DateFormat('yyyy-MM-dd').format(nowUtc);
@@ -141,7 +141,7 @@ class AirqoApiClient {
       var endTime = '${date}T11:59:00Z';
 
       var queryParams = <String, dynamic>{}
-        ..putIfAbsent('site_id', () => site.id)
+        ..putIfAbsent('site_id', () => siteId)
         ..putIfAbsent('startTime', () => startTime)
         ..putIfAbsent('endTime', () => endTime)
         ..putIfAbsent('frequency', () => 'hourly')
@@ -169,7 +169,7 @@ class AirqoApiClient {
   }
 
   Future<List<HistoricalMeasurement>> fetchSiteHistoricalMeasurements(
-      Site site, bool daily) async {
+      String siteId, bool daily) async {
     try {
       var nowUtc = DateTime.now().toUtc();
 
@@ -190,7 +190,7 @@ class AirqoApiClient {
       var startTime = '${date}T$time:00:00Z';
 
       var queryParams = <String, dynamic>{}
-        ..putIfAbsent('site_id', () => site.id)
+        ..putIfAbsent('site_id', () => siteId)
         ..putIfAbsent('startTime', () => startTime)
         ..putIfAbsent('frequency', () => frequency)
         ..putIfAbsent('metadata', () => 'site_id')

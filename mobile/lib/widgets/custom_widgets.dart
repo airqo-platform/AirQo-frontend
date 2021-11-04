@@ -1,6 +1,7 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/historical_measurement.dart';
 import 'package:app/models/measurement.dart';
+import 'package:app/models/suggestion.dart';
 import 'package:app/screens/air_pollution_ways_page.dart';
 import 'package:app/utils/pm.dart';
 import 'package:flutter/material.dart';
@@ -397,6 +398,46 @@ Widget searchLocationTile(Measurement measurement) {
       ),
       leading: analyticsAvatar(measurement, 40, 15, 5),
     ),
+  );
+}
+
+Widget searchPlaceTile(Suggestion searchSuggestion) {
+  return Container(
+    padding: const EdgeInsets.only(left: 16.0, right: 30.0),
+    decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+        border: Border.all(color: Colors.transparent)),
+    child: ListTile(
+        contentPadding: const EdgeInsets.only(left: 0.0),
+        title: Text(
+          searchSuggestion.suggestionDetails.mainText,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        subtitle: Text(
+          searchSuggestion.suggestionDetails.secondaryText,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(color: Colors.black.withOpacity(0.3), fontSize: 14),
+        ),
+        trailing: SvgPicture.asset(
+          'assets/icon/more_arrow.svg',
+          semanticsLabel: 'more',
+          height: 6.99,
+          width: 4,
+        ),
+        leading: Container(
+            height: 40,
+            width: 40,
+            decoration: BoxDecoration(
+                color: ColorConstants.appColorBlue.withOpacity(0.15),
+                shape: BoxShape.circle),
+            child: Center(
+              child: SvgPicture.asset('assets/icon/location.svg',
+                  color: ColorConstants.appColorBlue),
+            ))),
   );
 }
 

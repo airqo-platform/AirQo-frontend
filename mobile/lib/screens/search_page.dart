@@ -1,11 +1,15 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
+import 'package:app/models/place_details.dart';
+import 'package:app/models/suggestion.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/native_api.dart';
+import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:uuid/uuid.dart';
 
 import 'insights_page.dart';
 
@@ -19,9 +23,11 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   List<Measurement> nearbySites = [];
   List<Measurement> searchSites = [];
+  List<Suggestion> searchSuggestions = [];
   List<Measurement> allSites = [];
   bool isSearching = false;
   bool hasNearbyLocations = true;
+  SearchApi searchApiClient = SearchApi(const Uuid().v4());
 
   @override
   Widget build(BuildContext context) {
@@ -46,15 +52,19 @@ class _SearchPageState extends State<SearchPage> {
             const SizedBox(
               height: 32,
             ),
-            if (!isSearching && hasNearbyLocations && nearbySites.isNotEmpty)
-              Text(
+            Visibility(
+              visible:
+                  !isSearching && hasNearbyLocations && nearbySites.isNotEmpty,
+              child: Text(
                 'Locations near me',
                 textAlign: TextAlign.start,
                 style: TextStyle(
                     color: ColorConstants.inactiveColor, fontSize: 12),
               ),
-            if (isSearching)
-              Expanded(
+            ),
+            Visibility(
+              visible: isSearching,
+              child: Expanded(
                 child: MediaQuery.removePadding(
                     context: context,
                     removeTop: true,
@@ -65,8 +75,10 @@ class _SearchPageState extends State<SearchPage> {
                       ],
                     )),
               ),
-            if (!isSearching && hasNearbyLocations)
-              Expanded(
+            ),
+            Visibility(
+              visible: !isSearching && hasNearbyLocations,
+              child: Expanded(
                 child: MediaQuery.removePadding(
                     context: context,
                     removeTop: true,
@@ -78,8 +90,10 @@ class _SearchPageState extends State<SearchPage> {
                       ],
                     )),
               ),
-            if (!isSearching && !hasNearbyLocations)
-              Expanded(
+            ),
+            Visibility(
+              visible: !isSearching && !hasNearbyLocations,
+              child: Expanded(
                 child: ListView(
                   shrinkWrap: true,
                   children: [
@@ -87,6 +101,7 @@ class _SearchPageState extends State<SearchPage> {
                   ],
                 ),
               ),
+            ),
           ],
         ),
       ),
@@ -144,213 +159,208 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   void initState() {
-    super.initState();
     getSites();
     getUserLocation();
+    super.initState();
   }
 
   Widget nearByLocations() {
-    return Container(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(
-            height: 8.0,
-          ),
-          Container(
-              padding: const EdgeInsets.only(bottom: 8),
-              decoration: BoxDecoration(
-                  color: ColorConstants.appBodyColor,
-                  shape: BoxShape.rectangle,
-                  borderRadius: const BorderRadius.all(Radius.circular(10.0))),
-              child: MediaQuery.removePadding(
-                  context: context,
-                  removeTop: true,
-                  child: ListView.builder(
-                    controller: ScrollController(),
-                    shrinkWrap: true,
-                    itemBuilder: (context, index) => GestureDetector(
-                        onTap: () {
-                          Navigator.push(context,
-                              MaterialPageRoute(builder: (context) {
-                            return InsightsPage(nearbySites[index].site);
-                          }));
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: searchLocationTile(nearbySites[index]),
-                        )),
-                    itemCount: nearbySites.length,
-                    // separatorBuilder: (BuildContext context, int index) {
-                    //   return Divider(
-                    //     indent: 20,
-                    //     endIndent: 20,
-                    //     color: ColorConstants.appColor,
-                    //   );
-                    // }
-                  ))),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(
+          height: 8.0,
+        ),
+        Container(
+            padding: const EdgeInsets.only(bottom: 8),
+            decoration: BoxDecoration(
+                color: ColorConstants.appBodyColor,
+                shape: BoxShape.rectangle,
+                borderRadius: const BorderRadius.all(Radius.circular(10.0))),
+            child: MediaQuery.removePadding(
+                context: context,
+                removeTop: true,
+                child: ListView.builder(
+                  controller: ScrollController(),
+                  shrinkWrap: true,
+                  itemBuilder: (context, index) => GestureDetector(
+                      onTap: () {
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (context) {
+                          return InsightsPage(PlaceDetails.siteToPLace(
+                              nearbySites[index].site));
+                        }));
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: searchLocationTile(nearbySites[index]),
+                      )),
+                  itemCount: nearbySites.length,
+                  // separatorBuilder: (BuildContext context, int index) {
+                  //   return Divider(
+                  //     indent: 20,
+                  //     endIndent: 20,
+                  //     color: ColorConstants.appColor,
+                  //   );
+                  // }
+                ))),
+      ],
     );
   }
 
   Widget noNearbyLocations() {
-    return Container(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(40.0),
-            decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.rectangle,
-                borderRadius: BorderRadius.all(Radius.circular(10.0))),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(
-                  height: 84,
-                ),
-                Stack(
-                  children: [
-                    Image.asset(
-                      'assets/images/world-map.png',
-                      height: 130,
-                      width: 130,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(40.0),
+          decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.rectangle,
+              borderRadius: BorderRadius.all(Radius.circular(10.0))),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(
+                height: 84,
+              ),
+              Stack(
+                children: [
+                  Image.asset(
+                    'assets/images/world-map.png',
+                    height: 130,
+                    width: 130,
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: ColorConstants.appColorBlue,
+                      shape: BoxShape.circle,
                     ),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: ColorConstants.appColorBlue,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Padding(
-                        padding: EdgeInsets.all(12.0),
-                        child: Icon(
-                          Icons.map_outlined,
-                          size: 30,
-                          color: Colors.white,
-                        ),
+                    child: const Padding(
+                      padding: EdgeInsets.all(12.0),
+                      child: Icon(
+                        Icons.map_outlined,
+                        size: 30,
+                        color: Colors.white,
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(
-                  height: 52,
-                ),
-                const Text(
-                  'You don\'t have nearby air quality stations',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(
-                  height: 40,
-                ),
-              ],
-            ),
-          )
-        ],
-      ),
+                  ),
+                ],
+              ),
+              const SizedBox(
+                height: 52,
+              ),
+              const Text(
+                'You don\'t have nearby air quality stations',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(
+                height: 40,
+              ),
+            ],
+          ),
+        )
+      ],
     );
   }
 
   Widget requestLocationAccess() {
-    return Container(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(40.0),
-            decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.rectangle,
-                borderRadius: BorderRadius.all(Radius.circular(10.0))),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(
-                  height: 84,
-                ),
-                Stack(
-                  children: [
-                    Image.asset(
-                      'assets/images/world-map.png',
-                      height: 130,
-                      width: 130,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(40.0),
+          decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.rectangle,
+              borderRadius: BorderRadius.all(Radius.circular(10.0))),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(
+                height: 84,
+              ),
+              Stack(
+                children: [
+                  Image.asset(
+                    'assets/images/world-map.png',
+                    height: 130,
+                    width: 130,
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: ColorConstants.appColorBlue,
+                      shape: BoxShape.circle,
                     ),
-                    Container(
-                      decoration: BoxDecoration(
+                    child: const Padding(
+                      padding: EdgeInsets.all(12.0),
+                      child: Icon(
+                        Icons.map_outlined,
+                        size: 30,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(
+                height: 52,
+              ),
+              const Text(
+                'Enable locations',
+                textAlign: TextAlign.start,
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(
+                height: 8,
+              ),
+              const Text(
+                'Allow AirQo to show you location air '
+                'quality update near you.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12),
+              ),
+              const SizedBox(
+                height: 24,
+              ),
+              GestureDetector(
+                onTap: () {
+                  LocationService()
+                      .requestLocationAccess()
+                      .then((value) => {getUserLocation()});
+                },
+                child: Container(
+                    constraints:
+                        const BoxConstraints(minWidth: double.infinity),
+                    decoration: BoxDecoration(
                         color: ColorConstants.appColorBlue,
-                        shape: BoxShape.circle,
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(10.0))),
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 19, bottom: 19),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Allow location',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white,
+                            ),
+                          )
+                        ],
                       ),
-                      child: const Padding(
-                        padding: EdgeInsets.all(12.0),
-                        child: Icon(
-                          Icons.map_outlined,
-                          size: 30,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(
-                  height: 52,
-                ),
-                const Text(
-                  'Enable locations',
-                  textAlign: TextAlign.start,
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(
-                  height: 8,
-                ),
-                const Text(
-                  'Allow AirQo to show you location air '
-                  'quality update near you.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 12),
-                ),
-                const SizedBox(
-                  height: 24,
-                ),
-                GestureDetector(
-                  onTap: () {
-                    LocationService()
-                        .requestLocationAccess()
-                        .then((value) => {getUserLocation()});
-                  },
-                  child: Container(
-                      constraints:
-                          const BoxConstraints(minWidth: double.infinity),
-                      decoration: BoxDecoration(
-                          color: ColorConstants.appColorBlue,
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(10.0))),
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 19, bottom: 19),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text(
-                              'Allow location',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Colors.white,
-                              ),
-                            )
-                          ],
-                        ),
-                      )),
-                ),
-                const SizedBox(
-                  height: 40,
-                ),
-              ],
-            ),
-          )
-        ],
-      ),
+                    )),
+              ),
+              const SizedBox(
+                height: 40,
+              ),
+            ],
+          ),
+        )
+      ],
     );
   }
 
@@ -362,6 +372,15 @@ class _SearchPageState extends State<SearchPage> {
     } else {
       setState(() {
         isSearching = true;
+      });
+
+      searchApiClient.fetchSuggestions(text).then((value) => {
+            setState(() {
+              searchSuggestions = value;
+            })
+          });
+
+      setState(() {
         searchSites = LocationService().textSearchNearestSites(text, allSites);
       });
     }
@@ -411,92 +430,129 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Widget searchLocations() {
-    return Container(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-              padding: const EdgeInsets.only(bottom: 8),
-              // decoration: const BoxDecoration(
-              //     color: Colors.white,
-              //     shape: BoxShape.rectangle,
-              //     borderRadius: BorderRadius.all(Radius.circular(10.0))
-              // ),
-              child: searchSites.isEmpty
-                  ? Center(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const SizedBox(
-                            height: 84,
-                          ),
-                          Stack(
-                            children: [
-                              Image.asset(
-                                'assets/images/world-map.png',
-                                height: 130,
-                                width: 130,
-                              ),
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: ColorConstants.appColorBlue,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Padding(
-                                  padding: EdgeInsets.all(12.0),
-                                  child: Icon(
-                                    Icons.map_outlined,
-                                    size: 30,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(
-                            height: 52,
-                          ),
-                          const Text(
-                            'Not found',
-                            textAlign: TextAlign.start,
-                            style: TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(
-                            height: 52,
-                          ),
-                        ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Visibility(
+            visible: searchSites.isEmpty && searchSuggestions.isEmpty,
+            child: Center(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(
+                    height: 84,
+                  ),
+                  Stack(
+                    children: [
+                      Image.asset(
+                        'assets/images/world-map.png',
+                        height: 130,
+                        width: 130,
                       ),
-                    )
-                  : MediaQuery.removePadding(
-                      context: context,
-                      removeTop: true,
-                      child: ListView.builder(
-                        controller: ScrollController(),
-                        shrinkWrap: true,
-                        itemBuilder: (context, index) => GestureDetector(
-                            onTap: () {
-                              Navigator.push(context,
-                                  MaterialPageRoute(builder: (context) {
-                                return InsightsPage(searchSites[index].site);
-                              }));
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: searchLocationTile(searchSites[index]),
-                            )),
-                        itemCount: searchSites.length,
-                        // separatorBuilder: (BuildContext context, int index) {
-                        //   return Divider(
-                        //     indent: 20,
-                        //     endIndent: 20,
-                        //     color: ColorConstants.appColor,
-                        //   );
-                        // }
-                      ))),
-        ],
-      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: ColorConstants.appColorBlue,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.all(12.0),
+                          child: Icon(
+                            Icons.map_outlined,
+                            size: 30,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 52,
+                  ),
+                  const Text(
+                    'Not found',
+                    textAlign: TextAlign.start,
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(
+                    height: 52,
+                  ),
+                ],
+              ),
+            )),
+        Visibility(
+            visible: searchSites.isNotEmpty && searchSuggestions.isEmpty,
+            child: Center(
+              child: MediaQuery.removePadding(
+                  context: context,
+                  removeTop: true,
+                  child: ListView.builder(
+                    controller: ScrollController(),
+                    shrinkWrap: true,
+                    itemBuilder: (context, index) => GestureDetector(
+                        onTap: () {
+                          Navigator.push(context,
+                              MaterialPageRoute(builder: (context) {
+                            return InsightsPage(PlaceDetails.siteToPLace(
+                                searchSites[index].site));
+                          }));
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: searchLocationTile(searchSites[index]),
+                        )),
+                    itemCount: searchSites.length,
+                  )),
+            )),
+        Visibility(
+            visible: searchSuggestions.isNotEmpty,
+            child: Center(
+              child: MediaQuery.removePadding(
+                  context: context,
+                  removeTop: true,
+                  child: ListView.builder(
+                    controller: ScrollController(),
+                    shrinkWrap: true,
+                    itemBuilder: (context, index) => GestureDetector(
+                        onTap: () {
+                          showPlaceDetails(searchSuggestions[index]);
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: searchPlaceTile(searchSuggestions[index]),
+                        )),
+                    itemCount: searchSuggestions.length,
+                  )),
+            )),
+        const SizedBox(
+          height: 8,
+        ),
+      ],
     );
+  }
+
+  Future<void> showPlaceDetails(Suggestion suggestion) async {
+    var place = await searchApiClient.getPlaceDetails(suggestion.placeId);
+    var nearestSite = await LocationService().getNearestSite(
+        place.geometry.location.lat, place.geometry.location.lng);
+
+    if (nearestSite == null) {
+      await showSnackBar(
+          context,
+          'Sorry, we dont have information for '
+          '${suggestion.suggestionDetails.mainText}');
+      return;
+    }
+
+    var placeDetails = PlaceDetails(
+        suggestion.suggestionDetails.mainText,
+        suggestion.suggestionDetails.secondaryText,
+        nearestSite.id,
+        place.geometry.location.lat,
+        place.geometry.location.lng);
+
+    await Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return InsightsPage(placeDetails);
+    }));
   }
 }

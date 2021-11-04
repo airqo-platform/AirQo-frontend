@@ -1,6 +1,7 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/air_quality_tip.dart';
 import 'package:app/models/measurement.dart';
+import 'package:app/models/place_details.dart';
 import 'package:app/models/site.dart';
 import 'package:app/utils/pm.dart';
 import 'package:flutter/material.dart';
@@ -57,13 +58,13 @@ void shareApp() {
       subject: '${AppConfig.name} app!');
 }
 
-void shareLocation(Site site) {
+void shareLocation(PlaceDetails placeDetails) {
   Share.share(
       'Checkout the Air Quality of '
-      '${site.getName()}\n'
+      '${placeDetails.name}\n'
       ' ${Links.websiteUrl}\n\n'
       'Source: AiQo App',
-      subject: '${AppConfig.name}, ${site.getName()}!');
+      subject: '${AppConfig.name}, ${placeDetails.name}!');
 }
 
 void shareMeasurement(Measurement measurement) {

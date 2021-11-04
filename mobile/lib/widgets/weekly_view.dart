@@ -160,7 +160,7 @@ class _WeeklyViewState extends State<WeeklyView> with TickerProviderStateMixin {
 
   void getMeasurements(int today) async {
     await AirqoApiClient(context)
-        .fetchSiteDayMeasurements(site, getDate(today))
+        .fetchSiteDayMeasurements(site.id, getDate(today))
         .then((measurements) => {
               if (measurements.isEmpty && mounted)
                 {
@@ -179,7 +179,7 @@ class _WeeklyViewState extends State<WeeklyView> with TickerProviderStateMixin {
             });
     for (var dateIndex = 0; dateIndex <= 6; dateIndex++) {
       var measurements = await AirqoApiClient(context)
-          .fetchSiteDayMeasurements(site, getDate(dateIndex));
+          .fetchSiteDayMeasurements(site.id, getDate(dateIndex));
       if (measurements.isEmpty) {
         if (mounted) {
           setState(() {

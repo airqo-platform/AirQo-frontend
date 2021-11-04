@@ -1,17 +1,17 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/site.dart';
+import 'package:app/models/place_details.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/widgets/daily_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class InsightsPage extends StatefulWidget {
-  Site site;
+  PlaceDetails placeDetails;
 
-  InsightsPage(this.site);
+  InsightsPage(this.placeDetails);
 
   @override
-  _InsightsPageState createState() => _InsightsPageState(this.site);
+  _InsightsPageState createState() => _InsightsPageState();
 }
 
 class _InsightsPageState extends State<InsightsPage>
@@ -19,9 +19,7 @@ class _InsightsPageState extends State<InsightsPage>
   var _tabController;
   bool isWeekly = true;
 
-  Site site;
-
-  _InsightsPageState(this.site);
+  _InsightsPageState();
 
   @override
   Widget build(BuildContext context) {
@@ -109,8 +107,8 @@ class _InsightsPageState extends State<InsightsPage>
               controller: _tabController,
               physics: const NeverScrollableScrollPhysics(),
               children: <Widget>[
-                DailyView(site, false),
-                DailyView(site, true),
+                DailyView(widget.placeDetails, false),
+                DailyView(widget.placeDetails, true),
                 // MonthlyView(site),
               ],
             )),
