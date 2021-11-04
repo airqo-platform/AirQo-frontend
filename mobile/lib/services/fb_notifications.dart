@@ -8,6 +8,7 @@ import 'package:app/models/topicData.dart';
 import 'package:app/models/user_details.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -15,6 +16,18 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'local_notifications.dart';
+
+class CloudAnalytics {
+  final FirebaseAnalytics analytics = FirebaseAnalytics();
+
+  CloudAnalytics();
+
+  void sendScreenToAnalytics(String screen) {
+    analytics.setCurrentScreen(
+      screenName: screen,
+    );
+  }
+}
 
 class CloudStore {
   final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;

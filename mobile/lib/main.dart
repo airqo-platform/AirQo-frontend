@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:app/models/notification.dart';
 import 'package:app/providers/LocalProvider.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_analytics/observer.dart';
 import 'package:firebase_core/firebase_core.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -57,8 +59,9 @@ Future<void> main() async {
 
 class AirQoApp extends StatelessWidget {
   final ThemeController themeController;
+  FirebaseAnalytics analytics = FirebaseAnalytics();
 
-  const AirQoApp({Key? key, required this.themeController}) : super(key: key);
+  AirQoApp({Key? key, required this.themeController}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -77,6 +80,9 @@ class AirQoApp extends StatelessWidget {
 
               return MaterialApp(
                 debugShowCheckedModeBanner: false,
+                navigatorObservers: [
+                  FirebaseAnalyticsObserver(analytics: analytics),
+                ],
                 localizationsDelegates: const [
                   CustomLocalizations.delegate,
                   GlobalMaterialLocalizations.delegate,
