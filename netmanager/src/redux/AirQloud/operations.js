@@ -38,3 +38,23 @@ export const setCurrentAirQloudData = (airqloud) => (dispatch) => {
     payload: createAirqloudSiteOptions(airqloud),
   });
 };
+
+export const setDefaultAirQloud = () => async (dispatch) => {
+  if (localStorage[CURRENT_AIRQLOUD_KEY]) {
+    dispatch({
+      type: SET_CURRENT_AIRQLOUD_SUCCESS,
+      payload: JSON.parse(localStorage[CURRENT_AIRQLOUD_KEY]),
+    });
+  } else {
+    const { airqlouds } = await getAirQloudsApi({});
+    if (isEmpty(airqlouds)) return;
+    const current = airqlouds.filter(
+      (airqloud) => airqloud.long_name === "Uganda"
+    );
+    dispatch(setCurrentAirQloudData(current));
+    dispatch({
+      type: LOAD_ALL_AIRQLOUDS_SUCCESS,
+      payload: transformArray(airqlouds, "_id"),
+    });
+  }
+};
