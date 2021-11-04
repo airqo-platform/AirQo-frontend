@@ -1,6 +1,8 @@
 import {
   LOAD_ALL_AIRQLOUDS_SUCCESS,
   LOAD_ALL_AIRQLOUDS_FAILURE,
+  SET_CURRENT_AIRQLOUD_SUCCESS,
+  SET_CURRENT_AIRQLOUD_FAILURE,
 } from "./actions";
 import { isEmpty } from "underscore";
 import { getAirQloudsApi } from "views/apis/deviceRegistry";
@@ -21,4 +23,11 @@ export const loadAirQloudsData = () => async (dispatch) => {
         payload: err,
       });
     });
+};
+
+export const setCurrentAirQloudData = (airqloud) => (dispatch) => {
+  dispatch({
+    type: SET_CURRENT_AIRQLOUD_SUCCESS,
+    payload: airqloud,
+  });
 };
