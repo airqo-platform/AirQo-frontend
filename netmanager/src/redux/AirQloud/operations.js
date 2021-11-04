@@ -1,3 +1,4 @@
+import { CURRENT_AIRQLOUD_KEY } from "config/localStorageKeys";
 import {
   LOAD_ALL_AIRQLOUDS_SUCCESS,
   LOAD_ALL_AIRQLOUDS_FAILURE,
@@ -7,6 +8,11 @@ import {
 import { isEmpty } from "underscore";
 import { getAirQloudsApi } from "views/apis/deviceRegistry";
 import { transformArray } from "../utils";
+import { createSiteOptions } from "utils/sites";
+
+const createAirqloudSiteOptions = (airqloud) => {
+  return { ...airqloud, siteOptions: createSiteOptions(airqloud.sites || []) };
+};
 
 export const loadAirQloudsData = () => async (dispatch) => {
   return await getAirQloudsApi({})
@@ -26,8 +32,9 @@ export const loadAirQloudsData = () => async (dispatch) => {
 };
 
 export const setCurrentAirQloudData = (airqloud) => (dispatch) => {
+  localStorage.setItem(CURRENT_AIRQLOUD_KEY, JSON.stringify(airqloud));
   dispatch({
     type: SET_CURRENT_AIRQLOUD_SUCCESS,
-    payload: airqloud,
+    payload: createAirqloudSiteOptions(airqloud),
   });
 };

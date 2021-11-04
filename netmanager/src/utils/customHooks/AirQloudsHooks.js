@@ -13,19 +13,3 @@ export const useAirQloudsData = () => {
   }, []);
   return airqlouds;
 };
-
-// export const useDashboardSiteOptions = () => {
-//   const sites = useDashboardSites();
-//
-//   const [siteOptions, setSiteOptions] = useState([]);
-//   const [loaded, setLoaded] = useState(false);
-//
-//   useEffect(() => {
-//     if (!isEmpty(sites) && !loaded) {
-//       setLoaded(true);
-//       setSiteOptions(createSiteOptions(sites));
-//     }
-//   }, [sites]);
-//
-//   return siteOptions;
-// };
