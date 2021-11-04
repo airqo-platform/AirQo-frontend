@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 import { useAirQloudsData } from "utils/customHooks/AirQloudsHooks";
 import { useCurrentAirQloudData } from "redux/AirQloud/selectors";
 import { setCurrentAirQloudData } from "redux/AirQloud/operations";
+import {resetDefaultGraphData } from "redux/Dashboard/operations";
 
 // styles
 import "assets/css/dropdown.css";
@@ -19,8 +20,10 @@ const AirQloudDropDown = () => {
     return 0;
   });
 
-  const handleAirQloudChange = (airqloud) => () =>
-    dispatch(setCurrentAirQloudData(airqloud));
+  const handleAirQloudChange = (airqloud) => async () => {
+    await dispatch(setCurrentAirQloudData(airqloud));
+    dispatch(resetDefaultGraphData());
+  };
 
   return (
     <label className="dropdown">

@@ -81,6 +81,14 @@ export const loadUserDefaultGraphData = () => {
   };
 };
 
+export const resetDefaultGraphData = () => (dispatch) => {
+  dispatch({
+    type: LOAD_USER_DEFAULT_GRAPHS_SUCCESS,
+    payload: [],
+  });
+  dispatch(loadUserDefaultGraphData());
+};
+
 export const setUserDefaultGraphData = (filter) => {
   return async (dispatch, getState) => {
     const user = getState().auth.user._id;
