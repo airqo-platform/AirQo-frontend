@@ -24,3 +24,9 @@ export const filterSite = (sites, site_id) => {
   }
   return currentSite[0];
 };
+
+export const flattenSiteOptions = (options) => {
+  const arr = [];
+  options.map((opt) => arr.push(opt.value));
+  return arr;
+};
