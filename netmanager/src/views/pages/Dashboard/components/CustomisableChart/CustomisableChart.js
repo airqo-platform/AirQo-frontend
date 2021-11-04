@@ -40,15 +40,14 @@ import { formatDateString } from "utils/dateTime";
 import { omit } from "underscore";
 import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
 import {
-  useDashboardSiteOptions,
   usePollutantsOptions,
 } from "utils/customHooks";
 import {
   deleteUserChartDefaultsApi,
   updateUserChartDefaultsApi,
 } from "views/apis/authService";
-import { loadUserDefaultGraphData } from "redux/Dashboard/operations";
 import { updateMainAlert } from "redux/MainAlert/operations";
+import { useCurrentAirQloudData } from "redux/AirQloud/selectors";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -129,6 +128,8 @@ const CustomisableChart = (props) => {
   const { className, idSuffix, defaultFilter, ...rest } = props;
   const classes = useStyles();
   const dispatch = useDispatch();
+
+  const airqloud = useCurrentAirQloudData();
 
   const [formState, setFormState] = useState({
     isValid: false,
@@ -228,7 +229,7 @@ const CustomisableChart = (props) => {
     clearTempState();
   };
 
-  const sitesOptions = useDashboardSiteOptions();
+  const sitesOptions = airqloud.siteOptions || [];
 
   const siteFilter = (selectedSites) => (site) => {
     return selectedSites.includes(site.value);
@@ -451,6 +452,7 @@ const CustomisableChart = (props) => {
       pollutant: tempState.pollutant.value,
       chartTitle: title,
       chartSubTitle: tempState.subTitle,
+      airqloud: airqloud._id,
     };
 
     transferFromTempState();
