@@ -1,13 +1,10 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
-import 'package:app/models/site.dart';
 import 'package:app/screens/search_page.dart';
-import 'package:app/services/local_storage.dart';
-import 'package:app/utils/dialogs.dart';
-import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/widgets/favourite_place_card.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class FavouritePlaces extends StatefulWidget {
   const FavouritePlaces({Key? key}) : super(key: key);
@@ -18,9 +15,6 @@ class FavouritePlaces extends StatefulWidget {
 
 class _FavouritePlacesState extends State<FavouritePlaces> {
   var favouritePlaces = <Measurement>[];
-  var searchResults = <Measurement>[];
-  var searchList = <Measurement>[];
-  bool isSearching = false;
   TextEditingController searchController = TextEditingController();
 
   @override
@@ -41,178 +35,79 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
       ),
       body: Container(
           color: ColorConstants.appBodyColor,
-          child: FutureBuilder(
-              future: DBHelper().getFavouritePlaces(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  favouritePlaces = snapshot.data as List<Measurement>;
+          child: Consumer<MeasurementModel>(
+            builder: (context, measurementModel, child) {
+              if (measurementModel.favouritePlaces.isEmpty) {
+                return emptyPlaces();
+              }
 
-                  if (favouritePlaces.isNotEmpty) {
-                    searchList = favouritePlaces;
-                  }
-
-                  if (favouritePlaces.isEmpty) {
-                    return Center(
-                      child: Container(
-                        padding:
-                            const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                        child: OutlinedButton(
-                          onPressed: () async {
-                            await Navigator.push(context,
-                                MaterialPageRoute(builder: (context) {
-                              return const SearchPage();
-                            }));
-                          },
-                          style: OutlinedButton.styleFrom(
-                            shape: const CircleBorder(),
-                            padding: const EdgeInsets.all(24),
-                          ),
-                          child: Text(
-                            'Add',
-                            style: TextStyle(color: ColorConstants.appColor),
-                          ),
-                        ),
-                        // child: Text(
-                        //   'You haven\'t added any locations you'
-                        //   ' care about '
-                        //   'to MyPlaces yet, use the add icon at '
-                        //   'the top to add them to your list',
-                        //   softWrap: true,
-                        //   textAlign: TextAlign.center,
-                        //   style: TextStyle(
-                        //     color: ColorConstants.appColor,
-                        //   ),
-                        // ),
-                      ),
-                    );
-                  }
-
-                  return RefreshIndicator(
-                    color: ColorConstants.appColorBlue,
-                    onRefresh: refreshData,
-                    child: ListView.builder(
-                      itemBuilder: (context, index) => Padding(
-                        padding: const EdgeInsets.only(left: 16, right: 16),
-                        child: MiniAnalyticsCard(favouritePlaces[index]),
-                      ),
-                      itemCount: favouritePlaces.length,
-                    ),
-                  );
-                } else {
-                  return ListView(
-                    children: [
-                      Padding(
-                        padding:
-                            const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                        child: loadingAnimation(115.0, 16.0),
-                      ),
-                      Padding(
-                        padding:
-                            const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                        child: loadingAnimation(115.0, 16.0),
-                      ),
-                      Padding(
-                        padding:
-                            const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                        child: loadingAnimation(115.0, 16.0),
-                      ),
-                      Padding(
-                        padding:
-                            const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                        child: loadingAnimation(115.0, 16.0),
-                      ),
-                      Padding(
-                        padding:
-                            const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                        child: loadingAnimation(115.0, 16.0),
-                      ),
-                      Padding(
-                        padding:
-                            const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                        child: loadingAnimation(115.0, 16.0),
-                      ),
-                      Padding(
-                        padding:
-                            const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                        child: loadingAnimation(115.0, 16.0),
-                      ),
-                    ],
-                  );
-                }
-              })),
+              return RefreshIndicator(
+                color: ColorConstants.appColorBlue,
+                onRefresh: refreshData,
+                child: ListView.builder(
+                  itemBuilder: (context, index) => Padding(
+                    padding: const EdgeInsets.only(left: 16, right: 16),
+                    child: MiniAnalyticsCard(
+                        measurementModel.favouritePlaces[index]),
+                  ),
+                  itemCount: measurementModel.favouritePlaces.length,
+                ),
+              );
+            },
+          )),
     );
   }
 
-  void doSearch(String query) {
-    query = query.toLowerCase();
-
-    if (query.isNotEmpty) {
-      if (mounted) {
-        setState(() {
-          searchResults.clear();
-        });
-      }
-
-      var dummyListData = <Measurement>[];
-      for (var measurement in searchList) {
-        var site = measurement.site;
-
-        if ((site.description.toLowerCase().contains(query)) ||
-            (site.name.toLowerCase().contains(query)) ||
-            (site.district.toLowerCase().contains(query)) ||
-            (site.country.toLowerCase().contains(query))) {
-          dummyListData.add(measurement);
-        }
-      }
-
-      if (mounted) {
-        setState(() {
-          searchResults = dummyListData;
-        });
-      }
-
-      return;
-    } else {
-      if (mounted) {
-        setState(() {
-          searchResults.clear();
-        });
-      }
-    }
-  }
-
-  Future<void> exitSearch() async {
-    setState(() {
-      isSearching = false;
-    });
+  Widget emptyPlaces() {
+    return Container(
+      color: ColorConstants.appBodyColor,
+      child: Container(
+        padding: const EdgeInsets.all(40.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Empty in favourite places',
+              softWrap: true,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 20),
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+            const Text(
+              'Add places of interest using the AirQo map '
+              'or search',
+              softWrap: true,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+            OutlinedButton(
+              onPressed: () async {
+                await Navigator.push(context,
+                    MaterialPageRoute(builder: (context) {
+                  return const SearchPage();
+                }));
+              },
+              style: OutlinedButton.styleFrom(
+                shape: const CircleBorder(),
+                padding: const EdgeInsets.all(24),
+              ),
+              child: Text(
+                'Add',
+                style: TextStyle(color: ColorConstants.appColor),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> refreshData() async {
-    await DBHelper().getFavouritePlaces().then((value) => {
-          if (mounted)
-            {
-              setState(() {
-                favouritePlaces = value;
-              })
-            }
-        });
-  }
-
-  Future<void> removeFromFavourites(Site site) async {
-    await DBHelper().updateFavouritePlaces(site, context).then((value) => {
-          showSnackBar(context, '${site.getName()} is removed from your places')
-        });
-
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
-  Future<void> viewDetails(Site site) async {
-    // await Navigator.push(context, MaterialPageRoute(builder: (context) {
-    //   return PlaceDetailsPage(site: site);
-    // })).then((value) {
-    //   setState(() {});
-    // });
+    await Provider.of<MeasurementModel>(context, listen: false)
+        .reloadFavouritePlaces();
   }
 }

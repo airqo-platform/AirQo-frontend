@@ -1,6 +1,5 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
-import 'package:app/models/site.dart';
 import 'package:app/screens/insights_page.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/date.dart';
@@ -9,20 +8,19 @@ import 'package:app/utils/pm.dart';
 import 'package:app/utils/share.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
 
 import 'custom_widgets.dart';
 
 class AnalyticsCard extends StatefulWidget {
   final Measurement measurement;
-  final callBackFn;
   final isRefreshing;
 
-  const AnalyticsCard(this.measurement, this.callBackFn, this.isRefreshing,
-      {Key? key})
+  const AnalyticsCard(this.measurement, this.isRefreshing, {Key? key})
       : super(key: key);
 
   @override
-  _AnalyticsCardState createState() => _AnalyticsCardState(measurement);
+  _AnalyticsCardState createState() => _AnalyticsCardState();
 }
 
 class MapAnalyticsCard extends StatefulWidget {
@@ -33,15 +31,11 @@ class MapAnalyticsCard extends StatefulWidget {
       : super(key: key);
 
   @override
-  _MapAnalyticsCardState createState() =>
-      _MapAnalyticsCardState(this.measurement);
+  _MapAnalyticsCardState createState() => _MapAnalyticsCardState();
 }
 
 class _AnalyticsCardState extends State<AnalyticsCard> {
-  final Measurement measurement;
-  bool isFav = false;
-
-  _AnalyticsCardState(this.measurement);
+  _AnalyticsCardState();
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +49,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
           children: [
             GestureDetector(
               onTap: () {
-                pmInfoDialog(context, measurement);
+                pmInfoDialog(context, widget.measurement);
               },
               child: Container(
                 padding: const EdgeInsets.only(right: 12),
@@ -77,7 +71,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
             GestureDetector(
               onTap: () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) {
-                  return InsightsPage(measurement.site);
+                  return InsightsPage(widget.measurement.site);
                 }));
               },
               child: Container(
@@ -87,21 +81,21 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                     // Details section
                     Row(
                       children: [
-                        analyticsAvatar(measurement, 104, 40, 12),
+                        analyticsAvatar(widget.measurement, 104, 40, 12),
                         const SizedBox(width: 16.0),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                measurement.site.getName(),
+                                widget.measurement.site.getName(),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
                                     fontWeight: FontWeight.bold, fontSize: 20),
                               ),
                               Text(
-                                measurement.site.getLocation(),
+                                widget.measurement.site.getLocation(),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
@@ -118,19 +112,20 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                     borderRadius: const BorderRadius.all(
                                         Radius.circular(40.0)),
                                     color: pm2_5ToColor(
-                                            measurement.getPm2_5Value())
+                                            widget.measurement.getPm2_5Value())
                                         .withOpacity(0.4),
                                     border:
                                         Border.all(color: Colors.transparent)),
                                 child: Text(
-                                  pm2_5ToString(measurement.getPm2_5Value()),
+                                  pm2_5ToString(
+                                      widget.measurement.getPm2_5Value()),
                                   maxLines: 1,
                                   textAlign: TextAlign.center,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: pm2_5TextColor(
-                                        measurement.getPm2_5Value()),
+                                        widget.measurement.getPm2_5Value()),
                                   ),
                                 ),
                               ),
@@ -147,7 +142,8 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                                   .width /
                                               3.2),
                                       child: Text(
-                                        dateToString(measurement.time, true),
+                                        dateToString(
+                                            widget.measurement.time, true),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
@@ -230,7 +226,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
               children: [
                 GestureDetector(
                   onTap: () {
-                    shareMeasurement(measurement);
+                    shareMeasurement(widget.measurement);
                   },
                   child: iconTextButton(
                       SvgPicture.asset(
@@ -242,23 +238,29 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                 ),
                 GestureDetector(
                   onTap: () async {
-                    var result = await DBHelper()
-                        .updateFavouritePlaces(measurement.site, context);
-                    setState(() {
-                      isFav = result;
-                    });
-                    widget.callBackFn();
+                    await DBHelper().updateFavouritePlaces(
+                        widget.measurement.site, context);
                   },
-                  child: iconTextButton(
-                      SvgPicture.asset(
-                        isFav
-                            ? 'assets/icon/heart.svg'
-                            : 'assets/icon/heart_dislike.svg',
+                  child: iconTextButton(Consumer<MeasurementModel>(
+                    builder: (context, measurementModel, child) {
+                      if (Measurement.isFavouritePlace(
+                          measurementModel.favouritePlaces,
+                          widget.measurement)) {
+                        return SvgPicture.asset(
+                          'assets/icon/heart.svg',
+                          semanticsLabel: 'Favorite',
+                          height: 16.67,
+                          width: 16.67,
+                        );
+                      }
+                      return SvgPicture.asset(
+                        'assets/icon/heart_dislike.svg',
                         semanticsLabel: 'Favorite',
                         height: 16.67,
                         width: 16.67,
-                      ),
-                      'Favorite'),
+                      );
+                    },
+                  ), 'Favorite'),
                 ),
               ],
             ),
@@ -268,23 +270,10 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
           ],
         ));
   }
-
-  @override
-  void initState() {
-    measurement.site.isFav().then((value) => {
-          setState(() {
-            isFav = value;
-          })
-        });
-    super.initState();
-  }
 }
 
 class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
-  final Measurement measurement;
-  bool isFav = false;
-
-  _MapAnalyticsCardState(this.measurement);
+  _MapAnalyticsCardState();
 
   @override
   Widget build(BuildContext context) {
@@ -293,7 +282,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
         decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: const BorderRadius.all(Radius.circular(16.0)),
-            border: Border.all(color: Color(0xffC4C4C4))),
+            border: Border.all(color: const Color(0xffC4C4C4))),
         child: Column(
           children: [
             GestureDetector(
@@ -319,7 +308,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
             GestureDetector(
               onTap: () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) {
-                  return InsightsPage(measurement.site);
+                  return InsightsPage(widget.measurement.site);
                 }));
               },
               child: Container(
@@ -329,21 +318,21 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                     // Details section
                     Row(
                       children: [
-                        analyticsAvatar(measurement, 104, 40, 12),
+                        analyticsAvatar(widget.measurement, 104, 40, 12),
                         const SizedBox(width: 16.0),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                measurement.site.getName(),
+                                widget.measurement.site.getName(),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
                                     fontWeight: FontWeight.bold, fontSize: 20),
                               ),
                               Text(
-                                measurement.site.getLocation(),
+                                widget.measurement.site.getLocation(),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
@@ -360,19 +349,20 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                     borderRadius: const BorderRadius.all(
                                         Radius.circular(40.0)),
                                     color: pm2_5ToColor(
-                                            measurement.getPm2_5Value())
+                                            widget.measurement.getPm2_5Value())
                                         .withOpacity(0.4),
                                     border:
                                         Border.all(color: Colors.transparent)),
                                 child: Text(
-                                  pm2_5ToString(measurement.getPm2_5Value()),
+                                  pm2_5ToString(
+                                      widget.measurement.getPm2_5Value()),
                                   maxLines: 1,
                                   textAlign: TextAlign.center,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: pm2_5TextColor(
-                                        measurement.getPm2_5Value()),
+                                        widget.measurement.getPm2_5Value()),
                                   ),
                                 ),
                               ),
@@ -389,7 +379,8 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                                   .width /
                                               3.2),
                                       child: Text(
-                                        dateToString(measurement.time, true),
+                                        dateToString(
+                                            widget.measurement.time, true),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
@@ -434,7 +425,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                         SvgPicture.asset(
                           'assets/icon/more_arrow.svg',
                           semanticsLabel: 'more',
-                          height: 6.99,
+                          height: 10.99,
                           width: 4,
                         ),
                       ],
@@ -458,7 +449,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
               children: [
                 GestureDetector(
                   onTap: () {
-                    shareMeasurement(measurement);
+                    shareMeasurement(widget.measurement);
                   },
                   child: iconTextButton(
                       SvgPicture.asset(
@@ -470,16 +461,29 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                 ),
                 GestureDetector(
                   onTap: () {
-                    DBHelper().updateFavouritePlaces(measurement.site, context);
+                    DBHelper().updateFavouritePlaces(
+                        widget.measurement.site, context);
                   },
-                  child: iconTextButton(
-                      SvgPicture.asset(
-                        isFav
-                            ? 'assets/icon/heart.svg'
-                            : 'assets/icon/heart_dislike.svg',
+                  child: iconTextButton(Consumer<MeasurementModel>(
+                    builder: (context, measurementModel, child) {
+                      if (Measurement.isFavouritePlace(
+                          measurementModel.favouritePlaces,
+                          widget.measurement)) {
+                        return SvgPicture.asset(
+                          'assets/icon/heart.svg',
+                          semanticsLabel: 'Favorite',
+                          height: 16.67,
+                          width: 16.67,
+                        );
+                      }
+                      return SvgPicture.asset(
+                        'assets/icon/heart_dislike.svg',
                         semanticsLabel: 'Favorite',
-                      ),
-                      'Favorite'),
+                        height: 16.67,
+                        width: 16.67,
+                      );
+                    },
+                  ), 'Favorite'),
                 ),
               ],
             ),
@@ -488,15 +492,5 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
             ),
           ],
         ));
-  }
-
-  @override
-  void initState() {
-    measurement.site.isFav().then((value) => {
-          setState(() {
-            isFav = value;
-          })
-        });
-    super.initState();
   }
 }

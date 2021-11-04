@@ -1,3 +1,4 @@
+import 'package:app/models/measurement.dart';
 import 'package:app/on_boarding/welcome_screen.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/fb_notifications.dart';
@@ -5,6 +6,7 @@ import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -31,7 +33,7 @@ class SplashScreenState extends State<SplashScreen> {
 
   void initialize() {
     _getLatestMeasurements();
-    _getStories();
+    _getFavPlaces();
     Future.delayed(const Duration(seconds: 2), () async {
       _updateWidget();
     });
@@ -104,15 +106,14 @@ class SplashScreenState extends State<SplashScreen> {
     );
   }
 
+  void _getFavPlaces() {
+    Provider.of<MeasurementModel>(context, listen: false)
+        .reloadFavouritePlaces();
+  }
+
   void _getLatestMeasurements() {
     AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
           if (value.isNotEmpty) {DBHelper().insertLatestMeasurements(value)}
-        });
-  }
-
-  void _getStories() {
-    AirqoApiClient(context).fetchLatestStories().then((value) => {
-          if (value.isNotEmpty) {DBHelper().insertLatestStories(value)}
         });
   }
 

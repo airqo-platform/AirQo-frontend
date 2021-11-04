@@ -10,8 +10,10 @@ import 'package:app/models/story.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:app/models/user_details.dart';
 import 'package:app/utils/distance.dart';
+import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:path/path.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -36,16 +38,16 @@ class DBHelper {
         await NotificationService().requestPermission();
         var jsonData = alert.toJson();
         await db.insert(
-          '${Alert.alertDbName()}',
+          Alert.alertDbName(),
           jsonData,
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
         return true;
       } catch (e) {
-        print(e);
+        debugPrint(e.toString());
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
 
     return false;
@@ -82,15 +84,14 @@ class DBHelper {
       final db = await database;
 
       try {
-        await db.delete('${Alert.alertDbName()}',
+        await db.delete(Alert.alertDbName(),
             where: '${Alert.dbSiteId()} = ?', whereArgs: [alert.siteId]);
         return true;
       } catch (e) {
-        print(e);
-        print('Inserting alert into db');
+        debugPrint(e.toString());
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
 
     return false;
@@ -101,14 +102,14 @@ class DBHelper {
       final db = await database;
 
       try {
-        await db.delete('${Suggestion.dbName()}',
+        await db.delete(Suggestion.dbName(),
             where: '${Suggestion.dbPlaceId()} = ?',
             whereArgs: [suggestion.placeId]);
       } on Error catch (e) {
-        print(e);
+        debugPrint(e.toString());
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 
@@ -124,7 +125,7 @@ class DBHelper {
             })
           : <Alert>[];
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
       return <Alert>[];
     }
   }
@@ -144,8 +145,8 @@ class DBHelper {
       var placesRes = <Map<String, Object?>>[];
 
       for (var fav in favouritePlaces) {
-        var res = await db.query('${Measurement.latestMeasurementsDb()}',
-            where: '${'${Site.dbId()} = ?'}', whereArgs: [fav]);
+        var res = await db.query(Measurement.latestMeasurementsDb(),
+            where: '${Site.dbId()} = ?', whereArgs: [fav]);
 
         placesRes.addAll(res);
       }
@@ -159,8 +160,7 @@ class DBHelper {
             })
           : <Measurement>[];
     } catch (e) {
-      print('am here');
-      print(e);
+      debugPrint(e.toString());
 
       return <Measurement>[];
     }
@@ -179,7 +179,7 @@ class DBHelper {
             })
           : <Predict>[];
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
       return <Predict>[];
     }
   }
@@ -199,7 +199,7 @@ class DBHelper {
             })
           : <HistoricalMeasurement>[];
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
       return <HistoricalMeasurement>[];
     }
   }
@@ -220,7 +220,7 @@ class DBHelper {
             .toLowerCase()
             .compareTo(siteB.site.getName().toLowerCase()));
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
       return <Measurement>[];
     }
   }
@@ -310,7 +310,7 @@ class DBHelper {
 
       return nearestMeasurement;
     } catch (e) {
-      print('error $e');
+      debugPrint('error $e');
       return null;
     }
   }
@@ -327,7 +327,7 @@ class DBHelper {
       }
       return Measurement.fromJson(Measurement.mapFromDb(res.first));
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
       return null;
     }
   }
@@ -370,7 +370,7 @@ class DBHelper {
 
       return nearestMeasurement;
     } catch (e) {
-      print('error $e');
+      debugPrint('error $e');
       return null;
     }
   }
@@ -388,7 +388,7 @@ class DBHelper {
             })
           : <Measurement>[];
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
       return <Measurement>[];
     }
   }
@@ -407,7 +407,7 @@ class DBHelper {
 
       return history;
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
       return <Suggestion>[];
     }
   }
@@ -420,7 +420,7 @@ class DBHelper {
 
       return Site.fromJson(Site.fromDbMap(res.first));
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
       return null;
     }
   }
@@ -442,7 +442,7 @@ class DBHelper {
 
       return sites;
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
       return <Site>[];
     }
   }
@@ -459,7 +459,7 @@ class DBHelper {
             })
           : <Story>[];
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
       return <Story>[];
     }
   }
@@ -471,7 +471,7 @@ class DBHelper {
 
       return UserDetails.fromJson(res.first);
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
       return null;
     }
   }
@@ -502,18 +502,17 @@ class DBHelper {
           try {
             var jsonData = Predict.mapToDb(measurement, siteId);
             await db.insert(
-              '${Predict.forecastDb()}',
+              Predict.forecastDb(),
               jsonData,
               conflictAlgorithm: ConflictAlgorithm.replace,
             );
           } catch (e) {
-            print('Inserting predicted measurements into db');
-            print(e);
+            debugPrint(e.toString());
           }
         }
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 
@@ -529,18 +528,17 @@ class DBHelper {
           try {
             var jsonData = HistoricalMeasurement.mapToDb(measurement);
             await db.insert(
-              '${HistoricalMeasurement.historicalMeasurementsDb()}',
+              HistoricalMeasurement.historicalMeasurementsDb(),
               jsonData,
               conflictAlgorithm: ConflictAlgorithm.replace,
             );
           } catch (e) {
-            print('Inserting historical measurements into db');
-            print(e);
+            debugPrint(e.toString());
           }
         }
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 
@@ -555,18 +553,17 @@ class DBHelper {
           try {
             var jsonData = Measurement.mapToDb(measurement);
             await db.insert(
-              '${Measurement.latestMeasurementsDb()}',
+              Measurement.latestMeasurementsDb(),
               jsonData,
               conflictAlgorithm: ConflictAlgorithm.replace,
             );
           } catch (e) {
-            print('Inserting latest measurements into db');
-            print(e);
+            debugPrint(e.toString());
           }
         }
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 
@@ -581,20 +578,19 @@ class DBHelper {
           try {
             var jsonData = story.toJson();
             await db.insert(
-              '${Story.storyDbName()}',
+              Story.storyDbName(),
               jsonData,
               conflictAlgorithm: ConflictAlgorithm.replace,
             );
           } catch (e) {
             await db.execute(Story.dropTableStmt());
             await db.execute(Story.createTableStmt());
-            print('Inserting latest stories into db');
-            print(e);
+            debugPrint(e.toString());
           }
         }
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 
@@ -606,15 +602,15 @@ class DBHelper {
 
       try {
         await db.insert(
-          '${Suggestion.dbName()}',
+          Suggestion.dbName(),
           jsonData,
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
       } on Error catch (e) {
-        print(e);
+        debugPrint(e.toString());
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 
@@ -631,18 +627,17 @@ class DBHelper {
           try {
             var jsonData = HistoricalMeasurement.mapToDb(measurement);
             await db.insert(
-              '${HistoricalMeasurement.historicalMeasurementsDb()}',
+              HistoricalMeasurement.historicalMeasurementsDb(),
               jsonData,
               conflictAlgorithm: ConflictAlgorithm.replace,
             );
           } catch (e) {
-            print('Inserting site historical measurements into db');
-            print(e);
+            debugPrint(e.toString());
           }
         }
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 
@@ -656,18 +651,17 @@ class DBHelper {
           try {
             var jsonData = Site.toDbMap(site);
             await db.insert(
-              '${Site.sitesDbName()}',
+              Site.sitesDbName(),
               jsonData,
               conflictAlgorithm: ConflictAlgorithm.replace,
             );
           } catch (e) {
-            print('Inserting sites into db');
-            print(e);
+            debugPrint(e.toString());
           }
         }
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 
@@ -678,7 +672,7 @@ class DBHelper {
       try {
         var jsonData = userDetails.toJson();
         await db.insert(
-          '${UserDetails.dbName()}',
+          UserDetails.dbName(),
           jsonData,
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
@@ -686,15 +680,13 @@ class DBHelper {
       } catch (e) {
         await db.execute(UserDetails.dropTableStmt());
         await db.execute(UserDetails.createTableStmt());
-        print('Saving user in db');
-        print(e);
+        debugPrint(e.toString());
         return false;
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
       return false;
     }
-    return true;
   }
 
   Future<bool> updateFavouritePlaces(Site site, context) async {
@@ -717,6 +709,9 @@ class DBHelper {
     }
 
     await prefs.setStringList(PrefConstant.favouritePlaces, favouritePlaces);
+
+    await Provider.of<MeasurementModel>(context, listen: false)
+        .reloadFavouritePlaces();
 
     // if (favouritePlaces.contains(id)) {
     //   await showSnackBar(

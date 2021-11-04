@@ -2,6 +2,7 @@ import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/site.dart';
 import 'package:app/screens/insights_page.dart';
+import 'package:app/services/local_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -13,14 +14,13 @@ class MiniAnalyticsCard extends StatefulWidget {
   const MiniAnalyticsCard(this.measurement, {Key? key}) : super(key: key);
 
   @override
-  _FavouritePlacesCard createState() => _FavouritePlacesCard(this.measurement);
+  _MiniAnalyticsCard createState() => _MiniAnalyticsCard();
 }
 
-class _FavouritePlacesCard extends State<MiniAnalyticsCard> {
-  final Measurement measurement;
+class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
   bool isFav = false;
 
-  _FavouritePlacesCard(this.measurement);
+  _MiniAnalyticsCard();
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +40,7 @@ class _FavouritePlacesCard extends State<MiniAnalyticsCard> {
                 padding: const EdgeInsets.only(left: 32, right: 32),
                 child: Row(
                   children: [
-                    analyticsAvatar(measurement, 40, 15, 5),
+                    analyticsAvatar(widget.measurement, 40, 15, 5),
                     const SizedBox(
                       width: 12,
                     ),
@@ -50,14 +50,14 @@ class _FavouritePlacesCard extends State<MiniAnalyticsCard> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           Text(
-                            measurement.site.getName(),
+                            widget.measurement.site.getName(),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                           Text(
-                            measurement.site.getLocation(),
+                            widget.measurement.site.getLocation(),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -70,12 +70,18 @@ class _FavouritePlacesCard extends State<MiniAnalyticsCard> {
                     const SizedBox(
                       width: 12,
                     ),
-                    Visibility(
-                      visible: isFav,
-                      child: SvgPicture.asset(
-                        'assets/icon/heart.svg',
+                    GestureDetector(
+                      onTap: () {
+                        DBHelper().updateFavouritePlaces(
+                            widget.measurement.site, context);
+                      },
+                      child: Visibility(
+                        visible: isFav,
+                        child: SvgPicture.asset(
+                          'assets/icon/heart.svg',
+                        ),
                       ),
-                    ),
+                    )
                   ],
                 ),
               ),
@@ -89,7 +95,7 @@ class _FavouritePlacesCard extends State<MiniAnalyticsCard> {
               GestureDetector(
                 onTap: () {
                   Navigator.push(context, MaterialPageRoute(builder: (context) {
-                    return InsightsPage(measurement.site);
+                    return InsightsPage(widget.measurement.site);
                   }));
                 },
                 child: Container(
@@ -145,7 +151,7 @@ class _FavouritePlacesCard extends State<MiniAnalyticsCard> {
 
   @override
   void initState() {
-    measurement.site.isFav().then((value) => {
+    widget.measurement.site.isFav().then((value) => {
           setState(() {
             isFav = value;
           })

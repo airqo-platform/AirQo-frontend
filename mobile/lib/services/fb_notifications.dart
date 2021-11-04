@@ -165,7 +165,7 @@ class CloudStore {
         });
       });
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 
@@ -424,7 +424,7 @@ class CustomAuth {
                 context,
                 'Cannot process your request.'
                 ' Try again later');
-            print(e);
+            debugPrint(e.toString());
           }
         },
         codeSent: (String verificationId, int? resendToken) async {
@@ -449,7 +449,7 @@ class NotificationService {
         return true;
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
 
     return false;
@@ -475,7 +475,7 @@ class NotificationService {
         return true;
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
 
     return false;
@@ -522,7 +522,7 @@ class NotificationService {
         await LocalNotifications().showAlertNotification(notificationMessage);
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 
@@ -533,7 +533,7 @@ class NotificationService {
         await LocalNotifications().showAlertNotification(notificationMessage);
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 }

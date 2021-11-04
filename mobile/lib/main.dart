@@ -16,6 +16,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'constants/app_constants.dart';
 import 'languages/custom_localizations.dart';
 import 'languages/lg_intl.dart';
+import 'models/measurement.dart';
 import 'on_boarding/spash_screen.dart';
 import 'providers/ThemeProvider.dart';
 import 'themes/dark_theme.dart';
@@ -74,6 +75,7 @@ class AirQoApp extends StatelessWidget {
             providers: [
               ChangeNotifierProvider(create: (_) => LocaleProvider()),
               ChangeNotifierProvider(create: (context) => NotificationModel()),
+              ChangeNotifierProvider(create: (context) => MeasurementModel()),
             ],
             builder: (context, child) {
               final provider = Provider.of<LocaleProvider>(context);

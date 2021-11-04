@@ -1,8 +1,5 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/historical_measurement.dart';
 import 'package:app/models/measurement.dart';
-import 'package:app/models/predict.dart';
-import 'package:app/models/story.dart';
 import 'package:app/screens/search_page.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
@@ -15,6 +12,7 @@ import 'package:app/widgets/analytics_card.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'air_pollution_ways_page.dart';
@@ -28,12 +26,6 @@ class DashboardView extends StatefulWidget {
 
 class _DashboardViewState extends State<DashboardView> {
   var measurementData;
-  var historicalData = <HistoricalMeasurement>[];
-  var favouritePlaces = <Measurement>[];
-  var forecastData = <Predict>[];
-  var stories = <Story>[];
-  var featuredStory;
-  var storyIsSet = false;
   var greetings = '';
   double tipsProgress = 0.0;
   bool isRefreshing = false;
@@ -218,7 +210,7 @@ class _DashboardViewState extends State<DashboardView> {
     );
   }
 
-  Widget favPlaceAvatar(double rightPadding, int index) {
+  Widget favPlaceAvatar(double rightPadding, Measurement favouritePlace) {
     return Positioned(
         right: rightPadding,
         child: Container(
@@ -227,30 +219,18 @@ class _DashboardViewState extends State<DashboardView> {
           padding: const EdgeInsets.all(2.0),
           decoration: BoxDecoration(
             border: Border.all(color: Colors.white, width: 2),
-            color: pm2_5ToColor(favouritePlaces[index].getPm2_5Value()),
+            color: pm2_5ToColor(favouritePlace.getPm2_5Value()),
             shape: BoxShape.circle,
           ),
           child: Center(
             child: Text(
-              '${favouritePlaces[index].getPm2_5Value()}',
+              '${favouritePlace.getPm2_5Value()}',
               style: TextStyle(
                   fontSize: 7,
-                  color:
-                      pm2_5TextColor(favouritePlaces[index].getPm2_5Value())),
+                  color: pm2_5TextColor(favouritePlace.getPm2_5Value())),
             ),
           ),
         ));
-  }
-
-  void getFavouritePlaces() {
-    DBHelper().getFavouritePlaces().then((value) => {
-          if (mounted)
-            {
-              setState(() {
-                favouritePlaces = value;
-              })
-            }
-        });
   }
 
   void getLocationMeasurements() async {
@@ -271,29 +251,8 @@ class _DashboardViewState extends State<DashboardView> {
               {}
           });
     } catch (e) {
-      print('error getting data : $e');
+      debugPrint('error getting data : $e');
     }
-  }
-
-  void getStories() {
-    DBHelper().getStories().then((value) => {
-          if (mounted)
-            {
-              setState(() {
-                stories = value;
-              })
-            },
-        });
-
-    AirqoApiClient(context).fetchLatestStories().then((value) => {
-          if (mounted && stories.isEmpty)
-            {
-              setState(() {
-                stories = value;
-              })
-            },
-          DBHelper().insertLatestStories(value)
-        });
   }
 
   Future<void> initialize() async {
@@ -301,10 +260,8 @@ class _DashboardViewState extends State<DashboardView> {
       isRefreshing = true;
     });
     setGreetings();
-    getStories();
     _getLatestMeasurements();
     getLocationMeasurements();
-    getFavouritePlaces();
     var preferences = await SharedPreferences.getInstance();
     setState(() {
       tipsProgress = preferences.getDouble(PrefConstant.tipsProgress) ?? 0.0;
@@ -323,24 +280,24 @@ class _DashboardViewState extends State<DashboardView> {
     });
   }
 
-  List<Widget> showFavourites() {
+  List<Widget> showFavourites(List<Measurement> favouritePlaces) {
     var widgets = <Widget>[];
 
     try {
       if (favouritePlaces.length == 1) {
-        widgets.add(favPlaceAvatar(0, 0));
+        widgets.add(favPlaceAvatar(0, favouritePlaces[0]));
       } else if (favouritePlaces.length == 2) {
         widgets
-          ..add(favPlaceAvatar(0, 0))
-          ..add(favPlaceAvatar(7, 1));
+          ..add(favPlaceAvatar(0, favouritePlaces[0]))
+          ..add(favPlaceAvatar(7, favouritePlaces[1]));
       } else if (favouritePlaces.length >= 3) {
         widgets
-          ..add(favPlaceAvatar(0, 0))
-          ..add(favPlaceAvatar(7, 1))
-          ..add(favPlaceAvatar(14, 2));
+          ..add(favPlaceAvatar(0, favouritePlaces[0]))
+          ..add(favPlaceAvatar(7, favouritePlaces[1]))
+          ..add(favPlaceAvatar(14, favouritePlaces[2]));
       } else {}
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
 
     return widgets;
@@ -508,11 +465,7 @@ class _DashboardViewState extends State<DashboardView> {
           onTap: () async {
             var response = await Navigator.push(context,
                 MaterialPageRoute(builder: (context) {
-              if (favouritePlaces.isEmpty) {
-                return const SearchPage();
-              } else {
-                return const FavouritePlaces();
-              }
+              return const FavouritePlaces();
             }));
             if (response == null) {
               await initialize();
@@ -521,25 +474,31 @@ class _DashboardViewState extends State<DashboardView> {
             }
           },
           child: Container(
-            padding: const EdgeInsets.all(15.0),
+            height: 56,
+            padding: const EdgeInsets.all(12.0),
             decoration: const BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.all(Radius.circular(8.0))),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                if (favouritePlaces.isEmpty)
-                  SvgPicture.asset(
-                    'assets/icon/add_avator.svg',
-                  ),
-                if (favouritePlaces.isNotEmpty)
-                  SizedBox(
-                    height: 32,
-                    width: 44,
-                    child: Stack(
-                      children: showFavourites(),
-                    ),
-                  ),
+                Consumer<MeasurementModel>(
+                  builder: (context, measurementModel, child) {
+                    if (measurementModel.favouritePlaces.isEmpty) {
+                      return SvgPicture.asset(
+                        'assets/icon/add_avator.svg',
+                      );
+                    }
+                    return SizedBox(
+                      height: 32,
+                      width: 44,
+                      child: Stack(
+                        children:
+                            showFavourites(measurementModel.favouritePlaces),
+                      ),
+                    );
+                  },
+                ),
                 const SizedBox(
                   width: 8,
                 ),
@@ -565,7 +524,8 @@ class _DashboardViewState extends State<DashboardView> {
             }));
           },
           child: Container(
-            padding: const EdgeInsets.all(15.0),
+            height: 56,
+            padding: const EdgeInsets.all(12.0),
             decoration: const BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.all(Radius.circular(8.0))),
@@ -614,7 +574,9 @@ class _DashboardViewState extends State<DashboardView> {
                 },
             });
       }
-    } catch (e) {}
+    } catch (e) {
+      debugPrint(e.toString());
+    }
   }
 
   Future<void> updateLocationMeasurements() async {
@@ -635,7 +597,7 @@ class _DashboardViewState extends State<DashboardView> {
               }
           });
     } catch (e) {
-      print('error getting data');
+      debugPrint('error getting data $e');
     }
   }
 
@@ -678,15 +640,15 @@ class _DashboardViewState extends State<DashboardView> {
             ),
             Visibility(
                 visible: measurementData != null,
-                child:
-                    AnalyticsCard(measurementData, initialize, isRefreshing)),
+                child: AnalyticsCard(measurementData, isRefreshing)),
             Visibility(
                 visible: measurementData == null,
                 child: loadingAnimation(255.0, 16.0)),
             const SizedBox(
               height: 16,
             ),
-            // tipWidget(context, 'Actions You Can Take to Reduce Air Pollution'),
+            // tipWidget(context, 'Actions You Can Take to Reduce Air
+            // Pollution'),
             // const SizedBox(
             //   height: 16,
             // ),

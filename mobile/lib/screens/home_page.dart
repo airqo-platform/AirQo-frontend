@@ -1,4 +1,5 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:app/models/measurement.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/screens/profile_view.dart';
 import 'package:app/services/fb_notifications.dart';
@@ -82,8 +83,8 @@ class _HomePageState extends State<HomePage> {
                   Positioned(
                     right: 0.0,
                     child: Consumer<NotificationModel>(
-                      builder: (context, notifications, child) {
-                        if (!notifications.hasNotifications()) {
+                      builder: (context, notificationModel, child) {
+                        if (!notificationModel.hasNotifications()) {
                           return Container(
                             height: 0.1,
                             width: 0.1,
@@ -122,6 +123,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> initialize() async {
     _getLatestMeasurements();
+    _getFavPlaces();
     if (_customAuth.isLoggedIn()) {
       CloudStore().monitorNotifications(context, _customAuth.getId());
     }
@@ -153,6 +155,11 @@ class _HomePageState extends State<HomePage> {
       return Future.value(false);
     }
     return Future.value(true);
+  }
+
+  void _getFavPlaces() {
+    Provider.of<MeasurementModel>(context, listen: false)
+        .reloadFavouritePlaces();
   }
 
   void _getLatestMeasurements() {
