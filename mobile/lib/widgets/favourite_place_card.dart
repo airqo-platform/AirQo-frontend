@@ -81,18 +81,16 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                             await DBHelper().updateFavouritePlaces(
                                 widget.placeDetails, context);
                           },
-                          child: iconTextButton(
-                              SvgPicture.asset(
-                                PlaceDetails.isFavouritePlace(
-                                        placeDetailsModel.favouritePlaces,
-                                        widget.placeDetails)
-                                    ? 'assets/icon/heart.svg'
-                                    : 'assets/icon/heart_dislike.svg',
-                                semanticsLabel: 'Favorite',
-                                height: 16.67,
-                                width: 16.67,
-                              ),
-                              'Favorite'),
+                          child: SvgPicture.asset(
+                            PlaceDetails.isFavouritePlace(
+                                    placeDetailsModel.favouritePlaces,
+                                    widget.placeDetails)
+                                ? 'assets/icon/heart.svg'
+                                : 'assets/icon/heart_dislike.svg',
+                            semanticsLabel: 'Favorite',
+                            height: 16.67,
+                            width: 16.67,
+                          ),
                         );
                       },
                     )

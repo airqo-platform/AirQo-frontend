@@ -47,15 +47,15 @@ class _ProfileViewState extends State<ProfileView> {
                 borderRadius: BorderRadius.all(Radius.circular(8.0))),
             child: Consumer<NotificationModel>(
               builder: (context, notifications, child) {
-                if (!notifications.hasNotifications()) {
+                if (notifications.hasNotifications()) {
                   return SvgPicture.asset(
-                    'assets/icon/empty_notifications.svg',
+                    'assets/icon/has_notifications.svg',
                     height: 20,
                     width: 16,
                   );
                 }
                 return SvgPicture.asset(
-                  'assets/icon/has_notifications.svg',
+                  'assets/icon/empty_notifications.svg',
                   height: 20,
                   width: 16,
                 );
@@ -249,6 +249,7 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   Future<void> notifications() async {
+    Provider.of<NotificationModel>(context, listen: false).removeAll();
     await Navigator.push(context, MaterialPageRoute(builder: (context) {
       return const NotificationPage();
     }));

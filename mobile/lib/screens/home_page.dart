@@ -84,21 +84,21 @@ class _HomePageState extends State<HomePage> {
                     right: 0.0,
                     child: Consumer<NotificationModel>(
                       builder: (context, notificationModel, child) {
-                        if (!notificationModel.hasNotifications()) {
+                        if (notificationModel.navBarNotification) {
                           return Container(
-                            height: 0.1,
-                            width: 0.1,
-                            decoration: const BoxDecoration(
+                            height: 4,
+                            width: 4,
+                            decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: Colors.transparent),
+                                color: ColorConstants.red),
                           );
                         }
                         return Container(
-                          height: 4,
-                          width: 4,
-                          decoration: BoxDecoration(
+                          height: 0.1,
+                          width: 0.1,
+                          decoration: const BoxDecoration(
                               shape: BoxShape.circle,
-                              color: ColorConstants.red),
+                              color: Colors.transparent),
                         );
                       },
                     ),
@@ -172,5 +172,10 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _selectedIndex = index;
     });
+
+    if (index == 2) {
+      Provider.of<NotificationModel>(context, listen: false)
+          .removeNavBarNotification();
+    }
   }
 }

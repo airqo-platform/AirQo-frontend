@@ -52,12 +52,17 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
             padding: const EdgeInsets.only(left: 24, right: 24),
             child: GestureDetector(
               onTap: () {
-                LocationService().getLocation().then((value) => {
+                LocationService().requestLocationAccess().then((value) => {
                       Navigator.pushAndRemoveUntil(context,
                           MaterialPageRoute(builder: (context) {
                         return SetUpCompleteScreen(widget.enableBackButton);
                       }), (r) => false)
-                    });
+                    }).whenComplete(() => {
+                  Navigator.pushAndRemoveUntil(context,
+                      MaterialPageRoute(builder: (context) {
+                        return SetUpCompleteScreen(widget.enableBackButton);
+                      }), (r) => false)
+                });
               },
               child:
                   nextButton('Yes, keep me safe', ColorConstants.appColorBlue),

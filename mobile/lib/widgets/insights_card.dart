@@ -31,7 +31,7 @@ class InsightsCard extends StatefulWidget {
 
 class _InsightsCardState extends State<InsightsCard> {
   List<HistoricalMeasurement> measurements = [];
-  var selectedMeasurement;
+  HistoricalMeasurement? selectedMeasurement;
   List<charts.Series<dynamic, DateTime>> chartData = [];
   final ScrollController _scrollController = ScrollController();
   String viewDay = 'today';
@@ -63,7 +63,7 @@ class _InsightsCardState extends State<InsightsCard> {
                           children: [
                             Text(
                               insightsChartDateTimeToString(
-                                  selectedMeasurement.formattedTime,
+                                  selectedMeasurement!.formattedTime,
                                   widget.daily),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -91,7 +91,7 @@ class _InsightsCardState extends State<InsightsCard> {
                       ),
                       const SizedBox(width: 16),
                       insightsAvatar(
-                          context, selectedMeasurement, 64, widget.pollutant),
+                          context, selectedMeasurement!, 64, widget.pollutant),
                     ],
                   ),
                   widget.daily
@@ -110,7 +110,7 @@ class _InsightsCardState extends State<InsightsCard> {
                           constraints: BoxConstraints(
                               maxWidth: MediaQuery.of(context).size.width / 2),
                           child: Text(
-                            dateToString(selectedMeasurement.time, true),
+                            dateToString(selectedMeasurement!.time, true),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -152,34 +152,34 @@ class _InsightsCardState extends State<InsightsCard> {
                     decoration: BoxDecoration(
                         borderRadius:
                             const BorderRadius.all(Radius.circular(40.0)),
-                        color: selectedMeasurement.formattedTime
+                        color: selectedMeasurement!.formattedTime
                                 .isAfter(DateTime.now())
                             ? ColorConstants.appColorPaleBlue
                             : widget.pollutant == 'pm2.5'
                                 ? pm2_5ToColor(
-                                        selectedMeasurement.getPm2_5Value())
+                                        selectedMeasurement!.getPm2_5Value())
                                     .withOpacity(0.4)
                                 : pm10ToColor(
-                                        selectedMeasurement.getPm10Value())
+                                        selectedMeasurement!.getPm10Value())
                                     .withOpacity(0.4),
                         border: Border.all(color: Colors.transparent)),
                     child: Text(
                       widget.pollutant == 'pm2.5'
-                          ? pm2_5ToString(selectedMeasurement.getPm2_5Value())
-                          : pm10ToString(selectedMeasurement.getPm10Value()),
+                          ? pm2_5ToString(selectedMeasurement!.getPm2_5Value())
+                          : pm10ToString(selectedMeasurement!.getPm10Value()),
                       maxLines: 1,
                       textAlign: TextAlign.center,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 14,
-                        color: selectedMeasurement.formattedTime
+                        color: selectedMeasurement!.formattedTime
                                 .isAfter(DateTime.now())
                             ? ColorConstants.appColorBlue
                             : widget.pollutant == 'pm2.5'
                                 ? pm2_5TextColor(
-                                    selectedMeasurement.getPm2_5Value())
+                                    selectedMeasurement!.getPm2_5Value())
                                 : pm10TextColor(
-                                    selectedMeasurement.getPm10Value()),
+                                    selectedMeasurement!.getPm10Value()),
                       ),
                     ),
                   ),
@@ -188,9 +188,8 @@ class _InsightsCardState extends State<InsightsCard> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      var measurement = selectedMeasurement
-                          .getMeasurement(widget.placeDetails);
-                      pmInfoDialog(context, measurement);
+                      pmInfoDialog(
+                          context, selectedMeasurement!.getPm2_5Value());
                     },
                     child: SvgPicture.asset(
                       'assets/icon/info_icon.svg',
@@ -207,7 +206,7 @@ class _InsightsCardState extends State<InsightsCard> {
                           width: 10,
                           decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: selectedMeasurement.formattedTime
+                              color: selectedMeasurement!.formattedTime
                                       .isAfter(DateTime.now())
                                   ? ColorConstants.appColorBlue
                                   : ColorConstants.appColorPaleBlue,
@@ -330,7 +329,7 @@ class _InsightsCardState extends State<InsightsCard> {
                       });
                     } else {
                       if (widget.pollutant == 'pm2.5') {
-                        getForecast(selectedMeasurement.deviceNumber, value);
+                        getForecast(selectedMeasurement!.deviceNumber, value);
                       }
                     }
                   }),

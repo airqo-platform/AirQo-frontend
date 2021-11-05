@@ -467,8 +467,9 @@ class AirqoApiClient {
 class SearchApi {
   final sessionToken;
   final apiKey = AppConfig.googleApiKey;
+  final BuildContext context;
 
-  SearchApi(this.sessionToken);
+  SearchApi(this.sessionToken, this.context);
 
   Future<List<Suggestion>> fetchSuggestions(String input) async {
     try {
@@ -481,28 +482,26 @@ class SearchApi {
       final responseBody =
           await _performGetRequest(queryParams, AirQoUrls().searchSuggestions);
 
+      if (responseBody == null) {
+        return [];
+      }
       if (responseBody['status'] == 'OK') {
         return compute(Suggestion.parseSuggestions, responseBody);
       }
       if (responseBody['status'] == 'ZERO_RESULTS') {
         return [];
       }
-
-      throw Exception(responseBody['error_message']);
-    } on SocketException {
-      throw Exception(ErrorMessages.socketException);
-    } on TimeoutException {
-      throw Exception(ErrorMessages.timeoutException);
     } on Error catch (exception, stackTrace) {
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
       );
-      throw Exception('Cannot get suggestions, please try again later');
     }
+
+    return [];
   }
 
-  Future<Place> getPlaceDetails(String placeId) async {
+  Future<Place?> getPlaceDetails(String placeId) async {
     try {
       var queryParams = <String, dynamic>{}
         ..putIfAbsent('place_id', () => placeId)
@@ -521,8 +520,9 @@ class SearchApi {
         exception,
         stackTrace: stackTrace,
       );
-      throw Exception('$exception');
     }
+
+    return null;
   }
 
   Future<dynamic> _performGetRequest(
@@ -547,15 +547,17 @@ class SearchApi {
         return null;
       }
     } on SocketException {
-      throw Exception(ErrorMessages.timeoutException);
+      await showSnackBar(context, ErrorMessages.timeoutException);
+      return null;
     } on TimeoutException {
-      throw Exception(ErrorMessages.timeoutException);
+      await showSnackBar(context, ErrorMessages.timeoutException);
+      return null;
     } on Error catch (exception, stackTrace) {
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
       );
-      throw Exception('Cannot get details, please try again later');
+      return null;
     }
   }
 }

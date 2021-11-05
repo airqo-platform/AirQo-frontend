@@ -27,7 +27,8 @@ class _SearchPageState extends State<SearchPage> {
   List<Measurement> allSites = [];
   bool isSearching = false;
   bool hasNearbyLocations = true;
-  SearchApi searchApiClient = SearchApi(const Uuid().v4());
+  String sessionToken = const Uuid().v4();
+  SearchApi? searchApiClient;
 
   @override
   Widget build(BuildContext context) {
@@ -159,6 +160,7 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   void initState() {
+    searchApiClient = SearchApi(sessionToken, context);
     getSites();
     getUserLocation();
     super.initState();
@@ -342,8 +344,8 @@ class _SearchPageState extends State<SearchPage> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
+                        children: const [
+                          Text(
                             'Allow location',
                             textAlign: TextAlign.center,
                             style: TextStyle(
@@ -374,7 +376,7 @@ class _SearchPageState extends State<SearchPage> {
         isSearching = true;
       });
 
-      searchApiClient.fetchSuggestions(text).then((value) => {
+      searchApiClient!.fetchSuggestions(text).then((value) => {
             setState(() {
               searchSuggestions = value;
             })
@@ -532,27 +534,31 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Future<void> showPlaceDetails(Suggestion suggestion) async {
-    var place = await searchApiClient.getPlaceDetails(suggestion.placeId);
-    var nearestSite = await LocationService().getNearestSite(
-        place.geometry.location.lat, place.geometry.location.lng);
+    var place = await searchApiClient!.getPlaceDetails(suggestion.placeId);
+    if (place != null) {
+      var nearestSite = await LocationService().getNearestSite(
+          place.geometry.location.lat, place.geometry.location.lng);
 
-    if (nearestSite == null) {
-      await showSnackBar(
-          context,
-          'Sorry, we dont have information for '
-          '${suggestion.suggestionDetails.mainText}');
-      return;
+      if (nearestSite == null) {
+        await showSnackBar(
+            context,
+            'Sorry, we don\'t have air quality for '
+            '${suggestion.suggestionDetails.mainText}');
+        return;
+      }
+
+      var placeDetails = PlaceDetails(
+          suggestion.suggestionDetails.mainText,
+          suggestion.suggestionDetails.secondaryText,
+          nearestSite.id,
+          place.geometry.location.lat,
+          place.geometry.location.lng);
+
+      await Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return InsightsPage(placeDetails);
+      }));
+    } else {
+      await showSnackBar(context, 'Try again later');
     }
-
-    var placeDetails = PlaceDetails(
-        suggestion.suggestionDetails.mainText,
-        suggestion.suggestionDetails.secondaryText,
-        nearestSite.id,
-        place.geometry.location.lat,
-        place.geometry.location.lng);
-
-    await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return InsightsPage(placeDetails);
-    }));
   }
 }

@@ -35,7 +35,6 @@ class SplashScreenState extends State<SplashScreen> {
   void initialize() {
     _getLatestMeasurements();
     _getFavPlaces();
-    SearchApi(const Uuid().v4()).fetchSuggestions('kampala');
     Future.delayed(const Duration(seconds: 2), () async {
       _updateWidget();
     });

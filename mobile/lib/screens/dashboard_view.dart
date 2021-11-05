@@ -31,6 +31,7 @@ class _DashboardViewState extends State<DashboardView> {
   double tipsProgress = 0.0;
   bool isRefreshing = false;
   List<Widget> dashboardCards = [];
+  List<Widget> favLocations = [];
 
   final CustomAuth _customAuth = CustomAuth();
 
@@ -48,15 +49,10 @@ class _DashboardViewState extends State<DashboardView> {
               children: [
                 GestureDetector(
                   onTap: () async {
-                    var response = await Navigator.push(context,
+                    await Navigator.push(context,
                         MaterialPageRoute(builder: (context) {
                       return const AirPollutionWaysPage();
                     }));
-                    if (response == null) {
-                      await initialize();
-                    } else {
-                      await initialize();
-                    }
                   },
                   child: const Text(
                       'Actions You Can Take to Reduce '
@@ -73,15 +69,10 @@ class _DashboardViewState extends State<DashboardView> {
                 ),
                 GestureDetector(
                   onTap: () async {
-                    var response = await Navigator.push(context,
+                    await Navigator.push(context,
                         MaterialPageRoute(builder: (context) {
                       return const AirPollutionWaysPage();
                     }));
-                    if (response == null) {
-                      await initialize();
-                    } else {
-                      await initialize();
-                    }
                   },
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -114,15 +105,10 @@ class _DashboardViewState extends State<DashboardView> {
           ),
           GestureDetector(
             onTap: () async {
-              var response = await Navigator.push(context,
+              await Navigator.push(context,
                   MaterialPageRoute(builder: (context) {
                 return const AirPollutionWaysPage();
               }));
-              if (response == null) {
-                await initialize();
-              } else {
-                await initialize();
-              }
             },
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8.0),
@@ -161,15 +147,10 @@ class _DashboardViewState extends State<DashboardView> {
                 borderRadius: BorderRadius.all(Radius.circular(10.0))),
             child: GestureDetector(
               onTap: () async {
-                var response = await Navigator.push(context,
+                await Navigator.push(context,
                     MaterialPageRoute(builder: (context) {
                   return const SearchPage();
                 }));
-                if (response == null) {
-                  await initialize();
-                } else {
-                  await initialize();
-                }
               },
               child: SvgPicture.asset(
                 'assets/icon/search.svg',
@@ -212,7 +193,7 @@ class _DashboardViewState extends State<DashboardView> {
               ),
               Expanded(
                   child: RefreshIndicator(
-                onRefresh: initialize,
+                onRefresh: _getLatestMeasurements,
                 color: ColorConstants.appColorBlue,
                 child: _dashboardItems(),
               )),
@@ -221,7 +202,7 @@ class _DashboardViewState extends State<DashboardView> {
     );
   }
 
-  Widget favPlaceAvatar(double rightPadding, Measurement favouritePlace) {
+  Widget favPlaceAvatar(double rightPadding, Measurement measurement) {
     return Positioned(
         right: rightPadding,
         child: Container(
@@ -230,21 +211,36 @@ class _DashboardViewState extends State<DashboardView> {
           padding: const EdgeInsets.all(2.0),
           decoration: BoxDecoration(
             border: Border.all(color: Colors.white, width: 2),
-            color: pm2_5ToColor(favouritePlace.getPm2_5Value()),
+            color: pm2_5ToColor(measurement.getPm2_5Value()),
             shape: BoxShape.circle,
           ),
           child: Center(
             child: Text(
-              '${favouritePlace.getPm2_5Value()}',
+              '${measurement.getPm2_5Value()}',
               style: TextStyle(
                   fontSize: 7,
-                  color: pm2_5TextColor(favouritePlace.getPm2_5Value())),
+                  color: pm2_5TextColor(measurement.getPm2_5Value())),
             ),
           ),
         ));
   }
 
-  Future<void> getDashboardLocations() async {
+  Widget favPlaceAvatarEmpty(double rightPadding) {
+    return Positioned(
+        right: rightPadding,
+        child: Container(
+          height: 32.0,
+          width: 32.0,
+          padding: const EdgeInsets.all(2.0),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.white, width: 2),
+            color: ColorConstants.greyColor,
+            shape: BoxShape.circle,
+          ),
+        ));
+  }
+
+  void getDashboardLocations() async {
     var measurements = await DBHelper().getLatestMeasurements();
 
     for (var i = 0; i < 4; i++) {
@@ -259,8 +255,8 @@ class _DashboardViewState extends State<DashboardView> {
 
   Future<void> initialize() async {
     setGreetings();
-    _getLatestMeasurements();
-    _getLocationMeasurements();
+    // _getLatestMeasurements();
+    // _getLocationMeasurements();
     loadDashboardCards();
     getDashboardLocations();
     var preferences = await SharedPreferences.getInstance();
@@ -271,8 +267,8 @@ class _DashboardViewState extends State<DashboardView> {
 
   @override
   void initState() {
-    super.initState();
     initialize();
+    super.initState();
   }
 
   void loadDashboardCards() {
@@ -344,27 +340,72 @@ class _DashboardViewState extends State<DashboardView> {
     });
   }
 
-  List<Widget> showFavourites(List<PlaceDetails> favouritePlaces) {
+  void getFavourites(List<PlaceDetails> favouritePlaces) async {
     var widgets = <Widget>[];
 
-    // try {
-    //   if (favouritePlaces.length == 1) {
-    //     widgets.add(favPlaceAvatar(0, favouritePlaces[0]));
-    //   } else if (favouritePlaces.length == 2) {
-    //     widgets
-    //       ..add(favPlaceAvatar(0, favouritePlaces[0]))
-    //       ..add(favPlaceAvatar(7, favouritePlaces[1]));
-    //   } else if (favouritePlaces.length >= 3) {
-    //     widgets
-    //       ..add(favPlaceAvatar(0, favouritePlaces[0]))
-    //       ..add(favPlaceAvatar(7, favouritePlaces[1]))
-    //       ..add(favPlaceAvatar(14, favouritePlaces[2]));
-    //   } else {}
-    // } catch (e) {
-    //   debugPrint(e.toString());
-    // }
+    try {
+      if (favouritePlaces.length == 1) {
+        var measurement =
+            await DBHelper().getMeasurement(favouritePlaces[0].siteId);
+        if (measurement != null) {
+          widgets.add(favPlaceAvatar(0, measurement));
+        } else {
+          widgets.add(favPlaceAvatarEmpty(0));
+        }
+      } else if (favouritePlaces.length == 2) {
+        var measurement =
+            await DBHelper().getMeasurement(favouritePlaces[0].siteId);
+        if (measurement != null) {
+          widgets.add(favPlaceAvatar(0, measurement));
+        } else {
+          widgets.add(favPlaceAvatarEmpty(0));
+        }
 
-    return widgets;
+        measurement =
+            await DBHelper().getMeasurement(favouritePlaces[1].siteId);
+        if (measurement != null) {
+          widgets.add(favPlaceAvatar(7, measurement));
+        } else {
+          widgets.add(favPlaceAvatarEmpty(7));
+        }
+
+        // widgets
+        //   ..add(favPlaceAvatar(0, favouritePlaces[0]))
+        //   ..add(favPlaceAvatar(7, favouritePlaces[1]));
+      } else if (favouritePlaces.length >= 3) {
+        var measurement =
+            await DBHelper().getMeasurement(favouritePlaces[0].siteId);
+        if (measurement != null) {
+          widgets.add(favPlaceAvatar(0, measurement));
+        } else {
+          widgets.add(favPlaceAvatarEmpty(0));
+        }
+
+        measurement =
+            await DBHelper().getMeasurement(favouritePlaces[1].siteId);
+        if (measurement != null) {
+          widgets.add(favPlaceAvatar(7, measurement));
+        } else {
+          widgets.add(favPlaceAvatarEmpty(7));
+        }
+
+        measurement =
+            await DBHelper().getMeasurement(favouritePlaces[2].siteId);
+        if (measurement != null) {
+          widgets.add(favPlaceAvatar(14, measurement));
+        } else {
+          widgets.add(favPlaceAvatarEmpty(14));
+        }
+      } else {}
+    } catch (e) {
+      debugPrint('hi');
+      debugPrint(e.toString());
+    }
+
+    setState(() {
+      favLocations.clear();
+      favLocations = widgets;
+    });
   }
 
   Widget tipsSection() {
@@ -381,18 +422,13 @@ class _DashboardViewState extends State<DashboardView> {
               children: [
                 GestureDetector(
                   onTap: () async {
-                    var response = await Navigator.push(context,
+                    await Navigator.push(context,
                         MaterialPageRoute(builder: (context) {
                       if (tipsProgress >= 1.0) {
                         return ForYouPage();
                       }
                       return const AirPollutionWaysPage();
                     }));
-                    if (response == null) {
-                      await initialize();
-                    } else {
-                      await initialize();
-                    }
                   },
                   child: const Text('The Tid Tips On Air Quality!',
                       maxLines: 2,
@@ -407,18 +443,13 @@ class _DashboardViewState extends State<DashboardView> {
                 ),
                 GestureDetector(
                   onTap: () async {
-                    var response = await Navigator.push(context,
+                    await Navigator.push(context,
                         MaterialPageRoute(builder: (context) {
                       if (tipsProgress >= 1.0) {
                         return ForYouPage();
                       }
                       return const AirPollutionWaysPage();
                     }));
-                    if (response == null) {
-                      await initialize();
-                    } else {
-                      await initialize();
-                    }
                   },
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -473,17 +504,20 @@ class _DashboardViewState extends State<DashboardView> {
                 const SizedBox(
                   height: 2,
                 ),
-                Container(
-                    height: 4,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(8.0)),
-                    ),
-                    child: LinearProgressIndicator(
-                      color: ColorConstants.appColorBlue,
-                      value: tipsProgress,
-                      backgroundColor:
-                          ColorConstants.appColorDisabled.withOpacity(0.2),
-                    )),
+                Visibility(
+                  visible: tipsProgress > 0.0 && tipsProgress < 1.0,
+                  child: Container(
+                      height: 4,
+                      decoration: const BoxDecoration(
+                        borderRadius: BorderRadius.all(Radius.circular(8.0)),
+                      ),
+                      child: LinearProgressIndicator(
+                        color: ColorConstants.appColorBlue,
+                        value: tipsProgress,
+                        backgroundColor:
+                            ColorConstants.appColorDisabled.withOpacity(0.2),
+                      )),
+                ),
               ],
             ),
           ),
@@ -492,18 +526,13 @@ class _DashboardViewState extends State<DashboardView> {
           ),
           GestureDetector(
             onTap: () async {
-              var response = await Navigator.push(context,
+              await Navigator.push(context,
                   MaterialPageRoute(builder: (context) {
                 if (tipsProgress >= 1.0) {
                   return ForYouPage();
                 }
                 return const AirPollutionWaysPage();
               }));
-              if (response == null) {
-                await initialize();
-              } else {
-                await initialize();
-              }
             },
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8.0),
@@ -527,15 +556,10 @@ class _DashboardViewState extends State<DashboardView> {
         Expanded(
             child: GestureDetector(
           onTap: () async {
-            var response = await Navigator.push(context,
+            await Navigator.push(context,
                 MaterialPageRoute(builder: (context) {
               return const FavouritePlaces();
             }));
-            if (response == null) {
-              await initialize();
-            } else {
-              await initialize();
-            }
           },
           child: Container(
             height: 56,
@@ -553,12 +577,12 @@ class _DashboardViewState extends State<DashboardView> {
                         'assets/icon/add_avator.svg',
                       );
                     }
+                    getFavourites(placeDetailsModel.favouritePlaces);
                     return SizedBox(
                       height: 32,
                       width: 44,
                       child: Stack(
-                        children:
-                            showFavourites(placeDetailsModel.favouritePlaces),
+                        children: favLocations,
                       ),
                     );
                   },
@@ -655,9 +679,10 @@ class _DashboardViewState extends State<DashboardView> {
         ));
   }
 
-  void _getLatestMeasurements() async {
+  Future<void> _getLatestMeasurements() async {
     await AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
-          if (value.isNotEmpty) {DBHelper().insertLatestMeasurements(value)}
+          if (value.isNotEmpty)
+            {DBHelper().insertLatestMeasurements(value), initialize()}
         });
   }
 

@@ -7,6 +7,7 @@ part 'notification.g.dart';
 
 class NotificationModel extends ChangeNotifier {
   final List<UserNotification> _notifications = [];
+  bool _navBarNotification = true;
 
   UnmodifiableListView<UserNotification> get notifications =>
       UnmodifiableListView(_notifications);
@@ -25,8 +26,18 @@ class NotificationModel extends ChangeNotifier {
     return _notifications.where((element) => element.isNew).toList().isNotEmpty;
   }
 
+  bool get navBarNotification {
+    return _navBarNotification && hasNotifications();
+  }
+
+  void removeNavBarNotification() {
+    _navBarNotification = false;
+    notifyListeners();
+  }
+
   void removeAll() {
     _notifications.clear();
+    _navBarNotification = false;
     notifyListeners();
   }
 }

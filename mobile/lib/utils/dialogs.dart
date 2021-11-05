@@ -59,7 +59,7 @@ void infoDialog(context, String message) {
   );
 }
 
-void pmInfoDialog(context, Measurement measurement) {
+void pmInfoDialog(context, double pm2_5) {
   showGeneralDialog(
     context: context,
     barrierDismissible: false,
@@ -222,18 +222,16 @@ void pmInfoDialog(context, Measurement measurement) {
                       Container(
                         padding: const EdgeInsets.fromLTRB(12, 2.0, 12, 2),
                         decoration: BoxDecoration(
-                            color: pm2_5ToColor(measurement.getPm2_5Value())
-                                .withOpacity(0.4),
+                            color: pm2_5ToColor(pm2_5).withOpacity(0.4),
                             borderRadius:
                                 const BorderRadius.all(Radius.circular(537.0))),
                         child: Text(
-                          pm2_5ToString(measurement.getPm2_5Value()),
+                          pm2_5ToString(pm2_5),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                               fontSize: 10,
-                              color:
-                                  pm2_5TextColor(measurement.getPm2_5Value()),
+                              color: pm2_5TextColor(pm2_5),
                               fontWeight: FontWeight.w500),
                         ),
                       ),
@@ -244,8 +242,7 @@ void pmInfoDialog(context, Measurement measurement) {
                         text: TextSpan(
                           children: <TextSpan>[
                             TextSpan(
-                              text:
-                                  '${pmToLongString(measurement.getPm2_5Value())}'
+                              text: '${pmToLongString(pm2_5)}'
                                   ' means; ',
                               style: TextStyle(
                                   fontSize: 10,
@@ -253,7 +250,7 @@ void pmInfoDialog(context, Measurement measurement) {
                                   color: ColorConstants.appColorBlack),
                             ),
                             TextSpan(
-                              text: pmToInfoDialog(measurement.getPm2_5Value()),
+                              text: pmToInfoDialog(pm2_5),
                               style: TextStyle(
                                 color: ColorConstants.appColorBlack
                                     .withOpacity(0.7),

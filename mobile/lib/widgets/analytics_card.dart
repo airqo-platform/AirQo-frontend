@@ -57,7 +57,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
           children: [
             GestureDetector(
               onTap: () {
-                pmInfoDialog(context, measurement!);
+                pmInfoDialog(context, measurement!.getPm2_5Value());
               },
               child: Container(
                 padding: const EdgeInsets.only(right: 12),
@@ -277,15 +277,17 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
         ));
   }
 
-  void getMeasurement() {
-    DBHelper().getMeasurement(widget.placeDetails.siteId).then((value) => {
-          if (value != null)
-            {
-              setState(() {
-                measurement = value;
-              })
-            }
-        });
+  Future<void> getMeasurement() async {
+    await DBHelper()
+        .getMeasurement(widget.placeDetails.siteId)
+        .then((value) => {
+              if (value != null)
+                {
+                  setState(() {
+                    measurement = value;
+                  })
+                }
+            });
   }
 
   @override

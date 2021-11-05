@@ -796,7 +796,10 @@ class DBHelper {
                 .reloadFavouritePlaces()
           });
     } else {
-      await removeFavPlace(placeDetails);
+      await removeFavPlace(placeDetails).then((value) => {
+            Provider.of<PlaceDetailsModel>(context, listen: false)
+                .reloadFavouritePlaces()
+          });
     }
   }
 

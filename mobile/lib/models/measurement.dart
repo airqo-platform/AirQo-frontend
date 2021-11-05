@@ -65,9 +65,10 @@ class Measurement {
 
   Map<String, dynamic> toJson() => _$MeasurementToJson(this);
 
+
   @override
   String toString() {
-    return 'Measurement{pm10: $pm10, deviceNumber: $deviceNumber}';
+    return 'Measurement{time: $time, pm2_5: $pm2_5, pm10: $pm10, site: $site, deviceNumber: $deviceNumber}';
   }
 
   static String createTableStmt() =>
