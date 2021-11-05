@@ -164,6 +164,8 @@ const Download = (props) => {
             "time",
             ...getValues(pollutants),
             "frequency",
+            "latitude",
+            "longitude",
             "site_id",
             "site_description",
           ];

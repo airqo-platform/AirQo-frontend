@@ -235,6 +235,27 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               <option value="Africell">Africell</option>
             </TextField>
           </Grid>
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
+            <TextField
+              select
+              fullWidth
+              label="Primary Device In Location"
+              style={{ margin: "10px 0" }}
+              value={editData.isPrimaryInLocation}
+              onChange={handleSelectFieldChange("isPrimaryInLocation")}
+              SelectProps={{
+                native: true,
+                style: { width: "100%", height: "50px" },
+              }}
+              variant="outlined"
+              error={!!errors.isPrimaryInLocation}
+              helperText={errors.isPrimaryInLocation}
+            >
+              <option value="" />
+              <option value={true}>Yes</option>
+              <option value={false}>No</option>
+            </TextField>
+          </Grid>
           {/*<Grid*/}
           {/*  items*/}
           {/*  xs={12}*/}

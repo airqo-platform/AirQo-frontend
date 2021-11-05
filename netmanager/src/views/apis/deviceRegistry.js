@@ -14,6 +14,7 @@ import {
   EVENTS,
   RECALL_DEVICE_URI,
   SITES,
+    AIRQLOUDS
 } from "config/urls/deviceRegistry";
 import { DEVICE_MAINTENANCE_LOG_URI } from "config/urls/deviceMonitoring";
 import { DEVICE_RECENT_FEEDS } from "config/urls/dataManagement";
@@ -152,4 +153,8 @@ export const deleteSiteApi = async (siteId) => {
   return await axios
     .delete(SITES, { params: { id: siteId } })
     .then((response) => response.data);
+};
+
+export const getAirQloudsApi = async (params) => {
+  return axios.get(AIRQLOUDS, { params }).then((response) => response.data);
 };

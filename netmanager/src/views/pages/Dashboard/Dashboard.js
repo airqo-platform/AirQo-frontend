@@ -20,6 +20,7 @@ import { PM_25_CATEGORY } from "utils/categories";
 import { isEmpty } from "underscore";
 import { useInitScrollTop } from "utils/customHooks";
 import ErrorBoundary from "views/ErrorBoundary/ErrorBoundary";
+import AirQloudDropDown from "../../containers/AirQloudDropDown";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -119,6 +120,11 @@ const Dashboard = () => {
   return (
     <ErrorBoundary>
       <div className={classes.root}>
+        <Grid container>
+          <Grid xs={12} sm={12} md={6} xl={6} style={{display: "flex"}}>
+            <AirQloudDropDown />
+          </Grid>
+        </Grid>
         <Grid container spacing={4}>
           <Grid item lg={2} sm={6} xl={2} xs={12}>
             <PollutantCategory
