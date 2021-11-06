@@ -34,6 +34,7 @@ class _DashboardViewState extends State<DashboardView> {
   bool isRefreshing = false;
   List<Widget> dashboardCards = [];
   List<Widget> favLocations = [];
+  final CloudAnalytics _cloudAnalytics = CloudAnalytics();
 
   final CustomAuth _customAuth = CustomAuth();
 
@@ -348,6 +349,7 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   Future<void> initialize() async {
+    _cloudAnalytics.sendScreenToAnalytics('Home Page');
     setGreetings();
     // _getLatestMeasurements();
     // _getLocationMeasurements();

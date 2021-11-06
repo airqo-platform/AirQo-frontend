@@ -77,8 +77,7 @@ class LocationService {
         if (nearestMeasurements.isNotEmpty) {
           nearestMeasurement = nearestMeasurements.first;
           for (var measurement in nearestMeasurements) {
-            if (nearestMeasurement!.site.distance >
-                measurement.site.distance) {
+            if (nearestMeasurement!.site.distance > measurement.site.distance) {
               nearestMeasurement = measurement;
             }
           }
@@ -132,7 +131,7 @@ class LocationService {
   Future<Site?> getNearestSite(double latitude, double longitude) async {
     try {
       var nearestSites = await getNearestSites(latitude, longitude);
-      if(nearestSites.isEmpty){
+      if (nearestSites.isEmpty) {
         return null;
       }
 

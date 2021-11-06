@@ -1,5 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/air_quality_tip.dart';
+import 'package:app/services/fb_notifications.dart';
 import 'package:app/utils/share.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/custom_widgets.dart';
@@ -25,6 +26,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
   int currentPage = 0;
   bool showLastPage = false;
   double tipsProgress = 0.1;
+  final CloudAnalytics _cloudAnalytics = CloudAnalytics();
 
   @override
   Widget build(BuildContext context) {
@@ -169,6 +171,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
 
   @override
   void initState() {
+    _cloudAnalytics.sendScreenToAnalytics('Air Pollution ways');
     getTips();
     super.initState();
   }

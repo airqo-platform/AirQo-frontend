@@ -9,7 +9,7 @@ class AppConfig {
 
   static const String sentryUrl = sentryDsn;
 
-  static final String imageUploadApiKey = imageApiKey;
+  static const String imageUploadApiKey = imageApiKey;
 
   static final String imageUploadPreset = uploadPreset;
 

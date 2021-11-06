@@ -27,6 +27,7 @@ class _ProfileViewState extends State<ProfileView> {
   final CustomAuth _customAuth = CustomAuth();
   final CloudStore _cloudStore = CloudStore();
   bool isLoggedIn = false;
+  final CloudAnalytics _cloudAnalytics = CloudAnalytics();
 
   Widget appNavBar() {
     return Row(
@@ -202,6 +203,7 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   Future<void> initialize() async {
+    _cloudAnalytics.sendScreenToAnalytics('Profile Page');
     setState(() {
       isLoggedIn = _customAuth.isLoggedIn();
     });

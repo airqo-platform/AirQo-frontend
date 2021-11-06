@@ -266,11 +266,11 @@ class AirqoApiClient {
         throw Exception('Error');
       }
     } on SocketException {
-      await showSnackBar(context, ErrorMessages.socketException);
-      throw Exception('Error');
+      await showSnackBar(context, ErrorMessages.timeoutException);
+      return '';
     } on TimeoutException {
       await showSnackBar(context, ErrorMessages.timeoutException);
-      throw Exception('Error');
+      return '';
     } on Error catch (exception, stackTrace) {
       await Sentry.captureException(
         exception,

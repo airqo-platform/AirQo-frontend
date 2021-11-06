@@ -1,6 +1,8 @@
 import 'dart:collection';
 
+import 'package:app/constants/app_constants.dart';
 import 'package:app/models/site.dart';
+import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -22,6 +24,11 @@ class PlaceDetails {
 
   factory PlaceDetails.fromJson(Map<String, dynamic> json) =>
       _$PlaceDetailsFromJson(json);
+
+  PlaceDetails initialize() {
+    return PlaceDetails(
+        '', '', '', AppConfig.defaultLatitude, AppConfig.defaultLongitude);
+  }
 
   Map<String, dynamic> toJson() => _$PlaceDetailsToJson(this);
 
@@ -76,6 +83,9 @@ class PlaceDetails {
 
 class PlaceDetailsModel extends ChangeNotifier {
   final List<PlaceDetails> _favouritePlaces = [];
+  final DBHelper _dbHelper = DBHelper();
+  final CloudStore _cloudStore = CloudStore();
+  final CustomAuth _customAuth = CustomAuth();
 
   UnmodifiableListView<PlaceDetails> get favouritePlaces =>
       UnmodifiableListView(_favouritePlaces);
@@ -83,8 +93,20 @@ class PlaceDetailsModel extends ChangeNotifier {
   Future<void> reloadFavouritePlaces() async {
     _favouritePlaces.clear();
 
-    await DBHelper()
-        .getFavouritePlaces()
-        .then((value) => {_favouritePlaces.addAll(value), notifyListeners()});
+    var favPlaces = await _dbHelper.getFavouritePlaces();
+    _favouritePlaces.addAll(favPlaces);
+    notifyListeners();
+    var id = _customAuth.getId();
+    if (id != '') {
+      await _cloudStore.updateFavouritePlaces(id, favPlaces);
+    }
+
+    // await _dbHelper
+    //     .getFavouritePlaces()
+    //     .then((value) => {
+    //       _favouritePlaces.addAll(value),
+    //   notifyListeners(),
+    //   updateFavouritePlaces
+    //     });
   }
 }

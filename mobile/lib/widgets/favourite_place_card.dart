@@ -6,6 +6,7 @@ import 'package:app/services/local_storage.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
 import 'custom_widgets.dart';
@@ -21,6 +22,8 @@ class MiniAnalyticsCard extends StatefulWidget {
 
 class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
   Measurement? measurement;
+  bool showHeartAnimation = false;
+  final DBHelper _dbHelper = DBHelper();
 
   @override
   Widget build(BuildContext context) {
@@ -75,21 +78,10 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                     Consumer<PlaceDetailsModel>(
                       builder: (context, placeDetailsModel, child) {
                         return GestureDetector(
-                          onTap: () async {
-                            await DBHelper().updateFavouritePlaces(
-                                widget.placeDetails, context);
-                          },
-                          child: SvgPicture.asset(
-                            PlaceDetails.isFavouritePlace(
-                                    placeDetailsModel.favouritePlaces,
-                                    widget.placeDetails)
-                                ? 'assets/icon/heart.svg'
-                                : 'assets/icon/heart_dislike.svg',
-                            semanticsLabel: 'Favorite',
-                            height: 16.67,
-                            width: 16.67,
-                          ),
-                        );
+                            onTap: () async {
+                              updateFavPlace();
+                            },
+                            child: getHeartIcon());
                       },
                     )
                   ],
@@ -159,6 +151,37 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
     );
   }
 
+  Widget getHeartIcon() {
+    if (showHeartAnimation) {
+      return SizedBox(
+        height: 16.67,
+        width: 16.67,
+        child: Lottie.asset('assets/lottie/animated_heart.json',
+            repeat: false, reverse: false, animate: true, fit: BoxFit.cover),
+      );
+    }
+
+    return Consumer<PlaceDetailsModel>(
+      builder: (context, placeDetailsModel, child) {
+        if (PlaceDetails.isFavouritePlace(
+            placeDetailsModel.favouritePlaces, widget.placeDetails)) {
+          return SvgPicture.asset(
+            'assets/icon/heart.svg',
+            semanticsLabel: 'Favorite',
+            height: 16.67,
+            width: 16.67,
+          );
+        }
+        return SvgPicture.asset(
+          'assets/icon/heart_dislike.svg',
+          semanticsLabel: 'Favorite',
+          height: 16.67,
+          width: 16.67,
+        );
+      },
+    );
+  }
+
   void getMeasurement() {
     DBHelper().getMeasurement(widget.placeDetails.siteId).then((value) => {
           if (value != null)
@@ -174,5 +197,18 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
   void initState() {
     getMeasurement();
     super.initState();
+  }
+
+  void updateFavPlace() async {
+    setState(() {
+      showHeartAnimation = true;
+    });
+    Future.delayed(const Duration(seconds: 2), () async {
+      setState(() {
+        showHeartAnimation = false;
+      });
+    });
+
+    await _dbHelper.updateFavouritePlaces(widget.placeDetails, context);
   }
 }

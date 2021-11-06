@@ -7,6 +7,7 @@ import 'package:app/utils/share.dart';
 import 'package:app/widgets/recomendation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
 import 'custom_widgets.dart';
@@ -27,6 +28,8 @@ class _DailyViewState extends State<DailyView> {
   String pollutant = '';
   bool pm10 = false;
   bool pm2_5 = true;
+  bool showHeartAnimation = false;
+  final DBHelper _dbHelper = DBHelper();
   List<Recommendation> _recommendations = [];
 
   @override
@@ -115,21 +118,9 @@ class _DailyViewState extends State<DailyView> {
                     builder: (context, placeDetailsModel, child) {
                       return GestureDetector(
                         onTap: () async {
-                          await DBHelper().updateFavouritePlaces(
-                              widget.placeDetails, context);
+                          updateFavPlace();
                         },
-                        child: iconTextButton(
-                            SvgPicture.asset(
-                              PlaceDetails.isFavouritePlace(
-                                      placeDetailsModel.favouritePlaces,
-                                      widget.placeDetails)
-                                  ? 'assets/icon/heart.svg'
-                                  : 'assets/icon/heart_dislike.svg',
-                              semanticsLabel: 'Favorite',
-                              height: 16.67,
-                              width: 16.67,
-                            ),
-                            'Favorite'),
+                        child: iconTextButton(getHeartIcon(), 'Favorite'),
                       );
                     },
                   ),
@@ -197,6 +188,37 @@ class _DailyViewState extends State<DailyView> {
     }
   }
 
+  Widget getHeartIcon() {
+    if (showHeartAnimation) {
+      return SizedBox(
+        height: 16.67,
+        width: 16.67,
+        child: Lottie.asset('assets/lottie/animated_heart.json',
+            repeat: false, reverse: false, animate: true, fit: BoxFit.cover),
+      );
+    }
+
+    return Consumer<PlaceDetailsModel>(
+      builder: (context, placeDetailsModel, child) {
+        if (PlaceDetails.isFavouritePlace(
+            placeDetailsModel.favouritePlaces, widget.placeDetails)) {
+          return SvgPicture.asset(
+            'assets/icon/heart.svg',
+            semanticsLabel: 'Favorite',
+            height: 16.67,
+            width: 16.67,
+          );
+        }
+        return SvgPicture.asset(
+          'assets/icon/heart_dislike.svg',
+          semanticsLabel: 'Favorite',
+          height: 16.67,
+          width: 16.67,
+        );
+      },
+    );
+  }
+
   void initialize() {}
 
   @override
@@ -209,5 +231,17 @@ class _DailyViewState extends State<DailyView> {
     setState(() {
       pm2_5 = !pm2_5;
     });
+  }
+
+  void updateFavPlace() async {
+    setState(() {
+      showHeartAnimation = true;
+    });
+    Future.delayed(const Duration(seconds: 2), () async {
+      setState(() {
+        showHeartAnimation = false;
+      });
+    });
+    await _dbHelper.updateFavouritePlaces(widget.placeDetails, context);
   }
 }

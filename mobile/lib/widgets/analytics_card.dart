@@ -9,6 +9,7 @@ import 'package:app/utils/pm.dart';
 import 'package:app/utils/share.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
 import 'custom_shimmer.dart';
@@ -38,6 +39,8 @@ class MapAnalyticsCard extends StatefulWidget {
 
 class _AnalyticsCardState extends State<AnalyticsCard> {
   Measurement? measurement;
+  final DBHelper _dbHelper = DBHelper();
+  bool showHeartAnimation = false;
 
   @override
   Widget build(BuildContext context) {
@@ -242,29 +245,9 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                 ),
                 GestureDetector(
                   onTap: () async {
-                    await DBHelper()
-                        .updateFavouritePlaces(widget.placeDetails, context);
+                    updateFavPlace();
                   },
-                  child: iconTextButton(Consumer<PlaceDetailsModel>(
-                    builder: (context, placeDetailsModel, child) {
-                      if (PlaceDetails.isFavouritePlace(
-                          placeDetailsModel.favouritePlaces,
-                          widget.placeDetails)) {
-                        return SvgPicture.asset(
-                          'assets/icon/heart.svg',
-                          semanticsLabel: 'Favorite',
-                          height: 16.67,
-                          width: 16.67,
-                        );
-                      }
-                      return SvgPicture.asset(
-                        'assets/icon/heart_dislike.svg',
-                        semanticsLabel: 'Favorite',
-                        height: 16.67,
-                        width: 16.67,
-                      );
-                    },
-                  ), 'Favorite'),
+                  child: iconTextButton(getHeartIcon(), 'Favorite'),
                 ),
               ],
             ),
@@ -275,17 +258,46 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
         ));
   }
 
+  Widget getHeartIcon() {
+    if (showHeartAnimation) {
+      return SizedBox(
+        height: 16.67,
+        width: 16.67,
+        child: Lottie.asset('assets/lottie/animated_heart.json',
+            repeat: false, reverse: false, animate: true, fit: BoxFit.cover),
+      );
+    }
+
+    return Consumer<PlaceDetailsModel>(
+      builder: (context, placeDetailsModel, child) {
+        if (PlaceDetails.isFavouritePlace(
+            placeDetailsModel.favouritePlaces, widget.placeDetails)) {
+          return SvgPicture.asset(
+            'assets/icon/heart.svg',
+            semanticsLabel: 'Favorite',
+            height: 16.67,
+            width: 16.67,
+          );
+        }
+        return SvgPicture.asset(
+          'assets/icon/heart_dislike.svg',
+          semanticsLabel: 'Favorite',
+          height: 16.67,
+          width: 16.67,
+        );
+      },
+    );
+  }
+
   Future<void> getMeasurement() async {
-    await DBHelper()
-        .getMeasurement(widget.placeDetails.siteId)
-        .then((value) => {
-              if (value != null)
-                {
-                  setState(() {
-                    measurement = value;
-                  })
-                }
-            });
+    await _dbHelper.getMeasurement(widget.placeDetails.siteId).then((value) => {
+          if (value != null)
+            {
+              setState(() {
+                measurement = value;
+              })
+            }
+        });
   }
 
   @override
@@ -293,9 +305,24 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
     getMeasurement();
     super.initState();
   }
+
+  void updateFavPlace() async {
+    setState(() {
+      showHeartAnimation = true;
+    });
+    Future.delayed(const Duration(seconds: 2), () async {
+      setState(() {
+        showHeartAnimation = false;
+      });
+    });
+    await _dbHelper.updateFavouritePlaces(widget.placeDetails, context);
+  }
 }
 
 class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
+  final DBHelper _dbHelper = DBHelper();
+  bool showHeartAnimation = false;
+
   _MapAnalyticsCardState();
 
   @override
@@ -484,32 +511,10 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                       'Share'),
                 ),
                 GestureDetector(
-                  onTap: () {
-                    DBHelper().updateFavouritePlaces(
-                        PlaceDetails.measurementToPLace(widget.measurement),
-                        context);
+                  onTap: () async {
+                    updateFavPlace();
                   },
-                  child: iconTextButton(Consumer<PlaceDetailsModel>(
-                    builder: (context, placeDetailModel, child) {
-                      if (PlaceDetails.isFavouritePlace(
-                          placeDetailModel.favouritePlaces,
-                          PlaceDetails.measurementToPLace(
-                              widget.measurement))) {
-                        return SvgPicture.asset(
-                          'assets/icon/heart.svg',
-                          semanticsLabel: 'Favorite',
-                          height: 16.67,
-                          width: 16.67,
-                        );
-                      }
-                      return SvgPicture.asset(
-                        'assets/icon/heart_dislike.svg',
-                        semanticsLabel: 'Favorite',
-                        height: 16.67,
-                        width: 16.67,
-                      );
-                    },
-                  ), 'Favorite'),
+                  child: iconTextButton(getHeartIcon(), 'Favorite'),
                 ),
               ],
             ),
@@ -518,5 +523,49 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
             ),
           ],
         ));
+  }
+
+  Widget getHeartIcon() {
+    if (showHeartAnimation) {
+      return SizedBox(
+        height: 16.67,
+        width: 16.67,
+        child: Lottie.asset('assets/lottie/animated_heart.json',
+            repeat: false, reverse: false, animate: true, fit: BoxFit.cover),
+      );
+    }
+
+    return Consumer<PlaceDetailsModel>(
+      builder: (context, placeDetailModel, child) {
+        if (PlaceDetails.isFavouritePlace(placeDetailModel.favouritePlaces,
+            PlaceDetails.measurementToPLace(widget.measurement))) {
+          return SvgPicture.asset(
+            'assets/icon/heart.svg',
+            semanticsLabel: 'Favorite',
+            height: 16.67,
+            width: 16.67,
+          );
+        }
+        return SvgPicture.asset(
+          'assets/icon/heart_dislike.svg',
+          semanticsLabel: 'Favorite',
+          height: 16.67,
+          width: 16.67,
+        );
+      },
+    );
+  }
+
+  void updateFavPlace() async {
+    setState(() {
+      showHeartAnimation = true;
+    });
+    Future.delayed(const Duration(seconds: 2), () async {
+      setState(() {
+        showHeartAnimation = false;
+      });
+    });
+    await _dbHelper.updateFavouritePlaces(
+        PlaceDetails.measurementToPLace(widget.measurement), context);
   }
 }

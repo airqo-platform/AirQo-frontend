@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/alert.dart';
 import 'package:app/models/notification.dart';
+import 'package:app/models/place_details.dart';
 import 'package:app/models/site.dart';
 import 'package:app/models/topicData.dart';
 import 'package:app/models/user_details.dart';
@@ -20,8 +21,6 @@ import 'local_notifications.dart';
 class CloudAnalytics {
   final FirebaseAnalytics analytics = FirebaseAnalytics();
 
-  CloudAnalytics();
-
   void sendScreenToAnalytics(String screen) {
     analytics.setCurrentScreen(
       screenName: screen,
@@ -31,8 +30,6 @@ class CloudAnalytics {
 
 class CloudStore {
   final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
-
-  CloudStore();
 
   Future<void> deleteAccount(id) async {
     try {
@@ -220,6 +217,19 @@ class CloudStore {
     }
   }
 
+  Future<void> updateFavouritePlaces(
+      String id, List<PlaceDetails> places) async {
+    var hasConnection = await isConnected();
+    if (hasConnection) {
+      await _firebaseFirestore
+          .collection(CloudStorage.usersCollection)
+          .doc(id)
+          .update({'favPlaces': places});
+    } else {
+      throw Exception(ErrorMessages.timeoutException);
+    }
+  }
+
   Future<void> updateProfile(UserDetails userDetails, String id) async {
     var hasConnection = await isConnected();
     if (hasConnection) {
@@ -227,7 +237,7 @@ class CloudStore {
       await _firebaseFirestore
           .collection(CloudStorage.usersCollection)
           .doc(id)
-          .set(_userJson);
+          .update(_userJson);
     } else {
       throw Exception(ErrorMessages.timeoutException);
     }
@@ -238,8 +248,6 @@ class CustomAuth {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   final CloudStore _firebaseFirestore = CloudStore();
-
-  CustomAuth();
 
   Future<void> deleteAccount(context) async {
     var currentUser = _firebaseAuth.currentUser;

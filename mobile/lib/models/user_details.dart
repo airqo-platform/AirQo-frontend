@@ -1,3 +1,4 @@
+import 'package:app/models/place_details.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'user_details.g.dart';
@@ -12,9 +13,20 @@ class UserDetails {
   String phoneNumber;
   String device;
   String photoUrl;
+  List<PlaceDetails> favPlaces;
+  UserPreferences preferences;
 
-  UserDetails(this.title, this.firstName, this.userId, this.lastName,
-      this.emailAddress, this.phoneNumber, this.device, this.photoUrl);
+  UserDetails(
+      this.title,
+      this.firstName,
+      this.userId,
+      this.lastName,
+      this.emailAddress,
+      this.phoneNumber,
+      this.device,
+      this.photoUrl,
+      this.favPlaces,
+      this.preferences);
 
   factory UserDetails.fromJson(Map<String, dynamic> json) =>
       _$UserDetailsFromJson(json);
@@ -68,10 +80,33 @@ class UserDetails {
   }
 
   static UserDetails initialize() {
-    return UserDetails('', '', '', '', '', '', '', '');
+    return UserDetails('', '', '', '', '', '', '', '', [],
+        UserPreferences(false, false, false, 0.0));
   }
 
   static UserDetails parseUserDetails(dynamic jsonBody) {
     return UserDetails.fromJson(jsonBody);
+  }
+}
+
+@JsonSerializable()
+class UserPreferences {
+  bool notifications;
+  bool location;
+  bool alerts;
+  double tipsProgress;
+
+  UserPreferences(
+      this.notifications, this.location, this.alerts, this.tipsProgress);
+
+  factory UserPreferences.fromJson(Map<String, dynamic> json) =>
+      _$UserPreferencesFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserPreferencesToJson(this);
+
+  @override
+  String toString() {
+    return 'UserPreferences{notifications: $notifications,'
+        ' location: $location, alerts: $alerts, tipsProgress: $tipsProgress}';
   }
 }
