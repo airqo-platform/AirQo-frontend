@@ -542,7 +542,7 @@ class _SearchPageState extends State<SearchPage> {
       if (nearestSite == null) {
         await showSnackBar(
             context,
-            'Sorry, we don\'t have air quality for '
+            'Sorry, we currently don\'t have air quality for '
             '${suggestion.suggestionDetails.mainText}');
         return;
       }

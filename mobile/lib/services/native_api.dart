@@ -58,7 +58,7 @@ class LocationService {
       var location = await LocationService().getLocation();
       if (location.longitude != null && location.latitude != null) {
         var address = await getAddress(location.latitude!, location.longitude!);
-        var nearestMeasurement;
+        Measurement? nearestMeasurement;
         var latestMeasurements = await DBHelper().getLatestMeasurements();
 
         for (var measurement in latestMeasurements) {
@@ -77,7 +77,7 @@ class LocationService {
         if (nearestMeasurements.isNotEmpty) {
           nearestMeasurement = nearestMeasurements.first;
           for (var measurement in nearestMeasurements) {
-            if (nearestMeasurement.placeDetails.distance >
+            if (nearestMeasurement!.site.distance >
                 measurement.site.distance) {
               nearestMeasurement = measurement;
             }
@@ -86,7 +86,7 @@ class LocationService {
         return nearestMeasurement;
       }
     } catch (e) {
-      print('error $e');
+      debugPrint('error $e');
       return null;
     }
   }
@@ -131,31 +131,20 @@ class LocationService {
 
   Future<Site?> getNearestSite(double latitude, double longitude) async {
     try {
-      var nearestSite;
-      var nearestSites = <Site>[];
-      double distanceInMeters;
-
-      var measurements = await DBHelper().getLatestMeasurements();
-
-      for (var measurement in measurements) {
-        distanceInMeters = metersToKmDouble(Geolocator.distanceBetween(
-            measurement.site.latitude,
-            measurement.site.longitude,
-            latitude,
-            longitude));
-        measurement.site.distance = distanceInMeters;
-        nearestSites.add(measurement.site);
+      var nearestSites = await getNearestSites(latitude, longitude);
+      if(nearestSites.isEmpty){
+        return null;
       }
 
-      nearestSite = nearestSites.first;
+      var nearestSite = nearestSites.first;
 
       for (var site in nearestSites) {
-        if (nearestSite.distance > site.distance) {
+        if (nearestSite.site.distance > site.site.distance) {
           nearestSite = site;
         }
       }
 
-      return nearestSite;
+      return nearestSite.site;
     } catch (e) {
       debugPrint('error $e');
       return null;
