@@ -9,6 +9,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 
 class SplashScreen extends StatefulWidget {
+  const SplashScreen({Key? key}) : super(key: key);
+
   @override
   SplashScreenState createState() => SplashScreenState();
 }
@@ -17,6 +19,8 @@ class SplashScreenState extends State<SplashScreen> {
   int _widgetId = 0;
   final CustomAuth _customAuth = CustomAuth();
   bool _visible = false;
+  final DBHelper _dbHelper = DBHelper();
+  AirqoApiClient? _airqoApiClient;
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +36,7 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   void initialize() {
+    _airqoApiClient = AirqoApiClient(context);
     _getLatestMeasurements();
     _getFavPlaces();
     Future.delayed(const Duration(seconds: 2), () async {
@@ -45,7 +50,7 @@ class SplashScreenState extends State<SplashScreen> {
               if (value) {
                 return WelcomeScreen();
               } else {
-                return HomePage();
+                return const HomePage();
               }
             }), (r) => false);
           }),
@@ -55,6 +60,7 @@ class SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     initialize();
+    _airqoApiClient = AirqoApiClient(context);
     super.initState();
   }
 
@@ -82,26 +88,22 @@ class SplashScreenState extends State<SplashScreen> {
       opacity: _visible ? 1.0 : 0.0,
       duration: const Duration(milliseconds: 500),
       // The green box must be a child of the AnimatedOpacity widget.
-      child: Container(
-        child: Center(
-          child: Stack(alignment: AlignmentDirectional.center, children: [
-            Image.asset(
-              'assets/images/splash-image.png',
-              fit: BoxFit.cover,
-              height: double.infinity,
-              width: double.infinity,
-              alignment: Alignment.center,
-            ),
-            const Text(
-              'Breathe\nClean.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 48,
-                  color: Colors.white),
-            ),
-          ]),
-        ),
+      child: Center(
+        child: Stack(alignment: AlignmentDirectional.center, children: [
+          Image.asset(
+            'assets/images/splash-image.png',
+            fit: BoxFit.cover,
+            height: double.infinity,
+            width: double.infinity,
+            alignment: Alignment.center,
+          ),
+          const Text(
+            'Breathe\nClean.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                fontWeight: FontWeight.bold, fontSize: 48, color: Colors.white),
+          ),
+        ]),
       ),
     );
   }
@@ -112,9 +114,13 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   void _getLatestMeasurements() {
-    AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
-          if (value.isNotEmpty) {DBHelper().insertLatestMeasurements(value)}
-        });
+    try {
+      _airqoApiClient!.fetchLatestMeasurements().then((value) => {
+            if (value.isNotEmpty) {_dbHelper.insertLatestMeasurements(value)}
+          });
+    } catch (e) {
+      debugPrint(e.toString());
+    }
   }
 
   Widget _renderWidget() {

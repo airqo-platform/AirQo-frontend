@@ -1,5 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/utils/string_extension.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -124,7 +125,7 @@ class Site {
         var site = Site.fromJson(jsonElement);
         sites.add(site);
       } catch (e) {
-        print('Error parsing sites : $e');
+        debugPrint(e.toString());
       }
     }
 

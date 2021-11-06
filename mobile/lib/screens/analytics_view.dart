@@ -15,13 +15,14 @@ class AnalyticsView extends StatefulWidget {
 
 class _AnalyticsViewState extends State<AnalyticsView> {
   var favouritePlaces = <Measurement>[];
+  final DBHelper _dbHelper = DBHelper();
 
   @override
   Widget build(BuildContext context) {
     return Container(
         color: ColorConstants.appBodyColor,
         child: FutureBuilder(
-            future: DBHelper().getLatestMeasurements(),
+            future: _dbHelper.getLatestMeasurements(),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
                 favouritePlaces = snapshot.data as List<Measurement>;
@@ -81,7 +82,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
   }
 
   Future<void> refreshData() async {
-    await DBHelper().getLatestMeasurements().then((value) => {
+    await _dbHelper.getLatestMeasurements().then((value) => {
           if (mounted)
             {
               setState(() {

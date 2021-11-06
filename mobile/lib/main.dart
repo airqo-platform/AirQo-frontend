@@ -97,7 +97,7 @@ class AirQoApp extends StatelessWidget {
                 locale: provider.locale,
                 title: AppConfig.name,
                 theme: _buildCurrentTheme(),
-                home: SplashScreen(),
+                home: const SplashScreen(),
               );
             },
           ),

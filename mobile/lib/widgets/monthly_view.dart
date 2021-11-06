@@ -1,11 +1,12 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:app/models/place_details.dart';
 import 'package:app/models/site.dart';
 import 'package:app/services/rest_api.dart';
-import 'package:app/widgets/place_readings_card.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import 'analytics_card.dart';
 import 'custom_shimmer.dart';
 
 class MonthlyView extends StatefulWidget {
@@ -122,8 +123,8 @@ class _MonthlyViewState extends State<MonthlyView>
                     if (mounted)
                       {
                         setState(() {
-                          placeHolders[dateIndex] =
-                              PlaceReadingsCard(widget.site, measurements);
+                          placeHolders[dateIndex] = AnalyticsCard(
+                              PlaceDetails.siteToPLace(widget.site), false);
                         }),
                       }
                   }

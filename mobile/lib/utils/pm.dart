@@ -1,29 +1,10 @@
 import 'dart:ui';
 
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/chartData.dart';
 import 'package:app/models/measurement.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-
-List<charts.Series<TimeSeriesData, DateTime>> createData() {
-  var today = DateTime.now();
-
-  final data = [
-    TimeSeriesData(today.add(const Duration(hours: 1)), 5),
-  ];
-
-  return [
-    charts.Series<TimeSeriesData, DateTime>(
-      id: 'Forecast',
-      colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
-      domainFn: (TimeSeriesData sales, _) => sales.time,
-      measureFn: (TimeSeriesData sales, _) => sales.value,
-      data: data,
-    )
-  ];
-}
 
 List<Recommendation> getHealthRecommendations(double pm2_5) {
   var recommendations = <Recommendation>[];

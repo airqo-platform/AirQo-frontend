@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Settings {
-  DBHelper db = DBHelper();
+  final DBHelper _dbHelper = DBHelper();
 
   Future<Measurement?> dashboardMeasurement() async {
     try {
@@ -15,14 +15,14 @@ class Settings {
           prefs.getString(PrefConstant.dashboardSite) ?? '';
 
       if (dashboardMeasurement != '') {
-        return await db.getMeasurement(dashboardMeasurement);
+        return await _dbHelper.getMeasurement(dashboardMeasurement);
       }
 
       var lastKnown = prefs.getStringList(PrefConstant.lastKnownLocation);
 
       if (lastKnown != null && lastKnown.length >= 2) {
         var locationName = lastKnown.first;
-        var measurement = await db.getMeasurement(lastKnown.last);
+        var measurement = await _dbHelper.getMeasurement(lastKnown.last);
         if (measurement != null) {
           measurement.site.userLocation = locationName;
           return measurement;
@@ -40,7 +40,7 @@ class Settings {
     var address = await LocationService()
         .getAddress(AppConfig.defaultLatitude, AppConfig.defaultLongitude);
 
-    var measurement = await db.getNearestMeasurement(
+    var measurement = await _dbHelper.getNearestMeasurement(
         AppConfig.defaultLatitude, AppConfig.defaultLongitude);
 
     if (measurement == null) {

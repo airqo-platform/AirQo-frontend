@@ -183,7 +183,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
   }
 
   void getMeasurement() {
-    DBHelper().getMeasurement(widget.placeDetails.siteId).then((value) => {
+    _dbHelper.getMeasurement(widget.placeDetails.siteId).then((value) => {
           if (value != null)
             {
               setState(() {

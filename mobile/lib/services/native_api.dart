@@ -10,6 +10,7 @@ import 'package:location/location.dart';
 
 class LocationService {
   Location location = Location();
+  final DBHelper _dbHelper = DBHelper();
 
   Future<bool> checkPermission() async {
     try {
@@ -59,7 +60,7 @@ class LocationService {
       if (location.longitude != null && location.latitude != null) {
         var address = await getAddress(location.latitude!, location.longitude!);
         Measurement? nearestMeasurement;
-        var latestMeasurements = await DBHelper().getLatestMeasurements();
+        var latestMeasurements = await _dbHelper.getLatestMeasurements();
 
         for (var measurement in latestMeasurements) {
           distanceInMeters = metersToKmDouble(Geolocator.distanceBetween(
@@ -155,7 +156,7 @@ class LocationService {
     var nearestSites = <Measurement>[];
     double distanceInMeters;
 
-    var latestMeasurements = await DBHelper().getLatestMeasurements();
+    var latestMeasurements = await _dbHelper.getLatestMeasurements();
 
     for (var measurement in latestMeasurements) {
       distanceInMeters = metersToKmDouble(Geolocator.distanceBetween(
@@ -189,7 +190,7 @@ class LocationService {
     var nearestSites = <Measurement>[];
     double distanceInMeters;
 
-    var latestMeasurements = await DBHelper().getLatestMeasurements();
+    var latestMeasurements = await _dbHelper.getLatestMeasurements();
 
     for (var measurement in latestMeasurements) {
       distanceInMeters = metersToKmDouble(Geolocator.distanceBetween(
@@ -235,7 +236,7 @@ class LocationService {
   Future<List<Measurement>> textSearchNearestSitesV1(String term) async {
     var nearestSites = <Measurement>[];
 
-    var latestMeasurements = await DBHelper().getLatestMeasurements();
+    var latestMeasurements = await _dbHelper.getLatestMeasurements();
 
     for (var measurement in latestMeasurements) {
       if (measurement.site

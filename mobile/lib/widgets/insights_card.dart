@@ -1,5 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/historical_measurement.dart';
+import 'package:app/models/insights_chart_data.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/predict.dart';
 import 'package:app/services/rest_api.dart';
@@ -31,9 +32,12 @@ class InsightsCard extends StatefulWidget {
 
 class _InsightsCardState extends State<InsightsCard> {
   List<HistoricalMeasurement> measurements = [];
-  HistoricalMeasurement? selectedMeasurement;
+  InsightsChartData? selectedMeasurement;
   List<charts.Series<dynamic, DateTime>> chartData = [];
+  List<charts.Series<dynamic, String>> dailyChartData = [];
+  List<charts.Series<dynamic, String>> hourlyChartData = [];
   final ScrollController _scrollController = ScrollController();
+  AirqoApiClient? _airqoApiClient;
   String viewDay = 'today';
 
   @override
@@ -61,8 +65,7 @@ class _InsightsCardState extends State<InsightsCard> {
                           children: [
                             Text(
                               insightsChartDateTimeToString(
-                                  selectedMeasurement!.formattedTime,
-                                  widget.daily),
+                                  selectedMeasurement!.time, widget.daily),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -93,11 +96,11 @@ class _InsightsCardState extends State<InsightsCard> {
                     ],
                   ),
                   widget.daily
-                      ? chart()
+                      ? dailyChart()
                       : SingleChildScrollView(
                           controller: _scrollController,
                           scrollDirection: Axis.horizontal,
-                          child: chart()),
+                          child: hourlyChart()),
                   const SizedBox(
                     height: 13.0,
                   ),
@@ -108,7 +111,8 @@ class _InsightsCardState extends State<InsightsCard> {
                           constraints: BoxConstraints(
                               maxWidth: MediaQuery.of(context).size.width / 2),
                           child: Text(
-                            dateToString(selectedMeasurement!.time, true),
+                            dateToString(
+                                selectedMeasurement!.time.toString(), true),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -145,57 +149,78 @@ class _InsightsCardState extends State<InsightsCard> {
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
               child: Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
-                    decoration: BoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(40.0)),
-                        color: selectedMeasurement!.formattedTime
-                                .isAfter(DateTime.now())
-                            ? ColorConstants.appColorPaleBlue
-                            : widget.pollutant == 'pm2.5'
-                                ? pm2_5ToColor(
-                                        selectedMeasurement!.getPm2_5Value())
-                                    .withOpacity(0.4)
-                                : pm10ToColor(
-                                        selectedMeasurement!.getPm10Value())
-                                    .withOpacity(0.4),
-                        border: Border.all(color: Colors.transparent)),
-                    child: Text(
-                      widget.pollutant == 'pm2.5'
-                          ? pm2_5ToString(selectedMeasurement!.getPm2_5Value())
-                          : pm10ToString(selectedMeasurement!.getPm10Value()),
-                      maxLines: 1,
-                      textAlign: TextAlign.center,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: selectedMeasurement!.formattedTime
-                                .isAfter(DateTime.now())
-                            ? ColorConstants.appColorBlue
-                            : widget.pollutant == 'pm2.5'
-                                ? pm2_5TextColor(
-                                    selectedMeasurement!.getPm2_5Value())
-                                : pm10TextColor(
-                                    selectedMeasurement!.getPm10Value()),
+                  Visibility(
+                    visible: selectedMeasurement!.available,
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
+                      decoration: BoxDecoration(
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(40.0)),
+                          color:
+                              selectedMeasurement!.time.isAfter(DateTime.now())
+                                  ? ColorConstants.appColorPaleBlue
+                                  : widget.pollutant == 'pm2.5'
+                                      ? pm2_5ToColor(selectedMeasurement!.value)
+                                          .withOpacity(0.4)
+                                      : pm10ToColor(selectedMeasurement!.value)
+                                          .withOpacity(0.4),
+                          border: Border.all(color: Colors.transparent)),
+                      child: Text(
+                        widget.pollutant == 'pm2.5'
+                            ? pm2_5ToString(selectedMeasurement!.value)
+                            : pm10ToString(selectedMeasurement!.value),
+                        maxLines: 1,
+                        textAlign: TextAlign.center,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: selectedMeasurement!.time
+                                  .isAfter(DateTime.now())
+                              ? ColorConstants.appColorBlue
+                              : widget.pollutant == 'pm2.5'
+                                  ? pm2_5TextColor(selectedMeasurement!.value)
+                                  : pm10TextColor(selectedMeasurement!.value),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Visibility(
+                    visible: !selectedMeasurement!.available,
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
+                      decoration: BoxDecoration(
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(40.0)),
+                          color: ColorConstants.greyColor.withOpacity(0.4),
+                          border: Border.all(color: Colors.transparent)),
+                      child: Text(
+                        'Not Available',
+                        maxLines: 1,
+                        textAlign: TextAlign.center,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: ColorConstants.darkGreyColor,
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(
                     width: 8,
                   ),
-                  GestureDetector(
-                    onTap: () {
-                      pmInfoDialog(
-                          context, selectedMeasurement!.getPm2_5Value());
-                    },
-                    child: SvgPicture.asset(
-                      'assets/icon/info_icon.svg',
-                      semanticsLabel: 'Pm2.5',
-                      height: 20,
-                      width: 20,
-                    ),
-                  ),
+                  Visibility(
+                      visible: selectedMeasurement!.available,
+                      child: GestureDetector(
+                        onTap: () {
+                          pmInfoDialog(context, selectedMeasurement!.value);
+                        },
+                        child: SvgPicture.asset(
+                          'assets/icon/info_icon.svg',
+                          semanticsLabel: 'Pm2.5',
+                          height: 20,
+                          width: 20,
+                        ),
+                      )),
                   const Spacer(),
                   Row(
                     children: [
@@ -204,7 +229,7 @@ class _InsightsCardState extends State<InsightsCard> {
                           width: 10,
                           decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: selectedMeasurement!.formattedTime
+                              color: selectedMeasurement!.time
                                       .isAfter(DateTime.now())
                                   ? ColorConstants.appColorBlue
                                   : ColorConstants.appColorPaleBlue,
@@ -290,8 +315,53 @@ class _InsightsCardState extends State<InsightsCard> {
     );
   }
 
+  Widget dailyChart() {
+    return SizedBox(
+      width: MediaQuery.of(context).size.width,
+      height: 150,
+      child: charts.BarChart(
+        dailyChartData,
+        animate: true,
+        defaultRenderer: charts.BarRendererConfig<String>(
+            strokeWidthPx: 0, stackedBarPaddingPx: 0),
+        defaultInteractions: true,
+        behaviors: [
+          charts.DomainHighlighter(),
+          charts.SelectNearest(
+              eventTrigger: charts.SelectionTrigger.tapAndDrag),
+        ],
+        selectionModels: [
+          charts.SelectionModelConfig(
+              changedListener: (charts.SelectionModel model) {
+            if (model.hasDatumSelection) {
+              try {
+                var value = model.selectedDatum[0].index;
+                if (value != null) {
+                  updateUI(model.selectedSeries[0].data[value]);
+                }
+              } on Error catch (e) {
+                debugPrint(e.toString());
+              }
+            }
+          })
+        ],
+        primaryMeasureAxis: const charts.NumericAxisSpec(
+          tickProviderSpec: charts.StaticNumericTickProviderSpec(
+            <charts.TickSpec<double>>[
+              charts.TickSpec<double>(0),
+              charts.TickSpec<double>(125),
+              charts.TickSpec<double>(250),
+              charts.TickSpec<double>(375),
+              charts.TickSpec<double>(500),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> getForecast(int deviceNumber, value) async {
-    var predictions = await AirqoApiClient(context).fetchForecast(deviceNumber);
+    var predictions = await _airqoApiClient!.fetchForecast(deviceNumber);
 
     if (predictions.isNotEmpty) {
       var predictedValues = Predict.getMeasurements(
@@ -300,53 +370,120 @@ class _InsightsCardState extends State<InsightsCard> {
 
       setState(() {
         measurements = combined;
-        chartData = insightsChartData(measurements, widget.pollutant);
+        hourlyChartData = insightsHourlyChartData(
+            measurements, widget.pollutant, widget.placeDetails);
       });
     } else {
       setState(() {
         measurements = value;
-        chartData = insightsChartData(measurements, widget.pollutant);
+        hourlyChartData = insightsHourlyChartData(
+            measurements, widget.pollutant, widget.placeDetails);
       });
     }
   }
 
   Future<void> getMeasurements() async {
-    await AirqoApiClient(context)
+    await _airqoApiClient!
         .fetchSiteHistoricalMeasurements(
             widget.placeDetails.siteId, widget.daily)
         .then((value) => {
               if (value.isNotEmpty && mounted)
                 {
                   setState(() {
-                    selectedMeasurement = value.first;
+                    selectedMeasurement =
+                        InsightsChartData.historicalDataToInsightsData(
+                            value.first, widget.pollutant, widget.placeDetails);
                     if (widget.daily) {
+                      if (widget.daily) {
+                        setState(() {
+                          measurements = value;
+                          dailyChartData = insightsDailyChartData(
+                              value, widget.pollutant, widget.placeDetails);
+                        });
+                      }
+                    } else {
                       setState(() {
                         measurements = value;
-                        chartData =
-                            insightsChartData(measurements, widget.pollutant);
+                        hourlyChartData = insightsHourlyChartData(
+                            value, widget.pollutant, widget.placeDetails);
                       });
-                    } else {
-                      if (widget.pollutant == 'pm2.5') {
-                        getForecast(selectedMeasurement!.deviceNumber, value);
-                      }
+
+                      // if (widget.pollutant == 'pm2.5') {
+                      //   getForecast(value.first.deviceNumber, value);
+                      // }
+                      // else{
+                      //   setState(() {
+                      //     measurements = value;
+                      //     hourlyChartData = insightsHourlyChartData(value,
+                      //         widget.pollutant, widget.placeDetails);
+                      //   });
+                      // }
                     }
                   }),
                 }
             });
   }
 
+  Widget hourlyChart() {
+    return SizedBox(
+      width: widget.pollutant == 'pm2.5'
+          ? MediaQuery.of(context).size.width * 2
+          : MediaQuery.of(context).size.width,
+      height: 150,
+      child: charts.BarChart(
+        hourlyChartData,
+        animate: true,
+        defaultRenderer: charts.BarRendererConfig<String>(
+            strokeWidthPx: 0, stackedBarPaddingPx: 0),
+        defaultInteractions: true,
+        behaviors: [
+          charts.DomainHighlighter(),
+          charts.SelectNearest(
+              eventTrigger: charts.SelectionTrigger.tapAndDrag),
+        ],
+        selectionModels: [
+          charts.SelectionModelConfig(
+              changedListener: (charts.SelectionModel model) {
+            if (model.hasDatumSelection) {
+              try {
+                var value = model.selectedDatum[0].index;
+                if (value != null) {
+                  updateUI(model.selectedSeries[0].data[value]);
+                }
+              } on Error catch (e) {
+                debugPrint(e.toString());
+              }
+            }
+          })
+        ],
+        primaryMeasureAxis: const charts.NumericAxisSpec(
+          tickProviderSpec: charts.StaticNumericTickProviderSpec(
+            <charts.TickSpec<double>>[
+              charts.TickSpec<double>(0),
+              charts.TickSpec<double>(125),
+              charts.TickSpec<double>(250),
+              charts.TickSpec<double>(375),
+              charts.TickSpec<double>(500),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   void initState() {
+    _airqoApiClient = AirqoApiClient(context);
     getMeasurements();
     super.initState();
   }
 
-  void updateUI(HistoricalMeasurement measurement) {
-    widget.callBackFn(measurement);
+  void updateUI(InsightsChartData insightsChartData) {
+    widget.callBackFn(insightsChartData);
     setState(() {
-      selectedMeasurement = measurement;
+      selectedMeasurement = insightsChartData;
     });
-    var time = DateTime.parse(measurement.time);
+    var time = insightsChartData.time;
 
     if (time.day == DateTime.now().day) {
       setState(() {

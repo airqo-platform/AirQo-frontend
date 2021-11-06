@@ -26,6 +26,8 @@ class _HomePageState extends State<HomePage> {
   DateTime? exitTime;
 
   final CustomAuth _customAuth = CustomAuth();
+  final DBHelper _dbHelper = DBHelper();
+  AirqoApiClient? _airqoApiClient;
 
   int _selectedIndex = 0;
   final List<Widget> _widgetOptions = <Widget>[
@@ -124,6 +126,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> initialize() async {
+    _airqoApiClient = AirqoApiClient(context);
     _getLatestMeasurements();
     _getFavPlaces();
     if (_customAuth.isLoggedIn()) {
@@ -165,8 +168,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _getLatestMeasurements() {
-    AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
-          if (value.isNotEmpty) {DBHelper().insertLatestMeasurements(value)}
+    _airqoApiClient!.fetchLatestMeasurements().then((value) => {
+          if (value.isNotEmpty) {_dbHelper.insertLatestMeasurements(value)}
         });
   }
 

@@ -1,5 +1,5 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/historical_measurement.dart';
+import 'package:app/models/insights_chart_data.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:app/screens/air_pollution_ways_page.dart';
@@ -186,17 +186,58 @@ Widget iconTextButton(Widget icon, text) {
 }
 
 Widget insightsAvatar(
-    context, HistoricalMeasurement measurement, double size, String pollutant) {
+    context, InsightsChartData measurement, double size, String pollutant) {
+  if (!measurement.available) {
+    return Container(
+      height: size,
+      width: size,
+      decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: ColorConstants.greyColor,
+          border: Border.all(color: Colors.transparent)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Spacer(),
+          SvgPicture.asset(
+            'assets/icon/PM2.5.svg',
+            semanticsLabel: 'Pm2.5',
+            height: 6,
+            width: 32.45,
+            color: ColorConstants.darkGreyColor,
+          ),
+          Text(
+            '--',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.robotoMono(
+              fontStyle: FontStyle.normal,
+              fontSize: 32,
+              color: ColorConstants.darkGreyColor,
+            ),
+          ),
+          SvgPicture.asset(
+            'assets/icon/unit.svg',
+            semanticsLabel: 'UNit',
+            height: 6,
+            width: 32,
+            color: ColorConstants.darkGreyColor,
+          ),
+          const Spacer(),
+        ],
+      ),
+    );
+  }
   return Container(
     height: size,
     width: size,
     decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: measurement.formattedTime.isAfter(DateTime.now())
+        color: measurement.time.isAfter(DateTime.now())
             ? ColorConstants.appColorPaleBlue
             : pollutant == 'pm2.5'
-                ? pm2_5ToColor(measurement.getPm2_5Value())
-                : pm10ToColor(measurement.getPm10Value()),
+                ? pm2_5ToColor(measurement.value)
+                : pm10ToColor(measurement.value),
         border: Border.all(color: Colors.transparent)),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -207,24 +248,24 @@ Widget insightsAvatar(
           semanticsLabel: 'Pm2.5',
           height: 6,
           width: 32.45,
-          color: measurement.formattedTime.isAfter(DateTime.now())
+          color: measurement.time.isAfter(DateTime.now())
               ? ColorConstants.appColorBlue
               : pollutant == 'pm2.5'
-                  ? pm2_5TextColor(measurement.getPm2_5Value())
-                  : pm10TextColor(measurement.getPm10Value()),
+                  ? pm2_5TextColor(measurement.value)
+                  : pm10TextColor(measurement.value),
         ),
         Text(
-          measurement.getPm2_5Value().toStringAsFixed(0),
+          measurement.value.toStringAsFixed(0),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: GoogleFonts.robotoMono(
             fontStyle: FontStyle.normal,
             fontSize: 32,
-            color: measurement.formattedTime.isAfter(DateTime.now())
+            color: measurement.time.isAfter(DateTime.now())
                 ? ColorConstants.appColorBlue
                 : pollutant == 'pm2.5'
-                    ? pm2_5TextColor(measurement.getPm2_5Value())
-                    : pm10TextColor(measurement.getPm10Value()),
+                    ? pm2_5TextColor(measurement.value)
+                    : pm10TextColor(measurement.value),
           ),
         ),
         SvgPicture.asset(
@@ -232,11 +273,11 @@ Widget insightsAvatar(
           semanticsLabel: 'UNit',
           height: 6,
           width: 32,
-          color: measurement.formattedTime.isAfter(DateTime.now())
+          color: measurement.time.isAfter(DateTime.now())
               ? ColorConstants.appColorBlue
               : pollutant == 'pm2.5'
-                  ? pm2_5TextColor(measurement.getPm2_5Value())
-                  : pm10TextColor(measurement.getPm10Value()),
+                  ? pm2_5TextColor(measurement.value)
+                  : pm10TextColor(measurement.value),
         ),
         const Spacer(),
       ],

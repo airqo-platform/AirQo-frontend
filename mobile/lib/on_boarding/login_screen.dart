@@ -37,6 +37,7 @@ class LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailInputController = TextEditingController();
   DateTime? exitTime;
   bool phoneSignUp = true;
+  AirqoApiClient? _airqoApiClient;
 
   var smsCode = <String>['', '', '', '', '', ''];
 
@@ -373,6 +374,13 @@ class LoginScreenState extends State<LoginScreen> {
     });
   }
 
+  @override
+  void initState() {
+    _airqoApiClient = AirqoApiClient(context);
+    initialize();
+    super.initState();
+  }
+
   Future<bool> onWillPop() {
     var now = DateTime.now();
 
@@ -475,8 +483,8 @@ class LoginScreenState extends State<LoginScreen> {
           nextBtnColor = ColorConstants.appColorDisabled;
         });
 
-        var verificationLink = await AirqoApiClient(context)
-            .requestEmailVerificationCode(emailAddress);
+        var verificationLink =
+            await _airqoApiClient!.requestEmailVerificationCode(emailAddress);
 
         if (verificationLink == '') {
           await showSnackBar(context, 'email signup verification failed');
@@ -496,8 +504,8 @@ class LoginScreenState extends State<LoginScreen> {
       await _customAuth.verifyPhone('$prefixValue$phoneNumber', context,
           verifyPhoneFn, autoVerifyPhoneFn);
     } else {
-      var verificationLink = await AirqoApiClient(context)
-          .requestEmailVerificationCode(emailAddress);
+      var verificationLink =
+          await _airqoApiClient!.requestEmailVerificationCode(emailAddress);
 
       if (verificationLink == '') {
         await showSnackBar(context, 'email signup verification failed');

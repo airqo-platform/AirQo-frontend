@@ -76,7 +76,7 @@ class HistoricalMeasurement {
 
   @override
   String toString() {
-    return 'HistoricalMeasurement{time: $time, pm2_5: $pm2_5}';
+    return 'HistoricalMeasurement{time: $time}';
   }
 
   static String createTableStmt() =>
@@ -167,20 +167,12 @@ class HistoricalMeasurement {
         debugPrint(e.toString());
       }
     }
+
+    measurements.sort((measurementA, measurementB) {
+      return DateTime.parse(measurementA.time)
+          .compareTo(DateTime.parse(measurementB.time));
+    });
+
     return measurements;
   }
-}
-
-@JsonSerializable()
-class HistoricalMeasurements {
-  final List<HistoricalMeasurement> measurements;
-
-  HistoricalMeasurements({
-    required this.measurements,
-  });
-
-  factory HistoricalMeasurements.fromJson(Map<String, dynamic> json) =>
-      _$HistoricalMeasurementsFromJson(json);
-
-  Map<String, dynamic> toJson() => _$HistoricalMeasurementsToJson(this);
 }

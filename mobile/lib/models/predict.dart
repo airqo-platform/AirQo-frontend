@@ -1,5 +1,6 @@
 import 'package:app/models/historical_measurement.dart';
 import 'package:app/models/site.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -99,7 +100,7 @@ class Predict {
         var predict = Predict.fromJson(element);
         predictions.add(predict);
       } on Error catch (e) {
-        print('Parse predictions error: $e');
+        debugPrint(e.toString());
       }
     }
 

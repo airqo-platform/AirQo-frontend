@@ -39,6 +39,8 @@ class _MapViewState extends State<MapView> {
   late GoogleMapController _mapController;
   Map<String, Marker> _markers = {};
   final CloudAnalytics _cloudAnalytics = CloudAnalytics();
+  final DBHelper _dbHelper = DBHelper();
+  AirqoApiClient? _airqoApiClient;
 
   @override
   Widget build(BuildContext context) {
@@ -108,7 +110,7 @@ class _MapViewState extends State<MapView> {
   }
 
   Future<void> getSites() async {
-    await DBHelper().getLatestMeasurements().then((value) => {
+    await _dbHelper.getLatestMeasurements().then((value) => {
           if (mounted)
             {
               setState(() {
@@ -117,18 +119,19 @@ class _MapViewState extends State<MapView> {
             }
         });
 
-    var measurements = await AirqoApiClient(context).fetchLatestMeasurements();
+    var measurements = await _airqoApiClient!.fetchLatestMeasurements();
 
     if (measurements.isNotEmpty) {
       setState(() {
         allSites = measurements;
       });
-      await DBHelper().insertLatestMeasurements(measurements);
+      await _dbHelper.insertLatestMeasurements(measurements);
     }
   }
 
   @override
   void initState() {
+    _airqoApiClient = AirqoApiClient(context);
     getSites();
     _cloudAnalytics.sendScreenToAnalytics('Map Tab');
     super.initState();
@@ -400,7 +403,7 @@ class _MapViewState extends State<MapView> {
     setState(() {
       selectedRegion = region;
     });
-    DBHelper().getRegionSites(region).then((value) => {
+    _dbHelper.getRegionSites(region).then((value) => {
           setState(() {
             showLocationDetails = false;
             displayRegions = false;

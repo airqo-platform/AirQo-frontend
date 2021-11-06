@@ -347,7 +347,6 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
       setState(() {
         widget.userDetails.photoUrl = image.path;
       });
-      debugPrint(image.path);
     } catch (e) {
       debugPrint(e.toString());
     }
@@ -414,7 +413,6 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
       updating = false;
     });
 
-    print(value);
     widget.userDetails.photoUrl = value;
     await _customAuth.updateProfile(widget.userDetails);
     await showSnackBar(context, 'success');

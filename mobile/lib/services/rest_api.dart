@@ -171,32 +171,36 @@ class AirqoApiClient {
   Future<List<HistoricalMeasurement>> fetchSiteHistoricalMeasurements(
       String siteId, bool daily) async {
     try {
-      var nowUtc = DateTime.now().toUtc();
-
-      var frequency = 'hourly';
-      var startTimeUtc = nowUtc.subtract(const Duration(hours: 24));
-
-      if (daily) {
-        frequency = 'daily';
-        startTimeUtc = nowUtc.subtract(const Duration(days: 14));
-      }
-
-      var time = '${startTimeUtc.hour}';
-      if (time.length == 1) {
-        time = '0$time';
-      }
-
-      var date = DateFormat('yyyy-MM-dd').format(startTimeUtc);
-      var startTime = '${date}T$time:00:00Z';
-
       var queryParams = <String, dynamic>{}
         ..putIfAbsent('site_id', () => siteId)
-        ..putIfAbsent('startTime', () => startTime)
-        ..putIfAbsent('frequency', () => frequency)
         ..putIfAbsent('metadata', () => 'site_id')
         ..putIfAbsent('external', () => 'no')
         ..putIfAbsent('recent', () => 'no')
         ..putIfAbsent('tenant', () => 'airqo');
+
+      if (daily) {
+        var startTime = DateTime.now();
+        var weekday = startTime.weekday;
+
+        if (weekday != 1) {
+          var offset = weekday - 1;
+          startTime = startTime.subtract(Duration(days: offset));
+        }
+
+        queryParams
+          ..putIfAbsent('frequency', () => 'daily')
+          ..putIfAbsent('startTime',
+              () => '${DateFormat('yyyy-MM-dd').format(startTime)}T00:00:00Z');
+      } else {
+        var startTime = DateFormat('yyyy-MM-dd').format(DateTime.now());
+        var endTime = DateFormat('yyyy-MM-dd')
+            .format(DateTime.now().add(const Duration(hours: 24)));
+
+        queryParams
+          ..putIfAbsent('frequency', () => 'hourly')
+          ..putIfAbsent('startTime', () => '${startTime}T00:00:00Z')
+          ..putIfAbsent('endTime', () => '${endTime}T00:00:00Z');
+      }
 
       final responseBody =
           await _performGetRequest(queryParams, AirQoUrls().measurements);
@@ -465,7 +469,7 @@ class AirqoApiClient {
 }
 
 class SearchApi {
-  final sessionToken;
+  final String sessionToken;
   final apiKey = AppConfig.googleApiKey;
   final BuildContext context;
 

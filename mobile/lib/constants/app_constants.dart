@@ -68,6 +68,8 @@ class ColorConstants {
 
   static Color get appTipColor => const Color(0xffD5FFD4);
 
+  static Color get darkGreyColor => const Color(0xffADAFB6);
+
   static Color get facebookColor => const Color(0xff4267B2);
 
   static Color get green => const Color(0xff3AFF38);

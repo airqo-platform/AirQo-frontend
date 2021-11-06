@@ -29,6 +29,7 @@ class _SearchPageState extends State<SearchPage> {
   bool hasNearbyLocations = true;
   String sessionToken = const Uuid().v4();
   SearchApi? searchApiClient;
+  final DBHelper _dbHelper = DBHelper();
 
   @override
   Widget build(BuildContext context) {
@@ -110,7 +111,7 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Future<void> getSites() async {
-    await DBHelper().getLatestMeasurements().then((value) => {
+    await _dbHelper.getLatestMeasurements().then((value) => {
           if (mounted)
             {
               setState(() {

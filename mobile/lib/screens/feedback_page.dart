@@ -27,6 +27,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
   final TextEditingController _emailInputController = TextEditingController();
   final TextEditingController _emailFeedbackController =
       TextEditingController();
+  AirqoApiClient? _airqoApiClient;
 
   @override
   Widget build(BuildContext context) {
@@ -241,7 +242,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                               setState(() {
                                 isSendingFeedback = true;
                               });
-                              await AirqoApiClient(context)
+                              await _airqoApiClient!
                                   .sendFeedback(feedback)
                                   .then((value) => {
                                         if (value)
@@ -403,6 +404,12 @@ class _FeedbackPageState extends State<FeedbackPage> {
                 )),
           ),
         )));
+  }
+
+  @override
+  void initState() {
+    _airqoApiClient = AirqoApiClient(context);
+    super.initState();
   }
 
   Widget unselectedCircle(bool isActive) {

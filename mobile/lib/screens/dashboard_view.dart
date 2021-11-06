@@ -35,7 +35,8 @@ class _DashboardViewState extends State<DashboardView> {
   List<Widget> dashboardCards = [];
   List<Widget> favLocations = [];
   final CloudAnalytics _cloudAnalytics = CloudAnalytics();
-
+  final DBHelper _dbHelper = DBHelper();
+  AirqoApiClient? _airqoApiClient;
   final CustomAuth _customAuth = CustomAuth();
 
   Widget actionsSection() {
@@ -244,7 +245,7 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   void getDashboardLocations() async {
-    var measurements = await DBHelper().getLatestMeasurements();
+    var measurements = await _dbHelper.getLatestMeasurements();
 
     for (var i = 0; i < 4; i++) {
       var random = 0 + Random().nextInt(measurements.length - 0);
@@ -262,7 +263,7 @@ class _DashboardViewState extends State<DashboardView> {
     try {
       if (favouritePlaces.length == 1) {
         var measurement =
-            await DBHelper().getMeasurement(favouritePlaces[0].siteId);
+            await _dbHelper.getMeasurement(favouritePlaces[0].siteId);
         if (measurement != null) {
           widgets.add(favPlaceAvatar(0, measurement));
         } else {
@@ -270,15 +271,14 @@ class _DashboardViewState extends State<DashboardView> {
         }
       } else if (favouritePlaces.length == 2) {
         var measurement =
-            await DBHelper().getMeasurement(favouritePlaces[0].siteId);
+            await _dbHelper.getMeasurement(favouritePlaces[0].siteId);
         if (measurement != null) {
           widgets.add(favPlaceAvatar(0, measurement));
         } else {
           widgets.add(favPlaceAvatarEmpty(0));
         }
 
-        measurement =
-            await DBHelper().getMeasurement(favouritePlaces[1].siteId);
+        measurement = await _dbHelper.getMeasurement(favouritePlaces[1].siteId);
         if (measurement != null) {
           widgets.add(favPlaceAvatar(7, measurement));
         } else {
@@ -290,23 +290,21 @@ class _DashboardViewState extends State<DashboardView> {
         //   ..add(favPlaceAvatar(7, favouritePlaces[1]));
       } else if (favouritePlaces.length >= 3) {
         var measurement =
-            await DBHelper().getMeasurement(favouritePlaces[0].siteId);
+            await _dbHelper.getMeasurement(favouritePlaces[0].siteId);
         if (measurement != null) {
           widgets.add(favPlaceAvatar(0, measurement));
         } else {
           widgets.add(favPlaceAvatarEmpty(0));
         }
 
-        measurement =
-            await DBHelper().getMeasurement(favouritePlaces[1].siteId);
+        measurement = await _dbHelper.getMeasurement(favouritePlaces[1].siteId);
         if (measurement != null) {
           widgets.add(favPlaceAvatar(7, measurement));
         } else {
           widgets.add(favPlaceAvatarEmpty(7));
         }
 
-        measurement =
-            await DBHelper().getMeasurement(favouritePlaces[2].siteId);
+        measurement = await _dbHelper.getMeasurement(favouritePlaces[2].siteId);
         if (measurement != null) {
           widgets.add(favPlaceAvatar(14, measurement));
         } else {
@@ -314,7 +312,6 @@ class _DashboardViewState extends State<DashboardView> {
         }
       } else {}
     } catch (e) {
-      debugPrint('hi');
       debugPrint(e.toString());
     }
 
@@ -350,6 +347,7 @@ class _DashboardViewState extends State<DashboardView> {
 
   Future<void> initialize() async {
     _cloudAnalytics.sendScreenToAnalytics('Home Page');
+    _airqoApiClient = AirqoApiClient(context);
     setGreetings();
     // _getLatestMeasurements();
     // _getLocationMeasurements();
@@ -708,9 +706,9 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   Future<void> _getLatestMeasurements() async {
-    await AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
+    await _airqoApiClient!.fetchLatestMeasurements().then((value) => {
           if (value.isNotEmpty)
-            {DBHelper().insertLatestMeasurements(value), initialize()}
+            {_dbHelper.insertLatestMeasurements(value), initialize()}
         });
   }
 }

@@ -1,5 +1,5 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/historical_measurement.dart';
+import 'package:app/models/insights_chart_data.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/pm.dart';
@@ -167,11 +167,11 @@ class _DailyViewState extends State<DailyView> {
         ));
   }
 
-  void callBackFn(HistoricalMeasurement measurement) {
-    var time = measurement.formattedTime;
+  void callBackFn(InsightsChartData measurement) {
+    var time = measurement.time;
     var tomorrow = DateTime.now().add(const Duration(days: 1));
     setState(() {
-      _recommendations = getHealthRecommendations(measurement.getPm2_5Value());
+      _recommendations = getHealthRecommendations(measurement.value);
     });
     if (time.day == DateTime.now().day) {
       setState(() {

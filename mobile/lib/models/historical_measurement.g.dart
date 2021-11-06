@@ -32,20 +32,6 @@ HistoricalMeasurement _$HistoricalMeasurementFromJson(
   );
 }
 
-HistoricalMeasurements _$HistoricalMeasurementsFromJson(
-        Map<String, dynamic> json) =>
-    HistoricalMeasurements(
-      measurements: (json['measurements'] as List<dynamic>)
-          .map((e) => HistoricalMeasurement.fromJson(e as Map<String, dynamic>))
-          .toList(),
-    );
-
-Map<String, dynamic> _$HistoricalMeasurementsToJson(
-        HistoricalMeasurements instance) =>
-    <String, dynamic>{
-      'measurements': instance.measurements,
-    };
-
 Map<String, dynamic> _$HistoricalMeasurementToJson(
         HistoricalMeasurement instance) =>
     <String, dynamic>{
