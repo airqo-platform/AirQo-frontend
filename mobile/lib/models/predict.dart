@@ -53,7 +53,7 @@ class Predict {
   static String forecastDb() => 'forecast_measurements';
 
   static List<HistoricalMeasurement> getMeasurements(
-      List<Predict> predictions, String siteId, int deviceNumber) {
+      List<Predict> predictions, String siteId, int deviceNumber, bool today) {
     var measurements = <HistoricalMeasurement>[];
     var emptyValue = MeasurementValue(value: 0.0, calibratedValue: 0.0);
     final formatter = DateFormat('EEE, d MMM yyyy HH:mm:ss');
@@ -62,13 +62,36 @@ class Predict {
       var pmValue = MeasurementValue(
           value: predict.value, calibratedValue: predict.value);
 
-      // var dateTime = DateTime.parse(formatter.parse(predict.time).toString());
-      var time = formatter.parse(predict.time).toString();
+      var time =
+          formatter.parse(predict.time).subtract(const Duration(hours: 3));
 
-      var measurement = HistoricalMeasurement(time, pmValue, emptyValue,
-          emptyValue, emptyValue, emptyValue, emptyValue, siteId, deviceNumber);
-
-      measurements.add(measurement);
+      if (today) {
+        if (time.day == DateTime.now().day) {
+          var measurement = HistoricalMeasurement(
+              time.toString(),
+              pmValue,
+              emptyValue,
+              emptyValue,
+              emptyValue,
+              emptyValue,
+              emptyValue,
+              siteId,
+              deviceNumber);
+          measurements.add(measurement);
+        }
+      } else {
+        var measurement = HistoricalMeasurement(
+            time.toString(),
+            pmValue,
+            emptyValue,
+            emptyValue,
+            emptyValue,
+            emptyValue,
+            emptyValue,
+            siteId,
+            deviceNumber);
+        measurements.add(measurement);
+      }
     }
     return measurements;
   }

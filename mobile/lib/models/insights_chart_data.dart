@@ -74,35 +74,46 @@ class InsightsChartData {
       String pollutant,
       PlaceDetails placeDetails) {
     var insights = <InsightsChartData>[];
+    var hours = <int>[];
     for (var measurement in measurements) {
       var value = measurement.getPm2_5Value();
       if (pollutant == 'pm10') {
         value = measurement.getPm10Value();
       }
+      var time = DateTime.parse(measurement.time);
       var insight = InsightsChartData(
-          DateTime.parse(measurement.time),
+          time,
           value,
           pollutant,
           true,
           placeDetails.name,
           placeDetails.location,
-          DateFormat('EEE').format(DateTime.parse(measurement.time)));
-
+          DateFormat('EEE').format(time));
+      hours.add(time.hour);
       insights.add(insight);
     }
 
-    // var lastInsight = insights.last;
-    // while(insights.length != 24){
-    //
-    //   var nextTime = lastInsight.time.add(const Duration(days: 1));
-    //
-    //   insights.add(InsightsChartData(nextTime,
-    //       lastInsight.value, pollutant, false, placeDetails.name,
-    //       placeDetails.location,
-    //       DateFormat('EEE').format(nextTime)));
-    //
-    //   lastInsight = insights.last;
-    // }
+    if (insights.isEmpty) {
+      return [];
+    }
+
+    var referenceInsight = insights.first;
+    for (var i = 0; i <= 23; i++) {
+      if (!hours.contains(i)) {
+        var hour = i.toString().length == 2 ? '$i' : '0$i';
+        var time = DateTime.parse(
+            '${DateFormat('yyyy-MM-dd').format(referenceInsight.time)}T$hour:00:00.000Z');
+
+        insights.add(InsightsChartData(
+            time,
+            referenceInsight.value,
+            pollutant,
+            false,
+            placeDetails.name,
+            placeDetails.location,
+            DateFormat('EEE').format(time)));
+      }
+    }
     return formatData(insights);
   }
 

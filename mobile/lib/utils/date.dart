@@ -158,8 +158,14 @@ String getWeekday() {
   }
 }
 
-String insightsChartDateTimeToString(DateTime dateTime, bool daily) {
+String insightsChartDateTimeToExtString(DateTime dateTime, bool daily) {
   try {
+    if (daily) {
+      return '${DateTime.now().getDateOfFirstDayOfWeek().getShortDate()}'
+          ' - '
+          '${DateTime.now().getDateOfLastDayOfWeek().getShortDate()}';
+    }
+
     var now = DateTime.now();
     if (now.day == dateTime.day) {
       return 'Today, ${DateFormat('hh:mm a').format(dateTime)}';
@@ -167,22 +173,13 @@ String insightsChartDateTimeToString(DateTime dateTime, bool daily) {
       if (now.isAfter(dateTime)) {
         var yesterday = now.subtract(const Duration(hours: 24));
         if (dateTime.day == yesterday.day) {
-          if (daily) {
-            return 'Yesterday';
-          }
           return 'Yesterday, ${DateFormat('hh:mm a').format(dateTime)}';
         } else {
-          if (daily) {
-            return DateFormat('d MMM').format(dateTime);
-          }
           return DateFormat('d MMM, hh:mm a').format(dateTime);
         }
       } else {
         var tomorrow = now.add(const Duration(hours: 24));
         if (tomorrow.day == dateTime.day) {
-          if (daily) {
-            return 'Tomorrow';
-          }
           return 'Tomorrow, ${DateFormat('hh:mm a').format(dateTime)}';
         } else {
           return DateFormat('d MMM, hh:mm a').format(dateTime);
@@ -195,33 +192,116 @@ String insightsChartDateTimeToString(DateTime dateTime, bool daily) {
   }
 }
 
+String insightsChartDateTimeToString(DateTime dateTime, bool daily) {
+  try {
+    if (daily) {
+      return '${DateTime.now().getDateOfFirstDayOfWeek().getShortDate()}'
+          ' - '
+          '${DateTime.now().getDateOfLastDayOfWeek().getShortDate()}';
+    } else {
+      return 'Today, ${DateTime.now().day} '
+          '${DateTime.now().getLongMonthString()}';
+    }
+  } on Error catch (e) {
+    debugPrint('Date Formatting error: $e');
+    return dateTime.toString();
+  }
+}
+
 extension DateTimeExtension on DateTime {
-  String getMonthString() {
+  String getShortDate() {
+    if (day.toString().endsWith('1')) {
+      return '${day}st ${getShortMonthString()}';
+    } else if (day.toString().endsWith('2')) {
+      return '${day}st ${getShortMonthString()}';
+    } else if (day.toString().endsWith('3')) {
+      return '${day}st ${getShortMonthString()}';
+    } else {
+      return '${day}th ${getShortMonthString()}';
+    }
+  }
+
+  DateTime getDateOfFirstDayOfWeek() {
+    var firstDate = DateTime.now();
+    var weekday = firstDate.weekday;
+
+    if (weekday != 1) {
+      var offset = weekday - 1;
+      firstDate = firstDate.subtract(Duration(days: offset));
+    }
+
+    return firstDate;
+  }
+
+  DateTime getDateOfLastDayOfWeek() {
+    var lastDate = DateTime.now();
+    var weekday = lastDate.weekday;
+
+    if (weekday != 7) {
+      var offset = 7 - weekday;
+      lastDate = lastDate.add(Duration(days: offset));
+    }
+
+    return lastDate;
+  }
+
+  String getShortMonthString() {
     switch (month) {
       case 1:
-        return 'JAN';
+        return 'Jan';
       case 2:
-        return 'FEB';
+        return 'Feb';
       case 3:
-        return 'MAR';
+        return 'Mar';
       case 4:
-        return 'APR';
+        return 'Apr';
       case 5:
-        return 'MAY';
+        return 'May';
       case 6:
-        return 'JUN';
+        return 'Jun';
       case 7:
-        return 'JUL';
+        return 'Jul';
       case 8:
-        return 'AUG';
+        return 'Aug';
       case 9:
-        return 'SEPT';
+        return 'Sept';
       case 10:
-        return 'OCT';
+        return 'Oct';
       case 11:
-        return 'NOV';
+        return 'Nov';
       case 12:
-        return 'DEC';
+        return 'Dec';
+      default:
+        return 'ERR';
+    }
+  }
+
+  String getLongMonthString() {
+    switch (month) {
+      case 1:
+        return 'January';
+      case 2:
+        return 'February';
+      case 3:
+        return 'March';
+      case 4:
+        return 'April';
+      case 5:
+        return 'May';
+      case 6:
+        return 'June';
+      case 7:
+        return 'July';
+      case 8:
+        return 'August';
+      case 9:
+        return 'September';
+      case 10:
+        return 'October';
+      case 11:
+        return 'November';
+      case 12:
+        return 'December';
       default:
         return 'ERR';
     }

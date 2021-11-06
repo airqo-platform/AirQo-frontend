@@ -167,23 +167,30 @@ class _DailyViewState extends State<DailyView> {
         ));
   }
 
-  void callBackFn(InsightsChartData measurement) {
-    var time = measurement.time;
+  void callBackFn(InsightsChartData insightsChartData) {
+    var time = insightsChartData.time;
     var tomorrow = DateTime.now().add(const Duration(days: 1));
-    setState(() {
-      _recommendations = getHealthRecommendations(measurement.value);
-    });
-    if (time.day == DateTime.now().day) {
+    if (insightsChartData.available) {
       setState(() {
-        viewDay = 'today';
+        _recommendations = getHealthRecommendations(insightsChartData.value);
       });
-    } else if (time.day == tomorrow.day) {
-      setState(() {
-        viewDay = 'tomorrow';
-      });
+      if (time.day == DateTime.now().day) {
+        setState(() {
+          viewDay = 'today';
+        });
+      } else if (time.day == tomorrow.day) {
+        setState(() {
+          viewDay = 'tomorrow';
+        });
+      } else {
+        setState(() {
+          viewDay = '';
+        });
+      }
     } else {
       setState(() {
         viewDay = '';
+        _recommendations = [];
       });
     }
   }

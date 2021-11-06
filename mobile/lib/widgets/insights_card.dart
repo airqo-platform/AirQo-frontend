@@ -90,7 +90,7 @@ class _InsightsCardState extends State<InsightsCard> {
                           ],
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 8),
                       insightsAvatar(
                           context, selectedMeasurement!, 64, widget.pollutant),
                     ],
@@ -365,19 +365,13 @@ class _InsightsCardState extends State<InsightsCard> {
 
     if (predictions.isNotEmpty) {
       var predictedValues = Predict.getMeasurements(
-          predictions, widget.placeDetails.siteId, deviceNumber);
+          predictions, widget.placeDetails.siteId, deviceNumber, true);
       var combined = value..addAll(predictedValues);
 
       setState(() {
         measurements = combined;
         hourlyChartData = insightsHourlyChartData(
-            measurements, widget.pollutant, widget.placeDetails);
-      });
-    } else {
-      setState(() {
-        measurements = value;
-        hourlyChartData = insightsHourlyChartData(
-            measurements, widget.pollutant, widget.placeDetails);
+            combined, widget.pollutant, widget.placeDetails);
       });
     }
   }
@@ -394,13 +388,11 @@ class _InsightsCardState extends State<InsightsCard> {
                         InsightsChartData.historicalDataToInsightsData(
                             value.first, widget.pollutant, widget.placeDetails);
                     if (widget.daily) {
-                      if (widget.daily) {
-                        setState(() {
-                          measurements = value;
-                          dailyChartData = insightsDailyChartData(
-                              value, widget.pollutant, widget.placeDetails);
-                        });
-                      }
+                      setState(() {
+                        measurements = value;
+                        dailyChartData = insightsDailyChartData(
+                            value, widget.pollutant, widget.placeDetails);
+                      });
                     } else {
                       setState(() {
                         measurements = value;
@@ -408,16 +400,9 @@ class _InsightsCardState extends State<InsightsCard> {
                             value, widget.pollutant, widget.placeDetails);
                       });
 
-                      // if (widget.pollutant == 'pm2.5') {
-                      //   getForecast(value.first.deviceNumber, value);
-                      // }
-                      // else{
-                      //   setState(() {
-                      //     measurements = value;
-                      //     hourlyChartData = insightsHourlyChartData(value,
-                      //         widget.pollutant, widget.placeDetails);
-                      //   });
-                      // }
+                      if (widget.pollutant == 'pm2.5') {
+                        getForecast(value.first.deviceNumber, value);
+                      }
                     }
                   }),
                 }
@@ -426,9 +411,7 @@ class _InsightsCardState extends State<InsightsCard> {
 
   Widget hourlyChart() {
     return SizedBox(
-      width: widget.pollutant == 'pm2.5'
-          ? MediaQuery.of(context).size.width * 2
-          : MediaQuery.of(context).size.width,
+      width: MediaQuery.of(context).size.width * 2.7,
       height: 150,
       child: charts.BarChart(
         hourlyChartData,
