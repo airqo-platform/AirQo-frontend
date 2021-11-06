@@ -24,8 +24,6 @@ class _ForYouPageState extends State<ForYouPage>
 
   int currentSegment = 0;
 
-  _ForYouPageState();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

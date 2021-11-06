@@ -451,7 +451,7 @@ class _DashboardViewState extends State<DashboardView> {
                     await Navigator.push(context,
                         MaterialPageRoute(builder: (context) {
                       if (tipsProgress >= 1.0) {
-                        return ForYouPage();
+                        return const ForYouPage();
                       }
                       return const AirPollutionWaysPage();
                     }));
@@ -472,7 +472,7 @@ class _DashboardViewState extends State<DashboardView> {
                     await Navigator.push(context,
                         MaterialPageRoute(builder: (context) {
                       if (tipsProgress >= 1.0) {
-                        return ForYouPage();
+                        return const ForYouPage();
                       }
                       return const AirPollutionWaysPage();
                     }));
@@ -555,7 +555,7 @@ class _DashboardViewState extends State<DashboardView> {
               await Navigator.push(context,
                   MaterialPageRoute(builder: (context) {
                 if (tipsProgress >= 1.0) {
-                  return ForYouPage();
+                  return const ForYouPage();
                 }
                 return const AirPollutionWaysPage();
               }));
@@ -633,7 +633,7 @@ class _DashboardViewState extends State<DashboardView> {
             child: GestureDetector(
           onTap: () async {
             await Navigator.push(context, MaterialPageRoute(builder: (context) {
-              return ForYouPage();
+              return const ForYouPage();
             }));
           },
           child: Container(

@@ -135,9 +135,7 @@ class CloudStore {
       await _firebaseFirestore
           .collection('${CloudStorage.notificationCollection}/$userId/$userId')
           .doc(notificationId)
-          .update({'isNew': false})
-          .then((value) => {updated = true})
-          .catchError((error) => debugPrint('Failed to update notification'));
+          .update({'isNew': false}).then((value) => {updated = true});
 
       return updated;
     } else {
@@ -152,14 +150,14 @@ class CloudStore {
           .where('isNew', isEqualTo: true)
           .snapshots()
           .listen((result) async {
-        result.docs.forEach((result) async {
+        for (var result in result.docs) {
           var notification =
               await compute(UserNotification.parseNotification, result.data());
           if (notification != null) {
             Provider.of<NotificationModel>(context, listen: false)
                 .add(notification);
           }
-        });
+        }
       });
     } catch (e) {
       debugPrint(e.toString());

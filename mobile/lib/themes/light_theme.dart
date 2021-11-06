@@ -71,11 +71,6 @@ ThemeData lightTheme() {
           bodyColor: ColorConstants.appColor,
           displayColor: ColorConstants.appColor,
         ),
-    accentTextTheme: ThemeData.light().textTheme.apply(
-          fontFamily: 'Inter',
-          bodyColor: ColorConstants.appColor,
-          displayColor: ColorConstants.appColor,
-        ),
     iconTheme: IconThemeData(
       color: ColorConstants.appColor,
     ),

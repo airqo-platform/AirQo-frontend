@@ -7,6 +7,8 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/svg.dart';
 
 class WelcomeScreen extends StatefulWidget {
+  const WelcomeScreen({Key? key}) : super(key: key);
+
   @override
   WelcomeScreenState createState() => WelcomeScreenState();
 }

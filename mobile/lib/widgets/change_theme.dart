@@ -1,5 +1,5 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/providers/ThemeProvider.dart';
+import 'package:app/providers/theme_provider.dart';
 import 'package:flutter/material.dart';
 
 class ChangeThemeDialog extends StatefulWidget {

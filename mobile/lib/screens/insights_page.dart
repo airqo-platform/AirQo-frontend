@@ -19,8 +19,6 @@ class _InsightsPageState extends State<InsightsPage>
   TabController? _tabController;
   bool isWeekly = true;
 
-  _InsightsPageState();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

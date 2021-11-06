@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:app/models/notification.dart';
-import 'package:app/providers/LocalProvider.dart';
+import 'package:app/providers/locale_provider.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_analytics/observer.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -18,12 +18,12 @@ import 'languages/custom_localizations.dart';
 import 'languages/lg_intl.dart';
 import 'models/place_details.dart';
 import 'on_boarding/spash_screen.dart';
-import 'providers/ThemeProvider.dart';
+import 'providers/theme_provider.dart';
 import 'themes/dark_theme.dart';
 import 'themes/light_theme.dart';
 
 Future<void> main() async {
-  HttpOverrides.global = MyHttpOverrides();
+  HttpOverrides.global = AppHttpOverrides();
 
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
@@ -117,7 +117,7 @@ class AirQoApp extends StatelessWidget {
   }
 }
 
-class MyHttpOverrides extends HttpOverrides {
+class AppHttpOverrides extends HttpOverrides {
   @override
   HttpClient createHttpClient(SecurityContext? context) {
     return super.createHttpClient(context)

@@ -240,7 +240,7 @@ class _SettingsPageState extends State<SettingsPage> {
             onTap: () async {
               await Navigator.push(context,
                   MaterialPageRoute(builder: (context) {
-                return AboutAirQo();
+                return const AboutAirQo();
               }));
             },
             child: cardSection('About'),

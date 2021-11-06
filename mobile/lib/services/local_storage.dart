@@ -248,7 +248,7 @@ class DBHelper {
 
   Future<Measurement?> getLocationMeasurement() async {
     try {
-      var nearestMeasurement;
+      Measurement? nearestMeasurement;
       var nearestMeasurements = <Measurement>[];
 
       double distanceInMeters;
@@ -285,8 +285,7 @@ class DBHelper {
                   nearestMeasurement = nearestMeasurements.first,
                   for (var m in nearestMeasurements)
                     {
-                      if (nearestMeasurement.placeDetails.distance >
-                          m.site.distance)
+                      if (nearestMeasurement!.site.distance > m.site.distance)
                         {nearestMeasurement = m}
                     }
                 }
@@ -320,7 +319,7 @@ class DBHelper {
                             nearestMeasurement = nearestMeasurements.first,
                             for (var m in nearestMeasurements)
                               {
-                                if (nearestMeasurement.placeDetails.distance >
+                                if (nearestMeasurement!.site.distance >
                                     m.site.distance)
                                   {nearestMeasurement = m}
                               }
@@ -357,7 +356,7 @@ class DBHelper {
   Future<Measurement?> getNearestMeasurement(
       double latitude, double longitude) async {
     try {
-      var nearestMeasurement;
+      Measurement? nearestMeasurement;
       var nearestMeasurements = <Measurement>[];
 
       double distanceInMeters;
@@ -384,8 +383,7 @@ class DBHelper {
                 nearestMeasurement = nearestMeasurements.first,
                 for (var m in nearestMeasurements)
                   {
-                    if (nearestMeasurement.placeDetails.distance >
-                        m.site.distance)
+                    if (nearestMeasurement!.site.distance > m.site.distance)
                       {nearestMeasurement = m}
                   },
               }

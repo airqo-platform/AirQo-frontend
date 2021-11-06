@@ -8,7 +8,7 @@ import 'package:flutter/painting.dart';
 import 'package:flutter_svg/svg.dart';
 
 class AboutAirQo extends StatefulWidget {
-  AboutAirQo({Key? key}) : super(key: key);
+  const AboutAirQo({Key? key}) : super(key: key);
 
   @override
   _AboutAirQoState createState() => _AboutAirQoState();

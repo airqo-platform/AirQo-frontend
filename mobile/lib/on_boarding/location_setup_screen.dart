@@ -11,7 +11,7 @@ import 'package:flutter/rendering.dart';
 class LocationSetupScreen extends StatefulWidget {
   bool enableBackButton;
 
-  LocationSetupScreen(this.enableBackButton);
+  LocationSetupScreen(this.enableBackButton, {Key? key}) : super(key: key);
 
   @override
   LocationSetupScreenState createState() => LocationSetupScreenState();

@@ -175,20 +175,6 @@ class Measurement {
   }
 }
 
-@JsonSerializable()
-class Measurements {
-  final List<Measurement> measurements;
-
-  Measurements({
-    required this.measurements,
-  });
-
-  factory Measurements.fromJson(Map<String, dynamic> json) =>
-      _$MeasurementsFromJson(json);
-
-  Map<String, dynamic> toJson() => _$MeasurementsToJson(this);
-}
-
 extension ParseMeasurement on Measurement {
   bool hasWeatherData() {
     if (humidity.value != -0.1 &&

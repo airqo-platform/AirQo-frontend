@@ -272,7 +272,7 @@ extension DateTimeExtension on DateTime {
       case 12:
         return 'Dec';
       default:
-        return 'ERR';
+        return '';
     }
   }
 
@@ -303,7 +303,7 @@ extension DateTimeExtension on DateTime {
       case 12:
         return 'December';
       default:
-        return 'ERR';
+        return '';
     }
   }
 }

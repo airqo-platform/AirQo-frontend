@@ -14,7 +14,7 @@ import 'notifications_setup_screen.dart';
 class ProfileSetupScreen extends StatefulWidget {
   bool enableBackButton;
 
-  ProfileSetupScreen(this.enableBackButton);
+  ProfileSetupScreen(this.enableBackButton, {Key? key}) : super(key: key);
 
   @override
   ProfileSetupScreenState createState() => ProfileSetupScreenState();

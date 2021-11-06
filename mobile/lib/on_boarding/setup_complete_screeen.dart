@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 class SetUpCompleteScreen extends StatefulWidget {
   bool enableBackButton;
 
-  SetUpCompleteScreen(this.enableBackButton);
+  SetUpCompleteScreen(this.enableBackButton, {Key? key}) : super(key: key);
 
   @override
   SetUpCompleteScreenState createState() => SetUpCompleteScreenState();
