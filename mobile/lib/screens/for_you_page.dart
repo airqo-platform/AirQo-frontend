@@ -7,7 +7,7 @@ import 'analytics_view.dart';
 import 'know_your_air_view.dart';
 
 class ForYouPage extends StatefulWidget {
-  ForYouPage();
+  const ForYouPage({Key? key}) : super(key: key);
 
   @override
   _ForYouPageState createState() => _ForYouPageState();
@@ -15,7 +15,7 @@ class ForYouPage extends StatefulWidget {
 
 class _ForYouPageState extends State<ForYouPage>
     with SingleTickerProviderStateMixin {
-  var _tabController;
+  TabController? _tabController;
   bool isWeekly = true;
 
   int segmentedControlValue = 0;
@@ -124,7 +124,7 @@ class _ForYouPageState extends State<ForYouPage>
   @override
   void dispose() {
     super.dispose();
-    _tabController.dispose();
+    _tabController!.dispose();
   }
 
   @override
@@ -142,15 +142,14 @@ class _ForYouPageState extends State<ForYouPage>
   }
 
   Widget segmentedControl() {
-    return Container(
+    return SizedBox(
       width: 300,
       child: CupertinoSlidingSegmentedControl(
           groupValue: segmentedControlValue,
           backgroundColor: Colors.blue.shade200,
           children: const <int, Widget>{
-            0: Text('One'),
-            1: Text('Two'),
-            2: Text('Three')
+            0: Text('Analytics'),
+            1: Text('Know you Air'),
           },
           onValueChanged: (value) {
             setState(() {

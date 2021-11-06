@@ -1,5 +1,4 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/measurement.dart';
 import 'package:app/utils/pm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -293,7 +292,7 @@ Future<void> showSnackBar(context, String message) async {
 class ShowErrorDialog extends StatelessWidget {
   final String message;
 
-  ShowErrorDialog({Key? key, required this.message}) : super(key: key);
+  const ShowErrorDialog({Key? key, required this.message}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

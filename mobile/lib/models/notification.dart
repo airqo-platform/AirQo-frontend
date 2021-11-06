@@ -9,6 +9,10 @@ class NotificationModel extends ChangeNotifier {
   final List<UserNotification> _notifications = [];
   bool _navBarNotification = true;
 
+  bool get navBarNotification {
+    return _navBarNotification && hasNotifications();
+  }
+
   UnmodifiableListView<UserNotification> get notifications =>
       UnmodifiableListView(_notifications);
 
@@ -26,17 +30,13 @@ class NotificationModel extends ChangeNotifier {
     return _notifications.where((element) => element.isNew).toList().isNotEmpty;
   }
 
-  bool get navBarNotification {
-    return _navBarNotification && hasNotifications();
-  }
-
-  void removeNavBarNotification() {
+  void removeAll() {
+    _notifications.clear();
     _navBarNotification = false;
     notifyListeners();
   }
 
-  void removeAll() {
-    _notifications.clear();
+  void removeNavBarNotification() {
     _navBarNotification = false;
     notifyListeners();
   }
@@ -88,7 +88,7 @@ class UserNotification {
       var notification = UserNotification.fromJson(jsonBody);
       return notification;
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
 
     return null;
@@ -97,14 +97,12 @@ class UserNotification {
   static List<UserNotification> parseNotifications(dynamic jsonBody) {
     var notifications = <UserNotification>[];
 
-    print(jsonBody);
-
     for (var jsonElement in jsonBody) {
       try {
         var measurement = UserNotification.fromJson(jsonElement);
         notifications.add(measurement);
       } catch (e) {
-        print(e);
+        debugPrint(e.toString());
       }
     }
 

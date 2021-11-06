@@ -65,7 +65,6 @@ class Measurement {
 
   Map<String, dynamic> toJson() => _$MeasurementToJson(this);
 
-
   @override
   String toString() {
     return 'Measurement{time: $time, pm2_5: $pm2_5, pm10: $pm10, site: $site, deviceNumber: $deviceNumber}';

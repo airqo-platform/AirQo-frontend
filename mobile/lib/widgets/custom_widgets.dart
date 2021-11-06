@@ -18,7 +18,7 @@ PreferredSizeWidget actionsAppBar(context) {
       padding: const EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
       child: backButton(context),
     ),
-    title: Text(
+    title: const Text(
       'title',
       style: TextStyle(color: Colors.white),
     ),
@@ -256,7 +256,7 @@ PreferredSizeWidget knowYourAirAppBar(context, title) {
     ),
     title: Text(
       title,
-      style: TextStyle(color: Colors.white),
+      style: const TextStyle(color: Colors.white),
     ),
   );
 }

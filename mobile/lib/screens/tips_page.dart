@@ -33,130 +33,128 @@ class _TipsPageState extends State<TipsPage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: knowYourAirAppBar(context, 'Know Your Air'),
-      body: Container(
-        child: Stack(children: [
-          Container(
-            color: ColorConstants.appBodyColor,
-            height: double.infinity,
-            width: double.infinity,
+      body: Stack(children: [
+        Container(
+          color: ColorConstants.appBodyColor,
+          height: double.infinity,
+          width: double.infinity,
+        ),
+        FractionallySizedBox(
+          alignment: Alignment.topCenter,
+          widthFactor: 1.0,
+          heightFactor: 0.4,
+          child: Image.asset(
+            'assets/images/tips-image.png',
+            fit: BoxFit.cover,
           ),
-          FractionallySizedBox(
-            alignment: Alignment.topCenter,
-            widthFactor: 1.0,
-            heightFactor: 0.4,
-            child: Image.asset(
-              'assets/images/tips-image.png',
-              fit: BoxFit.cover,
-            ),
-          ),
-          Positioned.fill(
-            child: Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 10, right: 10),
-                  child: Column(
-                    children: [
-                      const Spacer(),
-                      Container(
-                        padding: const EdgeInsets.only(left: 5, right: 5),
-                        height: MediaQuery.of(context).size.height * 0.6,
-                        child: PageView.builder(
-                          scrollDirection: Axis.horizontal,
-                          physics: const BouncingScrollPhysics(),
-                          controller: controller,
-                          onPageChanged: (num) {
-                            setState(() {
-                              currentPage = num;
-                            });
-                          },
-                          itemBuilder: (BuildContext context, int index) {
-                            return slides[index] == slides[0]
-                                ? slideHeadCard()
-                                : slideChildCard(slides[index], index);
-                          },
-                          itemCount: slides.length,
-                        ),
+        ),
+        Positioned.fill(
+          child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 10, right: 10),
+                child: Column(
+                  children: [
+                    const Spacer(),
+                    Container(
+                      padding: const EdgeInsets.only(left: 5, right: 5),
+                      height: MediaQuery.of(context).size.height * 0.6,
+                      child: PageView.builder(
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        controller: controller,
+                        onPageChanged: (page) {
+                          setState(() {
+                            currentPage = page;
+                          });
+                        },
+                        itemBuilder: (BuildContext context, int index) {
+                          return slides[index] == slides[0]
+                              ? slideHeadCard()
+                              : slideChildCard(slides[index], index);
+                        },
+                        itemCount: slides.length,
                       ),
-                      const SizedBox(
-                        height: 16,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 15, right: 15),
-                        child: Container(
-                            decoration: const BoxDecoration(
-                                color: Colors.white,
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(8.0))),
-                            height: 60,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                TextButton(
-                                  onPressed: () async {
-                                    if (currentPage != 0) {
-                                      await controller.animateToPage(
-                                          currentPage - 1,
-                                          duration:
-                                              const Duration(milliseconds: 200),
-                                          curve: Curves.bounceOut);
-                                    } else {
-                                      controller.jumpToPage(0);
-                                    }
-                                  },
-                                  style: ButtonStyle(
-                                      foregroundColor: currentPage == 0
-                                          ? MaterialStateProperty.all<Color>(
-                                              ColorConstants.appColorBlack
-                                                  .withOpacity(0.5))
-                                          : MaterialStateProperty.all<Color>(
-                                              ColorConstants.appColorBlue),
-                                      elevation: MaterialStateProperty.all(0)),
-                                  child: const Text(
-                                    'Back',
-                                    style: TextStyle(fontSize: 14),
-                                  ),
+                    ),
+                    const SizedBox(
+                      height: 16,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 15, right: 15),
+                      child: Container(
+                          decoration: const BoxDecoration(
+                              color: Colors.white,
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(8.0))),
+                          height: 60,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              TextButton(
+                                onPressed: () async {
+                                  if (currentPage != 0) {
+                                    await controller.animateToPage(
+                                        currentPage - 1,
+                                        duration:
+                                            const Duration(milliseconds: 200),
+                                        curve: Curves.bounceOut);
+                                  } else {
+                                    controller.jumpToPage(0);
+                                  }
+                                },
+                                style: ButtonStyle(
+                                    foregroundColor: currentPage == 0
+                                        ? MaterialStateProperty.all<Color>(
+                                            ColorConstants.appColorBlack
+                                                .withOpacity(0.5))
+                                        : MaterialStateProperty.all<Color>(
+                                            ColorConstants.appColorBlue),
+                                    elevation: MaterialStateProperty.all(0)),
+                                child: const Text(
+                                  'Back',
+                                  style: TextStyle(fontSize: 14),
                                 ),
-                                TextButton(
-                                  onPressed: () async {
-                                    if (currentPage != slides.length - 1) {
-                                      await controller.animateToPage(
-                                          currentPage + 1,
-                                          duration:
-                                              const Duration(milliseconds: 200),
-                                          curve: Curves.bounceIn);
-                                      if (controller.page != null) {
-                                        updateProgress();
-                                      }
-                                    } else {
-                                      controller.jumpToPage(slides.length - 1);
+                              ),
+                              TextButton(
+                                onPressed: () async {
+                                  if (currentPage != slides.length - 1) {
+                                    await controller.animateToPage(
+                                        currentPage + 1,
+                                        duration:
+                                            const Duration(milliseconds: 200),
+                                        curve: Curves.bounceIn);
+                                    if (controller.page != null) {
+                                      await updateProgress();
                                     }
-                                  },
-                                  style: ButtonStyle(
-                                      foregroundColor: currentPage ==
-                                              slides.length - 1
-                                          ? MaterialStateProperty.all<Color>(
-                                              ColorConstants.appColorBlack
-                                                  .withOpacity(0.5))
-                                          : MaterialStateProperty.all<Color>(
-                                              ColorConstants.appColorBlue),
-                                      elevation: MaterialStateProperty.all(0)),
-                                  child: const Text(
-                                    'Next',
-                                    style: TextStyle(fontSize: 14),
-                                  ),
+                                  } else {
+                                    controller.jumpToPage(slides.length - 1);
+                                  }
+                                },
+                                style: ButtonStyle(
+                                    foregroundColor:
+                                        currentPage == slides.length - 1
+                                            ? MaterialStateProperty.all<Color>(
+                                                ColorConstants.appColorBlack
+                                                    .withOpacity(0.5))
+                                            : MaterialStateProperty.all<Color>(
+                                                ColorConstants.appColorBlue),
+                                    elevation: MaterialStateProperty.all(0)),
+                                child: const Text(
+                                  'Next',
+                                  style: TextStyle(fontSize: 14),
                                 ),
-                              ],
-                            )),
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                    ],
-                  ),
-                )),
-          ),
-        ]),
-      ),
+                              ),
+                            ],
+                          )),
+                    ),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                  ],
+                ),
+              )),
+        ),
+      ]),
     );
   }
 
@@ -279,7 +277,7 @@ class _TipsPageState extends State<TipsPage> {
         await preferences.setDouble(PrefConstant.tipsProgress, newProgress);
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 }

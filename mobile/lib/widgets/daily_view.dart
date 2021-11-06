@@ -16,7 +16,7 @@ class DailyView extends StatefulWidget {
   PlaceDetails placeDetails;
   bool daily;
 
-  DailyView(this.placeDetails, this.daily);
+  DailyView(this.placeDetails, this.daily, {Key? key}) : super(key: key);
 
   @override
   _DailyViewState createState() => _DailyViewState();
@@ -28,8 +28,6 @@ class _DailyViewState extends State<DailyView> {
   bool pm10 = false;
   bool pm2_5 = true;
   List<Recommendation> _recommendations = [];
-
-  _DailyViewState();
 
   @override
   Widget build(BuildContext context) {

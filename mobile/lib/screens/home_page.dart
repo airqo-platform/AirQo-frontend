@@ -14,6 +14,8 @@ import 'dashboard_view.dart';
 import 'maps_view.dart';
 
 class HomePage extends StatefulWidget {
+  const HomePage({Key? key}) : super(key: key);
+
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -27,9 +29,9 @@ class _HomePageState extends State<HomePage> {
 
   int _selectedIndex = 0;
   final List<Widget> _widgetOptions = <Widget>[
-    DashboardView(),
-    MapView(),
-    ProfileView(),
+    const DashboardView(),
+    const MapView(),
+    const ProfileView(),
   ];
 
   @override

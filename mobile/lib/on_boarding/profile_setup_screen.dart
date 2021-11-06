@@ -232,7 +232,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
         isSaving = false;
       });
       await showSnackBar(context, 'Failed to update profile. Try again later');
-      print(e);
+      debugPrint(e.toString());
     }
   }
 

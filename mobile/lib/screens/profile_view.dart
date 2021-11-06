@@ -16,7 +16,7 @@ import 'for_you_page.dart';
 import 'notification_page.dart';
 
 class ProfileView extends StatefulWidget {
-  ProfileView({Key? key}) : super(key: key);
+  const ProfileView({Key? key}) : super(key: key);
 
   @override
   _ProfileViewState createState() => _ProfileViewState();
@@ -197,7 +197,7 @@ class _ProfileViewState extends State<ProfileView> {
 
   Future<void> forYou() async {
     await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return ForYouPage();
+      return const ForYouPage();
     }));
   }
 
@@ -287,7 +287,7 @@ class _ProfileViewState extends State<ProfileView> {
 
   Future<void> settings() async {
     await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return SettingsPage();
+      return const SettingsPage();
     }));
   }
 

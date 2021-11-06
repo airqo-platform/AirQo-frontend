@@ -571,7 +571,7 @@ class LoginScreenState extends State<LoginScreen> {
           }
         } catch (e) {
           await showSnackBar(context, 'Try again later');
-          print(e);
+          debugPrint(e.toString());
         }
       } else {
         var success = await _customAuth.signUpWithEmailAddress(

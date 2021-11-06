@@ -1,5 +1,6 @@
 import 'package:app/models/measurement.dart';
 import 'package:app/models/site.dart';
+import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import 'measurement_value.dart';
@@ -144,7 +145,7 @@ class HistoricalMeasurement {
           measurements.add(measurement);
         }
       } catch (e) {
-        print(e);
+        debugPrint(e.toString());
       }
     }
     return measurements.first;
@@ -163,7 +164,7 @@ class HistoricalMeasurement {
           measurements.add(measurement);
         }
       } catch (e) {
-        print(e);
+        debugPrint(e.toString());
       }
     }
     return measurements;

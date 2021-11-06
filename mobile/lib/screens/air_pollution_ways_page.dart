@@ -483,7 +483,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
         await preferences.setDouble(PrefConstant.tipsProgress, tipsProgress);
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 

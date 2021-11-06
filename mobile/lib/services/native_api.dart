@@ -18,7 +18,7 @@ class LocationService {
         return true;
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
     return false;
   }
@@ -191,7 +191,7 @@ class LocationService {
         return true;
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
     return false;
   }

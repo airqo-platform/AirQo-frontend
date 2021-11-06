@@ -749,6 +749,25 @@ class DBHelper {
     }
   }
 
+  Future<void> updateFavouritePlaces(PlaceDetails placeDetails, context) async {
+    final db = await database;
+
+    var res = await db.query(PlaceDetails.dbFavPlacesName(),
+        where: 'siteId = ?', whereArgs: [placeDetails.siteId]);
+
+    if (res.isEmpty) {
+      await insertFavPlace(placeDetails).then((value) => {
+            Provider.of<PlaceDetailsModel>(context, listen: false)
+                .reloadFavouritePlaces()
+          });
+    } else {
+      await removeFavPlace(placeDetails).then((value) => {
+            Provider.of<PlaceDetailsModel>(context, listen: false)
+                .reloadFavouritePlaces()
+          });
+    }
+  }
+
   Future<bool> updateFavouritePlacesV1(String siteId, context) async {
     var prefs = await SharedPreferences.getInstance();
     var favouritePlaces =
@@ -782,25 +801,6 @@ class DBHelper {
     // }
 
     return favouritePlaces.contains(id);
-  }
-
-  Future<void> updateFavouritePlaces(PlaceDetails placeDetails, context) async {
-    final db = await database;
-
-    var res = await db.query(PlaceDetails.dbFavPlacesName(),
-        where: 'siteId = ?', whereArgs: [placeDetails.siteId]);
-
-    if (res.isEmpty) {
-      await insertFavPlace(placeDetails).then((value) => {
-            Provider.of<PlaceDetailsModel>(context, listen: false)
-                .reloadFavouritePlaces()
-          });
-    } else {
-      await removeFavPlace(placeDetails).then((value) => {
-            Provider.of<PlaceDetailsModel>(context, listen: false)
-                .reloadFavouritePlaces()
-          });
-    }
   }
 
   Future<bool> updateSiteAlerts(

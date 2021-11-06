@@ -161,7 +161,7 @@ Widget loginOptions(context) {
             onTap: () {
               Navigator.pushAndRemoveUntil(context,
                   MaterialPageRoute(builder: (context) {
-                return HomePage();
+                return const HomePage();
               }), (r) => false);
             },
             child: Text(
@@ -439,7 +439,7 @@ Widget signUpOptions(context) {
             onTap: () {
               Navigator.pushAndRemoveUntil(context,
                   MaterialPageRoute(builder: (context) {
-                return HomePage();
+                return const HomePage();
               }), (r) => false);
             },
             child: Text(

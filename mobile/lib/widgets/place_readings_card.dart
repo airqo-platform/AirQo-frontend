@@ -55,8 +55,7 @@ class PlaceReadingsCard extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _PlaceReadingsCardState createState() =>
-      _PlaceReadingsCardState(site, historicalData);
+  _PlaceReadingsCardState createState() => _PlaceReadingsCardState();
 }
 
 class _PlaceReadingsCardState extends State<PlaceReadingsCard> {
@@ -64,13 +63,9 @@ class _PlaceReadingsCardState extends State<PlaceReadingsCard> {
   final List<charts.Series<TimeSeriesData, DateTime>> graphSeriesList =
       createData();
 
-  final Site site;
-  List<HistoricalMeasurement> historicalData = [];
   Color pmColor = ColorConstants.appColorBlue;
-  var gaugeValue;
+  dynamic gaugeValue;
   List<Widget> tips = [];
-
-  _PlaceReadingsCardState(this.site, this.historicalData);
 
   @override
   Widget build(BuildContext context) {
@@ -138,7 +133,7 @@ class _PlaceReadingsCardState extends State<PlaceReadingsCard> {
             ),
             child: GestureDetector(
               onTap: () {
-                shareLocation(PlaceDetails.siteToPLace(site));
+                shareLocation(PlaceDetails.siteToPLace(widget.site));
               },
               child: Center(
                 child: Text('Share',
@@ -153,7 +148,7 @@ class _PlaceReadingsCardState extends State<PlaceReadingsCard> {
           GestureDetector(
             onTap: () async {
               await DBHelper().updateFavouritePlaces(
-                  PlaceDetails.siteToPLace(site), context);
+                  PlaceDetails.siteToPLace(widget.site), context);
             },
             child: Container(
               height: 36,
@@ -212,7 +207,8 @@ class _PlaceReadingsCardState extends State<PlaceReadingsCard> {
             children: [
               Text(
                 '$gaugeValue',
-                style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
               ),
               Text('PM2.5',
                   style: TextStyle(
@@ -227,14 +223,14 @@ class _PlaceReadingsCardState extends State<PlaceReadingsCard> {
   }
 
   Widget graphSection() {
-    var graphSeriesList = historicalChartData(historicalData);
+    var graphSeriesList = historicalChartData(widget.historicalData);
     return ReadingsBarChart(graphSeriesList, 'History', setHeader);
   }
 
   @override
   void initState() {
-    if (historicalData.isNotEmpty) {
-      var measurement = historicalData[historicalData.length - 1];
+    if (widget.historicalData.isNotEmpty) {
+      var measurement = widget.historicalData[widget.historicalData.length - 1];
       gaugeValue = measurement.getPm2_5Value();
       pmColor = pm2_5ToColor(measurement.getPm2_5Value());
     } else {
@@ -253,7 +249,7 @@ class _PlaceReadingsCardState extends State<PlaceReadingsCard> {
     } catch (e) {
       gaugeValue = 0.0;
       pmColor = pm2_5ToColor(0.0);
-      print(e);
+      debugPrint(e.toString());
     }
   }
 
@@ -296,7 +292,7 @@ class _PlaceReadingsCardState extends State<PlaceReadingsCard> {
                         width: 2,
                       ),
                       Expanded(
-                        child: Text('${site.getName()}',
+                        child: Text(widget.site.getName(),
                             softWrap: true,
                             maxLines: 1,
                             textAlign: TextAlign.start,
@@ -304,7 +300,7 @@ class _PlaceReadingsCardState extends State<PlaceReadingsCard> {
                             style: TextStyle(
                                 fontSize: 12,
                                 color: pm2_5TextColor(
-                                    historicalData[0].getPm2_5Value()),
+                                    widget.historicalData[0].getPm2_5Value()),
                                 fontWeight: FontWeight.bold)),
                       ),
                     ],

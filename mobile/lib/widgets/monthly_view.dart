@@ -11,20 +11,17 @@ import 'custom_shimmer.dart';
 class MonthlyView extends StatefulWidget {
   Site site;
 
-  MonthlyView(this.site);
+  MonthlyView(this.site, {Key? key}) : super(key: key);
 
   @override
-  _MonthlyViewState createState() => _MonthlyViewState(site);
+  _MonthlyViewState createState() => _MonthlyViewState();
 }
 
 class _MonthlyViewState extends State<MonthlyView>
     with TickerProviderStateMixin {
-  late TabController _weeklyTabController;
-  Site site;
+  TabController? _weeklyTabController;
   int currentIndex = 0;
   List<Widget> placeHolders = [];
-
-  _MonthlyViewState(this.site);
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +72,7 @@ class _MonthlyViewState extends State<MonthlyView>
     }
     return Tab(
         child: tabLayout(
-            '${DateFormat('EEE').format(nextDate)}',
+            DateFormat('EEE').format(nextDate),
             day,
             currentIndex == index
                 ? ColorConstants.appColorBlue
@@ -88,7 +85,7 @@ class _MonthlyViewState extends State<MonthlyView>
   @override
   void dispose() {
     super.dispose();
-    _weeklyTabController.dispose();
+    _weeklyTabController!.dispose();
   }
 
   DateTime getDate(int day) {
@@ -104,7 +101,7 @@ class _MonthlyViewState extends State<MonthlyView>
   void getMeasurements() async {
     for (var dateIndex = 0; dateIndex < placeHolders.length; dateIndex++) {
       await AirqoApiClient(context)
-          .fetchSiteDayMeasurements(site.id, getDate(dateIndex))
+          .fetchSiteDayMeasurements(widget.site.id, getDate(dateIndex))
           .then((measurements) => {
                 if (measurements.isEmpty)
                   {
@@ -126,7 +123,7 @@ class _MonthlyViewState extends State<MonthlyView>
                       {
                         setState(() {
                           placeHolders[dateIndex] =
-                              PlaceReadingsCard(site, measurements);
+                              PlaceReadingsCard(widget.site, measurements);
                         }),
                       }
                   }

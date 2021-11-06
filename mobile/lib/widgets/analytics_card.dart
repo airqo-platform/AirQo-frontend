@@ -16,7 +16,7 @@ import 'custom_widgets.dart';
 
 class AnalyticsCard extends StatefulWidget {
   final PlaceDetails placeDetails;
-  final isRefreshing;
+  final bool isRefreshing;
 
   const AnalyticsCard(this.placeDetails, this.isRefreshing, {Key? key})
       : super(key: key);
@@ -27,7 +27,7 @@ class AnalyticsCard extends StatefulWidget {
 
 class MapAnalyticsCard extends StatefulWidget {
   final Measurement measurement;
-  final closeCallBack;
+  final dynamic closeCallBack;
 
   const MapAnalyticsCard(this.measurement, this.closeCallBack, {Key? key})
       : super(key: key);
@@ -38,8 +38,6 @@ class MapAnalyticsCard extends StatefulWidget {
 
 class _AnalyticsCardState extends State<AnalyticsCard> {
   Measurement? measurement;
-
-  _AnalyticsCardState();
 
   @override
   Widget build(BuildContext context) {

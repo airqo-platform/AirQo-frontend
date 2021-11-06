@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'story.g.dart';
@@ -73,13 +74,9 @@ class Story {
         var story = Story.fromJson(jsonElement);
         stories.add(story);
       } catch (e) {
-        print('Error parsing stories : $e');
+        debugPrint('Error parsing stories : $e');
       }
     }
-
-    // stories.sort((storyA, storyB) {
-    //   return storyA.getName().compareTo(storyB.getName().toLowerCase());
-    // });
 
     return stories;
   }
@@ -93,7 +90,7 @@ extension ParseSite on Story {
       var date = pubDate.split(' ').first;
       return date;
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
     return pubDate;
   }

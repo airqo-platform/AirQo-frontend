@@ -4,6 +4,7 @@ import 'package:app/models/historical_measurement.dart';
 import 'package:app/models/predict.dart';
 import 'package:app/utils/pm.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 List<charts.Series<TimeSeriesData, DateTime>> forecastChartData(
@@ -22,7 +23,7 @@ List<charts.Series<TimeSeriesData, DateTime>> forecastChartData(
 
       data.add(TimeSeriesData(dateTime, prediction.value));
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 
@@ -60,7 +61,7 @@ List<charts.Series<TimeSeriesData, DateTime>> historicalChartData(
           DateTime.parse(measurement.time).add(Duration(hours: offSet));
       data.add(TimeSeriesData(dateTime, measurement.getPm2_5Value()));
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 
@@ -90,7 +91,7 @@ List<charts.Series<HistoricalMeasurement, DateTime>> insightsChartData(
       updatedValue.formattedTime = dateTime;
       data.add(updatedValue);
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 

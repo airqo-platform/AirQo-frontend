@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 String chartDateToString(String formattedString, bool format) {
@@ -30,7 +31,7 @@ String chartDateToString(String formattedString, bool format) {
       }
     }
   } on Error catch (e) {
-    print('Date Formatting error: $e');
+    debugPrint('Date Formatting error: $e');
     return formattedString;
   }
 }
@@ -55,7 +56,8 @@ String dateToString(String formattedString, bool addOffset) {
       if (now.isAfter(formattedDate)) {
         var yesterday = now.subtract(const Duration(hours: 24));
         if (formattedDate.day == yesterday.day) {
-          return 'Updated yesterday at ${DateFormat('hh:mm a').format(formattedDate)}';
+          return 'Updated yesterday at'
+              ' ${DateFormat('hh:mm a').format(formattedDate)}';
         } else {
           var daysAgo = now.difference(formattedDate).inDays;
           if (daysAgo == 1) {
@@ -73,7 +75,7 @@ String dateToString(String formattedString, bool addOffset) {
       }
     }
   } on Error catch (e) {
-    print('Date Formatting error: $e');
+    debugPrint('Date Formatting error: $e');
     return formattedString;
   }
 }
@@ -188,7 +190,7 @@ String insightsChartDateTimeToString(DateTime dateTime, bool daily) {
       }
     }
   } on Error catch (e) {
-    print('Date Formatting error: $e');
+    debugPrint('Date Formatting error: $e');
     return dateTime.toString();
   }
 }

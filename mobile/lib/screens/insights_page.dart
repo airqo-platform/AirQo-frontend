@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 class InsightsPage extends StatefulWidget {
   PlaceDetails placeDetails;
 
-  InsightsPage(this.placeDetails);
+  InsightsPage(this.placeDetails, {Key? key}) : super(key: key);
 
   @override
   _InsightsPageState createState() => _InsightsPageState();
@@ -16,7 +16,7 @@ class InsightsPage extends StatefulWidget {
 
 class _InsightsPageState extends State<InsightsPage>
     with SingleTickerProviderStateMixin {
-  var _tabController;
+  TabController? _tabController;
   bool isWeekly = true;
 
   _InsightsPageState();
@@ -120,8 +120,8 @@ class _InsightsPageState extends State<InsightsPage>
 
   @override
   void dispose() {
+    _tabController!.dispose();
     super.dispose();
-    _tabController.dispose();
   }
 
   @override

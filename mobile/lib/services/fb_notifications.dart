@@ -41,7 +41,7 @@ class CloudStore {
           .doc(id)
           .delete();
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 

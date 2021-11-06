@@ -13,7 +13,7 @@ import 'package:flutter/rendering.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class FeedbackPage extends StatefulWidget {
-  FeedbackPage({Key? key}) : super(key: key);
+  const FeedbackPage({Key? key}) : super(key: key);
 
   @override
   _FeedbackPageState createState() => _FeedbackPageState();
@@ -224,7 +224,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                 await launch('${Links.appWhatsappUrl}'
                                     'text=$feedbackType');
                               } catch (e) {
-                                print(e);
+                                debugPrint(e.toString());
                               }
                               Navigator.of(context).pop();
                             }
@@ -257,7 +257,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                           {
                                             showSnackBar(
                                                 context,
-                                                'Could not capture your feedback.'
+                                                'Could not capture'
+                                                ' your feedback.'
                                                 ' Try again later'),
                                             setState(() {
                                               isSendingFeedback = false;

@@ -13,12 +13,11 @@ class WeeklyView extends StatefulWidget {
   WeeklyView(this.site, {Key? key}) : super(key: key);
 
   @override
-  _WeeklyViewState createState() => _WeeklyViewState(site);
+  _WeeklyViewState createState() => _WeeklyViewState();
 }
 
 class _WeeklyViewState extends State<WeeklyView> with TickerProviderStateMixin {
-  late TabController _weeklyTabController;
-  Site site;
+  TabController? _weeklyTabController;
   int currentIndex = 0;
   List<Widget> placeHolders = [
     loadingAnimation(253.0, 16.0),
@@ -29,8 +28,6 @@ class _WeeklyViewState extends State<WeeklyView> with TickerProviderStateMixin {
     loadingAnimation(253.0, 16.0),
     loadingAnimation(253.0, 16.0),
   ];
-
-  _WeeklyViewState(this.site);
 
   @override
   Widget build(BuildContext context) {
@@ -145,7 +142,7 @@ class _WeeklyViewState extends State<WeeklyView> with TickerProviderStateMixin {
   @override
   void dispose() {
     super.dispose();
-    _weeklyTabController.dispose();
+    _weeklyTabController!.dispose();
   }
 
   DateTime getDate(int day) {
@@ -160,7 +157,7 @@ class _WeeklyViewState extends State<WeeklyView> with TickerProviderStateMixin {
 
   void getMeasurements(int today) async {
     await AirqoApiClient(context)
-        .fetchSiteDayMeasurements(site.id, getDate(today))
+        .fetchSiteDayMeasurements(widget.site.id, getDate(today))
         .then((measurements) => {
               if (measurements.isEmpty && mounted)
                 {
@@ -179,7 +176,7 @@ class _WeeklyViewState extends State<WeeklyView> with TickerProviderStateMixin {
             });
     for (var dateIndex = 0; dateIndex <= 6; dateIndex++) {
       var measurements = await AirqoApiClient(context)
-          .fetchSiteDayMeasurements(site.id, getDate(dateIndex));
+          .fetchSiteDayMeasurements(widget.site.id, getDate(dateIndex));
       if (measurements.isEmpty) {
         if (mounted) {
           setState(() {
@@ -197,7 +194,8 @@ class _WeeklyViewState extends State<WeeklyView> with TickerProviderStateMixin {
       } else {
         if (mounted) {
           setState(() {
-            placeHolders[dateIndex] = PlaceReadingsCard(site, measurements);
+            placeHolders[dateIndex] =
+                PlaceReadingsCard(widget.site, measurements);
           });
         }
       }

@@ -8,24 +8,20 @@ import 'package:flutter/material.dart';
 class PlaceView extends StatefulWidget {
   Site site;
 
-  PlaceView(this.site);
+  PlaceView(this.site, {Key? key}) : super(key: key);
 
   @override
-  _PlaceViewState createState() => _PlaceViewState(this.site);
+  _PlaceViewState createState() => _PlaceViewState();
 }
 
 class _PlaceViewState extends State<PlaceView>
     with SingleTickerProviderStateMixin {
-  var _tabController;
+  TabController? _tabController;
   bool isWeekly = true;
-
-  Site site;
 
   int segmentedControlValue = 0;
 
   int currentSegment = 0;
-
-  _PlaceViewState(this.site);
 
   Widget backButton() {
     return Container(
@@ -122,8 +118,8 @@ class _PlaceViewState extends State<PlaceView>
       body: TabBarView(
         controller: _tabController,
         children: <Widget>[
-          WeeklyView(site),
-          MonthlyView(site),
+          WeeklyView(widget.site),
+          MonthlyView(widget.site),
         ],
       ),
     );
@@ -132,7 +128,7 @@ class _PlaceViewState extends State<PlaceView>
   @override
   void dispose() {
     super.dispose();
-    _tabController.dispose();
+    _tabController!.dispose();
   }
 
   @override
@@ -147,26 +143,5 @@ class _PlaceViewState extends State<PlaceView>
         currentSegment = newValue;
       });
     }
-  }
-
-  Widget segmentedControl() {
-    return Container(
-      width: 300,
-      child: CupertinoSlidingSegmentedControl(
-          groupValue: segmentedControlValue,
-          backgroundColor: Colors.blue.shade200,
-          children: const <int, Widget>{
-            0: Text('One'),
-            1: Text('Two'),
-            2: Text('Three')
-          },
-          onValueChanged: (value) {
-            setState(() {
-              if (value != null) {
-                segmentedControlValue = value as int;
-              }
-            });
-          }),
-    );
   }
 }

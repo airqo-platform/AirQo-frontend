@@ -227,11 +227,13 @@ Widget phoneInputField(String placeholder, valueChangeCallBackFn, String prefix,
           focusedBorder: InputBorder.none,
           enabledBorder: InputBorder.none,
           // focusedBorder: OutlineInputBorder(
-          //   borderSide: BorderSide(color: ColorConstants.appColorBlue, width: 1.0),
+          //   borderSide: BorderSide(color:
+          //   ColorConstants.appColorBlue, width: 1.0),
           //   borderRadius: BorderRadius.circular(10.0),
           // ),
           // enabledBorder: OutlineInputBorder(
-          //   borderSide: BorderSide(color: ColorConstants.appColorBlue, width: 1.0),
+          //   borderSide: BorderSide(color:
+          //   ColorConstants.appColorBlue, width: 1.0),
           //   borderRadius: BorderRadius.circular(10.0),
           // ),
           hintText: placeholder,

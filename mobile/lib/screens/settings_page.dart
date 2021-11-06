@@ -15,7 +15,7 @@ import 'feedback_page.dart';
 import 'home_page.dart';
 
 class SettingsPage extends StatefulWidget {
-  SettingsPage({Key? key}) : super(key: key);
+  const SettingsPage({Key? key}) : super(key: key);
 
   @override
   _SettingsPageState createState() => _SettingsPageState();
@@ -199,7 +199,7 @@ class _SettingsPageState extends State<SettingsPage> {
             onTap: () async {
               await Navigator.push(context,
                   MaterialPageRoute(builder: (context) {
-                return FeedbackPage();
+                return const FeedbackPage();
               }));
             },
             child: cardSection('Send feedback'),
@@ -221,13 +221,13 @@ class _SettingsPageState extends State<SettingsPage> {
                 try {
                   await launch(Links.playStoreUrl);
                 } catch (e) {
-                  print(e);
+                  debugPrint(e.toString());
                 }
               } else if (Platform.isIOS || Platform.isMacOS) {
                 try {
                   await launch(Links.appStoreUrl);
                 } catch (e) {
-                  print(e);
+                  debugPrint(e.toString());
                 }
               }
             },
@@ -258,7 +258,7 @@ class _SettingsPageState extends State<SettingsPage> {
         _customAuth.deleteAccount(context).then((value) => {
               Navigator.pushAndRemoveUntil(context,
                   MaterialPageRoute(builder: (context) {
-                return HomePage();
+                return const HomePage();
               }), (r) => false)
             });
       },

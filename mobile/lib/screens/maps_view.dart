@@ -16,7 +16,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MapView extends StatefulWidget {
-  MapView({Key? key}) : super(key: key);
+  const MapView({Key? key}) : super(key: key);
 
   @override
   _MapViewState createState() => _MapViewState();

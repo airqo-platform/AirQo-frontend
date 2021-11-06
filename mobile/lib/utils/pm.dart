@@ -11,7 +11,7 @@ List<charts.Series<TimeSeriesData, DateTime>> createData() {
   var today = DateTime.now();
 
   final data = [
-    TimeSeriesData(today.add(Duration(hours: 1)), 5),
+    TimeSeriesData(today.add(const Duration(hours: 1)), 5),
   ];
 
   return [

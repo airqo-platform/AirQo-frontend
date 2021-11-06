@@ -2,6 +2,8 @@ import 'package:app/constants/app_constants.dart';
 import 'package:flutter/material.dart';
 
 class ClearAppDialog extends StatefulWidget {
+  const ClearAppDialog({Key? key}) : super(key: key);
+
   @override
   State createState() => ClearAppDialogState();
 }

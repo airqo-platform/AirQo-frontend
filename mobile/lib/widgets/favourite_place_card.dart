@@ -22,8 +22,6 @@ class MiniAnalyticsCard extends StatefulWidget {
 class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
   Measurement? measurement;
 
-  _MiniAnalyticsCard();
-
   @override
   Widget build(BuildContext context) {
     return Padding(

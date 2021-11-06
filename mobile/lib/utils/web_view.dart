@@ -1,4 +1,5 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 void openUrl(url) {
@@ -17,6 +18,6 @@ void openUrl(url) {
 class Browser extends InAppBrowser {
   @override
   void onLoadError(url, code, message) {
-    print("Can't load $url.. Error: $message");
+    debugPrint("Can't load $url.. Error: $message");
   }
 }

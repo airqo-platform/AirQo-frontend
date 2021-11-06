@@ -17,7 +17,7 @@ import 'custom_widgets.dart';
 class InsightsCard extends StatefulWidget {
   final PlaceDetails placeDetails;
   final bool daily;
-  final callBackFn;
+  final dynamic callBackFn;
   final String pollutant;
 
   const InsightsCard(
@@ -35,8 +35,6 @@ class _InsightsCardState extends State<InsightsCard> {
   List<charts.Series<dynamic, DateTime>> chartData = [];
   final ScrollController _scrollController = ScrollController();
   String viewDay = 'today';
-
-  _InsightsCardState();
 
   @override
   Widget build(BuildContext context) {
@@ -269,7 +267,7 @@ class _InsightsCardState extends State<InsightsCard> {
                   updateUI(model.selectedSeries[0].data[value]);
                 }
               } on Error catch (e) {
-                print(e);
+                debugPrint(e.toString());
               }
             }
           })

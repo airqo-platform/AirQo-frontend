@@ -21,6 +21,8 @@ import 'favourite_places.dart';
 import 'for_you_page.dart';
 
 class DashboardView extends StatefulWidget {
+  const DashboardView({Key? key}) : super(key: key);
+
   @override
   _DashboardViewState createState() => _DashboardViewState();
 }
@@ -253,6 +255,98 @@ class _DashboardViewState extends State<DashboardView> {
     loadDashboardCards();
   }
 
+  void getFavourites(List<PlaceDetails> favouritePlaces) async {
+    var widgets = <Widget>[];
+
+    try {
+      if (favouritePlaces.length == 1) {
+        var measurement =
+            await DBHelper().getMeasurement(favouritePlaces[0].siteId);
+        if (measurement != null) {
+          widgets.add(favPlaceAvatar(0, measurement));
+        } else {
+          widgets.add(favPlaceAvatarEmpty(0));
+        }
+      } else if (favouritePlaces.length == 2) {
+        var measurement =
+            await DBHelper().getMeasurement(favouritePlaces[0].siteId);
+        if (measurement != null) {
+          widgets.add(favPlaceAvatar(0, measurement));
+        } else {
+          widgets.add(favPlaceAvatarEmpty(0));
+        }
+
+        measurement =
+            await DBHelper().getMeasurement(favouritePlaces[1].siteId);
+        if (measurement != null) {
+          widgets.add(favPlaceAvatar(7, measurement));
+        } else {
+          widgets.add(favPlaceAvatarEmpty(7));
+        }
+
+        // widgets
+        //   ..add(favPlaceAvatar(0, favouritePlaces[0]))
+        //   ..add(favPlaceAvatar(7, favouritePlaces[1]));
+      } else if (favouritePlaces.length >= 3) {
+        var measurement =
+            await DBHelper().getMeasurement(favouritePlaces[0].siteId);
+        if (measurement != null) {
+          widgets.add(favPlaceAvatar(0, measurement));
+        } else {
+          widgets.add(favPlaceAvatarEmpty(0));
+        }
+
+        measurement =
+            await DBHelper().getMeasurement(favouritePlaces[1].siteId);
+        if (measurement != null) {
+          widgets.add(favPlaceAvatar(7, measurement));
+        } else {
+          widgets.add(favPlaceAvatarEmpty(7));
+        }
+
+        measurement =
+            await DBHelper().getMeasurement(favouritePlaces[2].siteId);
+        if (measurement != null) {
+          widgets.add(favPlaceAvatar(14, measurement));
+        } else {
+          widgets.add(favPlaceAvatarEmpty(14));
+        }
+      } else {}
+    } catch (e) {
+      debugPrint('hi');
+      debugPrint(e.toString());
+    }
+
+    setState(() {
+      favLocations.clear();
+      favLocations = widgets;
+    });
+  }
+
+  void getLocationMeasurements() async {
+    // try {
+    //   await Settings().dashboardMeasurement().then((value) => {
+    //         if (value != null)
+    //           {
+    //             if (mounted)
+    //               {
+    //                 setState(() {
+    //                   measurementData = value;
+    //                   isRefreshing = false;
+    //                 }),
+    //                 updateCurrentLocation()
+    //               },
+    //           }
+    //         else
+    //           {
+    //
+    //           }
+    //       });
+    // } catch (e) {
+    //   debugPrint('error getting data : $e');
+    // }
+  }
+
   Future<void> initialize() async {
     setGreetings();
     // _getLatestMeasurements();
@@ -337,74 +431,6 @@ class _DashboardViewState extends State<DashboardView> {
   void setGreetings() {
     setState(() {
       greetings = getGreetings(_customAuth.getDisplayName());
-    });
-  }
-
-  void getFavourites(List<PlaceDetails> favouritePlaces) async {
-    var widgets = <Widget>[];
-
-    try {
-      if (favouritePlaces.length == 1) {
-        var measurement =
-            await DBHelper().getMeasurement(favouritePlaces[0].siteId);
-        if (measurement != null) {
-          widgets.add(favPlaceAvatar(0, measurement));
-        } else {
-          widgets.add(favPlaceAvatarEmpty(0));
-        }
-      } else if (favouritePlaces.length == 2) {
-        var measurement =
-            await DBHelper().getMeasurement(favouritePlaces[0].siteId);
-        if (measurement != null) {
-          widgets.add(favPlaceAvatar(0, measurement));
-        } else {
-          widgets.add(favPlaceAvatarEmpty(0));
-        }
-
-        measurement =
-            await DBHelper().getMeasurement(favouritePlaces[1].siteId);
-        if (measurement != null) {
-          widgets.add(favPlaceAvatar(7, measurement));
-        } else {
-          widgets.add(favPlaceAvatarEmpty(7));
-        }
-
-        // widgets
-        //   ..add(favPlaceAvatar(0, favouritePlaces[0]))
-        //   ..add(favPlaceAvatar(7, favouritePlaces[1]));
-      } else if (favouritePlaces.length >= 3) {
-        var measurement =
-            await DBHelper().getMeasurement(favouritePlaces[0].siteId);
-        if (measurement != null) {
-          widgets.add(favPlaceAvatar(0, measurement));
-        } else {
-          widgets.add(favPlaceAvatarEmpty(0));
-        }
-
-        measurement =
-            await DBHelper().getMeasurement(favouritePlaces[1].siteId);
-        if (measurement != null) {
-          widgets.add(favPlaceAvatar(7, measurement));
-        } else {
-          widgets.add(favPlaceAvatarEmpty(7));
-        }
-
-        measurement =
-            await DBHelper().getMeasurement(favouritePlaces[2].siteId);
-        if (measurement != null) {
-          widgets.add(favPlaceAvatar(14, measurement));
-        } else {
-          widgets.add(favPlaceAvatarEmpty(14));
-        }
-      } else {}
-    } catch (e) {
-      debugPrint('hi');
-      debugPrint(e.toString());
-    }
-
-    setState(() {
-      favLocations.clear();
-      favLocations = widgets;
     });
   }
 
@@ -556,8 +582,7 @@ class _DashboardViewState extends State<DashboardView> {
         Expanded(
             child: GestureDetector(
           onTap: () async {
-            await Navigator.push(context,
-                MaterialPageRoute(builder: (context) {
+            await Navigator.push(context, MaterialPageRoute(builder: (context) {
               return const FavouritePlaces();
             }));
           },
@@ -647,7 +672,8 @@ class _DashboardViewState extends State<DashboardView> {
     //   var dashboardSite = prefs.getString(PrefConstant.dashboardSite) ?? '';
     //
     //   if (dashboardSite == '') {
-    //     await LocationService().getCurrentLocationReadings().then((value) => {
+    //     await LocationService().getCurrentLocationReadings().then((value)
+    //     => {
     //           if (value != null)
     //             {
     //               prefs.setStringList(PrefConstant.lastKnownLocation,
@@ -684,29 +710,5 @@ class _DashboardViewState extends State<DashboardView> {
           if (value.isNotEmpty)
             {DBHelper().insertLatestMeasurements(value), initialize()}
         });
-  }
-
-  void _getLocationMeasurements() async {
-    // try {
-    //   await Settings().dashboardMeasurement().then((value) => {
-    //         if (value != null)
-    //           {
-    //             if (mounted)
-    //               {
-    //                 setState(() {
-    //                   measurementData = value;
-    //                   isRefreshing = false;
-    //                 }),
-    //                 updateCurrentLocation()
-    //               },
-    //           }
-    //         else
-    //           {
-    //
-    //           }
-    //       });
-    // } catch (e) {
-    //   debugPrint('error getting data : $e');
-    // }
   }
 }

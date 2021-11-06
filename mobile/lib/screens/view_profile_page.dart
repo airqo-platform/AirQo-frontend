@@ -21,18 +21,17 @@ class ViewProfilePage extends StatefulWidget {
   ViewProfilePage(this.userDetails, {Key? key}) : super(key: key);
 
   @override
-  _ViewProfilePageState createState() => _ViewProfilePageState(userDetails);
+  _ViewProfilePageState createState() => _ViewProfilePageState();
 }
 
 class _ViewProfilePageState extends State<ViewProfilePage> {
   final _formKey = GlobalKey<FormState>();
-  UserDetails userDetails;
   bool updating = false;
   final CustomAuth _customAuth = CustomAuth();
+  final ImagePicker _imagePicker = ImagePicker();
+  AirqoApiClient? _airqoApiClient;
   String profilePic = '';
   bool changeImage = false;
-
-  _ViewProfilePageState(this.userDetails);
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +80,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                 //   height: 4,
                 // ),
                 // TextFormField(
-                //   initialValue: userDetails.emailAddress,
+                //   initialValue: widget.userDetails.emailAddress,
                 //   autofocus: true,
                 //   enableSuggestions: false,
                 //   cursorWidth: 1,
@@ -89,8 +88,8 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                 //   keyboardType: TextInputType.emailAddress,
                 //   decoration: formFieldsDecoration(),
                 //   onChanged: (text) {
-                //     userDetails.emailAddress = text;
-                //     userDetails.userId = text;
+                //     widget.userDetails.emailAddress = text;
+                //     widget.userDetails.userId = text;
                 //   },
                 //   validator: (value) {
                 //     if (value == null || value.isEmpty) {
@@ -115,7 +114,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                 //   height: 4,
                 // ),
                 // TextFormField(
-                //   initialValue: userDetails.phoneNumber,
+                //   initialValue: widget.userDetails.phoneNumber,
                 //   autofocus: true,
                 //   enableSuggestions: false,
                 //   cursorWidth: 1,
@@ -123,7 +122,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                 //   keyboardType: TextInputType.phone,
                 //   decoration: formFieldsDecoration(),
                 //   onChanged: (text) {
-                //     userDetails.phoneNumber = text;
+                //     widget.userDetails.phoneNumber = text;
                 //   },
                 //   validator: (value) {
                 //     if (value == null || value.isEmpty) {
@@ -145,7 +144,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                   height: 4,
                 ),
                 TextFormField(
-                  initialValue: userDetails.firstName,
+                  initialValue: widget.userDetails.firstName,
                   autofocus: true,
                   enableSuggestions: false,
                   cursorWidth: 1,
@@ -153,7 +152,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                   keyboardType: TextInputType.name,
                   decoration: profileFormFieldDecoration(),
                   onChanged: (text) {
-                    userDetails.firstName = text;
+                    widget.userDetails.firstName = text;
                   },
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -175,7 +174,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                   height: 4,
                 ),
                 TextFormField(
-                  initialValue: userDetails.lastName,
+                  initialValue: widget.userDetails.lastName,
                   autofocus: true,
                   enableSuggestions: false,
                   cursorWidth: 1,
@@ -183,7 +182,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                   keyboardType: TextInputType.name,
                   decoration: profileFormFieldDecoration(),
                   onChanged: (text) {
-                    userDetails.lastName = text;
+                    widget.userDetails.lastName = text;
                   },
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -202,9 +201,23 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
     ));
   }
 
+  void getFromCamera() async {
+    var pickedFile = await _imagePicker.pickImage(
+      source: ImageSource.camera,
+      maxWidth: 1800,
+      maxHeight: 1800,
+    );
+    if (pickedFile != null) {
+      setState(() {
+        widget.userDetails.photoUrl = pickedFile.path;
+      });
+    }
+  }
+
   @override
   void initState() {
-    profilePic = userDetails.photoUrl;
+    profilePic = widget.userDetails.photoUrl;
+    _airqoApiClient = AirqoApiClient(context);
     super.initState();
   }
 
@@ -332,11 +345,11 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
       final image = await _controller.takePicture();
 
       setState(() {
-        userDetails.photoUrl = image.path;
+        widget.userDetails.photoUrl = image.path;
       });
-      print(image.path);
+      debugPrint(image.path);
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 
@@ -346,7 +359,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
       setState(() {
         updating = true;
       });
-      await _customAuth.updateProfile(userDetails).then((value) => {
+      await _customAuth.updateProfile(widget.userDetails).then((value) => {
             uploadPicture().then((_) => {
                   updating = false,
                   showSnackBar(context, 'Profile updated'),
@@ -385,14 +398,14 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
 
       var imageBytes = await File(profilePic).readAsBytes();
 
-      var imageUrl = await AirqoApiClient(context)
-          .imageUpload(base64Encode(imageBytes), mimeType, userDetails.userId);
+      var imageUrl = await _airqoApiClient!.imageUpload(
+          base64Encode(imageBytes), mimeType, widget.userDetails.userId);
 
-      userDetails.photoUrl = imageUrl;
+      widget.userDetails.photoUrl = imageUrl;
 
-      await _customAuth.updateProfile(userDetails);
+      await _customAuth.updateProfile(widget.userDetails);
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 
@@ -402,26 +415,13 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
     });
 
     print(value);
-    userDetails.photoUrl = value;
-    await _customAuth.updateProfile(userDetails);
+    widget.userDetails.photoUrl = value;
+    await _customAuth.updateProfile(widget.userDetails);
     await showSnackBar(context, 'success');
   }
 
-  void _getFromCamera() async {
-    var pickedFile = await ImagePicker().getImage(
-      source: ImageSource.camera,
-      maxWidth: 1800,
-      maxHeight: 1800,
-    );
-    if (pickedFile != null) {
-      setState(() {
-        userDetails.photoUrl = pickedFile.path;
-      });
-    }
-  }
-
   void _getFromGallery() async {
-    var pickedFile = await ImagePicker().getImage(
+    var pickedFile = await _imagePicker.pickImage(
       source: ImageSource.gallery,
       maxWidth: 1800,
       maxHeight: 1800,

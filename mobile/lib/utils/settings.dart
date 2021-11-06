@@ -2,6 +2,7 @@ import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/native_api.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Settings {
@@ -30,7 +31,7 @@ class Settings {
 
       return _defaultLocation();
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
       return null;
     }
   }
