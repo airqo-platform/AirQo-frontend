@@ -23,6 +23,7 @@ import { downloadDataApi } from "views/apis/analytics";
 import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import { useInitScrollTop, usePollutantsOptions } from "utils/customHooks";
+import ErrorBoundary from "views/ErrorBoundary/ErrorBoundary";
 
 const { Parser } = require("json2csv");
 
@@ -163,6 +164,8 @@ const Download = (props) => {
             "time",
             ...getValues(pollutants),
             "frequency",
+            "latitude",
+            "longitude",
             "site_id",
             "site_description",
           ];
@@ -185,144 +188,146 @@ const Download = (props) => {
     setLoading(false);
   };
   return (
-    <div className={classes.root}>
-      <Grid container spacing={4}>
-        <Grid item xs={12}>
-          <Card
-            {...rest}
-            className={clsx(classes.root, className)}
-            style={{ overflow: "visible" }}
-          >
-            <CardHeader
-              subheader="Customize the data you want to download."
-              title="Data Download"
-            />
-
-            <Divider />
-            <form onSubmit={handleSubmit}>
-              <CardContent>
-                <Grid container spacing={2}>
-                  <Grid item md={6} xs={12}>
-                    <TextField
-                      label="Start Date"
-                      className="reactSelect"
-                      fullWidth
-                      variant="outlined"
-                      InputLabelProps={{ shrink: true }}
-                      type="date"
-                      onChange={(event) => setStartDate(event.target.value)}
-                    />
-                  </Grid>
-
-                  <Grid item md={6} xs={12}>
-                    <TextField
-                      label="End Date"
-                      className="reactSelect"
-                      fullWidth
-                      variant="outlined"
-                      InputLabelProps={{ shrink: true }}
-                      type="date"
-                      onChange={(event) => setEndDate(event.target.value)}
-                    />
-                  </Grid>
-
-                  <Grid item md={6} xs={12}>
-                    <Select
-                      fullWidth
-                      className="reactSelect"
-                      name="location"
-                      placeholder="Location(s)"
-                      value={selectedSites}
-                      options={siteOptions}
-                      onChange={(options) => setSelectedSites(options)}
-                      isMulti
-                      variant="outlined"
-                      margin="dense"
-                      required
-                    />
-                  </Grid>
-
-                  <Grid item md={6} xs={12}>
-                    <Select
-                      fullWidth
-                      label="Frequency"
-                      className=""
-                      name="chart-frequency"
-                      placeholder="Frequency"
-                      value={frequency}
-                      options={frequencyOptions}
-                      onChange={(options) => setFrequency(options)}
-                      variant="outlined"
-                      margin="dense"
-                      required
-                    />
-                  </Grid>
-                  <Grid item md={6} xs={12}>
-                    <Select
-                      fullWidth
-                      label="Pollutant"
-                      className="reactSelect"
-                      name="pollutant"
-                      placeholder="Pollutant(s)"
-                      value={pollutants}
-                      options={pollutantOptions}
-                      onChange={(options) => setPollutants(options)}
-                      isMulti
-                      variant="outlined"
-                      margin="dense"
-                      required
-                    />
-                  </Grid>
-
-                  <Grid item md={6} xs={12}>
-                    <Select
-                      fullWidth
-                      label="File Type"
-                      className="reactSelect"
-                      name="file-type"
-                      placeholder="File Type"
-                      value={fileType}
-                      options={typeOptions}
-                      onChange={(options) => setFileType(options)}
-                      variant="outlined"
-                      margin="dense"
-                      required
-                    />
-                  </Grid>
-                </Grid>
-              </CardContent>
+    <ErrorBoundary>
+      <div className={classes.root}>
+        <Grid container spacing={4}>
+          <Grid item xs={12}>
+            <Card
+              {...rest}
+              className={clsx(classes.root, className)}
+              style={{ overflow: "visible" }}
+            >
+              <CardHeader
+                subheader="Customize the data you want to download."
+                title="Data Download"
+              />
 
               <Divider />
-              <CardActions>
-                <span style={{ position: "relative" }}>
-                  <Button
-                    color="primary"
-                    variant="outlined"
-                    type="submit"
-                    disabled={disableDownloadBtn()}
-                  >
-                    {" "}
-                    Download Data
-                  </Button>
-                  {loading && (
-                    <CircularProgress
-                      size={24}
-                      style={{
-                        position: "absolute",
-                        top: "50%",
-                        left: "50%",
-                        marginTop: "-12px",
-                        marginLeft: "-12px",
-                      }}
-                    />
-                  )}
-                </span>
-              </CardActions>
-            </form>
-          </Card>
+              <form onSubmit={handleSubmit}>
+                <CardContent>
+                  <Grid container spacing={2}>
+                    <Grid item md={6} xs={12}>
+                      <TextField
+                        label="Start Date"
+                        className="reactSelect"
+                        fullWidth
+                        variant="outlined"
+                        InputLabelProps={{ shrink: true }}
+                        type="date"
+                        onChange={(event) => setStartDate(event.target.value)}
+                      />
+                    </Grid>
+
+                    <Grid item md={6} xs={12}>
+                      <TextField
+                        label="End Date"
+                        className="reactSelect"
+                        fullWidth
+                        variant="outlined"
+                        InputLabelProps={{ shrink: true }}
+                        type="date"
+                        onChange={(event) => setEndDate(event.target.value)}
+                      />
+                    </Grid>
+
+                    <Grid item md={6} xs={12}>
+                      <Select
+                        fullWidth
+                        className="reactSelect"
+                        name="location"
+                        placeholder="Location(s)"
+                        value={selectedSites}
+                        options={siteOptions}
+                        onChange={(options) => setSelectedSites(options)}
+                        isMulti
+                        variant="outlined"
+                        margin="dense"
+                        required
+                      />
+                    </Grid>
+
+                    <Grid item md={6} xs={12}>
+                      <Select
+                        fullWidth
+                        label="Frequency"
+                        className=""
+                        name="chart-frequency"
+                        placeholder="Frequency"
+                        value={frequency}
+                        options={frequencyOptions}
+                        onChange={(options) => setFrequency(options)}
+                        variant="outlined"
+                        margin="dense"
+                        required
+                      />
+                    </Grid>
+                    <Grid item md={6} xs={12}>
+                      <Select
+                        fullWidth
+                        label="Pollutant"
+                        className="reactSelect"
+                        name="pollutant"
+                        placeholder="Pollutant(s)"
+                        value={pollutants}
+                        options={pollutantOptions}
+                        onChange={(options) => setPollutants(options)}
+                        isMulti
+                        variant="outlined"
+                        margin="dense"
+                        required
+                      />
+                    </Grid>
+
+                    <Grid item md={6} xs={12}>
+                      <Select
+                        fullWidth
+                        label="File Type"
+                        className="reactSelect"
+                        name="file-type"
+                        placeholder="File Type"
+                        value={fileType}
+                        options={typeOptions}
+                        onChange={(options) => setFileType(options)}
+                        variant="outlined"
+                        margin="dense"
+                        required
+                      />
+                    </Grid>
+                  </Grid>
+                </CardContent>
+
+                <Divider />
+                <CardActions>
+                  <span style={{ position: "relative" }}>
+                    <Button
+                      color="primary"
+                      variant="outlined"
+                      type="submit"
+                      disabled={disableDownloadBtn()}
+                    >
+                      {" "}
+                      Download Data
+                    </Button>
+                    {loading && (
+                      <CircularProgress
+                        size={24}
+                        style={{
+                          position: "absolute",
+                          top: "50%",
+                          left: "50%",
+                          marginTop: "-12px",
+                          marginLeft: "-12px",
+                        }}
+                      />
+                    )}
+                  </span>
+                </CardActions>
+              </form>
+            </Card>
+          </Grid>
         </Grid>
-      </Grid>
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 };
 

@@ -1,7 +1,10 @@
 import { isEmpty } from "underscore";
 
-const siteLabel = (name, description, generated_name) =>
-  `${name || description || generated_name} (${generated_name})`;
+const siteLabel = (name, description, generated_name) => {
+  let label = `${name || description || generated_name}`;
+  if (generated_name) label = `${label} (${generated_name})`;
+  return label;
+};
 
 export const createSiteOptions = (sites) => {
   const siteOptions = [];
@@ -20,4 +23,10 @@ export const filterSite = (sites, site_id) => {
     return { label: "", value: null };
   }
   return currentSite[0];
+};
+
+export const flattenSiteOptions = (options) => {
+  const arr = [];
+  options.map((opt) => arr.push(opt.value));
+  return arr;
 };

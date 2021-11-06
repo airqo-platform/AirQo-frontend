@@ -26,6 +26,8 @@ import moment from "moment";
 import JsPDF from "jspdf";
 import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
 import { usePollutantsOptions } from "utils/customHooks";
+import { useCurrentAirQloudData } from "redux/AirQloud/selectors";
+import { flattenSiteOptions } from "utils/sites";
 import OutlinedSelect from "views/components/CustomSelects/OutlinedSelect";
 
 const useStyles = makeStyles((theme) => ({
@@ -49,6 +51,8 @@ const ExceedancesChart = (props) => {
   const { className, chartContainer, idSuffix, ...rest } = props;
 
   const classes = useStyles();
+
+  const airqloud = useCurrentAirQloudData();
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [open, setOpen] = React.useState(false);
@@ -106,9 +110,21 @@ const ExceedancesChart = (props) => {
       standard: standard.value,
       startDate,
       endDate,
+      sites: flattenSiteOptions(airqloud.siteOptions),
     };
     fetchAndSetExceedanceData(filter);
   }, []);
+
+  useEffect(() => {
+    let filter = {
+      pollutant: pollutant.value,
+      standard: standard.value,
+      startDate,
+      endDate,
+      sites: flattenSiteOptions(airqloud.siteOptions),
+    };
+    fetchAndSetExceedanceData(filter);
+  }, [airqloud]);
 
   let handleSubmit = async (e) => {
     e.preventDefault();

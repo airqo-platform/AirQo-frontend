@@ -15,15 +15,16 @@ import RichTooltip from "../../containers/RichToolTip";
 import { MenuItem } from "@material-ui/core";
 import Checkbox from "@material-ui/core/Checkbox";
 import { useInitScrollTop } from "utils/customHooks";
+import { ErrorBoundary } from "../../ErrorBoundary";
 
 // css
 import "assets/css/overlay-map.css";
 
-import 'mapbox-gl/dist/mapbox-gl.css';
-import mapboxgl from 'mapbox-gl';
+import "mapbox-gl/dist/mapbox-gl.css";
+import mapboxgl from "mapbox-gl";
 
 // eslint-disable-next-line import/no-webpack-loader-syntax
-mapboxgl.workerClass = require('worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker').default;
+mapboxgl.workerClass = require("worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker").default;
 
 const markerDetailsPM2_5 = {
   0.0: ["marker-good", "Good"],
@@ -436,22 +437,28 @@ export const OverlayMap = ({
           }`;
           el.innerText = (pollutantValue && pollutantValue.toFixed(0)) || "n/a";
 
-          new mapboxgl.Marker(el)
-            .setLngLat(feature.geometry.coordinates)
-            .setPopup(
-              new mapboxgl.Popup({ offset: 25 }).setHTML(
-                `<div>
+          if (
+            feature.geometry.coordinates.length >= 2 &&
+            feature.geometry.coordinates[0] &&
+            feature.geometry.coordinates[1]
+          ) {
+            new mapboxgl.Marker(el)
+              .setLngLat(feature.geometry.coordinates)
+              .setPopup(
+                new mapboxgl.Popup({ offset: 25 }).setHTML(
+                  `<div>
                     <div>Device - <span style="text-transform: uppercase"><b>${
                       feature.properties.device || feature.properties._id
                     }</b></span></div>
                     <div class="${"popup-body " + markerClass}"> AQI: ${
-                  (pollutantValue && pollutantValue.toFixed(2)) || "n/a"
-                } - ${desc}</div>
+                    (pollutantValue && pollutantValue.toFixed(2)) || "n/a"
+                  } - ${desc}</div>
                     <span>Last Refreshed: <b>${duration}</b> ago</span>
                 </div>`
+                )
               )
-            )
-            .addTo(map);
+              .addTo(map);
+          }
         })}
       <Filter pollutants={showPollutant} />
       {map && (
@@ -494,12 +501,14 @@ const MapContainer = () => {
 
   return (
     <div>
-      <OverlayMap
-        center={[32.5600613, 0.3341424]}
-        zoom={11}
-        heatMapData={heatMapData}
-        monitoringSiteData={monitoringSiteData}
-      />
+      <ErrorBoundary>
+        <OverlayMap
+          center={[32.5600613, 0.3341424]}
+          zoom={11}
+          heatMapData={heatMapData}
+          monitoringSiteData={monitoringSiteData}
+        />
+      </ErrorBoundary>
     </div>
   );
 };
