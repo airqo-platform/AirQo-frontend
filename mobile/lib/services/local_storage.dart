@@ -12,9 +12,11 @@ import 'package:app/models/suggestion.dart';
 import 'package:app/models/user_details.dart';
 import 'package:app/utils/distance.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:path/path.dart';
 import 'package:provider/provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -750,5 +752,103 @@ class DBHelper {
     await prefs.setStringList(PrefConstant.siteAlerts, preferredAlerts);
 
     return preferredAlerts.contains(topicName);
+  }
+}
+
+class SecureStorageHelper {
+  final _secureStorage = const FlutterSecureStorage();
+  Future<void> clearUserDetails() async {
+    await _secureStorage.deleteAll();
+  }
+
+  Future<UserDetails> getUserDetails() async {
+    var userInfo = await _secureStorage.readAll();
+    var userDetails = UserDetails.initialize()
+      ..title = userInfo['title'] ?? ''
+      ..firstName = userInfo['firstName'] ?? ''
+      ..lastName = userInfo['lastName'] ?? ''
+      ..photoUrl = userInfo['photoUrl'] ?? ''
+      ..userId = userInfo['userId'] ?? ''
+      ..device = userInfo['device'] ?? ''
+      ..emailAddress = userInfo['emailAddress'] ?? ''
+      ..phoneNumber = userInfo['phoneNumber'] ?? '';
+
+    return userDetails;
+  }
+
+  Future<void> updateUserDetails(UserDetails userDetails) async {
+    try {
+      await _secureStorage.write(
+          key: 'firstName', value: userDetails.firstName);
+      await _secureStorage.write(key: 'lastName', value: userDetails.lastName);
+      await _secureStorage.write(key: 'photoUrl', value: userDetails.photoUrl);
+      await _secureStorage.write(key: 'title', value: userDetails.title);
+      await _secureStorage.write(key: 'userId', value: userDetails.userId);
+      await _secureStorage.write(key: 'device', value: userDetails.device);
+      await _secureStorage.write(
+          key: 'emailAddress', value: userDetails.emailAddress);
+      await _secureStorage.write(
+          key: 'phoneNumber', value: userDetails.phoneNumber);
+    } on Error catch (exception, stackTrace) {
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+}
+
+class SharedPreferencesHelper {
+  SharedPreferences? _sharedPreferences;
+
+  Future<void> clearPreferences() async {
+    if (_sharedPreferences == null) {
+      await initialize();
+    }
+    if (_sharedPreferences!.containsKey('notifications')) {
+      await _sharedPreferences!.remove('notifications');
+    }
+    if (_sharedPreferences!.containsKey('location')) {
+      await _sharedPreferences!.remove('location');
+    }
+    if (_sharedPreferences!.containsKey('alerts')) {
+      await _sharedPreferences!.remove('alerts');
+    }
+  }
+
+  Future<UserPreferences> getPreferences() async {
+    if (_sharedPreferences == null) {
+      await initialize();
+    }
+    var notifications = _sharedPreferences!.getBool('notifications') ?? false;
+    var location = _sharedPreferences!.getBool('location') ?? false;
+    var alerts = _sharedPreferences!.getBool('alerts') ?? false;
+
+    return UserPreferences(notifications, location, alerts, 0.0);
+  }
+
+  Future<void> initialize() async {
+    _sharedPreferences = await SharedPreferences.getInstance();
+  }
+
+  Future<void> updatePreference(String key, dynamic value, String type) async {
+    if (_sharedPreferences == null) {
+      await initialize();
+    }
+    if (type == 'bool') {
+      await _sharedPreferences!.setBool(key, value);
+    } else {
+      await _sharedPreferences!.setDouble(key, value);
+    }
+  }
+
+  Future<void> updatePreferences(UserPreferences userPreferences) async {
+    if (_sharedPreferences == null) {
+      await initialize();
+    }
+    await _sharedPreferences!
+        .setBool('notifications', userPreferences.notifications);
+    await _sharedPreferences!.setBool('location', userPreferences.location);
+    await _sharedPreferences!.setBool('alerts', userPreferences.alerts);
   }
 }

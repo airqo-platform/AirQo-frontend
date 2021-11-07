@@ -6,6 +6,7 @@ import 'package:app/screens/settings_page.dart';
 import 'package:app/screens/tips_page.dart';
 import 'package:app/screens/view_profile_page.dart';
 import 'package:app/services/fb_notifications.dart';
+import 'package:app/services/local_storage.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -25,9 +26,9 @@ class ProfileView extends StatefulWidget {
 class _ProfileViewState extends State<ProfileView> {
   var userProfile = UserDetails.initialize();
   final CustomAuth _customAuth = CustomAuth();
-  final CloudStore _cloudStore = CloudStore();
   bool isLoggedIn = false;
   final CloudAnalytics _cloudAnalytics = CloudAnalytics();
+  final SecureStorageHelper _secureStorageHelper = SecureStorageHelper();
 
   Widget appNavBar() {
     return Row(
@@ -208,14 +209,13 @@ class _ProfileViewState extends State<ProfileView> {
       isLoggedIn = _customAuth.isLoggedIn();
     });
 
-    await _cloudStore.getProfile(_customAuth.getId()).then((value) => {
-          if (value != null)
-            {
-              setState(() {
-                userProfile = value;
-              })
-            }
-        });
+    if (isLoggedIn) {
+      await _secureStorageHelper.getUserDetails().then((value) => {
+            setState(() {
+              userProfile = value;
+            })
+          });
+    }
   }
 
   @override

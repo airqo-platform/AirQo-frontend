@@ -272,7 +272,7 @@ class LocationService {
       var id = _customAuth.getId();
       if (id != '') {
         await _cloudStore.updatePreferenceFields(
-            id, 'location', status == PermissionStatus.granted);
+            id, 'location', status == PermissionStatus.granted, 'bool');
       }
       return status == PermissionStatus.granted;
     } catch (e) {
@@ -287,7 +287,7 @@ class LocationService {
     var id = _customAuth.getId();
 
     if (id != '') {
-      await _cloudStore.updatePreferenceFields(id, 'location', false);
+      await _cloudStore.updatePreferenceFields(id, 'location', false, 'bool');
     }
     return false;
   }

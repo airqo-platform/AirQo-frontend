@@ -25,6 +25,10 @@ extension StringCasingExtension on String {
     return false;
   }
 
+  bool isValidUri() {
+    return Uri.parse(this).host == '' ? false : true;
+  }
+
   String toTitleCase() =>
       split(' ').map((str) => str.toCapitalized()).join(' ');
 }

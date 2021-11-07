@@ -8,6 +8,7 @@ import 'package:app/models/site.dart';
 import 'package:app/models/topicData.dart';
 import 'package:app/models/user_details.dart';
 import 'package:app/utils/dialogs.dart';
+import 'package:app/utils/string_extension.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -17,6 +18,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'local_notifications.dart';
+import 'local_storage.dart';
 
 class CloudAnalytics {
   final FirebaseAnalytics analytics = FirebaseAnalytics();
@@ -30,6 +32,7 @@ class CloudAnalytics {
 
 class CloudStore {
   final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
+  final SharedPreferencesHelper _preferencesHelper = SharedPreferencesHelper();
 
   Future<bool> credentialsExist(String? phoneNumber, String? email) async {
     var hasConnection = await isConnected();
@@ -60,6 +63,7 @@ class CloudStore {
   }
 
   Future<void> deleteAccount(id) async {
+    // TODO DELETE NOTIFICATIONS
     try {
       await _firebaseFirestore
           .collection(CloudStorage.usersCollection)
@@ -123,21 +127,10 @@ class CloudStore {
           .collection(CloudStorage.usersCollection)
           .doc(id)
           .get();
-
       return await compute(UserDetails.parseUserDetails, userJson.data());
     } else {
-      // TODO change source to database
-      var _preferences = await SharedPreferences.getInstance();
-      var userDetails = UserDetails.initialize()
-        ..userId = _preferences.getString('userId') ?? ''
-        ..title = _preferences.getString('title') ?? ''
-        ..firstName = _preferences.getString('firstName') ?? ''
-        ..lastName = _preferences.getString('lastName') ?? ''
-        ..phoneNumber = _preferences.getString('phoneNumber') ?? ''
-        ..emailAddress = _preferences.getString('emailAddress') ?? ''
-        ..photoUrl = _preferences.getString('photoUrl') ?? '';
-
-      return userDetails;
+      // TODO Implement no internet access
+      return UserDetails.initialize();
     }
   }
 
@@ -257,7 +250,8 @@ class CloudStore {
   }
 
   Future<void> updatePreferenceFields(
-      String id, String field, dynamic value) async {
+      String id, String field, dynamic value, String type) async {
+    await _preferencesHelper.updatePreference(field, value, type);
     var hasConnection = await isConnected();
     if (hasConnection) {
       DocumentSnapshot userDoc = await _firebaseFirestore
@@ -316,14 +310,44 @@ class CloudStore {
 class CustomAuth {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final CloudStore _cloudStore = CloudStore();
+  final SecureStorageHelper _secureStorageHelper = SecureStorageHelper();
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+  final SharedPreferencesHelper _preferencesHelper = SharedPreferencesHelper();
+
+  Future<void> createProfile() async {
+    var hasConnection = await isConnected();
+    if (hasConnection) {
+      var firebaseUser = _firebaseAuth.currentUser;
+      if (firebaseUser != null) {
+        var userDetails = UserDetails.initialize();
+
+        var device = await getDeviceToken() ?? '';
+        userDetails
+          ..device = device
+          ..userId = firebaseUser.uid;
+
+        await firebaseUser.updateDisplayName(userDetails.firstName);
+
+        if (firebaseUser.phoneNumber != null) {
+          userDetails.phoneNumber = firebaseUser.phoneNumber!;
+        }
+
+        if (firebaseUser.email != null) {
+          userDetails.emailAddress = firebaseUser.email!;
+        }
+        await _cloudStore.updateProfile(userDetails, firebaseUser.uid);
+        await _secureStorageHelper.updateUserDetails(userDetails);
+        await _preferencesHelper.updatePreferences(userDetails.preferences);
+      }
+    }
+  }
 
   Future<void> deleteAccount(context) async {
     var currentUser = _firebaseAuth.currentUser;
     if (currentUser != null) {
       try {
-        await currentUser.delete().then((value) =>
-            {logOut(context), _cloudStore.deleteAccount(currentUser.uid)});
+        await logOut(context).then((value) => {currentUser.delete()});
+        await _cloudStore.deleteAccount(currentUser.uid);
       } catch (e) {
         debugPrint(e.toString());
       }
@@ -385,6 +409,7 @@ class CustomAuth {
   }
 
   Future<void> logIn(AuthCredential authCredential, context) async {
+    // TODO check connectivity
     var userCredential =
         await _firebaseAuth.signInWithCredential(authCredential);
     if (userCredential.user != null) {
@@ -396,7 +421,8 @@ class CustomAuth {
             await _cloudStore.updateProfileFields(user.uid, {'device': device});
           }
           var userDetails = await _cloudStore.getProfile(user.uid);
-          // TODO update database
+          await _secureStorageHelper.updateUserDetails(userDetails);
+          await _preferencesHelper.updatePreferences(userDetails.preferences);
           await Provider.of<PlaceDetailsModel>(context, listen: false)
               .loadFavouritePlaces(userDetails.favPlaces);
         }
@@ -412,17 +438,10 @@ class CustomAuth {
     await _firebaseAuth.signOut();
     await Provider.of<PlaceDetailsModel>(context, listen: false)
         .loadFavouritePlaces([]);
+
     Provider.of<NotificationModel>(context, listen: false).removeAll();
-
-    var _preferences = await SharedPreferences.getInstance();
-
-    await _preferences.remove('title');
-    await _preferences.remove('firstName');
-    await _preferences.remove('lastName');
-    await _preferences.remove('phoneNumber');
-    await _preferences.remove('emailAddress');
-    await _preferences.remove('photoUrl');
-    await _preferences.remove('userId');
+    await _secureStorageHelper.clearUserDetails();
+    await _preferencesHelper.clearPreferences();
   }
 
   Future<bool> saveAlert(Alert alert) async {
@@ -447,12 +466,7 @@ class CustomAuth {
       var user = userCredential.user;
       try {
         if (user != null) {
-          var userDetails = UserDetails.initialize();
-
-          var device = await getDeviceToken() ?? '';
-          userDetails.device = device;
-
-          await updateProfile(userDetails);
+          await createProfile();
           await _cloudStore.sendWelcomeNotification(user.uid);
         }
       } catch (e) {
@@ -475,7 +489,6 @@ class CustomAuth {
   Future<bool> signUpWithPhoneNumber(String phoneNumber) async {
     var confirmation =
         await FirebaseAuth.instance.signInWithPhoneNumber(phoneNumber);
-
     if (confirmation.verificationId.isEmpty) {
       return false;
     } else {
@@ -490,30 +503,33 @@ class CustomAuth {
       if (firebaseUser == null) {
         throw Exception('You are not signed in');
       } else {
+        if (!userDetails.photoUrl.isValidUri()) {
+          userDetails.photoUrl = '';
+        }
+
         await firebaseUser.updateDisplayName(userDetails.firstName);
         await firebaseUser.updatePhotoURL(userDetails.photoUrl);
 
         userDetails.userId = firebaseUser.uid;
 
         if (firebaseUser.phoneNumber != null) {
-          userDetails.phoneNumber = firebaseUser.phoneNumber!;
+          userDetails.phoneNumber = firebaseUser.phoneNumber ?? '';
         }
 
         if (firebaseUser.email != null) {
-          userDetails.emailAddress = firebaseUser.email!;
+          userDetails.emailAddress = firebaseUser.email ?? '';
         }
 
-        var _preferences = await SharedPreferences.getInstance();
-        await _preferences.setString('title', userDetails.title);
-        await _preferences.setString('firstName', userDetails.firstName);
-        await _preferences.setString('lastName', userDetails.lastName);
-        await _preferences.setString(
-            'phoneNumber', firebaseUser.phoneNumber ?? '');
-        await _preferences.setString('emailAddress', firebaseUser.email ?? '');
-        await _preferences.setString('photoUrl', firebaseUser.photoURL ?? '');
-        await _preferences.setString('userId', firebaseUser.uid);
+        await _secureStorageHelper.updateUserDetails(userDetails);
 
-        await _cloudStore.updateProfile(userDetails, firebaseUser.uid);
+        var fields = {
+          'title': userDetails.title,
+          'firstName': userDetails.firstName,
+          'lastName': userDetails.lastName,
+          'photoUrl': userDetails.photoUrl,
+        };
+
+        await _cloudStore.updateProfileFields(firebaseUser.uid, fields);
       }
     }
   }
@@ -593,7 +609,8 @@ class NotificationService {
       var id = _customAuth.getId();
 
       if (id != '') {
-        await _cloudStore.updatePreferenceFields(id, 'notifications', status);
+        await _cloudStore.updatePreferenceFields(
+            id, 'notifications', status, 'bool');
       }
       return status;
     } catch (e) {
@@ -607,7 +624,8 @@ class NotificationService {
     var id = _customAuth.getId();
 
     if (id != '') {
-      await _cloudStore.updatePreferenceFields(id, 'notifications', false);
+      await _cloudStore.updatePreferenceFields(
+          id, 'notifications', false, 'bool');
     }
     return false;
   }
