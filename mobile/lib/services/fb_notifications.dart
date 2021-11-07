@@ -36,15 +36,17 @@ class CloudStore {
     if (hasConnection) {
       try {
         var users = await _firebaseFirestore
-            .collection(CloudStorage.usersCollection).get();
-        for(var doc in users.docs){
+            .collection(CloudStorage.usersCollection)
+            .get();
+        for (var doc in users.docs) {
           try {
-            if(phoneNumber != null && doc.data()['phoneNumber'] == phoneNumber){
-                        return true;
-                      }
-            if(email != null && doc.data()['emailAddress'] == email){
-                        return true;
-                      }
+            if (phoneNumber != null &&
+                doc.data()['phoneNumber'] == phoneNumber) {
+              return true;
+            }
+            if (email != null && doc.data()['emailAddress'] == email) {
+              return true;
+            }
           } catch (e) {
             continue;
           }
@@ -110,10 +112,11 @@ class CloudStore {
     }
   }
 
-  Future<UserDetails?> getProfile(String id) async {
+  Future<UserDetails> getProfile(String id) async {
     if (id == '') {
-      return null;
+      return UserDetails.initialize();
     }
+
     var hasConnection = await isConnected();
     if (hasConnection) {
       var userJson = await _firebaseFirestore
@@ -123,6 +126,7 @@ class CloudStore {
 
       return await compute(UserDetails.parseUserDetails, userJson.data());
     } else {
+      // TODO change source to database
       var _preferences = await SharedPreferences.getInstance();
       var userDetails = UserDetails.initialize()
         ..userId = _preferences.getString('userId') ?? ''
@@ -252,32 +256,30 @@ class CloudStore {
     }
   }
 
-  Future<void> updatePreferenceFields(String id, String field, dynamic value)
-  async {
+  Future<void> updatePreferenceFields(
+      String id, String field, dynamic value) async {
     var hasConnection = await isConnected();
     if (hasConnection) {
-
       DocumentSnapshot userDoc = await _firebaseFirestore
           .collection(CloudStorage.usersCollection)
-          .doc(id).get();
+          .doc(id)
+          .get();
       var data = userDoc.data();
 
-      if(data != null){
-
+      if (data != null) {
         var userDetails = UserDetails.fromJson(data as Map<String, dynamic>);
-        if(field == 'notifications'){
+        if (field == 'notifications') {
           userDetails.preferences.notifications = value as bool;
-        }
-        else if(field == 'location'){
+        } else if (field == 'location') {
           userDetails.preferences.location = value as bool;
         }
         var userJson = userDetails.toJson();
 
         await _firebaseFirestore
             .collection(CloudStorage.usersCollection)
-            .doc(id).update(userJson);
+            .doc(id)
+            .update(userJson);
       }
-
     }
   }
 
@@ -287,9 +289,9 @@ class CloudStore {
       var _userJson = userDetails.toJson();
       try {
         await _firebaseFirestore
-                  .collection(CloudStorage.usersCollection)
-                  .doc(id)
-                  .update(_userJson);
+            .collection(CloudStorage.usersCollection)
+            .doc(id)
+            .update(_userJson);
       } catch (e) {
         await _firebaseFirestore
             .collection(CloudStorage.usersCollection)
@@ -299,18 +301,16 @@ class CloudStore {
     }
   }
 
-  Future<void> updateProfileFields(String id, Map<String, Object?> fields)
-  async {
+  Future<void> updateProfileFields(
+      String id, Map<String, Object?> fields) async {
     var hasConnection = await isConnected();
     if (hasConnection) {
-
       await _firebaseFirestore
           .collection(CloudStorage.usersCollection)
           .doc(id)
           .update(fields);
     }
   }
-
 }
 
 class CustomAuth {
@@ -322,10 +322,8 @@ class CustomAuth {
     var currentUser = _firebaseAuth.currentUser;
     if (currentUser != null) {
       try {
-        await currentUser.delete().then((value) => {
-              logOut(context),
-              _cloudStore.deleteAccount(currentUser.uid)
-            });
+        await currentUser.delete().then((value) =>
+            {logOut(context), _cloudStore.deleteAccount(currentUser.uid)});
       } catch (e) {
         debugPrint(e.toString());
       }
@@ -386,7 +384,7 @@ class CustomAuth {
     return false;
   }
 
-  Future<void> logIn(AuthCredential authCredential) async {
+  Future<void> logIn(AuthCredential authCredential, context) async {
     var userCredential =
         await _firebaseAuth.signInWithCredential(authCredential);
     if (userCredential.user != null) {
@@ -394,10 +392,13 @@ class CustomAuth {
       try {
         if (user != null) {
           var device = await getDeviceToken();
-          if(device != null){
+          if (device != null) {
             await _cloudStore.updateProfileFields(user.uid, {'device': device});
           }
-
+          var userDetails = await _cloudStore.getProfile(user.uid);
+          // TODO update database
+          await Provider.of<PlaceDetailsModel>(context, listen: false)
+              .loadFavouritePlaces(userDetails.favPlaces);
         }
       } catch (e) {
         debugPrint(e.toString());
@@ -406,11 +407,12 @@ class CustomAuth {
   }
 
   Future<void> logOut(context) async {
-    Provider.of<NotificationModel>(context, listen: false).removeAll();
-
     var userId = getId();
     await _cloudStore.updateProfileFields(userId, {'device': ''});
     await _firebaseAuth.signOut();
+    await Provider.of<PlaceDetailsModel>(context, listen: false)
+        .loadFavouritePlaces([]);
+    Provider.of<NotificationModel>(context, listen: false).removeAll();
 
     var _preferences = await SharedPreferences.getInstance();
 
@@ -440,7 +442,7 @@ class CustomAuth {
 
   Future<void> signUp(AuthCredential authCredential) async {
     var userCredential =
-    await _firebaseAuth.signInWithCredential(authCredential);
+        await _firebaseAuth.signInWithCredential(authCredential);
     if (userCredential.user != null) {
       var user = userCredential.user;
       try {
@@ -452,7 +454,6 @@ class CustomAuth {
 
           await updateProfile(userDetails);
           await _cloudStore.sendWelcomeNotification(user.uid);
-
         }
       } catch (e) {
         debugPrint(e.toString());
@@ -489,17 +490,16 @@ class CustomAuth {
       if (firebaseUser == null) {
         throw Exception('You are not signed in');
       } else {
-
         await firebaseUser.updateDisplayName(userDetails.firstName);
         await firebaseUser.updatePhotoURL(userDetails.photoUrl);
 
         userDetails.userId = firebaseUser.uid;
 
-        if(firebaseUser.phoneNumber != null){
+        if (firebaseUser.phoneNumber != null) {
           userDetails.phoneNumber = firebaseUser.phoneNumber!;
         }
 
-        if(firebaseUser.email != null){
+        if (firebaseUser.email != null) {
           userDetails.emailAddress = firebaseUser.email!;
         }
 
@@ -592,8 +592,8 @@ class NotificationService {
 
       var id = _customAuth.getId();
 
-      if(id != ''){
-        await _cloudStore.updatePreferenceFields(id, 'notifications',  status);
+      if (id != '') {
+        await _cloudStore.updatePreferenceFields(id, 'notifications', status);
       }
       return status;
     } catch (e) {
@@ -606,8 +606,8 @@ class NotificationService {
     // TODO: implement revoke permission
     var id = _customAuth.getId();
 
-    if(id != ''){
-      await _cloudStore.updatePreferenceFields(id, 'notifications',  false);
+    if (id != '') {
+      await _cloudStore.updatePreferenceFields(id, 'notifications', false);
     }
     return false;
   }

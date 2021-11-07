@@ -43,7 +43,7 @@ class LoginScreenState extends State<LoginScreen> {
   var smsCode = <String>['', '', '', '', '', ''];
 
   void autoVerifyPhoneFn(PhoneAuthCredential credential) {
-    _customAuth.logIn(credential).then((value) => {
+    _customAuth.logIn(credential, context).then((value) => {
           Navigator.pushAndRemoveUntil(context,
               MaterialPageRoute(builder: (context) {
             return const HomePage();
@@ -471,11 +471,12 @@ class LoginScreenState extends State<LoginScreen> {
     if (phoneSignIn) {
       _phoneFormKey.currentState!.validate();
       if (phoneFormValid) {
-
-        var phoneExists = await _cloudStore
-            .credentialsExist('$prefixValue$phoneNumber', null);
-        if(!phoneExists){
-          await showSnackBar(context, 'Phone number does not exist. '
+        var phoneExists = await _cloudStore.credentialsExist(
+            '$prefixValue$phoneNumber', null);
+        if (!phoneExists) {
+          await showSnackBar(
+              context,
+              'Phone number does not exist. '
               'Try signing up');
           return;
         }
@@ -489,11 +490,12 @@ class LoginScreenState extends State<LoginScreen> {
     } else {
       _emailFormKey.currentState!.validate();
       if (emailFormValid) {
-
-        var emailExists = await _cloudStore
-            .credentialsExist(null, emailAddress);
-        if(!emailExists){
-          await showSnackBar(context, 'Email Address does not exist. '
+        var emailExists =
+            await _cloudStore.credentialsExist(null, emailAddress);
+        if (!emailExists) {
+          await showSnackBar(
+              context,
+              'Email Address does not exist. '
               'Try signing up');
           return;
         }
@@ -577,7 +579,7 @@ class LoginScreenState extends State<LoginScreen> {
         var credential = PhoneAuthProvider.credential(
             verificationId: verifyId, smsCode: smsCode.join(''));
         try {
-          await _customAuth.logIn(credential).then((value) => {
+          await _customAuth.logIn(credential, context).then((value) => {
                 Navigator.pushAndRemoveUntil(context,
                     MaterialPageRoute(builder: (context) {
                   return HomePage();

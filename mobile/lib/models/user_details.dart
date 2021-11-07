@@ -5,16 +5,16 @@ part 'user_details.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class UserDetails {
-  String title;
-  String firstName;
-  String userId;
-  String lastName;
-  String emailAddress;
-  String phoneNumber;
-  String device;
-  String photoUrl;
-  List<PlaceDetails> favPlaces;
-  UserPreferences preferences;
+  String title = '';
+  String firstName = '';
+  String userId = '';
+  String lastName = '';
+  String emailAddress = '';
+  String phoneNumber = '';
+  String device = '';
+  String photoUrl = '';
+  List<PlaceDetails> favPlaces = [];
+  UserPreferences preferences = UserPreferences(false, false, false, 0.0);
 
   UserDetails(
       this.title,
@@ -91,7 +91,6 @@ class UserDetails {
 
 @JsonSerializable()
 class UserPreferences {
-
   @JsonKey(defaultValue: false)
   bool notifications;
 

@@ -477,11 +477,12 @@ class SignupScreenState extends State<SignupScreen> {
     if (phoneSignUp) {
       _phoneFormKey.currentState!.validate();
       if (phoneFormValid) {
-
-        var phoneExists = await _cloudStore
-            .credentialsExist('$prefixValue$phoneNumber', null);
-        if(phoneExists){
-          await showSnackBar(context, 'Phone number already taken. '
+        var phoneExists = await _cloudStore.credentialsExist(
+            '$prefixValue$phoneNumber', null);
+        if (phoneExists) {
+          await showSnackBar(
+              context,
+              'Phone number already taken. '
               'Try logging in');
           return;
         }
@@ -495,11 +496,12 @@ class SignupScreenState extends State<SignupScreen> {
     } else {
       _emailFormKey.currentState!.validate();
       if (emailFormValid) {
-
-        var emailExists = await _cloudStore
-            .credentialsExist(null, emailAddress);
-        if(emailExists){
-          await showSnackBar(context, 'Email Address already taken. '
+        var emailExists =
+            await _cloudStore.credentialsExist(null, emailAddress);
+        if (emailExists) {
+          await showSnackBar(
+              context,
+              'Email Address already taken. '
               'Try logging in');
           return;
         }
@@ -509,7 +511,7 @@ class SignupScreenState extends State<SignupScreen> {
         });
 
         var verificationLink =
-        await _airqoApiClient!.requestEmailVerificationCode(emailAddress);
+            await _airqoApiClient!.requestEmailVerificationCode(emailAddress);
 
         if (verificationLink == '') {
           await showSnackBar(context, 'email signup verification failed');
@@ -522,7 +524,6 @@ class SignupScreenState extends State<SignupScreen> {
         });
       }
     }
-
   }
 
   Future<void> resendVerificationCode() async {

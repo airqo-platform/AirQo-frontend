@@ -26,9 +26,10 @@ class _SettingsPageState extends State<SettingsPage> {
   final CustomAuth _customAuth = CustomAuth();
   bool allowNotification = false;
   bool allowLocation = false;
-  final InAppReview inAppReview = InAppReview.instance;
+  final InAppReview _inAppReview = InAppReview.instance;
   final LocationService _locationService = LocationService();
-  final NotificationService _notificationService =  NotificationService();
+  final NotificationService _notificationService = NotificationService();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -210,25 +211,26 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           GestureDetector(
             onTap: () async {
-              // final inAppReview = InAppReview.instance;
-              //
-              // if (await inAppReview.isAvailable()) {
-              //   await inAppReview.requestReview();
-              // }
-
-              if (Platform.isAndroid ||
-                  Platform.isLinux ||
-                  Platform.isWindows) {
-                try {
-                  await launch(Links.playStoreUrl);
-                } catch (e) {
-                  debugPrint(e.toString());
-                }
-              } else if (Platform.isIOS || Platform.isMacOS) {
-                try {
-                  await launch(Links.appStoreUrl);
-                } catch (e) {
-                  debugPrint(e.toString());
+              if (await _inAppReview.isAvailable()) {
+                // await _inAppReview.requestReview();
+                await _inAppReview.openStoreListing(
+                  appStoreId: AppConfig.iosStoreId,
+                );
+              } else {
+                if (Platform.isAndroid ||
+                    Platform.isLinux ||
+                    Platform.isWindows) {
+                  try {
+                    await launch(Links.playStoreUrl);
+                  } catch (e) {
+                    debugPrint(e.toString());
+                  }
+                } else if (Platform.isIOS || Platform.isMacOS) {
+                  try {
+                    await launch(Links.appStoreUrl);
+                  } catch (e) {
+                    debugPrint(e.toString());
+                  }
                 }
               }
             },

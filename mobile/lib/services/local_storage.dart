@@ -242,7 +242,6 @@ class DBHelper {
     }
   }
 
-
   Future<Measurement?> getMeasurement(String siteId) async {
     try {
       final db = await database;
@@ -654,6 +653,31 @@ class DBHelper {
     }
   }
 
+  Future<void> setFavouritePlaces(List<PlaceDetails> placeDetails) async {
+    try {
+      final db = await database;
+
+      if (placeDetails.isNotEmpty) {
+        await db.delete(PlaceDetails.dbFavPlacesName());
+
+        for (var place in placeDetails) {
+          try {
+            var jsonData = place.toJson();
+            await db.insert(
+              PlaceDetails.dbFavPlacesName(),
+              jsonData,
+              conflictAlgorithm: ConflictAlgorithm.replace,
+            );
+          } catch (e) {
+            debugPrint(e.toString());
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
   Future<void> updateFavouritePlaces(PlaceDetails placeDetails, context) async {
     final db = await database;
 
@@ -716,7 +740,6 @@ class DBHelper {
     var topicName = site.getTopic(pollutantLevel);
 
     if (preferredAlerts.contains(topicName)) {
-
       while (preferredAlerts.contains(topicName)) {
         preferredAlerts.remove(topicName.trim().toLowerCase());
       }

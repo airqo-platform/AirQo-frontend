@@ -32,11 +32,12 @@ class PlaceDetails {
 
   Map<String, dynamic> toJson() => _$PlaceDetailsToJson(this);
 
- static String createTableStmt() =>
+  static String createTableStmt() =>
       'CREATE TABLE IF NOT EXISTS ${dbFavPlacesName()}('
       'siteId TEXT PRIMARY KEY, latitude REAL, '
       'location TEXT, longitude REAL, '
       'name TEXT)';
+
   static String dbFavPlacesName() => 'fav_places';
 
   static String dropTableStmt() => 'DROP TABLE IF EXISTS ${dbFavPlacesName()}';
@@ -51,7 +52,7 @@ class PlaceDetails {
     return false;
   }
 
-  static  List<Map<String, dynamic>> listToJson(List<PlaceDetails> places){
+  static List<Map<String, dynamic>> listToJson(List<PlaceDetails> places) {
     var placesJson = <Map<String, dynamic>>[];
     for (var place in places) {
       var placeJson = place.toJson();
@@ -97,6 +98,14 @@ class PlaceDetailsModel extends ChangeNotifier {
 
   UnmodifiableListView<PlaceDetails> get favouritePlaces =>
       UnmodifiableListView(_favouritePlaces);
+
+  Future<void> loadFavouritePlaces(List<PlaceDetails> places) async {
+    _favouritePlaces
+      ..clear()
+      ..addAll(places);
+    await _dbHelper.setFavouritePlaces(places);
+    notifyListeners();
+  }
 
   Future<void> reloadFavouritePlaces() async {
     _favouritePlaces.clear();

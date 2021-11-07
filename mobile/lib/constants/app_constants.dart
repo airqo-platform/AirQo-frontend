@@ -26,6 +26,8 @@ class AppConfig {
 
   static double get defaultLongitude => defaultLongitudeValue;
 
+  static String get iosStoreId => iosAppStoreId;
+
   static int get maxSearchRadius => searchRadius * 2;
 
   static String get name => applicationName;
@@ -115,9 +117,11 @@ class Links {
 
   static String get airqoFeedbackEmail => feedbackEmail;
 
-  static String get appStoreUrl => iOSLink;
+  static String get appAndroidWhatsappUrl => androidWhatsAppLink;
 
-  static String get appWhatsappUrl => whatsAppLink;
+  static String get appiOSWhatsappUrl => iosWhatsAppLink;
+
+  static String get appStoreUrl => iOSLink;
 
   static String get blogUrl => airqoBlog;
 

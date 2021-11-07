@@ -26,8 +26,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
     return Scaffold(
         body: WillPopScope(
       onWillPop: onWillPop,
-      child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center, children: [
+      child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
         const SizedBox(
           height: 58,
         ),
@@ -46,7 +45,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
         ),
         const Text(
           'Allow AirQo to send you location air\n'
-              'quality update for your work place,\nhome',
+          'quality update for your work place,\nhome',
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 16, color: Colors.black),
         ),
@@ -58,20 +57,19 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
               _locationService
                   .requestLocationAccess()
                   .then((value) => {
-                Navigator.pushAndRemoveUntil(context,
-                    MaterialPageRoute(builder: (context) {
-                      return SetUpCompleteScreen(widget.enableBackButton);
-                    }), (r) => false)
-              })
+                        Navigator.pushAndRemoveUntil(context,
+                            MaterialPageRoute(builder: (context) {
+                          return SetUpCompleteScreen(widget.enableBackButton);
+                        }), (r) => false)
+                      })
                   .whenComplete(() => {
-                Navigator.pushAndRemoveUntil(context,
-                    MaterialPageRoute(builder: (context) {
-                      return SetUpCompleteScreen(widget.enableBackButton);
-                    }), (r) => false)
-              });
+                        Navigator.pushAndRemoveUntil(context,
+                            MaterialPageRoute(builder: (context) {
+                          return SetUpCompleteScreen(widget.enableBackButton);
+                        }), (r) => false)
+                      });
             },
-            child:
-            nextButton('Yes, keep me safe', ColorConstants.appColorBlue),
+            child: nextButton('Yes, keep me safe', ColorConstants.appColorBlue),
           ),
         ),
         const SizedBox(
@@ -81,8 +79,8 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
           onTap: () {
             Navigator.pushAndRemoveUntil(context,
                 MaterialPageRoute(builder: (context) {
-                  return SetUpCompleteScreen(widget.enableBackButton);
-                }), (r) => false);
+              return SetUpCompleteScreen(widget.enableBackButton);
+            }), (r) => false);
           },
           child: Text(
             'No, thanks',

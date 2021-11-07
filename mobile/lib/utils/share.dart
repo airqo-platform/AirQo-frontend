@@ -71,7 +71,6 @@ void shareApp() {
 
 Future<void> shareCard(BuildContext buildContext, GlobalKey globalKey,
     Measurement measurement) async {
-
   var dialogResponse = await showDialog<String>(
     context: buildContext,
     builder: (BuildContext context) => AlertDialog(
@@ -90,9 +89,9 @@ Future<void> shareCard(BuildContext buildContext, GlobalKey globalKey,
     ),
   );
 
-  if(dialogResponse == 'image'){
-    var boundary = globalKey.currentContext!.findRenderObject()
-    as RenderRepaintBoundary;
+  if (dialogResponse == 'image') {
+    var boundary =
+        globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
     var image = await boundary.toImage();
     var byteData = await image.toByteData(format: ui.ImageByteFormat.png);
     var pngBytes = byteData!.buffer.asUint8List();
@@ -101,8 +100,7 @@ Future<void> shareCard(BuildContext buildContext, GlobalKey globalKey,
     var imgFile = File('$directory/analytics_card.png');
     await imgFile.writeAsBytes(pngBytes);
     shareAnalyticsCard(imgFile.path, measurement);
-  }
-  else{
+  } else {
     shareMeasurementText(measurement);
   }
 }
