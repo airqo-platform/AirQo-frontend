@@ -36,8 +36,9 @@ class LoginScreenState extends State<LoginScreen> {
   final TextEditingController _phoneInputController = TextEditingController();
   final TextEditingController _emailInputController = TextEditingController();
   DateTime? exitTime;
-  bool phoneSignUp = true;
+  bool phoneSignIn = true;
   AirqoApiClient? _airqoApiClient;
+  final CloudStore _cloudStore = CloudStore();
 
   var smsCode = <String>['', '', '', '', '', ''];
 
@@ -45,7 +46,7 @@ class LoginScreenState extends State<LoginScreen> {
     _customAuth.logIn(credential).then((value) => {
           Navigator.pushAndRemoveUntil(context,
               MaterialPageRoute(builder: (context) {
-            return HomePage();
+            return const HomePage();
           }), (r) => false)
         });
   }
@@ -76,7 +77,7 @@ class LoginScreenState extends State<LoginScreen> {
                       height: 8,
                     ),
                     Text(
-                      phoneSignUp
+                      phoneSignIn
                           ? 'Enter the 6 digits code sent to your\n'
                               'number that ends with ...'
                               '${phoneNumber.substring(phoneNumber.length - 3)}'
@@ -202,7 +203,7 @@ class LoginScreenState extends State<LoginScreen> {
                       height: 32,
                     ),
                     Visibility(
-                      visible: phoneSignUp,
+                      visible: phoneSignIn,
                       child: Form(
                         key: _phoneFormKey,
                         child: SizedBox(
@@ -226,7 +227,7 @@ class LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     Visibility(
-                      visible: !phoneSignUp,
+                      visible: !phoneSignIn,
                       child: Form(
                         key: _emailFormKey,
                         child: emailInputField(),
@@ -240,12 +241,12 @@ class LoginScreenState extends State<LoginScreen> {
                       child: GestureDetector(
                         onTap: () {
                           setState(() {
-                            phoneSignUp = !phoneSignUp;
+                            phoneSignIn = !phoneSignIn;
                             clearPhoneCallBack();
                             clearEmailCallBack();
                           });
                         },
-                        child: signButton(phoneSignUp
+                        child: signButton(phoneSignIn
                             ? 'Sign up with email instead'
                             : 'Sign up with a'
                                 ' mobile number instead'),
@@ -467,9 +468,18 @@ class LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> requestVerification() async {
-    if (phoneSignUp) {
+    if (phoneSignIn) {
       _phoneFormKey.currentState!.validate();
       if (phoneFormValid) {
+
+        var phoneExists = await _cloudStore
+            .credentialsExist('$prefixValue$phoneNumber', null);
+        if(!phoneExists){
+          await showSnackBar(context, 'Phone number does not exist. '
+              'Try signing up');
+          return;
+        }
+
         setState(() {
           nextBtnColor = ColorConstants.appColorDisabled;
         });
@@ -479,6 +489,15 @@ class LoginScreenState extends State<LoginScreen> {
     } else {
       _emailFormKey.currentState!.validate();
       if (emailFormValid) {
+
+        var emailExists = await _cloudStore
+            .credentialsExist(null, emailAddress);
+        if(!emailExists){
+          await showSnackBar(context, 'Email Address does not exist. '
+              'Try signing up');
+          return;
+        }
+
         setState(() {
           nextBtnColor = ColorConstants.appColorDisabled;
         });
@@ -500,7 +519,7 @@ class LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> resendVerificationCode() async {
-    if (phoneSignUp) {
+    if (phoneSignIn) {
       await _customAuth.verifyPhone('$prefixValue$phoneNumber', context,
           verifyPhoneFn, autoVerifyPhoneFn);
     } else {
@@ -554,7 +573,7 @@ class LoginScreenState extends State<LoginScreen> {
         nextBtnColor = ColorConstants.appColorBlue;
       });
 
-      if (phoneSignUp) {
+      if (phoneSignIn) {
         var credential = PhoneAuthProvider.credential(
             verificationId: verifyId, smsCode: smsCode.join(''));
         try {

@@ -31,16 +31,16 @@ Map<String, dynamic> _$UserDetailsToJson(UserDetails instance) =>
       'phoneNumber': instance.phoneNumber,
       'device': instance.device,
       'photoUrl': instance.photoUrl,
-      'favPlaces': instance.favPlaces,
-      'preferences': instance.preferences,
+      'favPlaces': instance.favPlaces.map((e) => e.toJson()).toList(),
+      'preferences': instance.preferences.toJson(),
     };
 
 UserPreferences _$UserPreferencesFromJson(Map<String, dynamic> json) =>
     UserPreferences(
-      json['notifications'] as bool,
-      json['location'] as bool,
-      json['alerts'] as bool,
-      (json['tipsProgress'] as num).toDouble(),
+      json['notifications'] as bool? ?? false,
+      json['location'] as bool? ?? false,
+      json['alerts'] as bool? ?? false,
+      (json['tipsProgress'] as num?)?.toDouble() ?? 0.0,
     );
 
 Map<String, dynamic> _$UserPreferencesToJson(UserPreferences instance) =>

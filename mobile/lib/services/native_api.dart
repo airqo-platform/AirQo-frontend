@@ -8,9 +8,13 @@ import 'package:geocoder/geocoder.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:location/location.dart';
 
+import 'fb_notifications.dart';
+
 class LocationService {
   Location location = Location();
   final DBHelper _dbHelper = DBHelper();
+  final CustomAuth _customAuth = CustomAuth();
+  final CloudStore _cloudStore = CloudStore();
 
   Future<bool> checkPermission() async {
     try {
@@ -35,6 +39,7 @@ class LocationService {
     return false;
   }
 
+
   Future<Address> getAddress(double lat, double lng) async {
     var addresses = await getAddressGoogle(lat, lng);
     if (addresses.isEmpty) {
@@ -56,7 +61,7 @@ class LocationService {
       var nearestMeasurements = <Measurement>[];
       double distanceInMeters;
 
-      var location = await LocationService().getLocation();
+      var location = await getLocation();
       if (location.longitude != null && location.latitude != null) {
         var address = await getAddress(location.latitude!, location.longitude!);
         Measurement? nearestMeasurement;
@@ -129,6 +134,96 @@ class LocationService {
     return _locationData;
   }
 
+  Future<Measurement?> getLocationMeasurement() async {
+    try {
+      Measurement? nearestMeasurement;
+      var nearestMeasurements = <Measurement>[];
+
+      double distanceInMeters;
+
+      var location = await getLocation();
+      if (location.longitude != null && location.latitude != null) {
+        var latitude = location.latitude;
+        var longitude = location.longitude;
+        var addresses =
+        await getAddressGoogle(latitude!, longitude!);
+        var userAddress = addresses.first;
+
+        await _dbHelper.getLatestMeasurements().then((measurements) => {
+          for (var measurement in measurements)
+            {
+              distanceInMeters = metersToKmDouble(
+                  Geolocator.distanceBetween(
+                      measurement.site.latitude,
+                      measurement.site.longitude,
+                      location.latitude!,
+                      location.longitude!)),
+              if (distanceInMeters < AppConfig.maxSearchRadius.toDouble())
+                {
+                  // print('$distanceInMeters : '
+                  //     '${AppConfig.maxSearchRadius.toDouble()} : '
+                  //     '${measurement.site.getName()}'),
+                  measurement.site.distance = distanceInMeters,
+                  measurement.site.userLocation = userAddress.thoroughfare,
+                  nearestMeasurements.add(measurement)
+                }
+            },
+          if (nearestMeasurements.isNotEmpty)
+            {
+              nearestMeasurement = nearestMeasurements.first,
+              for (var m in nearestMeasurements)
+                {
+                  if (nearestMeasurement!.site.distance > m.site.distance)
+                    {nearestMeasurement = m}
+                }
+            }
+        });
+
+        await getLocation().then((value) => {
+          _dbHelper.getLatestMeasurements().then((measurements) => {
+            if (location.longitude != null && location.latitude != null)
+              {
+                for (var measurement in measurements)
+                  {
+                    distanceInMeters = metersToKmDouble(
+                        Geolocator.distanceBetween(
+                            measurement.site.latitude,
+                            measurement.site.longitude,
+                            location.latitude!,
+                            location.longitude!)),
+                    if (distanceInMeters <
+                        AppConfig.maxSearchRadius.toDouble())
+                      {
+                        // print('$distanceInMeters : '
+                        //     '${AppConfig
+                        //     .maxSearchRadius.toDouble()} : '
+                        //     '${measurement.site.getName()}'),
+                        measurement.site.distance = distanceInMeters,
+                        nearestMeasurements.add(measurement)
+                      }
+                  },
+                if (nearestMeasurements.isNotEmpty)
+                  {
+                    nearestMeasurement = nearestMeasurements.first,
+                    for (var m in nearestMeasurements)
+                      {
+                        if (nearestMeasurement!.site.distance >
+                            m.site.distance)
+                          {nearestMeasurement = m}
+                      }
+                  }
+              }
+          })
+        });
+      }
+
+      return nearestMeasurement;
+    } catch (e) {
+      debugPrint('error $e');
+      return null;
+    }
+  }
+
   Future<Site?> getNearestSite(double latitude, double longitude) async {
     try {
       var nearestSites = await getNearestSites(latitude, longitude);
@@ -176,11 +271,25 @@ class LocationService {
   Future<bool> requestLocationAccess() async {
     try {
       var status = await location.requestPermission();
-      if (status == PermissionStatus.granted) {
-        return true;
+      var id = _customAuth.getId();
+      if(id != '') {
+        await _cloudStore.updatePreferenceFields(id,
+            'location', status == PermissionStatus.granted);
       }
+      return status == PermissionStatus.granted;
     } catch (e) {
       debugPrint(e.toString());
+    }
+    return false;
+  }
+
+  Future<bool> revokePermission() async {
+    // TODO: implement revoke permission
+
+    var id = _customAuth.getId();
+
+    if(id != ''){
+      await _cloudStore.updatePreferenceFields(id, 'location',  false);
     }
     return false;
   }

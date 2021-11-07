@@ -20,6 +20,7 @@ class NotificationsSetupScreen extends StatefulWidget {
 
 class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
   DateTime? exitTime;
+  final NotificationService _notificationService = NotificationService();
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +53,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
             padding: const EdgeInsets.only(left: 24, right: 24),
             child: GestureDetector(
               onTap: () {
-                NotificationService().requestPermission().then((value) => {
+                _notificationService.requestPermission().then((value) => {
                       Navigator.pushAndRemoveUntil(context,
                           MaterialPageRoute(builder: (context) {
                         return LocationSetupScreen(widget.enableBackButton);
@@ -104,7 +105,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
     if (widget.enableBackButton) {
       Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
-        return HomePage();
+        return const HomePage();
       }), (r) => false);
     }
 

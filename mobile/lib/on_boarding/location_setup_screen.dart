@@ -19,82 +19,84 @@ class LocationSetupScreen extends StatefulWidget {
 
 class LocationSetupScreenState extends State<LocationSetupScreen> {
   DateTime? exitTime;
+  final LocationService _locationService = LocationService();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         body: WillPopScope(
       onWillPop: onWillPop,
-      child: Container(
-        padding: const EdgeInsets.only(top: 58),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
-          onBoardingLocationIcon(),
-          const SizedBox(
-            height: 52,
+      child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center, children: [
+        const SizedBox(
+          height: 58,
+        ),
+        onBoardingLocationIcon(),
+        const SizedBox(
+          height: 52,
+        ),
+        const Text(
+          'Enable locations',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+              fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
+        ),
+        const SizedBox(
+          height: 8,
+        ),
+        const Text(
+          'Allow AirQo to send you location air\n'
+              'quality update for your work place,\nhome',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 16, color: Colors.black),
+        ),
+        const Spacer(),
+        Padding(
+          padding: const EdgeInsets.only(left: 24, right: 24),
+          child: GestureDetector(
+            onTap: () {
+              _locationService
+                  .requestLocationAccess()
+                  .then((value) => {
+                Navigator.pushAndRemoveUntil(context,
+                    MaterialPageRoute(builder: (context) {
+                      return SetUpCompleteScreen(widget.enableBackButton);
+                    }), (r) => false)
+              })
+                  .whenComplete(() => {
+                Navigator.pushAndRemoveUntil(context,
+                    MaterialPageRoute(builder: (context) {
+                      return SetUpCompleteScreen(widget.enableBackButton);
+                    }), (r) => false)
+              });
+            },
+            child:
+            nextButton('Yes, keep me safe', ColorConstants.appColorBlue),
           ),
-          const Text(
-            'Enable locations',
+        ),
+        const SizedBox(
+          height: 20,
+        ),
+        GestureDetector(
+          onTap: () {
+            Navigator.pushAndRemoveUntil(context,
+                MaterialPageRoute(builder: (context) {
+                  return SetUpCompleteScreen(widget.enableBackButton);
+                }), (r) => false);
+          },
+          child: Text(
+            'No, thanks',
             textAlign: TextAlign.center,
             style: TextStyle(
-                fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: ColorConstants.appColorBlue),
           ),
-          const SizedBox(
-            height: 8,
-          ),
-          const Text(
-            'Allow AirQo to send you location air\n'
-            'quality update for your work place,\nhome',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 16, color: Colors.black),
-          ),
-          const Spacer(),
-          Padding(
-            padding: const EdgeInsets.only(left: 24, right: 24),
-            child: GestureDetector(
-              onTap: () {
-                LocationService()
-                    .requestLocationAccess()
-                    .then((value) => {
-                          Navigator.pushAndRemoveUntil(context,
-                              MaterialPageRoute(builder: (context) {
-                            return SetUpCompleteScreen(widget.enableBackButton);
-                          }), (r) => false)
-                        })
-                    .whenComplete(() => {
-                          Navigator.pushAndRemoveUntil(context,
-                              MaterialPageRoute(builder: (context) {
-                            return SetUpCompleteScreen(widget.enableBackButton);
-                          }), (r) => false)
-                        });
-              },
-              child:
-                  nextButton('Yes, keep me safe', ColorConstants.appColorBlue),
-            ),
-          ),
-          const SizedBox(
-            height: 20,
-          ),
-          GestureDetector(
-            onTap: () {
-              Navigator.pushAndRemoveUntil(context,
-                  MaterialPageRoute(builder: (context) {
-                return SetUpCompleteScreen(widget.enableBackButton);
-              }), (r) => false);
-            },
-            child: Text(
-              'No, thanks',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: ColorConstants.appColorBlue),
-            ),
-          ),
-          const SizedBox(
-            height: 58,
-          ),
-        ]),
-      ),
+        ),
+        const SizedBox(
+          height: 58,
+        ),
+      ]),
     ));
   }
 

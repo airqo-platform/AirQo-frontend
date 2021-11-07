@@ -30,6 +30,7 @@ class _SearchPageState extends State<SearchPage> {
   String sessionToken = const Uuid().v4();
   SearchApi? searchApiClient;
   final DBHelper _dbHelper = DBHelper();
+  final LocationService _locationService = LocationService();
 
   @override
   Widget build(BuildContext context) {
@@ -123,11 +124,11 @@ class _SearchPageState extends State<SearchPage> {
 
   Future<void> getUserLocation() async {
     try {
-      var location = await LocationService().getLocation();
+      var location = await _locationService.getLocation();
       var latitude = location.latitude;
       var longitude = location.longitude;
       if (longitude != null && latitude != null) {
-        await LocationService()
+        await _locationService
             .getNearestSites(latitude, longitude)
             .then((value) => {
                   if (mounted)
@@ -329,7 +330,7 @@ class _SearchPageState extends State<SearchPage> {
               ),
               GestureDetector(
                 onTap: () {
-                  LocationService()
+                  _locationService
                       .requestLocationAccess()
                       .then((value) => {getUserLocation()});
                 },
@@ -384,7 +385,7 @@ class _SearchPageState extends State<SearchPage> {
           });
 
       setState(() {
-        searchSites = LocationService().textSearchNearestSites(text, allSites);
+        searchSites = _locationService.textSearchNearestSites(text, allSites);
       });
     }
   }
@@ -537,7 +538,7 @@ class _SearchPageState extends State<SearchPage> {
   Future<void> showPlaceDetails(Suggestion suggestion) async {
     var place = await searchApiClient!.getPlaceDetails(suggestion.placeId);
     if (place != null) {
-      var nearestSite = await LocationService().getNearestSite(
+      var nearestSite = await _locationService.getNearestSite(
           place.geometry.location.lat, place.geometry.location.lng);
 
       if (nearestSite == null) {

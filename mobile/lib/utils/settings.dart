@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class Settings {
   final DBHelper _dbHelper = DBHelper();
+  final LocationService _locationService = LocationService();
 
   Future<Measurement?> dashboardMeasurement() async {
     try {
@@ -37,7 +38,7 @@ class Settings {
   }
 
   Future<Measurement?> _defaultLocation() async {
-    var address = await LocationService()
+    var address = await _locationService
         .getAddress(AppConfig.defaultLatitude, AppConfig.defaultLongitude);
 
     var measurement = await _dbHelper.getNearestMeasurement(

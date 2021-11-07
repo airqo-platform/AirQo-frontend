@@ -41,11 +41,12 @@ class SignupScreenState extends State<SignupScreen> {
   DateTime? exitTime;
   bool phoneSignUp = true;
   AirqoApiClient? _airqoApiClient;
+  final CloudStore _cloudStore = CloudStore();
 
   var smsCode = <String>['', '', '', '', '', ''];
 
   void autoVerifyPhoneFn(PhoneAuthCredential credential) {
-    _customAuth.logIn(credential).then((value) => {
+    _customAuth.signUp(credential).then((value) => {
           Navigator.pushAndRemoveUntil(context,
               MaterialPageRoute(builder: (context) {
             return ProfileSetupScreen(widget.enableBackButton);
@@ -476,6 +477,15 @@ class SignupScreenState extends State<SignupScreen> {
     if (phoneSignUp) {
       _phoneFormKey.currentState!.validate();
       if (phoneFormValid) {
+
+        var phoneExists = await _cloudStore
+            .credentialsExist('$prefixValue$phoneNumber', null);
+        if(phoneExists){
+          await showSnackBar(context, 'Phone number already taken. '
+              'Try logging in');
+          return;
+        }
+
         setState(() {
           nextBtnColor = ColorConstants.appColorDisabled;
         });
@@ -485,12 +495,21 @@ class SignupScreenState extends State<SignupScreen> {
     } else {
       _emailFormKey.currentState!.validate();
       if (emailFormValid) {
+
+        var emailExists = await _cloudStore
+            .credentialsExist(null, emailAddress);
+        if(emailExists){
+          await showSnackBar(context, 'Email Address already taken. '
+              'Try logging in');
+          return;
+        }
+
         setState(() {
           nextBtnColor = ColorConstants.appColorDisabled;
         });
 
         var verificationLink =
-            await _airqoApiClient!.requestEmailVerificationCode(emailAddress);
+        await _airqoApiClient!.requestEmailVerificationCode(emailAddress);
 
         if (verificationLink == '') {
           await showSnackBar(context, 'email signup verification failed');
@@ -503,6 +522,7 @@ class SignupScreenState extends State<SignupScreen> {
         });
       }
     }
+
   }
 
   Future<void> resendVerificationCode() async {
@@ -564,7 +584,7 @@ class SignupScreenState extends State<SignupScreen> {
         var credential = PhoneAuthProvider.credential(
             verificationId: verifyId, smsCode: smsCode.join(''));
         try {
-          await _customAuth.logIn(credential).then((value) => {
+          await _customAuth.signUp(credential).then((value) => {
                 Navigator.pushAndRemoveUntil(context,
                     MaterialPageRoute(builder: (context) {
                   return ProfileSetupScreen(widget.enableBackButton);

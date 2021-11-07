@@ -32,24 +32,32 @@ class PlaceDetails {
 
   Map<String, dynamic> toJson() => _$PlaceDetailsToJson(this);
 
-  static String createTableStmt() =>
+ static String createTableStmt() =>
       'CREATE TABLE IF NOT EXISTS ${dbFavPlacesName()}('
       'siteId TEXT PRIMARY KEY, latitude REAL, '
       'location TEXT, longitude REAL, '
       'name TEXT)';
-
   static String dbFavPlacesName() => 'fav_places';
 
   static String dropTableStmt() => 'DROP TABLE IF EXISTS ${dbFavPlacesName()}';
 
   static bool isFavouritePlace(
       List<PlaceDetails> favouritePlaces, PlaceDetails subject) {
-    for (var measurement in favouritePlaces) {
-      if (measurement.siteId == subject.siteId) {
+    for (var place in favouritePlaces) {
+      if (place.siteId == subject.siteId) {
         return true;
       }
     }
     return false;
+  }
+
+  static  List<Map<String, dynamic>> listToJson(List<PlaceDetails> places){
+    var placesJson = <Map<String, dynamic>>[];
+    for (var place in places) {
+      var placeJson = place.toJson();
+      placesJson.add(placeJson);
+    }
+    return placesJson;
   }
 
   static PlaceDetails measurementToPLace(Measurement measurement) {
@@ -100,13 +108,5 @@ class PlaceDetailsModel extends ChangeNotifier {
     if (id != '') {
       await _cloudStore.updateFavouritePlaces(id, favPlaces);
     }
-
-    // await _dbHelper
-    //     .getFavouritePlaces()
-    //     .then((value) => {
-    //       _favouritePlaces.addAll(value),
-    //   notifyListeners(),
-    //   updateFavouritePlaces
-    //     });
   }
 }

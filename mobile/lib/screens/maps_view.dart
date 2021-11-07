@@ -41,6 +41,7 @@ class _MapViewState extends State<MapView> {
   final CloudAnalytics _cloudAnalytics = CloudAnalytics();
   final DBHelper _dbHelper = DBHelper();
   AirqoApiClient? _airqoApiClient;
+  final LocationService _locationService = LocationService();
 
   @override
   Widget build(BuildContext context) {
@@ -306,7 +307,7 @@ class _MapViewState extends State<MapView> {
             setState(() {
               isSearching = true;
               searchSites =
-                  LocationService().textSearchNearestSites(text, allSites);
+                  _locationService.textSearchNearestSites(text, allSites);
             });
           }
         },

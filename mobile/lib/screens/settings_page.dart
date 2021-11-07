@@ -27,7 +27,8 @@ class _SettingsPageState extends State<SettingsPage> {
   bool allowNotification = false;
   bool allowLocation = false;
   final InAppReview inAppReview = InAppReview.instance;
-
+  final LocationService _locationService = LocationService();
+  final NotificationService _notificationService =  NotificationService();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -97,13 +98,13 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> initialize() async {
-    await NotificationService().checkPermission().then((value) => {
+    await _notificationService.checkPermission().then((value) => {
           setState(() {
             allowNotification = value;
           }),
         });
 
-    await LocationService().checkPermission().then((value) => {
+    await _locationService.checkPermission().then((value) => {
           setState(() {
             allowLocation = value;
           }),
@@ -134,13 +135,13 @@ class _SettingsPageState extends State<SettingsPage> {
               activeColor: ColorConstants.green,
               onChanged: (bool value) {
                 if (value) {
-                  LocationService().requestLocationAccess().then((response) => {
+                  _locationService.requestLocationAccess().then((response) => {
                         setState(() {
                           allowLocation = response;
                         })
                       });
                 } else {
-                  NotificationService().revokePermission().then((response) => {
+                  _locationService.revokePermission().then((response) => {
                         setState(() {
                           allowLocation = response;
                         })
@@ -163,13 +164,13 @@ class _SettingsPageState extends State<SettingsPage> {
               activeColor: ColorConstants.green,
               onChanged: (bool value) {
                 if (value) {
-                  NotificationService().requestPermission().then((response) => {
+                  _notificationService.requestPermission().then((response) => {
                         setState(() {
                           allowNotification = response;
                         })
                       });
                 } else {
-                  NotificationService().revokePermission().then((response) => {
+                  _notificationService.revokePermission().then((response) => {
                         setState(() {
                           allowNotification = response;
                         })

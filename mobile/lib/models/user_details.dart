@@ -3,7 +3,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'user_details.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class UserDetails {
   String title;
   String firstName;
@@ -91,9 +91,17 @@ class UserDetails {
 
 @JsonSerializable()
 class UserPreferences {
+
+  @JsonKey(defaultValue: false)
   bool notifications;
+
+  @JsonKey(defaultValue: false)
   bool location;
+
+  @JsonKey(defaultValue: false)
   bool alerts;
+
+  @JsonKey(defaultValue: 0.0)
   double tipsProgress;
 
   UserPreferences(
