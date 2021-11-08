@@ -38,7 +38,7 @@ class _NotificationPageState extends State<NotificationPage> {
         ),
       ),
       body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 800),
+        duration: const Duration(milliseconds: 500),
         transitionBuilder: (Widget child, Animation<double> animation) {
           return FadeTransition(opacity: animation, child: child);
         },
@@ -141,13 +141,7 @@ class _NotificationPageState extends State<NotificationPage> {
                     ),
                   ],
                 ))
-            : Container(
-                color: Colors.transparent,
-                constraints: const BoxConstraints(
-                  maxHeight: 0,
-                  maxWidth: 0,
-                ),
-              ),
+            : null,
         title: Text(
           notification.title,
           style: TextStyle(

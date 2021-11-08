@@ -108,10 +108,10 @@ Future<void> shareCard(BuildContext buildContext, GlobalKey globalKey,
 void shareLocation(PlaceDetails placeDetails) {
   Share.share(
       'Checkout the Air Quality of '
-      '${placeDetails.name}\n'
+      '${placeDetails.getName()}\n'
       ' ${Links.websiteUrl}\n\n'
       'Source: AiQo App',
-      subject: '${AppConfig.name}, ${placeDetails.name}!');
+      subject: '${AppConfig.name}, ${placeDetails.getName()}!');
 }
 
 void shareMeasurementText(Measurement measurement) {

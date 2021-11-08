@@ -4,6 +4,7 @@ import 'package:app/constants/app_constants.dart';
 import 'package:app/models/site.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
+import 'package:app/utils/string_extension.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -25,6 +26,14 @@ class PlaceDetails {
 
   factory PlaceDetails.fromJson(Map<String, dynamic> json) =>
       _$PlaceDetailsFromJson(json);
+
+  String getLocation() {
+    return location.toTitleCase();
+  }
+
+  String getName() {
+    return name.toTitleCase();
+  }
 
   PlaceDetails initialize() {
     return PlaceDetails(

@@ -452,13 +452,13 @@ Widget searchPlaceTile(Suggestion searchSuggestion) {
     child: ListTile(
         contentPadding: const EdgeInsets.only(left: 0.0),
         title: Text(
-          searchSuggestion.suggestionDetails.mainText,
+          searchSuggestion.suggestionDetails.getMainText(),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
         subtitle: Text(
-          searchSuggestion.suggestionDetails.secondaryText,
+          searchSuggestion.suggestionDetails.getSecondaryText(),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(color: Colors.black.withOpacity(0.3), fontSize: 14),

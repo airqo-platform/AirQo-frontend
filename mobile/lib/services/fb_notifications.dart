@@ -23,10 +23,20 @@ import 'local_storage.dart';
 class CloudAnalytics {
   final FirebaseAnalytics analytics = FirebaseAnalytics();
 
-  void sendScreenToAnalytics(String screen) {
-    analytics.setCurrentScreen(
-      screenName: screen,
+  Future<void> logEvent(String name) async {
+    await analytics.logEvent(
+      name: name,
     );
+  }
+
+  void logScreenTransition(String screen) {
+    analytics
+      ..setCurrentScreen(
+        screenName: screen,
+      )
+      ..logEvent(
+        name: 'Navigated to $screen',
+      );
   }
 }
 

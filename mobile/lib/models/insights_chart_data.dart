@@ -43,8 +43,8 @@ class InsightsChartData {
           value,
           pollutant,
           true,
-          placeDetails.name,
-          placeDetails.location,
+          placeDetails.getName(),
+          placeDetails.getLocation(),
           DateFormat('EEE').format(DateTime.parse(measurement.time)));
 
       insights.add(insight);
@@ -59,8 +59,8 @@ class InsightsChartData {
           lastInsight.value,
           pollutant,
           false,
-          placeDetails.name,
-          placeDetails.location,
+          placeDetails.getName(),
+          placeDetails.getLocation(),
           DateFormat('EEE').format(nextTime)));
 
       lastInsight = insights.last;
@@ -86,8 +86,8 @@ class InsightsChartData {
           value,
           pollutant,
           true,
-          placeDetails.name,
-          placeDetails.location,
+          placeDetails.getName(),
+          placeDetails.getLocation(),
           DateFormat('EEE').format(time));
       hours.add(time.hour);
       insights.add(insight);
@@ -109,8 +109,8 @@ class InsightsChartData {
             referenceInsight.value,
             pollutant,
             false,
-            placeDetails.name,
-            placeDetails.location,
+            placeDetails.getName(),
+            placeDetails.getLocation(),
             DateFormat('EEE').format(time)));
       }
     }
@@ -132,8 +132,8 @@ class InsightsChartData {
         value,
         pollutant,
         true,
-        placeDetails.name,
-        placeDetails.location,
+        placeDetails.getName(),
+        placeDetails.getLocation(),
         DateFormat('EEE').format(DateTime.parse(measurement.time)));
   }
 }

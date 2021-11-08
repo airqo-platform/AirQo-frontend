@@ -204,7 +204,7 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   Future<void> initialize() async {
-    _cloudAnalytics.sendScreenToAnalytics('Profile Page');
+    _cloudAnalytics.logScreenTransition('Profile Page');
     setState(() {
       isLoggedIn = _customAuth.isLoggedIn();
     });

@@ -129,7 +129,7 @@ class _ForYouPageState extends State<ForYouPage>
 
   @override
   void initState() {
-    _cloudAnalytics.sendScreenToAnalytics('For You Page');
+    _cloudAnalytics.logScreenTransition('For You Page');
     _tabController = TabController(length: 2, vsync: this);
     super.initState();
   }

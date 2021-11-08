@@ -545,13 +545,13 @@ class _SearchPageState extends State<SearchPage> {
         await showSnackBar(
             context,
             'Sorry, we currently don\'t have air quality for '
-            '${suggestion.suggestionDetails.mainText}');
+            '${suggestion.suggestionDetails.getMainText()}');
         return;
       }
 
       var placeDetails = PlaceDetails(
-          suggestion.suggestionDetails.mainText,
-          suggestion.suggestionDetails.secondaryText,
+          suggestion.suggestionDetails.getMainText(),
+          suggestion.suggestionDetails.getSecondaryText(),
           nearestSite.id,
           place.geometry.location.lat,
           place.geometry.location.lng);

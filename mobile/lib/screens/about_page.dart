@@ -76,7 +76,7 @@ class _AboutAirQoState extends State<AboutAirQo> {
 
   @override
   void initState() {
-    _cloudAnalytics.sendScreenToAnalytics('About');
+    _cloudAnalytics.logScreenTransition('About');
     super.initState();
   }
 }

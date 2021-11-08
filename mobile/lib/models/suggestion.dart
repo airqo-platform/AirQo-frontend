@@ -1,3 +1,4 @@
+import 'package:app/utils/string_extension.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -58,6 +59,14 @@ class SuggestionDetails {
 
   factory SuggestionDetails.fromJson(Map<String, dynamic> json) =>
       _$SuggestionDetailsFromJson(json);
+
+  String getMainText() {
+    return mainText.toTitleCase();
+  }
+
+  String getSecondaryText() {
+    return secondaryText.toTitleCase();
+  }
 
   Map<String, dynamic> toJson() => _$SuggestionDetailsToJson(this);
 }

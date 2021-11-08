@@ -73,14 +73,14 @@ class _InsightsCardState extends State<InsightsCard> {
                                   color: Colors.black.withOpacity(0.3)),
                             ),
                             Text(
-                              widget.placeDetails.name,
+                              widget.placeDetails.getName(),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 16),
                             ),
                             Text(
-                              widget.placeDetails.location,
+                              widget.placeDetails.getLocation(),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -112,7 +112,7 @@ class _InsightsCardState extends State<InsightsCard> {
                               maxWidth: MediaQuery.of(context).size.width / 2),
                           child: Text(
                             dateToString(
-                                selectedMeasurement!.time.toString(), true),
+                                selectedMeasurement!.time.toString(), false),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(

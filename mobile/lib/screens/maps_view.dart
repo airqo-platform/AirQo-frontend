@@ -134,7 +134,7 @@ class _MapViewState extends State<MapView> {
   void initState() {
     _airqoApiClient = AirqoApiClient(context);
     getSites();
-    _cloudAnalytics.sendScreenToAnalytics('Map Tab');
+    _cloudAnalytics.logScreenTransition('Map Tab');
     super.initState();
   }
 

@@ -39,7 +39,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
       Future.delayed(const Duration(seconds: 3), () async {
         await Navigator.pushAndRemoveUntil(context,
             MaterialPageRoute(builder: (context) {
-          return HomePage();
+          return const HomePage();
         }), (r) => false);
       });
       return finalView();
@@ -171,7 +171,8 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
 
   @override
   void initState() {
-    _cloudAnalytics.sendScreenToAnalytics('Air Pollution ways');
+    _cloudAnalytics.logScreenTransition('Air Pollution ways');
+
     getTips();
     super.initState();
   }

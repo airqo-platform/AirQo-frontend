@@ -346,7 +346,7 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   Future<void> initialize() async {
-    _cloudAnalytics.sendScreenToAnalytics('Home Page');
+    _cloudAnalytics.logScreenTransition('Home Page');
     _airqoApiClient = AirqoApiClient(context);
     setGreetings();
     // _getLatestMeasurements();

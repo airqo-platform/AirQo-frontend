@@ -129,14 +129,14 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                widget.placeDetails.name,
+                                widget.placeDetails.getName(),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
                                     fontWeight: FontWeight.bold, fontSize: 20),
                               ),
                               Text(
-                                widget.placeDetails.location,
+                                widget.placeDetails.getLocation(),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
