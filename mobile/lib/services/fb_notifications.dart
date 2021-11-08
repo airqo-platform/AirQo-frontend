@@ -346,8 +346,14 @@ class CustomAuth {
     var currentUser = _firebaseAuth.currentUser;
     if (currentUser != null) {
       try {
-        await logOut(context).then((value) => {currentUser.delete()});
-        await _cloudStore.deleteAccount(currentUser.uid);
+        var id = currentUser.uid;
+        await Provider.of<PlaceDetailsModel>(context, listen: false)
+            .clearFavouritePlaces();
+        Provider.of<NotificationModel>(context, listen: false).removeAll();
+        await _secureStorageHelper.clearUserDetails();
+        await _preferencesHelper.clearPreferences();
+        await _cloudStore.deleteAccount(id);
+        await currentUser.delete();
       } catch (e) {
         debugPrint(e.toString());
       }
@@ -371,6 +377,10 @@ class CustomAuth {
       return '';
     }
     return _firebaseAuth.currentUser!.uid;
+  }
+
+  User? getUser() {
+    return _firebaseAuth.currentUser;
   }
 
   Future<bool> isConnected() async {
@@ -435,13 +445,12 @@ class CustomAuth {
   Future<void> logOut(context) async {
     var userId = getId();
     await _cloudStore.updateProfileFields(userId, {'device': ''});
-    await _firebaseAuth.signOut();
     await Provider.of<PlaceDetailsModel>(context, listen: false)
-        .loadFavouritePlaces([]);
-
+        .clearFavouritePlaces();
     Provider.of<NotificationModel>(context, listen: false).removeAll();
     await _secureStorageHelper.clearUserDetails();
     await _preferencesHelper.clearPreferences();
+    await _firebaseAuth.signOut();
   }
 
   Future<bool> saveAlert(Alert alert) async {
@@ -493,6 +502,18 @@ class CustomAuth {
       return false;
     } else {
       return true;
+    }
+  }
+
+  Future<void> updateCredentials(String? phone, String? email) async {
+    var id = getId();
+    if (phone != null) {
+      await _cloudStore.updateProfileFields(id, {'phoneNumber': phone});
+      await _secureStorageHelper.updateUserDetailsField('phoneNumber', phone);
+    }
+    if (email != null) {
+      await _cloudStore.updateProfileFields(id, {'emailAddress': email});
+      await _secureStorageHelper.updateUserDetailsField('emailAddress', email);
     }
   }
 

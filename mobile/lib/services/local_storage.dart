@@ -52,6 +52,15 @@ class DBHelper {
     return false;
   }
 
+  Future<void> clearFavouritePlaces() async {
+    try {
+      final db = await database;
+      await db.delete(PlaceDetails.dbFavPlacesName());
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
   Future<void> createDefaultTables(Database db) async {
     var prefs = await SharedPreferences.getInstance();
     var initialLoading = prefs.getBool(PrefConstant.reLoadDb) ?? true;
@@ -757,6 +766,7 @@ class DBHelper {
 
 class SecureStorageHelper {
   final _secureStorage = const FlutterSecureStorage();
+
   Future<void> clearUserDetails() async {
     await _secureStorage.deleteAll();
   }
@@ -789,6 +799,17 @@ class SecureStorageHelper {
           key: 'emailAddress', value: userDetails.emailAddress);
       await _secureStorage.write(
           key: 'phoneNumber', value: userDetails.phoneNumber);
+    } on Error catch (exception, stackTrace) {
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  Future<void> updateUserDetailsField(String key, String value) async {
+    try {
+      await _secureStorage.write(key: key, value: value);
     } on Error catch (exception, stackTrace) {
       await Sentry.captureException(
         exception,

@@ -366,12 +366,8 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   Future<void> viewProfile() async {
-    var saved =
-        await Navigator.push(context, MaterialPageRoute(builder: (context) {
+    await Navigator.push(context, MaterialPageRoute(builder: (context) {
       return ViewProfilePage(userProfile);
-    }));
-    if (saved != null && saved) {
-      await initialize();
-    }
+    })).whenComplete(() => {initialize()});
   }
 }

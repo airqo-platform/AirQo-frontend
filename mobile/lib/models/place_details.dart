@@ -100,6 +100,12 @@ class PlaceDetailsModel extends ChangeNotifier {
   UnmodifiableListView<PlaceDetails> get favouritePlaces =>
       UnmodifiableListView(_favouritePlaces);
 
+  Future<void> clearFavouritePlaces() async {
+    _favouritePlaces.clear();
+    await _dbHelper.clearFavouritePlaces();
+    notifyListeners();
+  }
+
   Future<void> loadFavouritePlaces(List<PlaceDetails> places) async {
     _favouritePlaces
       ..clear()

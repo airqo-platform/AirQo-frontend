@@ -4,7 +4,9 @@ import 'dart:io';
 
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/user_details.dart';
+import 'package:app/screens/credentials_screen.dart';
 import 'package:app/services/fb_notifications.dart';
+import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/custom_widgets.dart';
@@ -31,7 +33,9 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
   final ImagePicker _imagePicker = ImagePicker();
   AirqoApiClient? _airqoApiClient;
   String profilePic = '';
+  TextEditingController phoneEditor = TextEditingController();
   bool changeImage = false;
+  final SecureStorageHelper _secureStorageHelper = SecureStorageHelper();
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +74,6 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                 const SizedBox(
                   height: 40,
                 ),
-
                 // Text(
                 //   'Email',
                 //   style: TextStyle(
@@ -81,60 +84,12 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                 // ),
                 // TextFormField(
                 //   initialValue: widget.userDetails.emailAddress,
-                //   autofocus: true,
-                //   enableSuggestions: false,
-                //   cursorWidth: 1,
-                //   cursorColor: ColorConstants.appColorBlue,
-                //   keyboardType: TextInputType.emailAddress,
-                //   decoration: formFieldsDecoration(),
-                //   onChanged: (text) {
-                //     widget.userDetails.emailAddress = text;
-                //     widget.userDetails.userId = text;
-                //   },
-                //   validator: (value) {
-                //     if (value == null || value.isEmpty) {
-                //       return 'Please enter your email address';
-                //     }
-                //     return value.isValidEmail()
-                //         ? null
-                //         : 'Please enter a'
-                //             ' valid email address';
-                //   },
+                //   readOnly: true,
+                //   decoration: profileFormFieldDecoration(),
                 // ),
                 // const SizedBox(
                 //   height: 16,
                 // ),
-
-                // Text(
-                //   'Phone Number',
-                //   style: TextStyle(
-                //       fontSize: 12, color: ColorConstants.inactiveColor),
-                // ),
-                // const SizedBox(
-                //   height: 4,
-                // ),
-                // TextFormField(
-                //   initialValue: widget.userDetails.phoneNumber,
-                //   autofocus: true,
-                //   enableSuggestions: false,
-                //   cursorWidth: 1,
-                //   cursorColor: ColorConstants.appColorBlue,
-                //   keyboardType: TextInputType.phone,
-                //   decoration: formFieldsDecoration(),
-                //   onChanged: (text) {
-                //     widget.userDetails.phoneNumber = text;
-                //   },
-                //   validator: (value) {
-                //     if (value == null || value.isEmpty) {
-                //       return 'Please enter your phone Number';
-                //     }
-                //     return null;
-                //   },
-                // ),
-                const SizedBox(
-                  height: 16,
-                ),
-
                 Text(
                   'First Name',
                   style: TextStyle(
@@ -191,6 +146,52 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                     return null;
                   },
                 ),
+                const SizedBox(
+                  height: 16,
+                ),
+                Text(
+                  'Phone Number',
+                  style: TextStyle(
+                      fontSize: 12, color: ColorConstants.inactiveColor),
+                ),
+                const SizedBox(
+                  height: 4,
+                ),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: TextFormField(
+                          controller: phoneEditor,
+                          enableSuggestions: false,
+                          readOnly: true,
+                          style: TextStyle(color: ColorConstants.inactiveColor),
+                          decoration: profileFormInactiveFieldDecoration(),
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 16,
+                      ),
+                      GestureDetector(
+                        onTap: () async {
+                          var response = await Navigator.push(context,
+                              MaterialPageRoute(builder: (context) {
+                            return const UpdateCredentialsScreen('phone');
+                          }));
+                          if (response) {
+                            await initialize();
+                          }
+                        },
+                        child: editCredentialsButton(),
+                      )
+                    ],
+                  ),
+                ),
+
+                const SizedBox(
+                  height: 16,
+                ),
                 // SizedBox(height: 16,),
                 // settingsSection(),
               ],
@@ -199,6 +200,16 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
         ],
       ),
     ));
+  }
+
+  Widget editCredentialsButton() {
+    return Center(
+      child: SvgPicture.asset(
+        'assets/icon/profile_edit.svg',
+        height: 27,
+        width: 27,
+      ),
+    );
   }
 
   void getFromCamera() async {
@@ -214,9 +225,20 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
     }
   }
 
+  Future<void> initialize() async {
+    await _secureStorageHelper.getUserDetails().then((value) => {
+          setState(() {
+            phoneEditor.text = value.phoneNumber;
+          })
+        });
+  }
+
   @override
   void initState() {
-    profilePic = widget.userDetails.photoUrl;
+    setState(() {
+      profilePic = widget.userDetails.photoUrl;
+      phoneEditor.text = widget.userDetails.phoneNumber;
+    });
     _airqoApiClient = AirqoApiClient(context);
     super.initState();
   }
@@ -241,6 +263,22 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
         child: SvgPicture.asset(
           'assets/icon/profile_edit.svg',
         ),
+      ),
+    );
+  }
+
+  InputDecoration profileFormInactiveFieldDecoration() {
+    return InputDecoration(
+      filled: true,
+      fillColor: Colors.white,
+      hintText: '-',
+      focusedBorder: OutlineInputBorder(
+        borderSide: const BorderSide(color: Colors.transparent, width: 1.0),
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderSide: const BorderSide(color: Colors.transparent, width: 1.0),
+        borderRadius: BorderRadius.circular(8.0),
       ),
     );
   }
