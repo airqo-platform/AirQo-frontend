@@ -7,6 +7,7 @@ import 'package:app/screens/insights_page.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/dialogs.dart';
+import 'package:app/utils/logger.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/utils/share.dart';
 import 'package:flutter/material.dart';
@@ -354,9 +355,14 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
     await _dbHelper.getMeasurement(widget.placeDetails.siteId).then((value) => {
           if (value != null)
             {
+              debugLog('analytics card', value.site.name),
               setState(() {
                 measurement = value;
               })
+            }
+          else
+            {
+              debugLog('analytics card', widget.placeDetails.getName()),
             }
         });
   }

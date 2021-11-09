@@ -6,6 +6,7 @@ import 'package:app/models/place_details.dart';
 import 'package:app/screens/search_page.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
+import 'package:app/services/native_api.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/pm.dart';
@@ -28,7 +29,12 @@ class DashboardView extends StatefulWidget {
 }
 
 class _DashboardViewState extends State<DashboardView> {
-  List<PlaceDetails> dashBoardPlaces = [];
+  List<Widget> dashBoardPlaces = [
+    loadingAnimation(255.0, 16.0),
+    loadingAnimation(255.0, 16.0),
+    loadingAnimation(255.0, 16.0),
+    loadingAnimation(255.0, 16.0)
+  ];
   var greetings = '';
   double tipsProgress = 0.0;
   bool isRefreshing = false;
@@ -38,6 +44,8 @@ class _DashboardViewState extends State<DashboardView> {
   final DBHelper _dbHelper = DBHelper();
   AirqoApiClient? _airqoApiClient;
   final CustomAuth _customAuth = CustomAuth();
+  PlaceDetails? currentLocation;
+  final LocationService _locationService = LocationService();
 
   Widget actionsSection() {
     return Container(
@@ -247,14 +255,39 @@ class _DashboardViewState extends State<DashboardView> {
   void getDashboardLocations() async {
     var measurements = await _dbHelper.getLatestMeasurements();
 
-    for (var i = 0; i < 4; i++) {
-      var random = 0 + Random().nextInt(measurements.length - 0);
+    if (measurements.isNotEmpty) {
       setState(() {
-        dashBoardPlaces
-            .add(PlaceDetails.measurementToPLace(measurements[random]));
+        dashBoardPlaces.clear();
       });
+
+      var regions = [
+        'cent',
+        'west',
+        'east',
+      ];
+
+      for (var i = 0; i < regions.length; i++) {
+        var regionMeasurements = measurements
+            .where((element) =>
+                element.site.region.toLowerCase().contains(regions[i]))
+            .toList();
+
+        if (regionMeasurements.isNotEmpty) {
+          var random = 0 + Random().nextInt(regionMeasurements.length - 0);
+
+          dashBoardPlaces.add(AnalyticsCard(
+              PlaceDetails.measurementToPLace(regionMeasurements[random]),
+              isRefreshing));
+        } else {
+          var random = 0 + Random().nextInt(measurements.length - 0);
+          setState(() {
+            dashBoardPlaces.add(AnalyticsCard(
+                PlaceDetails.measurementToPLace(measurements[random]),
+                isRefreshing));
+          });
+        }
+      }
     }
-    loadDashboardCards();
   }
 
   void getFavourites(List<PlaceDetails> favouritePlaces) async {
@@ -322,110 +355,38 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   void getLocationMeasurements() async {
-    // try {
-    //   await Settings().dashboardMeasurement().then((value) => {
-    //         if (value != null)
-    //           {
-    //             if (mounted)
-    //               {
-    //                 setState(() {
-    //                   measurementData = value;
-    //                   isRefreshing = false;
-    //                 }),
-    //                 updateCurrentLocation()
-    //               },
-    //           }
-    //         else
-    //           {
-    //
-    //           }
-    //       });
-    // } catch (e) {
-    //   debugPrint('error getting data : $e');
-    // }
+    var measurement = await _locationService.getCurrentLocationReadings();
+    if (measurement != null) {
+      setState(() {
+        currentLocation = PlaceDetails.measurementToPLace(measurement);
+      });
+    } else {
+      var defaultMeasurement = await _locationService.defaultLocationPlace();
+      if (defaultMeasurement != null) {
+        setState(() {
+          currentLocation = defaultMeasurement;
+        });
+      }
+    }
   }
 
   Future<void> initialize() async {
     _cloudAnalytics.logScreenTransition('Home Page');
     _airqoApiClient = AirqoApiClient(context);
     setGreetings();
-    // _getLatestMeasurements();
-    // _getLocationMeasurements();
-    loadDashboardCards();
+    getLocationMeasurements();
     getDashboardLocations();
     var preferences = await SharedPreferences.getInstance();
     setState(() {
       tipsProgress = preferences.getDouble(PrefConstant.tipsProgress) ?? 0.0;
     });
+    await _getLatestMeasurements();
   }
 
   @override
   void initState() {
     initialize();
     super.initState();
-  }
-
-  void loadDashboardCards() {
-    setState(() {
-      dashboardCards
-        ..clear()
-        ..add(
-          Text(
-            getDateTime(),
-            style: TextStyle(
-              color: Colors.black.withOpacity(0.6),
-              fontSize: 12,
-            ),
-          ),
-        )
-        ..add(const Text(
-          'Today’s air quality',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
-          ),
-        ))
-        ..add(
-          const SizedBox(
-            height: 12,
-          ),
-        )
-        ..add(locationCard(0))
-        ..add(const SizedBox(
-          height: 16,
-        ))
-        ..add(tipsSection())
-        ..add(const SizedBox(
-          height: 16,
-        ))
-        ..add(locationCard(1))
-        ..add(const SizedBox(
-          height: 16,
-        ))
-        ..add(locationCard(2))
-        ..add(const SizedBox(
-          height: 16,
-        ))
-        ..add(locationCard(3))
-        ..add(const SizedBox(
-          height: 12,
-        ));
-    });
-  }
-
-  Widget locationCard(position) {
-    if (dashBoardPlaces.isNotEmpty) {
-      try {
-        return AnalyticsCard(dashBoardPlaces[position], isRefreshing);
-      } catch (e) {
-        return Visibility(
-            visible: dashBoardPlaces.isEmpty,
-            child: loadingAnimation(255.0, 16.0));
-      }
-    }
-    return Visibility(
-        visible: dashBoardPlaces.isEmpty, child: loadingAnimation(255.0, 16.0));
   }
 
   void setGreetings() {
@@ -699,16 +660,58 @@ class _DashboardViewState extends State<DashboardView> {
         context: context,
         removeTop: true,
         child: ListView(
-          controller: ScrollController(),
-          shrinkWrap: true,
-          children: dashboardCards,
-        ));
+            controller: ScrollController(),
+            shrinkWrap: true,
+            children: [
+              Text(
+                getDateTime(),
+                style: TextStyle(
+                  color: Colors.black.withOpacity(0.6),
+                  fontSize: 12,
+                ),
+              ),
+              const Text('Today’s air quality',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 24,
+                  )),
+              const SizedBox(
+                height: 12,
+              ),
+              if (currentLocation != null)
+                AnalyticsCard(currentLocation!, isRefreshing),
+              if (currentLocation == null) loadingAnimation(255.0, 16.0),
+              const SizedBox(
+                height: 16,
+              ),
+              tipsSection(),
+              const SizedBox(
+                height: 16,
+              ),
+              if (dashBoardPlaces.isNotEmpty) dashBoardPlaces[0],
+              const SizedBox(
+                height: 16,
+              ),
+              if (dashBoardPlaces.length >= 2) dashBoardPlaces[1],
+              const SizedBox(
+                height: 16,
+              ),
+              if (dashBoardPlaces.length >= 3) dashBoardPlaces[2],
+              const SizedBox(
+                height: 16,
+              ),
+            ]));
   }
 
   Future<void> _getLatestMeasurements() async {
-    await _airqoApiClient!.fetchLatestMeasurements().then((value) => {
-          if (value.isNotEmpty)
-            {_dbHelper.insertLatestMeasurements(value), initialize()}
-        });
+    var measurements = await _airqoApiClient!.fetchLatestMeasurements();
+    if (measurements.isNotEmpty) {
+      await _dbHelper.insertLatestMeasurements(measurements);
+      if (mounted) {
+        getLocationMeasurements();
+        getDashboardLocations();
+      }
+    }
   }
 }

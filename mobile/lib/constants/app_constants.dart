@@ -7,7 +7,9 @@ import 'package:flutter/material.dart';
 class AppConfig {
   static const String _androidApiKey = googleKey;
 
-  static const String sentryUrl = sentryDsn;
+  static const String sentryUrl = sentryDevDsn;
+
+  static const String sentryProdUrl = sentryProdDsn;
 
   static const String imageUploadApiKey = imageApiKey;
 
@@ -311,7 +313,7 @@ class PrefConstant {
 
   static String get lastKnownLocation => 'lastKnownLocation';
 
-  static String get reLoadDb => 'reloadDb';
+  static String get reLoadDb => 'recreateTables';
 
   static String get siteAlerts => 'siteAlerts';
 

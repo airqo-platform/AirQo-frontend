@@ -1,5 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
+import 'package:app/models/place_details.dart';
 import 'package:app/models/site.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/distance.dart';
@@ -37,6 +38,27 @@ class LocationService {
       }
     }
     return false;
+  }
+
+  Future<PlaceDetails?> defaultLocationPlace() async {
+    var address =
+        await getAddress(AppConfig.defaultLatitude, AppConfig.defaultLongitude);
+
+    var measurement = await _dbHelper.getNearestMeasurement(
+        AppConfig.defaultLatitude, AppConfig.defaultLongitude);
+
+    if (measurement == null) {
+      return null;
+    }
+
+    measurement.site.userLocation = address.thoroughfare;
+
+    return PlaceDetails(
+        address.thoroughfare,
+        measurement.site.getLocation(),
+        measurement.site.id,
+        measurement.site.latitude,
+        measurement.site.longitude);
   }
 
   Future<Address> getAddress(double lat, double lng) async {

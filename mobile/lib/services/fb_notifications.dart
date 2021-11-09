@@ -35,7 +35,7 @@ class CloudAnalytics {
         screenName: screen,
       )
       ..logEvent(
-        name: 'Navigated to $screen',
+        name: 'Navigated to $screen'.replaceAll(' ', '_'),
       );
   }
 }

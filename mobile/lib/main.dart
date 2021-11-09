@@ -5,7 +5,7 @@ import 'package:app/providers/locale_provider.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_analytics/observer.dart';
 import 'package:firebase_core/firebase_core.dart';
-
+import 'package:flutter/foundation.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -51,12 +51,16 @@ Future<void> main() async {
   final prefs = await SharedPreferences.getInstance();
   final themeController = ThemeController(prefs);
 
-  await SentryFlutter.init(
-    (options) {
-      options.dsn = AppConfig.sentryUrl;
-    },
-    appRunner: () => runApp(AirQoApp(themeController: themeController)),
-  );
+  if (kReleaseMode) {
+    await SentryFlutter.init(
+      (options) {
+        options.dsn = AppConfig.sentryProdUrl;
+      },
+      appRunner: () => runApp(AirQoApp(themeController: themeController)),
+    );
+  } else {
+    runApp(AirQoApp(themeController: themeController));
+  }
 }
 
 class AirQoApp extends StatelessWidget {
