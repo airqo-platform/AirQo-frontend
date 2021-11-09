@@ -10,9 +10,9 @@ import 'analytics_card.dart';
 import 'custom_shimmer.dart';
 
 class MonthlyView extends StatefulWidget {
-  Site site;
+  final Site site;
 
-  MonthlyView(this.site, {Key? key}) : super(key: key);
+  const MonthlyView(this.site, {Key? key}) : super(key: key);
 
   @override
   _MonthlyViewState createState() => _MonthlyViewState();

@@ -1,4 +1,5 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'topicData.g.dart';
@@ -35,7 +36,7 @@ extension ParseAppNotification on AppNotification {
   }
 
   AppNotification composeNotification(RemoteMessage message) {
-    print('Message data: ${message.data}');
+    debugPrint('Message data: ${message.data}');
 
     var data = message.data;
     // var notification = message.notification;
@@ -49,7 +50,8 @@ extension ParseAppNotification on AppNotification {
     }
 
     // if (notification != null && notification.body != null) {
-    //   print('Message also contained a notification: ${message.notification}');
+    //   print('Message also contained a notification:
+    //   ${message.notification}');
     //   var title = notification.title ?? 'Air Quality Alert';
     //   var body = notification.body ?? '';
     //   var id = notification.hashCode;
@@ -75,14 +77,15 @@ extension ParseAppNotification on AppNotification {
   }
 
   AppNotification composeNotificationV1(RemoteMessage message) {
-    print('Message data: ${message.data}');
+    debugPrint('Message data: ${message.data}');
 
     var data = message.data;
     var notification = message.notification;
     var notificationMessage = AppNotification();
 
     if (notification != null && notification.body != null) {
-      print('Message also contained a notification: ${message.notification}');
+      debugPrint('Message also contained a notification: '
+          '${message.notification}');
       var title = notification.title ?? 'Air Quality Alert';
       var body = notification.body ?? '';
       var id = notification.hashCode;

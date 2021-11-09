@@ -18,9 +18,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
 
 class ViewProfilePage extends StatefulWidget {
-  UserDetails userDetails;
+  final UserDetails userDetails;
 
-  ViewProfilePage(this.userDetails, {Key? key}) : super(key: key);
+  const ViewProfilePage(this.userDetails, {Key? key}) : super(key: key);
 
   @override
   _ViewProfilePageState createState() => _ViewProfilePageState();

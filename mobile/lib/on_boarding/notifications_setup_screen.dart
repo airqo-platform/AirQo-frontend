@@ -9,9 +9,10 @@ import 'package:flutter/rendering.dart';
 import 'location_setup_screen.dart';
 
 class NotificationsSetupScreen extends StatefulWidget {
-  bool enableBackButton;
+  final bool enableBackButton;
 
-  NotificationsSetupScreen(this.enableBackButton, {Key? key}) : super(key: key);
+  const NotificationsSetupScreen(this.enableBackButton, {Key? key})
+      : super(key: key);
 
   @override
   NotificationsSetupScreenState createState() =>
@@ -60,8 +61,8 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
                       }), (r) => false)
                     });
               },
-              child:
-                  nextButton('Yes, keep me safe', ColorConstants.appColorBlue),
+              child: nextButton(
+                  'Yes, keep me updated', ColorConstants.appColorBlue),
             ),
           ),
           const SizedBox(

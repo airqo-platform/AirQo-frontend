@@ -41,6 +41,9 @@ class _SearchPageState extends State<SearchPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const SizedBox(
+              height: 32,
+            ),
             Row(
               children: <Widget>[
                 Padding(
@@ -53,13 +56,13 @@ class _SearchPageState extends State<SearchPage> {
               ],
             ),
             const SizedBox(
-              height: 32,
+              height: 20,
             ),
             Visibility(
               visible:
                   !isSearching && hasNearbyLocations && nearbySites.isNotEmpty,
               child: Text(
-                'Locations near me',
+                'Locations near you',
                 textAlign: TextAlign.start,
                 style: TextStyle(
                     color: ColorConstants.inactiveColor, fontSize: 12),

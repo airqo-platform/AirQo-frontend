@@ -24,17 +24,17 @@ class MapView extends StatefulWidget {
 }
 
 class _MapViewState extends State<MapView> {
-  bool showLocationDetails = false;
-  double scrollSheetHeight = 0.20;
-  bool isSearching = false;
-  bool displayRegions = true;
-  List<Measurement> regionSites = [];
-  List<Measurement> searchSites = [];
-  List<Measurement> allSites = [];
-  String selectedRegion = '';
+  bool _showLocationDetails = false;
+  double _scrollSheetHeight = 0.20;
+  bool _isSearching = false;
+  bool _displayRegions = true;
+  List<Measurement> _regionSites = [];
+  List<Measurement> _searchSites = [];
+  List<Measurement> _latestMeasurements = [];
+  String _selectedRegion = '';
   final TextEditingController _searchController = TextEditingController();
-  late Measurement locationMeasurement;
-  var defaultCameraPosition =
+  Measurement? _locationMeasurement;
+  final _defaultCameraPosition =
       const CameraPosition(target: LatLng(1.6183002, 32.504365), zoom: 6.6);
   late GoogleMapController _mapController;
   Map<String, Marker> _markers = {};
@@ -50,7 +50,7 @@ class _MapViewState extends State<MapView> {
         children: <Widget>[
           mapWidget(),
           DraggableScrollableSheet(
-            initialChildSize: scrollSheetHeight,
+            initialChildSize: _scrollSheetHeight,
             minChildSize: 0.18,
             builder: (BuildContext context, ScrollController scrollController) {
               return SingleChildScrollView(
@@ -86,15 +86,15 @@ class _MapViewState extends State<MapView> {
         const SizedBox(height: 16),
         searchContainer(),
         Visibility(
-          visible: displayRegions && !isSearching,
+          visible: _displayRegions && !_isSearching,
           child: regionsList(),
         ),
         Visibility(
-          visible: !displayRegions && !isSearching,
+          visible: !_displayRegions && !_isSearching,
           child: sitesList(),
         ),
         Visibility(
-          visible: isSearching,
+          visible: _isSearching,
           child: searchResultsList(),
         ),
       ],
@@ -110,12 +110,12 @@ class _MapViewState extends State<MapView> {
     );
   }
 
-  Future<void> getSites() async {
+  Future<void> getLatestMeasurements() async {
     await _dbHelper.getLatestMeasurements().then((value) => {
           if (mounted)
             {
               setState(() {
-                allSites = value;
+                _latestMeasurements = value;
               })
             }
         });
@@ -123,19 +123,21 @@ class _MapViewState extends State<MapView> {
     var measurements = await _airqoApiClient!.fetchLatestMeasurements();
 
     if (measurements.isNotEmpty) {
-      setState(() {
-        allSites = measurements;
-      });
+      if (mounted) {
+        setState(() {
+          _latestMeasurements = measurements;
+        });
+      }
       await _dbHelper.insertLatestMeasurements(measurements);
     }
   }
 
   @override
   void initState() {
-    _airqoApiClient = AirqoApiClient(context);
-    getSites();
-    _cloudAnalytics.logScreenTransition('Map Tab');
     super.initState();
+    _airqoApiClient = AirqoApiClient(context);
+    _cloudAnalytics.logScreenTransition('Map Tab');
+    getLatestMeasurements();
   }
 
   Widget locationContent() {
@@ -144,7 +146,7 @@ class _MapViewState extends State<MapView> {
         const SizedBox(height: 8),
         draggingHandle(),
         const SizedBox(height: 24),
-        MapAnalyticsCard(locationMeasurement, showLocation),
+        MapAnalyticsCard(_locationMeasurement!, showLocation),
         const SizedBox(height: 16),
       ],
     );
@@ -161,7 +163,7 @@ class _MapViewState extends State<MapView> {
       tiltGesturesEnabled: false,
       mapToolbarEnabled: false,
       zoomControlsEnabled: true,
-      initialCameraPosition: defaultCameraPosition,
+      initialCameraPosition: _defaultCameraPosition,
       markers: _markers.values.toSet(),
       onTap: (_) {
         // setState(() {
@@ -231,7 +233,7 @@ class _MapViewState extends State<MapView> {
               topLeft: Radius.circular(16), topRight: Radius.circular(16))),
       child: Container(
         padding: const EdgeInsets.fromLTRB(32.0, 0, 32.0, 16.0),
-        child: showLocationDetails ? locationContent() : defaultContent(),
+        child: _showLocationDetails ? locationContent() : defaultContent(),
       ),
     );
   }
@@ -263,11 +265,11 @@ class _MapViewState extends State<MapView> {
             ),
           ),
         ),
-        if (isSearching)
+        if (_isSearching || _regionSites.isEmpty)
           const SizedBox(
             width: 8.0,
           ),
-        if (isSearching)
+        if (_isSearching || _regionSites.isEmpty)
           Container(
               height: 32,
               width: 32,
@@ -295,19 +297,19 @@ class _MapViewState extends State<MapView> {
         controller: _searchController,
         onTap: () {
           setState(() {
-            scrollSheetHeight = 0.7;
+            _scrollSheetHeight = 0.7;
           });
         },
         onChanged: (text) {
           if (text.isEmpty) {
             setState(() {
-              isSearching = false;
+              _isSearching = false;
             });
           } else {
             setState(() {
-              isSearching = true;
-              searchSites =
-                  _locationService.textSearchNearestSites(text, allSites);
+              _isSearching = true;
+              _searchSites = _locationService.textSearchNearestSites(
+                  text, _latestMeasurements);
             });
           }
         },
@@ -331,11 +333,11 @@ class _MapViewState extends State<MapView> {
       controller: ScrollController(),
       itemBuilder: (context, index) => GestureDetector(
         onTap: () {
-          showLocationContent(searchSites[index]);
+          showLocationContent(_searchSites[index]);
         },
-        child: siteTile(searchSites[index]),
+        child: siteTile(_searchSites[index]),
       ),
-      itemCount: searchSites.length,
+      itemCount: _searchSites.length,
     );
   }
 
@@ -377,38 +379,38 @@ class _MapViewState extends State<MapView> {
 
   void showLocation() {
     setState(() {
-      showLocationDetails = !showLocationDetails;
+      _showLocationDetails = !_showLocationDetails;
     });
   }
 
   void showLocationContent(Measurement measurement) {
     setMarker(measurement);
     setState(() {
-      locationMeasurement = measurement;
-      showLocationDetails = true;
+      _locationMeasurement = measurement;
+      _showLocationDetails = true;
     });
   }
 
   void showRegions() {
     setState(() {
       _searchController.text = '';
-      isSearching = false;
-      searchSites = [];
-      regionSites = [];
-      showLocationDetails = false;
-      displayRegions = true;
+      _isSearching = false;
+      _searchSites = [];
+      _regionSites = [];
+      _showLocationDetails = false;
+      _displayRegions = true;
     });
   }
 
   void showRegionSites(String region) {
     setState(() {
-      selectedRegion = region;
+      _selectedRegion = region;
     });
     _dbHelper.getRegionSites(region).then((value) => {
           setState(() {
-            showLocationDetails = false;
-            displayRegions = false;
-            regionSites = value;
+            _showLocationDetails = false;
+            _displayRegions = false;
+            _regionSites = value;
           })
         });
   }
@@ -421,27 +423,30 @@ class _MapViewState extends State<MapView> {
           height: 32,
         ),
         Visibility(
-          visible: regionSites.isNotEmpty,
+          visible: _regionSites.isNotEmpty,
           child: Text(
-            selectedRegion,
+            _selectedRegion,
             style: TextStyle(color: Colors.black.withOpacity(0.32)),
           ),
         ),
         Visibility(
-            visible: regionSites.isNotEmpty,
-            child: ListView.builder(
-              shrinkWrap: true,
-              controller: ScrollController(),
-              itemBuilder: (context, index) => GestureDetector(
-                onTap: () {
-                  showLocationContent(regionSites[index]);
-                },
-                child: siteTile(regionSites[index]),
-              ),
-              itemCount: regionSites.length,
-            )),
+            visible: _regionSites.isNotEmpty,
+            child: MediaQuery.removePadding(
+                context: context,
+                removeTop: true,
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  controller: ScrollController(),
+                  itemBuilder: (context, index) => GestureDetector(
+                    onTap: () {
+                      showLocationContent(_regionSites[index]);
+                    },
+                    child: siteTile(_regionSites[index]),
+                  ),
+                  itemCount: _regionSites.length,
+                ))),
         Visibility(
-            visible: regionSites.isEmpty,
+            visible: _regionSites.isEmpty,
             child: Column(
               children: [
                 const SizedBox(
@@ -458,7 +463,7 @@ class _MapViewState extends State<MapView> {
                 Padding(
                     padding: const EdgeInsets.only(left: 30, right: 30),
                     child: Text(
-                      '$selectedRegion\nWe’re Coming soon!',
+                      '$_selectedRegion\nComing soon on the network',
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontSize: 24,

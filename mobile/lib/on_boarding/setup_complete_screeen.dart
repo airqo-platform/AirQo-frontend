@@ -4,9 +4,10 @@ import 'package:app/utils/dialogs.dart';
 import 'package:flutter/material.dart';
 
 class SetUpCompleteScreen extends StatefulWidget {
-  bool enableBackButton;
+  final bool enableBackButton;
 
-  SetUpCompleteScreen(this.enableBackButton, {Key? key}) : super(key: key);
+  const SetUpCompleteScreen(this.enableBackButton, {Key? key})
+      : super(key: key);
 
   @override
   SetUpCompleteScreenState createState() => SetUpCompleteScreenState();
@@ -20,30 +21,28 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
     return Scaffold(
         body: WillPopScope(
       onWillPop: onWillPop,
-      child: Container(
-        child: Center(
-          child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Text(
-                  'All Set!',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 48,
-                      color: Colors.black),
-                ),
-                Text(
-                  'Breathe',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 48,
-                      color: ColorConstants.appColorBlue),
-                ),
-              ]),
-        ),
+      child: Center(
+        child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Text(
+                'All Set!',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 48,
+                    color: Colors.black),
+              ),
+              Text(
+                'Breathe',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 48,
+                    color: ColorConstants.appColorBlue),
+              ),
+            ]),
       ),
     ));
   }
@@ -52,7 +51,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
     Future.delayed(const Duration(seconds: 4), () async {
       await Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
-        return HomePage();
+        return const HomePage();
       }), (r) => false);
     });
   }
@@ -76,7 +75,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
     if (widget.enableBackButton) {
       Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
-        return HomePage();
+        return const HomePage();
       }), (r) => false);
     }
 

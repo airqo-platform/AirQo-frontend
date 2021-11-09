@@ -6,9 +6,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class PlaceView extends StatefulWidget {
-  Site site;
+  final Site site;
 
-  PlaceView(this.site, {Key? key}) : super(key: key);
+  const PlaceView(this.site, {Key? key}) : super(key: key);
 
   @override
   _PlaceViewState createState() => _PlaceViewState();

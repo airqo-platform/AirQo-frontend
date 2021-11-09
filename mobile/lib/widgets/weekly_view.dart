@@ -9,9 +9,9 @@ import 'analytics_card.dart';
 import 'custom_shimmer.dart';
 
 class WeeklyView extends StatefulWidget {
-  Site site;
+  final Site site;
 
-  WeeklyView(this.site, {Key? key}) : super(key: key);
+  const WeeklyView(this.site, {Key? key}) : super(key: key);
 
   @override
   _WeeklyViewState createState() => _WeeklyViewState();

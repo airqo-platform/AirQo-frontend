@@ -14,10 +14,10 @@ import 'custom_widgets.dart';
 import 'insights_card.dart';
 
 class DailyView extends StatefulWidget {
-  PlaceDetails placeDetails;
-  bool daily;
+  final PlaceDetails placeDetails;
+  final bool daily;
 
-  DailyView(this.placeDetails, this.daily, {Key? key}) : super(key: key);
+  const DailyView(this.placeDetails, this.daily, {Key? key}) : super(key: key);
 
   @override
   _DailyViewState createState() => _DailyViewState();

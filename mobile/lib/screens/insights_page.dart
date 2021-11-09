@@ -6,9 +6,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class InsightsPage extends StatefulWidget {
-  PlaceDetails placeDetails;
+  final PlaceDetails placeDetails;
 
-  InsightsPage(this.placeDetails, {Key? key}) : super(key: key);
+  const InsightsPage(this.placeDetails, {Key? key}) : super(key: key);
 
   @override
   _InsightsPageState createState() => _InsightsPageState();

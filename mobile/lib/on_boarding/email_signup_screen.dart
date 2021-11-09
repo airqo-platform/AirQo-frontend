@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 class EmailSignupScreen extends StatefulWidget {
+  const EmailSignupScreen({Key? key}) : super(key: key);
+
   @override
   EmailSignupScreenState createState() => EmailSignupScreenState();
 }
@@ -17,7 +19,7 @@ class EmailSignupScreenState extends State<EmailSignupScreen> {
     return Scaffold(
         resizeToAvoidBottomInset: false,
         body: Container(
-          padding: EdgeInsets.only(left: 24, right: 24),
+          padding: const EdgeInsets.only(left: 24, right: 24),
           child: Center(
             child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -53,7 +55,7 @@ class EmailSignupScreenState extends State<EmailSignupScreen> {
                     onTap: () {
                       Navigator.push(context,
                           MaterialPageRoute(builder: (context) {
-                        return SignupScreen(false);
+                        return const SignupScreen(false);
                       }));
                     },
                     child: signButton('Sign up with a mobile number instead'),
@@ -63,7 +65,7 @@ class EmailSignupScreenState extends State<EmailSignupScreen> {
                     onTap: () {
                       Navigator.push(context,
                           MaterialPageRoute(builder: (context) {
-                        return HomePage();
+                        return const HomePage();
                       }));
                     },
                     child: nextButton('Let’s go', ColorConstants.appColorBlue),
@@ -84,7 +86,7 @@ class EmailSignupScreenState extends State<EmailSignupScreen> {
     Future.delayed(const Duration(seconds: 8), () async {
       await Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (context) {
-        return EmailSignupScreen();
+        return const EmailSignupScreen();
       }));
     });
   }

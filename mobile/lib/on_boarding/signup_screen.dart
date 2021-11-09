@@ -14,7 +14,7 @@ import 'package:flutter/rendering.dart';
 class SignupScreen extends StatefulWidget {
   final bool enableBackButton;
 
-  SignupScreen(this.enableBackButton);
+  const SignupScreen(this.enableBackButton, {Key? key}) : super(key: key);
 
   @override
   SignupScreenState createState() => SignupScreenState();
@@ -399,7 +399,7 @@ class SignupScreenState extends State<SignupScreen> {
     if (widget.enableBackButton) {
       Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
-        return HomePage();
+        return const HomePage();
       }), (r) => false);
     }
 
@@ -441,11 +441,13 @@ class SignupScreenState extends State<SignupScreen> {
             focusedBorder: InputBorder.none,
             enabledBorder: InputBorder.none,
             // focusedBorder: OutlineInputBorder(
-            //   borderSide: BorderSide(color: ColorConstants.appColorBlue, width: 1.0),
+            //   borderSide: BorderSide(color: ColorConstants.appColorBlue,
+            //   width: 1.0),
             //   borderRadius: BorderRadius.circular(10.0),
             // ),
             // enabledBorder: OutlineInputBorder(
-            //   borderSide: BorderSide(color: ColorConstants.appColorBlue, width: 1.0),
+            //   borderSide: BorderSide(color: ColorConstants.appColorBlue,
+            //   width: 1.0),
             //   borderRadius: BorderRadius.circular(10.0),
             // ),
             hintText: '701000000',

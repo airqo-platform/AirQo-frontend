@@ -82,7 +82,8 @@ String dateToString(String formattedString, bool addOffset) {
 
 String getDateTime() {
   var now = DateTime.now();
-  return '${getWeekday()} ${DateFormat('d').format(now)} ${DateFormat('MMMM').format(now)}'
+  return '${getWeekday()} ${DateFormat('d').format(now)}'
+          ' ${DateFormat('MMMM').format(now)}'
       .toUpperCase();
 }
 

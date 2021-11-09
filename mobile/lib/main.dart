@@ -65,7 +65,7 @@ Future<void> main() async {
 
 class AirQoApp extends StatelessWidget {
   final ThemeController themeController;
-  FirebaseAnalytics analytics = FirebaseAnalytics();
+  final FirebaseAnalytics analytics = FirebaseAnalytics();
 
   AirQoApp({Key? key, required this.themeController}) : super(key: key);
 

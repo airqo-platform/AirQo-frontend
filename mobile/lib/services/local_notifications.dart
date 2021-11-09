@@ -29,7 +29,7 @@ class LocalNotifications {
 
   Future onDidReceiveLocalNotification(
       int? id, String? title, String? body, String? payload) async {
-    print('Notification paylosd$payload');
+    debugPrint('Notification paylosd$payload');
   }
 
   Future selectNotification(String? payload) async {

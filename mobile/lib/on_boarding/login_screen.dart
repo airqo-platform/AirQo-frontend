@@ -394,7 +394,7 @@ class LoginScreenState extends State<LoginScreen> {
     }
 
     Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) {
-      return HomePage();
+      return const HomePage();
     }), (r) => false);
 
     return Future.value(true);
@@ -435,11 +435,13 @@ class LoginScreenState extends State<LoginScreen> {
             focusedBorder: InputBorder.none,
             enabledBorder: InputBorder.none,
             // focusedBorder: OutlineInputBorder(
-            //   borderSide: BorderSide(color: ColorConstants.appColorBlue, width: 1.0),
+            //   borderSide: BorderSide(color: ColorConstants.appColorBlue,
+            //   width: 1.0),
             //   borderRadius: BorderRadius.circular(10.0),
             // ),
             // enabledBorder: OutlineInputBorder(
-            //   borderSide: BorderSide(color: ColorConstants.appColorBlue, width: 1.0),
+            //   borderSide: BorderSide(color: ColorConstants.appColorBlue,
+            //   width: 1.0),
             //   borderRadius: BorderRadius.circular(10.0),
             // ),
             hintText: '701000000',
@@ -582,7 +584,7 @@ class LoginScreenState extends State<LoginScreen> {
           await _customAuth.logIn(credential, context).then((value) => {
                 Navigator.pushAndRemoveUntil(context,
                     MaterialPageRoute(builder: (context) {
-                  return HomePage();
+                  return const HomePage();
                 }), (r) => false)
               });
         } on FirebaseAuthException catch (e) {
@@ -608,7 +610,7 @@ class LoginScreenState extends State<LoginScreen> {
         if (success) {
           await Navigator.pushAndRemoveUntil(context,
               MaterialPageRoute(builder: (context) {
-            return HomePage();
+            return const HomePage();
           }), (r) => false);
         } else {
           await showSnackBar(context, 'Try again later');

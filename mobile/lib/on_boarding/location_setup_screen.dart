@@ -9,9 +9,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 class LocationSetupScreen extends StatefulWidget {
-  bool enableBackButton;
+  final bool enableBackButton;
 
-  LocationSetupScreen(this.enableBackButton, {Key? key}) : super(key: key);
+  const LocationSetupScreen(this.enableBackButton, {Key? key})
+      : super(key: key);
 
   @override
   LocationSetupScreenState createState() => LocationSetupScreenState();
@@ -111,7 +112,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
     if (widget.enableBackButton) {
       Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
-        return HomePage();
+        return const HomePage();
       }), (r) => false);
     }
 

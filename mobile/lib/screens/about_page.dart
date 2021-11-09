@@ -41,7 +41,7 @@ class _AboutAirQoState extends State<AboutAirQo> {
                     height: 21.32,
                   ),
                   Text(
-                    '${AppConfig.name}',
+                    AppConfig.name,
                     style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
@@ -51,7 +51,7 @@ class _AboutAirQoState extends State<AboutAirQo> {
                     height: 12,
                   ),
                   Text(
-                    '${AppConfig.version}',
+                    AppConfig.version,
                     style: TextStyle(
                         fontSize: 16, color: ColorConstants.appColorBlack),
                   ),

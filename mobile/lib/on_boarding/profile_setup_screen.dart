@@ -12,9 +12,9 @@ import 'package:flutter/rendering.dart';
 import 'notifications_setup_screen.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
-  bool enableBackButton;
+  final bool enableBackButton;
 
-  ProfileSetupScreen(this.enableBackButton, {Key? key}) : super(key: key);
+  const ProfileSetupScreen(this.enableBackButton, {Key? key}) : super(key: key);
 
   @override
   ProfileSetupScreenState createState() => ProfileSetupScreenState();
@@ -49,7 +49,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       height: 42,
                     ),
                     const Text(
-                      'Great!\nWhat’s your name?',
+                      'Great!\nPlease enter your name?',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                           fontWeight: FontWeight.bold,
@@ -198,7 +198,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
     if (widget.enableBackButton) {
       Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
-        return HomePage();
+        return const HomePage();
       }), (r) => false);
     }
 
@@ -286,7 +286,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   child: Padding(
                     padding: const EdgeInsets.only(top: 8, left: 12),
                     child: Text(
-                      '${titleOptions[index]}',
+                      titleOptions[index],
                       style: TextStyle(
                           fontSize: 14,
                           color: title == titleOptions[index]

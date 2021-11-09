@@ -300,7 +300,7 @@ String pm2_5ToString(double pm2_5) {
     return 'Moderate';
   } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
     //sensitive
-    return 'Unhealthy FSGs';
+    return 'Unhealthy For Sensitive Groups';
   } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
     // unhealthy
     return 'Unhealthy';

@@ -13,6 +13,7 @@ import 'package:app/utils/pm.dart';
 import 'package:app/widgets/analytics_card.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -46,6 +47,8 @@ class _DashboardViewState extends State<DashboardView> {
   final CustomAuth _customAuth = CustomAuth();
   PlaceDetails? currentLocation;
   final LocationService _locationService = LocationService();
+  bool _showName = true;
+  final ScrollController _scrollController = ScrollController();
 
   Widget actionsSection() {
     return Container(
@@ -191,13 +194,19 @@ class _DashboardViewState extends State<DashboardView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text(
-                greetings,
-                style:
-                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              Visibility(
+                visible: _showName,
+                child: Text(
+                  greetings,
+                  style: const TextStyle(
+                      fontSize: 24, fontWeight: FontWeight.bold),
+                ),
               ),
-              const SizedBox(
-                height: 16,
+              Visibility(
+                visible: _showName,
+                child: const SizedBox(
+                  height: 16,
+                ),
               ),
               topTabs(),
               const SizedBox(
@@ -212,6 +221,12 @@ class _DashboardViewState extends State<DashboardView> {
             ],
           )),
     );
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(() {});
+    super.dispose();
   }
 
   Widget favPlaceAvatar(double rightPadding, Measurement measurement) {
@@ -370,6 +385,23 @@ class _DashboardViewState extends State<DashboardView> {
     }
   }
 
+  void handleScroll() async {
+    _scrollController.addListener(() {
+      if (_scrollController.position.userScrollDirection ==
+          ScrollDirection.reverse) {
+        setState(() {
+          _showName = false;
+        });
+      }
+      if (_scrollController.position.userScrollDirection ==
+          ScrollDirection.forward) {
+        setState(() {
+          _showName = true;
+        });
+      }
+    });
+  }
+
   Future<void> initialize() async {
     _cloudAnalytics.logScreenTransition('Home Page');
     _airqoApiClient = AirqoApiClient(context);
@@ -385,8 +417,9 @@ class _DashboardViewState extends State<DashboardView> {
 
   @override
   void initState() {
-    initialize();
     super.initState();
+    initialize();
+    handleScroll();
   }
 
   void setGreetings() {
@@ -660,7 +693,7 @@ class _DashboardViewState extends State<DashboardView> {
         context: context,
         removeTop: true,
         child: ListView(
-            controller: ScrollController(),
+            controller: _scrollController,
             shrinkWrap: true,
             children: [
               Text(
