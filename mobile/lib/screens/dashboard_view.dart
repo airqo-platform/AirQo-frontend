@@ -45,7 +45,7 @@ class _DashboardViewState extends State<DashboardView> {
   final DBHelper _dbHelper = DBHelper();
   AirqoApiClient? _airqoApiClient;
   final CustomAuth _customAuth = CustomAuth();
-  PlaceDetails? currentLocation;
+  Measurement? currentLocation;
   final LocationService _locationService = LocationService();
   bool _showName = true;
   final ScrollController _scrollController = ScrollController();
@@ -293,6 +293,7 @@ class _DashboardViewState extends State<DashboardView> {
           setState(() {
             dashBoardPlaces.add(AnalyticsCard(
                 PlaceDetails.measurementToPLace(regionMeasurements[random]),
+                regionMeasurements[random],
                 isRefreshing));
           });
         } else {
@@ -300,6 +301,7 @@ class _DashboardViewState extends State<DashboardView> {
           setState(() {
             dashBoardPlaces.add(AnalyticsCard(
                 PlaceDetails.measurementToPLace(measurements[random]),
+                measurements[random],
                 isRefreshing));
           });
         }
@@ -375,7 +377,7 @@ class _DashboardViewState extends State<DashboardView> {
     var measurement = await _locationService.getCurrentLocationReadings();
     if (measurement != null) {
       setState(() {
-        currentLocation = PlaceDetails.measurementToPLace(measurement);
+        currentLocation = measurement;
       });
     } else {
       var defaultMeasurement = await _locationService.defaultLocationPlace();
@@ -715,7 +717,8 @@ class _DashboardViewState extends State<DashboardView> {
                 height: 12,
               ),
               if (currentLocation != null)
-                AnalyticsCard(currentLocation!, isRefreshing),
+                AnalyticsCard(PlaceDetails.measurementToPLace(currentLocation!),
+                    currentLocation!, isRefreshing),
               if (currentLocation == null) loadingAnimation(255.0, 16.0),
               const SizedBox(
                 height: 16,

@@ -15,7 +15,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
-import 'custom_shimmer.dart';
 import 'custom_widgets.dart';
 
 Widget moreInsightsWidget(PlaceDetails placeDetails, context) {
@@ -53,9 +52,11 @@ Widget moreInsightsWidget(PlaceDetails placeDetails, context) {
 
 class AnalyticsCard extends StatefulWidget {
   final PlaceDetails placeDetails;
+  final Measurement measurement;
   final bool isRefreshing;
 
-  const AnalyticsCard(this.placeDetails, this.isRefreshing, {Key? key})
+  const AnalyticsCard(this.placeDetails, this.measurement, this.isRefreshing,
+      {Key? key})
       : super(key: key);
 
   @override
@@ -63,10 +64,13 @@ class AnalyticsCard extends StatefulWidget {
 }
 
 class MapAnalyticsCard extends StatefulWidget {
+  final PlaceDetails placeDetails;
   final Measurement measurement;
   final dynamic closeCallBack;
 
-  const MapAnalyticsCard(this.measurement, this.closeCallBack, {Key? key})
+  const MapAnalyticsCard(
+      this.placeDetails, this.measurement, this.closeCallBack,
+      {Key? key})
       : super(key: key);
 
   @override
@@ -74,16 +78,12 @@ class MapAnalyticsCard extends StatefulWidget {
 }
 
 class _AnalyticsCardState extends State<AnalyticsCard> {
-  Measurement? measurement;
   final DBHelper _dbHelper = DBHelper();
   bool _showHeartAnimation = false;
   final GlobalKey _globalKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
-    if (measurement == null) {
-      return loadingAnimation(255.0, 16.0);
-    }
     return RepaintBoundary(
       key: _globalKey,
       child: Container(
@@ -96,7 +96,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
             children: [
               GestureDetector(
                 onTap: () {
-                  pmInfoDialog(context, measurement!.getPm2_5Value());
+                  pmInfoDialog(context, widget.measurement.getPm2_5Value());
                 },
                 child: Container(
                   padding: const EdgeInsets.only(right: 12),
@@ -122,7 +122,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                     padding: const EdgeInsets.only(left: 20, right: 20),
                     child: Row(
                       children: [
-                        analyticsAvatar(measurement!, 104, 40, 12),
+                        analyticsAvatar(widget.measurement, 104, 40, 12),
                         const SizedBox(width: 16.0),
                         Expanded(
                           child: Column(
@@ -153,19 +153,20 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                     borderRadius: const BorderRadius.all(
                                         Radius.circular(40.0)),
                                     color: pm2_5ToColor(
-                                            measurement!.getPm2_5Value())
+                                            widget.measurement.getPm2_5Value())
                                         .withOpacity(0.4),
                                     border:
                                         Border.all(color: Colors.transparent)),
                                 child: Text(
-                                  pm2_5ToString(measurement!.getPm2_5Value()),
+                                  pm2_5ToString(
+                                      widget.measurement.getPm2_5Value()),
                                   maxLines: 1,
                                   textAlign: TextAlign.start,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: pm2_5TextColor(
-                                        measurement!.getPm2_5Value()),
+                                        widget.measurement.getPm2_5Value()),
                                   ),
                                 ),
                               ),
@@ -182,7 +183,8 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                                   .width /
                                               3.2),
                                       child: Text(
-                                        dateToString(measurement!.time, true),
+                                        dateToString(
+                                            widget.measurement.time, true),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
@@ -293,7 +295,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                 children: [
                   GestureDetector(
                     onTap: () {
-                      shareCard(context, _globalKey, measurement!);
+                      shareCard(context, _globalKey, widget.measurement);
                     },
                     child: iconTextButton(
                         SvgPicture.asset(
@@ -350,12 +352,6 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
     );
   }
 
-  @override
-  void initState() {
-    _getMeasurement();
-    super.initState();
-  }
-
   void updateFavPlace() async {
     setState(() {
       _showHeartAnimation = true;
@@ -367,22 +363,12 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
     });
     await _dbHelper.updateFavouritePlaces(widget.placeDetails, context);
   }
-
-  Future<void> _getMeasurement() async {
-    await _dbHelper.getMeasurement(widget.placeDetails.siteId).then((value) => {
-          if (value != null)
-            {
-              setState(() {
-                measurement = value;
-              })
-            }
-        });
-  }
 }
 
 class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
   final DBHelper _dbHelper = DBHelper();
-  bool showHeartAnimation = false;
+  bool _showHeartAnimation = false;
+  final GlobalKey _globalKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -427,14 +413,14 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              widget.measurement.site.getName(),
+                              widget.placeDetails.getName(),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 20),
                             ),
                             Text(
-                              widget.measurement.site.getLocation(),
+                              widget.placeDetails.getLocation(),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -550,7 +536,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
   }
 
   Widget getHeartIcon() {
-    if (showHeartAnimation) {
+    if (_showHeartAnimation) {
       return SizedBox(
         height: 16.67,
         width: 16.67,
@@ -560,9 +546,9 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
     }
 
     return Consumer<PlaceDetailsModel>(
-      builder: (context, placeDetailModel, child) {
-        if (PlaceDetails.isFavouritePlace(placeDetailModel.favouritePlaces,
-            PlaceDetails.measurementToPLace(widget.measurement))) {
+      builder: (context, placeDetailsModel, child) {
+        if (PlaceDetails.isFavouritePlace(
+            placeDetailsModel.favouritePlaces, widget.placeDetails)) {
           return SvgPicture.asset(
             'assets/icon/heart.svg',
             semanticsLabel: 'Favorite',
@@ -582,14 +568,13 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
 
   void updateFavPlace() async {
     setState(() {
-      showHeartAnimation = true;
+      _showHeartAnimation = true;
     });
     Future.delayed(const Duration(seconds: 2), () async {
       setState(() {
-        showHeartAnimation = false;
+        _showHeartAnimation = false;
       });
     });
-    await _dbHelper.updateFavouritePlaces(
-        PlaceDetails.measurementToPLace(widget.measurement), context);
+    await _dbHelper.updateFavouritePlaces(widget.placeDetails, context);
   }
 }

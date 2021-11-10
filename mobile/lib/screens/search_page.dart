@@ -23,12 +23,12 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   List<Measurement> nearbySites = [];
   List<Measurement> searchSites = [];
-  List<Suggestion> searchSuggestions = [];
-  List<Measurement> allSites = [];
+  List<Suggestion> _searchSuggestions = [];
+  List<Measurement> _allSites = [];
   bool isSearching = false;
   bool hasNearbyLocations = true;
   String sessionToken = const Uuid().v4();
-  SearchApi? searchApiClient;
+  SearchApi? _searchApiClient;
   final DBHelper _dbHelper = DBHelper();
   final LocationService _locationService = LocationService();
   final TextEditingController _textEditingController = TextEditingController();
@@ -120,7 +120,7 @@ class _SearchPageState extends State<SearchPage> {
           if (mounted)
             {
               setState(() {
-                allSites = value;
+                _allSites = value;
               })
             }
         });
@@ -166,7 +166,7 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   void initState() {
-    searchApiClient = SearchApi(sessionToken, context);
+    _searchApiClient = SearchApi(sessionToken, context);
     getSites();
     getUserLocation();
     super.initState();
@@ -382,14 +382,14 @@ class _SearchPageState extends State<SearchPage> {
         isSearching = true;
       });
 
-      searchApiClient!.fetchSuggestions(text).then((value) => {
+      _searchApiClient!.fetchSuggestions(text).then((value) => {
             setState(() {
-              searchSuggestions = value;
+              _searchSuggestions = value;
             })
           });
 
       setState(() {
-        searchSites = _locationService.textSearchNearestSites(text, allSites);
+        searchSites = _locationService.textSearchNearestSites(text, _allSites);
       });
     }
   }
@@ -469,7 +469,7 @@ class _SearchPageState extends State<SearchPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Visibility(
-            visible: searchSites.isEmpty && searchSuggestions.isEmpty,
+            visible: searchSites.isEmpty && _searchSuggestions.isEmpty,
             child: Center(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -516,7 +516,7 @@ class _SearchPageState extends State<SearchPage> {
               ),
             )),
         Visibility(
-            visible: searchSites.isNotEmpty && searchSuggestions.isEmpty,
+            visible: searchSites.isNotEmpty && _searchSuggestions.isEmpty,
             child: Center(
               child: MediaQuery.removePadding(
                   context: context,
@@ -540,7 +540,7 @@ class _SearchPageState extends State<SearchPage> {
                   )),
             )),
         Visibility(
-            visible: searchSuggestions.isNotEmpty,
+            visible: _searchSuggestions.isNotEmpty,
             child: Center(
               child: MediaQuery.removePadding(
                   context: context,
@@ -550,13 +550,13 @@ class _SearchPageState extends State<SearchPage> {
                     shrinkWrap: true,
                     itemBuilder: (context, index) => GestureDetector(
                         onTap: () {
-                          showPlaceDetails(searchSuggestions[index]);
+                          showPlaceDetails(_searchSuggestions[index]);
                         },
                         child: Padding(
                           padding: const EdgeInsets.only(bottom: 10),
-                          child: searchPlaceTile(searchSuggestions[index]),
+                          child: searchPlaceTile(_searchSuggestions[index]),
                         )),
-                    itemCount: searchSuggestions.length,
+                    itemCount: _searchSuggestions.length,
                   )),
             )),
         const SizedBox(
@@ -570,7 +570,7 @@ class _SearchPageState extends State<SearchPage> {
     setState(() {
       _textEditingController.text = suggestion.suggestionDetails.mainText;
     });
-    var place = await searchApiClient!.getPlaceDetails(suggestion.placeId);
+    var place = await _searchApiClient!.getPlaceDetails(suggestion.placeId);
     if (place != null) {
       var nearestSite = await _locationService.getNearestSite(
           place.geometry.location.lat, place.geometry.location.lng);

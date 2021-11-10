@@ -1,6 +1,5 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
-import 'package:app/models/place_details.dart';
 import 'package:app/models/site.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/distance.dart';
@@ -40,7 +39,7 @@ class LocationService {
     return false;
   }
 
-  Future<PlaceDetails?> defaultLocationPlace() async {
+  Future<Measurement?> defaultLocationPlace() async {
     var address =
         await getAddress(AppConfig.defaultLatitude, AppConfig.defaultLongitude);
 
@@ -51,14 +50,11 @@ class LocationService {
       return null;
     }
 
-    measurement.site.userLocation = address.thoroughfare;
+    var returnMeasurement = measurement;
+    returnMeasurement.site.name = address.thoroughfare;
+    returnMeasurement.site.description = address.thoroughfare;
 
-    return PlaceDetails(
-        address.thoroughfare,
-        measurement.site.getLocation(),
-        measurement.site.id,
-        measurement.site.latitude,
-        measurement.site.longitude);
+    return returnMeasurement;
   }
 
   Future<Address> getAddress(double lat, double lng) async {
@@ -96,7 +92,8 @@ class LocationService {
               location.longitude!));
           if (distanceInMeters < AppConfig.maxSearchRadius.toDouble()) {
             measurement.site.distance = distanceInMeters;
-            measurement.site.userLocation = address.thoroughfare;
+            measurement.site.name = address.thoroughfare;
+            measurement.site.description = address.thoroughfare;
             nearestMeasurements.add(measurement);
           }
         }
@@ -184,7 +181,6 @@ class LocationService {
                       //     '${AppConfig.maxSearchRadius.toDouble()} : '
                       //     '${measurement.site.getName()}'),
                       measurement.site.distance = distanceInMeters,
-                      measurement.site.userLocation = userAddress.thoroughfare,
                       nearestMeasurements.add(measurement)
                     }
                 },

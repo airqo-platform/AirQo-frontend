@@ -2,12 +2,15 @@ import 'dart:convert';
 
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
+import 'package:app/models/place_details.dart';
+import 'package:app/models/suggestion.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/themes/dark_theme.dart';
 import 'package:app/themes/light_theme.dart';
+import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/widgets/analytics_card.dart';
 import 'package:app/widgets/custom_widgets.dart';
@@ -15,6 +18,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 class MapView extends StatefulWidget {
   const MapView({Key? key}) : super(key: key);
@@ -31,17 +35,21 @@ class _MapViewState extends State<MapView> {
   List<Measurement> _regionSites = [];
   List<Measurement> _searchSites = [];
   List<Measurement> _latestMeasurements = [];
+  String sessionToken = const Uuid().v4();
+  List<Suggestion> _searchSuggestions = [];
+  SearchApi? _searchApiClient;
+  final DBHelper _dbHelper = DBHelper();
+  final LocationService _locationService = LocationService();
   String _selectedRegion = '';
   final TextEditingController _searchController = TextEditingController();
+  PlaceDetails? _locationPlaceMeasurement;
   Measurement? _locationMeasurement;
   final _defaultCameraPosition =
       const CameraPosition(target: LatLng(1.6183002, 32.504365), zoom: 6.6);
   late GoogleMapController _mapController;
   Map<String, Marker> _markers = {};
   final CloudAnalytics _cloudAnalytics = CloudAnalytics();
-  final DBHelper _dbHelper = DBHelper();
   AirqoApiClient? _airqoApiClient;
-  final LocationService _locationService = LocationService();
 
   @override
   Widget build(BuildContext context) {
@@ -110,34 +118,13 @@ class _MapViewState extends State<MapView> {
     );
   }
 
-  Future<void> getLatestMeasurements() async {
-    await _dbHelper.getLatestMeasurements().then((value) => {
-          if (mounted)
-            {
-              setState(() {
-                _latestMeasurements = value;
-              })
-            }
-        });
-
-    var measurements = await _airqoApiClient!.fetchLatestMeasurements();
-
-    if (measurements.isNotEmpty) {
-      if (mounted) {
-        setState(() {
-          _latestMeasurements = measurements;
-        });
-      }
-      await _dbHelper.insertLatestMeasurements(measurements);
-    }
-  }
-
   @override
   void initState() {
     super.initState();
     _airqoApiClient = AirqoApiClient(context);
+    _searchApiClient = SearchApi(sessionToken, context);
     _cloudAnalytics.logScreenTransition('Map Tab');
-    getLatestMeasurements();
+    _getLatestMeasurements();
   }
 
   Widget locationContent() {
@@ -146,7 +133,8 @@ class _MapViewState extends State<MapView> {
         const SizedBox(height: 8),
         draggingHandle(),
         const SizedBox(height: 24),
-        MapAnalyticsCard(_locationMeasurement!, showLocation),
+        MapAnalyticsCard(
+            _locationPlaceMeasurement!, _locationMeasurement!, showLocation),
         const SizedBox(height: 16),
       ],
     );
@@ -238,6 +226,31 @@ class _MapViewState extends State<MapView> {
     );
   }
 
+  void searchChanged(String text) {
+    if (text.isEmpty) {
+      setState(() {
+        _isSearching = false;
+      });
+    } else {
+      setState(() {
+        _isSearching = true;
+        _searchSites =
+            _locationService.textSearchNearestSites(text, _latestMeasurements);
+      });
+
+      _searchApiClient!.fetchSuggestions(text).then((value) => {
+            setState(() {
+              _searchSuggestions = value;
+            })
+          });
+
+      setState(() {
+        _searchSites =
+            _locationService.textSearchNearestSites(text, _latestMeasurements);
+      });
+    }
+  }
+
   Widget searchContainer() {
     return Row(
       children: [
@@ -300,19 +313,7 @@ class _MapViewState extends State<MapView> {
             _scrollSheetHeight = 0.7;
           });
         },
-        onChanged: (text) {
-          if (text.isEmpty) {
-            setState(() {
-              _isSearching = false;
-            });
-          } else {
-            setState(() {
-              _isSearching = true;
-              _searchSites = _locationService.textSearchNearestSites(
-                  text, _latestMeasurements);
-            });
-          }
-        },
+        onChanged: searchChanged,
         cursorWidth: 1,
         maxLines: 1,
         cursorColor: ColorConstants.appColorBlue,
@@ -328,16 +329,116 @@ class _MapViewState extends State<MapView> {
   }
 
   Widget searchResultsList() {
-    return ListView.builder(
-      shrinkWrap: true,
-      controller: ScrollController(),
-      itemBuilder: (context, index) => GestureDetector(
-        onTap: () {
-          showLocationContent(_searchSites[index]);
-        },
-        child: siteTile(_searchSites[index]),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Visibility(
+            visible: _searchSites.isEmpty && _searchSuggestions.isEmpty,
+            child: Center(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Stack(
+                    children: [
+                      Image.asset(
+                        'assets/images/world-map.png',
+                        height: 130,
+                        width: 130,
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: ColorConstants.appColorBlue,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.all(12.0),
+                          child: Icon(
+                            Icons.map_outlined,
+                            size: 30,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 52,
+                  ),
+                  const Text(
+                    'Not found',
+                    textAlign: TextAlign.start,
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(
+                    height: 52,
+                  ),
+                ],
+              ),
+            )),
+        Visibility(
+            visible: _searchSites.isNotEmpty && _searchSuggestions.isEmpty,
+            child: Center(
+              child: MediaQuery.removePadding(
+                  context: context,
+                  removeTop: true,
+                  child: ListView.builder(
+                    controller: ScrollController(),
+                    shrinkWrap: true,
+                    itemBuilder: (context, index) =>
+                        siteTile(_searchSites[index]),
+                    itemCount: _searchSites.length,
+                  )),
+            )),
+        Visibility(
+            visible: _searchSuggestions.isNotEmpty,
+            child: Center(
+              child: MediaQuery.removePadding(
+                  context: context,
+                  removeTop: true,
+                  removeLeft: true,
+                  child: ListView.builder(
+                    controller: ScrollController(),
+                    shrinkWrap: true,
+                    itemBuilder: (context, index) =>
+                        searchTile(_searchSuggestions[index]),
+                    itemCount: _searchSuggestions.length,
+                  )),
+            )),
+        const SizedBox(
+          height: 8,
+        ),
+      ],
+    );
+  }
+
+  ListTile searchTile(Suggestion suggestion) {
+    return ListTile(
+      contentPadding: const EdgeInsets.only(left: 0.0),
+      leading: regionAvatar(),
+      onTap: () {
+        showSuggestionReadings(suggestion);
+      },
+      title: Text(
+        suggestion.suggestionDetails.mainText,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
       ),
-      itemCount: _searchSites.length,
+      subtitle: Text(
+        suggestion.suggestionDetails.secondaryText,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.3)),
+      ),
+      trailing: Icon(
+        Icons.arrow_forward_ios_sharp,
+        size: 10,
+        color: ColorConstants.appColorBlue,
+      ),
     );
   }
 
@@ -383,12 +484,33 @@ class _MapViewState extends State<MapView> {
     });
   }
 
-  void showLocationContent(Measurement measurement) {
-    setMarker(measurement);
-    setState(() {
-      _locationMeasurement = measurement;
-      _showLocationDetails = true;
-    });
+  void showLocationContent(
+      Measurement? measurement, PlaceDetails? placeDetails) {
+    if (placeDetails != null) {
+      var places = _latestMeasurements
+          .where((measurement) => measurement.site.id == placeDetails.siteId)
+          .toList();
+      if (places.isEmpty) {
+        return;
+      }
+
+      var place = places.first;
+
+      setMarker(place);
+      setState(() {
+        _locationPlaceMeasurement = placeDetails;
+        _locationMeasurement = place;
+        _showLocationDetails = true;
+      });
+    } else if (measurement != null) {
+      setMarker(measurement);
+      setState(() {
+        _locationPlaceMeasurement =
+            PlaceDetails.measurementToPLace(measurement);
+        _locationMeasurement = measurement;
+        _showLocationDetails = true;
+      });
+    }
   }
 
   void showRegions() {
@@ -415,6 +537,36 @@ class _MapViewState extends State<MapView> {
         });
   }
 
+  Future<void> showSuggestionReadings(Suggestion suggestion) async {
+    setState(() {
+      _searchController.text = suggestion.suggestionDetails.mainText;
+    });
+    var place = await _searchApiClient!.getPlaceDetails(suggestion.placeId);
+    if (place != null) {
+      var nearestSite = await _locationService.getNearestSite(
+          place.geometry.location.lat, place.geometry.location.lng);
+
+      if (nearestSite == null) {
+        await showSnackBar(
+            context,
+            'Sorry, we currently don\'t have air quality for '
+            '${suggestion.suggestionDetails.getMainText()}');
+        return;
+      }
+
+      var placeDetails = PlaceDetails(
+          suggestion.suggestionDetails.getMainText(),
+          suggestion.suggestionDetails.getSecondaryText(),
+          nearestSite.id,
+          place.geometry.location.lat,
+          place.geometry.location.lng);
+
+      showLocationContent(null, placeDetails);
+    } else {
+      await showSnackBar(context, 'Try again later');
+    }
+  }
+
   Widget sitesList() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -437,12 +589,8 @@ class _MapViewState extends State<MapView> {
                 child: ListView.builder(
                   shrinkWrap: true,
                   controller: ScrollController(),
-                  itemBuilder: (context, index) => GestureDetector(
-                    onTap: () {
-                      showLocationContent(_regionSites[index]);
-                    },
-                    child: siteTile(_regionSites[index]),
-                  ),
+                  itemBuilder: (context, index) =>
+                      siteTile(_regionSites[index]),
                   itemCount: _regionSites.length,
                 ))),
         Visibility(
@@ -494,6 +642,12 @@ class _MapViewState extends State<MapView> {
   Widget siteTile(Measurement measurement) {
     return ListTile(
       contentPadding: const EdgeInsets.only(left: 0.0),
+      onTap: () {
+        setState(() {
+          _searchController.text = measurement.site.getName();
+        });
+        showLocationContent(measurement, null);
+      },
       title: Text(
         measurement.site.getName(),
         maxLines: 1,
@@ -514,6 +668,28 @@ class _MapViewState extends State<MapView> {
       ),
       leading: analyticsAvatar(measurement, 40, 15, 5),
     );
+  }
+
+  Future<void> _getLatestMeasurements() async {
+    await _dbHelper.getLatestMeasurements().then((value) => {
+          if (mounted)
+            {
+              setState(() {
+                _latestMeasurements = value;
+              })
+            }
+        });
+
+    var measurements = await _airqoApiClient!.fetchLatestMeasurements();
+
+    if (measurements.isNotEmpty) {
+      if (mounted) {
+        setState(() {
+          _latestMeasurements = measurements;
+        });
+      }
+      await _dbHelper.insertLatestMeasurements(measurements);
+    }
   }
 
   Future<void> _loadTheme() async {

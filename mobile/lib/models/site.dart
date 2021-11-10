@@ -24,10 +24,10 @@ class Site {
   final String country;
 
   @JsonKey(required: true)
-  final String name;
+  String name;
 
   @JsonKey(required: false, defaultValue: '')
-  final String description;
+  String description;
 
   @JsonKey(required: true, defaultValue: '')
   final String region;
@@ -35,20 +35,8 @@ class Site {
   @JsonKey(required: false, defaultValue: 0.0)
   double distance;
 
-  @JsonKey(required: false, defaultValue: '')
-  String userLocation = '';
-
-  Site(
-      this.id,
-      this.latitude,
-      this.longitude,
-      this.district,
-      this.country,
-      this.name,
-      this.description,
-      this.region,
-      this.distance,
-      this.userLocation);
+  Site(this.id, this.latitude, this.longitude, this.district, this.country,
+      this.name, this.description, this.region, this.distance);
 
   factory Site.fromJson(Map<String, dynamic> json) => _$SiteFromJson(json);
 
@@ -64,13 +52,6 @@ class Site {
       return description.toTitleCase();
     }
     return name.toTitleCase();
-  }
-
-  String getUserLocation() {
-    if (userLocation.isNull()) {
-      return getName();
-    }
-    return userLocation.toTitleCase();
   }
 
   Map<String, dynamic> toJson() => _$SiteToJson(this);

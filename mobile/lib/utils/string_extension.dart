@@ -16,7 +16,8 @@ extension StringCasingExtension on String {
   }
 
   bool isNull() {
-    if (isEmpty ||
+    if (this == null ||
+        isEmpty ||
         length == 0 ||
         this == '' ||
         toLowerCase() == 'null' ||
