@@ -14,9 +14,9 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # android test
-#version: 1.21.21+12124
+version: 1.21.22+12125
 # ios testflight
-version: 1.21.11+12113
+#version: 1.21.11+12114
 
 environment:
   sdk: '>=2.12.0 <3.0.0'
@@ -163,6 +163,7 @@ flutter:
     - assets/icon/learn_complete.svg
     - assets/icon/profile_edit.svg
     - assets/icon/has_notifications.svg
+    - assets/icon/text_clear_btn.svg
 
     # Language Translation files
     - assets/i18n/en.json

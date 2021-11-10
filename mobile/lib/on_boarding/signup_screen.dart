@@ -29,6 +29,7 @@ class SignupScreenState extends State<SignupScreen> {
   var phoneNumber = '';
   var emailAddress = '';
   var emailVerificationLink = '';
+  var emailToken = '';
   var requestCode = false;
   var verifyId = '';
   var resendCode = false;
@@ -343,11 +344,9 @@ class SignupScreenState extends State<SignupScreen> {
             suffixIcon: GestureDetector(
                 onTap: () {
                   _emailInputController.text = '';
+                  clearEmailCallBack();
                 },
-                child: GestureDetector(
-                  onTap: clearEmailCallBack,
-                  child: textInputCloseButton(),
-                )),
+                child: textInputCloseButton()),
           ),
         )));
   }
@@ -512,16 +511,17 @@ class SignupScreenState extends State<SignupScreen> {
           nextBtnColor = ColorConstants.appColorDisabled;
         });
 
-        var verificationLink =
+        var emailSignupResponse =
             await _airqoApiClient!.requestEmailVerificationCode(emailAddress);
 
-        if (verificationLink == '') {
+        if (emailSignupResponse == null) {
           await showSnackBar(context, 'email signup verification failed');
           return;
         }
 
         setState(() {
-          emailVerificationLink = verificationLink;
+          emailVerificationLink = emailSignupResponse.loginLink;
+          emailToken = emailSignupResponse.token;
           requestCode = true;
         });
       }
@@ -533,16 +533,17 @@ class SignupScreenState extends State<SignupScreen> {
       await _customAuth.verifyPhone('$prefixValue$phoneNumber', context,
           verifyPhoneFn, autoVerifyPhoneFn);
     } else {
-      var verificationLink =
+      var emailSignupResponse =
           await _airqoApiClient!.requestEmailVerificationCode(emailAddress);
 
-      if (verificationLink == '') {
+      if (emailSignupResponse == null) {
         await showSnackBar(context, 'email signup verification failed');
         return;
       }
 
       setState(() {
-        emailVerificationLink = verificationLink;
+        emailVerificationLink = emailSignupResponse.loginLink;
+        emailToken = emailSignupResponse.token;
       });
     }
   }

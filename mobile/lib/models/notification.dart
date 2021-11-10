@@ -1,5 +1,6 @@
 import 'dart:collection';
 
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -59,6 +60,19 @@ class UserNotification {
   Map<String, dynamic> toJson() => _$UserNotificationToJson(this);
 
   static String alertDbName() => 'alerts_table';
+
+  static UserNotification? composeNotification(RemoteMessage message) {
+    debugPrint('Message data: ${message.data}');
+
+    var data = message.data;
+
+    if (data.isNotEmpty) {
+      return UserNotification(
+          message.hashCode.toString(), data['message'], data['message'], true);
+    }
+
+    return null;
+  }
 
   static String createTableStmt() =>
       'CREATE TABLE IF NOT EXISTS ${alertDbName()}('

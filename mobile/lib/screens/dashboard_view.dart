@@ -288,13 +288,15 @@ class _DashboardViewState extends State<DashboardView> {
             .toList();
 
         if (regionMeasurements.isNotEmpty) {
-          var random = 0 + Random().nextInt(regionMeasurements.length - 0);
+          var random = Random().nextInt(regionMeasurements.length);
 
-          dashBoardPlaces.add(AnalyticsCard(
-              PlaceDetails.measurementToPLace(regionMeasurements[random]),
-              isRefreshing));
+          setState(() {
+            dashBoardPlaces.add(AnalyticsCard(
+                PlaceDetails.measurementToPLace(regionMeasurements[random]),
+                isRefreshing));
+          });
         } else {
-          var random = 0 + Random().nextInt(measurements.length - 0);
+          var random = Random().nextInt(measurements.length);
           setState(() {
             dashBoardPlaces.add(AnalyticsCard(
                 PlaceDetails.measurementToPLace(measurements[random]),

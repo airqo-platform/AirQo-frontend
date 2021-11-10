@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/topicData.dart';
+import 'package:app/models/notification.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
@@ -43,13 +43,13 @@ class LocalNotifications {
     // );
   }
 
-  Future<void> showAlertNotification(AppNotification notification) async {
+  Future<void> showAlertNotification(UserNotification notification) async {
     var bigTextStyleInformation = BigTextStyleInformation(
-      notification.body,
+      notification.message,
       htmlFormatBigText: true,
       contentTitle: 'AirQo',
       htmlFormatContentTitle: true,
-      summaryText: 'Air Quality Alert',
+      summaryText: 'AirQo',
       htmlFormatSummaryText: true,
     );
 
@@ -75,7 +75,7 @@ class LocalNotifications {
         iOS: iosPlatformChannelSpecifics);
 
     await flutterLocalNotificationsPlugin.show(
-        notification.id, 'AirQo', 'Air Quality Alert', platformChannelSpecifics,
+        1, 'AirQo', 'Air Quality Alert', platformChannelSpecifics,
         payload: 'load');
   }
 
@@ -240,7 +240,7 @@ class LocalNotifications {
         payload: 'Destination Screen(Schedule Notification)');
   }
 
-  Future<void> showSimpleNotification(AppNotification notification) async {
+  Future<void> showSimpleNotification(NotificationModel notification) async {
     var androidDetails = const AndroidNotificationDetails(
         'id', 'channel ', 'description',
         priority: Priority.high, importance: Importance.max);

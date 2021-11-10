@@ -5,7 +5,6 @@ import 'package:app/models/alert.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/site.dart';
-import 'package:app/models/topicData.dart';
 import 'package:app/models/user_details.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/string_extension.dart';
@@ -106,7 +105,7 @@ class CloudStore {
     var hasConnection = await isConnected();
     if (hasConnection) {
       var notificationsJson = await _firebaseFirestore
-          .collection('${CloudStorage.notificationCollection}/$id/$id')
+          .collection('${CloudStorage.notificationCollection}/$id')
           .get();
 
       var notifications = <UserNotification>[];
@@ -179,7 +178,7 @@ class CloudStore {
   void monitorNotifications(context, String id) {
     try {
       _firebaseFirestore
-          .collection('${CloudStorage.notificationCollection}/$id/$id')
+          .collection('${CloudStorage.notificationCollection}/$id')
           .where('isNew', isEqualTo: true)
           .snapshots()
           .listen((result) async {
@@ -239,7 +238,7 @@ class CloudStore {
             'Begin your journey to Knowing Your Air and Breathe Clean... ',
             true);
         await _firebaseFirestore
-            .collection('${CloudStorage.notificationCollection}/$id/$id')
+            .collection('${CloudStorage.notificationCollection}/$id')
             .doc(notificationId)
             .set(notification.toJson());
       } catch (e) {
@@ -690,10 +689,11 @@ class NotificationService {
     }
   }
 
-  static Future<void> backgroundMessageHandler(RemoteMessage message) async {
+  static Future<void> backgroundNotificationHandler(
+      RemoteMessage message) async {
     try {
-      var notificationMessage = AppNotification().composeNotification(message);
-      if (!notificationMessage.isEmpty()) {
+      var notificationMessage = UserNotification.composeNotification(message);
+      if (notificationMessage != null) {
         await LocalNotifications().showAlertNotification(notificationMessage);
       }
     } catch (e) {
@@ -703,8 +703,8 @@ class NotificationService {
 
   static Future<void> foregroundMessageHandler(RemoteMessage message) async {
     try {
-      var notificationMessage = AppNotification().composeNotification(message);
-      if (!notificationMessage.isEmpty()) {
+      var notificationMessage = UserNotification.composeNotification(message);
+      if (notificationMessage != null) {
         await LocalNotifications().showAlertNotification(notificationMessage);
       }
     } catch (e) {

@@ -173,13 +173,12 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
             enabledBorder: InputBorder.none,
             hintText: 'Enter your name',
             suffixIcon: GestureDetector(
-                onTap: () {
-                  controller.text = '';
-                },
-                child: GestureDetector(
-                  onTap: clearNameCallBack,
-                  child: textInputCloseButton(),
-                )),
+              onTap: () {
+                controller.text = '';
+                clearNameCallBack();
+              },
+              child: textInputCloseButton(),
+            ),
           ),
         )));
   }

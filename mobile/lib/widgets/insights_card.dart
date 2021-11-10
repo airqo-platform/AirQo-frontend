@@ -153,6 +153,8 @@ class _InsightsCardState extends State<InsightsCard> {
                     visible: selectedMeasurement!.available,
                     child: Container(
                       padding: const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
+                      constraints: BoxConstraints(
+                          maxWidth: MediaQuery.of(context).size.width / 2.5),
                       decoration: BoxDecoration(
                           borderRadius:
                               const BorderRadius.all(Radius.circular(40.0)),
@@ -170,7 +172,7 @@ class _InsightsCardState extends State<InsightsCard> {
                             ? pm2_5ToString(selectedMeasurement!.value)
                             : pm10ToString(selectedMeasurement!.value),
                         maxLines: 1,
-                        textAlign: TextAlign.center,
+                        textAlign: TextAlign.start,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 14,

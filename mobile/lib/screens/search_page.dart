@@ -31,6 +31,7 @@ class _SearchPageState extends State<SearchPage> {
   SearchApi? searchApiClient;
   final DBHelper _dbHelper = DBHelper();
   final LocationService _locationService = LocationService();
+  final TextEditingController _textEditingController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +43,7 @@ class _SearchPageState extends State<SearchPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(
-              height: 32,
+              height: 24,
             ),
             Row(
               children: <Widget>[
@@ -417,14 +418,41 @@ class _SearchPageState extends State<SearchPage> {
           ),
           Expanded(
             child: TextFormField(
-              // controller: _textEditingController,
+              controller: _textEditingController,
               onChanged: searchChanged,
               cursorWidth: 1,
               cursorColor: ColorConstants.appColorBlue,
               autofocus: true,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'Search your village air quality',
                 border: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                suffixIcon: _textEditingController.text != ''
+                    ? MediaQuery.removePadding(
+                        context: context,
+                        removeRight: true,
+                        removeLeft: true,
+                        removeBottom: true,
+                        removeTop: true,
+                        child: GestureDetector(
+                            onTap: () {
+                              _textEditingController.text = '';
+                              searchChanged('');
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.only(
+                                  left: 10, top: 10, bottom: 10),
+                              height: 15,
+                              width: 15,
+                              child: SvgPicture.asset(
+                                'assets/icon/text_clear_btn.svg',
+                                height: 15,
+                                width: 15,
+                              ),
+                            )),
+                      )
+                    : null,
               ),
             ),
           ),
@@ -539,6 +567,9 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Future<void> showPlaceDetails(Suggestion suggestion) async {
+    setState(() {
+      _textEditingController.text = suggestion.suggestionDetails.mainText;
+    });
     var place = await searchApiClient!.getPlaceDetails(suggestion.placeId);
     if (place != null) {
       var nearestSite = await _locationService.getNearestSite(

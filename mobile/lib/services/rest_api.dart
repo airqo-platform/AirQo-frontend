@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:app/constants/api.dart';
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/alert.dart';
+import 'package:app/models/email_signup_model.dart';
 import 'package:app/models/feedback.dart';
 import 'package:app/models/historical_measurement.dart';
 import 'package:app/models/measurement.dart';
@@ -284,7 +285,8 @@ class AirqoApiClient {
     }
   }
 
-  Future<String> requestEmailVerificationCode(String emailAddress) async {
+  Future<EmailSignupModel?> requestEmailVerificationCode(
+      String emailAddress) async {
     try {
       Map<String, String> headers = HashMap()
         ..putIfAbsent('Content-Type', () => 'application/json');
@@ -295,14 +297,16 @@ class AirqoApiClient {
           Uri.parse(AirQoUrls().requestEmailVerification),
           headers: headers,
           body: jsonEncode(body));
-      return json.decode(response.body)['link'];
+
+      return compute(
+          EmailSignupModel.parseEmailSignupModel, json.decode(response.body));
     } catch (exception, stackTrace) {
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
       );
     }
-    return '';
+    return null;
   }
 
   Future<bool> saveAlert(Alert alert) async {

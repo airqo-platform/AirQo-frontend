@@ -7,14 +7,14 @@ part of 'user_details.dart';
 // **************************************************************************
 
 UserDetails _$UserDetailsFromJson(Map<String, dynamic> json) => UserDetails(
-      json['title'] as String? ?? '',
-      json['firstName'] as String? ?? '',
-      json['userId'] as String? ?? '',
-      json['lastName'] as String? ?? '',
-      json['emailAddress'] as String? ?? '',
-      json['phoneNumber'] as String? ?? '',
-      json['device'] as String? ?? '',
-      json['photoUrl'] as String? ?? '',
+      json['title'] as String,
+      json['firstName'] as String,
+      json['userId'] as String,
+      json['lastName'] as String,
+      json['emailAddress'] as String,
+      json['phoneNumber'] as String,
+      json['device'] as String,
+      json['photoUrl'] as String,
       (json['favPlaces'] as List<dynamic>)
           .map((e) => PlaceDetails.fromJson(e as Map<String, dynamic>))
           .toList(),

@@ -76,7 +76,7 @@ class MapAnalyticsCard extends StatefulWidget {
 class _AnalyticsCardState extends State<AnalyticsCard> {
   Measurement? measurement;
   final DBHelper _dbHelper = DBHelper();
-  bool showHeartAnimation = false;
+  bool _showHeartAnimation = false;
   final GlobalKey _globalKey = GlobalKey();
 
   @override
@@ -160,7 +160,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                 child: Text(
                                   pm2_5ToString(measurement!.getPm2_5Value()),
                                   maxLines: 1,
-                                  textAlign: TextAlign.center,
+                                  textAlign: TextAlign.start,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     fontSize: 14,
@@ -320,7 +320,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
   }
 
   Widget getHeartIcon() {
-    if (showHeartAnimation) {
+    if (_showHeartAnimation) {
       return SizedBox(
         height: 16.67,
         width: 16.67,
@@ -350,7 +350,25 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
     );
   }
 
-  Future<void> getMeasurement() async {
+  @override
+  void initState() {
+    _getMeasurement();
+    super.initState();
+  }
+
+  void updateFavPlace() async {
+    setState(() {
+      _showHeartAnimation = true;
+    });
+    Future.delayed(const Duration(seconds: 2), () async {
+      setState(() {
+        _showHeartAnimation = false;
+      });
+    });
+    await _dbHelper.updateFavouritePlaces(widget.placeDetails, context);
+  }
+
+  Future<void> _getMeasurement() async {
     await _dbHelper.getMeasurement(widget.placeDetails.siteId).then((value) => {
           if (value != null)
             {
@@ -359,24 +377,6 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
               })
             }
         });
-  }
-
-  @override
-  void initState() {
-    getMeasurement();
-    super.initState();
-  }
-
-  void updateFavPlace() async {
-    setState(() {
-      showHeartAnimation = true;
-    });
-    Future.delayed(const Duration(seconds: 2), () async {
-      setState(() {
-        showHeartAnimation = false;
-      });
-    });
-    await _dbHelper.updateFavouritePlaces(widget.placeDetails, context);
   }
 }
 
@@ -459,7 +459,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                 pm2_5ToString(
                                     widget.measurement.getPm2_5Value()),
                                 maxLines: 1,
-                                textAlign: TextAlign.center,
+                                textAlign: TextAlign.start,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   fontSize: 14,

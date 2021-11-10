@@ -28,6 +28,7 @@ class UpdateCredentialsScreenState extends State<UpdateCredentialsScreen> {
   var phoneNumber = '';
   var emailAddress = '';
   var emailVerificationLink = '';
+  var emailToken = '';
   var requestCode = false;
   var verifyId = '';
   var resendCode = false;
@@ -485,17 +486,18 @@ class UpdateCredentialsScreenState extends State<UpdateCredentialsScreen> {
           nextBtnColor = ColorConstants.appColorDisabled;
         });
 
-        var verificationLink =
+        var emailSignupResponse =
             await _airqoApiClient!.requestEmailVerificationCode(emailAddress);
 
-        if (verificationLink == '') {
+        if (emailSignupResponse == null) {
           await showSnackBar(context, 'email signup verification failed');
           return;
         }
 
         setState(() {
-          emailVerificationLink = verificationLink;
+          emailVerificationLink = emailSignupResponse.loginLink;
           requestCode = true;
+          emailToken = emailSignupResponse.token;
         });
       }
     }
@@ -506,16 +508,17 @@ class UpdateCredentialsScreenState extends State<UpdateCredentialsScreen> {
       await _customAuth.verifyPhone('$prefixValue$phoneNumber', context,
           verifyPhoneFn, autoVerifyPhoneFn);
     } else {
-      var verificationLink =
+      var emailSignupResponse =
           await _airqoApiClient!.requestEmailVerificationCode(emailAddress);
 
-      if (verificationLink == '') {
+      if (emailSignupResponse == null) {
         await showSnackBar(context, 'email signup verification failed');
         return;
       }
 
       setState(() {
-        emailVerificationLink = verificationLink;
+        emailVerificationLink = emailSignupResponse.loginLink;
+        emailToken = emailSignupResponse.token;
       });
     }
   }

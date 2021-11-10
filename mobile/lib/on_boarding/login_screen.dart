@@ -26,6 +26,7 @@ class LoginScreenState extends State<LoginScreen> {
   var phoneNumber = '';
   var emailAddress = '';
   var emailVerificationLink = '';
+  var emailToken = '';
   var requestCode = false;
   var verifyId = '';
   var resendCode = false;
@@ -506,17 +507,18 @@ class LoginScreenState extends State<LoginScreen> {
           nextBtnColor = ColorConstants.appColorDisabled;
         });
 
-        var verificationLink =
+        var emailSignupResponse =
             await _airqoApiClient!.requestEmailVerificationCode(emailAddress);
 
-        if (verificationLink == '') {
+        if (emailSignupResponse == null) {
           await showSnackBar(context, 'email signup verification failed');
           return;
         }
 
         setState(() {
-          emailVerificationLink = verificationLink;
+          emailVerificationLink = emailSignupResponse.loginLink;
           requestCode = true;
+          emailToken = emailSignupResponse.token;
         });
       }
     }
@@ -530,13 +532,17 @@ class LoginScreenState extends State<LoginScreen> {
       var verificationLink =
           await _airqoApiClient!.requestEmailVerificationCode(emailAddress);
 
-      if (verificationLink == '') {
+      var emailSignupResponse =
+          await _airqoApiClient!.requestEmailVerificationCode(emailAddress);
+
+      if (emailSignupResponse == null) {
         await showSnackBar(context, 'email signup verification failed');
         return;
       }
 
       setState(() {
-        emailVerificationLink = verificationLink;
+        emailVerificationLink = emailSignupResponse.loginLink;
+        emailToken = emailSignupResponse.token;
       });
     }
   }
