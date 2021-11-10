@@ -240,6 +240,7 @@ class AirqoApiClient {
         throw Exception('site does not exist');
       }
     } on Error catch (exception, stackTrace) {
+      debugPrint(exception.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -277,6 +278,7 @@ class AirqoApiClient {
       await showSnackBar(context, ErrorMessages.timeoutException);
       return '';
     } on Error catch (exception, stackTrace) {
+      debugPrint(exception.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -301,6 +303,7 @@ class AirqoApiClient {
       return compute(
           EmailSignupModel.parseEmailSignupModel, json.decode(response.body));
     } catch (exception, stackTrace) {
+      debugPrint(exception.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -385,6 +388,7 @@ class AirqoApiClient {
     } on TimeoutException {
       await showSnackBar(context, ErrorMessages.timeoutException);
     } on Error catch (exception, stackTrace) {
+      debugPrint(exception.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -419,6 +423,7 @@ class AirqoApiClient {
     } on TimeoutException {
       await showSnackBar(context, ErrorMessages.timeoutException);
     } on Error catch (exception, stackTrace) {
+      debugPrint(exception.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -461,6 +466,7 @@ class AirqoApiClient {
       await showSnackBar(context, ErrorMessages.timeoutException);
       return false;
     } on Error catch (exception, stackTrace) {
+      debugPrint(exception.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,

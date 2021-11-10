@@ -7,6 +7,8 @@ Widget recommendationContainer(Recommendation recommendation, context) {
   return Container(
       width: 304,
       height: 128,
+      constraints: const BoxConstraints(
+          minWidth: 304, minHeight: 128, maxWidth: 304, maxHeight: 128),
       padding: const EdgeInsets.all(8.0),
       decoration: const BoxDecoration(
           color: Colors.white,

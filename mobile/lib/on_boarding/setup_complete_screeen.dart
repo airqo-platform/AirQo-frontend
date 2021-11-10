@@ -48,18 +48,20 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   }
 
   void initialize() {
-    Future.delayed(const Duration(seconds: 4), () async {
-      await Navigator.pushAndRemoveUntil(context,
-          MaterialPageRoute(builder: (context) {
-        return const HomePage();
-      }), (r) => false);
-    });
+    if (mounted) {
+      Future.delayed(const Duration(seconds: 4), () async {
+        await Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (context) {
+          return const HomePage();
+        }), (r) => false);
+      });
+    }
   }
 
   @override
   void initState() {
-    super.initState();
     initialize();
+    super.initState();
   }
 
   Future<bool> onWillPop() {

@@ -14,6 +14,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'local_notifications.dart';
@@ -263,25 +264,32 @@ class CloudStore {
     await _preferencesHelper.updatePreference(field, value, type);
     var hasConnection = await isConnected();
     if (hasConnection) {
-      DocumentSnapshot userDoc = await _firebaseFirestore
-          .collection(CloudStorage.usersCollection)
-          .doc(id)
-          .get();
-      var data = userDoc.data();
-
-      if (data != null) {
-        var userDetails = UserDetails.fromJson(data as Map<String, dynamic>);
-        if (field == 'notifications') {
-          userDetails.preferences.notifications = value as bool;
-        } else if (field == 'location') {
-          userDetails.preferences.location = value as bool;
-        }
-        var userJson = userDetails.toJson();
-
-        await _firebaseFirestore
+      try {
+        DocumentSnapshot userDoc = await _firebaseFirestore
             .collection(CloudStorage.usersCollection)
             .doc(id)
-            .update(userJson);
+            .get();
+        var data = userDoc.data();
+
+        if (data != null) {
+          var userDetails = UserDetails.fromJson(data as Map<String, dynamic>);
+          if (field == 'notifications') {
+            userDetails.preferences.notifications = value as bool;
+          } else if (field == 'location') {
+            userDetails.preferences.location = value as bool;
+          }
+          var userJson = userDetails.toJson();
+
+          await _firebaseFirestore
+              .collection(CloudStorage.usersCollection)
+              .doc(id)
+              .update(userJson);
+        }
+      } catch (exception, stackTrace) {
+        await Sentry.captureException(
+          exception,
+          stackTrace: stackTrace,
+        );
       }
     }
   }
@@ -308,10 +316,17 @@ class CloudStore {
       String id, Map<String, Object?> fields) async {
     var hasConnection = await isConnected();
     if (hasConnection) {
-      await _firebaseFirestore
-          .collection(CloudStorage.usersCollection)
-          .doc(id)
-          .update(fields);
+      try {
+        await _firebaseFirestore
+            .collection(CloudStorage.usersCollection)
+            .doc(id)
+            .update(fields);
+      } catch (exception, stackTrace) {
+        await Sentry.captureException(
+          exception,
+          stackTrace: stackTrace,
+        );
+      }
     }
   }
 }
@@ -477,7 +492,26 @@ class CustomAuth {
     }
   }
 
-  Future<void> signUp(AuthCredential authCredential) async {
+  Future<bool> signUpWithEmailAddress(String emailAddress, String link) async {
+    var userCredential = await FirebaseAuth.instance
+        .signInWithEmailLink(emailLink: link, email: emailAddress);
+
+    if (userCredential.user != null) {
+      var user = userCredential.user;
+      try {
+        if (user != null) {
+          await createProfile();
+          await _cloudStore.sendWelcomeNotification(user.uid);
+          return true;
+        }
+      } catch (e) {
+        debugPrint(e.toString());
+      }
+    }
+    return false;
+  }
+
+  Future<void> signUpWithPhoneNumber(AuthCredential authCredential) async {
     var userCredential =
         await _firebaseAuth.signInWithCredential(authCredential);
     if (userCredential.user != null) {
@@ -493,18 +527,7 @@ class CustomAuth {
     }
   }
 
-  Future<bool> signUpWithEmailAddress(String emailAddress, String link) async {
-    var confirmation = await FirebaseAuth.instance
-        .signInWithEmailLink(emailLink: link, email: emailAddress);
-
-    if (confirmation.user == null) {
-      return false;
-    } else {
-      return true;
-    }
-  }
-
-  Future<bool> signUpWithPhoneNumber(String phoneNumber) async {
+  Future<bool> signUpWithPhoneNumberV1(String phoneNumber) async {
     var confirmation =
         await FirebaseAuth.instance.signInWithPhoneNumber(phoneNumber);
     if (confirmation.verificationId.isEmpty) {
@@ -524,6 +547,21 @@ class CustomAuth {
       await _cloudStore.updateProfileFields(id, {'emailAddress': email});
       await _secureStorageHelper.updateUserDetailsField('emailAddress', email);
     }
+  }
+
+  Future<bool> updateEmailAddress(
+      User user, String emailAddress, String link) async {
+    var userCredential = await FirebaseAuth.instance
+        .signInWithEmailLink(emailLink: link, email: emailAddress);
+
+    if (userCredential.user != null) {
+      try {
+        await updateCredentials(null, userCredential.user!.email);
+      } catch (e) {
+        debugPrint(e.toString());
+      }
+    }
+    return false;
   }
 
   Future<void> updateProfile(UserDetails userDetails) async {

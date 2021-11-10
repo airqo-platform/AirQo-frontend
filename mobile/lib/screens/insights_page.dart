@@ -36,12 +36,13 @@ class _InsightsPageState extends State<InsightsPage>
         ),
       ),
       body: Container(
-        padding: const EdgeInsets.only(right: 16, left: 16),
+        padding: const EdgeInsets.only(right: 0, left: 0),
         color: ColorConstants.appBodyColor,
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.only(top: 10, bottom: 10),
+              padding: const EdgeInsets.only(
+                  top: 10, bottom: 10, right: 16, left: 16),
               child: Material(
                 color: Colors.white,
                 borderRadius: const BorderRadius.all(Radius.circular(7.0)),

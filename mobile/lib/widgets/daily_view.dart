@@ -42,104 +42,119 @@ class _DailyViewState extends State<DailyView> {
             const SizedBox(
               height: 18,
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'AIR QUALITY'.toUpperCase(),
-                  style: TextStyle(
-                      fontSize: 12, color: Colors.black.withOpacity(0.3)),
-                ),
-                Visibility(
-                  visible: false,
-                  child: GestureDetector(
-                    onTap: togglePollutant,
-                    child: Container(
-                      height: 32,
-                      width: 32,
-                      padding: const EdgeInsets.all(6.0),
-                      decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(8.0)),
-                          border: Border.all(color: Colors.transparent)),
-                      child: SvgPicture.asset(
-                        'assets/icon/toggle_icon.svg',
-                        semanticsLabel: 'Toggle',
-                        height: 16,
-                        width: 20,
+            Padding(
+              padding: const EdgeInsets.only(right: 16, left: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'AIR QUALITY'.toUpperCase(),
+                    style: TextStyle(
+                        fontSize: 12, color: Colors.black.withOpacity(0.3)),
+                  ),
+                  Visibility(
+                    visible: false,
+                    child: GestureDetector(
+                      onTap: togglePollutant,
+                      child: Container(
+                        height: 32,
+                        width: 32,
+                        padding: const EdgeInsets.all(6.0),
+                        decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(8.0)),
+                            border: Border.all(color: Colors.transparent)),
+                        child: SvgPicture.asset(
+                          'assets/icon/toggle_icon.svg',
+                          semanticsLabel: 'Toggle',
+                          height: 16,
+                          width: 20,
+                        ),
                       ),
                     ),
-                  ),
-                )
-              ],
+                  )
+                ],
+              ),
             ),
             const SizedBox(
               height: 20,
             ),
-            Visibility(
-              visible: pm2_5,
-              child: InsightsCard(
-                  widget.placeDetails, callBackFn, 'pm2.5', widget.daily),
+            Padding(
+              padding: const EdgeInsets.only(right: 16, left: 16),
+              child: Visibility(
+                visible: pm2_5,
+                child: InsightsCard(
+                    widget.placeDetails, callBackFn, 'pm2.5', widget.daily),
+              ),
             ),
-            Visibility(
-              visible: !pm2_5,
-              child: InsightsCard(
-                  widget.placeDetails, callBackFn, 'pm10', widget.daily),
+            Padding(
+              padding: const EdgeInsets.only(right: 16, left: 16),
+              child: Visibility(
+                visible: !pm2_5,
+                child: InsightsCard(
+                    widget.placeDetails, callBackFn, 'pm10', widget.daily),
+              ),
             ),
             const SizedBox(
               height: 16,
             ),
-            Container(
-              padding: const EdgeInsets.all(21.0),
-              decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: const BorderRadius.all(Radius.circular(8.0)),
-                  border: Border.all(color: Colors.transparent)),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      shareLocation(widget.placeDetails);
-                    },
-                    child: iconTextButton(
-                        SvgPicture.asset(
-                          'assets/icon/share_icon.svg',
-                          semanticsLabel: 'Share',
-                          color: ColorConstants.greyColor,
-                        ),
-                        'Share'),
-                  ),
-                  const SizedBox(
-                    width: 60,
-                  ),
-                  Consumer<PlaceDetailsModel>(
-                    builder: (context, placeDetailsModel, child) {
-                      return GestureDetector(
-                        onTap: () async {
-                          updateFavPlace();
-                        },
-                        child: iconTextButton(getHeartIcon(), 'Favorite'),
-                      );
-                    },
-                  ),
-                ],
+            Padding(
+              padding: const EdgeInsets.only(right: 16, left: 16),
+              child: Container(
+                padding: const EdgeInsets.all(21.0),
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+                    border: Border.all(color: Colors.transparent)),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        shareLocation(widget.placeDetails);
+                      },
+                      child: iconTextButton(
+                          SvgPicture.asset(
+                            'assets/icon/share_icon.svg',
+                            semanticsLabel: 'Share',
+                            color: ColorConstants.greyColor,
+                          ),
+                          'Share'),
+                    ),
+                    const SizedBox(
+                      width: 60,
+                    ),
+                    Consumer<PlaceDetailsModel>(
+                      builder: (context, placeDetailsModel, child) {
+                        return GestureDetector(
+                          onTap: () async {
+                            updateFavPlace();
+                          },
+                          child: iconTextButton(getHeartIcon(), 'Favorite'),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(
               height: 36,
             ),
             if (viewDay == 'today' || viewDay == 'tomorrow')
-              Visibility(
-                visible: _recommendations.isNotEmpty,
-                child: Text(
-                  viewDay == 'today'
-                      ? 'Today’s health tips'
-                      : 'Tomorrow’s health tips',
-                  textAlign: TextAlign.left,
-                  style: const TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.bold),
+              Padding(
+                padding: const EdgeInsets.only(right: 16, left: 16),
+                child: Visibility(
+                  visible: _recommendations.isNotEmpty,
+                  child: Text(
+                    viewDay == 'today'
+                        ? 'Today’s health tips'
+                        : 'Tomorrow’s health tips',
+                    textAlign: TextAlign.left,
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
             const SizedBox(
@@ -151,11 +166,27 @@ class _DailyViewState extends State<DailyView> {
                 height: 128,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
-                  itemBuilder: (context, index) => Padding(
-                    padding: const EdgeInsets.all(5),
-                    child: recommendationContainer(
-                        _recommendations[index], context),
-                  ),
+                  itemBuilder: (context, index) {
+                    if (index == 0) {
+                      return Padding(
+                        padding: const EdgeInsets.only(left: 16.0, right: 8.0),
+                        child: recommendationContainer(
+                            _recommendations[index], context),
+                      );
+                    } else if (index == (_recommendations.length - 1)) {
+                      return Padding(
+                        padding: const EdgeInsets.only(left: 8.0, right: 16.0),
+                        child: recommendationContainer(
+                            _recommendations[index], context),
+                      );
+                    } else {
+                      return Padding(
+                        padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                        child: recommendationContainer(
+                            _recommendations[index], context),
+                      );
+                    }
+                  },
                   itemCount: _recommendations.length,
                 ),
               ),

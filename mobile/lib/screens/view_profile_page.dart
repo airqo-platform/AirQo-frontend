@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/user_details.dart';
+import 'package:app/screens/change_email_screen.dart';
 import 'package:app/screens/credentials_screen.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
@@ -32,8 +33,9 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
   final CustomAuth _customAuth = CustomAuth();
   final ImagePicker _imagePicker = ImagePicker();
   AirqoApiClient? _airqoApiClient;
-  String profilePic = '';
-  TextEditingController phoneEditor = TextEditingController();
+  String _profilePic = '';
+  TextEditingController _phoneEditor = TextEditingController();
+  TextEditingController _emailEditor = TextEditingController();
   bool changeImage = false;
   final SecureStorageHelper _secureStorageHelper = SecureStorageHelper();
 
@@ -74,22 +76,6 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                 const SizedBox(
                   height: 40,
                 ),
-                // Text(
-                //   'Email',
-                //   style: TextStyle(
-                //       fontSize: 12, color: ColorConstants.inactiveColor),
-                // ),
-                // const SizedBox(
-                //   height: 4,
-                // ),
-                // TextFormField(
-                //   initialValue: widget.userDetails.emailAddress,
-                //   readOnly: true,
-                //   decoration: profileFormFieldDecoration(),
-                // ),
-                // const SizedBox(
-                //   height: 16,
-                // ),
                 Text(
                   'First Name',
                   style: TextStyle(
@@ -119,7 +105,6 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                 const SizedBox(
                   height: 16,
                 ),
-
                 Text(
                   'Last Name',
                   style: TextStyle(
@@ -163,7 +148,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                     children: <Widget>[
                       Expanded(
                         child: TextFormField(
-                          controller: phoneEditor,
+                          controller: _phoneEditor,
                           enableSuggestions: false,
                           readOnly: true,
                           style: TextStyle(color: ColorConstants.inactiveColor),
@@ -188,12 +173,51 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                     ],
                   ),
                 ),
-
                 const SizedBox(
                   height: 16,
                 ),
-                // SizedBox(height: 16,),
-                // settingsSection(),
+                Text(
+                  'Email',
+                  style: TextStyle(
+                      fontSize: 12, color: ColorConstants.inactiveColor),
+                ),
+                const SizedBox(
+                  height: 4,
+                ),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: TextFormField(
+                          controller: _emailEditor,
+                          enableSuggestions: false,
+                          readOnly: true,
+                          style: TextStyle(color: ColorConstants.inactiveColor),
+                          decoration: profileFormInactiveFieldDecoration(),
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 16,
+                      ),
+                      GestureDetector(
+                        onTap: () async {
+                          var response = await Navigator.push(context,
+                              MaterialPageRoute(builder: (context) {
+                            return const ChangeEmailScreen();
+                          }));
+                          if (response) {
+                            await initialize();
+                          }
+                        },
+                        child: editCredentialsButton(),
+                      )
+                    ],
+                  ),
+                ),
+                const SizedBox(
+                  height: 16,
+                ),
               ],
             ),
           )),
@@ -228,7 +252,8 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
   Future<void> initialize() async {
     await _secureStorageHelper.getUserDetails().then((value) => {
           setState(() {
-            phoneEditor.text = value.phoneNumber;
+            _phoneEditor.text = value.phoneNumber;
+            _emailEditor.text = value.emailAddress;
           })
         });
   }
@@ -236,8 +261,9 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
   @override
   void initState() {
     setState(() {
-      profilePic = widget.userDetails.photoUrl;
-      phoneEditor.text = widget.userDetails.phoneNumber;
+      _profilePic = widget.userDetails.photoUrl;
+      _phoneEditor.text = widget.userDetails.phoneNumber;
+      _emailEditor.text = widget.userDetails.emailAddress;
     });
     _airqoApiClient = AirqoApiClient(context);
     super.initState();
@@ -291,7 +317,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
         Stack(
           alignment: AlignmentDirectional.center,
           children: [
-            profilePic == ''
+            _profilePic == ''
                 ? RotationTransition(
                     turns: const AlwaysStoppedAnimation(-5 / 360),
                     child: Container(
@@ -308,22 +334,22 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                       ),
                     ),
                   )
-                : profilePic.startsWith('http')
+                : _profilePic.startsWith('http')
                     ? CircleAvatar(
                         radius: 44,
                         backgroundColor: ColorConstants.appPicColor,
                         foregroundColor: ColorConstants.appPicColor,
                         backgroundImage: CachedNetworkImageProvider(
-                          profilePic,
+                          _profilePic,
                         ),
                       )
                     : CircleAvatar(
                         radius: 44,
                         backgroundColor: ColorConstants.appPicColor,
                         foregroundColor: ColorConstants.appPicColor,
-                        backgroundImage: FileImage(File(profilePic)),
+                        backgroundImage: FileImage(File(_profilePic)),
                       ),
-            if (profilePic == '')
+            if (_profilePic == '')
               const Text(
                 'A',
                 style: TextStyle(
@@ -429,11 +455,11 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
     }
 
     try {
-      var mimeType = lookupMimeType(profilePic);
+      var mimeType = lookupMimeType(_profilePic);
 
       mimeType ??= 'jpeg';
 
-      var imageBytes = await File(profilePic).readAsBytes();
+      var imageBytes = await File(_profilePic).readAsBytes();
 
       var imageUrl = await _airqoApiClient!.imageUpload(
           base64Encode(imageBytes), mimeType, widget.userDetails.userId);
@@ -464,7 +490,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
     );
     if (pickedFile != null) {
       setState(() {
-        profilePic = pickedFile.path;
+        _profilePic = pickedFile.path;
         changeImage = true;
       });
     }

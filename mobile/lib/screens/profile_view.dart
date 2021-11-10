@@ -331,7 +331,7 @@ class _ProfileViewState extends State<ProfileView> {
             onTap: () async {
               var saved = await Navigator.push(context,
                   MaterialPageRoute(builder: (context) {
-                return SignupScreen(true);
+                return const SignupScreen(true);
               }));
               if (saved != null && saved) {
                 await initialize();
