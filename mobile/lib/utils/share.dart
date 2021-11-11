@@ -7,12 +7,14 @@ import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/site.dart';
 import 'package:app/utils/pm.dart';
+import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'date.dart';
 import 'dialogs.dart';
 
 Future<void> reportPlace(Site site, context) async {
@@ -61,6 +63,12 @@ void shareAnalyticsCard(String imagePath, Measurement measurement) {
   Share.shareFiles([imagePath], text: message);
 }
 
+void shareAnalyticsGraph(String imagePath, PlaceDetails placeDetails) {
+  var message = '${placeDetails.getName()}, Current Air Quality. \n\n'
+      'Source: AiQo App';
+  Share.shareFiles([imagePath], text: message);
+}
+
 void shareApp() {
   Share.share(
       'Get the ${AppConfig.name} app from Play Store '
@@ -103,6 +111,113 @@ Future<void> shareCard(BuildContext buildContext, GlobalKey globalKey,
   } else {
     shareMeasurementText(measurement);
   }
+}
+
+Widget shareCardImage(
+    Measurement measurement, PlaceDetails placeDetails, BuildContext context) {
+  return Container(
+    padding: const EdgeInsets.only(top: 12, bottom: 12, left: 10, right: 10),
+    decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.all(Radius.circular(16.0)),
+        border: Border.all(color: Colors.transparent)),
+    child: Column(
+      children: [
+        Row(
+          children: [
+            analyticsAvatar(measurement, 104, 40, 12),
+            const SizedBox(width: 16.0),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    placeDetails.getName(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 20),
+                  ),
+                  Text(
+                    placeDetails.getLocation(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        fontSize: 14, color: Colors.black.withOpacity(0.3)),
+                  ),
+                  const SizedBox(
+                    height: 12,
+                  ),
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
+                    decoration: BoxDecoration(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(40.0)),
+                        color: pm2_5ToColor(measurement.getPm2_5Value())
+                            .withOpacity(0.4),
+                        border: Border.all(color: Colors.transparent)),
+                    child: Text(
+                      pm2_5ToString(measurement.getPm2_5Value()),
+                      maxLines: 1,
+                      textAlign: TextAlign.start,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: pm2_5TextColor(measurement.getPm2_5Value()),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 8,
+                  ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                          constraints: BoxConstraints(
+                              maxWidth:
+                                  MediaQuery.of(context).size.width / 3.2),
+                          child: Text(
+                            dateToString(measurement.time, true),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                                fontSize: 8,
+                                color: Colors.black.withOpacity(0.3)),
+                          )),
+                      const SizedBox(
+                        width: 8.0,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            )
+          ],
+        ),
+        Text(
+          'AirQo App',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.5)),
+        ),
+      ],
+    ),
+  );
+}
+
+Future<void> shareGraph(BuildContext buildContext, GlobalKey globalKey,
+    PlaceDetails placeDetails) async {
+  var boundary =
+      globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+  var image = await boundary.toImage();
+  var byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+  var pngBytes = byteData!.buffer.asUint8List();
+
+  final directory = (await getApplicationDocumentsDirectory()).path;
+  var imgFile = File('$directory/analytics_graph.png');
+  await imgFile.writeAsBytes(pngBytes);
+  shareAnalyticsGraph(imgFile.path, placeDetails);
 }
 
 void shareLocation(PlaceDetails placeDetails) {

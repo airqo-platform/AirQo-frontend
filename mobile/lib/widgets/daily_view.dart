@@ -31,6 +31,7 @@ class _DailyViewState extends State<DailyView> {
   bool showHeartAnimation = false;
   final DBHelper _dbHelper = DBHelper();
   List<Recommendation> _recommendations = [];
+  final GlobalKey _globalKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -82,18 +83,9 @@ class _DailyViewState extends State<DailyView> {
             ),
             Padding(
               padding: const EdgeInsets.only(right: 16, left: 16),
-              child: Visibility(
-                visible: pm2_5,
-                child: InsightsCard(
-                    widget.placeDetails, callBackFn, 'pm2.5', widget.daily),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(right: 16, left: 16),
-              child: Visibility(
-                visible: !pm2_5,
-                child: InsightsCard(
-                    widget.placeDetails, callBackFn, 'pm10', widget.daily),
+              child: RepaintBoundary(
+                key: _globalKey,
+                child: getCard(),
               ),
             ),
             const SizedBox(
@@ -112,7 +104,7 @@ class _DailyViewState extends State<DailyView> {
                   children: [
                     GestureDetector(
                       onTap: () {
-                        shareLocation(widget.placeDetails);
+                        shareGraph(context, _globalKey, widget.placeDetails);
                       },
                       child: iconTextButton(
                           SvgPicture.asset(
@@ -224,6 +216,14 @@ class _DailyViewState extends State<DailyView> {
         _recommendations = [];
       });
     }
+  }
+
+  Widget getCard() {
+    if (pm2_5) {
+      return InsightsCard(
+          widget.placeDetails, callBackFn, 'pm2.5', widget.daily);
+    }
+    return InsightsCard(widget.placeDetails, callBackFn, 'pm10', widget.daily);
   }
 
   Widget getHeartIcon() {

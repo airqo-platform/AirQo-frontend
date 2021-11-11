@@ -84,241 +84,256 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
 
   @override
   Widget build(BuildContext context) {
-    return RepaintBoundary(
-      key: _globalKey,
-      child: Container(
-          padding: const EdgeInsets.only(top: 12, bottom: 12),
-          decoration: BoxDecoration(
+    return Container(
+        padding: const EdgeInsets.only(top: 12, bottom: 12),
+        decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: const BorderRadius.all(Radius.circular(16.0)),
+            border: Border.all(color: Colors.transparent)),
+        child: Stack(
+          children: [
+            RepaintBoundary(
+                key: _globalKey,
+                child: shareCardImage(
+                    widget.measurement, widget.placeDetails, context)),
+            Container(
               color: Colors.white,
-              borderRadius: const BorderRadius.all(Radius.circular(16.0)),
-              border: Border.all(color: Colors.transparent)),
-          child: Column(
-            children: [
-              GestureDetector(
-                onTap: () {
-                  pmInfoDialog(context, widget.measurement.getPm2_5Value());
-                },
-                child: Container(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      SvgPicture.asset(
-                        'assets/icon/info_icon.svg',
-                        semanticsLabel: 'Pm2.5',
-                        height: 20,
-                        width: 20,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              Column(
-                children: [
-                  // Details section
-                  Padding(
-                    padding: const EdgeInsets.only(left: 20, right: 20),
-                    child: Row(
-                      children: [
-                        analyticsAvatar(widget.measurement, 104, 40, 12),
-                        const SizedBox(width: 16.0),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                widget.placeDetails.getName(),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 20),
-                              ),
-                              Text(
-                                widget.placeDetails.getLocation(),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.black.withOpacity(0.3)),
-                              ),
-                              const SizedBox(
-                                height: 12,
-                              ),
-                              Container(
-                                padding: const EdgeInsets.fromLTRB(
-                                    10.0, 2.0, 10.0, 2.0),
-                                decoration: BoxDecoration(
-                                    borderRadius: const BorderRadius.all(
-                                        Radius.circular(40.0)),
-                                    color: pm2_5ToColor(
-                                            widget.measurement.getPm2_5Value())
-                                        .withOpacity(0.4),
-                                    border:
-                                        Border.all(color: Colors.transparent)),
-                                child: Text(
-                                  pm2_5ToString(
-                                      widget.measurement.getPm2_5Value()),
-                                  maxLines: 1,
-                                  textAlign: TextAlign.start,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: pm2_5TextColor(
-                                        widget.measurement.getPm2_5Value()),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(
-                                height: 8,
-                              ),
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                      constraints: BoxConstraints(
-                                          maxWidth: MediaQuery.of(context)
-                                                  .size
-                                                  .width /
-                                              3.2),
-                                      child: Text(
-                                        dateToString(
-                                            widget.measurement.time, true),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                            fontSize: 8,
-                                            color:
-                                                Colors.black.withOpacity(0.3)),
-                                      )),
-                                  const SizedBox(
-                                    width: 8.0,
-                                  ),
-                                  // Visibility(
-                                  //   visible: widget.isRefreshing,
-                                  //   child: SizedBox(
-                                  //     height: 8.0,
-                                  //     width: 8.0,
-                                  //     child: CircularProgressIndicator(
-                                  //       strokeWidth: 1.2,
-                                  //       color: ColorConstants.appColorBlue,
-                                  //     ),
-                                  //   ),
-                                  // ),
-                                  Visibility(
-                                    visible: widget.isRefreshing,
-                                    child: SvgPicture.asset(
-                                      'assets/icon/loader.svg',
-                                      semanticsLabel: 'loader',
-                                      height: 8.0,
-                                      width: 8.0,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-                  // Analytics
-                  moreInsightsWidget(widget.placeDetails, context),
-                  Visibility(
-                    visible: false,
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(context,
-                                MaterialPageRoute(builder: (context) {
-                              return InsightsPage(widget.placeDetails);
-                            }));
-                          },
-                          child: SvgPicture.asset(
-                            'assets/icon/chart.svg',
-                            semanticsLabel: 'chart',
-                            height: 16,
-                            width: 16,
-                          ),
-                        ),
-                        const SizedBox(width: 8.0),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(context,
-                                MaterialPageRoute(builder: (context) {
-                              return InsightsPage(widget.placeDetails);
-                            }));
-                          },
-                          child: Text(
-                            'View More Insights',
-                            style: TextStyle(
-                                fontSize: 15,
-                                color: ColorConstants.appColorBlue),
-                          ),
-                        ),
-                        const Spacer(),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(context,
-                                MaterialPageRoute(builder: (context) {
-                              return InsightsPage(widget.placeDetails);
-                            }));
-                          },
-                          child: SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: SvgPicture.asset(
-                              'assets/icon/more_arrow.svg',
-                              semanticsLabel: 'more',
-                              height: 6.99,
-                              width: 4,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                ],
-              ),
-              const Divider(color: Color(0xffC4C4C4)),
-              // Actions
-              const SizedBox(
-                height: 10,
-              ),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              child: Column(
                 children: [
                   GestureDetector(
                     onTap: () {
-                      shareCard(context, _globalKey, widget.measurement);
+                      pmInfoDialog(context, widget.measurement.getPm2_5Value());
                     },
-                    child: iconTextButton(
-                        SvgPicture.asset(
-                          'assets/icon/share_icon.svg',
-                          semanticsLabel: 'Share',
-                          color: ColorConstants.greyColor,
-                        ),
-                        'Share'),
+                    child: Container(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          SvgPicture.asset(
+                            'assets/icon/info_icon.svg',
+                            semanticsLabel: 'Pm2.5',
+                            height: 20,
+                            width: 20,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                  GestureDetector(
-                    onTap: () async {
-                      updateFavPlace();
-                    },
-                    child: iconTextButton(getHeartIcon(), 'Favorite'),
+
+                  Column(
+                    children: [
+                      // Details section
+                      Padding(
+                        padding: const EdgeInsets.only(left: 20, right: 20),
+                        child: Row(
+                          children: [
+                            analyticsAvatar(widget.measurement, 104, 40, 12),
+                            const SizedBox(width: 16.0),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    widget.placeDetails.getName(),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 20),
+                                  ),
+                                  Text(
+                                    widget.placeDetails.getLocation(),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.black.withOpacity(0.3)),
+                                  ),
+                                  const SizedBox(
+                                    height: 12,
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.fromLTRB(
+                                        10.0, 2.0, 10.0, 2.0),
+                                    decoration: BoxDecoration(
+                                        borderRadius: const BorderRadius.all(
+                                            Radius.circular(40.0)),
+                                        color: pm2_5ToColor(widget.measurement
+                                                .getPm2_5Value())
+                                            .withOpacity(0.4),
+                                        border: Border.all(
+                                            color: Colors.transparent)),
+                                    child: Text(
+                                      pm2_5ToString(
+                                          widget.measurement.getPm2_5Value()),
+                                      maxLines: 1,
+                                      textAlign: TextAlign.start,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: pm2_5TextColor(
+                                            widget.measurement.getPm2_5Value()),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    height: 8,
+                                  ),
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                          constraints: BoxConstraints(
+                                              maxWidth: MediaQuery.of(context)
+                                                      .size
+                                                      .width /
+                                                  3.2),
+                                          child: Text(
+                                            dateToString(
+                                                widget.measurement.time, true),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                                fontSize: 8,
+                                                color: Colors.black
+                                                    .withOpacity(0.3)),
+                                          )),
+                                      const SizedBox(
+                                        width: 8.0,
+                                      ),
+                                      // Visibility(
+                                      //   visible: widget.isRefreshing,
+                                      //   child: SizedBox(
+                                      //     height: 8.0,
+                                      //     width: 8.0,
+                                      //     child: CircularProgressIndicator(
+                                      //       strokeWidth: 1.2,
+                                      //       color: ColorConstants.appColorBlue,
+                                      //     ),
+                                      //   ),
+                                      // ),
+                                      Visibility(
+                                        visible: widget.isRefreshing,
+                                        child: SvgPicture.asset(
+                                          'assets/icon/loader.svg',
+                                          semanticsLabel: 'loader',
+                                          height: 8.0,
+                                          width: 8.0,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+                      // Analytics
+                      moreInsightsWidget(widget.placeDetails, context),
+                      Visibility(
+                        visible: false,
+                        child: Row(
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(context,
+                                    MaterialPageRoute(builder: (context) {
+                                  return InsightsPage(widget.placeDetails);
+                                }));
+                              },
+                              child: SvgPicture.asset(
+                                'assets/icon/chart.svg',
+                                semanticsLabel: 'chart',
+                                height: 16,
+                                width: 16,
+                              ),
+                            ),
+                            const SizedBox(width: 8.0),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(context,
+                                    MaterialPageRoute(builder: (context) {
+                                  return InsightsPage(widget.placeDetails);
+                                }));
+                              },
+                              child: Text(
+                                'View More Insights',
+                                style: TextStyle(
+                                    fontSize: 15,
+                                    color: ColorConstants.appColorBlue),
+                              ),
+                            ),
+                            const Spacer(),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(context,
+                                    MaterialPageRoute(builder: (context) {
+                                  return InsightsPage(widget.placeDetails);
+                                }));
+                              },
+                              child: SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: SvgPicture.asset(
+                                  'assets/icon/more_arrow.svg',
+                                  semanticsLabel: 'more',
+                                  height: 6.99,
+                                  width: 4,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                  const Divider(color: Color(0xffC4C4C4)),
+                  // Actions
+                  const SizedBox(
+                    height: 10,
+                  ),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          var shareMeasurement = widget.measurement;
+                          shareMeasurement.site.name =
+                              widget.placeDetails.getName();
+                          shareMeasurement.site.description =
+                              widget.placeDetails.getName();
+                          shareCard(context, _globalKey, shareMeasurement);
+                        },
+                        child: iconTextButton(
+                            SvgPicture.asset(
+                              'assets/icon/share_icon.svg',
+                              semanticsLabel: 'Share',
+                              color: ColorConstants.greyColor,
+                            ),
+                            'Share'),
+                      ),
+                      GestureDetector(
+                        onTap: () async {
+                          updateFavPlace();
+                        },
+                        child: iconTextButton(getHeartIcon(), 'Favorite'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 10,
                   ),
                 ],
               ),
-              const SizedBox(
-                height: 10,
-              ),
-            ],
-          )),
-    );
+            ),
+          ],
+        ));
   }
 
   Widget getHeartIcon() {
@@ -378,159 +393,179 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
             color: Colors.white,
             borderRadius: const BorderRadius.all(Radius.circular(16.0)),
             border: Border.all(color: const Color(0xffC4C4C4))),
-        child: Column(
+        child: Stack(
           children: [
-            GestureDetector(
-              onTap: () {
-                widget.closeCallBack();
-              },
-              child: Container(
-                padding: const EdgeInsets.only(right: 12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    SvgPicture.asset(
-                      'assets/icon/close.svg',
-                      height: 20,
-                      width: 20,
+            RepaintBoundary(
+                key: _globalKey,
+                child: shareCardImage(
+                    widget.measurement, widget.placeDetails, context)),
+            Container(
+              color: Colors.white,
+              child: Column(
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      widget.closeCallBack();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          SvgPicture.asset(
+                            'assets/icon/close.svg',
+                            height: 20,
+                            width: 20,
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
-                ),
-              ),
-            ),
-            Column(
-              children: [
-                // Details section
-                Padding(
-                  padding: const EdgeInsets.only(left: 20, right: 20),
-                  child: Row(
+                  ),
+                  Column(
                     children: [
-                      analyticsAvatar(widget.measurement, 104, 40, 12),
-                      const SizedBox(width: 16.0),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                      // Details section
+                      Padding(
+                        padding: const EdgeInsets.only(left: 20, right: 20),
+                        child: Row(
                           children: [
-                            Text(
-                              widget.placeDetails.getName(),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 20),
-                            ),
-                            Text(
-                              widget.placeDetails.getLocation(),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.black.withOpacity(0.3)),
-                            ),
-                            const SizedBox(
-                              height: 12,
-                            ),
-                            Container(
-                              padding: const EdgeInsets.fromLTRB(
-                                  10.0, 2.0, 10.0, 2.0),
-                              decoration: BoxDecoration(
-                                  borderRadius: const BorderRadius.all(
-                                      Radius.circular(40.0)),
-                                  color: pm2_5ToColor(
-                                          widget.measurement.getPm2_5Value())
-                                      .withOpacity(0.4),
-                                  border:
-                                      Border.all(color: Colors.transparent)),
-                              child: Text(
-                                pm2_5ToString(
-                                    widget.measurement.getPm2_5Value()),
-                                maxLines: 1,
-                                textAlign: TextAlign.start,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: pm2_5TextColor(
-                                      widget.measurement.getPm2_5Value()),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 8,
-                            ),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                    constraints: BoxConstraints(
-                                        maxWidth:
-                                            MediaQuery.of(context).size.width /
-                                                3.2),
+                            analyticsAvatar(widget.measurement, 104, 40, 12),
+                            const SizedBox(width: 16.0),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    widget.placeDetails.getName(),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 20),
+                                  ),
+                                  Text(
+                                    widget.placeDetails.getLocation(),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.black.withOpacity(0.3)),
+                                  ),
+                                  const SizedBox(
+                                    height: 12,
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.fromLTRB(
+                                        10.0, 2.0, 10.0, 2.0),
+                                    decoration: BoxDecoration(
+                                        borderRadius: const BorderRadius.all(
+                                            Radius.circular(40.0)),
+                                        color: pm2_5ToColor(widget.measurement
+                                                .getPm2_5Value())
+                                            .withOpacity(0.4),
+                                        border: Border.all(
+                                            color: Colors.transparent)),
                                     child: Text(
-                                      dateToString(
-                                          widget.measurement.time, true),
+                                      pm2_5ToString(
+                                          widget.measurement.getPm2_5Value()),
                                       maxLines: 1,
+                                      textAlign: TextAlign.start,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
-                                          fontSize: 8,
-                                          color: Colors.black.withOpacity(0.3)),
-                                    )),
-                                const SizedBox(
-                                  width: 8.0,
-                                ),
-                                SvgPicture.asset(
-                                  'assets/icon/loader.svg',
-                                  semanticsLabel: 'loader',
-                                  height: 8,
-                                  width: 8,
-                                ),
-                              ],
-                            ),
+                                        fontSize: 14,
+                                        color: pm2_5TextColor(
+                                            widget.measurement.getPm2_5Value()),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    height: 8,
+                                  ),
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                          constraints: BoxConstraints(
+                                              maxWidth: MediaQuery.of(context)
+                                                      .size
+                                                      .width /
+                                                  3.2),
+                                          child: Text(
+                                            dateToString(
+                                                widget.measurement.time, true),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                                fontSize: 8,
+                                                color: Colors.black
+                                                    .withOpacity(0.3)),
+                                          )),
+                                      const SizedBox(
+                                        width: 8.0,
+                                      ),
+                                      SvgPicture.asset(
+                                        'assets/icon/loader.svg',
+                                        semanticsLabel: 'loader',
+                                        height: 8,
+                                        width: 8,
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            )
                           ],
                         ),
-                      )
+                      ),
+
+                      const SizedBox(height: 20),
+                      // Analytics
+                      moreInsightsWidget(
+                          PlaceDetails.measurementToPLace(widget.measurement),
+                          context),
                     ],
                   ),
-                ),
 
-                const SizedBox(height: 20),
-                // Analytics
-                moreInsightsWidget(
-                    PlaceDetails.measurementToPLace(widget.measurement),
-                    context),
-              ],
-            ),
-
-            const Divider(color: Color(0xffC4C4C4)),
-            // Actions
-            const SizedBox(
-              height: 10,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    shareMeasurementText(widget.measurement);
-                  },
-                  child: iconTextButton(
-                      SvgPicture.asset(
-                        'assets/icon/share_icon.svg',
-                        color: ColorConstants.greyColor,
-                        semanticsLabel: 'Share',
+                  const Divider(color: Color(0xffC4C4C4)),
+                  // Actions
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          var shareMeasurement = widget.measurement;
+                          shareMeasurement.site.name =
+                              widget.placeDetails.getName();
+                          shareMeasurement.site.description =
+                              widget.placeDetails.getName();
+                          shareCard(context, _globalKey, shareMeasurement);
+                        },
+                        child: iconTextButton(
+                            SvgPicture.asset(
+                              'assets/icon/share_icon.svg',
+                              color: ColorConstants.greyColor,
+                              semanticsLabel: 'Share',
+                            ),
+                            'Share'),
                       ),
-                      'Share'),
-                ),
-                GestureDetector(
-                  onTap: () async {
-                    updateFavPlace();
-                  },
-                  child: iconTextButton(getHeartIcon(), 'Favorite'),
-                ),
-              ],
-            ),
-            const SizedBox(
-              height: 10,
-            ),
+                      GestureDetector(
+                        onTap: () async {
+                          updateFavPlace();
+                        },
+                        child: iconTextButton(getHeartIcon(), 'Favorite'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                ],
+              ),
+            )
           ],
         ));
   }
