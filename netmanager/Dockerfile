@@ -1,5 +1,4 @@
-### STAGE 2: Production Environment ###
-FROM nginx:1.13.12-alpine
+FROM nginx:1.13.12-alpine as base
 
 # nginx configuration
 COPY ./nginx.conf /etc/nginx/nginx.conf
@@ -10,9 +9,9 @@ COPY ./build /usr/share/nginx/html
 # expose the product on port 80
 EXPOSE 80
 
-# run
+FROM base as staging
 CMD ["nginx", "-g", "daemon off;"]
 
+FROM base as production
 
-#RUN ["npm", "install", "-g", "serve"]
-#CMD ["serve", "-s", "build”]
+CMD ["nginx", "-g", "daemon off;"]
