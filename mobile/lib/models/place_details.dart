@@ -28,10 +28,16 @@ class PlaceDetails {
       _$PlaceDetailsFromJson(json);
 
   String getLocation() {
+    if (location.isNull()) {
+      return '';
+    }
     return location.toTitleCase();
   }
 
   String getName() {
+    if (name.isNull()) {
+      return getLocation();
+    }
     return name.toTitleCase();
   }
 

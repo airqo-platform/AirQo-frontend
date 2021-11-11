@@ -1,9 +1,10 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/air_quality_tip.dart';
+import 'package:app/models/kya.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/utils/share.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/custom_widgets.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -12,29 +13,30 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'home_page.dart';
 
 class AirPollutionWaysPage extends StatefulWidget {
-  const AirPollutionWaysPage({Key? key}) : super(key: key);
+  final Kya kya;
+  const AirPollutionWaysPage(this.kya, {Key? key}) : super(key: key);
 
   @override
   _AirPollutionWaysPageState createState() => _AirPollutionWaysPageState();
 }
 
 class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
-  List<AirQualityTip> slides = [];
+  bool _showSlides = false;
+  int _currentPage = 0;
+  bool _showLastPage = false;
+  double _tipsProgress = 0.1;
 
-  bool showSlides = false;
-  final PageController controller = PageController();
-  int currentPage = 0;
-  bool showLastPage = false;
-  double tipsProgress = 0.1;
+  final PageController _controller = PageController();
   final CloudAnalytics _cloudAnalytics = CloudAnalytics();
+  final GlobalKey _globalKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
-    if (showSlides) {
+    if (_showSlides) {
       return slidesView();
     }
 
-    if (showLastPage) {
+    if (_showLastPage) {
       completeProgress();
       Future.delayed(const Duration(seconds: 3), () async {
         await Navigator.pushAndRemoveUntil(context,
@@ -113,67 +115,9 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
     );
   }
 
-  void getTips() {
-    setState(() {
-      slides
-        ..add(AirQualityTip(
-            'Avoid burning garbage',
-            'Burning your household garbage is dangerous'
-                ' to your health and our environment',
-            'assets/images/trash_burning.png'))
-        ..add(AirQualityTip(
-            'Walk or cycle',
-            'Walk or cycle to get the steps in '
-                'and improve your physical well-being',
-            'assets/images/trash_burning.png'))
-        ..add(AirQualityTip(
-            'Use public transport',
-            'Burning your household garbage is'
-                ' dangerous to your health and our environment',
-            'assets/images/trash_burning.png'))
-        ..add(AirQualityTip(
-            'Service your car/boda boda regularly',
-            'Regular inspections can maximise fuel '
-                'efficiency, which reduces vehicle emissions.',
-            'assets/images/trash_burning.png'))
-        ..add(AirQualityTip(
-            'Cut down on single-use plastic products',
-            'Avoid using plastic bags, they take longer to '
-                'decompose. Use paper bags or baskets for your shopping',
-            'assets/images/trash_burning.png'))
-        ..add(AirQualityTip(
-            'Avoid idling your car engine in traffic',
-            'Vehicles produce particularly unhealthy exhaust.'
-                ' Switch off your engine while in traffic',
-            'assets/images/trash_burning.png'))
-        ..add(AirQualityTip(
-            'Turn off electronics and lights when not in use',
-            'Don\'t leave your electronic devices, TV sets and '
-                'computers on standby mode. Switch them off completely',
-            'assets/images/trash_burning.png'))
-        ..add(AirQualityTip(
-            'Use LED bulbs',
-            'Use energy saving fluorescent lights to help '
-                'the environment. They use less power and last longer',
-            'assets/images/trash_burning.png'))
-        ..add(AirQualityTip(
-            'Become a champion for clean air',
-            'Join our air quality champion and '
-                'advocate for clean air in your community',
-            'assets/images/trash_burning.png'))
-        ..add(AirQualityTip(
-            'Become a champion for clean air',
-            'Join our air quality champion and advocate '
-                'for clean air in your community',
-            'assets/images/trash_burning.png'));
-    });
-  }
-
   @override
   void initState() {
     _cloudAnalytics.logScreenTransition('Air Pollution ways');
-
-    getTips();
     super.initState();
   }
 
@@ -191,10 +135,20 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
           alignment: Alignment.topCenter,
           widthFactor: 1.0,
           heightFactor: 0.4,
-          child: Image.asset(
-            'assets/images/tips-image.png',
-            fit: BoxFit.cover,
+          child: Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                fit: BoxFit.cover,
+                image: CachedNetworkImageProvider(
+                  widget.kya.imageUrl,
+                ),
+              ),
+            ),
           ),
+          // child: Image.asset(
+          //   'assets/images/tips-image.png',
+          //   fit: BoxFit.cover,
+          // ),
         ),
         Positioned.fill(
           child: Align(
@@ -225,10 +179,10 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
                                 height: 18,
                               ),
                               Text(
-                                'Actions you \n '
-                                'can take to reduce \n'
-                                'air pollution',
+                                widget.kya.title,
                                 textAlign: TextAlign.center,
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: ColorConstants.appColorBlack,
@@ -246,8 +200,8 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
                     GestureDetector(
                       onTap: () {
                         setState(() {
-                          showSlides = true;
-                          showLastPage = false;
+                          _showSlides = true;
+                          _showLastPage = false;
                         });
                       },
                       child: nextButton('Begin', ColorConstants.appColorBlue),
@@ -263,8 +217,9 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
     );
   }
 
-  Widget slideCard(AirQualityTip tip, int index) {
+  Widget slideCard(KyaItem kyaItem, int index) {
     return Card(
+      shadowColor: Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -285,8 +240,8 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
                 borderRadius: BorderRadius.circular(8),
                 image: DecorationImage(
                   fit: BoxFit.cover,
-                  image: AssetImage(
-                    tip.imageUrl,
+                  image: CachedNetworkImageProvider(
+                    kyaItem.imageUrl,
                   ),
                 ),
               ),
@@ -298,7 +253,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
           Padding(
             padding: const EdgeInsets.only(left: 36, right: 36),
             child: Text(
-              tip.title,
+              kyaItem.title,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
@@ -315,7 +270,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
             child: Padding(
               padding: const EdgeInsets.only(left: 16, right: 16),
               child: Text(
-                tip.message,
+                kyaItem.body,
                 maxLines: 4,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
@@ -372,7 +327,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
                 Expanded(
                     child: LinearProgressIndicator(
                   color: ColorConstants.appColorBlue,
-                  value: tipsProgress,
+                  value: _tipsProgress,
                   backgroundColor:
                       ColorConstants.appColorDisabled.withOpacity(0.2),
                 )),
@@ -381,11 +336,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
                 ),
                 GestureDetector(
                   onTap: () {
-                    try {
-                      shareTip(slides[currentPage]);
-                    } catch (e) {
-                      shareTip(slides[0]);
-                    }
+                    shareKya(context, _globalKey);
                   },
                   child: SvgPicture.asset(
                     'assets/icon/share_icon.svg',
@@ -396,22 +347,25 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
                 ),
               ],
             ),
-            SizedBox(
-              // color: Colors.transparent,
-              height: 410,
-              child: PageView.builder(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                controller: controller,
-                onPageChanged: (index) {
-                  setState(() {
-                    currentPage = index;
-                  });
-                },
-                itemBuilder: (BuildContext context, int index) {
-                  return slideCard(slides[index], index);
-                },
-                itemCount: slides.length,
+            RepaintBoundary(
+              key: _globalKey,
+              child: SizedBox(
+                // color: Colors.transparent,
+                height: 410,
+                child: PageView.builder(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  controller: _controller,
+                  onPageChanged: (index) {
+                    setState(() {
+                      _currentPage = index;
+                    });
+                  },
+                  itemBuilder: (BuildContext context, int index) {
+                    return slideCard(widget.kya.kyaItems[index], index);
+                  },
+                  itemCount: widget.kya.kyaItems.length,
+                ),
               ),
             ),
             Row(
@@ -419,42 +373,43 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
               children: [
                 GestureDetector(
                     onTap: () async {
-                      if (currentPage > 0) {
-                        await controller.animateToPage(currentPage - 1,
+                      if (_currentPage > 0) {
+                        await _controller.animateToPage(_currentPage - 1,
                             duration: const Duration(milliseconds: 200),
                             curve: Curves.bounceOut);
-                        if (tipsProgress > 0.1) {
+                        if (_tipsProgress > 0.1) {
                           setState(() {
-                            tipsProgress = tipsProgress - 0.1;
+                            _tipsProgress = _tipsProgress - 0.1;
                           });
                         }
                       }
 
-                      if (currentPage == 0) {
+                      if (_currentPage == 0) {
                         setState(() {
-                          tipsProgress = 0.1;
+                          _tipsProgress = 0.1;
                         });
                       }
                     },
                     child: circularButton('assets/icon/previous_arrow.svg')),
                 GestureDetector(
                     onTap: () async {
-                      if (currentPage == slides.length - 1) {
+                      if (_currentPage == widget.kya.kyaItems.length - 1) {
                         setState(() {
-                          showLastPage = true;
-                          showSlides = false;
+                          _showLastPage = true;
+                          _showSlides = false;
                         });
-                      } else if (currentPage <= slides.length - 1) {
-                        await controller.animateToPage(currentPage + 1,
+                      } else if (_currentPage <=
+                          widget.kya.kyaItems.length - 1) {
+                        await _controller.animateToPage(_currentPage + 1,
                             duration: const Duration(milliseconds: 200),
                             curve: Curves.bounceIn);
-                        if (controller.page != null) {
+                        if (_controller.page != null) {
                           await updateProgress();
                         }
                       } else {
                         setState(() {
-                          showLastPage = true;
-                          showSlides = false;
+                          _showLastPage = true;
+                          _showSlides = false;
                         });
                       }
                     },
@@ -480,11 +435,11 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
       var progress = preferences.getDouble(PrefConstant.tipsProgress) ?? 0.0;
 
       setState(() {
-        tipsProgress = tipsProgress + 0.1;
+        _tipsProgress = _tipsProgress + 0.1;
       });
 
-      if (tipsProgress > progress) {
-        await preferences.setDouble(PrefConstant.tipsProgress, tipsProgress);
+      if (_tipsProgress > progress) {
+        await preferences.setDouble(PrefConstant.tipsProgress, _tipsProgress);
       }
     } catch (e) {
       debugPrint(e.toString());

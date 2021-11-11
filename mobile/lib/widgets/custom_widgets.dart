@@ -2,7 +2,7 @@ import 'package:app/constants/app_constants.dart';
 import 'package:app/models/insights_chart_data.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/suggestion.dart';
-import 'package:app/screens/air_pollution_ways_page.dart';
+import 'package:app/screens/air_pollution_ways_page_v1.dart';
 import 'package:app/utils/pm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -498,7 +498,7 @@ Widget tipWidget(context, header) {
                 onTap: () async {
                   await Navigator.push(context,
                       MaterialPageRoute(builder: (context) {
-                    return const AirPollutionWaysPage();
+                    return const AirPollutionWaysPageV1();
                   }));
                 },
                 child: Text(header,
@@ -516,7 +516,7 @@ Widget tipWidget(context, header) {
                 onTap: () async {
                   await Navigator.push(context,
                       MaterialPageRoute(builder: (context) {
-                    return const AirPollutionWaysPage();
+                    return const AirPollutionWaysPageV1();
                   }));
                 },
                 child: Row(
@@ -551,7 +551,7 @@ Widget tipWidget(context, header) {
         GestureDetector(
           onTap: () async {
             await Navigator.push(context, MaterialPageRoute(builder: (context) {
-              return const AirPollutionWaysPage();
+              return const AirPollutionWaysPageV1();
             }));
           },
           child: ClipRRect(

@@ -1,5 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/on_boarding/profile_setup_screen.dart';
+import 'package:app/screens/home_page.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
@@ -42,10 +43,20 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
 
   void autoVerifyPhoneFn(PhoneAuthCredential credential) {
     _customAuth.signUpWithPhoneNumber(credential).then((value) => {
-          Navigator.pushAndRemoveUntil(context,
-              MaterialPageRoute(builder: (context) {
-            return ProfileSetupScreen(widget.enableBackButton);
-          }), (r) => false)
+          if (widget.action == 'signup')
+            {
+              Navigator.pushAndRemoveUntil(context,
+                  MaterialPageRoute(builder: (context) {
+                return ProfileSetupScreen(widget.enableBackButton);
+              }), (r) => false)
+            }
+          else
+            {
+              Navigator.pushAndRemoveUntil(context,
+                  MaterialPageRoute(builder: (context) {
+                return const HomePage();
+              }), (r) => false)
+            }
         });
   }
 
@@ -500,10 +511,20 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
         smsCode: _phoneVerificationCode.join(''));
     try {
       await _customAuth.signUpWithPhoneNumber(credential).then((value) => {
-            Navigator.pushAndRemoveUntil(context,
-                MaterialPageRoute(builder: (context) {
-              return ProfileSetupScreen(widget.enableBackButton);
-            }), (r) => false)
+            if (widget.action == 'signup')
+              {
+                Navigator.pushAndRemoveUntil(context,
+                    MaterialPageRoute(builder: (context) {
+                  return ProfileSetupScreen(widget.enableBackButton);
+                }), (r) => false)
+              }
+            else
+              {
+                Navigator.pushAndRemoveUntil(context,
+                    MaterialPageRoute(builder: (context) {
+                  return const HomePage();
+                }), (r) => false)
+              }
           });
     } on FirebaseAuthException catch (e) {
       if (e.code == 'invalid-verification-code') {

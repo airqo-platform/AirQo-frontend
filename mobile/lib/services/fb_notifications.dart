@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/alert.dart';
+import 'package:app/models/kya.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/site.dart';
@@ -98,6 +99,79 @@ class CloudStore {
     }
   }
 
+  Future<Kya?> getIncompleteKya(String id) async {
+    if (id == '') {
+      return null;
+    }
+
+    var hasConnection = await isConnected();
+    if (hasConnection) {
+      var userKya = await getKya(id);
+
+      var incomplete =
+          userKya.where((element) => element.progress < 100.0).toList();
+
+      if (incomplete.isEmpty) {
+        var allKyaJson = await _firebaseFirestore
+            .collection(CloudStorage.kyaCollection)
+            .get();
+
+        var allKya = <Kya>[];
+
+        var kyaDocs = allKyaJson.docs;
+        for (var doc in kyaDocs) {
+          var kya = await compute(Kya.parseKya, doc.data());
+          if (kya != null) {
+            allKya.add(kya);
+          }
+        }
+
+        for (var x in allKya) {
+          var y = userKya.where((element) => element.id == x.id);
+          if (y.isEmpty) {
+            userKya.add(x);
+            await _firebaseFirestore
+                .collection(CloudStorage.usersCollection)
+                .doc(id)
+                .update({'kya': Kya.listToJson(userKya)});
+            break;
+          }
+        }
+
+        return null;
+      }
+
+      return incomplete.first;
+    } else {
+      // TODO Implement no internet access
+      return null;
+    }
+  }
+
+  Future<List<Kya>> getKya(String id) async {
+    if (id == '') {
+      return [];
+    }
+
+    var hasConnection = await isConnected();
+    if (hasConnection) {
+      var userJson = await _firebaseFirestore
+          .collection(CloudStorage.usersCollection)
+          .doc(id)
+          .get();
+      var userData = userJson.data();
+
+      if (userData == null) {
+        return [];
+      }
+      var userDetails = UserDetails.fromJson(userData);
+
+      return userDetails.kya;
+    }
+
+    return [];
+  }
+
   Future<List<UserNotification>> getNotifications(String id) async {
     if (id == '') {
       return [];
@@ -166,7 +240,7 @@ class CloudStore {
     if (hasConnection) {
       var updated = false;
       await _firebaseFirestore
-          .collection('${CloudStorage.notificationCollection}/$userId/$userId')
+          .collection('${CloudStorage.notificationCollection}/$userId')
           .doc(notificationId)
           .update({'isNew': false}).then((value) => {updated = true});
 
@@ -174,6 +248,44 @@ class CloudStore {
     } else {
       return false;
     }
+  }
+
+  Future<bool> migrateKya(Kya kya, String id) async {
+    if (id == '') {
+      return false;
+    }
+
+    var hasConnection = await isConnected();
+    if (hasConnection) {
+      try {
+        var userKya = await getKya(id);
+
+        var incomplete =
+            userKya.where((element) => element.id == kya.id).toList();
+
+        if (incomplete.isEmpty) {
+          return false;
+        }
+
+        userKya.removeWhere((element) => element.id == kya.id);
+        kya.progress = 100.0;
+        userKya.add(kya);
+
+        await _firebaseFirestore
+            .collection(CloudStorage.usersCollection)
+            .doc(id)
+            .update({'kya': Kya.listToJson(userKya)});
+
+        return true;
+      } catch (exception, stackTrace) {
+        await Sentry.captureException(
+          exception,
+          stackTrace: stackTrace,
+        );
+      }
+    }
+
+    return false;
   }
 
   void monitorNotifications(context, String id) {

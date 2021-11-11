@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'kya.g.dart';
@@ -17,6 +18,24 @@ class Kya {
   factory Kya.fromJson(Map<String, dynamic> json) => _$KyaFromJson(json);
 
   Map<String, dynamic> toJson() => _$KyaToJson(this);
+
+  static List<Map<String, dynamic>> listToJson(List<Kya> kyas) {
+    var kyasJson = <Map<String, dynamic>>[];
+    for (var kya in kyas) {
+      var placeJson = kya.toJson();
+      kyasJson.add(placeJson);
+    }
+    return kyasJson;
+  }
+
+  static Kya? parseKya(dynamic jsonBody) {
+    try {
+      return Kya.fromJson(jsonBody);
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+    return null;
+  }
 }
 
 @JsonSerializable()

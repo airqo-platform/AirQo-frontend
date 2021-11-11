@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:app/constants/app_constants.dart';
+import 'package:app/models/kya.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/screens/search_page.dart';
@@ -12,6 +13,7 @@ import 'package:app/utils/date.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/widgets/analytics_card.dart';
 import 'package:app/widgets/custom_shimmer.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/svg.dart';
@@ -19,6 +21,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'air_pollution_ways_page.dart';
+import 'air_pollution_ways_page_v1.dart';
 import 'favourite_places.dart';
 import 'for_you_page.dart';
 
@@ -30,115 +33,27 @@ class DashboardView extends StatefulWidget {
 }
 
 class _DashboardViewState extends State<DashboardView> {
-  List<Widget> dashBoardPlaces = [
+  String _greetings = '';
+  double tipsProgress = 0.0;
+  bool _showName = true;
+  List<Widget> _favLocations = [];
+  List<Widget> _completeKya = [];
+  AirqoApiClient? _airqoApiClient;
+  Measurement? currentLocation;
+  Kya? _kya;
+  final bool _isRefreshing = false;
+  final CustomAuth _customAuth = CustomAuth();
+  final CloudStore _cloudStore = CloudStore();
+  final LocationService _locationService = LocationService();
+  final CloudAnalytics _cloudAnalytics = CloudAnalytics();
+  final DBHelper _dbHelper = DBHelper();
+  final ScrollController _scrollController = ScrollController();
+  final List<Widget> _dashBoardPlaces = [
     loadingAnimation(255.0, 16.0),
     loadingAnimation(255.0, 16.0),
     loadingAnimation(255.0, 16.0),
     loadingAnimation(255.0, 16.0)
   ];
-  var greetings = '';
-  double tipsProgress = 0.0;
-  bool isRefreshing = false;
-  List<Widget> dashboardCards = [];
-  List<Widget> favLocations = [];
-  final CloudAnalytics _cloudAnalytics = CloudAnalytics();
-  final DBHelper _dbHelper = DBHelper();
-  AirqoApiClient? _airqoApiClient;
-  final CustomAuth _customAuth = CustomAuth();
-  Measurement? currentLocation;
-  final LocationService _locationService = LocationService();
-  bool _showName = true;
-  final ScrollController _scrollController = ScrollController();
-
-  Widget actionsSection() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
-      decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(16.0))),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Column(
-              children: [
-                GestureDetector(
-                  onTap: () async {
-                    await Navigator.push(context,
-                        MaterialPageRoute(builder: (context) {
-                      return const AirPollutionWaysPage();
-                    }));
-                  },
-                  child: const Text(
-                      'Actions You Can Take to Reduce '
-                      'Air Pollution',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      )),
-                ),
-                const SizedBox(
-                  height: 28,
-                ),
-                GestureDetector(
-                  onTap: () async {
-                    await Navigator.push(context,
-                        MaterialPageRoute(builder: (context) {
-                      return const AirPollutionWaysPage();
-                    }));
-                  },
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Text('Start reading',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: ColorConstants.appColorBlue,
-                          )),
-                      const SizedBox(
-                        width: 6,
-                      ),
-                      Icon(
-                        Icons.arrow_forward_ios_sharp,
-                        size: 10,
-                        color: ColorConstants.appColorBlue,
-                      )
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(
-            width: 16,
-          ),
-          GestureDetector(
-            onTap: () async {
-              await Navigator.push(context,
-                  MaterialPageRoute(builder: (context) {
-                return const AirPollutionWaysPage();
-              }));
-            },
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8.0),
-              child: Image.asset(
-                'assets/images/know-your-air.png',
-                width: 104,
-                height: 104,
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget appNavBar() {
     return Container(
@@ -197,7 +112,7 @@ class _DashboardViewState extends State<DashboardView> {
               Visibility(
                 visible: _showName,
                 child: Text(
-                  greetings,
+                  _greetings,
                   style: const TextStyle(
                       fontSize: 24, fontWeight: FontWeight.bold),
                 ),
@@ -229,6 +144,21 @@ class _DashboardViewState extends State<DashboardView> {
     super.dispose();
   }
 
+  Widget emptyAvatar(double rightPadding) {
+    return Positioned(
+        right: rightPadding,
+        child: Container(
+          height: 32.0,
+          width: 32.0,
+          padding: const EdgeInsets.all(2.0),
+          decoration: BoxDecoration(
+            border: Border.all(color: ColorConstants.appBodyColor, width: 2),
+            color: ColorConstants.greyColor,
+            shape: BoxShape.circle,
+          ),
+        ));
+  }
+
   Widget favPlaceAvatar(double rightPadding, Measurement measurement) {
     return Positioned(
         right: rightPadding,
@@ -237,7 +167,7 @@ class _DashboardViewState extends State<DashboardView> {
           width: 32.0,
           padding: const EdgeInsets.all(2.0),
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.white, width: 2),
+            border: Border.all(color: ColorConstants.appBodyColor, width: 2),
             color: pm2_5ToColor(measurement.getPm2_5Value()),
             shape: BoxShape.circle,
           ),
@@ -252,63 +182,6 @@ class _DashboardViewState extends State<DashboardView> {
         ));
   }
 
-  Widget favPlaceAvatarEmpty(double rightPadding) {
-    return Positioned(
-        right: rightPadding,
-        child: Container(
-          height: 32.0,
-          width: 32.0,
-          padding: const EdgeInsets.all(2.0),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.white, width: 2),
-            color: ColorConstants.greyColor,
-            shape: BoxShape.circle,
-          ),
-        ));
-  }
-
-  void getDashboardLocations() async {
-    var measurements = await _dbHelper.getLatestMeasurements();
-
-    if (measurements.isNotEmpty) {
-      setState(() {
-        dashBoardPlaces.clear();
-      });
-
-      var regions = [
-        'cent',
-        'west',
-        'east',
-      ];
-
-      for (var i = 0; i < regions.length; i++) {
-        var regionMeasurements = measurements
-            .where((element) =>
-                element.site.region.toLowerCase().contains(regions[i]))
-            .toList();
-
-        if (regionMeasurements.isNotEmpty) {
-          var random = Random().nextInt(regionMeasurements.length);
-
-          setState(() {
-            dashBoardPlaces.add(AnalyticsCard(
-                PlaceDetails.measurementToPLace(regionMeasurements[random]),
-                regionMeasurements[random],
-                isRefreshing));
-          });
-        } else {
-          var random = Random().nextInt(measurements.length);
-          setState(() {
-            dashBoardPlaces.add(AnalyticsCard(
-                PlaceDetails.measurementToPLace(measurements[random]),
-                measurements[random],
-                isRefreshing));
-          });
-        }
-      }
-    }
-  }
-
   void getFavourites(List<PlaceDetails> favouritePlaces) async {
     var widgets = <Widget>[];
 
@@ -317,9 +190,9 @@ class _DashboardViewState extends State<DashboardView> {
         var measurement =
             await _dbHelper.getMeasurement(favouritePlaces[0].siteId);
         if (measurement != null) {
-          widgets.add(favPlaceAvatar(0, measurement));
+          widgets.add(favPlaceAvatar(7, measurement));
         } else {
-          widgets.add(favPlaceAvatarEmpty(0));
+          widgets.add(emptyAvatar(0));
         }
       } else if (favouritePlaces.length == 2) {
         var measurement =
@@ -327,14 +200,14 @@ class _DashboardViewState extends State<DashboardView> {
         if (measurement != null) {
           widgets.add(favPlaceAvatar(0, measurement));
         } else {
-          widgets.add(favPlaceAvatarEmpty(0));
+          widgets.add(emptyAvatar(0));
         }
 
         measurement = await _dbHelper.getMeasurement(favouritePlaces[1].siteId);
         if (measurement != null) {
           widgets.add(favPlaceAvatar(7, measurement));
         } else {
-          widgets.add(favPlaceAvatarEmpty(7));
+          widgets.add(emptyAvatar(7));
         }
 
         // widgets
@@ -346,21 +219,21 @@ class _DashboardViewState extends State<DashboardView> {
         if (measurement != null) {
           widgets.add(favPlaceAvatar(0, measurement));
         } else {
-          widgets.add(favPlaceAvatarEmpty(0));
+          widgets.add(emptyAvatar(0));
         }
 
         measurement = await _dbHelper.getMeasurement(favouritePlaces[1].siteId);
         if (measurement != null) {
           widgets.add(favPlaceAvatar(7, measurement));
         } else {
-          widgets.add(favPlaceAvatarEmpty(7));
+          widgets.add(emptyAvatar(7));
         }
 
         measurement = await _dbHelper.getMeasurement(favouritePlaces[2].siteId);
         if (measurement != null) {
           widgets.add(favPlaceAvatar(14, measurement));
         } else {
-          widgets.add(favPlaceAvatarEmpty(14));
+          widgets.add(emptyAvatar(14));
         }
       } else {}
     } catch (e) {
@@ -368,24 +241,24 @@ class _DashboardViewState extends State<DashboardView> {
     }
 
     setState(() {
-      favLocations.clear();
-      favLocations = widgets;
+      _favLocations.clear();
+      _favLocations = widgets;
     });
   }
 
-  void getLocationMeasurements() async {
-    var measurement = await _locationService.getCurrentLocationReadings();
-    if (measurement != null) {
+  Future<void> handleKyaOnClick() async {
+    if (_kya!.progress >= 99.0) {
+      var completeKya = _kya;
       setState(() {
-        currentLocation = measurement;
+        _kya = null;
       });
+      await _cloudStore
+          .migrateKya(completeKya!, _customAuth.getId())
+          .then((value) => {initialize()});
     } else {
-      var defaultMeasurement = await _locationService.defaultLocationPlace();
-      if (defaultMeasurement != null) {
-        setState(() {
-          currentLocation = defaultMeasurement;
-        });
-      }
+      await Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return AirPollutionWaysPage(_kya!);
+      }));
     }
   }
 
@@ -409,13 +282,16 @@ class _DashboardViewState extends State<DashboardView> {
   Future<void> initialize() async {
     _cloudAnalytics.logScreenTransition('Home Page');
     _airqoApiClient = AirqoApiClient(context);
-    setGreetings();
-    getLocationMeasurements();
-    getDashboardLocations();
+    _setGreetings();
+    _getIncompleteKya();
+    _getCompleteKya();
+    _getLocationMeasurements();
+    _getDashboardLocations();
     var preferences = await SharedPreferences.getInstance();
     setState(() {
       tipsProgress = preferences.getDouble(PrefConstant.tipsProgress) ?? 0.0;
     });
+
     await _getLatestMeasurements();
   }
 
@@ -426,10 +302,157 @@ class _DashboardViewState extends State<DashboardView> {
     handleScroll();
   }
 
-  void setGreetings() {
-    setState(() {
-      greetings = getGreetings(_customAuth.getDisplayName());
-    });
+  Widget kyaAvatar(double rightPadding, Kya kya) {
+    return Positioned(
+        right: rightPadding,
+        child: Container(
+          height: 32.0,
+          width: 32.0,
+          padding: const EdgeInsets.all(2.0),
+          decoration: BoxDecoration(
+            border: Border.all(color: ColorConstants.appBodyColor, width: 2),
+            color: ColorConstants.greyColor,
+            shape: BoxShape.circle,
+            image: DecorationImage(
+              fit: BoxFit.cover,
+              image: CachedNetworkImageProvider(
+                kya.imageUrl,
+              ),
+            ),
+          ),
+        ));
+  }
+
+  Widget kyaSection() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
+      decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.all(Radius.circular(16.0))),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Column(
+              children: [
+                GestureDetector(
+                  onTap: () async {
+                    await handleKyaOnClick();
+                  },
+                  child: const Text('The Tid Tips On Air Quality!',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      )),
+                ),
+                const SizedBox(
+                  height: 28,
+                ),
+                GestureDetector(
+                  onTap: () async {
+                    await handleKyaOnClick();
+                  },
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      if (_kya!.progress == 0.0)
+                        Text('Start learning',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: ColorConstants.appColorBlue,
+                            )),
+                      if (_kya!.progress > 0.0 && _kya!.progress < 99.0)
+                        Text('Continue',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: ColorConstants.appColorBlue,
+                            )),
+                      if (_kya!.progress >= 99.0)
+                        const Text('Complete! Move to ',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 12,
+                            )),
+                      if (tipsProgress >= 99.0)
+                        Text('For You',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: ColorConstants.appColorBlue,
+                            )),
+                      const SizedBox(
+                        width: 6,
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios_sharp,
+                        size: 10,
+                        color: ColorConstants.appColorBlue,
+                      )
+                    ],
+                  ),
+                ),
+                const SizedBox(
+                  height: 2,
+                ),
+                Visibility(
+                  visible: tipsProgress > 0.0 && tipsProgress < 1.0,
+                  child: Container(
+                      height: 4,
+                      decoration: const BoxDecoration(
+                        borderRadius: BorderRadius.all(Radius.circular(8.0)),
+                      ),
+                      child: LinearProgressIndicator(
+                        color: ColorConstants.appColorBlue,
+                        value: tipsProgress,
+                        backgroundColor:
+                            ColorConstants.appColorDisabled.withOpacity(0.2),
+                      )),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(
+            width: 16,
+          ),
+          GestureDetector(
+            onTap: () async {
+              await handleKyaOnClick();
+            },
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8.0),
+              child: CachedNetworkImage(
+                fit: BoxFit.cover,
+                width: 104,
+                height: 104,
+                placeholder: (context, url) => SizedBox(
+                  width: 104,
+                  height: 104,
+                  child: loadingAnimation(104, 8.0),
+                ),
+                imageUrl: _kya!.imageUrl,
+                errorWidget: (context, url, error) => Icon(
+                  Icons.error_outline,
+                  color: ColorConstants.red,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget tipsSection() {
@@ -451,7 +474,7 @@ class _DashboardViewState extends State<DashboardView> {
                       if (tipsProgress >= 1.0) {
                         return const ForYouPage();
                       }
-                      return const AirPollutionWaysPage();
+                      return const AirPollutionWaysPageV1();
                     }));
                   },
                   child: const Text('The Tid Tips On Air Quality!',
@@ -472,7 +495,7 @@ class _DashboardViewState extends State<DashboardView> {
                       if (tipsProgress >= 1.0) {
                         return const ForYouPage();
                       }
-                      return const AirPollutionWaysPage();
+                      return const AirPollutionWaysPageV1();
                     }));
                   },
                   child: Row(
@@ -555,7 +578,7 @@ class _DashboardViewState extends State<DashboardView> {
                 if (tipsProgress >= 1.0) {
                   return const ForYouPage();
                 }
-                return const AirPollutionWaysPage();
+                return const AirPollutionWaysPageV1();
               }));
             },
             child: ClipRRect(
@@ -605,7 +628,7 @@ class _DashboardViewState extends State<DashboardView> {
                       height: 32,
                       width: 44,
                       child: Stack(
-                        children: favLocations,
+                        children: _favLocations,
                       ),
                     );
                   },
@@ -627,6 +650,7 @@ class _DashboardViewState extends State<DashboardView> {
         const SizedBox(
           width: 16,
         ),
+
         Expanded(
             child: GestureDetector(
           onTap: () async {
@@ -643,8 +667,12 @@ class _DashboardViewState extends State<DashboardView> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SvgPicture.asset(
-                  'assets/icon/add_avator.svg',
+                SizedBox(
+                  height: 32,
+                  width: 44,
+                  child: Stack(
+                    children: _completeKya,
+                  ),
                 ),
                 const SizedBox(
                   width: 8,
@@ -718,28 +746,116 @@ class _DashboardViewState extends State<DashboardView> {
               ),
               if (currentLocation != null)
                 AnalyticsCard(PlaceDetails.measurementToPLace(currentLocation!),
-                    currentLocation!, isRefreshing),
+                    currentLocation!, _isRefreshing),
               if (currentLocation == null) loadingAnimation(255.0, 16.0),
               const SizedBox(
                 height: 16,
               ),
-              tipsSection(),
+              if (_kya != null) kyaSection(),
+
+              // tipsSection(),
               const SizedBox(
                 height: 16,
               ),
-              if (dashBoardPlaces.isNotEmpty) dashBoardPlaces[0],
+              if (_dashBoardPlaces.isNotEmpty) _dashBoardPlaces[0],
               const SizedBox(
                 height: 16,
               ),
-              if (dashBoardPlaces.length >= 2) dashBoardPlaces[1],
+              if (_dashBoardPlaces.length >= 2) _dashBoardPlaces[1],
               const SizedBox(
                 height: 16,
               ),
-              if (dashBoardPlaces.length >= 3) dashBoardPlaces[2],
+              if (_dashBoardPlaces.length >= 3) _dashBoardPlaces[2],
               const SizedBox(
                 height: 16,
               ),
             ]));
+  }
+
+  void _getCompleteKya() async {
+    var widgets = <Widget>[];
+
+    var allKya = await _cloudStore.getKya(_customAuth.getId());
+
+    var completeKya =
+        allKya.where((element) => element.progress >= 100).toList();
+
+    if (completeKya.isEmpty) {
+      widgets.add(SvgPicture.asset(
+        'assets/icon/add_avator.svg',
+      ));
+    } else {
+      try {
+        if (completeKya.length == 1) {
+          widgets.add(kyaAvatar(7, completeKya[0]));
+        } else if (completeKya.length == 2) {
+          widgets
+            ..add(kyaAvatar(0, completeKya[0]))
+            ..add(kyaAvatar(7, completeKya[1]));
+        } else if (completeKya.length >= 3) {
+          widgets
+            ..add(kyaAvatar(0, completeKya[0]))
+            ..add(kyaAvatar(7, completeKya[1]))
+            ..add(kyaAvatar(14, completeKya[2]));
+        } else {}
+      } catch (e) {
+        debugPrint(e.toString());
+      }
+    }
+
+    setState(() {
+      _completeKya.clear();
+      _completeKya = widgets;
+    });
+  }
+
+  void _getDashboardLocations() async {
+    var measurements = await _dbHelper.getLatestMeasurements();
+
+    if (measurements.isNotEmpty) {
+      setState(_dashBoardPlaces.clear);
+
+      var regions = [
+        'cent',
+        'west',
+        'east',
+      ];
+
+      for (var i = 0; i < regions.length; i++) {
+        var regionMeasurements = measurements
+            .where((element) =>
+                element.site.region.toLowerCase().contains(regions[i]))
+            .toList();
+
+        if (regionMeasurements.isNotEmpty) {
+          var random = Random().nextInt(regionMeasurements.length);
+
+          setState(() {
+            _dashBoardPlaces.add(AnalyticsCard(
+                PlaceDetails.measurementToPLace(regionMeasurements[random]),
+                regionMeasurements[random],
+                _isRefreshing));
+          });
+        } else {
+          var random = Random().nextInt(measurements.length);
+          setState(() {
+            _dashBoardPlaces.add(AnalyticsCard(
+                PlaceDetails.measurementToPLace(measurements[random]),
+                measurements[random],
+                _isRefreshing));
+          });
+        }
+      }
+    }
+  }
+
+  void _getIncompleteKya() async {
+    var userKya = await _cloudStore.getIncompleteKya(_customAuth.getId());
+    if (userKya != null && mounted) {
+      setState(() async {
+        _kya = userKya;
+      });
+    }
   }
 
   Future<void> _getLatestMeasurements() async {
@@ -747,9 +863,31 @@ class _DashboardViewState extends State<DashboardView> {
     if (measurements.isNotEmpty) {
       await _dbHelper.insertLatestMeasurements(measurements);
       if (mounted) {
-        getLocationMeasurements();
-        getDashboardLocations();
+        _getLocationMeasurements();
+        _getDashboardLocations();
       }
     }
+  }
+
+  void _getLocationMeasurements() async {
+    var measurement = await _locationService.getCurrentLocationReadings();
+    if (measurement != null) {
+      setState(() {
+        currentLocation = measurement;
+      });
+    } else {
+      var defaultMeasurement = await _locationService.defaultLocationPlace();
+      if (defaultMeasurement != null) {
+        setState(() {
+          currentLocation = defaultMeasurement;
+        });
+      }
+    }
+  }
+
+  void _setGreetings() {
+    setState(() {
+      _greetings = getGreetings(_customAuth.getDisplayName());
+    });
   }
 }

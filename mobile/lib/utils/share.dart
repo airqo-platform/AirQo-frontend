@@ -57,18 +57,6 @@ Future<void> reportPlace(Site site, context) async {
       : ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
 
-void shareAnalyticsCard(String imagePath, Measurement measurement) {
-  var message = '${measurement.site.getName()}, Current Air Quality. \n\n'
-      'Source: AiQo App';
-  Share.shareFiles([imagePath], text: message);
-}
-
-void shareAnalyticsGraph(String imagePath, PlaceDetails placeDetails) {
-  var message = '${placeDetails.getName()}, Current Air Quality. \n\n'
-      'Source: AiQo App';
-  Share.shareFiles([imagePath], text: message);
-}
-
 void shareApp() {
   Share.share(
       'Get the ${AppConfig.name} app from Play Store '
@@ -107,7 +95,10 @@ Future<void> shareCard(BuildContext buildContext, GlobalKey globalKey,
     final directory = (await getApplicationDocumentsDirectory()).path;
     var imgFile = File('$directory/analytics_card.png');
     await imgFile.writeAsBytes(pngBytes);
-    shareAnalyticsCard(imgFile.path, measurement);
+
+    var message = '${measurement.site.getName()}, Current Air Quality. \n\n'
+        'Source: AiQo App';
+    Share.shareFiles([imgFile.path], text: message);
   } else {
     shareMeasurementText(measurement);
   }
@@ -217,7 +208,25 @@ Future<void> shareGraph(BuildContext buildContext, GlobalKey globalKey,
   final directory = (await getApplicationDocumentsDirectory()).path;
   var imgFile = File('$directory/analytics_graph.png');
   await imgFile.writeAsBytes(pngBytes);
-  shareAnalyticsGraph(imgFile.path, placeDetails);
+
+  var message = '${placeDetails.getName()}, Current Air Quality. \n\n'
+      'Source: AiQo App';
+  await Share.shareFiles([imgFile.path], text: message);
+}
+
+Future<void> shareKya(BuildContext buildContext, GlobalKey globalKey) async {
+  var boundary =
+      globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+  var image = await boundary.toImage();
+  var byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+  var pngBytes = byteData!.buffer.asUint8List();
+
+  final directory = (await getApplicationDocumentsDirectory()).path;
+  var imgFile = File('$directory/analytics_graph.png');
+  await imgFile.writeAsBytes(pngBytes);
+
+  var message = 'Source: AiQo App';
+  await Share.shareFiles([imgFile.path], text: message);
 }
 
 void shareLocation(PlaceDetails placeDetails) {
