@@ -1,7 +1,11 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/measurement.dart';
-import 'package:app/widgets/custom_widgets.dart';
+import 'package:app/models/kya.dart';
+import 'package:app/services/fb_notifications.dart';
+import 'package:app/utils/dialogs.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+
+import 'air_pollution_ways_page.dart';
 
 class KnowYourAirView extends StatefulWidget {
   const KnowYourAirView({Key? key}) : super(key: key);
@@ -11,21 +15,145 @@ class KnowYourAirView extends StatefulWidget {
 }
 
 class _KnowYourAirViewState extends State<KnowYourAirView> {
-  var favouritePlaces = <Measurement>[];
+  List<Kya> _kyaCards = [];
+  final CloudStore _cloudStore = CloudStore();
+  final CustomAuth _customAuth = CustomAuth();
 
   @override
   Widget build(BuildContext context) {
+    return getBuildWidget();
+  }
+
+  Widget getBuildWidget() {
+    if (_kyaCards.isEmpty) {
+      return Container(
+          color: ColorConstants.appBodyColor,
+          child: const Center(
+            child: Text('You haven\'t completed any'),
+          ));
+    }
+
     return Container(
         color: ColorConstants.appBodyColor,
         child: ListView.builder(
           itemBuilder: (context, index) => Padding(
             padding: const EdgeInsets.only(bottom: 10),
-            child: tipWidget(
-                context,
-                'Actions You Can Take to '
-                'Reduce Air Pollution'),
+            child: kyaWidget(_kyaCards[index]),
           ),
-          itemCount: 1,
+          itemCount: _kyaCards.length,
         ));
+  }
+
+  @override
+  void initState() {
+    _getKya();
+    super.initState();
+  }
+
+  Widget kyaWidget(Kya kya) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
+      decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.all(Radius.circular(16.0))),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Column(
+              children: [
+                GestureDetector(
+                  onTap: () async {
+                    await Navigator.push(context,
+                        MaterialPageRoute(builder: (context) {
+                      return AirPollutionWaysPage(kya, false);
+                    }));
+                  },
+                  child: Text(kya.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      )),
+                ),
+                const SizedBox(
+                  height: 28,
+                ),
+                GestureDetector(
+                  onTap: () async {
+                    await Navigator.push(context,
+                        MaterialPageRoute(builder: (context) {
+                      return AirPollutionWaysPage(kya, false);
+                    }));
+                  },
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text('Start reading',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: ColorConstants.appColorBlue,
+                          )),
+                      const SizedBox(
+                        width: 6,
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios_sharp,
+                        size: 10,
+                        color: ColorConstants.appColorBlue,
+                      )
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(
+            width: 16,
+          ),
+          GestureDetector(
+              onTap: () async {
+                await Navigator.push(context,
+                    MaterialPageRoute(builder: (context) {
+                  return AirPollutionWaysPage(kya, false);
+                }));
+              },
+              child: Container(
+                width: 104,
+                height: 104,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8.0),
+                  image: DecorationImage(
+                    fit: BoxFit.cover,
+                    image: CachedNetworkImageProvider(
+                      kya.imageUrl,
+                    ),
+                  ),
+                ),
+              )),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _getKya() async {
+    var isConnected = await _cloudStore.isConnected();
+    if (!isConnected) {
+      await showSnackBar(context, ErrorMessages.timeoutException);
+      return;
+    }
+
+    var kyaCards = await _cloudStore.getKya(_customAuth.getId());
+    if (mounted) {
+      setState(() {
+        _kyaCards =
+            kyaCards.where((element) => element.progress >= 100).toList();
+      });
+    }
   }
 }

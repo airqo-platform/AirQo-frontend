@@ -14,7 +14,9 @@ import 'home_page.dart';
 
 class AirPollutionWaysPage extends StatefulWidget {
   final Kya kya;
-  const AirPollutionWaysPage(this.kya, {Key? key}) : super(key: key);
+  final bool trackProgress;
+  const AirPollutionWaysPage(this.kya, this.trackProgress, {Key? key})
+      : super(key: key);
 
   @override
   _AirPollutionWaysPageState createState() => _AirPollutionWaysPageState();
@@ -25,29 +27,48 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
   int _currentPage = 0;
   bool _showLastPage = false;
   double _tipsProgress = 0.1;
+  bool isSaving = false;
 
   final PageController _controller = PageController();
   final CloudAnalytics _cloudAnalytics = CloudAnalytics();
+  final CloudStore _cloudStore = CloudStore();
+  final CustomAuth _customAuth = CustomAuth();
   final GlobalKey _globalKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
     if (_showSlides) {
-      return slidesView();
+      return WillPopScope(
+        onWillPop: _onWillPop,
+        child: slidesView(),
+      );
+      // return slidesView();
     }
 
     if (_showLastPage) {
-      completeProgress();
-      Future.delayed(const Duration(seconds: 3), () async {
-        await Navigator.pushAndRemoveUntil(context,
-            MaterialPageRoute(builder: (context) {
-          return const HomePage();
-        }), (r) => false);
-      });
-      return finalView();
+      if (widget.trackProgress) {
+        completeProgress();
+        Future.delayed(const Duration(seconds: 3), () async {
+          await Navigator.pushAndRemoveUntil(context,
+              MaterialPageRoute(builder: (context) {
+            return const HomePage();
+          }), (r) => false);
+        });
+        // return finalView();
+        return WillPopScope(
+          onWillPop: _onWillPop,
+          child: finalView(),
+        );
+      } else {
+        Navigator.pop(context, true);
+      }
     }
 
-    return mainView();
+    // return mainView();
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: mainView(),
+    );
   }
 
   Widget circularButton(String icon) {
@@ -313,6 +334,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
               children: [
                 GestureDetector(
                   onTap: () {
+                    updateKyaProgress();
                     Navigator.of(context).pop();
                   },
                   child: SvgPicture.asset(
@@ -429,18 +451,30 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
     );
   }
 
+  Future<void> updateKyaProgress() async {
+    if (isSaving) {
+      return;
+    }
+
+    setState(() {
+      isSaving = true;
+    });
+
+    if (widget.trackProgress) {
+      var page = _controller.page;
+      if (page != null) {
+        var progress = (page / widget.kya.kyaItems.length) * 99;
+        await _cloudStore.updateKyaProgress(
+            _customAuth.getId(), widget.kya, progress);
+      }
+    }
+  }
+
   Future<void> updateProgress() async {
     try {
-      var preferences = await SharedPreferences.getInstance();
-      var progress = preferences.getDouble(PrefConstant.tipsProgress) ?? 0.0;
-
       setState(() {
         _tipsProgress = _tipsProgress + 0.1;
       });
-
-      if (_tipsProgress > progress) {
-        await preferences.setDouble(PrefConstant.tipsProgress, _tipsProgress);
-      }
     } catch (e) {
       debugPrint(e.toString());
     }
@@ -545,5 +579,10 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
         ]),
       ),
     );
+  }
+
+  Future<bool> _onWillPop() {
+    updateKyaProgress();
+    return Future.value(true);
   }
 }

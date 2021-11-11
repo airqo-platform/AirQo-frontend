@@ -224,10 +224,8 @@ class CloudStore {
       if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
         return true;
       }
-      return false;
-    } on SocketException catch (_) {
-      return false;
-    }
+    } on SocketException catch (_) {}
+    return false;
   }
 
   Future<bool> markNotificationAsRead(
@@ -368,6 +366,36 @@ class CloudStore {
           .collection(CloudStorage.usersCollection)
           .doc(id)
           .update({'favPlaces': PlaceDetails.listToJson(places)});
+    }
+  }
+
+  Future<void> updateKyaProgress(
+      String userId, Kya kya, double progress) async {
+    if (userId == '') {
+      return;
+    }
+
+    var hasConnection = await isConnected();
+    if (hasConnection) {
+      var userKya = await getKya(userId);
+
+      var incomplete =
+          userKya.where((element) => element.id == kya.id).toList();
+
+      if (incomplete.isEmpty) {
+        return;
+      }
+
+      userKya.removeWhere((element) => element.id == kya.id);
+      kya.progress = progress;
+      userKya.add(kya);
+
+      await _firebaseFirestore
+          .collection(CloudStorage.usersCollection)
+          .doc(userId)
+          .update({'kya': Kya.listToJson(userKya)});
+
+      return;
     }
   }
 

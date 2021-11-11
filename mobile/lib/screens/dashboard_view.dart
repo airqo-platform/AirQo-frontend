@@ -247,7 +247,7 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   Future<void> handleKyaOnClick() async {
-    if (_kya!.progress >= 99.0) {
+    if (_kya!.progress >= 89.0) {
       var completeKya = _kya;
       setState(() {
         _kya = null;
@@ -257,7 +257,7 @@ class _DashboardViewState extends State<DashboardView> {
           .then((value) => {initialize()});
     } else {
       await Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return AirPollutionWaysPage(_kya!);
+        return AirPollutionWaysPage(_kya!, true);
       }));
     }
   }
@@ -367,7 +367,7 @@ class _DashboardViewState extends State<DashboardView> {
                               fontSize: 12,
                               color: ColorConstants.appColorBlue,
                             )),
-                      if (_kya!.progress > 0.0 && _kya!.progress < 99.0)
+                      if (_kya!.progress > 0.0 && _kya!.progress < 89.0)
                         Text('Continue',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -376,7 +376,7 @@ class _DashboardViewState extends State<DashboardView> {
                               fontSize: 12,
                               color: ColorConstants.appColorBlue,
                             )),
-                      if (_kya!.progress >= 99.0)
+                      if (_kya!.progress >= 89.0)
                         const Text('Complete! Move to ',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -384,7 +384,7 @@ class _DashboardViewState extends State<DashboardView> {
                             style: TextStyle(
                               fontSize: 12,
                             )),
-                      if (tipsProgress >= 99.0)
+                      if (_kya!.progress >= 89.0)
                         Text('For You',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -408,7 +408,7 @@ class _DashboardViewState extends State<DashboardView> {
                   height: 2,
                 ),
                 Visibility(
-                  visible: tipsProgress > 0.0 && tipsProgress < 1.0,
+                  visible: _kya!.progress > 0.0 && _kya!.progress < 89.0,
                   child: Container(
                       height: 4,
                       decoration: const BoxDecoration(
@@ -416,7 +416,7 @@ class _DashboardViewState extends State<DashboardView> {
                       ),
                       child: LinearProgressIndicator(
                         color: ColorConstants.appColorBlue,
-                        value: tipsProgress,
+                        value: _kya!.progress / 100,
                         backgroundColor:
                             ColorConstants.appColorDisabled.withOpacity(0.2),
                       )),
@@ -650,7 +650,6 @@ class _DashboardViewState extends State<DashboardView> {
         const SizedBox(
           width: 16,
         ),
-
         Expanded(
             child: GestureDetector(
           onTap: () async {
