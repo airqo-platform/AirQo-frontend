@@ -31,18 +31,18 @@ class InsightsCard extends StatefulWidget {
 }
 
 class _InsightsCardState extends State<InsightsCard> {
-  List<HistoricalMeasurement> measurements = [];
-  InsightsChartData? selectedMeasurement;
-  List<charts.Series<dynamic, DateTime>> chartData = [];
-  List<charts.Series<dynamic, String>> dailyChartData = [];
-  List<charts.Series<dynamic, String>> hourlyChartData = [];
+  List<HistoricalMeasurement> _measurements = [];
+  InsightsChartData? _selectedMeasurement;
+  final List<charts.Series<InsightsChartData, DateTime>> _chartData = [];
+  List<charts.Series<InsightsChartData, String>> _dailyChartData = [];
+  List<charts.Series<InsightsChartData, String>> _hourlyChartData = [];
   final ScrollController _scrollController = ScrollController();
   AirqoApiClient? _airqoApiClient;
-  String viewDay = 'today';
+  String _viewDay = 'today';
 
   @override
   Widget build(BuildContext context) {
-    if (measurements.isEmpty) {
+    if (_measurements.isEmpty) {
       return loadingAnimation(290.0, 8.0);
     }
     return Container(
@@ -65,7 +65,7 @@ class _InsightsCardState extends State<InsightsCard> {
                           children: [
                             Text(
                               insightsChartDateTimeToString(
-                                  selectedMeasurement!.time, widget.daily),
+                                  _selectedMeasurement!.time, widget.daily),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -92,15 +92,10 @@ class _InsightsCardState extends State<InsightsCard> {
                       ),
                       const SizedBox(width: 8),
                       insightsAvatar(
-                          context, selectedMeasurement!, 64, widget.pollutant),
+                          context, _selectedMeasurement!, 64, widget.pollutant),
                     ],
                   ),
-                  widget.daily
-                      ? dailyChart()
-                      : SingleChildScrollView(
-                          controller: _scrollController,
-                          scrollDirection: Axis.horizontal,
-                          child: hourlyChart()),
+                  widget.daily ? dailyChart() : hourlyChart(),
                   const SizedBox(
                     height: 13.0,
                   ),
@@ -112,7 +107,7 @@ class _InsightsCardState extends State<InsightsCard> {
                               maxWidth: MediaQuery.of(context).size.width / 2),
                           child: Text(
                             dateToString(
-                                selectedMeasurement!.time.toString(), false),
+                                _selectedMeasurement!.time.toString(), false),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -150,7 +145,7 @@ class _InsightsCardState extends State<InsightsCard> {
               child: Row(
                 children: [
                   Visibility(
-                    visible: selectedMeasurement!.available,
+                    visible: _selectedMeasurement!.available,
                     child: Container(
                       padding: const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
                       constraints: BoxConstraints(
@@ -158,36 +153,36 @@ class _InsightsCardState extends State<InsightsCard> {
                       decoration: BoxDecoration(
                           borderRadius:
                               const BorderRadius.all(Radius.circular(40.0)),
-                          color:
-                              selectedMeasurement!.time.isAfter(DateTime.now())
-                                  ? ColorConstants.appColorPaleBlue
-                                  : widget.pollutant == 'pm2.5'
-                                      ? pm2_5ToColor(selectedMeasurement!.value)
-                                          .withOpacity(0.4)
-                                      : pm10ToColor(selectedMeasurement!.value)
-                                          .withOpacity(0.4),
+                          color: _selectedMeasurement!.time
+                                  .isAfter(DateTime.now())
+                              ? ColorConstants.appColorPaleBlue
+                              : widget.pollutant == 'pm2.5'
+                                  ? pm2_5ToColor(_selectedMeasurement!.value)
+                                      .withOpacity(0.4)
+                                  : pm10ToColor(_selectedMeasurement!.value)
+                                      .withOpacity(0.4),
                           border: Border.all(color: Colors.transparent)),
                       child: Text(
                         widget.pollutant == 'pm2.5'
-                            ? pm2_5ToString(selectedMeasurement!.value)
-                            : pm10ToString(selectedMeasurement!.value),
+                            ? pm2_5ToString(_selectedMeasurement!.value)
+                            : pm10ToString(_selectedMeasurement!.value),
                         maxLines: 1,
                         textAlign: TextAlign.start,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 14,
-                          color: selectedMeasurement!.time
+                          color: _selectedMeasurement!.time
                                   .isAfter(DateTime.now())
                               ? ColorConstants.appColorBlue
                               : widget.pollutant == 'pm2.5'
-                                  ? pm2_5TextColor(selectedMeasurement!.value)
-                                  : pm10TextColor(selectedMeasurement!.value),
+                                  ? pm2_5TextColor(_selectedMeasurement!.value)
+                                  : pm10TextColor(_selectedMeasurement!.value),
                         ),
                       ),
                     ),
                   ),
                   Visibility(
-                    visible: !selectedMeasurement!.available,
+                    visible: !_selectedMeasurement!.available,
                     child: Container(
                       padding: const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
                       decoration: BoxDecoration(
@@ -211,10 +206,10 @@ class _InsightsCardState extends State<InsightsCard> {
                     width: 8,
                   ),
                   Visibility(
-                      visible: selectedMeasurement!.available,
+                      visible: _selectedMeasurement!.available,
                       child: GestureDetector(
                         onTap: () {
-                          pmInfoDialog(context, selectedMeasurement!.value);
+                          pmInfoDialog(context, _selectedMeasurement!.value);
                         },
                         child: SvgPicture.asset(
                           'assets/icon/info_icon.svg',
@@ -231,7 +226,7 @@ class _InsightsCardState extends State<InsightsCard> {
                           width: 10,
                           decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: selectedMeasurement!.time
+                              color: _selectedMeasurement!.time
                                       .isAfter(DateTime.now())
                                   ? ColorConstants.appColorBlue
                                   : ColorConstants.appColorPaleBlue,
@@ -260,7 +255,7 @@ class _InsightsCardState extends State<InsightsCard> {
           : MediaQuery.of(context).size.width,
       height: 150,
       child: charts.TimeSeriesChart(
-        chartData,
+        _chartData,
         animate: true,
         defaultRenderer: charts.BarRendererConfig<DateTime>(
             strokeWidthPx: 0, stackedBarPaddingPx: 0),
@@ -280,6 +275,11 @@ class _InsightsCardState extends State<InsightsCard> {
                         noonFormat: 'hh a',
                         transitionFormat: 'EEE, hh a'))),
         behaviors: [
+          charts.LinePointHighlighter(
+              showHorizontalFollowLine:
+                  charts.LinePointHighlighterFollowLineType.none,
+              showVerticalFollowLine:
+                  charts.LinePointHighlighterFollowLineType.nearest),
           charts.DomainHighlighter(),
           charts.SelectNearest(
               eventTrigger: charts.SelectionTrigger.tapAndDrag),
@@ -299,35 +299,62 @@ class _InsightsCardState extends State<InsightsCard> {
             }
           })
         ],
-        primaryMeasureAxis: const charts.NumericAxisSpec(
+        primaryMeasureAxis: charts.NumericAxisSpec(
           tickProviderSpec: charts.StaticNumericTickProviderSpec(
             <charts.TickSpec<double>>[
-              charts.TickSpec<double>(0),
-              charts.TickSpec<double>(125),
-              charts.TickSpec<double>(250),
-              charts.TickSpec<double>(375),
-              charts.TickSpec<double>(500),
+              charts.TickSpec<double>(0,
+                  style: charts.TextStyleSpec(
+                      color: charts.ColorUtil.fromDartColor(
+                          ColorConstants.greyColor))),
+              charts.TickSpec<double>(125,
+                  style: charts.TextStyleSpec(
+                      color: charts.ColorUtil.fromDartColor(
+                          ColorConstants.greyColor))),
+              charts.TickSpec<double>(250,
+                  style: charts.TextStyleSpec(
+                      color: charts.ColorUtil.fromDartColor(
+                          ColorConstants.greyColor))),
+              charts.TickSpec<double>(375,
+                  style: charts.TextStyleSpec(
+                      color: charts.ColorUtil.fromDartColor(
+                          ColorConstants.greyColor))),
+              charts.TickSpec<double>(500,
+                  style: charts.TextStyleSpec(
+                      color: charts.ColorUtil.fromDartColor(
+                          ColorConstants.greyColor))),
             ],
           ),
         ),
-        // primaryMeasureAxis: const charts.NumericAxisSpec(
-        //     tickProviderSpec:
-        //         charts.BasicNumericTickProviderSpec(desiredTickCount: 5)),
       ),
     );
   }
 
   Widget dailyChart() {
+    var staticTicks = <charts.TickSpec<String>>[];
+    var daysList = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    for (var day in daysList) {
+      staticTicks.add(charts.TickSpec(day,
+          label: day,
+          style: charts.TextStyleSpec(
+              color:
+                  charts.ColorUtil.fromDartColor(ColorConstants.greyColor))));
+    }
+
     return SizedBox(
       width: MediaQuery.of(context).size.width,
       height: 150,
       child: charts.BarChart(
-        dailyChartData,
+        _dailyChartData,
         animate: true,
         defaultRenderer: charts.BarRendererConfig<String>(
             strokeWidthPx: 0, stackedBarPaddingPx: 0),
         defaultInteractions: true,
         behaviors: [
+          charts.LinePointHighlighter(
+              showHorizontalFollowLine:
+                  charts.LinePointHighlighterFollowLineType.none,
+              showVerticalFollowLine:
+                  charts.LinePointHighlighterFollowLineType.nearest),
           charts.DomainHighlighter(),
           charts.SelectNearest(
               eventTrigger: charts.SelectionTrigger.tapAndDrag),
@@ -347,14 +374,32 @@ class _InsightsCardState extends State<InsightsCard> {
             }
           })
         ],
-        primaryMeasureAxis: const charts.NumericAxisSpec(
+        domainAxis: charts.OrdinalAxisSpec(
+            tickProviderSpec:
+                charts.StaticOrdinalTickProviderSpec(staticTicks)),
+        primaryMeasureAxis: charts.NumericAxisSpec(
           tickProviderSpec: charts.StaticNumericTickProviderSpec(
             <charts.TickSpec<double>>[
-              charts.TickSpec<double>(0),
-              charts.TickSpec<double>(125),
-              charts.TickSpec<double>(250),
-              charts.TickSpec<double>(375),
-              charts.TickSpec<double>(500),
+              charts.TickSpec<double>(0,
+                  style: charts.TextStyleSpec(
+                      color: charts.ColorUtil.fromDartColor(
+                          ColorConstants.greyColor))),
+              charts.TickSpec<double>(125,
+                  style: charts.TextStyleSpec(
+                      color: charts.ColorUtil.fromDartColor(
+                          ColorConstants.greyColor))),
+              charts.TickSpec<double>(250,
+                  style: charts.TextStyleSpec(
+                      color: charts.ColorUtil.fromDartColor(
+                          ColorConstants.greyColor))),
+              charts.TickSpec<double>(375,
+                  style: charts.TextStyleSpec(
+                      color: charts.ColorUtil.fromDartColor(
+                          ColorConstants.greyColor))),
+              charts.TickSpec<double>(500,
+                  style: charts.TextStyleSpec(
+                      color: charts.ColorUtil.fromDartColor(
+                          ColorConstants.greyColor))),
             ],
           ),
         ),
@@ -371,10 +416,11 @@ class _InsightsCardState extends State<InsightsCard> {
       var combined = value..addAll(predictedValues);
 
       setState(() {
-        measurements = combined;
-        hourlyChartData = insightsHourlyChartData(
+        _measurements = combined;
+        _hourlyChartData = insightsHourlyChartData(
             combined, widget.pollutant, widget.placeDetails);
       });
+      widget.callBackFn(_hourlyChartData.toList().first.data.last);
     }
   }
 
@@ -386,21 +432,25 @@ class _InsightsCardState extends State<InsightsCard> {
               if (value.isNotEmpty && mounted)
                 {
                   setState(() {
-                    selectedMeasurement =
+                    _selectedMeasurement =
                         InsightsChartData.historicalDataToInsightsData(
                             value.first, widget.pollutant, widget.placeDetails);
                     if (widget.daily) {
                       setState(() {
-                        measurements = value;
-                        dailyChartData = insightsDailyChartData(
+                        _measurements = value;
+                        _dailyChartData = insightsDailyChartData(
                             value, widget.pollutant, widget.placeDetails);
                       });
+                      widget
+                          .callBackFn(_dailyChartData.toList().first.data.last);
                     } else {
                       setState(() {
-                        measurements = value;
-                        hourlyChartData = insightsHourlyChartData(
+                        _measurements = value;
+                        _hourlyChartData = insightsHourlyChartData(
                             value, widget.pollutant, widget.placeDetails);
                       });
+                      widget.callBackFn(
+                          _hourlyChartData.toList().first.data.last);
 
                       if (widget.pollutant == 'pm2.5') {
                         getForecast(value.first.deviceNumber, value);
@@ -412,16 +462,37 @@ class _InsightsCardState extends State<InsightsCard> {
   }
 
   Widget hourlyChart() {
+    var staticTicks = <charts.TickSpec<String>>[];
+    for (var i = 0; i <= 24; i++) {
+      if ((i == 0) || (i == 6) || (i == 12) || (i == 18)) {
+        staticTicks.add(charts.TickSpec(i.toString().length == 1 ? '0$i' : '$i',
+            label: i.toString().length == 1 ? '0$i' : '$i',
+            style: charts.TextStyleSpec(
+                color:
+                    charts.ColorUtil.fromDartColor(ColorConstants.greyColor))));
+      } else {
+        staticTicks.add(charts.TickSpec(i.toString().length == 1 ? '0$i' : '$i',
+            label: i.toString().length == 1 ? '0$i' : '$i',
+            style: charts.TextStyleSpec(
+                color: charts.ColorUtil.fromDartColor(Colors.transparent))));
+      }
+    }
+
     return SizedBox(
-      width: MediaQuery.of(context).size.width * 2.7,
+      width: MediaQuery.of(context).size.width,
       height: 150,
       child: charts.BarChart(
-        hourlyChartData,
+        _hourlyChartData,
         animate: true,
         defaultRenderer: charts.BarRendererConfig<String>(
             strokeWidthPx: 0, stackedBarPaddingPx: 0),
         defaultInteractions: true,
         behaviors: [
+          charts.LinePointHighlighter(
+              showHorizontalFollowLine:
+                  charts.LinePointHighlighterFollowLineType.none,
+              showVerticalFollowLine:
+                  charts.LinePointHighlighterFollowLineType.nearest),
           charts.DomainHighlighter(),
           charts.SelectNearest(
               eventTrigger: charts.SelectionTrigger.tapAndDrag),
@@ -441,14 +512,37 @@ class _InsightsCardState extends State<InsightsCard> {
             }
           })
         ],
-        primaryMeasureAxis: const charts.NumericAxisSpec(
+        // domainAxis: const charts.OrdinalAxisSpec(
+        //     showAxisLine: true,
+        //     renderSpec: charts.NoneRenderSpec()
+        // ),
+        domainAxis: charts.OrdinalAxisSpec(
+            tickProviderSpec:
+                charts.StaticOrdinalTickProviderSpec(staticTicks)),
+
+        primaryMeasureAxis: charts.NumericAxisSpec(
           tickProviderSpec: charts.StaticNumericTickProviderSpec(
             <charts.TickSpec<double>>[
-              charts.TickSpec<double>(0),
-              charts.TickSpec<double>(125),
-              charts.TickSpec<double>(250),
-              charts.TickSpec<double>(375),
-              charts.TickSpec<double>(500),
+              charts.TickSpec<double>(0,
+                  style: charts.TextStyleSpec(
+                      color: charts.ColorUtil.fromDartColor(
+                          ColorConstants.greyColor))),
+              charts.TickSpec<double>(125,
+                  style: charts.TextStyleSpec(
+                      color: charts.ColorUtil.fromDartColor(
+                          ColorConstants.greyColor))),
+              charts.TickSpec<double>(250,
+                  style: charts.TextStyleSpec(
+                      color: charts.ColorUtil.fromDartColor(
+                          ColorConstants.greyColor))),
+              charts.TickSpec<double>(375,
+                  style: charts.TextStyleSpec(
+                      color: charts.ColorUtil.fromDartColor(
+                          ColorConstants.greyColor))),
+              charts.TickSpec<double>(500,
+                  style: charts.TextStyleSpec(
+                      color: charts.ColorUtil.fromDartColor(
+                          ColorConstants.greyColor))),
             ],
           ),
         ),
@@ -466,18 +560,18 @@ class _InsightsCardState extends State<InsightsCard> {
   void updateUI(InsightsChartData insightsChartData) {
     widget.callBackFn(insightsChartData);
     setState(() {
-      selectedMeasurement = insightsChartData;
+      _selectedMeasurement = insightsChartData;
     });
     var time = insightsChartData.time;
 
     if (time.day == DateTime.now().day) {
       setState(() {
-        viewDay = 'today';
+        _viewDay = 'today';
       });
     } else if ((time.month == DateTime.now().month) &&
         (time.day + 1) == DateTime.now().day) {
       setState(() {
-        viewDay = 'tomorrow';
+        _viewDay = 'tomorrow';
       });
     }
   }
