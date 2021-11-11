@@ -99,7 +99,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
           visible: _requestCode,
           child: Padding(
             padding: const EdgeInsets.only(left: 36, right: 36),
-            child: optField(0, context, setCode),
+            child: optField(0, context, setCode, _requestCode),
           ),
         ),
         Visibility(

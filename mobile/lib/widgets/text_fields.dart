@@ -118,14 +118,18 @@ Widget emailInputField(String placeholder) {
   );
 }
 
-Widget optField(position, context, callbackFn) {
+Widget optField(position, context, callbackFn, bool codeSent) {
   return Container(
       height: 64,
       width: 240,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-          color: const Color(0xff8D8D8D).withOpacity(0.1),
-          border: Border.all(color: ColorConstants.appColorBlue),
+          color: codeSent
+              ? Colors.white
+              : const Color(0xff8D8D8D).withOpacity(0.1),
+          border: Border.all(
+              color:
+                  codeSent ? ColorConstants.appColorBlue : Colors.transparent),
           borderRadius: const BorderRadius.all(Radius.circular(8.0))),
       child: Center(
         child: TextFormField(
@@ -134,7 +138,7 @@ Widget optField(position, context, callbackFn) {
           onChanged: (value) {
             callbackFn(value, position);
           },
-          showCursor: true,
+          showCursor: codeSent,
           cursorColor: ColorConstants.appColorBlue,
           readOnly: false,
           textAlign: TextAlign.center,
@@ -148,7 +152,9 @@ Widget optField(position, context, callbackFn) {
           maxLength: 6,
           decoration: InputDecoration(
             counter: const Offstage(),
-            fillColor: const Color(0xff8D8D8D).withOpacity(0.1),
+            fillColor: codeSent
+                ? Colors.white
+                : const Color(0xff8D8D8D).withOpacity(0.1),
             filled: false,
             focusedBorder: InputBorder.none,
             enabledBorder: InputBorder.none,

@@ -74,7 +74,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
       showSnackBar(context, 'Tap again to exit !');
       return Future.value(false);
     }
-    if (widget.enableBackButton) {
+    if (widget.enableBackButton && mounted) {
       Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
         return const HomePage();

@@ -1,5 +1,5 @@
-import 'package:app/on_boarding/email_signup_widget.dart';
-import 'package:app/on_boarding/phone_signup_widget.dart';
+import 'package:app/on_boarding/email_auth_widget.dart';
+import 'package:app/on_boarding/phone_auth_widget.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:flutter/material.dart';
@@ -15,17 +15,19 @@ class SignupScreen extends StatefulWidget {
 }
 
 class SignupScreenState extends State<SignupScreen> {
-  var signUpOption = 'phone';
-  DateTime? exitTime;
+  String _signUpOption = 'phone';
+  DateTime? _exitTime;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         body: WillPopScope(
             onWillPop: onWillPop,
-            child: signUpOption == 'phone'
-                ? PhoneSignupWidget(widget.enableBackButton, changeOption)
-                : EmailSignUpWidget(widget.enableBackButton, changeOption)));
+            child: _signUpOption == 'phone'
+                ? PhoneAuthWidget(
+                    widget.enableBackButton, changeOption, 'signup')
+                : EmailAuthWidget(
+                    widget.enableBackButton, changeOption, 'signup')));
   }
 
   Widget buildV1(BuildContext context) {
@@ -39,14 +41,14 @@ class SignupScreenState extends State<SignupScreen> {
                   child: Column(
                     children: [
                       Visibility(
-                        visible: signUpOption == 'phone',
-                        child: PhoneSignupWidget(
-                            widget.enableBackButton, changeOption),
+                        visible: _signUpOption == 'phone',
+                        child: PhoneAuthWidget(
+                            widget.enableBackButton, changeOption, 'signup'),
                       ),
                       Visibility(
-                        visible: signUpOption == 'email',
-                        child: EmailSignUpWidget(
-                            widget.enableBackButton, changeOption),
+                        visible: _signUpOption == 'email',
+                        child: EmailAuthWidget(
+                            widget.enableBackButton, changeOption, 'signup'),
                       ),
                     ],
                   ),
@@ -55,16 +57,16 @@ class SignupScreenState extends State<SignupScreen> {
 
   void changeOption(String value) {
     setState(() {
-      signUpOption = value;
+      _signUpOption = value;
     });
   }
 
   Future<bool> onWillPop() {
     var now = DateTime.now();
 
-    if (exitTime == null ||
-        now.difference(exitTime!) > const Duration(seconds: 2)) {
-      exitTime = now;
+    if (_exitTime == null ||
+        now.difference(_exitTime!) > const Duration(seconds: 2)) {
+      _exitTime = now;
 
       showSnackBar(context, 'Tap again to cancel !');
       return Future.value(false);

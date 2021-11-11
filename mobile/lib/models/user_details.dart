@@ -1,3 +1,4 @@
+import 'package:app/models/kya.dart';
 import 'package:app/models/place_details.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -14,7 +15,8 @@ class UserDetails {
   String device = '';
   String photoUrl = '';
   List<PlaceDetails> favPlaces = [];
-  UserPreferences preferences = UserPreferences(false, false, false, 0.0);
+  List<Kya> kya = [];
+  UserPreferences preferences = UserPreferences(false, false, false);
 
   UserDetails(
       this.title,
@@ -26,6 +28,7 @@ class UserDetails {
       this.device,
       this.photoUrl,
       this.favPlaces,
+      this.kya,
       this.preferences);
 
   factory UserDetails.fromJson(Map<String, dynamic> json) =>
@@ -80,8 +83,8 @@ class UserDetails {
   }
 
   static UserDetails initialize() {
-    return UserDetails('', '', '', '', '', '', '', '', [],
-        UserPreferences(false, false, false, 0.0));
+    return UserDetails('', '', '', '', '', '', '', '', [], [],
+        UserPreferences(false, false, false));
   }
 
   static UserDetails parseUserDetails(dynamic jsonBody) {
@@ -100,11 +103,7 @@ class UserPreferences {
   @JsonKey(defaultValue: false)
   bool alerts;
 
-  @JsonKey(defaultValue: 0.0)
-  double tipsProgress;
-
-  UserPreferences(
-      this.notifications, this.location, this.alerts, this.tipsProgress);
+  UserPreferences(this.notifications, this.location, this.alerts);
 
   factory UserPreferences.fromJson(Map<String, dynamic> json) =>
       _$UserPreferencesFromJson(json);
@@ -114,6 +113,6 @@ class UserPreferences {
   @override
   String toString() {
     return 'UserPreferences{notifications: $notifications,'
-        ' location: $location, alerts: $alerts, tipsProgress: $tipsProgress}';
+        ' location: $location, alerts: $alerts}';
   }
 }

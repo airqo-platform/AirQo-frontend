@@ -1,5 +1,6 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/on_boarding/profile_setup_screen.dart';
+import 'package:app/screens/home_page.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dialogs.dart';
@@ -9,30 +10,33 @@ import 'package:app/widgets/text_fields.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-class EmailSignUpWidget extends StatefulWidget {
+class EmailAuthWidget extends StatefulWidget {
   final ValueSetter<String> changeOption;
   final bool enableBackButton;
-  const EmailSignUpWidget(
+  final String action;
+
+  const EmailAuthWidget(
     this.enableBackButton,
-    this.changeOption, {
+    this.changeOption,
+    this.action, {
     Key? key,
   }) : super(key: key);
 
   @override
-  EmailSignUpWidgetState createState() => EmailSignUpWidgetState();
+  EmailAuthWidgetState createState() => EmailAuthWidgetState();
 }
 
-class EmailSignUpWidgetState extends State<EmailSignUpWidget> {
+class EmailAuthWidgetState extends State<EmailAuthWidget> {
   bool _emailFormValid = false;
-  var _emailAddress = '';
+  String _emailAddress = '';
   bool _isVerifying = false;
   bool _isResending = false;
-  var _emailVerificationLink = '';
-  var _emailToken = '';
-  var _requestCode = false;
-  var _showResendCode = false;
-  var _emailVerificationCode = <String>['', '', '', '', '', ''];
-  var _nextBtnColor = ColorConstants.appColorDisabled;
+  String _emailVerificationLink = '';
+  String _emailToken = '';
+  bool _verifyCode = false;
+  bool _codeSent = false;
+  List<String> _emailVerificationCode = <String>['', '', '', '', '', ''];
+  Color _nextBtnColor = ColorConstants.appColorDisabled;
 
   final _emailFormKey = GlobalKey<FormState>();
   final CustomAuth _customAuth = CustomAuth();
@@ -53,20 +57,22 @@ class EmailSignUpWidgetState extends State<EmailSignUpWidget> {
         ),
 
         Visibility(
-          visible: _requestCode,
+          visible: _verifyCode,
           child: const Text(
-            'Verify your account!',
+            'Verify your email address!',
             textAlign: TextAlign.center,
             style: TextStyle(
                 fontWeight: FontWeight.bold, fontSize: 24, color: Colors.black),
           ),
         ),
         Visibility(
-          visible: !_requestCode,
-          child: const Text(
-            'Sign up with your email\nor mobile number',
+          visible: !_verifyCode,
+          child: Text(
+            widget.action == 'signup'
+                ? 'Sign up with your email\nor mobile number'
+                : 'Login with your email\nor mobile number',
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
                 fontWeight: FontWeight.bold, fontSize: 24, color: Colors.black),
           ),
         ),
@@ -76,7 +82,7 @@ class EmailSignUpWidgetState extends State<EmailSignUpWidget> {
         ),
 
         Visibility(
-          visible: _requestCode,
+          visible: _verifyCode,
           child: Text(
             'Enter the 6 digit code sent to\n'
             '$_emailAddress',
@@ -86,7 +92,7 @@ class EmailSignUpWidgetState extends State<EmailSignUpWidget> {
           ),
         ),
         Visibility(
-            visible: !_requestCode,
+            visible: !_verifyCode,
             child: Text(
               'We’ll send you a verification code',
               textAlign: TextAlign.center,
@@ -101,14 +107,14 @@ class EmailSignUpWidgetState extends State<EmailSignUpWidget> {
 
         // input fields
         Visibility(
-          visible: _requestCode,
+          visible: _verifyCode,
           child: Padding(
             padding: const EdgeInsets.only(left: 36, right: 36),
-            child: optField(0, context, setCode),
+            child: optField(0, context, setCode, _codeSent),
           ),
         ),
         Visibility(
-          visible: !_requestCode,
+          visible: !_verifyCode,
           child: Form(
             key: _emailFormKey,
             child: emailInputField(),
@@ -121,7 +127,7 @@ class EmailSignUpWidgetState extends State<EmailSignUpWidget> {
         ),
 
         Visibility(
-          visible: !_showResendCode && _requestCode,
+          visible: !_codeSent && _verifyCode,
           child: Text(
             'The code should arrive with in 10 sec',
             textAlign: TextAlign.center,
@@ -130,7 +136,7 @@ class EmailSignUpWidgetState extends State<EmailSignUpWidget> {
           ),
         ),
         Visibility(
-          visible: _showResendCode && _requestCode,
+          visible: _codeSent && _verifyCode,
           child: GestureDetector(
             onTap: () async {
               await resendVerificationCode();
@@ -147,7 +153,7 @@ class EmailSignUpWidgetState extends State<EmailSignUpWidget> {
           ),
         ),
         Visibility(
-          visible: !_requestCode,
+          visible: !_verifyCode,
           child: GestureDetector(
             onTap: () {
               setState(() {
@@ -155,8 +161,9 @@ class EmailSignUpWidgetState extends State<EmailSignUpWidget> {
                 widget.changeOption('phone');
               });
             },
-            child: signButton('Sign up with a'
-                ' mobile number instead'),
+            child: widget.action == 'signup'
+                ? signButton('Sign up with a mobile number instead')
+                : signButton('Login with a mobile number instead'),
           ),
         ),
 
@@ -165,7 +172,7 @@ class EmailSignUpWidgetState extends State<EmailSignUpWidget> {
         ),
 
         Visibility(
-          visible: _requestCode,
+          visible: _verifyCode,
           child: Padding(
             padding: const EdgeInsets.only(left: 36, right: 36),
             child: Stack(
@@ -187,13 +194,13 @@ class EmailSignUpWidgetState extends State<EmailSignUpWidget> {
           ),
         ),
         Visibility(
-          visible: _requestCode,
+          visible: _verifyCode,
           child: const SizedBox(
             height: 19,
           ),
         ),
         Visibility(
-          visible: _requestCode,
+          visible: _verifyCode,
           child: GestureDetector(
             onTap: initialize,
             child: Text(
@@ -201,7 +208,7 @@ class EmailSignUpWidgetState extends State<EmailSignUpWidget> {
               textAlign: TextAlign.center,
               style: TextStyle(
                   fontSize: 12,
-                  color: _showResendCode
+                  color: _codeSent
                       ? ColorConstants.appColorBlue
                       : Colors.black.withOpacity(0.5)),
             ),
@@ -212,7 +219,7 @@ class EmailSignUpWidgetState extends State<EmailSignUpWidget> {
           height: 212,
         ),
         Visibility(
-          visible: _requestCode,
+          visible: _verifyCode,
           child: GestureDetector(
             onTap: () async {
               await verifySentCode();
@@ -221,7 +228,7 @@ class EmailSignUpWidgetState extends State<EmailSignUpWidget> {
           ),
         ),
         Visibility(
-          visible: !_requestCode,
+          visible: !_verifyCode,
           child: GestureDetector(
             onTap: () async {
               await requestVerification();
@@ -232,7 +239,14 @@ class EmailSignUpWidgetState extends State<EmailSignUpWidget> {
         const SizedBox(
           height: 20,
         ),
-        signUpOptions(context),
+        Visibility(
+          visible: widget.action == 'signup',
+          child: signUpOptions(context),
+        ),
+        Visibility(
+          visible: widget.action == 'login',
+          child: loginOptions(context),
+        ),
         const SizedBox(
           height: 36,
         ),
@@ -322,8 +336,8 @@ class EmailSignUpWidgetState extends State<EmailSignUpWidget> {
       _isResending = false;
       _emailVerificationLink = '';
       _emailToken = '';
-      _requestCode = false;
-      _showResendCode = false;
+      _verifyCode = false;
+      _codeSent = false;
       _emailVerificationCode = <String>['', '', '', '', '', ''];
       _nextBtnColor = ColorConstants.appColorDisabled;
     });
@@ -348,18 +362,20 @@ class EmailSignUpWidgetState extends State<EmailSignUpWidget> {
       _isVerifying = true;
     });
 
-    var emailExists = await _cloudStore.credentialsExist(null, _emailAddress);
+    if (widget.action == 'signup') {
+      var emailExists = await _cloudStore.credentialsExist(null, _emailAddress);
 
-    if (emailExists) {
-      setState(() {
-        _nextBtnColor = ColorConstants.appColorBlue;
-        _isVerifying = false;
-      });
-      await showSnackBar(
-          context,
-          'Email Address already taken. '
-          'Try logging in');
-      return;
+      if (emailExists) {
+        setState(() {
+          _nextBtnColor = ColorConstants.appColorBlue;
+          _isVerifying = false;
+        });
+        await showSnackBar(
+            context,
+            'Email Address already taken. '
+            'Try logging in');
+        return;
+      }
     }
 
     var emailSignupResponse =
@@ -377,19 +393,23 @@ class EmailSignUpWidgetState extends State<EmailSignUpWidget> {
     setState(() {
       _emailVerificationLink = emailSignupResponse.loginLink;
       _emailToken = emailSignupResponse.token;
-      _requestCode = true;
+      _verifyCode = true;
       _isVerifying = false;
-      _showResendCode = false;
+      _codeSent = false;
     });
 
     Future.delayed(const Duration(seconds: 5), () {
       setState(() {
-        _showResendCode = true;
+        _codeSent = true;
       });
     });
   }
 
   Future<void> resendVerificationCode() async {
+    if (_isResending) {
+      return;
+    }
+
     setState(() {
       _isResending = true;
     });
@@ -453,10 +473,17 @@ class EmailSignUpWidgetState extends State<EmailSignUpWidget> {
     var success = await _customAuth.signUpWithEmailAddress(
         _emailAddress, _emailVerificationLink);
     if (success) {
-      await Navigator.pushAndRemoveUntil(context,
-          MaterialPageRoute(builder: (context) {
-        return ProfileSetupScreen(widget.enableBackButton);
-      }), (r) => false);
+      if (widget.action == 'signup') {
+        await Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (context) {
+          return ProfileSetupScreen(widget.enableBackButton);
+        }), (r) => false);
+      } else {
+        await Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (context) {
+          return const HomePage();
+        }), (r) => false);
+      }
     } else {
       setState(() {
         _nextBtnColor = ColorConstants.appColorBlue;

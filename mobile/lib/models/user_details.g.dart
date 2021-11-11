@@ -18,6 +18,9 @@ UserDetails _$UserDetailsFromJson(Map<String, dynamic> json) => UserDetails(
       (json['favPlaces'] as List<dynamic>)
           .map((e) => PlaceDetails.fromJson(e as Map<String, dynamic>))
           .toList(),
+      (json['kya'] as List<dynamic>)
+          .map((e) => Kya.fromJson(e as Map<String, dynamic>))
+          .toList(),
       UserPreferences.fromJson(json['preferences'] as Map<String, dynamic>),
     );
 
@@ -32,6 +35,7 @@ Map<String, dynamic> _$UserDetailsToJson(UserDetails instance) =>
       'device': instance.device,
       'photoUrl': instance.photoUrl,
       'favPlaces': instance.favPlaces.map((e) => e.toJson()).toList(),
+      'kya': instance.kya.map((e) => e.toJson()).toList(),
       'preferences': instance.preferences.toJson(),
     };
 
@@ -40,7 +44,6 @@ UserPreferences _$UserPreferencesFromJson(Map<String, dynamic> json) =>
       json['notifications'] as bool? ?? false,
       json['location'] as bool? ?? false,
       json['alerts'] as bool? ?? false,
-      (json['tipsProgress'] as num?)?.toDouble() ?? 0.0,
     );
 
 Map<String, dynamic> _$UserPreferencesToJson(UserPreferences instance) =>
@@ -48,5 +51,4 @@ Map<String, dynamic> _$UserPreferencesToJson(UserPreferences instance) =>
       'notifications': instance.notifications,
       'location': instance.location,
       'alerts': instance.alerts,
-      'tipsProgress': instance.tipsProgress,
     };

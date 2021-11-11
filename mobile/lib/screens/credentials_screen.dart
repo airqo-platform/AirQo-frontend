@@ -95,7 +95,7 @@ class UpdateCredentialsScreenState extends State<UpdateCredentialsScreen> {
                   ),
                   Padding(
                     padding: const EdgeInsets.only(left: 36, right: 36),
-                    child: optField(0, context, setCode),
+                    child: optField(0, context, setCode, true),
                   ),
                   const SizedBox(
                     height: 24,

@@ -14,7 +14,7 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class WelcomeScreenState extends State<WelcomeScreen> {
-  DateTime? exitTime;
+  DateTime? _exitTime;
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +68,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
               onTap: () {
                 Navigator.pushAndRemoveUntil(context,
                     MaterialPageRoute(builder: (context) {
-                  return SignupScreen(false);
+                  return const SignupScreen(false);
                 }), (r) => false);
               },
               child: nextButton('Let’s go', ColorConstants.appColorBlue),
@@ -83,7 +83,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
     Future.delayed(const Duration(seconds: 4), () async {
       await Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (context) {
-        return SignupScreen(false);
+        return const SignupScreen(false);
       }));
     });
   }
@@ -97,9 +97,9 @@ class WelcomeScreenState extends State<WelcomeScreen> {
   Future<bool> onWillPop() {
     var now = DateTime.now();
 
-    if (exitTime == null ||
-        now.difference(exitTime!) > const Duration(seconds: 2)) {
-      exitTime = now;
+    if (_exitTime == null ||
+        now.difference(_exitTime!) > const Duration(seconds: 2)) {
+      _exitTime = now;
 
       showSnackBar(context, 'Tap again to exit !');
       return Future.value(false);

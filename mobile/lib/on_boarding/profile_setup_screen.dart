@@ -21,17 +21,18 @@ class ProfileSetupScreen extends StatefulWidget {
 }
 
 class ProfileSetupScreenState extends State<ProfileSetupScreen> {
-  var fullName = '';
+  String _fullName = '';
+  DateTime? _exitTime;
+  Color nextBtnColor = ColorConstants.appColorDisabled;
+  bool _isSaving = false;
+  bool _nameFormValid = false;
+  bool _showDropDown = false;
+  String _title = 'Ms.';
+
   final _formKey = GlobalKey<FormState>();
   final CustomAuth _customAuth = CustomAuth();
-  TextEditingController controller = TextEditingController();
-  DateTime? exitTime;
-  Color nextBtnColor = ColorConstants.appColorDisabled;
-  bool isSaving = false;
-  bool nameFormValid = false;
-  bool showDropDown = false;
-  String title = 'Ms.';
-  List<String> titleOptions = ['Ms.', 'Mr.', 'Rather Not Say'];
+  final TextEditingController _controller = TextEditingController();
+  final List<String> _titleOptions = ['Ms.', 'Mr.', 'Rather Not Say'];
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +81,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       height: 8,
                     ),
                     Visibility(
-                      visible: showDropDown,
+                      visible: _showDropDown,
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -128,8 +129,8 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   void clearNameCallBack() {
     setState(() {
-      fullName = '';
-      controller.text = '';
+      _fullName = '';
+      _controller.text = '';
     });
   }
 
@@ -142,7 +143,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
             border: Border.all(color: ColorConstants.appColorBlue)),
         child: Center(
             child: TextFormField(
-          controller: controller,
+          controller: _controller,
           autofocus: true,
           enableSuggestions: false,
           cursorWidth: 1,
@@ -153,16 +154,16 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
             if (value == null || value.isEmpty) {
               showSnackBar(context, 'Please enter your name');
               setState(() {
-                nameFormValid = false;
+                _nameFormValid = false;
               });
             } else if (value.length > 15) {
               showSnackBar(context, 'Maximum number of characters is 15');
               setState(() {
-                nameFormValid = false;
+                _nameFormValid = false;
               });
             } else {
               setState(() {
-                nameFormValid = true;
+                _nameFormValid = true;
               });
             }
 
@@ -174,7 +175,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
             hintText: 'Enter your name',
             suffixIcon: GestureDetector(
               onTap: () {
-                controller.text = '';
+                _controller.text = '';
                 clearNameCallBack();
               },
               child: textInputCloseButton(),
@@ -186,9 +187,9 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   Future<bool> onWillPop() {
     var now = DateTime.now();
 
-    if (exitTime == null ||
-        now.difference(exitTime!) > const Duration(seconds: 2)) {
-      exitTime = now;
+    if (_exitTime == null ||
+        now.difference(_exitTime!) > const Duration(seconds: 2)) {
+      _exitTime = now;
 
       showSnackBar(context, 'Tap again to exit !');
       return Future.value(false);
@@ -206,15 +207,15 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   Future<void> saveName() async {
     try {
-      if (nameFormValid && !isSaving) {
+      if (_nameFormValid && !_isSaving) {
         setState(() {
           nextBtnColor = ColorConstants.appColorDisabled;
-          isSaving = true;
+          _isSaving = true;
         });
         var userDetails = UserDetails.initialize()
-          ..title = title
-          ..firstName = UserDetails.getNames(fullName).first
-          ..lastName = UserDetails.getNames(fullName).last;
+          ..title = _title
+          ..firstName = UserDetails.getNames(_fullName).first
+          ..lastName = UserDetails.getNames(_fullName).last;
 
         await showSnackBar(context, 'Updating your profile');
 
@@ -228,7 +229,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
     } on FirebaseAuthException catch (e) {
       setState(() {
         nextBtnColor = ColorConstants.appColorBlue;
-        isSaving = false;
+        _isSaving = false;
       });
       await showSnackBar(context, 'Failed to update profile. Try again later');
       debugPrint(e.toString());
@@ -239,7 +240,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
     return GestureDetector(
       onTap: () {
         setState(() {
-          showDropDown = true;
+          _showDropDown = true;
         });
       },
       child: Container(
@@ -254,7 +255,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('${title.substring(0, 2)}.'),
+                Text('${_title.substring(0, 2)}.'),
                 const Icon(
                   Icons.keyboard_arrow_down_sharp,
                   color: Colors.black,
@@ -280,22 +281,22 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
               itemBuilder: (BuildContext context, int index) {
                 return GestureDetector(
                   onTap: () {
-                    updateTitle(titleOptions[index]);
+                    updateTitle(_titleOptions[index]);
                   },
                   child: Padding(
                     padding: const EdgeInsets.only(top: 8, left: 12),
                     child: Text(
-                      titleOptions[index],
+                      _titleOptions[index],
                       style: TextStyle(
                           fontSize: 14,
-                          color: title == titleOptions[index]
+                          color: _title == _titleOptions[index]
                               ? ColorConstants.appColorBlack
                               : ColorConstants.appColorBlack.withOpacity(0.32)),
                     ),
                   ),
                 );
               },
-              itemCount: titleOptions.length,
+              itemCount: _titleOptions.length,
             )));
   }
 
@@ -338,8 +339,8 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   void updateTitle(String text) {
     setState(() {
-      title = text;
-      showDropDown = false;
+      _title = text;
+      _showDropDown = false;
     });
   }
 
@@ -354,7 +355,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
       });
     }
     setState(() {
-      fullName = text;
+      _fullName = text;
     });
   }
 }
