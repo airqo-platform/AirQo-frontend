@@ -4,8 +4,6 @@ import 'dart:io';
 
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/user_details.dart';
-import 'package:app/screens/change_email_screen.dart';
-import 'package:app/screens/credentials_screen.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
@@ -34,8 +32,8 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
   final ImagePicker _imagePicker = ImagePicker();
   AirqoApiClient? _airqoApiClient;
   String _profilePic = '';
-  TextEditingController _phoneEditor = TextEditingController();
-  TextEditingController _emailEditor = TextEditingController();
+  final TextEditingController _phoneEditor = TextEditingController();
+  final TextEditingController _emailEditor = TextEditingController();
   bool changeImage = false;
   final SecureStorageHelper _secureStorageHelper = SecureStorageHelper();
 
@@ -134,90 +132,90 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                 const SizedBox(
                   height: 16,
                 ),
-                Text(
-                  'Phone Number',
-                  style: TextStyle(
-                      fontSize: 12, color: ColorConstants.inactiveColor),
-                ),
-                const SizedBox(
-                  height: 4,
-                ),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  child: Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: TextFormField(
-                          controller: _phoneEditor,
-                          enableSuggestions: false,
-                          readOnly: true,
-                          style: TextStyle(color: ColorConstants.inactiveColor),
-                          decoration: profileFormInactiveFieldDecoration(),
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 16,
-                      ),
-                      GestureDetector(
-                        onTap: () async {
-                          var response = await Navigator.push(context,
-                              MaterialPageRoute(builder: (context) {
-                            return const UpdateCredentialsScreen('phone');
-                          }));
-                          if (response) {
-                            await initialize();
-                          }
-                        },
-                        child: editCredentialsButton(),
-                      )
-                    ],
-                  ),
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
-                Text(
-                  'Email',
-                  style: TextStyle(
-                      fontSize: 12, color: ColorConstants.inactiveColor),
-                ),
-                const SizedBox(
-                  height: 4,
-                ),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  child: Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: TextFormField(
-                          controller: _emailEditor,
-                          enableSuggestions: false,
-                          readOnly: true,
-                          style: TextStyle(color: ColorConstants.inactiveColor),
-                          decoration: profileFormInactiveFieldDecoration(),
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 16,
-                      ),
-                      GestureDetector(
-                        onTap: () async {
-                          var response = await Navigator.push(context,
-                              MaterialPageRoute(builder: (context) {
-                            return const ChangeEmailScreen();
-                          }));
-                          if (response) {
-                            await initialize();
-                          }
-                        },
-                        child: editCredentialsButton(),
-                      )
-                    ],
-                  ),
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
+                // Text(
+                //   'Phone Number',
+                //   style: TextStyle(
+                //       fontSize: 12, color: ColorConstants.inactiveColor),
+                // ),
+                // const SizedBox(
+                //   height: 4,
+                // ),
+                // SizedBox(
+                //   width: MediaQuery.of(context).size.width,
+                //   child: Row(
+                //     children: <Widget>[
+                //       Expanded(
+                //         child: TextFormField(
+                //           controller: _phoneEditor,
+                //           enableSuggestions: false,
+                //           readOnly: true,
+                //           style: TextStyle(color: ColorConstants.inactiveColor),
+                //           decoration: profileFormInactiveFieldDecoration(),
+                //         ),
+                //       ),
+                //       const SizedBox(
+                //         width: 16,
+                //       ),
+                //       GestureDetector(
+                //         onTap: () async {
+                //           var response = await Navigator.push(context,
+                //               MaterialPageRoute(builder: (context) {
+                //             return const UpdateCredentialsScreen('phone');
+                //           }));
+                //           if (response) {
+                //             await initialize();
+                //           }
+                //         },
+                //         child: editCredentialsButton(),
+                //       )
+                //     ],
+                //   ),
+                // ),
+                // const SizedBox(
+                //   height: 16,
+                // ),
+                // Text(
+                //   'Email',
+                //   style: TextStyle(
+                //       fontSize: 12, color: ColorConstants.inactiveColor),
+                // ),
+                // const SizedBox(
+                //   height: 4,
+                // ),
+                // SizedBox(
+                //   width: MediaQuery.of(context).size.width,
+                //   child: Row(
+                //     children: <Widget>[
+                //       Expanded(
+                //         child: TextFormField(
+                //           controller: _emailEditor,
+                //           enableSuggestions: false,
+                //           readOnly: true,
+                //           style: TextStyle(color: ColorConstants.inactiveColor),
+                //           decoration: profileFormInactiveFieldDecoration(),
+                //         ),
+                //       ),
+                //       const SizedBox(
+                //         width: 16,
+                //       ),
+                //       GestureDetector(
+                //         onTap: () async {
+                //           var response = await Navigator.push(context,
+                //               MaterialPageRoute(builder: (context) {
+                //             return const ChangeEmailScreen();
+                //           }));
+                //           if (response) {
+                //             await initialize();
+                //           }
+                //         },
+                //         child: editCredentialsButton(),
+                //       )
+                //     ],
+                //   ),
+                // ),
+                // const SizedBox(
+                //   height: 16,
+                // ),
               ],
             ),
           )),

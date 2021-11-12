@@ -24,12 +24,12 @@ class _HomePageState extends State<HomePage> {
   String title = AppConfig.name;
   bool showAddPlace = true;
   DateTime? exitTime;
+  AirqoApiClient? _airqoApiClient;
+  int _selectedIndex = 0;
 
   final CustomAuth _customAuth = CustomAuth();
   final DBHelper _dbHelper = DBHelper();
-  AirqoApiClient? _airqoApiClient;
-
-  int _selectedIndex = 0;
+  final CloudStore _cloudStore = CloudStore();
   final List<Widget> _widgetOptions = <Widget>[
     const DashboardView(),
     const MapView(),
@@ -130,14 +130,14 @@ class _HomePageState extends State<HomePage> {
     _getLatestMeasurements();
     _getFavPlaces();
     if (_customAuth.isLoggedIn()) {
-      CloudStore().monitorNotifications(context, _customAuth.getId());
+      await _cloudStore.monitorNotifications(context, _customAuth.getId());
     }
   }
 
   @override
   void initState() {
-    super.initState();
     initialize();
+    super.initState();
   }
 
   Future<bool> onWillPop() {

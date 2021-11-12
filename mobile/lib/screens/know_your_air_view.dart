@@ -18,6 +18,7 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
   List<Kya> _kyaCards = [];
   final CloudStore _cloudStore = CloudStore();
   final CustomAuth _customAuth = CustomAuth();
+  String error = 'You haven\'t completed any lessons';
 
   @override
   Widget build(BuildContext context) {
@@ -28,8 +29,8 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
     if (_kyaCards.isEmpty) {
       return Container(
           color: ColorConstants.appBodyColor,
-          child: const Center(
-            child: Text('You haven\'t completed any'),
+          child: Center(
+            child: Text(error),
           ));
     }
 
@@ -145,6 +146,15 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
     var isConnected = await _cloudStore.isConnected();
     if (!isConnected) {
       await showSnackBar(context, ErrorMessages.timeoutException);
+      return;
+    }
+
+    if (!_customAuth.isLoggedIn()) {
+      if (mounted) {
+        setState(() {
+          error = 'You are not logged in. Please login or signup';
+        });
+      }
       return;
     }
 

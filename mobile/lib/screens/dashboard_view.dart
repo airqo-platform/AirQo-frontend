@@ -18,6 +18,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'air_pollution_ways_page.dart';
@@ -240,10 +241,12 @@ class _DashboardViewState extends State<DashboardView> {
       debugPrint(e.toString());
     }
 
-    setState(() {
-      _favLocations.clear();
-      _favLocations = widgets;
-    });
+    if (mounted) {
+      setState(() {
+        _favLocations.clear();
+        _favLocations = widgets;
+      });
+    }
   }
 
   Future<void> handleKyaOnClick() async {
@@ -265,13 +268,15 @@ class _DashboardViewState extends State<DashboardView> {
   void handleScroll() async {
     _scrollController.addListener(() {
       if (_scrollController.position.userScrollDirection ==
-          ScrollDirection.reverse) {
+              ScrollDirection.reverse &&
+          mounted) {
         setState(() {
           _showName = false;
         });
       }
       if (_scrollController.position.userScrollDirection ==
-          ScrollDirection.forward) {
+              ScrollDirection.forward &&
+          mounted) {
         setState(() {
           _showName = true;
         });
@@ -297,9 +302,9 @@ class _DashboardViewState extends State<DashboardView> {
 
   @override
   void initState() {
-    super.initState();
     initialize();
     handleScroll();
+    super.initState();
   }
 
   Widget kyaAvatar(double rightPadding, Kya kya) {
@@ -339,10 +344,10 @@ class _DashboardViewState extends State<DashboardView> {
                   onTap: () async {
                     await handleKyaOnClick();
                   },
-                  child: const Text('The Tid Tips On Air Quality!',
+                  child: Text(_kya!.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       )),
@@ -750,7 +755,7 @@ class _DashboardViewState extends State<DashboardView> {
               const SizedBox(
                 height: 16,
               ),
-              if (_kya != null) kyaSection(),
+              if (_kya != null && _customAuth.isLoggedIn()) kyaSection(),
 
               // tipsSection(),
               const SizedBox(
@@ -773,6 +778,19 @@ class _DashboardViewState extends State<DashboardView> {
 
   void _getCompleteKya() async {
     var widgets = <Widget>[];
+
+    if (!_customAuth.isLoggedIn()) {
+      widgets.add(SvgPicture.asset(
+        'assets/icon/add_avator.svg',
+      ));
+      if (mounted) {
+        setState(() {
+          _completeKya.clear();
+          _completeKya = widgets;
+        });
+      }
+      return;
+    }
 
     var allKya = await _cloudStore.getKya(_customAuth.getId());
 
@@ -797,15 +815,26 @@ class _DashboardViewState extends State<DashboardView> {
             ..add(kyaAvatar(7, completeKya[1]))
             ..add(kyaAvatar(14, completeKya[2]));
         } else {}
-      } catch (e) {
-        debugPrint(e.toString());
+      } on Error catch (exception, stackTrace) {
+        debugPrint(exception.toString());
+        await Sentry.captureException(
+          exception,
+          stackTrace: stackTrace,
+        );
       }
     }
 
-    setState(() {
-      _completeKya.clear();
-      _completeKya = widgets;
-    });
+    if (mounted) {
+      if (widgets.isEmpty) {
+        widgets.add(SvgPicture.asset(
+          'assets/icon/add_avator.svg',
+        ));
+      }
+      setState(() {
+        _completeKya.clear();
+        _completeKya = widgets;
+      });
+    }
   }
 
   void _getDashboardLocations() async {
@@ -829,20 +858,25 @@ class _DashboardViewState extends State<DashboardView> {
         if (regionMeasurements.isNotEmpty) {
           var random = Random().nextInt(regionMeasurements.length);
 
-          setState(() {
-            _dashBoardPlaces.add(AnalyticsCard(
-                PlaceDetails.measurementToPLace(regionMeasurements[random]),
-                regionMeasurements[random],
-                _isRefreshing));
-          });
+          if (mounted) {
+            setState(() {
+              _dashBoardPlaces.add(AnalyticsCard(
+                  PlaceDetails.measurementToPLace(regionMeasurements[random]),
+                  regionMeasurements[random],
+                  _isRefreshing));
+            });
+          }
         } else {
           var random = Random().nextInt(measurements.length);
-          setState(() {
-            _dashBoardPlaces.add(AnalyticsCard(
-                PlaceDetails.measurementToPLace(measurements[random]),
-                measurements[random],
-                _isRefreshing));
-          });
+
+          if (mounted) {
+            setState(() {
+              _dashBoardPlaces.add(AnalyticsCard(
+                  PlaceDetails.measurementToPLace(measurements[random]),
+                  measurements[random],
+                  _isRefreshing));
+            });
+          }
         }
       }
     }
@@ -851,7 +885,7 @@ class _DashboardViewState extends State<DashboardView> {
   void _getIncompleteKya() async {
     var userKya = await _cloudStore.getIncompleteKya(_customAuth.getId());
     if (userKya != null && mounted) {
-      setState(() async {
+      setState(() {
         _kya = userKya;
       });
     }
@@ -870,13 +904,13 @@ class _DashboardViewState extends State<DashboardView> {
 
   void _getLocationMeasurements() async {
     var measurement = await _locationService.getCurrentLocationReadings();
-    if (measurement != null) {
+    if (measurement != null && mounted) {
       setState(() {
         currentLocation = measurement;
       });
     } else {
       var defaultMeasurement = await _locationService.defaultLocationPlace();
-      if (defaultMeasurement != null) {
+      if (defaultMeasurement != null && mounted) {
         setState(() {
           currentLocation = defaultMeasurement;
         });
@@ -885,8 +919,10 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   void _setGreetings() {
-    setState(() {
-      _greetings = getGreetings(_customAuth.getDisplayName());
-    });
+    if (mounted) {
+      setState(() {
+        _greetings = getGreetings(_customAuth.getDisplayName());
+      });
+    }
   }
 }

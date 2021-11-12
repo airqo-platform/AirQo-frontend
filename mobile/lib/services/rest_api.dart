@@ -5,7 +5,6 @@ import 'dart:io';
 
 import 'package:app/constants/api.dart';
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/alert.dart';
 import 'package:app/models/email_signup_model.dart';
 import 'package:app/models/feedback.dart';
 import 'package:app/models/historical_measurement.dart';
@@ -310,21 +309,6 @@ class AirqoApiClient {
       );
     }
     return null;
-  }
-
-  Future<bool> saveAlert(Alert alert) async {
-    try {
-      var body = alert.toJson();
-      final response = await _performPostRequest(
-          <String, dynamic>{}, AirQoUrls().alerts, jsonEncode(body));
-      return response;
-    } on Error catch (exception, stackTrace) {
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-    }
-    return false;
   }
 
   Future<bool> sendFeedback(UserFeedback feedback) async {

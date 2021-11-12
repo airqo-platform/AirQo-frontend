@@ -1,12 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 part 'email_signup_model.g.dart';
 
 @JsonSerializable()
 class EmailSignupModel {
   final bool success;
-  final String token;
+  final int token;
   final String email;
   final String message;
 
@@ -25,8 +26,12 @@ class EmailSignupModel {
     try {
       var emailSignupModel = EmailSignupModel.fromJson(jsonBody);
       return emailSignupModel;
-    } on Error catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint(exception.toString());
+      Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
     }
 
     return null;

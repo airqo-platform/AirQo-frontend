@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 part 'kya.g.dart';
 
@@ -22,8 +23,16 @@ class Kya {
   static List<Map<String, dynamic>> listToJson(List<Kya> kyas) {
     var kyasJson = <Map<String, dynamic>>[];
     for (var kya in kyas) {
-      var placeJson = kya.toJson();
-      kyasJson.add(placeJson);
+      try {
+        var placeJson = kya.toJson();
+        kyasJson.add(placeJson);
+      } catch (exception, stackTrace) {
+        debugPrint(exception.toString());
+        Sentry.captureException(
+          exception,
+          stackTrace: stackTrace,
+        );
+      }
     }
     return kyasJson;
   }
@@ -31,8 +40,12 @@ class Kya {
   static Kya? parseKya(dynamic jsonBody) {
     try {
       return Kya.fromJson(jsonBody);
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint(exception.toString());
+      Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
     }
     return null;
   }

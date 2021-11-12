@@ -36,7 +36,6 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   void initialize() {
-    _airqoApiClient = AirqoApiClient(context);
     _getLatestMeasurements();
     _getFavPlaces();
     Future.delayed(const Duration(seconds: 2), () async {
@@ -59,8 +58,8 @@ class SplashScreenState extends State<SplashScreen> {
 
   @override
   void initState() {
-    initialize();
     _airqoApiClient = AirqoApiClient(context);
+    initialize();
     super.initState();
   }
 

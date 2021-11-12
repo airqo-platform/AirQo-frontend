@@ -8,6 +8,7 @@ import 'package:app/utils/string_extension.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'measurement.dart';
 
@@ -116,28 +117,52 @@ class PlaceDetailsModel extends ChangeNotifier {
       UnmodifiableListView(_favouritePlaces);
 
   Future<void> clearFavouritePlaces() async {
-    _favouritePlaces.clear();
-    await _dbHelper.clearFavouritePlaces();
-    notifyListeners();
+    try {
+      _favouritePlaces.clear();
+      await _dbHelper.clearFavouritePlaces();
+      notifyListeners();
+    } catch (exception, stackTrace) {
+      debugPrint(exception.toString());
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   Future<void> loadFavouritePlaces(List<PlaceDetails> places) async {
-    _favouritePlaces
-      ..clear()
-      ..addAll(places);
-    await _dbHelper.setFavouritePlaces(places);
-    notifyListeners();
+    try {
+      _favouritePlaces
+        ..clear()
+        ..addAll(places);
+      await _dbHelper.setFavouritePlaces(places);
+      notifyListeners();
+    } catch (exception, stackTrace) {
+      debugPrint(exception.toString());
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   Future<void> reloadFavouritePlaces() async {
-    _favouritePlaces.clear();
+    try {
+      _favouritePlaces.clear();
 
-    var favPlaces = await _dbHelper.getFavouritePlaces();
-    _favouritePlaces.addAll(favPlaces);
-    notifyListeners();
-    var id = _customAuth.getId();
-    if (id != '') {
-      await _cloudStore.updateFavouritePlaces(id, favPlaces);
+      var favPlaces = await _dbHelper.getFavouritePlaces();
+      _favouritePlaces.addAll(favPlaces);
+      notifyListeners();
+      var id = _customAuth.getId();
+      if (_customAuth.isLoggedIn() && id != '') {
+        await _cloudStore.updateFavouritePlaces(id, favPlaces);
+      }
+    } catch (exception, stackTrace) {
+      debugPrint(exception.toString());
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
     }
   }
 }

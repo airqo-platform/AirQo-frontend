@@ -42,22 +42,21 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
   final _phoneFormKey = GlobalKey<FormState>();
 
   void autoVerifyPhoneFn(PhoneAuthCredential credential) {
-    _customAuth.signUpWithPhoneNumber(credential).then((value) => {
-          if (widget.action == 'signup')
-            {
-              Navigator.pushAndRemoveUntil(context,
-                  MaterialPageRoute(builder: (context) {
-                return ProfileSetupScreen(widget.enableBackButton);
-              }), (r) => false)
-            }
-          else
-            {
-              Navigator.pushAndRemoveUntil(context,
-                  MaterialPageRoute(builder: (context) {
-                return const HomePage();
-              }), (r) => false)
-            }
-        });
+    if (widget.action == 'signup') {
+      _customAuth.signUpWithPhoneNumber(credential).then((value) => {
+            Navigator.pushAndRemoveUntil(context,
+                MaterialPageRoute(builder: (context) {
+              return ProfileSetupScreen(widget.enableBackButton);
+            }), (r) => false)
+          });
+    } else {
+      _customAuth.logIn(credential, context).then((value) => {
+            Navigator.pushAndRemoveUntil(context,
+                MaterialPageRoute(builder: (context) {
+              return const HomePage();
+            }), (r) => false)
+          });
+    }
   }
 
   @override
@@ -399,6 +398,11 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
   }
 
   Future<void> requestVerification() async {
+    var connected = await _customAuth.isConnected();
+    if (!connected) {
+      await showSnackBar(context, ErrorMessages.timeoutException);
+      return;
+    }
     _phoneFormKey.currentState!.validate();
     if (_phoneFormValid) {
       setState(() {
@@ -437,6 +441,12 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
   }
 
   Future<void> resendVerificationCode() async {
+    var connected = await _customAuth.isConnected();
+    if (!connected) {
+      await showSnackBar(context, ErrorMessages.timeoutException);
+      return;
+    }
+
     if (_isResending) {
       return;
     }
@@ -490,6 +500,12 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
   }
 
   Future<void> verifySentCode() async {
+    var connected = await _customAuth.isConnected();
+    if (!connected) {
+      await showSnackBar(context, ErrorMessages.timeoutException);
+      return;
+    }
+
     var code = _phoneVerificationCode.join('');
 
     if (code.length != 6) {
@@ -510,22 +526,21 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
         verificationId: _verificationId,
         smsCode: _phoneVerificationCode.join(''));
     try {
-      await _customAuth.signUpWithPhoneNumber(credential).then((value) => {
-            if (widget.action == 'signup')
-              {
-                Navigator.pushAndRemoveUntil(context,
-                    MaterialPageRoute(builder: (context) {
-                  return ProfileSetupScreen(widget.enableBackButton);
-                }), (r) => false)
-              }
-            else
-              {
-                Navigator.pushAndRemoveUntil(context,
-                    MaterialPageRoute(builder: (context) {
-                  return const HomePage();
-                }), (r) => false)
-              }
-          });
+      if (widget.action == 'signup') {
+        await _customAuth.signUpWithPhoneNumber(credential).then((value) => {
+              Navigator.pushAndRemoveUntil(context,
+                  MaterialPageRoute(builder: (context) {
+                return ProfileSetupScreen(widget.enableBackButton);
+              }), (r) => false)
+            });
+      } else {
+        await _customAuth.logIn(credential, context).then((value) => {
+              Navigator.pushAndRemoveUntil(context,
+                  MaterialPageRoute(builder: (context) {
+                return const HomePage();
+              }), (r) => false)
+            });
+      }
     } on FirebaseAuthException catch (e) {
       if (e.code == 'invalid-verification-code') {
         await showSnackBar(context, 'Invalid Code');

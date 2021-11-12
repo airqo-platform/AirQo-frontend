@@ -3,6 +3,7 @@ import 'package:app/models/measurement.dart';
 import 'package:app/models/site.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/distance.dart';
+import 'package:app/utils/string_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoder/geocoder.dart';
 import 'package:geolocator/geolocator.dart';
@@ -92,8 +93,14 @@ class LocationService {
               location.longitude!));
           if (distanceInMeters < AppConfig.maxSearchRadius.toDouble()) {
             measurement.site.distance = distanceInMeters;
-            measurement.site.name = address.thoroughfare;
-            measurement.site.description = address.thoroughfare;
+            try {
+              if (!address.thoroughfare.isNull()) {
+                measurement.site.name = address.thoroughfare;
+                measurement.site.description = address.thoroughfare;
+              }
+            } catch (e) {
+              debugPrint(e.toString());
+            }
             nearestMeasurements.add(measurement);
           }
         }

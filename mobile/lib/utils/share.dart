@@ -88,7 +88,7 @@ Future<void> shareCard(BuildContext buildContext, GlobalKey globalKey,
   if (dialogResponse == 'image') {
     var boundary =
         globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-    var image = await boundary.toImage();
+    var image = await boundary.toImage(pixelRatio: 10.0);
     var byteData = await image.toByteData(format: ui.ImageByteFormat.png);
     var pngBytes = byteData!.buffer.asUint8List();
 
@@ -98,7 +98,7 @@ Future<void> shareCard(BuildContext buildContext, GlobalKey globalKey,
 
     var message = '${measurement.site.getName()}, Current Air Quality. \n\n'
         'Source: AiQo App';
-    Share.shareFiles([imgFile.path], text: message);
+    await Share.shareFiles([imgFile.path], text: message);
   } else {
     shareMeasurementText(measurement);
   }
@@ -201,7 +201,7 @@ Future<void> shareGraph(BuildContext buildContext, GlobalKey globalKey,
     PlaceDetails placeDetails) async {
   var boundary =
       globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-  var image = await boundary.toImage();
+  var image = await boundary.toImage(pixelRatio: 10.0);
   var byteData = await image.toByteData(format: ui.ImageByteFormat.png);
   var pngBytes = byteData!.buffer.asUint8List();
 
@@ -217,7 +217,7 @@ Future<void> shareGraph(BuildContext buildContext, GlobalKey globalKey,
 Future<void> shareKya(BuildContext buildContext, GlobalKey globalKey) async {
   var boundary =
       globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-  var image = await boundary.toImage();
+  var image = await boundary.toImage(pixelRatio: 10.0);
   var byteData = await image.toByteData(format: ui.ImageByteFormat.png);
   var pngBytes = byteData!.buffer.asUint8List();
 

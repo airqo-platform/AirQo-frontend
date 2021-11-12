@@ -22,7 +22,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
   var _emailAddress = '';
   bool _isVerifying = false;
   bool _isResending = false;
-  var _emailToken = '';
+  int _emailToken = 1;
   var _emailVerificationLink = '';
   var _requestCode = false;
   var _showResendCode = false;
@@ -316,7 +316,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
       _emailAddress = '';
       _isVerifying = false;
       _isResending = false;
-      _emailToken = '';
+      _emailToken = 000000;
       _emailVerificationLink = '';
       _requestCode = false;
       _showResendCode = false;
@@ -432,7 +432,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
       _isVerifying = true;
     });
 
-    if (code != _emailToken) {
+    if (code != _emailToken.toString()) {
       await showSnackBar(context, 'Invalid Code');
       setState(() {
         _nextBtnColor = ColorConstants.appColorBlue;

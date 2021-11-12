@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/alert.dart';
 import 'package:app/models/historical_measurement.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
@@ -30,28 +29,6 @@ class DBHelper {
     return _database;
   }
 
-  Future<bool> addAlert(Alert alert) async {
-    try {
-      final db = await database;
-
-      try {
-        var jsonData = alert.toJson();
-        await db.insert(
-          Alert.alertDbName(),
-          jsonData,
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
-        return true;
-      } catch (e) {
-        debugPrint(e.toString());
-      }
-    } catch (e) {
-      debugPrint(e.toString());
-    }
-
-    return false;
-  }
-
   Future<void> clearFavouritePlaces() async {
     try {
       final db = await database;
@@ -72,7 +49,6 @@ class DBHelper {
       await db.execute(Predict.dropTableStmt());
       await db.execute(Site.dropTableStmt());
       await db.execute(Story.dropTableStmt());
-      await db.execute(Alert.dropTableStmt());
       await db.execute(UserDetails.dropTableStmt());
       await db.execute(PlaceDetails.dropTableStmt());
       await prefs.setBool(PrefConstant.reLoadDb, false);
@@ -84,27 +60,8 @@ class DBHelper {
     await db.execute(Predict.createTableStmt());
     await db.execute(Site.createTableStmt());
     await db.execute(Story.createTableStmt());
-    await db.execute(Alert.createTableStmt());
     await db.execute(UserDetails.createTableStmt());
     await db.execute(PlaceDetails.createTableStmt());
-  }
-
-  Future<bool> deleteAlert(Alert alert) async {
-    try {
-      final db = await database;
-
-      try {
-        await db.delete(Alert.alertDbName(),
-            where: '${Alert.dbSiteId()} = ?', whereArgs: [alert.siteId]);
-        return true;
-      } catch (e) {
-        debugPrint(e.toString());
-      }
-    } catch (e) {
-      debugPrint(e.toString());
-    }
-
-    return false;
   }
 
   Future<void> deleteSearchHistory(Suggestion suggestion) async {
@@ -120,23 +77,6 @@ class DBHelper {
       }
     } catch (e) {
       debugPrint(e.toString());
-    }
-  }
-
-  Future<List<Alert>> getAlerts() async {
-    try {
-      final db = await database;
-
-      var res = await db.query(Alert.alertDbName());
-
-      return res.isNotEmpty
-          ? List.generate(res.length, (i) {
-              return Alert.fromJson(res[i]);
-            })
-          : <Alert>[];
-    } catch (e) {
-      debugPrint(e.toString());
-      return <Alert>[];
     }
   }
 

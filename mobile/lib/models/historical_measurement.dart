@@ -2,6 +2,7 @@ import 'package:app/models/measurement.dart';
 import 'package:app/models/site.dart';
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'measurement_value.dart';
 
@@ -163,8 +164,12 @@ class HistoricalMeasurement {
             measurement.getPm2_5Value() <= 500.4) {
           measurements.add(measurement);
         }
-      } catch (e) {
-        debugPrint(e.toString());
+      } catch (exception, stackTrace) {
+        debugPrint(exception.toString());
+        Sentry.captureException(
+          exception,
+          stackTrace: stackTrace,
+        );
       }
     }
 

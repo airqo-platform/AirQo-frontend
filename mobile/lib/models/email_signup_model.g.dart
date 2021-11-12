@@ -11,7 +11,7 @@ EmailSignupModel _$EmailSignupModelFromJson(Map<String, dynamic> json) =>
       json['success'] as bool,
       json['message'] as String,
       json['login_link'] as String,
-      json['token'] as String,
+      json['token'] as int,
       json['email'] as String,
     );
 

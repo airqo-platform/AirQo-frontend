@@ -32,7 +32,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
   bool _isVerifying = false;
   bool _isResending = false;
   String _emailVerificationLink = '';
-  String _emailToken = '';
+  int _emailToken = 1;
   bool _verifyCode = false;
   bool _codeSent = false;
   List<String> _emailVerificationCode = <String>['', '', '', '', '', ''];
@@ -335,7 +335,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
       _isVerifying = false;
       _isResending = false;
       _emailVerificationLink = '';
-      _emailToken = '';
+      _emailToken = 1;
       _verifyCode = false;
       _codeSent = false;
       _emailVerificationCode = <String>['', '', '', '', '', ''];
@@ -351,6 +351,12 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
   }
 
   Future<void> requestVerification() async {
+    var connected = await _customAuth.isConnected();
+    if (!connected) {
+      await showSnackBar(context, ErrorMessages.timeoutException);
+      return;
+    }
+
     _emailFormKey.currentState!.validate();
 
     if (!_emailFormValid || _isVerifying) {
@@ -406,6 +412,12 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
   }
 
   Future<void> resendVerificationCode() async {
+    var connected = await _customAuth.isConnected();
+    if (!connected) {
+      await showSnackBar(context, ErrorMessages.timeoutException);
+      return;
+    }
+
     if (_isResending) {
       return;
     }
@@ -445,6 +457,12 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
   }
 
   Future<void> verifySentCode() async {
+    var connected = await _customAuth.isConnected();
+    if (!connected) {
+      await showSnackBar(context, ErrorMessages.timeoutException);
+      return;
+    }
+
     var code = _emailVerificationCode.join('');
 
     if (code.length != 6) {
@@ -461,7 +479,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
       _isVerifying = true;
     });
 
-    if (code != _emailToken) {
+    if (code != _emailToken.toString()) {
       await showSnackBar(context, 'Invalid Code');
       setState(() {
         _nextBtnColor = ColorConstants.appColorBlue;
@@ -470,8 +488,15 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
       return;
     }
 
-    var success = await _customAuth.signUpWithEmailAddress(
-        _emailAddress, _emailVerificationLink);
+    var success = false;
+    if (widget.action == 'signup') {
+      success = await _customAuth.signUpWithEmailAddress(
+          _emailAddress, _emailVerificationLink);
+    } else {
+      success = await _customAuth.signInWithEmailAddress(
+          _emailAddress, _emailVerificationLink, context);
+    }
+
     if (success) {
       if (widget.action == 'signup') {
         await Navigator.pushAndRemoveUntil(context,

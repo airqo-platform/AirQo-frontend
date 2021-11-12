@@ -25,7 +25,7 @@ class Settings {
         var locationName = lastKnown.first;
         var measurement = await _dbHelper.getMeasurement(lastKnown.last);
         if (measurement != null) {
-          measurement.site.userLocation = locationName;
+          measurement.site.name = locationName;
           return measurement;
         }
       }
@@ -48,7 +48,7 @@ class Settings {
       return null;
     }
 
-    measurement.site.userLocation = address.thoroughfare;
+    measurement.site.name = address.thoroughfare;
 
     return measurement;
   }

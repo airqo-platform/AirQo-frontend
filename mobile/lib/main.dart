@@ -87,7 +87,7 @@ class AirQoApp extends StatelessWidget {
               final provider = Provider.of<LocaleProvider>(context);
 
               return MaterialApp(
-                debugShowCheckedModeBanner: false,
+                // debugShowCheckedModeBanner: false,
                 navigatorObservers: [
                   FirebaseAnalyticsObserver(analytics: analytics),
                 ],

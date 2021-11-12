@@ -36,7 +36,6 @@ class _InsightsCardState extends State<InsightsCard> {
   final List<charts.Series<InsightsChartData, DateTime>> _chartData = [];
   List<charts.Series<InsightsChartData, String>> _dailyChartData = [];
   List<charts.Series<InsightsChartData, String>> _hourlyChartData = [];
-  final ScrollController _scrollController = ScrollController();
   AirqoApiClient? _airqoApiClient;
   String _viewDay = 'today';
 

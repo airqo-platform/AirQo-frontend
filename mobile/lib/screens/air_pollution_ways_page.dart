@@ -1,6 +1,7 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/kya.dart';
 import 'package:app/services/fb_notifications.dart';
+import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/share.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/custom_widgets.dart';
@@ -8,13 +9,14 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'home_page.dart';
 
 class AirPollutionWaysPage extends StatefulWidget {
   final Kya kya;
   final bool trackProgress;
+
   const AirPollutionWaysPage(this.kya, this.trackProgress, {Key? key})
       : super(key: key);
 
@@ -28,6 +30,8 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
   bool _showLastPage = false;
   double _tipsProgress = 0.1;
   bool isSaving = false;
+  double? _interval;
+  double maxProgress = 1.0;
 
   final PageController _controller = PageController();
   final CloudAnalytics _cloudAnalytics = CloudAnalytics();
@@ -42,29 +46,29 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
         onWillPop: _onWillPop,
         child: slidesView(),
       );
-      // return slidesView();
     }
 
     if (_showLastPage) {
       if (widget.trackProgress) {
-        completeProgress();
+        updateKyaProgress();
         Future.delayed(const Duration(seconds: 3), () async {
           await Navigator.pushAndRemoveUntil(context,
               MaterialPageRoute(builder: (context) {
             return const HomePage();
           }), (r) => false);
         });
-        // return finalView();
         return WillPopScope(
           onWillPop: _onWillPop,
           child: finalView(),
         );
       } else {
-        Navigator.pop(context, true);
+        Future.delayed(const Duration(seconds: 3), () async {
+          Navigator.pop(context, true);
+        });
+        return endView();
       }
     }
 
-    // return mainView();
     return WillPopScope(
       onWillPop: _onWillPop,
       child: mainView(),
@@ -87,9 +91,54 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
     );
   }
 
-  Future<void> completeProgress() async {
-    await SharedPreferences.getInstance()
-        .then((value) => {value.setDouble(PrefConstant.tipsProgress, 2.0)});
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Widget endView() {
+    return Scaffold(
+      appBar: AppBar(
+        elevation: 0,
+        toolbarHeight: 0,
+        backgroundColor: ColorConstants.appBodyColor,
+      ),
+      body: Container(
+          color: ColorConstants.appBodyColor,
+          child: Center(
+            child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SvgPicture.asset(
+                    'assets/icon/learn_complete.svg',
+                    height: 133,
+                    width: 221,
+                  ),
+                  const SizedBox(
+                    height: 33.61,
+                  ),
+                  Text(
+                    'Well done',
+                    style: TextStyle(
+                        color: ColorConstants.appColorBlack,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(
+                    height: 8.0,
+                  ),
+                  Text(
+                    'Keep around to receive more air quality tips',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: ColorConstants.appColorBlack.withOpacity(0.5),
+                        fontSize: 16),
+                  ),
+                ]),
+          )),
+    );
   }
 
   Widget finalView() {
@@ -139,6 +188,10 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
   @override
   void initState() {
     _cloudAnalytics.logScreenTransition('Air Pollution ways');
+    _interval =
+        double.parse((1 / widget.kya.kyaItems.length).toStringAsFixed(3));
+    _tipsProgress = _interval!;
+    maxProgress = _tipsProgress * widget.kya.kyaItems.length;
     super.initState();
   }
 
@@ -236,6 +289,14 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
         ),
       ]),
     );
+  }
+
+  void showLastPage() {
+    updateKyaProgress();
+    setState(() {
+      _showLastPage = true;
+      _showSlides = false;
+    });
   }
 
   Widget slideCard(KyaItem kyaItem, int index) {
@@ -395,44 +456,36 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
               children: [
                 GestureDetector(
                     onTap: () async {
+                      if (_currentPage == 0) {
+                        setState(() {
+                          _tipsProgress = _interval!;
+                        });
+                      } else {
+                        setState(() {
+                          _tipsProgress = _tipsProgress - _interval!;
+                        });
+                      }
+
                       if (_currentPage > 0) {
                         await _controller.animateToPage(_currentPage - 1,
                             duration: const Duration(milliseconds: 200),
                             curve: Curves.bounceOut);
-                        if (_tipsProgress > 0.1) {
-                          setState(() {
-                            _tipsProgress = _tipsProgress - 0.1;
-                          });
-                        }
-                      }
-
-                      if (_currentPage == 0) {
-                        setState(() {
-                          _tipsProgress = 0.1;
-                        });
                       }
                     },
                     child: circularButton('assets/icon/previous_arrow.svg')),
                 GestureDetector(
                     onTap: () async {
-                      if (_currentPage == widget.kya.kyaItems.length - 1) {
-                        setState(() {
-                          _showLastPage = true;
-                          _showSlides = false;
-                        });
-                      } else if (_currentPage <=
-                          widget.kya.kyaItems.length - 1) {
-                        await _controller.animateToPage(_currentPage + 1,
-                            duration: const Duration(milliseconds: 200),
-                            curve: Curves.bounceIn);
-                        if (_controller.page != null) {
-                          await updateProgress();
-                        }
+                      if (_tipsProgress >= maxProgress) {
+                        showLastPage();
                       } else {
-                        setState(() {
-                          _showLastPage = true;
-                          _showSlides = false;
-                        });
+                        if (_currentPage < (widget.kya.kyaItems.length - 1)) {
+                          await _controller.animateToPage(_currentPage + 1,
+                              duration: const Duration(milliseconds: 200),
+                              curve: Curves.bounceIn);
+                          await updateProgress();
+                        } else {
+                          showLastPage();
+                        }
                       }
                     },
                     child: circularButton('assets/icon/next_arrow.svg')),
@@ -452,6 +505,16 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
   }
 
   Future<void> updateKyaProgress() async {
+    if (!widget.trackProgress) {
+      return;
+    }
+
+    var connected = await _cloudStore.isConnected();
+    if (!connected) {
+      await showSnackBar(context, ErrorMessages.timeoutException);
+      return;
+    }
+
     if (isSaving) {
       return;
     }
@@ -460,20 +523,28 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
       isSaving = true;
     });
 
-    if (widget.trackProgress) {
-      var page = _controller.page;
-      if (page != null) {
-        var progress = (page / widget.kya.kyaItems.length) * 99;
-        await _cloudStore.updateKyaProgress(
-            _customAuth.getId(), widget.kya, progress);
+    try {
+      if (widget.trackProgress) {
+        var page = _controller.page;
+        if (page != null) {
+          var progress = (page / widget.kya.kyaItems.length) * 99;
+          await _cloudStore.updateKyaProgress(
+              _customAuth.getId(), widget.kya, progress);
+        }
       }
+    } catch (exception, stackTrace) {
+      debugPrint(exception.toString());
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
     }
   }
 
   Future<void> updateProgress() async {
     try {
       setState(() {
-        _tipsProgress = _tipsProgress + 0.1;
+        _tipsProgress = _tipsProgress + _interval!;
       });
     } catch (e) {
       debugPrint(e.toString());
