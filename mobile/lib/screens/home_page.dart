@@ -11,7 +11,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 
 import 'dashboard_view.dart';
-import 'maps_view.dart';
+import 'map_view.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);

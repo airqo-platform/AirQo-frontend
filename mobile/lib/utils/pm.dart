@@ -514,6 +514,28 @@ BitmapDescriptor pmToMarkerPoint(double pm2_5) {
   }
 }
 
+Future<BitmapDescriptor> pmToSmallMarker(double pm2_5) async {
+  var width = 20;
+  var bgColor = pm2_5ToColor(pm2_5);
+
+  final pictureRecorder = PictureRecorder();
+  final canvas = Canvas(pictureRecorder);
+  final paint = Paint()..color = bgColor;
+  final radius = width / 2;
+  canvas.drawCircle(
+    Offset(radius, radius),
+    radius,
+    paint,
+  );
+
+  final image = await pictureRecorder.endRecording().toImage(
+    radius.toInt() * 2,
+    radius.toInt() * 2,
+  );
+  final data = await image.toByteData(format: ImageByteFormat.png);
+  return BitmapDescriptor.fromBytes(data!.buffer.asUint8List());
+}
+
 class Recommendation {
   String title = '';
   String body = '';

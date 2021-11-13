@@ -35,7 +35,7 @@ class _MapViewState extends State<MapView> {
   List<Measurement> _regionSites = [];
   List<Measurement> _searchSites = [];
   List<Measurement> _latestMeasurements = [];
-  String sessionToken = const Uuid().v4();
+  final String sessionToken = const Uuid().v4();
   List<Suggestion> _searchSuggestions = [];
   SearchApi? _searchApiClient;
   final DBHelper _dbHelper = DBHelper();
@@ -124,7 +124,6 @@ class _MapViewState extends State<MapView> {
     _airqoApiClient = AirqoApiClient(context);
     _searchApiClient = SearchApi(sessionToken, context);
     _cloudAnalytics.logScreenTransition('Map Tab');
-    _getLatestMeasurements();
   }
 
   Widget locationContent() {
@@ -278,11 +277,13 @@ class _MapViewState extends State<MapView> {
             ),
           ),
         ),
-        if (_isSearching || _regionSites.isEmpty)
+        // if (_isSearching || _regionSites.isEmpty)
+        if (!_displayRegions)
           const SizedBox(
             width: 8.0,
           ),
-        if (_isSearching || _regionSites.isEmpty)
+        // if (_isSearching || _regionSites.isEmpty)
+        if (!_displayRegions)
           Container(
               height: 32,
               width: 32,
@@ -442,34 +443,76 @@ class _MapViewState extends State<MapView> {
     );
   }
 
-  Future<void> setMarker(Measurement measurement) async {
-    var markers = <String, Marker>{};
-    var bitmapDescriptor = await pmToMarker(measurement.getPm2_5Value());
+  Future<void> setMarkers(List<Measurement> measurements, bool useSingleZoom, double zoom) async {
 
-    final marker = Marker(
-      markerId: MarkerId(measurement.site.id),
-      icon: bitmapDescriptor,
-      position: LatLng((measurement.site.latitude), measurement.site.longitude),
-      infoWindow: InfoWindow(
-        title: measurement.getPm2_5Value().toStringAsFixed(2),
-        // snippet: node.location,
-      ),
-      onTap: () {
-        // updateInfoWindow(measurement);
-      },
-    );
-    markers[measurement.site.id] = marker;
-
-    if (mounted) {
-      var latLng =
-          LatLng(measurement.site.latitude, measurement.site.longitude);
-
-      var _cameraPosition = CameraPosition(target: latLng, zoom: 14);
-
+    if(measurements.isEmpty){
       final controller = _mapController;
 
       await controller
-          .animateCamera(CameraUpdate.newCameraPosition(_cameraPosition));
+          .animateCamera(CameraUpdate.newCameraPosition(
+          _defaultCameraPosition));
+
+      setState(() {
+        _markers.clear();
+        _markers = {};
+      });
+      return;
+    }
+    var markers = <String, Marker>{};
+
+    for(var measurement in measurements){
+
+      BitmapDescriptor bitmapDescriptor;
+
+      if(useSingleZoom){
+        bitmapDescriptor = await pmToMarker(measurement.getPm2_5Value());
+      }
+      else{
+        bitmapDescriptor = await pmToSmallMarker(measurement.getPm2_5Value());
+      }
+
+      var marker = Marker(
+        markerId: MarkerId(measurement.site.id),
+        icon: bitmapDescriptor,
+        position: LatLng((measurement.site.latitude),
+            measurement.site.longitude),
+        infoWindow: InfoWindow(
+          title: measurement.getPm2_5Value().toStringAsFixed(2),
+          // snippet: node.location,
+        ),
+        onTap: () {
+          // updateInfoWindow(measurement);
+        },
+      );
+      markers[measurement.site.id] = marker;
+    }
+
+
+    if (mounted) {
+      if(useSingleZoom){
+        var latLng = LatLng(measurements.first.site.latitude,
+            measurements.first.site.longitude);
+
+        var _cameraPosition = CameraPosition(target: latLng, zoom: zoom);
+
+        final controller = _mapController;
+
+        await controller
+            .animateCamera(CameraUpdate.newCameraPosition(_cameraPosition));
+      }
+      else{
+        var latLng = LatLng(measurements.first.site.latitude,
+            measurements.first.site.longitude);
+
+        var _cameraPosition = CameraPosition(target: latLng, zoom: zoom);
+
+        final controller = _mapController;
+
+        await controller
+            .animateCamera(CameraUpdate.newCameraPosition(
+            _cameraPosition));
+      }
+
 
       setState(() {
         _markers.clear();
@@ -496,14 +539,14 @@ class _MapViewState extends State<MapView> {
 
       var place = places.first;
 
-      setMarker(place);
+      setMarkers([place], true, 14);
       setState(() {
         _locationPlaceMeasurement = placeDetails;
         _locationMeasurement = place;
         _showLocationDetails = true;
       });
     } else if (measurement != null) {
-      setMarker(measurement);
+      setMarkers([measurement], true, 14);
       setState(() {
         _locationPlaceMeasurement =
             PlaceDetails.measurementToPLace(measurement);
@@ -522,19 +565,20 @@ class _MapViewState extends State<MapView> {
       _showLocationDetails = false;
       _displayRegions = true;
     });
+    setMarkers(_latestMeasurements, false, 6.6);
   }
 
-  void showRegionSites(String region) {
+  Future<void> showRegionSites(String region) async {
     setState(() {
       _selectedRegion = region;
     });
-    _dbHelper.getRegionSites(region).then((value) => {
-          setState(() {
-            _showLocationDetails = false;
-            _displayRegions = false;
-            _regionSites = value;
-          })
-        });
+    var sites = await _dbHelper.getRegionSites(region);
+    setState(() {
+      _showLocationDetails = false;
+      _displayRegions = false;
+      _regionSites = sites;
+    });
+    await setMarkers(sites, false, 10);
   }
 
   Future<void> showSuggestionReadings(Suggestion suggestion) async {
@@ -671,24 +715,27 @@ class _MapViewState extends State<MapView> {
   }
 
   Future<void> _getLatestMeasurements() async {
-    await _dbHelper.getLatestMeasurements().then((value) => {
-          if (mounted)
-            {
-              setState(() {
-                _latestMeasurements = value;
-              })
-            }
-        });
+    var dbMeasurements = await _dbHelper.getLatestMeasurements();
 
-    var measurements = await _airqoApiClient!.fetchLatestMeasurements();
-
-    if (measurements.isNotEmpty) {
+    if (dbMeasurements.isNotEmpty && mounted) {
       if (mounted) {
+        await setMarkers(dbMeasurements, false, 6.6);
         setState(() {
-          _latestMeasurements = measurements;
+          _latestMeasurements = dbMeasurements;
         });
       }
-      await _dbHelper.insertLatestMeasurements(measurements);
+
+      var measurements = await _airqoApiClient!.fetchLatestMeasurements();
+
+      if (measurements.isNotEmpty) {
+        if (mounted) {
+          await setMarkers(measurements, false, 6.6);
+          setState(() {
+            _latestMeasurements = measurements;
+          });
+        }
+        await _dbHelper.insertLatestMeasurements(measurements);
+      }
     }
   }
 
@@ -715,5 +762,7 @@ class _MapViewState extends State<MapView> {
     });
 
     await _loadTheme();
+    await _getLatestMeasurements();
+
   }
 }

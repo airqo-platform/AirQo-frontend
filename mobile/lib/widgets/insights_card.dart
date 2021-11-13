@@ -167,7 +167,7 @@ class _InsightsCardState extends State<InsightsCard> {
                     child: Container(
                       padding: const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
                       constraints: BoxConstraints(
-                          maxWidth: MediaQuery.of(context).size.width / 2.5),
+                          maxWidth: MediaQuery.of(context).size.width / 2),
                       decoration: BoxDecoration(
                           borderRadius:
                               const BorderRadius.all(Radius.circular(40.0)),
