@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 import { useAirQloudsData } from "utils/customHooks/AirQloudsHooks";
 import { useCurrentAirQloudData } from "redux/AirQloud/selectors";
 import { setCurrentAirQloudData } from "redux/AirQloud/operations";
-import {resetDefaultGraphData } from "redux/Dashboard/operations";
+import { resetDefaultGraphData } from "redux/Dashboard/operations";
 
 // styles
 import "assets/css/dropdown.css";
