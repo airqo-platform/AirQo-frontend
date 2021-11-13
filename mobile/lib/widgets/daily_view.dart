@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'custom_widgets.dart';
 import 'insights_card.dart';
@@ -29,9 +30,14 @@ class _DailyViewState extends State<DailyView> {
   bool pm10 = false;
   bool pm2_5 = true;
   bool showHeartAnimation = false;
-  final DBHelper _dbHelper = DBHelper();
+  SharedPreferences? _preferences;
   List<Recommendation> _recommendations = [];
+  final DBHelper _dbHelper = DBHelper();
   final GlobalKey _globalKey = GlobalKey();
+
+  final String _toggleToolTipText = 'Customize your air quality analytics '
+      'with a single click ';
+  final GlobalKey _toggleToolTipKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -257,7 +263,9 @@ class _DailyViewState extends State<DailyView> {
     );
   }
 
-  void initialize() {}
+  void initialize() {
+    _showHelpTips(false);
+  }
 
   @override
   void initState() {
@@ -281,5 +289,16 @@ class _DailyViewState extends State<DailyView> {
       });
     });
     await _dbHelper.updateFavouritePlaces(widget.placeDetails, context);
+  }
+
+  void _showHelpTips(bool show) {
+    try {
+      if (show) {
+        showTipText(
+            _toggleToolTipText, _toggleToolTipKey, context, () {}, false);
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+    }
   }
 }

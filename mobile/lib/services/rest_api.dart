@@ -32,7 +32,7 @@ class AirqoApiClient {
           DateTime.now().add(const Duration(hours: 1)).millisecondsSinceEpoch /
               1000;
 
-      var url = '${AirQoUrls().forecastV2}$channelId/${startTime.round()}';
+      var url = '${AirQoUrls().forecast}$channelId/${startTime.round()}';
 
       final responseBody = await _performGetRequestV2(<String, dynamic>{}, url);
 

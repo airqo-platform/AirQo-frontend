@@ -85,7 +85,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
   final GlobalKey _globalKey = GlobalKey();
   final String _infoToolTipText = 'Tap this icon'
       ' to understand what air quality analytics mean';
-  final GlobalKey _infoBtnToolTipKey = GlobalKey();
+  final GlobalKey _infoToolTipKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -120,7 +120,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                             semanticsLabel: 'Pm2.5',
                             height: 20,
                             width: 20,
-                            key: _infoBtnToolTipKey,
+                            key: _infoToolTipKey,
                           ),
                         ],
                       ),
@@ -138,13 +138,8 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                               child: analyticsAvatar(
                                   widget.measurement, 104, 40, 12),
                               onTap: () {
-                                showTipText(
-                                    _infoToolTipText,
-                                    _infoBtnToolTipKey,
-                                    context,
-                                    () {},
-                                    null,
-                                    null);
+                                showTipText(_infoToolTipText, _infoToolTipKey,
+                                    context, () {}, false);
                               },
                             ),
                             const SizedBox(width: 16.0),
@@ -200,11 +195,10 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                     onTap: () {
                                       showTipText(
                                           _infoToolTipText,
-                                          _infoBtnToolTipKey,
+                                          _infoToolTipKey,
                                           context,
                                           () {},
-                                          null,
-                                          null);
+                                          false);
                                     },
                                   ),
                                   const SizedBox(
@@ -399,15 +393,20 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
 
   @override
   void initState() {
-    if (widget.showHelpTip) {
-      try {
-        showTipText(
-            _infoToolTipText, _infoBtnToolTipKey, context, () {}, null, null);
-      } catch (e) {
-        debugPrint(e.toString());
-      }
-    }
+    showTips();
     super.initState();
+  }
+
+  void showTips() {
+    if (widget.showHelpTip) {
+      Future.delayed(const Duration(seconds: 2), () {
+        try {
+          showTipText(_infoToolTipText, _infoToolTipKey, context, () {}, false);
+        } catch (e) {
+          debugPrint(e.toString());
+        }
+      });
+    }
   }
 
   void updateFavPlace() async {

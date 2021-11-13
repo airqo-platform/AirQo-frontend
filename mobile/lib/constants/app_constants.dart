@@ -313,6 +313,8 @@ class PrefConstant {
 
   static String get initialDbLoad => 'initialDbLoad';
 
+  static String get insightsCardTips => 'insightsCardTips';
+
   static String get isSignedUp => 'isSignedUp';
 
   static String get lastKnownLocation => 'lastKnownLocation';

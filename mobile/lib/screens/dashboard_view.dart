@@ -617,8 +617,8 @@ class _DashboardViewState extends State<DashboardView> {
             child: GestureDetector(
               onTap: () async {
                 if (_favLocations.isEmpty) {
-                  showTipText(_favToolTipText, _favToolTipKey, context, () {},
-                      null, null);
+                  showTipText(
+                      _favToolTipText, _favToolTipKey, context, () {}, false);
                   return;
                 }
                 await Navigator.push(context,
@@ -675,7 +675,7 @@ class _DashboardViewState extends State<DashboardView> {
               onTap: () async {
                 if (_completeKya.isEmpty) {
                   showTipText(
-                      _kyaToolTipText, _kyaToolTipKey, context, () {}, 60, 200);
+                      _kyaToolTipText, _kyaToolTipKey, context, () {}, true);
                   return;
                 }
                 await Navigator.push(context,
@@ -966,8 +966,8 @@ class _DashboardViewState extends State<DashboardView> {
               _showAnalyticsCardTips = true;
             });
             // _preferences!.setBool(PrefConstant.homePageTips, false);
-          }, 60, 200);
-        }, null, null);
+          }, true);
+        }, false);
       }
     } catch (e) {
       debugPrint(e.toString());

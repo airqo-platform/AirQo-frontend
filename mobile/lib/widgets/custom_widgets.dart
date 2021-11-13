@@ -483,14 +483,14 @@ Widget searchPlaceTile(Suggestion searchSuggestion) {
 }
 
 void showTipText(String text, GlobalKey tootTipKey, BuildContext context,
-    VoidCallback dismissFn, double? height, double? width) {
+    VoidCallback dismissFn, bool small) {
   ShowMoreTextPopup(
     context,
     text: text,
     onDismiss: dismissFn,
     textStyle: const TextStyle(color: Colors.white, fontSize: 10),
-    height: height ?? 64,
-    width: width ?? 261,
+    height: small ? 60.0 : 64.0,
+    width: small ? 200.0 : 261.0,
     backgroundColor: ColorConstants.appColorBlack,
     padding: const EdgeInsets.fromLTRB(16.0, 18, 16, 18),
     borderRadius: BorderRadius.circular(8.0),

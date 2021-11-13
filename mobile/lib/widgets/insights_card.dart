@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/historical_measurement.dart';
 import 'package:app/models/insights_chart_data.dart';
@@ -11,6 +13,7 @@ import 'package:app/utils/pm.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'custom_shimmer.dart';
 import 'custom_widgets.dart';
@@ -18,11 +21,11 @@ import 'custom_widgets.dart';
 class InsightsCard extends StatefulWidget {
   final PlaceDetails placeDetails;
   final bool daily;
-  final dynamic callBackFn;
+  final ValueSetter<InsightsChartData> insightsValueCallBack;
   final String pollutant;
 
   const InsightsCard(
-      this.placeDetails, this.callBackFn, this.pollutant, this.daily,
+      this.placeDetails, this.insightsValueCallBack, this.pollutant, this.daily,
       {Key? key})
       : super(key: key);
 
@@ -38,6 +41,16 @@ class _InsightsCardState extends State<InsightsCard> {
   List<charts.Series<InsightsChartData, String>> _hourlyChartData = [];
   AirqoApiClient? _airqoApiClient;
   String _viewDay = 'today';
+  SharedPreferences? _preferences;
+  List<charts.TickSpec<String>> _hourlyStaticTicks = [];
+
+  final String _forecastToolTipText = 'This icon turns blue when viewing '
+      'forecast';
+  final String _infoToolTipText = 'Tap this icon to understand what air '
+      'quality analytics mean';
+
+  final GlobalKey _forecastToolTipKey = GlobalKey();
+  final GlobalKey _infoToolTipKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -90,8 +103,14 @@ class _InsightsCardState extends State<InsightsCard> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      insightsAvatar(
-                          context, _selectedMeasurement!, 64, widget.pollutant),
+                      GestureDetector(
+                        onTap: () {
+                          showTipText(_infoToolTipText, _infoToolTipKey,
+                              context, () {}, false);
+                        },
+                        child: insightsAvatar(context, _selectedMeasurement!,
+                            64, widget.pollutant),
+                      )
                     ],
                   ),
                   widget.daily ? dailyChart() : hourlyChart(),
@@ -215,6 +234,7 @@ class _InsightsCardState extends State<InsightsCard> {
                           semanticsLabel: 'Pm2.5',
                           height: 20,
                           width: 20,
+                          key: _infoToolTipKey,
                         ),
                       )),
                   const Spacer(),
@@ -223,6 +243,7 @@ class _InsightsCardState extends State<InsightsCard> {
                       Container(
                           height: 10,
                           width: 10,
+                          key: _forecastToolTipKey,
                           decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: _selectedMeasurement!.time
@@ -406,61 +427,45 @@ class _InsightsCardState extends State<InsightsCard> {
     );
   }
 
-  Future<void> getForecast(int deviceNumber, value) async {
+  Future<void> getForecast(
+      int deviceNumber, List<HistoricalMeasurement> value) async {
     var predictions = await _airqoApiClient!.fetchForecast(deviceNumber);
 
-    if (predictions.isNotEmpty) {
-      var predictedValues = Predict.getMeasurements(
-          predictions, widget.placeDetails.siteId, deviceNumber, true);
-      var combined = value..addAll(predictedValues);
-
-      setState(() {
-        _measurements = combined;
-        _hourlyChartData = insightsHourlyChartData(
-            combined, widget.pollutant, widget.placeDetails);
-      });
-      widget.callBackFn(_hourlyChartData.toList().first.data.last);
+    if (predictions.isEmpty) {
+      return;
     }
+    var combined = value;
+    var predictedValues = Predict.getMeasurements(
+        predictions, widget.placeDetails.siteId, deviceNumber, true);
+
+    for (var predict in predictedValues) {
+      var isPresent = value.where((measurement) {
+        return DateTime.parse(measurement.time).hour ==
+            DateTime.parse(predict.time).hour;
+      }).toList();
+
+      if (isPresent.isNotEmpty) {
+        continue;
+      }
+      combined.add(predict);
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _measurements = combined;
+      _hourlyChartData = insightsHourlyChartData(
+          combined, widget.pollutant, widget.placeDetails);
+    });
+    _showHelpTips();
   }
 
-  Future<void> getMeasurements() async {
-    await _airqoApiClient!
-        .fetchSiteHistoricalMeasurements(
-            widget.placeDetails.siteId, widget.daily)
-        .then((value) => {
-              if (value.isNotEmpty && mounted)
-                {
-                  setState(() {
-                    _selectedMeasurement =
-                        InsightsChartData.historicalDataToInsightsData(
-                            value.first, widget.pollutant, widget.placeDetails);
-                    if (widget.daily) {
-                      setState(() {
-                        _measurements = value;
-                        _dailyChartData = insightsDailyChartData(
-                            value, widget.pollutant, widget.placeDetails);
-                      });
-                      widget
-                          .callBackFn(_dailyChartData.toList().first.data.last);
-                    } else {
-                      setState(() {
-                        _measurements = value;
-                        _hourlyChartData = insightsHourlyChartData(
-                            value, widget.pollutant, widget.placeDetails);
-                      });
-                      widget.callBackFn(
-                          _hourlyChartData.toList().first.data.last);
-
-                      if (widget.pollutant == 'pm2.5') {
-                        getForecast(value.first.deviceNumber, value);
-                      }
-                    }
-                  }),
-                }
-            });
-  }
-
-  Widget hourlyChart() {
+  void getHourlyTicks() {
+    setState(() {
+      _hourlyStaticTicks = [];
+    });
     var staticTicks = <charts.TickSpec<String>>[];
     for (var i = 0; i <= 24; i++) {
       if ((i == 0) || (i == 6) || (i == 12) || (i == 18)) {
@@ -476,7 +481,58 @@ class _InsightsCardState extends State<InsightsCard> {
                 color: charts.ColorUtil.fromDartColor(Colors.transparent))));
       }
     }
+    setState(() {
+      _hourlyStaticTicks = staticTicks;
+    });
+  }
 
+  Future<void> getMeasurements() async {
+    await _airqoApiClient!
+        .fetchSiteHistoricalMeasurements(
+            widget.placeDetails.siteId, widget.daily)
+        .then((value) => {
+              if (value.isNotEmpty && mounted)
+                {
+                  setState(() {
+                    _selectedMeasurement =
+                        InsightsChartData.historicalDataToInsightsData(
+                            value.first, widget.pollutant, widget.placeDetails);
+                  }),
+                  if (widget.daily)
+                    {
+                      setState(() {
+                        _measurements = value;
+                        _dailyChartData = insightsDailyChartData(
+                            value, widget.pollutant, widget.placeDetails);
+                      }),
+                      widget.insightsValueCallBack(
+                          _dailyChartData.toList().first.data.last),
+                      _showHelpTips(),
+                    }
+                  else
+                    {
+                      setState(() {
+                        _measurements = value;
+                        _hourlyChartData = insightsHourlyChartData(
+                            value, widget.pollutant, widget.placeDetails);
+                      }),
+                      widget.insightsValueCallBack(
+                          _hourlyChartData.toList().first.data.last),
+                      if (widget.pollutant == 'pm2.5')
+                        {
+                          getForecast(value.first.deviceNumber, value),
+                        }
+                      else
+                        {
+                          _showHelpTips(),
+                        }
+                    },
+                }
+            });
+  }
+
+  Widget hourlyChart() {
+    getHourlyTicks();
     return SizedBox(
       width: MediaQuery.of(context).size.width,
       height: 150,
@@ -517,7 +573,7 @@ class _InsightsCardState extends State<InsightsCard> {
         // ),
         domainAxis: charts.OrdinalAxisSpec(
             tickProviderSpec:
-                charts.StaticOrdinalTickProviderSpec(staticTicks)),
+                charts.StaticOrdinalTickProviderSpec(_hourlyStaticTicks)),
 
         primaryMeasureAxis: charts.NumericAxisSpec(
           tickProviderSpec: charts.StaticNumericTickProviderSpec(
@@ -551,13 +607,12 @@ class _InsightsCardState extends State<InsightsCard> {
 
   @override
   void initState() {
-    _airqoApiClient = AirqoApiClient(context);
-    getMeasurements();
+    _initialize();
     super.initState();
   }
 
   void updateUI(InsightsChartData insightsChartData) {
-    widget.callBackFn(insightsChartData);
+    widget.insightsValueCallBack(insightsChartData);
     setState(() {
       _selectedMeasurement = insightsChartData;
     });
@@ -572,6 +627,28 @@ class _InsightsCardState extends State<InsightsCard> {
       setState(() {
         _viewDay = 'tomorrow';
       });
+    }
+  }
+
+  Future<void> _initialize() async {
+    _preferences = await SharedPreferences.getInstance();
+    _airqoApiClient = AirqoApiClient(context);
+    await getMeasurements();
+  }
+
+  void _showHelpTips() {
+    try {
+      var showHelpTips =
+          _preferences!.getBool(PrefConstant.insightsCardTips) ?? true;
+      if (showHelpTips) {
+        showTipText(_infoToolTipText, _infoToolTipKey, context, () {
+          showTipText(_forecastToolTipText, _forecastToolTipKey, context, () {
+            // _preferences!.setBool(PrefConstant.insightsCardTips, false);
+          }, true);
+        }, true);
+      }
+    } catch (e) {
+      debugPrint(e.toString());
     }
   }
 }
