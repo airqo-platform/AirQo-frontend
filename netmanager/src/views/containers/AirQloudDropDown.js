@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { useAirQloudsData } from "utils/customHooks/AirQloudsHooks";
 import { useCurrentAirQloudData } from "redux/AirQloud/selectors";
@@ -9,6 +9,8 @@ import { resetDefaultGraphData } from "redux/Dashboard/operations";
 import "assets/css/dropdown.css";
 
 const AirQloudDropDown = () => {
+  const ref = useRef();
+  const [show, setShow] = useState(false);
   const currentAirqQloud = useCurrentAirQloudData();
   const dispatch = useDispatch();
 
@@ -20,18 +22,35 @@ const AirQloudDropDown = () => {
     return 0;
   });
 
+  const toggleShow = () => setShow(!show);
+
   const handleAirQloudChange = (airqloud) => async () => {
+    toggleShow();
     await dispatch(setCurrentAirQloudData(airqloud));
     dispatch(resetDefaultGraphData());
   };
 
+  useEffect(() => {
+    const checkIfClickedOutside = (e) => {
+      // If the menu is open and the clicked target is not within the menu,
+      // then close the menu
+      if (show && ref.current && !ref.current.contains(e.target))
+        setShow(false);
+    };
+
+    document.addEventListener("mousedown", checkIfClickedOutside);
+
+    return () => {
+      // Cleanup the event listener
+      document.removeEventListener("mousedown", checkIfClickedOutside);
+    };
+  }, [show]);
+
   return (
-    <label className="dropdown">
+    <label className="dropdown" onClick={toggleShow} ref={ref}>
       <div className="dd-button">{currentAirqQloud.long_name}</div>
 
-      <input type="checkbox" className="dd-input" id="test" />
-
-      <ul className="dd-menu">
+      <ul className={`dd-menu ${(!show && "dd-input") || ""}`}>
         <li className="selected">
           {currentAirqQloud.long_name} AirQloud{" "}
           <span>
