@@ -309,6 +309,8 @@ class PrefConstant {
 
   static String get firstUse => 'isFirstUse';
 
+  static String get homePageTips => 'homePageTips';
+
   static String get initialDbLoad => 'initialDbLoad';
 
   static String get isSignedUp => 'isSignedUp';
@@ -318,8 +320,6 @@ class PrefConstant {
   static String get reLoadDb => 'recreateTables';
 
   static String get siteAlerts => 'siteAlerts';
-
-  static String get tipsProgress => 'tipsProgress';
 }
 
 enum Status { none, running, stopped, paused }

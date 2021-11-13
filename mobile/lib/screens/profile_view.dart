@@ -271,7 +271,7 @@ class _ProfileViewState extends State<ProfileView> {
           Divider(
             color: ColorConstants.appBodyColor,
           ),
-          cardSection('Favorite', 'assets/icon/heart.svg', null, favPlaces),
+          cardSection('Favorites', 'assets/icon/heart.svg', null, favPlaces),
           Divider(
             color: ColorConstants.appBodyColor,
           ),

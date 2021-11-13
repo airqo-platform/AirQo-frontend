@@ -2,11 +2,11 @@ import 'package:app/constants/app_constants.dart';
 import 'package:app/models/insights_chart_data.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/suggestion.dart';
-import 'package:app/screens/air_pollution_ways_page_v1.dart';
 import 'package:app/utils/pm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:show_more_text_popup/show_more_text_popup.dart';
 
 PreferredSizeWidget actionsAppBar(context) {
   return AppBar(
@@ -482,89 +482,19 @@ Widget searchPlaceTile(Suggestion searchSuggestion) {
   );
 }
 
-Widget tipWidget(context, header) {
-  return Container(
-    padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
-    decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.all(Radius.circular(16.0))),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(
-          child: Column(
-            children: [
-              GestureDetector(
-                onTap: () async {
-                  await Navigator.push(context,
-                      MaterialPageRoute(builder: (context) {
-                    return const AirPollutionWaysPageV1();
-                  }));
-                },
-                child: Text(header,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    )),
-              ),
-              const SizedBox(
-                height: 28,
-              ),
-              GestureDetector(
-                onTap: () async {
-                  await Navigator.push(context,
-                      MaterialPageRoute(builder: (context) {
-                    return const AirPollutionWaysPageV1();
-                  }));
-                },
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Text('Start reading',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: ColorConstants.appColorBlue,
-                        )),
-                    const SizedBox(
-                      width: 6,
-                    ),
-                    Icon(
-                      Icons.arrow_forward_ios_sharp,
-                      size: 10,
-                      color: ColorConstants.appColorBlue,
-                    )
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(
-          width: 16,
-        ),
-        GestureDetector(
-          onTap: () async {
-            await Navigator.push(context, MaterialPageRoute(builder: (context) {
-              return const AirPollutionWaysPageV1();
-            }));
-          },
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8.0),
-            child: Image.asset(
-              'assets/images/backyard_trash_burning.png',
-              width: 104,
-              height: 104,
-              fit: BoxFit.cover,
-            ),
-          ),
-        ),
-      ],
-    ),
+void showTipText(String text, GlobalKey tootTipKey, BuildContext context,
+    VoidCallback dismissFn, double? height, double? width) {
+  ShowMoreTextPopup(
+    context,
+    text: text,
+    onDismiss: dismissFn,
+    textStyle: const TextStyle(color: Colors.white, fontSize: 10),
+    height: height ?? 64,
+    width: width ?? 261,
+    backgroundColor: ColorConstants.appColorBlack,
+    padding: const EdgeInsets.fromLTRB(16.0, 18, 16, 18),
+    borderRadius: BorderRadius.circular(8.0),
+  ).show(
+    widgetKey: tootTipKey,
   );
 }

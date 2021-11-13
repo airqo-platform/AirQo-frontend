@@ -270,11 +270,11 @@ class _TipsPageState extends State<TipsPage> {
     try {
       var preferences = await SharedPreferences.getInstance();
 
-      var progress = preferences.getDouble(PrefConstant.tipsProgress) ?? 0.0;
+      var progress = preferences.getDouble(PrefConstant.homePageTips) ?? 0.0;
       var newProgress = (controller.page! / 10) + 0.1;
 
       if (newProgress > progress) {
-        await preferences.setDouble(PrefConstant.tipsProgress, newProgress);
+        await preferences.setDouble(PrefConstant.homePageTips, newProgress);
       }
     } catch (e) {
       debugPrint(e.toString());

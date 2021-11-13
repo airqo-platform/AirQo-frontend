@@ -13,6 +13,7 @@ import 'package:app/utils/date.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/widgets/analytics_card.dart';
 import 'package:app/widgets/custom_shimmer.dart';
+import 'package:app/widgets/custom_widgets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -22,7 +23,6 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'air_pollution_ways_page.dart';
-import 'air_pollution_ways_page_v1.dart';
 import 'favourite_places.dart';
 import 'for_you_page.dart';
 
@@ -35,19 +35,27 @@ class DashboardView extends StatefulWidget {
 
 class _DashboardViewState extends State<DashboardView> {
   String _greetings = '';
-  double tipsProgress = 0.0;
   bool _showName = true;
   List<Widget> _favLocations = [];
-  List<Widget> _completeKya = [];
+  List<Widget> _completeKyaWidgets = [];
+  List<Kya> _completeKya = [];
   AirqoApiClient? _airqoApiClient;
   Measurement? currentLocation;
   Kya? _kya;
+  bool _showAnalyticsCardTips = false;
+  final String _kyaToolTipText = 'All your complete tasks will show up here';
+  final String _favToolTipText = 'Tap the \u2665 Favorite on any '
+      'location air quality to save them here for later';
+  final GlobalKey _favToolTipKey = GlobalKey();
+  final GlobalKey _kyaToolTipKey = GlobalKey();
   final bool _isRefreshing = false;
   final CustomAuth _customAuth = CustomAuth();
   final CloudStore _cloudStore = CloudStore();
   final LocationService _locationService = LocationService();
   final CloudAnalytics _cloudAnalytics = CloudAnalytics();
   final DBHelper _dbHelper = DBHelper();
+  SharedPreferences? _preferences;
+
   final ScrollController _scrollController = ScrollController();
   final List<Widget> _dashBoardPlaces = [
     loadingAnimation(255.0, 16.0),
@@ -114,6 +122,8 @@ class _DashboardViewState extends State<DashboardView> {
                 visible: _showName,
                 child: Text(
                   _greetings,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                       fontSize: 24, fontWeight: FontWeight.bold),
                 ),
@@ -287,17 +297,14 @@ class _DashboardViewState extends State<DashboardView> {
   Future<void> initialize() async {
     _cloudAnalytics.logScreenTransition('Home Page');
     _airqoApiClient = AirqoApiClient(context);
+    _preferences = await SharedPreferences.getInstance();
     _setGreetings();
     _getIncompleteKya();
     _getCompleteKya();
     _getLocationMeasurements();
     _getDashboardLocations();
-    var preferences = await SharedPreferences.getInstance();
-    setState(() {
-      tipsProgress = preferences.getDouble(PrefConstant.tipsProgress) ?? 0.0;
-    });
-
     await _getLatestMeasurements();
+    _showHelpTips();
   }
 
   @override
@@ -460,238 +467,252 @@ class _DashboardViewState extends State<DashboardView> {
     );
   }
 
-  Widget tipsSection() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
-      decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(16.0))),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Column(
-              children: [
-                GestureDetector(
-                  onTap: () async {
-                    await Navigator.push(context,
-                        MaterialPageRoute(builder: (context) {
-                      if (tipsProgress >= 1.0) {
-                        return const ForYouPage();
-                      }
-                      return const AirPollutionWaysPageV1();
-                    }));
-                  },
-                  child: const Text('The Tid Tips On Air Quality!',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      )),
-                ),
-                const SizedBox(
-                  height: 28,
-                ),
-                GestureDetector(
-                  onTap: () async {
-                    await Navigator.push(context,
-                        MaterialPageRoute(builder: (context) {
-                      if (tipsProgress >= 1.0) {
-                        return const ForYouPage();
-                      }
-                      return const AirPollutionWaysPageV1();
-                    }));
-                  },
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      if (tipsProgress == 0.0)
-                        Text('Start learning',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: ColorConstants.appColorBlue,
-                            )),
-                      if (tipsProgress > 0.0 && tipsProgress < 1.0)
-                        Text('Continue',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: ColorConstants.appColorBlue,
-                            )),
-                      if (tipsProgress >= 1.0)
-                        const Text('Complete! Move to ',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 12,
-                            )),
-                      if (tipsProgress >= 1.0)
-                        Text('For You',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: ColorConstants.appColorBlue,
-                            )),
-                      const SizedBox(
-                        width: 6,
-                      ),
-                      Icon(
-                        Icons.arrow_forward_ios_sharp,
-                        size: 10,
-                        color: ColorConstants.appColorBlue,
-                      )
-                    ],
-                  ),
-                ),
-                const SizedBox(
-                  height: 2,
-                ),
-                Visibility(
-                  visible: tipsProgress > 0.0 && tipsProgress < 1.0,
-                  child: Container(
-                      height: 4,
-                      decoration: const BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(8.0)),
-                      ),
-                      child: LinearProgressIndicator(
-                        color: ColorConstants.appColorBlue,
-                        value: tipsProgress,
-                        backgroundColor:
-                            ColorConstants.appColorDisabled.withOpacity(0.2),
-                      )),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(
-            width: 16,
-          ),
-          GestureDetector(
-            onTap: () async {
-              await Navigator.push(context,
-                  MaterialPageRoute(builder: (context) {
-                if (tipsProgress >= 1.0) {
-                  return const ForYouPage();
-                }
-                return const AirPollutionWaysPageV1();
-              }));
-            },
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8.0),
-              child: Image.asset(
-                'assets/images/know-your-air.png',
-                width: 104,
-                height: 104,
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget tipsSection() {
+  //   return Container(
+  //     padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
+  //     decoration: const BoxDecoration(
+  //         color: Colors.white,
+  //         borderRadius: BorderRadius.all(Radius.circular(16.0))),
+  //     child: Row(
+  //       crossAxisAlignment: CrossAxisAlignment.center,
+  //       children: [
+  //         Expanded(
+  //           child: Column(
+  //             children: [
+  //               GestureDetector(
+  //                 onTap: () async {
+  //                   await Navigator.push(context,
+  //                       MaterialPageRoute(builder: (context) {
+  //                     if (tipsProgress >= 1.0) {
+  //                       return const ForYouPage();
+  //                     }
+  //                     return const AirPollutionWaysPageV1();
+  //                   }));
+  //                 },
+  //                 child: const Text('The Tid Tips On Air Quality!',
+  //                     maxLines: 2,
+  //                     overflow: TextOverflow.ellipsis,
+  //                     style: TextStyle(
+  //                       fontSize: 18,
+  //                       fontWeight: FontWeight.bold,
+  //                     )),
+  //               ),
+  //               const SizedBox(
+  //                 height: 28,
+  //               ),
+  //               GestureDetector(
+  //                 onTap: () async {
+  //                   await Navigator.push(context,
+  //                       MaterialPageRoute(builder: (context) {
+  //                     if (tipsProgress >= 1.0) {
+  //                       return const ForYouPage();
+  //                     }
+  //                     return const AirPollutionWaysPageV1();
+  //                   }));
+  //                 },
+  //                 child: Row(
+  //                   crossAxisAlignment: CrossAxisAlignment.center,
+  //                   mainAxisAlignment: MainAxisAlignment.start,
+  //                   children: [
+  //                     if (tipsProgress == 0.0)
+  //                       Text('Start learning',
+  //                           maxLines: 1,
+  //                           overflow: TextOverflow.ellipsis,
+  //                           textAlign: TextAlign.center,
+  //                           style: TextStyle(
+  //                             fontSize: 12,
+  //                             color: ColorConstants.appColorBlue,
+  //                           )),
+  //                     if (tipsProgress > 0.0 && tipsProgress < 1.0)
+  //                       Text('Continue',
+  //                           maxLines: 1,
+  //                           overflow: TextOverflow.ellipsis,
+  //                           textAlign: TextAlign.center,
+  //                           style: TextStyle(
+  //                             fontSize: 12,
+  //                             color: ColorConstants.appColorBlue,
+  //                           )),
+  //                     if (tipsProgress >= 1.0)
+  //                       const Text('Complete! Move to ',
+  //                           maxLines: 1,
+  //                           overflow: TextOverflow.ellipsis,
+  //                           textAlign: TextAlign.center,
+  //                           style: TextStyle(
+  //                             fontSize: 12,
+  //                           )),
+  //                     if (tipsProgress >= 1.0)
+  //                       Text('For You',
+  //                           maxLines: 1,
+  //                           overflow: TextOverflow.ellipsis,
+  //                           textAlign: TextAlign.center,
+  //                           style: TextStyle(
+  //                             fontSize: 12,
+  //                             color: ColorConstants.appColorBlue,
+  //                           )),
+  //                     const SizedBox(
+  //                       width: 6,
+  //                     ),
+  //                     Icon(
+  //                       Icons.arrow_forward_ios_sharp,
+  //                       size: 10,
+  //                       color: ColorConstants.appColorBlue,
+  //                     )
+  //                   ],
+  //                 ),
+  //               ),
+  //               const SizedBox(
+  //                 height: 2,
+  //               ),
+  //               Visibility(
+  //                 visible: tipsProgress > 0.0 && tipsProgress < 1.0,
+  //                 child: Container(
+  //                     height: 4,
+  //                     decoration: const BoxDecoration(
+  //                       borderRadius: BorderRadius.all(Radius.circular(8.0)),
+  //                     ),
+  //                     child: LinearProgressIndicator(
+  //                       color: ColorConstants.appColorBlue,
+  //                       value: tipsProgress,
+  //                       backgroundColor:
+  //                           ColorConstants.appColorDisabled.withOpacity(0.2),
+  //                     )),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //         const SizedBox(
+  //           width: 16,
+  //         ),
+  //         GestureDetector(
+  //           onTap: () async {
+  //             await Navigator.push(context,
+  //                 MaterialPageRoute(builder: (context) {
+  //               if (tipsProgress >= 1.0) {
+  //                 return const ForYouPage();
+  //               }
+  //               return const AirPollutionWaysPageV1();
+  //             }));
+  //           },
+  //           child: ClipRRect(
+  //             borderRadius: BorderRadius.circular(8.0),
+  //             child: Image.asset(
+  //               'assets/images/know-your-air.png',
+  //               width: 104,
+  //               height: 104,
+  //               fit: BoxFit.cover,
+  //             ),
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget topTabs() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         Expanded(
+            key: _favToolTipKey,
             child: GestureDetector(
-          onTap: () async {
-            await Navigator.push(context, MaterialPageRoute(builder: (context) {
-              return const FavouritePlaces();
-            }));
-          },
-          child: Container(
-            height: 56,
-            padding: const EdgeInsets.all(12.0),
-            decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.all(Radius.circular(8.0))),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Consumer<PlaceDetailsModel>(
-                  builder: (context, placeDetailsModel, child) {
-                    if (placeDetailsModel.favouritePlaces.isEmpty) {
-                      return SvgPicture.asset(
-                        'assets/icon/add_avator.svg',
-                      );
-                    }
-                    getFavourites(placeDetailsModel.favouritePlaces);
-                    return SizedBox(
-                      height: 32,
-                      width: 44,
-                      child: Stack(
-                        children: _favLocations,
-                      ),
-                    );
-                  },
+              onTap: () async {
+                if (_favLocations.isEmpty) {
+                  showTipText(_favToolTipText, _favToolTipKey, context, () {},
+                      null, null);
+                  return;
+                }
+                await Navigator.push(context,
+                    MaterialPageRoute(builder: (context) {
+                  return const FavouritePlaces();
+                }));
+              },
+              child: Container(
+                height: 56,
+                padding: const EdgeInsets.all(12.0),
+                decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.all(Radius.circular(8.0))),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Consumer<PlaceDetailsModel>(
+                      builder: (context, placeDetailsModel, child) {
+                        if (placeDetailsModel.favouritePlaces.isEmpty) {
+                          return SvgPicture.asset(
+                            'assets/icon/add_avator.svg',
+                          );
+                        }
+                        getFavourites(placeDetailsModel.favouritePlaces);
+                        return SizedBox(
+                          height: 32,
+                          width: 44,
+                          child: Stack(
+                            children: _favLocations,
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(
+                      width: 8,
+                    ),
+                    Text(
+                      'Favorites',
+                      style: TextStyle(
+                          color: ColorConstants.appColorBlue,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14),
+                    )
+                  ],
                 ),
-                const SizedBox(
-                  width: 8,
-                ),
-                Text(
-                  'Favorite',
-                  style: TextStyle(
-                      color: ColorConstants.appColorBlue,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 14),
-                )
-              ],
-            ),
-          ),
-        )),
+              ),
+            )),
         const SizedBox(
           width: 16,
         ),
         Expanded(
+            key: _kyaToolTipKey,
             child: GestureDetector(
-          onTap: () async {
-            await Navigator.push(context, MaterialPageRoute(builder: (context) {
-              return const ForYouPage();
-            }));
-          },
-          child: Container(
-            height: 56,
-            padding: const EdgeInsets.all(12.0),
-            decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.all(Radius.circular(8.0))),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  height: 32,
-                  width: 44,
-                  child: Stack(
-                    children: _completeKya,
-                  ),
+              onTap: () async {
+                if (_completeKya.isEmpty) {
+                  showTipText(
+                      _kyaToolTipText, _kyaToolTipKey, context, () {}, 60, 200);
+                  return;
+                }
+                await Navigator.push(context,
+                    MaterialPageRoute(builder: (context) {
+                  return const ForYouPage();
+                }));
+              },
+              child: Container(
+                height: 56,
+                padding: const EdgeInsets.all(12.0),
+                decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.all(Radius.circular(8.0))),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      height: 32,
+                      width: 44,
+                      child: Stack(
+                        children: _completeKyaWidgets,
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 8,
+                    ),
+                    Text(
+                      'For You',
+                      style: TextStyle(
+                          color: ColorConstants.appColorBlue,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14),
+                    )
+                  ],
                 ),
-                const SizedBox(
-                  width: 8,
-                ),
-                Text(
-                  'For You',
-                  style: TextStyle(
-                      color: ColorConstants.appColorBlue,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 14),
-                )
-              ],
-            ),
-          ),
-        )),
+              ),
+            )),
       ],
     );
   }
@@ -750,7 +771,7 @@ class _DashboardViewState extends State<DashboardView> {
               ),
               if (currentLocation != null)
                 AnalyticsCard(PlaceDetails.measurementToPLace(currentLocation!),
-                    currentLocation!, _isRefreshing),
+                    currentLocation!, _isRefreshing, _showAnalyticsCardTips),
               if (currentLocation == null) loadingAnimation(255.0, 16.0),
               const SizedBox(
                 height: 16,
@@ -785,8 +806,8 @@ class _DashboardViewState extends State<DashboardView> {
       ));
       if (mounted) {
         setState(() {
-          _completeKya.clear();
-          _completeKya = widgets;
+          _completeKyaWidgets.clear();
+          _completeKyaWidgets = widgets;
         });
       }
       return;
@@ -802,6 +823,9 @@ class _DashboardViewState extends State<DashboardView> {
         'assets/icon/add_avator.svg',
       ));
     } else {
+      setState(() {
+        _completeKya = completeKya;
+      });
       try {
         if (completeKya.length == 1) {
           widgets.add(kyaAvatar(7, completeKya[0]));
@@ -831,8 +855,8 @@ class _DashboardViewState extends State<DashboardView> {
         ));
       }
       setState(() {
-        _completeKya.clear();
-        _completeKya = widgets;
+        _completeKyaWidgets.clear();
+        _completeKyaWidgets = widgets;
       });
     }
   }
@@ -863,7 +887,8 @@ class _DashboardViewState extends State<DashboardView> {
               _dashBoardPlaces.add(AnalyticsCard(
                   PlaceDetails.measurementToPLace(regionMeasurements[random]),
                   regionMeasurements[random],
-                  _isRefreshing));
+                  _isRefreshing,
+                  false));
             });
           }
         } else {
@@ -874,7 +899,8 @@ class _DashboardViewState extends State<DashboardView> {
               _dashBoardPlaces.add(AnalyticsCard(
                   PlaceDetails.measurementToPLace(measurements[random]),
                   measurements[random],
-                  _isRefreshing));
+                  _isRefreshing,
+                  false));
             });
           }
         }
@@ -883,6 +909,9 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   void _getIncompleteKya() async {
+    if (!_customAuth.isLoggedIn()) {
+      return;
+    }
     var userKya = await _cloudStore.getIncompleteKya(_customAuth.getId());
     if (userKya != null && mounted) {
       setState(() {
@@ -923,6 +952,25 @@ class _DashboardViewState extends State<DashboardView> {
       setState(() {
         _greetings = getGreetings(_customAuth.getDisplayName());
       });
+    }
+  }
+
+  void _showHelpTips() {
+    try {
+      var showHelpTips =
+          _preferences!.getBool(PrefConstant.homePageTips) ?? true;
+      if (showHelpTips) {
+        showTipText(_favToolTipText, _favToolTipKey, context, () {
+          showTipText(_kyaToolTipText, _kyaToolTipKey, context, () {
+            setState(() {
+              _showAnalyticsCardTips = true;
+            });
+            // _preferences!.setBool(PrefConstant.homePageTips, false);
+          }, 60, 200);
+        }, null, null);
+      }
+    } catch (e) {
+      debugPrint(e.toString());
     }
   }
 }

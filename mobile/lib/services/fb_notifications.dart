@@ -685,7 +685,7 @@ class CustomAuth {
   }
 
   bool isLoggedIn() {
-    return _firebaseAuth.currentUser == null ? false : true;
+    return _firebaseAuth.currentUser != null;
   }
 
   Future<bool> isValidEmailCode(

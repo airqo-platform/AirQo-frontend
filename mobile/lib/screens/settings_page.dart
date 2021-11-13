@@ -133,7 +133,7 @@ class _SettingsPageState extends State<SettingsPage> {
               style: TextStyle(fontSize: 16),
             ),
             trailing: CupertinoSwitch(
-              activeColor: ColorConstants.green,
+              activeColor: ColorConstants.appColorBlue,
               onChanged: (bool value) {
                 if (value) {
                   _locationService.requestLocationAccess().then((response) => {
@@ -162,7 +162,7 @@ class _SettingsPageState extends State<SettingsPage> {
               style: TextStyle(fontSize: 16),
             ),
             trailing: CupertinoSwitch(
-              activeColor: ColorConstants.green,
+              activeColor: ColorConstants.appColorBlue,
               onChanged: (bool value) {
                 if (value) {
                   _notificationService.requestPermission().then((response) => {

@@ -1,3 +1,4 @@
+import 'package:app/utils/string_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -87,18 +88,22 @@ String getDateTime() {
       .toUpperCase();
 }
 
-String getGreetings(name) {
+String getGreetings(String name) {
+  if (name.isNull() || name.toLowerCase() == 'guest') {
+    return 'Hello';
+  }
+
   var hour = DateTime.now().hour;
-  if (8 <= hour && hour < 12) {
-    return 'Hey $name';
+  if (00 <= hour && hour < 12) {
+    return 'Good morning $name';
   }
 
   if (12 <= hour && hour < 16) {
-    return 'Hey $name';
+    return 'Good afternoon $name';
   }
 
-  if (18 <= hour && hour < 21) {
-    return 'Hey $name';
+  if (18 <= hour && hour <= 23) {
+    return 'Good evening $name';
   }
 
   return 'Hello $name';

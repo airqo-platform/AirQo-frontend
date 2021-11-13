@@ -54,8 +54,10 @@ class AnalyticsCard extends StatefulWidget {
   final PlaceDetails placeDetails;
   final Measurement measurement;
   final bool isRefreshing;
+  final bool showHelpTip;
 
-  const AnalyticsCard(this.placeDetails, this.measurement, this.isRefreshing,
+  const AnalyticsCard(
+      this.placeDetails, this.measurement, this.isRefreshing, this.showHelpTip,
       {Key? key})
       : super(key: key);
 
@@ -81,6 +83,9 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
   final DBHelper _dbHelper = DBHelper();
   bool _showHeartAnimation = false;
   final GlobalKey _globalKey = GlobalKey();
+  final String _infoToolTipText = 'Tap this icon'
+      ' to understand what air quality analytics mean';
+  final GlobalKey _infoBtnToolTipKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -115,6 +120,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                             semanticsLabel: 'Pm2.5',
                             height: 20,
                             width: 20,
+                            key: _infoBtnToolTipKey,
                           ),
                         ],
                       ),
@@ -128,7 +134,19 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                         padding: const EdgeInsets.only(left: 20, right: 20),
                         child: Row(
                           children: [
-                            analyticsAvatar(widget.measurement, 104, 40, 12),
+                            GestureDetector(
+                              child: analyticsAvatar(
+                                  widget.measurement, 104, 40, 12),
+                              onTap: () {
+                                showTipText(
+                                    _infoToolTipText,
+                                    _infoBtnToolTipKey,
+                                    context,
+                                    () {},
+                                    null,
+                                    null);
+                              },
+                            ),
                             const SizedBox(width: 16.0),
                             Expanded(
                               child: Column(
@@ -153,29 +171,41 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                   const SizedBox(
                                     height: 12,
                                   ),
-                                  Container(
-                                    padding: const EdgeInsets.fromLTRB(
-                                        10.0, 2.0, 10.0, 2.0),
-                                    decoration: BoxDecoration(
-                                        borderRadius: const BorderRadius.all(
-                                            Radius.circular(40.0)),
-                                        color: pm2_5ToColor(widget.measurement
-                                                .getPm2_5Value())
-                                            .withOpacity(0.4),
-                                        border: Border.all(
-                                            color: Colors.transparent)),
-                                    child: Text(
-                                      pm2_5ToString(
-                                          widget.measurement.getPm2_5Value()),
-                                      maxLines: 1,
-                                      textAlign: TextAlign.start,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: pm2_5TextColor(
+                                  GestureDetector(
+                                    child: Container(
+                                      padding: const EdgeInsets.fromLTRB(
+                                          10.0, 2.0, 10.0, 2.0),
+                                      decoration: BoxDecoration(
+                                          borderRadius: const BorderRadius.all(
+                                              Radius.circular(40.0)),
+                                          color: pm2_5ToColor(widget.measurement
+                                                  .getPm2_5Value())
+                                              .withOpacity(0.4),
+                                          border: Border.all(
+                                              color: Colors.transparent)),
+                                      child: Text(
+                                        pm2_5ToString(
                                             widget.measurement.getPm2_5Value()),
+                                        maxLines: 1,
+                                        textAlign: TextAlign.start,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: pm2_5TextColor(widget
+                                              .measurement
+                                              .getPm2_5Value()),
+                                        ),
                                       ),
                                     ),
+                                    onTap: () {
+                                      showTipText(
+                                          _infoToolTipText,
+                                          _infoBtnToolTipKey,
+                                          context,
+                                          () {},
+                                          null,
+                                          null);
+                                    },
                                   ),
                                   const SizedBox(
                                     height: 8,
@@ -365,6 +395,19 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
         );
       },
     );
+  }
+
+  @override
+  void initState() {
+    if (widget.showHelpTip) {
+      try {
+        showTipText(
+            _infoToolTipText, _infoBtnToolTipKey, context, () {}, null, null);
+      } catch (e) {
+        debugPrint(e.toString());
+      }
+    }
+    super.initState();
   }
 
   void updateFavPlace() async {
