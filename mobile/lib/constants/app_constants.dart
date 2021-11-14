@@ -49,6 +49,8 @@ class CloudStorage {
   static String get notificationCollection => notificationDb;
 
   static String get usersCollection => usersDb;
+
+  static String get usersKyaCollection => usersKyaDb;
 }
 
 class ColorConstants {

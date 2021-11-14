@@ -49,6 +49,20 @@ class Kya {
     }
     return null;
   }
+
+  static List<Kya> parseKyas(dynamic jsonBody) {
+    var measurements = <Kya>[];
+
+    for (var jsonElement in jsonBody) {
+      try {
+        var measurement = Kya.fromJson(jsonElement);
+        measurements.add(measurement);
+      } catch (e) {
+        debugPrint(e.toString());
+      }
+    }
+    return measurements;
+  }
 }
 
 @JsonSerializable(explicitToJson: true)

@@ -1,4 +1,3 @@
-import 'package:app/models/kya.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'user_details.g.dart';
@@ -13,7 +12,6 @@ class UserDetails {
   String phoneNumber = '';
   String device = '';
   String photoUrl = '';
-  List<Kya> kya = [];
   UserPreferences preferences = UserPreferences(false, false, false);
 
   UserDetails(
@@ -25,7 +23,6 @@ class UserDetails {
       this.phoneNumber,
       this.device,
       this.photoUrl,
-      this.kya,
       this.preferences);
 
   factory UserDetails.fromJson(Map<String, dynamic> json) =>
@@ -80,8 +77,8 @@ class UserDetails {
   }
 
   static UserDetails initialize() {
-    return UserDetails('', '', '', '', '', '', '', '', [],
-        UserPreferences(false, false, false));
+    return UserDetails(
+        '', '', '', '', '', '', '', '', UserPreferences(false, false, false));
   }
 
   static UserDetails parseUserDetails(dynamic jsonBody) {

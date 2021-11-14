@@ -108,13 +108,6 @@ class SplashScreenState extends State<SplashScreen> {
     );
   }
 
-  void _loadNotifiers() {
-    Provider.of<PlaceDetailsModel>(context, listen: false)
-        .reloadFavouritePlaces();
-    Provider.of<NotificationModel>(context, listen: false)
-        .loadNotifications();
-  }
-
   void _getLatestMeasurements() {
     try {
       _airqoApiClient!.fetchLatestMeasurements().then((value) => {
@@ -123,6 +116,12 @@ class SplashScreenState extends State<SplashScreen> {
     } catch (e) {
       debugPrint(e.toString());
     }
+  }
+
+  void _loadNotifiers() {
+    Provider.of<PlaceDetailsModel>(context, listen: false)
+        .reloadFavouritePlaces();
+    Provider.of<NotificationModel>(context, listen: false).loadNotifications();
   }
 
   Widget _renderWidget() {

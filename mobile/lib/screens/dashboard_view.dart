@@ -260,14 +260,17 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   Future<void> handleKyaOnClick() async {
-    if (_kya!.progress >= 89.0) {
+    if (_kya!.progress >= 99.0) {
       var completeKya = _kya;
       setState(() {
         _kya = null;
       });
       await _cloudStore
-          .migrateKya(completeKya!, _customAuth.getId())
-          .then((value) => {initialize()});
+          .updateKyaProgress(_customAuth.getId(), completeKya!, 100)
+          .then((value) => {
+                _getCompleteKya(),
+                _getIncompleteKya(),
+              });
     } else {
       await Navigator.push(context, MaterialPageRoute(builder: (context) {
         return AirPollutionWaysPage(_kya!, true);
@@ -813,10 +816,7 @@ class _DashboardViewState extends State<DashboardView> {
       return;
     }
 
-    var allKya = (await _cloudStore.getProfile(_customAuth.getId())).kya;
-
-    var completeKya =
-        allKya.where((element) => element.progress >= 100).toList();
+    var completeKya = await _cloudStore.getCompleteKya(_customAuth.getId());
 
     if (completeKya.isEmpty) {
       widgets.add(SvgPicture.asset(
@@ -919,8 +919,6 @@ class _DashboardViewState extends State<DashboardView> {
           _kya = userKya;
         });
       }
-    } else {
-      await _cloudStore.loadKya(_customAuth.getId());
     }
   }
 

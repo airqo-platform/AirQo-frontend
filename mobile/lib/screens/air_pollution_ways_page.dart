@@ -528,6 +528,9 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
         var page = _controller.page;
         if (page != null) {
           var progress = (page / widget.kya.kyaItems.length) * 99;
+          if (_showLastPage) {
+            progress = 99;
+          }
           await _cloudStore.updateKyaProgress(
               _customAuth.getId(), widget.kya, progress);
         }

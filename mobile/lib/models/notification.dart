@@ -39,16 +39,16 @@ class NotificationModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  bool hasNotifications() {
+    return _notifications.where((element) => element.isNew).toList().isNotEmpty;
+  }
+
   Future<void> loadNotifications() async {
     var notifications = await _dbHelper.getUserNotifications();
     _notifications
       ..clear()
       ..addAll(notifications);
     notifyListeners();
-  }
-
-  bool hasNotifications() {
-    return _notifications.where((element) => element.isNew).toList().isNotEmpty;
   }
 
   void removeAll() {

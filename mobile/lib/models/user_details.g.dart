@@ -15,9 +15,6 @@ UserDetails _$UserDetailsFromJson(Map<String, dynamic> json) => UserDetails(
       json['phoneNumber'] as String,
       json['device'] as String,
       json['photoUrl'] as String,
-      (json['kya'] as List<dynamic>)
-          .map((e) => Kya.fromJson(e as Map<String, dynamic>))
-          .toList(),
       UserPreferences.fromJson(json['preferences'] as Map<String, dynamic>),
     );
 
@@ -31,7 +28,6 @@ Map<String, dynamic> _$UserDetailsToJson(UserDetails instance) =>
       'phoneNumber': instance.phoneNumber,
       'device': instance.device,
       'photoUrl': instance.photoUrl,
-      'kya': instance.kya.map((e) => e.toJson()).toList(),
       'preferences': instance.preferences.toJson(),
     };
 

@@ -126,6 +126,34 @@ class CloudStore {
     }
   }
 
+  Future<List<Kya>> getCompleteKya(String id) async {
+    if (id == '') {
+      return [];
+    }
+
+    var hasConnection = await isConnected();
+    if (!hasConnection) {
+      // TODO Implement no internet access
+      return [];
+    }
+
+    try {
+      var userKya = await getKya(id);
+
+      var complete =
+          userKya.where((element) => element.progress >= 100.0).toList();
+
+      return complete;
+    } on Error catch (exception, stackTrace) {
+      debugPrint(exception.toString());
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+    }
+    return [];
+  }
+
   Future<List<PlaceDetails>> getFavPlaces(String id) async {
     if (id == '') {
       return [];
@@ -174,7 +202,7 @@ class CloudStore {
     }
 
     try {
-      var userKya = (await getProfile(id)).kya;
+      var userKya = await getKya(id);
 
       var incomplete =
           userKya.where((element) => element.progress < 100.0).toList();
@@ -184,24 +212,18 @@ class CloudStore {
             .collection(CloudStorage.kyaCollection)
             .get();
 
-        var allKya = <Kya>[];
-
         var kyaDocs = allKyaJson.docs;
         for (var doc in kyaDocs) {
           var kya = await compute(Kya.parseKya, doc.data());
-          if (kya != null) {
-            allKya.add(kya);
+          if (kya == null) {
+            continue;
           }
-        }
-
-        for (var x in allKya) {
-          var y = userKya.where((element) => element.id == x.id);
+          var y = userKya.where((element) => element.id == kya.id);
           if (y.isEmpty) {
-            userKya.add(x);
             await _firebaseFirestore
-                .collection(CloudStorage.usersCollection)
-                .doc(id)
-                .update({'kya': Kya.listToJson(userKya)});
+                .collection('${CloudStorage.usersKyaCollection}/$id/$id')
+                .doc(kya.id)
+                .set(kya.toJson());
             break;
           }
         }
@@ -220,7 +242,6 @@ class CloudStore {
     return null;
   }
 
-  @Deprecated('Substituted with get user details function')
   Future<List<Kya>> getKya(String id) async {
     if (id == '') {
       return [];
@@ -232,18 +253,21 @@ class CloudStore {
     }
 
     try {
-      var userJson = await _firebaseFirestore
-          .collection(CloudStorage.usersCollection)
-          .doc(id)
+      var kyasJson = await _firebaseFirestore
+          .collection('${CloudStorage.usersKyaCollection}/$id/$id')
           .get();
-      var userData = userJson.data();
 
-      if (userData == null) {
-        return [];
+      var notifications = <Kya>[];
+
+      var notificationDocs = kyasJson.docs;
+      for (var doc in notificationDocs) {
+        var notification = await compute(Kya.parseKya, doc.data());
+        if (notification != null) {
+          notifications.add(notification);
+        }
       }
-      var userDetails = UserDetails.fromJson(userData);
 
-      return userDetails.kya;
+      return notifications;
     } on Error catch (exception, stackTrace) {
       debugPrint(exception.toString());
       await Sentry.captureException(
@@ -330,61 +354,6 @@ class CloudStore {
     return false;
   }
 
-  Future<bool> loadKya(String id) async {
-    if (id == '') {
-      return false;
-    }
-
-    var hasConnection = await isConnected();
-    if (!hasConnection) {
-      return false;
-    }
-
-    try {
-      var allKyaJson =
-          await _firebaseFirestore.collection(CloudStorage.kyaCollection).get();
-
-      var allKya = <Kya>[];
-
-      var kyaDocs = allKyaJson.docs;
-      for (var doc in kyaDocs) {
-        var kya = await compute(Kya.parseKya, doc.data());
-        if (kya != null) {
-          allKya.add(kya);
-        }
-      }
-
-      var userKya = (await getProfile(id)).kya;
-      var updatedUserKya = userKya;
-
-      for (var kya in allKya) {
-        var existingKya =
-            userKya.where((element) => element.id == kya.id).toList();
-
-        if (existingKya.isNotEmpty) {
-          continue;
-        }
-        var newKya = kya..progress = 0.0;
-        updatedUserKya.add(newKya);
-      }
-
-      await _firebaseFirestore
-          .collection(CloudStorage.usersCollection)
-          .doc(id)
-          .update({'kya': Kya.listToJson(updatedUserKya)});
-
-      return true;
-    } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-    }
-
-    return false;
-  }
-
   Future<bool> markNotificationAsRead(
       String userId, String notificationId) async {
     if (userId == '' || notificationId == '') {
@@ -405,47 +374,6 @@ class CloudStore {
 
       return updated;
     } on Error catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-    }
-
-    return false;
-  }
-
-  Future<bool> migrateKya(Kya kya, String id) async {
-    if (id == '') {
-      return false;
-    }
-
-    var hasConnection = await isConnected();
-    if (!hasConnection) {
-      return false;
-    }
-
-    try {
-      var userKya = (await getProfile(id)).kya;
-
-      var incomplete =
-          userKya.where((element) => element.id == kya.id).toList();
-
-      if (incomplete.isEmpty) {
-        return false;
-      }
-
-      userKya.removeWhere((element) => element.id == kya.id);
-      kya.progress = 100.0;
-      userKya.add(kya);
-
-      await _firebaseFirestore
-          .collection(CloudStorage.usersCollection)
-          .doc(id)
-          .update({'kya': Kya.listToJson(userKya)});
-
-      return true;
-    } catch (exception, stackTrace) {
       debugPrint(exception.toString());
       await Sentry.captureException(
         exception,
@@ -559,27 +487,6 @@ class CloudStore {
     }
   }
 
-  // Future<void> updateFavouritePlaces(
-  //     String id, List<PlaceDetails> places) async {
-  //   var hasConnection = await isConnected();
-  //   if (!hasConnection) {
-  //     return;
-  //   }
-  //
-  //   try {
-  //     await _firebaseFirestore
-  //         .collection(CloudStorage.usersCollection)
-  //         .doc(id)
-  //         .update({'favPlaces': PlaceDetails.listToJson(places)});
-  //   } catch (exception, stackTrace) {
-  //     debugPrint(exception.toString());
-  //     await Sentry.captureException(
-  //       exception,
-  //       stackTrace: stackTrace,
-  //     );
-  //   }
-  // }
-
   Future<void> updateKyaProgress(String id, Kya kya, double progress) async {
     if (id == '') {
       return;
@@ -591,26 +498,11 @@ class CloudStore {
     }
 
     try {
-      var userKya = (await getProfile(id)).kya;
-
-      var incomplete =
-          userKya.where((element) => element.id == kya.id).toList();
-
-      if (incomplete.isEmpty) {
-        return;
-      }
-
-      userKya.removeWhere((element) => element.id == kya.id);
-      kya.progress = progress;
-      userKya.add(kya);
-
       await _firebaseFirestore
-          .collection(CloudStorage.usersCollection)
-          .doc(id)
-          .update({'kya': Kya.listToJson(userKya)});
-
-      return;
-    } catch (exception, stackTrace) {
+          .collection('${CloudStorage.usersKyaCollection}/$id/$id')
+          .doc(kya.id)
+          .update({'progress': progress});
+    } on Error catch (exception, stackTrace) {
       debugPrint(exception.toString());
       await Sentry.captureException(
         exception,
@@ -1048,17 +940,19 @@ class CustomAuth {
       await _secureStorage.updateUserDetails(userDetails);
       await _preferencesHelper.updatePreferences(userDetails.preferences);
       await _cloudStore.getFavPlaces(user.uid).then((value) => {
-        if (value.isNotEmpty){
-          Provider.of<PlaceDetailsModel>(context, listen: false)
-              .loadFavouritePlaces(value),
-        }
-      });
+            if (value.isNotEmpty)
+              {
+                Provider.of<PlaceDetailsModel>(context, listen: false)
+                    .loadFavouritePlaces(value),
+              }
+          });
       await _cloudStore.getNotifications(user.uid).then((value) => {
-        if (value.isNotEmpty){
-            Provider.of<NotificationModel>(context, listen: false)
-                .addAll(value),
-          }
-      });
+            if (value.isNotEmpty)
+              {
+                Provider.of<NotificationModel>(context, listen: false)
+                    .addAll(value),
+              }
+          });
     } catch (e) {
       debugPrint(e.toString());
     }
