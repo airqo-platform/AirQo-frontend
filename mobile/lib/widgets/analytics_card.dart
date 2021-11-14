@@ -4,6 +4,7 @@ import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/screens/insights_page.dart';
+import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/dialogs.dart';
@@ -86,6 +87,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
   final String _infoToolTipText = 'Tap this icon'
       ' to understand what air quality analytics mean';
   final GlobalKey _infoToolTipKey = GlobalKey();
+  final CustomAuth _customAuth = CustomAuth();
 
   @override
   Widget build(BuildContext context) {
@@ -420,7 +422,8 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
         _showHeartAnimation = false;
       });
     });
-    await _dbHelper.updateFavouritePlaces(widget.placeDetails, context);
+    await _dbHelper.updateFavouritePlaces(
+        widget.placeDetails, context, _customAuth.getId());
   }
 }
 
@@ -428,6 +431,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
   final DBHelper _dbHelper = DBHelper();
   bool _showHeartAnimation = false;
   final GlobalKey _globalKey = GlobalKey();
+  final CustomAuth _customAuth = CustomAuth();
 
   @override
   Widget build(BuildContext context) {
@@ -654,6 +658,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
         _showHeartAnimation = false;
       });
     });
-    await _dbHelper.updateFavouritePlaces(widget.placeDetails, context);
+    await _dbHelper.updateFavouritePlaces(
+        widget.placeDetails, context, _customAuth.getId());
   }
 }

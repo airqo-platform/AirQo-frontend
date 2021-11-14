@@ -45,6 +45,28 @@ class CloudStore {
   final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
   final SharedPreferencesHelper _preferencesHelper = SharedPreferencesHelper();
 
+  Future<void> addFavPlace(String id, PlaceDetails placeDetails) async {
+    var hasConnection = await isConnected();
+    if (!hasConnection || id.trim().isEmpty) {
+      return;
+    }
+
+    try {
+      var placeId =
+          placeDetails.getName().trim().toLowerCase().replaceAll(' ', '-');
+      await _firebaseFirestore
+          .collection('${CloudStorage.favPlacesCollection}/$id/$id')
+          .doc(placeId)
+          .set(placeDetails.toJson());
+    } catch (exception, stackTrace) {
+      debugPrint(exception.toString());
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
   Future<bool> credentialsExist(String? phoneNumber, String? email) async {
     var hasConnection = await isConnected();
     if (!hasConnection) {
@@ -102,6 +124,42 @@ class CloudStore {
         stackTrace: stackTrace,
       );
     }
+  }
+
+  Future<List<PlaceDetails>> getFavPlaces(String id) async {
+    if (id == '') {
+      return [];
+    }
+
+    var hasConnection = await isConnected();
+    if (!hasConnection) {
+      return [];
+    }
+
+    try {
+      var placesJson = await _firebaseFirestore
+          .collection('${CloudStorage.favPlacesCollection}/$id/$id')
+          .get();
+
+      var favPlaces = <PlaceDetails>[];
+
+      var placesDocs = placesJson.docs;
+      for (var doc in placesDocs) {
+        var place = await compute(PlaceDetails.parsePlaceDetails, doc.data());
+        if (place != null) {
+          favPlaces.add(place);
+        }
+      }
+      return favPlaces;
+    } on Error catch (exception, stackTrace) {
+      debugPrint(exception.toString());
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return [];
   }
 
   Future<Kya?> getIncompleteKya(String id) async {
@@ -453,6 +511,27 @@ class CloudStore {
     return false;
   }
 
+  Future<void> removeFavPlace(String id, PlaceDetails placeDetails) async {
+    var hasConnection = await isConnected();
+    if (!hasConnection || id.trim().isEmpty) {
+      return;
+    }
+    try {
+      var placeId =
+          placeDetails.getName().trim().toLowerCase().replaceAll(' ', '-');
+      await _firebaseFirestore
+          .collection('${CloudStorage.favPlacesCollection}/$id/$id')
+          .doc(placeId)
+          .delete();
+    } catch (exception, stackTrace) {
+      debugPrint(exception.toString());
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
   Future<void> sendWelcomeNotification(String id) async {
     var hasConnection = await isConnected();
     if (!hasConnection) {
@@ -480,26 +559,26 @@ class CloudStore {
     }
   }
 
-  Future<void> updateFavouritePlaces(
-      String id, List<PlaceDetails> places) async {
-    var hasConnection = await isConnected();
-    if (!hasConnection) {
-      return;
-    }
-
-    try {
-      await _firebaseFirestore
-          .collection(CloudStorage.usersCollection)
-          .doc(id)
-          .update({'favPlaces': PlaceDetails.listToJson(places)});
-    } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-    }
-  }
+  // Future<void> updateFavouritePlaces(
+  //     String id, List<PlaceDetails> places) async {
+  //   var hasConnection = await isConnected();
+  //   if (!hasConnection) {
+  //     return;
+  //   }
+  //
+  //   try {
+  //     await _firebaseFirestore
+  //         .collection(CloudStorage.usersCollection)
+  //         .doc(id)
+  //         .update({'favPlaces': PlaceDetails.listToJson(places)});
+  //   } catch (exception, stackTrace) {
+  //     debugPrint(exception.toString());
+  //     await Sentry.captureException(
+  //       exception,
+  //       stackTrace: stackTrace,
+  //     );
+  //   }
+  // }
 
   Future<void> updateKyaProgress(String id, Kya kya, double progress) async {
     if (id == '') {
@@ -787,7 +866,7 @@ class CustomAuth {
       if (user == null) {
         return;
       }
-      updateLocalStorage(user, context);
+      await updateLocalStorage(user, context);
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
       await Sentry.captureException(
@@ -841,7 +920,7 @@ class CustomAuth {
         return false;
       }
 
-      updateLocalStorage(user, context);
+      await updateLocalStorage(user, context);
 
       return true;
     } catch (exception, stackTrace) {
@@ -959,7 +1038,7 @@ class CustomAuth {
     return false;
   }
 
-  void updateLocalStorage(User user, BuildContext context) async {
+  Future<void> updateLocalStorage(User user, BuildContext context) async {
     try {
       var device = await getDeviceToken();
       if (device != null) {
@@ -968,10 +1047,14 @@ class CustomAuth {
       var userDetails = await _cloudStore.getProfile(user.uid);
       await _secureStorage.updateUserDetails(userDetails);
       await _preferencesHelper.updatePreferences(userDetails.preferences);
-      if (userDetails.favPlaces.isNotEmpty) {
-        await Provider.of<PlaceDetailsModel>(context, listen: false)
-            .loadFavouritePlaces(userDetails.favPlaces);
-      }
+      // TODO load notifications
+      await _cloudStore.getFavPlaces(user.uid).then((value) => {
+            if (value.isNotEmpty)
+              {
+                Provider.of<PlaceDetailsModel>(context, listen: false)
+                    .loadFavouritePlaces(value),
+              }
+          });
     } catch (e) {
       debugPrint(e.toString());
     }

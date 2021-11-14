@@ -2,6 +2,7 @@ import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/screens/insights_page.dart';
+import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +25,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
   Measurement? measurement;
   bool showHeartAnimation = false;
   final DBHelper _dbHelper = DBHelper();
+  final CustomAuth _customAuth = CustomAuth();
 
   @override
   Widget build(BuildContext context) {
@@ -209,6 +211,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
       });
     });
 
-    await _dbHelper.updateFavouritePlaces(widget.placeDetails, context);
+    await _dbHelper.updateFavouritePlaces(
+        widget.placeDetails, context, _customAuth.getId());
   }
 }

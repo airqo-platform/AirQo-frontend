@@ -1,6 +1,7 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/insights_chart_data.dart';
 import 'package:app/models/place_details.dart';
+import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/utils/share.dart';
@@ -30,7 +31,7 @@ class _DailyViewState extends State<DailyView> {
   List<Recommendation> _recommendations = [];
   final DBHelper _dbHelper = DBHelper();
   final GlobalKey _globalKey = GlobalKey();
-
+  final CustomAuth _customAuth = CustomAuth();
   final String _toggleToolTipText = 'Customize your air quality analytics '
       'with a single click ';
   final GlobalKey _toggleToolTipKey = GlobalKey();
@@ -277,7 +278,8 @@ class _DailyViewState extends State<DailyView> {
         _showHeartAnimation = false;
       });
     });
-    await _dbHelper.updateFavouritePlaces(widget.placeDetails, context);
+    await _dbHelper.updateFavouritePlaces(
+        widget.placeDetails, context, _customAuth.getId());
   }
 
   void _showHelpTips(bool show) {

@@ -18,8 +18,11 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
+import 'fb_notifications.dart';
+
 class DBHelper {
   Database? _database;
+  final CloudStore _cloudStore = CloudStore();
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -389,7 +392,7 @@ class DBHelper {
     );
   }
 
-  Future<void> insertFavPlace(PlaceDetails placeDetails) async {
+  Future<void> insertFavPlace(PlaceDetails placeDetails, String id) async {
     try {
       final db = await database;
 
@@ -400,6 +403,7 @@ class DBHelper {
           jsonData,
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
+        await _cloudStore.addFavPlace(id, placeDetails);
       } catch (e) {
         debugPrint(e.toString());
       }
@@ -609,7 +613,7 @@ class DBHelper {
     }
   }
 
-  Future<void> removeFavPlace(PlaceDetails placeDetails) async {
+  Future<void> removeFavPlace(PlaceDetails placeDetails, String id) async {
     try {
       final db = await database;
 
@@ -619,35 +623,12 @@ class DBHelper {
           where: 'siteId = ?',
           whereArgs: [placeDetails.siteId],
         );
+        await _cloudStore.removeFavPlace(id, placeDetails);
       } catch (e) {
         debugPrint(e.toString());
       }
     } catch (e) {
       debugPrint(e.toString());
-    }
-  }
-
-  Future<bool> saveUserData(UserDetails userDetails) async {
-    try {
-      final db = await database;
-
-      try {
-        var jsonData = userDetails.toJson();
-        await db.insert(
-          UserDetails.dbName(),
-          jsonData,
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
-        return true;
-      } catch (e) {
-        await db.execute(UserDetails.dropTableStmt());
-        await db.execute(UserDetails.createTableStmt());
-        debugPrint(e.toString());
-        return false;
-      }
-    } catch (e) {
-      debugPrint(e.toString());
-      return false;
     }
   }
 
@@ -676,19 +657,20 @@ class DBHelper {
     }
   }
 
-  Future<void> updateFavouritePlaces(PlaceDetails placeDetails, context) async {
+  Future<void> updateFavouritePlaces(
+      PlaceDetails placeDetails, BuildContext context, String id) async {
     final db = await database;
 
     var res = await db.query(PlaceDetails.dbName(),
         where: 'siteId = ?', whereArgs: [placeDetails.siteId]);
 
     if (res.isEmpty) {
-      await insertFavPlace(placeDetails).then((value) => {
+      await insertFavPlace(placeDetails, id).then((value) => {
             Provider.of<PlaceDetailsModel>(context, listen: false)
                 .reloadFavouritePlaces()
           });
     } else {
-      await removeFavPlace(placeDetails).then((value) => {
+      await removeFavPlace(placeDetails, id).then((value) => {
             Provider.of<PlaceDetailsModel>(context, listen: false)
                 .reloadFavouritePlaces()
           });

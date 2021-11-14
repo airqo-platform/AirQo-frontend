@@ -1,5 +1,4 @@
 import 'package:app/models/kya.dart';
-import 'package:app/models/place_details.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'user_details.g.dart';
@@ -14,7 +13,6 @@ class UserDetails {
   String phoneNumber = '';
   String device = '';
   String photoUrl = '';
-  List<PlaceDetails> favPlaces = [];
   List<Kya> kya = [];
   UserPreferences preferences = UserPreferences(false, false, false);
 
@@ -27,7 +25,6 @@ class UserDetails {
       this.phoneNumber,
       this.device,
       this.photoUrl,
-      this.favPlaces,
       this.kya,
       this.preferences);
 
@@ -83,7 +80,7 @@ class UserDetails {
   }
 
   static UserDetails initialize() {
-    return UserDetails('', '', '', '', '', '', '', '', [], [],
+    return UserDetails('', '', '', '', '', '', '', '', [],
         UserPreferences(false, false, false));
   }
 

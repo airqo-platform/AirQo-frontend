@@ -2,7 +2,6 @@ import 'dart:collection';
 
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/site.dart';
-import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/string_extension.dart';
 import 'package:flutter/foundation.dart';
@@ -86,7 +85,7 @@ class PlaceDetails {
         measurement.site.longitude);
   }
 
-  static List<PlaceDetails> parsePlaceDetails(dynamic jsonBody) {
+  static List<PlaceDetails> parseMultiPlaceDetails(dynamic jsonBody) {
     var placeDetails = <PlaceDetails>[];
 
     for (var jsonElement in jsonBody) {
@@ -100,6 +99,15 @@ class PlaceDetails {
     return placeDetails;
   }
 
+  static PlaceDetails? parsePlaceDetails(dynamic jsonBody) {
+    try {
+      return PlaceDetails.fromJson(jsonBody);
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+    return null;
+  }
+
   static PlaceDetails siteToPLace(Site site) {
     return PlaceDetails(site.getName(), site.getLocation(), site.id,
         site.latitude, site.longitude);
@@ -109,8 +117,9 @@ class PlaceDetails {
 class PlaceDetailsModel extends ChangeNotifier {
   final List<PlaceDetails> _favouritePlaces = [];
   final DBHelper _dbHelper = DBHelper();
-  final CloudStore _cloudStore = CloudStore();
-  final CustomAuth _customAuth = CustomAuth();
+
+  // final CloudStore _cloudStore = CloudStore();
+  // final CustomAuth _customAuth = CustomAuth();
 
   UnmodifiableListView<PlaceDetails> get favouritePlaces =>
       UnmodifiableListView(_favouritePlaces);
@@ -131,11 +140,9 @@ class PlaceDetailsModel extends ChangeNotifier {
 
   Future<void> loadFavouritePlaces(List<PlaceDetails> places) async {
     try {
-      _favouritePlaces
-        ..clear()
-        ..addAll(places);
-      await _dbHelper.setFavouritePlaces(places);
+      _favouritePlaces.addAll(places);
       notifyListeners();
+      await _dbHelper.setFavouritePlaces(places);
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
       await Sentry.captureException(
@@ -152,10 +159,10 @@ class PlaceDetailsModel extends ChangeNotifier {
       var favPlaces = await _dbHelper.getFavouritePlaces();
       _favouritePlaces.addAll(favPlaces);
       notifyListeners();
-      var id = _customAuth.getId();
-      if (_customAuth.isLoggedIn() && id != '') {
-        await _cloudStore.updateFavouritePlaces(id, favPlaces);
-      }
+      // var id = _customAuth.getId();
+      // if (_customAuth.isLoggedIn() && id != '') {
+      //   await _cloudStore.updateFavouritePlaces(id, favPlaces);
+      // }
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
       await Sentry.captureException(
