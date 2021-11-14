@@ -1039,6 +1039,7 @@ class CustomAuth {
 
   Future<void> updateLocalStorage(User user, BuildContext context) async {
     try {
+      // await _cloudStore.sendWelcomeNotification(user.uid);
       var device = await getDeviceToken();
       if (device != null) {
         await _cloudStore.updateProfileFields(user.uid, {'device': device});
@@ -1046,14 +1047,18 @@ class CustomAuth {
       var userDetails = await _cloudStore.getProfile(user.uid);
       await _secureStorage.updateUserDetails(userDetails);
       await _preferencesHelper.updatePreferences(userDetails.preferences);
-      // TODO load notifications
       await _cloudStore.getFavPlaces(user.uid).then((value) => {
-            if (value.isNotEmpty)
-              {
-                Provider.of<PlaceDetailsModel>(context, listen: false)
-                    .loadFavouritePlaces(value),
-              }
-          });
+        if (value.isNotEmpty){
+          Provider.of<PlaceDetailsModel>(context, listen: false)
+              .loadFavouritePlaces(value),
+        }
+      });
+      await _cloudStore.getNotifications(user.uid).then((value) => {
+        if (value.isNotEmpty){
+            Provider.of<NotificationModel>(context, listen: false)
+                .addAll(value),
+          }
+      });
     } catch (e) {
       debugPrint(e.toString());
     }

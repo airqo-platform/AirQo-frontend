@@ -339,7 +339,7 @@ class _NotificationPageState extends State<NotificationPage> {
       });
     }
 
-    await _dbHelper.insertUserNotifications(notifies);
+    await _dbHelper.insertUserNotifications(notifies, context);
   }
 
   Widget _renderWidget() {

@@ -1,5 +1,6 @@
 import 'dart:collection';
 
+import 'package:app/services/local_storage.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -17,6 +18,7 @@ String _isNewToJson(bool isNew) {
 class NotificationModel extends ChangeNotifier {
   final List<UserNotification> _notifications = [];
   bool _navBarNotification = true;
+  final DBHelper _dbHelper = DBHelper();
 
   bool get navBarNotification {
     return _navBarNotification && hasNotifications();
@@ -31,7 +33,17 @@ class NotificationModel extends ChangeNotifier {
   }
 
   void addAll(List<UserNotification> notifications) {
-    _notifications.addAll(notifications);
+    _notifications
+      ..clear()
+      ..addAll(notifications);
+    notifyListeners();
+  }
+
+  Future<void> loadNotifications() async {
+    var notifications = await _dbHelper.getUserNotifications();
+    _notifications
+      ..clear()
+      ..addAll(notifications);
     notifyListeners();
   }
 

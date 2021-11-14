@@ -1,3 +1,4 @@
+import 'package:app/models/notification.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/on_boarding/welcome_screen.dart';
 import 'package:app/screens/home_page.dart';
@@ -37,7 +38,7 @@ class SplashScreenState extends State<SplashScreen> {
 
   void initialize() {
     _getLatestMeasurements();
-    _getFavPlaces();
+    _loadNotifiers();
     Future.delayed(const Duration(seconds: 2), () async {
       _updateWidget();
     });
@@ -107,9 +108,11 @@ class SplashScreenState extends State<SplashScreen> {
     );
   }
 
-  void _getFavPlaces() {
+  void _loadNotifiers() {
     Provider.of<PlaceDetailsModel>(context, listen: false)
         .reloadFavouritePlaces();
+    Provider.of<NotificationModel>(context, listen: false)
+        .loadNotifications();
   }
 
   void _getLatestMeasurements() {

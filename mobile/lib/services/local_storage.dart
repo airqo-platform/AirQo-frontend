@@ -587,7 +587,7 @@ class DBHelper {
   }
 
   Future<void> insertUserNotifications(
-      List<UserNotification> notifications) async {
+      List<UserNotification> notifications, BuildContext context) async {
     try {
       final db = await database;
 
@@ -605,6 +605,8 @@ class DBHelper {
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
       }
+      Provider.of<NotificationModel>(context, listen: false)
+          .addAll(notifications);
     } catch (e) {
       debugPrint(e.toString());
     }
