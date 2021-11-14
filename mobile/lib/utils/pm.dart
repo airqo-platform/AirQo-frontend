@@ -529,9 +529,9 @@ Future<BitmapDescriptor> pmToSmallMarker(double pm2_5) async {
   );
 
   final image = await pictureRecorder.endRecording().toImage(
-    radius.toInt() * 2,
-    radius.toInt() * 2,
-  );
+        radius.toInt() * 2,
+        radius.toInt() * 2,
+      );
   final data = await image.toByteData(format: ImageByteFormat.png);
   return BitmapDescriptor.fromBytes(data!.buffer.asUint8List());
 }

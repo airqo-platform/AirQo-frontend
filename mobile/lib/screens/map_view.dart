@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/measurement.dart';
@@ -443,14 +444,13 @@ class _MapViewState extends State<MapView> {
     );
   }
 
-  Future<void> setMarkers(List<Measurement> measurements, bool useSingleZoom, double zoom) async {
-
-    if(measurements.isEmpty){
+  Future<void> setMarkers(
+      List<Measurement> measurements, bool useSingleZoom, double zoom) async {
+    if (measurements.isEmpty) {
       final controller = _mapController;
 
-      await controller
-          .animateCamera(CameraUpdate.newCameraPosition(
-          _defaultCameraPosition));
+      await controller.animateCamera(
+          CameraUpdate.newCameraPosition(_defaultCameraPosition));
 
       setState(() {
         _markers.clear();
@@ -460,22 +460,20 @@ class _MapViewState extends State<MapView> {
     }
     var markers = <String, Marker>{};
 
-    for(var measurement in measurements){
-
+    for (var measurement in measurements) {
       BitmapDescriptor bitmapDescriptor;
 
-      if(useSingleZoom){
+      if (useSingleZoom) {
         bitmapDescriptor = await pmToMarker(measurement.getPm2_5Value());
-      }
-      else{
+      } else {
         bitmapDescriptor = await pmToSmallMarker(measurement.getPm2_5Value());
       }
 
       var marker = Marker(
         markerId: MarkerId(measurement.site.id),
         icon: bitmapDescriptor,
-        position: LatLng((measurement.site.latitude),
-            measurement.site.longitude),
+        position:
+            LatLng((measurement.site.latitude), measurement.site.longitude),
         infoWindow: InfoWindow(
           title: measurement.getPm2_5Value().toStringAsFixed(2),
           // snippet: node.location,
@@ -487,38 +485,48 @@ class _MapViewState extends State<MapView> {
       markers[measurement.site.id] = marker;
     }
 
-
     if (mounted) {
-      if(useSingleZoom){
+      final controller = _mapController;
+
+      if (useSingleZoom) {
         var latLng = LatLng(measurements.first.site.latitude,
             measurements.first.site.longitude);
 
         var _cameraPosition = CameraPosition(target: latLng, zoom: zoom);
-
-        final controller = _mapController;
 
         await controller
             .animateCamera(CameraUpdate.newCameraPosition(_cameraPosition));
-      }
-      else{
-        var latLng = LatLng(measurements.first.site.latitude,
-            measurements.first.site.longitude);
-
-        var _cameraPosition = CameraPosition(target: latLng, zoom: zoom);
-
-        final controller = _mapController;
+      } else {
 
         await controller
-            .animateCamera(CameraUpdate.newCameraPosition(
-            _cameraPosition));
+            .animateCamera(CameraUpdate.newLatLngBounds(
+            getBounds(markers.values.toList()), 40.0));
       }
-
 
       setState(() {
         _markers.clear();
         _markers = markers;
       });
     }
+  }
+
+  LatLngBounds getBounds(List<Marker> markers) {
+    var latitudes = markers.map<double>((marker) => marker.position.latitude)
+        .toList();
+    var longitudes = markers.map<double>((marker) => marker.position.longitude)
+        .toList();
+
+    var topMostMarker = longitudes.reduce(max);
+    var rightMostMarker = latitudes.reduce(max);
+    var leftMostMarker = latitudes.reduce(min);
+    var bottomMostMarker = longitudes.reduce(min);
+
+    var bounds = LatLngBounds(
+      northeast: LatLng(rightMostMarker, topMostMarker),
+      southwest: LatLng(leftMostMarker, bottomMostMarker),
+    );
+
+    return bounds;
   }
 
   void showLocation() {
@@ -763,6 +771,5 @@ class _MapViewState extends State<MapView> {
 
     await _loadTheme();
     await _getLatestMeasurements();
-
   }
 }

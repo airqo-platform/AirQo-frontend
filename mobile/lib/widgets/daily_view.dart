@@ -25,11 +25,9 @@ class DailyView extends StatefulWidget {
 }
 
 class _DailyViewState extends State<DailyView> {
-  String viewDay = 'today';
-  String pollutant = '';
-  bool pm10 = false;
-  bool pm2_5 = true;
-  bool showHeartAnimation = false;
+  String _viewDay = 'today';
+  String _pollutant = 'pm2.5';
+  bool _showHeartAnimation = false;
   SharedPreferences? _preferences;
   List<Recommendation> _recommendations = [];
   final DBHelper _dbHelper = DBHelper();
@@ -91,7 +89,8 @@ class _DailyViewState extends State<DailyView> {
               padding: const EdgeInsets.only(right: 16, left: 16),
               child: RepaintBoundary(
                 key: _globalKey,
-                child: getCard(),
+                child: InsightsCard(
+                    widget.placeDetails, callBackFn, _pollutant, widget.daily),
               ),
             ),
             const SizedBox(
@@ -140,13 +139,13 @@ class _DailyViewState extends State<DailyView> {
             const SizedBox(
               height: 36,
             ),
-            if (viewDay == 'today' || viewDay == 'tomorrow')
+            if (_viewDay == 'today' || _viewDay == 'tomorrow')
               Padding(
                 padding: const EdgeInsets.only(right: 16, left: 16),
                 child: Visibility(
                   visible: _recommendations.isNotEmpty,
                   child: Text(
-                    viewDay == 'today'
+                    _viewDay == 'today'
                         ? 'Today’s health tips'
                         : 'Tomorrow’s health tips',
                     textAlign: TextAlign.left,
@@ -159,7 +158,7 @@ class _DailyViewState extends State<DailyView> {
               height: 11,
             ),
             Visibility(
-              visible: viewDay == 'today' || viewDay == 'tomorrow',
+              visible: _viewDay == 'today' || _viewDay == 'tomorrow',
               child: SizedBox(
                 height: 128,
                 child: ListView.builder(
@@ -205,35 +204,27 @@ class _DailyViewState extends State<DailyView> {
       });
       if (time.day == DateTime.now().day) {
         setState(() {
-          viewDay = 'today';
+          _viewDay = 'today';
         });
       } else if (time.day == tomorrow.day) {
         setState(() {
-          viewDay = 'tomorrow';
+          _viewDay = 'tomorrow';
         });
       } else {
         setState(() {
-          viewDay = '';
+          _viewDay = '';
         });
       }
     } else {
       setState(() {
-        viewDay = '';
+        _viewDay = '';
         _recommendations = [];
       });
     }
   }
 
-  Widget getCard() {
-    if (pm2_5) {
-      return InsightsCard(
-          widget.placeDetails, callBackFn, 'pm2.5', widget.daily);
-    }
-    return InsightsCard(widget.placeDetails, callBackFn, 'pm10', widget.daily);
-  }
-
   Widget getHeartIcon() {
-    if (showHeartAnimation) {
+    if (_showHeartAnimation) {
       return SizedBox(
         height: 16.67,
         width: 16.67,
@@ -275,17 +266,17 @@ class _DailyViewState extends State<DailyView> {
 
   void togglePollutant() {
     setState(() {
-      pm2_5 = !pm2_5;
+      _pollutant = _pollutant == 'pm2.5' ? 'pm10' : 'pm2.5';
     });
   }
 
   void updateFavPlace() async {
     setState(() {
-      showHeartAnimation = true;
+      _showHeartAnimation = true;
     });
     Future.delayed(const Duration(seconds: 2), () async {
       setState(() {
-        showHeartAnimation = false;
+        _showHeartAnimation = false;
       });
     });
     await _dbHelper.updateFavouritePlaces(widget.placeDetails, context);

@@ -956,6 +956,9 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   void _showHelpTips() {
+    if(!mounted){
+      return;
+    }
     try {
       var showHelpTips =
           _preferences!.getBool(PrefConstant.homePageTips) ?? true;
@@ -965,7 +968,7 @@ class _DashboardViewState extends State<DashboardView> {
             setState(() {
               _showAnalyticsCardTips = true;
             });
-            // _preferences!.setBool(PrefConstant.homePageTips, false);
+            _preferences!.setBool(PrefConstant.homePageTips, false);
           }, true);
         }, false);
       }

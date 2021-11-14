@@ -37,8 +37,12 @@ class _InsightsCardState extends State<InsightsCard> {
   List<HistoricalMeasurement> _measurements = [];
   InsightsChartData? _selectedMeasurement;
   final List<charts.Series<InsightsChartData, DateTime>> _chartData = [];
-  List<charts.Series<InsightsChartData, String>> _dailyChartData = [];
-  List<charts.Series<InsightsChartData, String>> _hourlyChartData = [];
+  List<charts.Series<InsightsChartData, String>> _dailyPm2_5ChartData = [];
+  List<charts.Series<InsightsChartData, String>> _hourlyPm2_5ChartData = [];
+
+  List<charts.Series<InsightsChartData, String>> _dailyPm10ChartData = [];
+  List<charts.Series<InsightsChartData, String>> _hourlyPm10ChartData = [];
+
   AirqoApiClient? _airqoApiClient;
   String _viewDay = 'today';
   SharedPreferences? _preferences;
@@ -364,7 +368,8 @@ class _InsightsCardState extends State<InsightsCard> {
       width: MediaQuery.of(context).size.width,
       height: 150,
       child: charts.BarChart(
-        _dailyChartData,
+        widget.pollutant == 'pm2.5' ? _dailyPm2_5ChartData :
+        _dailyPm10ChartData,
         animate: true,
         defaultRenderer: charts.BarRendererConfig<String>(
             strokeWidthPx: 0, stackedBarPaddingPx: 0),
@@ -432,23 +437,28 @@ class _InsightsCardState extends State<InsightsCard> {
     var predictions = await _airqoApiClient!.fetchForecast(deviceNumber);
 
     if (predictions.isEmpty) {
+      setState(() {
+        _measurements = value;
+        _hourlyPm2_5ChartData = insightsHourlyChartData(
+            value, 'pm2.5', widget.placeDetails);
+        _hourlyPm10ChartData = insightsHourlyChartData(
+            value, 'pm10', widget.placeDetails);
+      });
+      widget.insightsValueCallBack(
+          _hourlyPm2_5ChartData.toList().first.data.last);
       return;
     }
     var combined = value;
     var predictedValues = Predict.getMeasurements(
         predictions, widget.placeDetails.siteId, deviceNumber, true);
 
-    for (var predict in predictedValues) {
-      var isPresent = value.where((measurement) {
-        return DateTime.parse(measurement.time).hour ==
-            DateTime.parse(predict.time).hour;
-      }).toList();
-
-      if (isPresent.isNotEmpty) {
-        continue;
-      }
-      combined.add(predict);
+    for (var measurement in value) {
+      predictedValues.removeWhere((predict) =>
+      DateTime.parse(predict.time).hour ==
+          DateTime.parse(measurement.time).hour);
     }
+
+    combined.addAll(predictedValues);
 
     if (!mounted) {
       return;
@@ -456,9 +466,13 @@ class _InsightsCardState extends State<InsightsCard> {
 
     setState(() {
       _measurements = combined;
-      _hourlyChartData = insightsHourlyChartData(
-          combined, widget.pollutant, widget.placeDetails);
+      _hourlyPm2_5ChartData = insightsHourlyChartData(
+          combined, 'pm2.5', widget.placeDetails);
+      _hourlyPm10ChartData = insightsHourlyChartData(
+          combined, 'pm10', widget.placeDetails);
     });
+    widget.insightsValueCallBack(
+        _hourlyPm2_5ChartData.toList().first.data.last);
     _showHelpTips();
   }
 
@@ -486,7 +500,7 @@ class _InsightsCardState extends State<InsightsCard> {
     });
   }
 
-  Future<void> getMeasurements() async {
+  Future<void> _getMeasurements() async {
     await _airqoApiClient!
         .fetchSiteHistoricalMeasurements(
             widget.placeDetails.siteId, widget.daily)
@@ -502,30 +516,51 @@ class _InsightsCardState extends State<InsightsCard> {
                     {
                       setState(() {
                         _measurements = value;
-                        _dailyChartData = insightsDailyChartData(
-                            value, widget.pollutant, widget.placeDetails);
+                        _dailyPm2_5ChartData = insightsDailyChartData(
+                            value, 'pm2.5', widget.placeDetails);
+                        _dailyPm10ChartData = insightsDailyChartData(
+                            value, 'pm10', widget.placeDetails);
                       }),
-                      widget.insightsValueCallBack(
-                          _dailyChartData.toList().first.data.last),
+                      if(widget.pollutant == 'pm2.5'){
+                        widget.insightsValueCallBack(
+                            _dailyPm2_5ChartData.toList().first.data.last),
+                      }
+                      else{
+                        widget.insightsValueCallBack(
+                            _dailyPm10ChartData.toList().first.data.last),
+                      },
+
                       _showHelpTips(),
                     }
                   else
                     {
-                      setState(() {
-                        _measurements = value;
-                        _hourlyChartData = insightsHourlyChartData(
-                            value, widget.pollutant, widget.placeDetails);
-                      }),
-                      widget.insightsValueCallBack(
-                          _hourlyChartData.toList().first.data.last),
-                      if (widget.pollutant == 'pm2.5')
-                        {
-                          getForecast(value.first.deviceNumber, value),
-                        }
-                      else
-                        {
-                          _showHelpTips(),
-                        }
+                      // setState(() {
+                      //   _measurements = value;
+                      //   _hourlyPm2_5ChartData = insightsHourlyChartData(
+                      //       value, 'pm2.5', widget.placeDetails);
+                      //   _hourlyPm10ChartData = insightsHourlyChartData(
+                      //       value, 'pm10', widget.placeDetails);
+                      // }),
+                      // widget.insightsValueCallBack(
+                      //     _hourlyPm2_5ChartData.toList().first.data.last);
+                      if(widget.pollutant == 'pm2.5'){
+                        // widget.insightsValueCallBack(
+                        //     _hourlyPm2_5ChartData.toList().first.data.last),
+                        getForecast(value.first.deviceNumber, value),
+                      }
+                      else{
+                        setState(() {
+                          _measurements = value;
+                          _hourlyPm2_5ChartData = insightsHourlyChartData(
+                              value, 'pm2.5', widget.placeDetails);
+                          _hourlyPm10ChartData = insightsHourlyChartData(
+                              value, 'pm10', widget.placeDetails);
+                        }),
+                        widget.insightsValueCallBack(
+                            _hourlyPm10ChartData.toList().first.data.last),
+                        _showHelpTips(),
+                      },
+
                     },
                 }
             });
@@ -537,7 +572,8 @@ class _InsightsCardState extends State<InsightsCard> {
       width: MediaQuery.of(context).size.width,
       height: 150,
       child: charts.BarChart(
-        _hourlyChartData,
+        widget.pollutant == 'pm2.5' ? _hourlyPm2_5ChartData :
+        _hourlyPm10ChartData,
         animate: true,
         defaultRenderer: charts.BarRendererConfig<String>(
             strokeWidthPx: 0, stackedBarPaddingPx: 0),
@@ -633,7 +669,7 @@ class _InsightsCardState extends State<InsightsCard> {
   Future<void> _initialize() async {
     _preferences = await SharedPreferences.getInstance();
     _airqoApiClient = AirqoApiClient(context);
-    await getMeasurements();
+    await _getMeasurements();
   }
 
   void _showHelpTips() {
@@ -643,7 +679,7 @@ class _InsightsCardState extends State<InsightsCard> {
       if (showHelpTips) {
         showTipText(_infoToolTipText, _infoToolTipKey, context, () {
           showTipText(_forecastToolTipText, _forecastToolTipKey, context, () {
-            // _preferences!.setBool(PrefConstant.insightsCardTips, false);
+            _preferences!.setBool(PrefConstant.insightsCardTips, false);
           }, true);
         }, true);
       }

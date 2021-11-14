@@ -68,7 +68,7 @@ class Predict {
       if (today) {
         if (time.day == DateTime.now().day) {
           var measurement = HistoricalMeasurement(
-              time.toString(),
+              time.toUtc().toString(),
               pmValue,
               emptyValue,
               emptyValue,
@@ -81,7 +81,7 @@ class Predict {
         }
       } else {
         var measurement = HistoricalMeasurement(
-            time.toString(),
+            time.toUtc().toString(),
             pmValue,
             emptyValue,
             emptyValue,
