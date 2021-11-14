@@ -843,7 +843,6 @@ class CustomAuth {
         stackTrace: stackTrace,
       );
     }
-
     return false;
   }
 

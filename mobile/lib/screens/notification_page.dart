@@ -3,6 +3,7 @@ import 'package:app/models/notification.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/date.dart';
+import 'package:app/utils/string_extension.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
@@ -101,6 +102,15 @@ class _NotificationPageState extends State<NotificationPage> {
 
   Widget notificationCard(UserNotification notification) {
     var notificationDate = notification.time;
+
+    if (notificationDate.isNull() ||
+        notification.title.isNull() ||
+        notification.body.isNull()) {
+      return Visibility(
+        visible: false,
+        child: Container(),
+      );
+    }
 
     try {
       notificationDate =

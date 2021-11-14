@@ -6,6 +6,14 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'notification.g.dart';
 
+bool _isNewFromJson(dynamic json) {
+  return '$json' == 'true' ? true : false;
+}
+
+String _isNewToJson(bool isNew) {
+  return isNew ? 'true' : 'false';
+}
+
 class NotificationModel extends ChangeNotifier {
   final List<UserNotification> _notifications = [];
   bool _navBarNotification = true;
@@ -49,6 +57,8 @@ class UserNotification {
   String title;
   String body;
   String time;
+
+  @JsonKey(fromJson: _isNewFromJson, toJson: _isNewToJson)
   bool isNew = true;
 
   UserNotification(this.id, this.title, this.body, this.isNew, this.time);

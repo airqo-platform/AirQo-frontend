@@ -366,8 +366,6 @@ class DBHelper {
 
       return res.isNotEmpty
           ? List.generate(res.length, (i) {
-              var dbJson = res[i];
-              dbJson['isNew'] = dbJson['isNew'] == 'true' ? true : false;
               return UserNotification.fromJson(res[i]);
             })
           : <UserNotification>[]
@@ -601,7 +599,6 @@ class DBHelper {
 
       for (var notification in notifications) {
         var jsonData = notification.toJson();
-        jsonData['isNew'] = notification.isNew ? 'true' : 'false';
         await db.insert(
           UserNotification.dbName(),
           jsonData,

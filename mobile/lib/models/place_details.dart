@@ -140,9 +140,11 @@ class PlaceDetailsModel extends ChangeNotifier {
 
   Future<void> loadFavouritePlaces(List<PlaceDetails> places) async {
     try {
-      _favouritePlaces.addAll(places);
-      notifyListeners();
-      await _dbHelper.setFavouritePlaces(places);
+      // _favouritePlaces.addAll(places);
+      // notifyListeners();
+      await _dbHelper.setFavouritePlaces(places).then((value) => {
+            reloadFavouritePlaces(),
+          });
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
       await Sentry.captureException(
