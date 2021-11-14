@@ -45,7 +45,7 @@ class LocalNotifications {
 
   Future<void> showAlertNotification(UserNotification notification) async {
     var bigTextStyleInformation = BigTextStyleInformation(
-      notification.message,
+      notification.body,
       htmlFormatBigText: true,
       contentTitle: 'AirQo',
       htmlFormatContentTitle: true,

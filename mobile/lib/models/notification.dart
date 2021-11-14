@@ -47,10 +47,11 @@ class NotificationModel extends ChangeNotifier {
 class UserNotification {
   final String id;
   final String title;
-  final String message;
+  final String body;
+  final String time;
   bool isNew = true;
 
-  UserNotification(this.id, this.title, this.message, this.isNew);
+  UserNotification(this.id, this.title, this.body, this.isNew, this.time);
 
   factory UserNotification.fromJson(Map<String, dynamic> json) =>
       _$UserNotificationFromJson(json);
@@ -59,43 +60,29 @@ class UserNotification {
 
   Map<String, dynamic> toJson() => _$UserNotificationToJson(this);
 
-  static String alertDbName() => 'alerts_table';
-
   static UserNotification? composeNotification(RemoteMessage message) {
     debugPrint('Message data: ${message.data}');
 
     var data = message.data;
 
     if (data.isNotEmpty) {
-      return UserNotification(
-          message.hashCode.toString(), data['message'], data['message'], true);
+      return UserNotification(message.hashCode.toString(), data['message'],
+          data['message'], true, DateTime.now().toUtc().toString());
     }
 
     return null;
   }
 
-  static String createTableStmt() =>
-      'CREATE TABLE IF NOT EXISTS ${alertDbName()}('
-      '${dbSiteId()} TEXT PRIMARY KEY, '
-      '${dbReceiver()} TEXT, '
-      '${dbSiteName()} TEXT, '
-      '${dbType()} TEXT, '
-      '${dbHour()} INT, '
-      '${dbAirQuality()} TEXT )';
+  static String createTableStmt() => 'CREATE TABLE IF NOT EXISTS ${dbName()}('
+      'id TEXT PRIMARY KEY, '
+      'title TEXT, '
+      'body TEXT, '
+      'time TEXT, '
+      'isNew TEXT )';
 
-  static String dbAirQuality() => 'airQuality';
+  static String dbName() => 'notifications_table';
 
-  static String dbHour() => 'hour';
-
-  static String dbReceiver() => 'receiver';
-
-  static String dbSiteId() => 'siteId';
-
-  static String dbSiteName() => 'siteName';
-
-  static String dbType() => 'type';
-
-  static String dropTableStmt() => 'DROP TABLE IF EXISTS ${alertDbName()}';
+  static String dropTableStmt() => 'DROP TABLE IF EXISTS ${dbName()}';
 
   static UserNotification? parseNotification(dynamic jsonBody) {
     try {
@@ -119,7 +106,6 @@ class UserNotification {
         debugPrint(e.toString());
       }
     }
-
     return notifications;
   }
 }

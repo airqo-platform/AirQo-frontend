@@ -383,10 +383,17 @@ class _SearchPageState extends State<SearchPage> {
       });
 
       _searchApiClient!.fetchSuggestions(text).then((value) => {
-            setState(() {
-              _searchSuggestions = value;
-            })
+            if (mounted)
+              {
+                setState(() {
+                  _searchSuggestions = value;
+                })
+              }
           });
+
+      if (!mounted) {
+        return;
+      }
 
       setState(() {
         searchSites = _locationService.textSearchNearestSites(text, _allSites);
@@ -567,6 +574,9 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Future<void> showPlaceDetails(Suggestion suggestion) async {
+    if (!mounted) {
+      return;
+    }
     setState(() {
       _textEditingController.text = suggestion.suggestionDetails.mainText;
     });

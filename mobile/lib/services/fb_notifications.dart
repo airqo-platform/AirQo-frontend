@@ -404,8 +404,12 @@ class CloudStore {
 
     try {
       var notificationId = DateTime.now().millisecondsSinceEpoch.toString();
-      var notification = UserNotification(notificationId, 'Welcome to AirQo!',
-          'Begin your journey to Knowing Your Air and Breathe Clean... ', true);
+      var notification = UserNotification(
+          notificationId,
+          'Welcome to AirQo!',
+          'Begin your journey to Knowing Your Air and Breathe Clean... ',
+          true,
+          DateTime.now().toUtc().toString());
       await _firebaseFirestore
           .collection('${CloudStorage.notificationCollection}/$id/$id')
           .doc(notificationId)

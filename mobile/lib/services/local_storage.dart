@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/historical_measurement.dart';
 import 'package:app/models/measurement.dart';
+import 'package:app/models/notification.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/predict.dart';
 import 'package:app/models/site.dart';
@@ -51,6 +52,7 @@ class DBHelper {
       await db.execute(Story.dropTableStmt());
       await db.execute(UserDetails.dropTableStmt());
       await db.execute(PlaceDetails.dropTableStmt());
+      await db.execute(UserNotification.dropTableStmt());
       await prefs.setBool(PrefConstant.reLoadDb, false);
     }
 
@@ -62,6 +64,7 @@ class DBHelper {
     await db.execute(Story.createTableStmt());
     await db.execute(UserDetails.createTableStmt());
     await db.execute(PlaceDetails.createTableStmt());
+    await db.execute(UserNotification.createTableStmt());
   }
 
   Future<void> deleteSearchHistory(Suggestion suggestion) async {
@@ -354,6 +357,27 @@ class DBHelper {
     }
   }
 
+  Future<List<UserNotification>> getUserNotifications() async {
+    try {
+      final db = await database;
+
+      var res = await db.query(UserNotification.dbName());
+
+      return res.isNotEmpty
+          ? List.generate(res.length, (i) {
+              var dbJson = res[i];
+              dbJson['isNew'] = dbJson['isNew'] == 'true' ? true : false;
+              return UserNotification.fromJson(res[i]);
+            })
+          : <UserNotification>[]
+        ..sort(
+            (x, y) => DateTime.parse(x.time).compareTo(DateTime.parse(y.time)));
+    } catch (e) {
+      debugPrint(e.toString());
+      return <UserNotification>[];
+    }
+  }
+
   Future<Database> initDB() async {
     return await openDatabase(
       join(await getDatabasesPath(), AppConfig.dbName),
@@ -556,6 +580,31 @@ class DBHelper {
             debugPrint(e.toString());
           }
         }
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
+  Future<void> insertUserNotifications(
+      List<UserNotification> notifications) async {
+    try {
+      final db = await database;
+
+      if (notifications.isEmpty) {
+        return;
+      }
+
+      await db.delete(UserNotification.dbName());
+
+      for (var notification in notifications) {
+        var jsonData = notification.toJson();
+        jsonData['isNew'] = notification.isNew ? 'true' : 'false';
+        await db.insert(
+          UserNotification.dbName(),
+          jsonData,
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
       }
     } catch (e) {
       debugPrint(e.toString());

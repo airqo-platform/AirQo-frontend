@@ -1,6 +1,8 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/services/fb_notifications.dart';
+import 'package:app/services/local_storage.dart';
+import 'package:app/utils/date.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
@@ -15,11 +17,58 @@ class NotificationPage extends StatefulWidget {
 }
 
 class _NotificationPageState extends State<NotificationPage> {
-  var notifications = <UserNotification>[];
-  var isViewNotification = false;
-  late UserNotification selectedNotification;
+  List<UserNotification> _notifications = [];
+  bool _isViewNotification = false;
+  bool _isLoading = false;
+  UserNotification? _selectedNotification;
   final CloudStore _cloudStore = CloudStore();
   final CustomAuth _customAuth = CustomAuth();
+  final DBHelper _dbHelper = DBHelper();
+
+  Widget alphaBuild() {
+    return Container(
+        color: ColorConstants.appBodyColor,
+        child: FutureBuilder(
+            future: _cloudStore.getNotifications(_customAuth.getId()),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                _notifications = snapshot.data as List<UserNotification>;
+
+                if (_notifications.isEmpty) {
+                  return Center(
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+                      child: Text(
+                        'No notifications',
+                        style: TextStyle(color: ColorConstants.appColor),
+                      ),
+                    ),
+                  );
+                }
+
+                return RefreshIndicator(
+                  color: ColorConstants.appColorBlue,
+                  onRefresh: () async {
+                    await _getNotifications(true);
+                  },
+                  child: ListView.builder(
+                    itemBuilder: (context, index) => Padding(
+                      padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                      child: notificationCard(_notifications[index]),
+                    ),
+                    itemCount: _notifications.length,
+                  ),
+                );
+              } else {
+                return ListView.builder(
+                  itemBuilder: (BuildContext context, int index) {
+                    return placeHolder();
+                  },
+                  itemCount: 7,
+                );
+              }
+            }));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,50 +96,63 @@ class _NotificationPageState extends State<NotificationPage> {
     );
   }
 
+  @override
+  void initState() {
+    _getNotifications(false);
+    super.initState();
+  }
+
   Widget mainSection() {
+    if (_isLoading) {
+      return Container(
+          color: ColorConstants.appBodyColor,
+          child: ListView.builder(
+            itemBuilder: (BuildContext context, int index) {
+              return placeHolder();
+            },
+            itemCount: 7,
+          ));
+    }
+
+    if (_notifications.isEmpty) {
+      return Center(
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+          child: Text(
+            'No notifications',
+            style: TextStyle(color: ColorConstants.appColor),
+          ),
+        ),
+      );
+    }
+
     return Container(
         color: ColorConstants.appBodyColor,
-        child: FutureBuilder(
-            future: _cloudStore.getNotifications(_customAuth.getId()),
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                notifications = snapshot.data as List<UserNotification>;
-
-                if (notifications.isEmpty) {
-                  return Center(
-                    child: Container(
-                      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                      child: Text(
-                        'No notifications',
-                        style: TextStyle(color: ColorConstants.appColor),
-                      ),
-                    ),
-                  );
-                }
-
-                return RefreshIndicator(
-                  color: ColorConstants.appColorBlue,
-                  onRefresh: refreshData,
-                  child: ListView.builder(
-                    itemBuilder: (context, index) => Padding(
-                      padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
-                      child: notificationCard(notifications[index]),
-                    ),
-                    itemCount: notifications.length,
-                  ),
-                );
-              } else {
-                return ListView.builder(
-                  itemBuilder: (BuildContext context, int index) {
-                    return placeHolder();
-                  },
-                  itemCount: 7,
-                );
-              }
-            }));
+        child: RefreshIndicator(
+          color: ColorConstants.appColorBlue,
+          onRefresh: () async {
+            await _getNotifications(true);
+          },
+          child: ListView.builder(
+            itemBuilder: (context, index) => Padding(
+              padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+              child: notificationCard(_notifications[index]),
+            ),
+            itemCount: _notifications.length,
+          ),
+        ));
   }
 
   Widget notificationCard(UserNotification notification) {
+    var notificationDate = notification.time;
+
+    try {
+      notificationDate =
+          DateTime.parse(notification.time).notificationDisplayDate();
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+
     return Container(
       padding: const EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 24.0),
       decoration: const BoxDecoration(
@@ -99,8 +161,8 @@ class _NotificationPageState extends State<NotificationPage> {
       child: ListTile(
         onTap: () {
           setState(() {
-            selectedNotification = notification;
-            isViewNotification = true;
+            _selectedNotification = notification;
+            _isViewNotification = true;
             updateNotification(notification);
           });
         },
@@ -141,7 +203,22 @@ class _NotificationPageState extends State<NotificationPage> {
                     ),
                   ],
                 ))
-            : null,
+            : Container(
+                constraints: const BoxConstraints(
+                  maxHeight: 16,
+                  maxWidth: 43.35,
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      notificationDate,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          fontSize: 10, color: ColorConstants.appColorBlack),
+                    ),
+                  ],
+                )),
         title: Text(
           notification.title,
           style: TextStyle(
@@ -150,7 +227,7 @@ class _NotificationPageState extends State<NotificationPage> {
               color: ColorConstants.appColorBlack),
         ),
         subtitle: Text(
-          notification.message,
+          notification.body,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
@@ -166,17 +243,6 @@ class _NotificationPageState extends State<NotificationPage> {
       padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
       child: loadingAnimation(100.0, 16.0),
     );
-  }
-
-  Future<void> refreshData() async {
-    await _cloudStore.getNotifications(_customAuth.getId()).then((value) => {
-          if (mounted)
-            {
-              setState(() {
-                notifications = value;
-              })
-            }
-        });
   }
 
   Widget singleSection() {
@@ -203,7 +269,7 @@ class _NotificationPageState extends State<NotificationPage> {
                         GestureDetector(
                           onTap: () {
                             setState(() {
-                              isViewNotification = false;
+                              _isViewNotification = false;
                             });
                           },
                           child: SvgPicture.asset(
@@ -239,7 +305,7 @@ class _NotificationPageState extends State<NotificationPage> {
                             height: 17,
                           ),
                           Text(
-                            selectedNotification.title,
+                            _selectedNotification!.title,
                             textAlign: TextAlign.center,
                             style: TextStyle(
                                 fontSize: 16,
@@ -250,7 +316,7 @@ class _NotificationPageState extends State<NotificationPage> {
                             height: 8.0,
                           ),
                           Text(
-                            selectedNotification.message,
+                            _selectedNotification!.body,
                             textAlign: TextAlign.center,
                             style: TextStyle(
                                 fontSize: 14,
@@ -272,9 +338,45 @@ class _NotificationPageState extends State<NotificationPage> {
     Provider.of<NotificationModel>(context, listen: false).removeAll();
     await _cloudStore.markNotificationAsRead(
         _customAuth.getId(), notification.id);
+    await _getNotifications(false);
+  }
+
+  Future<void> _getNotifications(bool reload) async {
+    if (reload) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
+
+    var offlineData = await _dbHelper.getUserNotifications();
+
+    if (offlineData.isNotEmpty && mounted) {
+      setState(() {
+        _notifications = offlineData;
+      });
+    }
+
+    var notifies = await _cloudStore.getNotifications(_customAuth.getId());
+    if (notifies.isEmpty) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+      return;
+    }
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+        _notifications = notifies;
+      });
+    }
+
+    await _dbHelper.insertUserNotifications(notifies);
   }
 
   Widget _renderWidget() {
-    return isViewNotification ? singleSection() : mainSection();
+    return _isViewNotification ? singleSection() : mainSection();
   }
 }

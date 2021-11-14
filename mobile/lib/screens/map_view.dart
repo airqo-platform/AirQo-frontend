@@ -119,6 +119,25 @@ class _MapViewState extends State<MapView> {
     );
   }
 
+  LatLngBounds getBounds(List<Marker> markers) {
+    var latitudes =
+        markers.map<double>((marker) => marker.position.latitude).toList();
+    var longitudes =
+        markers.map<double>((marker) => marker.position.longitude).toList();
+
+    var topMostMarker = longitudes.reduce(max);
+    var rightMostMarker = latitudes.reduce(max);
+    var leftMostMarker = latitudes.reduce(min);
+    var bottomMostMarker = longitudes.reduce(min);
+
+    var bounds = LatLngBounds(
+      northeast: LatLng(rightMostMarker, topMostMarker),
+      southwest: LatLng(leftMostMarker, bottomMostMarker),
+    );
+
+    return bounds;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -497,9 +516,7 @@ class _MapViewState extends State<MapView> {
         await controller
             .animateCamera(CameraUpdate.newCameraPosition(_cameraPosition));
       } else {
-
-        await controller
-            .animateCamera(CameraUpdate.newLatLngBounds(
+        await controller.animateCamera(CameraUpdate.newLatLngBounds(
             getBounds(markers.values.toList()), 40.0));
       }
 
@@ -508,25 +525,6 @@ class _MapViewState extends State<MapView> {
         _markers = markers;
       });
     }
-  }
-
-  LatLngBounds getBounds(List<Marker> markers) {
-    var latitudes = markers.map<double>((marker) => marker.position.latitude)
-        .toList();
-    var longitudes = markers.map<double>((marker) => marker.position.longitude)
-        .toList();
-
-    var topMostMarker = longitudes.reduce(max);
-    var rightMostMarker = latitudes.reduce(max);
-    var leftMostMarker = latitudes.reduce(min);
-    var bottomMostMarker = longitudes.reduce(min);
-
-    var bounds = LatLngBounds(
-      northeast: LatLng(rightMostMarker, topMostMarker),
-      southwest: LatLng(leftMostMarker, bottomMostMarker),
-    );
-
-    return bounds;
   }
 
   void showLocation() {

@@ -10,14 +10,16 @@ UserNotification _$UserNotificationFromJson(Map<String, dynamic> json) =>
     UserNotification(
       json['id'] as String,
       json['title'] as String,
-      json['message'] as String,
+      json['body'] as String,
       json['isNew'] as bool,
+      json['time'] as String,
     );
 
 Map<String, dynamic> _$UserNotificationToJson(UserNotification instance) =>
     <String, dynamic>{
       'id': instance.id,
       'title': instance.title,
-      'message': instance.message,
+      'body': instance.body,
+      'time': instance.time,
       'isNew': instance.isNew,
     };

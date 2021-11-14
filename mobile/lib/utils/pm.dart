@@ -393,24 +393,30 @@ String pmToInfoDialog(double pm2_5) {
     return 'Air quality is safe for everyone!';
   } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
     //moderate
-    return 'Sensitive people should consider reducing prolonged '
-        'or heavy exertion. Everyone should avoid prolonged or heavy exertion';
+    return 'Unusually sensitive people should consider reducing '
+        'prolonged or intense outdoor activities.\n'
+        '';
   } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
     //sensitive
-    return 'Sensitive people should consider reducing prolonged '
-        'or heavy exertion. Everyone should avoid prolonged or heavy exertion';
+    return 'The elderly and children should limit intense outdoor activities.\n'
+        'Sensitive people should reduce prolonged or '
+        'intense outdoor activities.';
   } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
     // unhealthy
-    return 'Sensitive people should consider reducing prolonged '
-        'or heavy exertion. Everyone should avoid prolonged or heavy exertion';
+    return 'People with respiratory or heart disease,'
+        ' the elderly and children should avoid '
+        'intense outdoor activities.\n'
+        'Everyone else should limit intense outdoor activities.';
   } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
     // very unhealthy
-    return 'Sensitive people should consider reducing prolonged '
-        'or heavy exertion. Everyone should avoid prolonged or heavy exertion';
+    return 'People with respiratory or heart disease, '
+        'the elderly and children should avoid any outdoor activity.\n'
+        'Everyone else should limit intense outdoor activities.';
   } else if (pm2_5 >= 250.5) {
     // hazardous
-    return 'Sensitive people should consider reducing prolonged '
-        'or heavy exertion. Everyone should avoid prolonged or heavy exertion';
+    return 'Everyone should avoid any intense outdoor activities. '
+        'People with respiratory or heart disease,'
+        ' the elderly and children should remain indoors.';
   } else {
     return '';
   }

@@ -227,6 +227,23 @@ extension DateTimeExtension on DateTime {
     }
   }
 
+  String notificationDisplayDate() {
+    if (day == DateTime.now().day) {
+      var hours = hour.toString();
+      if (hours.length <= 1) {
+        hours = '0$hour';
+      }
+
+      var minutes = minute.toString();
+      if (minutes.length <= 1) {
+        minutes = '0$minutes';
+      }
+      return '$hours:$minutes';
+    } else {
+      return '$day $getShortMonthString';
+    }
+  }
+
   DateTime getDateOfFirstDayOfWeek() {
     var firstDate = DateTime.now();
     var weekday = firstDate.weekday;

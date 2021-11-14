@@ -31,7 +31,7 @@ flutter run --no-sound-null-safety
 
 ### Some useful commands
 ```bash
-flutter pub run build_runner build [--delete-conflicting-outputs]
+flutter pub run build_runner build --delete-conflicting-outputs
 ```
 
 ```bash

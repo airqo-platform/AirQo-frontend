@@ -956,7 +956,7 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   void _showHelpTips() {
-    if(!mounted){
+    if (!mounted) {
       return;
     }
     try {
