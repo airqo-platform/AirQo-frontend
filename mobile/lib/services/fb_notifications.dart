@@ -116,7 +116,7 @@ class CloudStore {
     }
 
     try {
-      var userKya = await getKya(id);
+      var userKya = (await getProfile(id)).kya;
 
       var incomplete =
           userKya.where((element) => element.progress < 100.0).toList();
@@ -162,6 +162,7 @@ class CloudStore {
     return null;
   }
 
+  @Deprecated('Substituted with get user details function')
   Future<List<Kya>> getKya(String id) async {
     if (id == '') {
       return [];
@@ -295,7 +296,7 @@ class CloudStore {
         }
       }
 
-      var userKya = await getKya(id);
+      var userKya = (await getProfile(id)).kya;
       var updatedUserKya = userKya;
 
       for (var kya in allKya) {
@@ -367,7 +368,7 @@ class CloudStore {
     }
 
     try {
-      var userKya = await getKya(id);
+      var userKya = (await getProfile(id)).kya;
 
       var incomplete =
           userKya.where((element) => element.id == kya.id).toList();
@@ -500,9 +501,8 @@ class CloudStore {
     }
   }
 
-  Future<void> updateKyaProgress(
-      String userId, Kya kya, double progress) async {
-    if (userId == '') {
+  Future<void> updateKyaProgress(String id, Kya kya, double progress) async {
+    if (id == '') {
       return;
     }
 
@@ -512,7 +512,7 @@ class CloudStore {
     }
 
     try {
-      var userKya = await getKya(userId);
+      var userKya = (await getProfile(id)).kya;
 
       var incomplete =
           userKya.where((element) => element.id == kya.id).toList();
@@ -527,7 +527,7 @@ class CloudStore {
 
       await _firebaseFirestore
           .collection(CloudStorage.usersCollection)
-          .doc(userId)
+          .doc(id)
           .update({'kya': Kya.listToJson(userKya)});
 
       return;

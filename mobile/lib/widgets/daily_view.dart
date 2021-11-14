@@ -281,6 +281,7 @@ class _DailyViewState extends State<DailyView> {
   }
 
   void _showHelpTips(bool show) {
+    return;
     try {
       if (show) {
         showTipText(

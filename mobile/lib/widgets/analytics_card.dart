@@ -399,6 +399,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
   }
 
   void showTips() {
+    return;
     if (widget.showHelpTip) {
       Future.delayed(const Duration(seconds: 2), () {
         try {

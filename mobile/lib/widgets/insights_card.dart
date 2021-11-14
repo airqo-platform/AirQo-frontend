@@ -679,6 +679,7 @@ class _InsightsCardState extends State<InsightsCard> {
   }
 
   void _showHelpTips() {
+    return;
     try {
       var showHelpTips =
           _preferences!.getBool(PrefConstant.insightsCardTips) ?? true;

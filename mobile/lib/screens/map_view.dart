@@ -497,12 +497,18 @@ class _MapViewState extends State<MapView> {
         icon: bitmapDescriptor,
         position:
             LatLng((measurement.site.latitude), measurement.site.longitude),
-        infoWindow: InfoWindow(
-          title: measurement.getPm2_5Value().toStringAsFixed(2),
-          // snippet: node.location,
-        ),
+        // infoWindow: InfoWindow(
+        //   title: measurement.getPm2_5Value().toStringAsFixed(2),
+        //   snippet: node.location,
+        // ),
         onTap: () {
-          // updateInfoWindow(measurement);
+          if (!mounted) {
+            return;
+          }
+          setState(() {
+            _searchController.text = measurement.site.getName();
+          });
+          showLocationContent(measurement, null);
         },
       );
       markers[measurement.site.id] = marker;
@@ -538,6 +544,10 @@ class _MapViewState extends State<MapView> {
     setState(() {
       _showLocationDetails = !_showLocationDetails;
     });
+
+    if (!_showLocationDetails) {
+      showRegions();
+    }
   }
 
   void showLocationContent(

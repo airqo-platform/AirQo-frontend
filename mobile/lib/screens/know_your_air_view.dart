@@ -158,7 +158,7 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
       return;
     }
 
-    var kyaCards = await _cloudStore.getKya(_customAuth.getId());
+    var kyaCards = (await _cloudStore.getProfile(_customAuth.getId())).kya;
     if (mounted) {
       setState(() {
         _kyaCards =

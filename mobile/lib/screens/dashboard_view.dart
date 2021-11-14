@@ -813,7 +813,7 @@ class _DashboardViewState extends State<DashboardView> {
       return;
     }
 
-    var allKya = await _cloudStore.getKya(_customAuth.getId());
+    var allKya = (await _cloudStore.getProfile(_customAuth.getId())).kya;
 
     var completeKya =
         allKya.where((element) => element.progress >= 100).toList();
@@ -936,18 +936,18 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   void _getLocationMeasurements() async {
+    var defaultMeasurement = await _locationService.defaultLocationPlace();
+    if (defaultMeasurement != null && mounted) {
+      setState(() {
+        currentLocation = defaultMeasurement;
+      });
+    }
+
     var measurement = await _locationService.getCurrentLocationReadings();
     if (measurement != null && mounted) {
       setState(() {
         currentLocation = measurement;
       });
-    } else {
-      var defaultMeasurement = await _locationService.defaultLocationPlace();
-      if (defaultMeasurement != null && mounted) {
-        setState(() {
-          currentLocation = defaultMeasurement;
-        });
-      }
     }
   }
 
@@ -960,6 +960,7 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   void _showHelpTips() {
+    return;
     if (!mounted) {
       return;
     }

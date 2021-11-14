@@ -41,9 +41,6 @@ class LocationService {
   }
 
   Future<Measurement?> defaultLocationPlace() async {
-    var address =
-        await getAddress(AppConfig.defaultLatitude, AppConfig.defaultLongitude);
-
     var measurement = await _dbHelper.getNearestMeasurement(
         AppConfig.defaultLatitude, AppConfig.defaultLongitude);
 
@@ -51,11 +48,14 @@ class LocationService {
       return null;
     }
 
-    var returnMeasurement = measurement;
-    returnMeasurement.site.name = address.thoroughfare;
-    returnMeasurement.site.description = address.thoroughfare;
+    // var returnMeasurement = measurement;
+    // var address =
+    //     await getAddress(AppConfig.defaultLatitude,
+    //     AppConfig.defaultLongitude);
+    // returnMeasurement.site.name = address.thoroughfare;
+    // returnMeasurement.site.description = address.thoroughfare;
 
-    return returnMeasurement;
+    return measurement;
   }
 
   Future<Address> getAddress(double lat, double lng) async {

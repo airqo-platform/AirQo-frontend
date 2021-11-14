@@ -127,14 +127,14 @@ Widget shareCardImage(
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 20),
+                        fontWeight: FontWeight.bold, fontSize: 17),
                   ),
                   Text(
                     placeDetails.getLocation(),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                        fontSize: 14, color: Colors.black.withOpacity(0.3)),
+                        fontSize: 12, color: Colors.black.withOpacity(0.3)),
                   ),
                   const SizedBox(
                     height: 12,
@@ -153,7 +153,7 @@ Widget shareCardImage(
                       textAlign: TextAlign.start,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 12,
                         color: pm2_5TextColor(measurement.getPm2_5Value()),
                       ),
                     ),
