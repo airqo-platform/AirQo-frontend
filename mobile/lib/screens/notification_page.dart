@@ -25,51 +25,6 @@ class _NotificationPageState extends State<NotificationPage> {
   final CustomAuth _customAuth = CustomAuth();
   final DBHelper _dbHelper = DBHelper();
 
-  Widget alphaBuild() {
-    return Container(
-        color: ColorConstants.appBodyColor,
-        child: FutureBuilder(
-            future: _cloudStore.getNotifications(_customAuth.getId()),
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                _notifications = snapshot.data as List<UserNotification>;
-
-                if (_notifications.isEmpty) {
-                  return Center(
-                    child: Container(
-                      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                      child: Text(
-                        'No notifications',
-                        style: TextStyle(color: ColorConstants.appColor),
-                      ),
-                    ),
-                  );
-                }
-
-                return RefreshIndicator(
-                  color: ColorConstants.appColorBlue,
-                  onRefresh: () async {
-                    await _getNotifications(true);
-                  },
-                  child: ListView.builder(
-                    itemBuilder: (context, index) => Padding(
-                      padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
-                      child: notificationCard(_notifications[index]),
-                    ),
-                    itemCount: _notifications.length,
-                  ),
-                );
-              } else {
-                return ListView.builder(
-                  itemBuilder: (BuildContext context, int index) {
-                    return placeHolder();
-                  },
-                  itemCount: 7,
-                );
-              }
-            }));
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -115,9 +70,10 @@ class _NotificationPageState extends State<NotificationPage> {
     }
 
     if (_notifications.isEmpty) {
-      return Center(
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+      return Container(
+        color: ColorConstants.appBodyColor,
+        padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+        child: Center(
           child: Text(
             'No notifications',
             style: TextStyle(color: ColorConstants.appColor),

@@ -92,7 +92,7 @@ class UserDetails {
   }
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class UserPreferences {
   @JsonKey(defaultValue: false)
   bool notifications;

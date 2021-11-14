@@ -14,13 +14,13 @@ import 'measurement.dart';
 
 part 'place_details.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class PlaceDetails {
-  final String name;
-  final String location;
-  final String siteId;
-  final double latitude;
-  final double longitude;
+  String name;
+  String location;
+  String siteId;
+  double latitude;
+  double longitude;
 
   PlaceDetails(
       this.name, this.location, this.siteId, this.latitude, this.longitude);
@@ -49,15 +49,14 @@ class PlaceDetails {
 
   Map<String, dynamic> toJson() => _$PlaceDetailsToJson(this);
 
-  static String createTableStmt() =>
-      'CREATE TABLE IF NOT EXISTS ${dbFavPlacesName()}('
+  static String createTableStmt() => 'CREATE TABLE IF NOT EXISTS ${dbName()}('
       'siteId TEXT PRIMARY KEY, latitude REAL, '
       'location TEXT, longitude REAL, '
       'name TEXT)';
 
-  static String dbFavPlacesName() => 'fav_places';
+  static String dbName() => 'fav_places';
 
-  static String dropTableStmt() => 'DROP TABLE IF EXISTS ${dbFavPlacesName()}';
+  static String dropTableStmt() => 'DROP TABLE IF EXISTS ${dbName()}';
 
   static bool isFavouritePlace(
       List<PlaceDetails> favouritePlaces, PlaceDetails subject) {

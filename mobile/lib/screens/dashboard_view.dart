@@ -913,10 +913,14 @@ class _DashboardViewState extends State<DashboardView> {
       return;
     }
     var userKya = await _cloudStore.getIncompleteKya(_customAuth.getId());
-    if (userKya != null && mounted) {
-      setState(() {
-        _kya = userKya;
-      });
+    if (userKya != null) {
+      if (mounted) {
+        setState(() {
+          _kya = userKya;
+        });
+      }
+    } else {
+      await _cloudStore.loadKya(_customAuth.getId());
     }
   }
 

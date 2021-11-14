@@ -191,14 +191,23 @@ void pmInfoDialog(context, double pm2_5) {
                               ),
                             ),
                             TextSpan(
-                              text: 'PM2.5 ',
+                              text: 'PM',
                               style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w500,
-                                  color: ColorConstants.appColorBlack),
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                                color: ColorConstants.appColorBlack,
+                              ),
                             ),
                             TextSpan(
-                              text: 'and ',
+                              text: '2.5',
+                              style: TextStyle(
+                                fontSize: 7,
+                                fontWeight: FontWeight.w800,
+                                color: ColorConstants.appColorBlack,
+                              ),
+                            ),
+                            TextSpan(
+                              text: ' and ',
                               style: TextStyle(
                                 fontSize: 10,
                                 color: ColorConstants.appColorBlack
@@ -206,11 +215,20 @@ void pmInfoDialog(context, double pm2_5) {
                               ),
                             ),
                             TextSpan(
-                              text: 'PM10',
+                              text: 'PM',
                               style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w500,
-                                  color: ColorConstants.appColorBlack),
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                                color: ColorConstants.appColorBlack,
+                              ),
+                            ),
+                            TextSpan(
+                              text: '10',
+                              style: TextStyle(
+                                fontSize: 7,
+                                fontWeight: FontWeight.w800,
+                                color: ColorConstants.appColorBlack,
+                              ),
                             ),
                           ],
                         ),

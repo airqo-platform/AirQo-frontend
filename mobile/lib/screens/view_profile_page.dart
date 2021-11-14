@@ -5,8 +5,8 @@ import 'dart:io';
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/user_details.dart';
 import 'package:app/services/fb_notifications.dart';
-import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
+import 'package:app/services/secure_storage.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -35,7 +35,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
   final TextEditingController _phoneEditor = TextEditingController();
   final TextEditingController _emailEditor = TextEditingController();
   bool changeImage = false;
-  final SecureStorageHelper _secureStorageHelper = SecureStorageHelper();
+  final SecureStorage _secureStorage = SecureStorage();
 
   @override
   Widget build(BuildContext context) {
@@ -149,7 +149,8 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                 //           controller: _phoneEditor,
                 //           enableSuggestions: false,
                 //           readOnly: true,
-                //           style: TextStyle(color: ColorConstants.inactiveColor),
+                //           style: TextStyle(color: ColorConstants
+                //           .inactiveColor),
                 //           decoration: profileFormInactiveFieldDecoration(),
                 //         ),
                 //       ),
@@ -191,7 +192,8 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                 //           controller: _emailEditor,
                 //           enableSuggestions: false,
                 //           readOnly: true,
-                //           style: TextStyle(color: ColorConstants.inactiveColor),
+                //           style: TextStyle(color: ColorConstants
+                //           .inactiveColor),
                 //           decoration: profileFormInactiveFieldDecoration(),
                 //         ),
                 //       ),
@@ -248,7 +250,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
   }
 
   Future<void> initialize() async {
-    await _secureStorageHelper.getUserDetails().then((value) => {
+    await _secureStorage.getUserDetails().then((value) => {
           setState(() {
             _phoneEditor.text = value.phoneNumber;
             _emailEditor.text = value.emailAddress;

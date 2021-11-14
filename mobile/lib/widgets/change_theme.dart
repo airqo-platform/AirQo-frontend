@@ -8,7 +8,8 @@ class ChangeThemeDialog extends StatefulWidget {
   final void Function(Themes) onValueChange;
 
   const ChangeThemeDialog(
-      {required this.onValueChange, required this.initialValue});
+      {Key? key, required this.onValueChange, required this.initialValue})
+      : super(key: key);
 
   @override
   State createState() => ChangeThemeDialogState();

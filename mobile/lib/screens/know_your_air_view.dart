@@ -165,5 +165,7 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
             kyaCards.where((element) => element.progress >= 100).toList();
       });
     }
+
+    if (_kyaCards.isNotEmpty) {}
   }
 }

@@ -12,28 +12,26 @@ import 'package:app/models/suggestion.dart';
 import 'package:app/models/user_details.dart';
 import 'package:app/utils/distance.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:path/path.dart';
 import 'package:provider/provider.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
 class DBHelper {
-  var _database;
+  Database? _database;
 
   Future<Database> get database async {
-    if (_database != null) return _database;
+    if (_database != null) return _database!;
     _database = await initDB();
-    await createDefaultTables(_database);
-    return _database;
+    await createDefaultTables(_database!);
+    return _database!;
   }
 
   Future<void> clearFavouritePlaces() async {
     try {
       final db = await database;
-      await db.delete(PlaceDetails.dbFavPlacesName());
+      await db.delete(PlaceDetails.dbName());
     } catch (e) {
       debugPrint(e.toString());
     }
@@ -87,7 +85,7 @@ class DBHelper {
     try {
       final db = await database;
 
-      var res = await db.query(PlaceDetails.dbFavPlacesName());
+      var res = await db.query(PlaceDetails.dbName());
 
       return res.isNotEmpty
           ? List.generate(res.length, (i) {
@@ -398,7 +396,7 @@ class DBHelper {
       try {
         var jsonData = placeDetails.toJson();
         await db.insert(
-          PlaceDetails.dbFavPlacesName(),
+          PlaceDetails.dbName(),
           jsonData,
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
@@ -617,7 +615,7 @@ class DBHelper {
 
       try {
         await db.delete(
-          PlaceDetails.dbFavPlacesName(),
+          PlaceDetails.dbName(),
           where: 'siteId = ?',
           whereArgs: [placeDetails.siteId],
         );
@@ -658,13 +656,13 @@ class DBHelper {
       final db = await database;
 
       if (placeDetails.isNotEmpty) {
-        await db.delete(PlaceDetails.dbFavPlacesName());
+        await db.delete(PlaceDetails.dbName());
 
         for (var place in placeDetails) {
           try {
             var jsonData = place.toJson();
             await db.insert(
-              PlaceDetails.dbFavPlacesName(),
+              PlaceDetails.dbName(),
               jsonData,
               conflictAlgorithm: ConflictAlgorithm.replace,
             );
@@ -681,7 +679,7 @@ class DBHelper {
   Future<void> updateFavouritePlaces(PlaceDetails placeDetails, context) async {
     final db = await database;
 
-    var res = await db.query(PlaceDetails.dbFavPlacesName(),
+    var res = await db.query(PlaceDetails.dbName(),
         where: 'siteId = ?', whereArgs: [placeDetails.siteId]);
 
     if (res.isEmpty) {
@@ -750,61 +748,6 @@ class DBHelper {
     await prefs.setStringList(PrefConstant.siteAlerts, preferredAlerts);
 
     return preferredAlerts.contains(topicName);
-  }
-}
-
-class SecureStorageHelper {
-  final _secureStorage = const FlutterSecureStorage();
-
-  Future<void> clearUserDetails() async {
-    await _secureStorage.deleteAll();
-  }
-
-  Future<UserDetails> getUserDetails() async {
-    var userInfo = await _secureStorage.readAll();
-    var userDetails = UserDetails.initialize()
-      ..title = userInfo['title'] ?? ''
-      ..firstName = userInfo['firstName'] ?? ''
-      ..lastName = userInfo['lastName'] ?? ''
-      ..photoUrl = userInfo['photoUrl'] ?? ''
-      ..userId = userInfo['userId'] ?? ''
-      ..device = userInfo['device'] ?? ''
-      ..emailAddress = userInfo['emailAddress'] ?? ''
-      ..phoneNumber = userInfo['phoneNumber'] ?? '';
-
-    return userDetails;
-  }
-
-  Future<void> updateUserDetails(UserDetails userDetails) async {
-    try {
-      await _secureStorage.write(
-          key: 'firstName', value: userDetails.firstName);
-      await _secureStorage.write(key: 'lastName', value: userDetails.lastName);
-      await _secureStorage.write(key: 'photoUrl', value: userDetails.photoUrl);
-      await _secureStorage.write(key: 'title', value: userDetails.title);
-      await _secureStorage.write(key: 'userId', value: userDetails.userId);
-      await _secureStorage.write(key: 'device', value: userDetails.device);
-      await _secureStorage.write(
-          key: 'emailAddress', value: userDetails.emailAddress);
-      await _secureStorage.write(
-          key: 'phoneNumber', value: userDetails.phoneNumber);
-    } on Error catch (exception, stackTrace) {
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-    }
-  }
-
-  Future<void> updateUserDetailsField(String key, String value) async {
-    try {
-      await _secureStorage.write(key: key, value: value);
-    } on Error catch (exception, stackTrace) {
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-    }
   }
 }
 

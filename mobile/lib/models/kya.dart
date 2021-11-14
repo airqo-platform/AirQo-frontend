@@ -51,7 +51,7 @@ class Kya {
   }
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class KyaItem {
   String title;
   String imageUrl;

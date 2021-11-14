@@ -168,10 +168,10 @@ class LocationService {
 
       var location = await getLocation();
       if (location.longitude != null && location.latitude != null) {
-        var latitude = location.latitude;
-        var longitude = location.longitude;
-        var addresses = await getAddressGoogle(latitude!, longitude!);
-        var userAddress = addresses.first;
+        // var latitude = location.latitude;
+        // var longitude = location.longitude;
+        // var addresses = await getAddressGoogle(latitude!, longitude!);
+        // var userAddress = addresses.first;
 
         await _dbHelper.getLatestMeasurements().then((measurements) => {
               for (var measurement in measurements)

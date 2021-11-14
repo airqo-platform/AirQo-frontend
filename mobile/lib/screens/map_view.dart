@@ -465,6 +465,10 @@ class _MapViewState extends State<MapView> {
 
   Future<void> setMarkers(
       List<Measurement> measurements, bool useSingleZoom, double zoom) async {
+    if (!mounted) {
+      return;
+    }
+
     if (measurements.isEmpty) {
       final controller = _mapController;
 
@@ -528,6 +532,9 @@ class _MapViewState extends State<MapView> {
   }
 
   void showLocation() {
+    if (!mounted) {
+      return;
+    }
     setState(() {
       _showLocationDetails = !_showLocationDetails;
     });
@@ -535,6 +542,10 @@ class _MapViewState extends State<MapView> {
 
   void showLocationContent(
       Measurement? measurement, PlaceDetails? placeDetails) {
+    if (!mounted) {
+      return;
+    }
+
     if (placeDetails != null) {
       var places = _latestMeasurements
           .where((measurement) => measurement.site.id == placeDetails.siteId)
@@ -563,6 +574,10 @@ class _MapViewState extends State<MapView> {
   }
 
   void showRegions() {
+    if (!mounted) {
+      return;
+    }
+
     setState(() {
       _searchController.text = '';
       _isSearching = false;
@@ -575,6 +590,10 @@ class _MapViewState extends State<MapView> {
   }
 
   Future<void> showRegionSites(String region) async {
+    if (!mounted) {
+      return;
+    }
+
     setState(() {
       _selectedRegion = region;
     });
@@ -588,6 +607,10 @@ class _MapViewState extends State<MapView> {
   }
 
   Future<void> showSuggestionReadings(Suggestion suggestion) async {
+    if (!mounted) {
+      return;
+    }
+
     setState(() {
       _searchController.text = suggestion.suggestionDetails.mainText;
     });
@@ -693,6 +716,9 @@ class _MapViewState extends State<MapView> {
     return ListTile(
       contentPadding: const EdgeInsets.only(left: 0.0),
       onTap: () {
+        if (!mounted) {
+          return;
+        }
         setState(() {
           _searchController.text = measurement.site.getName();
         });
@@ -763,6 +789,10 @@ class _MapViewState extends State<MapView> {
   }
 
   Future<void> _onMapCreated(GoogleMapController controller) async {
+    if (!mounted) {
+      return;
+    }
+
     setState(() {
       _mapController = controller;
     });

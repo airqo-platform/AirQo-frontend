@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'custom_widgets.dart';
 import 'insights_card.dart';
@@ -28,7 +27,6 @@ class _DailyViewState extends State<DailyView> {
   String _viewDay = 'today';
   String _pollutant = 'pm2.5';
   bool _showHeartAnimation = false;
-  SharedPreferences? _preferences;
   List<Recommendation> _recommendations = [];
   final DBHelper _dbHelper = DBHelper();
   final GlobalKey _globalKey = GlobalKey();

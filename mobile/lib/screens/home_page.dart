@@ -21,9 +21,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  String title = AppConfig.name;
-  bool showAddPlace = true;
-  DateTime? exitTime;
+  DateTime? _exitTime;
   AirqoApiClient? _airqoApiClient;
   int _selectedIndex = 0;
 
@@ -129,9 +127,7 @@ class _HomePageState extends State<HomePage> {
     _airqoApiClient = AirqoApiClient(context);
     _getLatestMeasurements();
     _getFavPlaces();
-    if (_customAuth.isLoggedIn()) {
-      await _cloudStore.monitorNotifications(context, _customAuth.getId());
-    }
+    await _getCloudStore();
   }
 
   @override
@@ -152,14 +148,20 @@ class _HomePageState extends State<HomePage> {
 
     var now = DateTime.now();
 
-    if (exitTime == null ||
-        now.difference(exitTime!) > const Duration(seconds: 2)) {
-      exitTime = now;
+    if (_exitTime == null ||
+        now.difference(_exitTime!) > const Duration(seconds: 2)) {
+      _exitTime = now;
 
       showSnackBar(context, 'Tap again to exit !');
       return Future.value(false);
     }
     return Future.value(true);
+  }
+
+  Future<void> _getCloudStore() async {
+    if (_customAuth.isLoggedIn()) {
+      await _cloudStore.monitorNotifications(context, _customAuth.getId());
+    }
   }
 
   void _getFavPlaces() {

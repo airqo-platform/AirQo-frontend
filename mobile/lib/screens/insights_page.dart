@@ -17,7 +17,7 @@ class InsightsPage extends StatefulWidget {
 class _InsightsPageState extends State<InsightsPage>
     with SingleTickerProviderStateMixin {
   TabController? _tabController;
-  bool isWeekly = true;
+  bool _isWeekly = true;
 
   @override
   Widget build(BuildContext context) {
@@ -55,11 +55,11 @@ class _InsightsPageState extends State<InsightsPage>
                     onTap: (value) {
                       if (value == 0) {
                         setState(() {
-                          isWeekly = true;
+                          _isWeekly = true;
                         });
                       } else {
                         setState(() {
-                          isWeekly = false;
+                          _isWeekly = false;
                         });
                       }
                     },
@@ -68,7 +68,7 @@ class _InsightsPageState extends State<InsightsPage>
                         constraints: const BoxConstraints(
                             minWidth: double.infinity, maxHeight: 32),
                         decoration: BoxDecoration(
-                            color: isWeekly
+                            color: _isWeekly
                                 ? ColorConstants.appColorBlue
                                 : Colors.white,
                             borderRadius:
@@ -77,7 +77,7 @@ class _InsightsPageState extends State<InsightsPage>
                             child: Text(
                           'Day',
                           style: TextStyle(
-                            color: isWeekly ? Colors.white : Colors.black,
+                            color: _isWeekly ? Colors.white : Colors.black,
                           ),
                         )),
                       ),
@@ -85,7 +85,7 @@ class _InsightsPageState extends State<InsightsPage>
                         constraints: const BoxConstraints(
                             minWidth: double.infinity, maxHeight: 32),
                         decoration: BoxDecoration(
-                            color: isWeekly
+                            color: _isWeekly
                                 ? Colors.white
                                 : ColorConstants.appColorBlue,
                             borderRadius:
@@ -94,7 +94,7 @@ class _InsightsPageState extends State<InsightsPage>
                             child: Text(
                           'Week',
                           style: TextStyle(
-                            color: isWeekly ? Colors.black : Colors.white,
+                            color: _isWeekly ? Colors.black : Colors.white,
                           ),
                         )),
                       )

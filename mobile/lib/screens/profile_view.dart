@@ -6,7 +6,7 @@ import 'package:app/screens/settings_page.dart';
 import 'package:app/screens/tips_page.dart';
 import 'package:app/screens/view_profile_page.dart';
 import 'package:app/services/fb_notifications.dart';
-import 'package:app/services/local_storage.dart';
+import 'package:app/services/secure_storage.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -24,11 +24,11 @@ class ProfileView extends StatefulWidget {
 }
 
 class _ProfileViewState extends State<ProfileView> {
-  var userProfile = UserDetails.initialize();
+  UserDetails _userProfile = UserDetails.initialize();
   final CustomAuth _customAuth = CustomAuth();
-  bool isLoggedIn = false;
+  bool _isLoggedIn = false;
   final CloudAnalytics _cloudAnalytics = CloudAnalytics();
-  final SecureStorageHelper _secureStorageHelper = SecureStorageHelper();
+  final SecureStorage _secureStorage = SecureStorage();
 
   Widget appNavBar() {
     return Row(
@@ -36,7 +36,7 @@ class _ProfileViewState extends State<ProfileView> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         profilePicWidget(
-            40, 40, 10, 12, 17.0, userProfile.photoUrl, 27.0, false),
+            40, 40, 10, 12, 17.0, _userProfile.photoUrl, 27.0, false),
         const Spacer(),
         GestureDetector(
           onTap: notifications,
@@ -90,13 +90,13 @@ class _ProfileViewState extends State<ProfileView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Visibility(
-                          visible: isLoggedIn,
+                          visible: _isLoggedIn,
                           child: Expanded(
                             child: ListView(
                               shrinkWrap: true,
                               children: <Widget>[
                                 Text(
-                                  userProfile.getFullName(),
+                                  _userProfile.getFullName(),
                                   style: const TextStyle(
                                       fontSize: 24,
                                       fontWeight: FontWeight.bold),
@@ -121,7 +121,7 @@ class _ProfileViewState extends State<ProfileView> {
                             ),
                           )),
                       Visibility(
-                        visible: isLoggedIn,
+                        visible: _isLoggedIn,
                         child: logoutSection(
                             'Logout',
                             'assets/icon/location.svg',
@@ -129,7 +129,7 @@ class _ProfileViewState extends State<ProfileView> {
                             logOut),
                       ),
                       Visibility(
-                          visible: !isLoggedIn,
+                          visible: !_isLoggedIn,
                           child: Expanded(
                             child: ListView(
                               shrinkWrap: true,
@@ -206,13 +206,13 @@ class _ProfileViewState extends State<ProfileView> {
   Future<void> initialize() async {
     _cloudAnalytics.logScreenTransition('Profile Page');
     setState(() {
-      isLoggedIn = _customAuth.isLoggedIn();
+      _isLoggedIn = _customAuth.isLoggedIn();
     });
 
-    if (isLoggedIn) {
-      await _secureStorageHelper.getUserDetails().then((value) => {
+    if (_isLoggedIn) {
+      await _secureStorage.getUserDetails().then((value) => {
             setState(() {
-              userProfile = value;
+              _userProfile = value;
             })
           });
     }
@@ -226,7 +226,7 @@ class _ProfileViewState extends State<ProfileView> {
 
   void logOut() {
     setState(() {
-      userProfile = UserDetails.initialize();
+      _userProfile = UserDetails.initialize();
     });
     _customAuth.logOut(context).then((value) => {initialize()});
   }
@@ -367,7 +367,7 @@ class _ProfileViewState extends State<ProfileView> {
 
   Future<void> viewProfile() async {
     await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return ViewProfilePage(userProfile);
+      return ViewProfilePage(_userProfile);
     })).whenComplete(() => {initialize()});
   }
 }

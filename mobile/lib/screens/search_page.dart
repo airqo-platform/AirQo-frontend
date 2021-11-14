@@ -21,13 +21,13 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
-  List<Measurement> nearbySites = [];
-  List<Measurement> searchSites = [];
+  List<Measurement> _nearbySites = [];
+  List<Measurement> _searchSites = [];
   List<Suggestion> _searchSuggestions = [];
   List<Measurement> _allSites = [];
-  bool isSearching = false;
-  bool hasNearbyLocations = true;
-  String sessionToken = const Uuid().v4();
+  bool _isSearching = false;
+  bool _hasNearbyLocations = true;
+  final String _sessionToken = const Uuid().v4();
   SearchApi? _searchApiClient;
   final DBHelper _dbHelper = DBHelper();
   final LocationService _locationService = LocationService();
@@ -60,8 +60,9 @@ class _SearchPageState extends State<SearchPage> {
               height: 20,
             ),
             Visibility(
-              visible:
-                  !isSearching && hasNearbyLocations && nearbySites.isNotEmpty,
+              visible: !_isSearching &&
+                  _hasNearbyLocations &&
+                  _nearbySites.isNotEmpty,
               child: Text(
                 'Locations near you',
                 textAlign: TextAlign.start,
@@ -70,7 +71,7 @@ class _SearchPageState extends State<SearchPage> {
               ),
             ),
             Visibility(
-              visible: isSearching,
+              visible: _isSearching,
               child: Expanded(
                 child: MediaQuery.removePadding(
                     context: context,
@@ -84,7 +85,7 @@ class _SearchPageState extends State<SearchPage> {
               ),
             ),
             Visibility(
-              visible: !isSearching && hasNearbyLocations,
+              visible: !_isSearching && _hasNearbyLocations,
               child: Expanded(
                 child: MediaQuery.removePadding(
                     context: context,
@@ -92,14 +93,14 @@ class _SearchPageState extends State<SearchPage> {
                     child: ListView(
                       shrinkWrap: true,
                       children: [
-                        if (nearbySites.isEmpty) requestLocationAccess(),
-                        if (nearbySites.isNotEmpty) nearByLocations(),
+                        if (_nearbySites.isEmpty) requestLocationAccess(),
+                        if (_nearbySites.isNotEmpty) nearByLocations(),
                       ],
                     )),
               ),
             ),
             Visibility(
-              visible: !isSearching && !hasNearbyLocations,
+              visible: !_isSearching && !_hasNearbyLocations,
               child: Expanded(
                 child: ListView(
                   shrinkWrap: true,
@@ -140,15 +141,15 @@ class _SearchPageState extends State<SearchPage> {
                       if (value.isEmpty)
                         {
                           setState(() {
-                            nearbySites = [];
-                            hasNearbyLocations = false;
+                            _nearbySites = [];
+                            _hasNearbyLocations = false;
                           })
                         }
                       else
                         {
                           setState(() {
-                            nearbySites = value;
-                            hasNearbyLocations = true;
+                            _nearbySites = value;
+                            _hasNearbyLocations = true;
                           })
                         }
                     }
@@ -166,7 +167,7 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   void initState() {
-    _searchApiClient = SearchApi(sessionToken, context);
+    _searchApiClient = SearchApi(_sessionToken, context);
     getSites();
     getUserLocation();
     super.initState();
@@ -196,14 +197,14 @@ class _SearchPageState extends State<SearchPage> {
                         Navigator.push(context,
                             MaterialPageRoute(builder: (context) {
                           return InsightsPage(PlaceDetails.siteToPLace(
-                              nearbySites[index].site));
+                              _nearbySites[index].site));
                         }));
                       },
                       child: Padding(
                         padding: const EdgeInsets.only(bottom: 10),
-                        child: searchLocationTile(nearbySites[index]),
+                        child: searchLocationTile(_nearbySites[index]),
                       )),
-                  itemCount: nearbySites.length,
+                  itemCount: _nearbySites.length,
                   // separatorBuilder: (BuildContext context, int index) {
                   //   return Divider(
                   //     indent: 20,
@@ -375,11 +376,11 @@ class _SearchPageState extends State<SearchPage> {
   void searchChanged(String text) {
     if (text.isEmpty) {
       setState(() {
-        isSearching = false;
+        _isSearching = false;
       });
     } else {
       setState(() {
-        isSearching = true;
+        _isSearching = true;
       });
 
       _searchApiClient!.fetchSuggestions(text).then((value) => {
@@ -396,7 +397,7 @@ class _SearchPageState extends State<SearchPage> {
       }
 
       setState(() {
-        searchSites = _locationService.textSearchNearestSites(text, _allSites);
+        _searchSites = _locationService.textSearchNearestSites(text, _allSites);
       });
     }
   }
@@ -476,7 +477,7 @@ class _SearchPageState extends State<SearchPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Visibility(
-            visible: searchSites.isEmpty && _searchSuggestions.isEmpty,
+            visible: _searchSites.isEmpty && _searchSuggestions.isEmpty,
             child: Center(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -523,7 +524,7 @@ class _SearchPageState extends State<SearchPage> {
               ),
             )),
         Visibility(
-            visible: searchSites.isNotEmpty && _searchSuggestions.isEmpty,
+            visible: _searchSites.isNotEmpty && _searchSuggestions.isEmpty,
             child: Center(
               child: MediaQuery.removePadding(
                   context: context,
@@ -536,14 +537,14 @@ class _SearchPageState extends State<SearchPage> {
                           Navigator.push(context,
                               MaterialPageRoute(builder: (context) {
                             return InsightsPage(PlaceDetails.siteToPLace(
-                                searchSites[index].site));
+                                _searchSites[index].site));
                           }));
                         },
                         child: Padding(
                           padding: const EdgeInsets.only(bottom: 10),
-                          child: searchLocationTile(searchSites[index]),
+                          child: searchLocationTile(_searchSites[index]),
                         )),
-                    itemCount: searchSites.length,
+                    itemCount: _searchSites.length,
                   )),
             )),
         Visibility(

@@ -45,10 +45,10 @@ class NotificationModel extends ChangeNotifier {
 
 @JsonSerializable()
 class UserNotification {
-  final String id;
-  final String title;
-  final String body;
-  final String time;
+  String id;
+  String title;
+  String body;
+  String time;
   bool isNew = true;
 
   UserNotification(this.id, this.title, this.body, this.isNew, this.time);

@@ -234,7 +234,8 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                       //     width: 8.0,
                                       //     child: CircularProgressIndicator(
                                       //       strokeWidth: 1.2,
-                                      //       color: ColorConstants.appColorBlue,
+                                      //       color: ColorConstants
+                                      //       .appColorBlue,
                                       //     ),
                                       //   ),
                                       // ),

@@ -22,10 +22,9 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  bool isSignedIn = false;
   final CustomAuth _customAuth = CustomAuth();
-  bool allowNotification = false;
-  bool allowLocation = false;
+  bool _allowNotification = false;
+  bool _allowLocation = false;
   final InAppReview _inAppReview = InAppReview.instance;
   final LocationService _locationService = LocationService();
   final NotificationService _notificationService = NotificationService();
@@ -101,13 +100,13 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> initialize() async {
     await _notificationService.checkPermission().then((value) => {
           setState(() {
-            allowNotification = value;
+            _allowNotification = value;
           }),
         });
 
     await _locationService.checkPermission().then((value) => {
           setState(() {
-            allowLocation = value;
+            _allowLocation = value;
           }),
         });
   }
@@ -138,18 +137,18 @@ class _SettingsPageState extends State<SettingsPage> {
                 if (value) {
                   _locationService.requestLocationAccess().then((response) => {
                         setState(() {
-                          allowLocation = response;
+                          _allowLocation = response;
                         })
                       });
                 } else {
                   _locationService.revokePermission().then((response) => {
                         setState(() {
-                          allowLocation = response;
+                          _allowLocation = response;
                         })
                       });
                 }
               },
-              value: allowLocation,
+              value: _allowLocation,
             ),
           ),
           Divider(
@@ -167,18 +166,18 @@ class _SettingsPageState extends State<SettingsPage> {
                 if (value) {
                   _notificationService.requestPermission().then((response) => {
                         setState(() {
-                          allowNotification = response;
+                          _allowNotification = response;
                         })
                       });
                 } else {
                   _notificationService.revokePermission().then((response) => {
                         setState(() {
-                          allowNotification = response;
+                          _allowNotification = response;
                         })
                       });
                 }
               },
-              value: allowNotification,
+              value: _allowNotification,
             ),
           ),
           Divider(

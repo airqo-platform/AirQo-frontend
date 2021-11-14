@@ -5,6 +5,7 @@ import 'package:app/models/kya.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/user_details.dart';
+import 'package:app/services/secure_storage.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/string_extension.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -267,6 +268,61 @@ class CloudStore {
         return true;
       }
     } on Exception catch (_) {}
+    return false;
+  }
+
+  Future<bool> loadKya(String id) async {
+    if (id == '') {
+      return false;
+    }
+
+    var hasConnection = await isConnected();
+    if (!hasConnection) {
+      return false;
+    }
+
+    try {
+      var allKyaJson =
+          await _firebaseFirestore.collection(CloudStorage.kyaCollection).get();
+
+      var allKya = <Kya>[];
+
+      var kyaDocs = allKyaJson.docs;
+      for (var doc in kyaDocs) {
+        var kya = await compute(Kya.parseKya, doc.data());
+        if (kya != null) {
+          allKya.add(kya);
+        }
+      }
+
+      var userKya = await getKya(id);
+      var updatedUserKya = userKya;
+
+      for (var kya in allKya) {
+        var existingKya =
+            userKya.where((element) => element.id == kya.id).toList();
+
+        if (existingKya.isNotEmpty) {
+          continue;
+        }
+        var newKya = kya..progress = 0.0;
+        updatedUserKya.add(newKya);
+      }
+
+      await _firebaseFirestore
+          .collection(CloudStorage.usersCollection)
+          .doc(id)
+          .update({'kya': Kya.listToJson(updatedUserKya)});
+
+      return true;
+    } catch (exception, stackTrace) {
+      debugPrint(exception.toString());
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+    }
+
     return false;
   }
 
@@ -535,7 +591,7 @@ class CloudStore {
             .collection(CloudStorage.usersCollection)
             .doc(id)
             .update(_userJson);
-      } catch (exception, stackTrace) {
+      } catch (exception) {
         await _firebaseFirestore
             .collection(CloudStorage.usersCollection)
             .doc(id)
@@ -575,7 +631,7 @@ class CloudStore {
 class CustomAuth {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final CloudStore _cloudStore = CloudStore();
-  final SecureStorageHelper _secureStorageHelper = SecureStorageHelper();
+  final SecureStorage _secureStorage = SecureStorage();
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   final SharedPreferencesHelper _preferencesHelper = SharedPreferencesHelper();
 
@@ -605,7 +661,7 @@ class CustomAuth {
           userDetails.emailAddress = firebaseUser.email!;
         }
         await _cloudStore.updateProfile(userDetails, firebaseUser.uid);
-        await _secureStorageHelper.updateUserDetails(userDetails);
+        await _secureStorage.updateUserDetails(userDetails);
         await _preferencesHelper.updatePreferences(userDetails.preferences);
       }
     } catch (exception, stackTrace) {
@@ -629,7 +685,7 @@ class CustomAuth {
       await Provider.of<PlaceDetailsModel>(context, listen: false)
           .clearFavouritePlaces();
       Provider.of<NotificationModel>(context, listen: false).removeAll();
-      await _secureStorageHelper.clearUserDetails();
+      await _secureStorage.clearUserDetails();
       await _preferencesHelper.clearPreferences();
       await _cloudStore.deleteAccount(id);
       await currentUser.delete();
@@ -753,7 +809,7 @@ class CustomAuth {
       await Provider.of<PlaceDetailsModel>(context, listen: false)
           .clearFavouritePlaces();
       Provider.of<NotificationModel>(context, listen: false).removeAll();
-      await _secureStorageHelper.clearUserDetails();
+      await _secureStorage.clearUserDetails();
       await _preferencesHelper.clearPreferences();
       await _firebaseAuth.signOut();
     } catch (exception, stackTrace) {
@@ -864,12 +920,11 @@ class CustomAuth {
       var id = getId();
       if (phone != null) {
         await _cloudStore.updateProfileFields(id, {'phoneNumber': phone});
-        await _secureStorageHelper.updateUserDetailsField('phoneNumber', phone);
+        await _secureStorage.updateUserDetailsField('phoneNumber', phone);
       }
       if (email != null) {
         await _cloudStore.updateProfileFields(id, {'emailAddress': email});
-        await _secureStorageHelper.updateUserDetailsField(
-            'emailAddress', email);
+        await _secureStorage.updateUserDetailsField('emailAddress', email);
       }
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
@@ -905,15 +960,21 @@ class CustomAuth {
   }
 
   void updateLocalStorage(User user, BuildContext context) async {
-    var device = await getDeviceToken();
-    if (device != null) {
-      await _cloudStore.updateProfileFields(user.uid, {'device': device});
+    try {
+      var device = await getDeviceToken();
+      if (device != null) {
+        await _cloudStore.updateProfileFields(user.uid, {'device': device});
+      }
+      var userDetails = await _cloudStore.getProfile(user.uid);
+      await _secureStorage.updateUserDetails(userDetails);
+      await _preferencesHelper.updatePreferences(userDetails.preferences);
+      if (userDetails.favPlaces.isNotEmpty) {
+        await Provider.of<PlaceDetailsModel>(context, listen: false)
+            .loadFavouritePlaces(userDetails.favPlaces);
+      }
+    } catch (e) {
+      debugPrint(e.toString());
     }
-    var userDetails = await _cloudStore.getProfile(user.uid);
-    await _secureStorageHelper.updateUserDetails(userDetails);
-    await _preferencesHelper.updatePreferences(userDetails.preferences);
-    await Provider.of<PlaceDetailsModel>(context, listen: false)
-        .loadFavouritePlaces(userDetails.favPlaces);
   }
 
   Future<void> updateProfile(UserDetails userDetails) async {
@@ -944,7 +1005,7 @@ class CustomAuth {
           userDetails.emailAddress = firebaseUser.email ?? '';
         }
 
-        await _secureStorageHelper.updateUserDetails(userDetails);
+        await _secureStorage.updateUserDetails(userDetails);
 
         var fields = {
           'title': userDetails.title,
