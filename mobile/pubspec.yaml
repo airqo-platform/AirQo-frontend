@@ -110,11 +110,6 @@ flutter:
 
    # icons
     - assets/icon/airqo_logo.png
-    - assets/icon/airqo_logo.jpg
-    - assets/icon/airqo_logo_tagline.jpg
-    - assets/icon/airqo_logo_tagline_transparent.png
-    - assets/icon/airqo_logo.png
-    - assets/icon/transparent_logo.png
     - assets/icon/android_logo.png
 
     # lottie animations
