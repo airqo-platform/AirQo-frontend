@@ -31,20 +31,31 @@ export const loadAirQloudsData = () => async (dispatch) => {
     });
 };
 
-export const setCurrentAirQloudData = (airqloud) => (dispatch) => {
-  const new_airqloud = createAirqloudSiteOptions(airqloud);
-  localStorage.setItem(CURRENT_AIRQLOUD_KEY, JSON.stringify(new_airqloud));
+export const setCurrentAirQloudData = (airqloud) => (dispatch, getState) => {
+  const tenant = getState().organisation.name;
+  const newAirqloud = createAirqloudSiteOptions(airqloud);
+  const currentAirqloudState = JSON.parse(
+    localStorage[CURRENT_AIRQLOUD_KEY] || "{}"
+  );
+  localStorage.setItem(
+    CURRENT_AIRQLOUD_KEY,
+    JSON.stringify({ ...currentAirqloudState, [tenant]: newAirqloud })
+  );
   dispatch({
     type: SET_CURRENT_AIRQLOUD_SUCCESS,
-    payload: createAirqloudSiteOptions(new_airqloud),
+    payload: createAirqloudSiteOptions(newAirqloud),
   });
 };
 
-export const setDefaultAirQloud = () => async (dispatch) => {
-  if (localStorage[CURRENT_AIRQLOUD_KEY]) {
+export const setDefaultAirQloud = () => async (dispatch, getState) => {
+  const tenant = getState().organisation.name;
+  const airqloud = JSON.parse(localStorage[CURRENT_AIRQLOUD_KEY] || "{}")[
+    tenant
+  ];
+  if (airqloud) {
     dispatch({
       type: SET_CURRENT_AIRQLOUD_SUCCESS,
-      payload: JSON.parse(localStorage[CURRENT_AIRQLOUD_KEY]),
+      payload: airqloud,
     });
   } else {
     const { airqlouds } = await getAirQloudsApi({});
@@ -52,7 +63,9 @@ export const setDefaultAirQloud = () => async (dispatch) => {
     const current = airqlouds.filter(
       (airqloud) => airqloud.long_name === "Uganda"
     );
-    dispatch(setCurrentAirQloudData((current.length > 0 && current[0]) || {}));
+    dispatch(
+      setCurrentAirQloudData((current.length > 0 && current[0]) || airqlouds[0])
+    );
     dispatch({
       type: LOAD_ALL_AIRQLOUDS_SUCCESS,
       payload: transformArray(airqlouds, "_id"),

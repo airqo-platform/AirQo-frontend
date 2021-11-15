@@ -6,7 +6,13 @@ import {
 
 const initialState = {
   airqlouds: {},
-  currentAirQloud: {},
+  currentAirQloud: {
+    _id: "61363c2c7e130a001e03949f",
+    name: "Empty",
+    long_name: "Empty",
+    sites: [],
+    siteOptions: [],
+  },
 };
 
 export default function (state = initialState, action) {

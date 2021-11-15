@@ -62,14 +62,9 @@ export const loadUserDefaultGraphData = () => {
 
     return await getUserChartDefaultsApi(userID, airQloudID)
       .then(async (userDefaultsData) => {
-        let data = userDefaultsData;
-
-        if (isEmpty(data.defaults)) {
-          data = await getUserChartDefaultsApi(userID, userID);
-        }
         dispatch({
           type: LOAD_USER_DEFAULT_GRAPHS_SUCCESS,
-          payload: data.defaults || [],
+          payload: userDefaultsData.defaults || [],
         });
       })
       .catch((err) => {
