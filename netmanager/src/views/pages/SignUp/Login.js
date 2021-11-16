@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
+import { withStyles } from "@material-ui/styles";
 import { CardContent } from "@material-ui/core";
 import Alert from "@material-ui/lab/Alert";
 import { clearErrors, loginUser } from "redux/Join/actions";
@@ -13,7 +14,12 @@ import AlertMinimal from "../../layouts/AlertsMininal";
 import TextField from "@material-ui/core/TextField";
 import Checkbox from "@material-ui/core/Checkbox";
 
-
+const styles = {
+  textField: {
+    fontWeight: "bold",
+    fontSize: "20px",
+  },
+};
 
 class Login extends Component {
   constructor(props) {
@@ -180,20 +186,38 @@ class Login extends Component {
                     margin="normal"
                     variant="outlined"
                     helperText={errors.userName}
+                    InputProps={{
+                      classes: {
+                        input: this.props.classes.textField,
+                      },
+                    }}
                   />
-
-                  <TextField
-                    onChange={this.onChange}
-                    value={this.state.password}
-                    error={!!errors.password || !!errors.passwordincorrect}
-                    id="password"
-                    type="password"
-                    label="Password"
-                    fullWidth
-                    margin="normal"
-                    variant="outlined"
-                    helperText={errors.password || errors.passwordincorrect}
-                  />
+                  <div>
+                    <TextField
+                      onChange={this.onChange}
+                      value={this.state.password}
+                      error={!!errors.password || !!errors.passwordincorrect}
+                      id="password"
+                      type={this.state.showPassword ? "text" : "password"}
+                      label="Password"
+                      fullWidth
+                      margin="normal"
+                      variant="outlined"
+                      helperText={errors.password || errors.passwordincorrect}
+                      InputProps={{
+                        classes: {
+                          input: this.props.classes.textField,
+                        },
+                      }}
+                    />
+                    <div
+                      style={{ display: "flex", alignItems: "center" }}
+                      onClick={this.toggleShowPassword}
+                    >
+                      <Checkbox checked={this.state.showPassword} /> Show
+                      password
+                    </div>
+                  </div>
 
                   <div
                     className="col s12"
@@ -249,5 +273,7 @@ const mapStateToProps = (state) => ({
   errors: state.errors,
 });
 export default usersStateConnector(
-  connect(mapStateToProps, { clearErrors, loginUser })(Login)
+  connect(mapStateToProps, { clearErrors, loginUser })(
+    withStyles(styles)(Login)
+  )
 );
