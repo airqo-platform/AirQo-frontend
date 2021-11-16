@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { CardContent } from "@material-ui/core";
@@ -11,6 +11,9 @@ import { isFormFullyFilled } from "./utils";
 import usersStateConnector from "views/stateConnectors/usersStateConnector";
 import AlertMinimal from "../../layouts/AlertsMininal";
 import TextField from "@material-ui/core/TextField";
+import Checkbox from "@material-ui/core/Checkbox";
+
+
 
 class Login extends Component {
   constructor(props) {
@@ -23,6 +26,7 @@ class Login extends Component {
       password: "",
       errors: {},
       loading: false,
+      showPassword: false,
     };
   }
 
@@ -83,6 +87,10 @@ class Login extends Component {
         console.log(errors);
       }
     );
+  };
+
+  toggleShowPassword = () => {
+    this.setState({ ...this.state, showPassword: !this.state.showPassword });
   };
 
   onSubmit = async (e) => {
