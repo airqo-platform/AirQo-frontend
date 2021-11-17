@@ -151,21 +151,4 @@ extension ParseSite on Site {
         prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
     return favouritePlaces.contains(id.trim().toLowerCase());
   }
-
-  String getTopic(PollutantLevel pollutantLevel) {
-    if (pollutantLevel == PollutantLevel.good) {
-      return '$id-good'.trim().toLowerCase();
-    } else if (pollutantLevel == PollutantLevel.moderate) {
-      return '$id-moderate'.trim().toLowerCase();
-    } else if (pollutantLevel == PollutantLevel.sensitive) {
-      return '$id-sensitive'.trim().toLowerCase();
-    } else if (pollutantLevel == PollutantLevel.unhealthy) {
-      return '$id-unhealthy'.trim().toLowerCase();
-    } else if (pollutantLevel == PollutantLevel.veryUnhealthy) {
-      return '$id-very-unhealthy'.trim().toLowerCase();
-    } else if (pollutantLevel == PollutantLevel.hazardous) {
-      return '$id-hazardous'.trim().toLowerCase();
-    }
-    return '';
-  }
 }

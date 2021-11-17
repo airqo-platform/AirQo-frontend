@@ -23,9 +23,9 @@ class FeedbackPage extends StatefulWidget {
 
 class _FeedbackPageState extends State<FeedbackPage> {
   int _index = 0;
-  String feedbackType = '';
-  String feedbackChannel = '';
-  bool isSendingFeedback = false;
+  String _feedbackType = '';
+  String _feedbackChannel = '';
+  bool _isSendingFeedback = false;
   final TextEditingController _emailInputController = TextEditingController();
   final TextEditingController _emailFeedbackController =
       TextEditingController();
@@ -53,7 +53,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                           height: 16,
                           width: 16,
                           decoration: BoxDecoration(
-                              color: feedbackType == ''
+                              color: _feedbackType == ''
                                   ? ColorConstants.greyColor
                                   : ColorConstants.appColorBlue,
                               shape: BoxShape.circle),
@@ -69,7 +69,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                           height: 16,
                           width: 16,
                           decoration: BoxDecoration(
-                              color: feedbackChannel != '' && _index >= 1
+                              color: _feedbackChannel != '' && _index >= 1
                                   ? ColorConstants.appColorBlue
                                   : ColorConstants.greyColor,
                               shape: BoxShape.circle),
@@ -77,7 +77,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                         Expanded(
                             child: Divider(
                           thickness: 2,
-                          color: _index >= 2 || feedbackChannel == 'WhatsApp'
+                          color: _index >= 2 || _feedbackChannel == 'WhatsApp'
                               ? ColorConstants.appColorBlue
                               : ColorConstants.greyColor,
                         )),
@@ -86,7 +86,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                           width: 16,
                           decoration: BoxDecoration(
                               color:
-                                  _index >= 2 || feedbackChannel == 'WhatsApp'
+                                  _index >= 2 || _feedbackChannel == 'WhatsApp'
                                       ? ColorConstants.appColorBlue
                                       : ColorConstants.greyColor,
                               shape: BoxShape.circle),
@@ -151,7 +151,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                               height: 4,
                             ),
                             Visibility(
-                              visible: feedbackChannel == 'Email',
+                              visible: _feedbackChannel == 'Email',
                               child: emailInputField(),
                             ),
                             const SizedBox(
@@ -163,7 +163,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
 
                     // Step 2 (Email Feedback channel)
                     Visibility(
-                        visible: _index == 2 && feedbackChannel == 'Email',
+                        visible: _index == 2 && _feedbackChannel == 'Email',
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.start,
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -188,13 +188,13 @@ class _FeedbackPageState extends State<FeedbackPage> {
                       visible: false,
                       child: GestureDetector(
                         onTap: () {
-                          if (feedbackType != '') {
+                          if (_feedbackType != '') {
                             setState(() {
                               _index = 1;
                             });
                           }
                         },
-                        child: feedbackType == ''
+                        child: _feedbackType == ''
                             ? nextButton(
                                 'Next', ColorConstants.appColorPaleBlue)
                             : nextButton('Next', ColorConstants.appColorBlue),
@@ -217,8 +217,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
                           ),
                           GestureDetector(
                             onTap: () async {
-                              if (_index == 1 && feedbackChannel != '') {
-                                if (feedbackChannel == 'Email') {
+                              if (_index == 1 && _feedbackChannel != '') {
+                                if (_feedbackChannel == 'Email') {
                                   if (!_emailInputController.text
                                       .isValidEmail()) {
                                     await showSnackBar(context,
@@ -228,7 +228,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                       _index = _index + 1;
                                     });
                                   }
-                                } else if (feedbackChannel == 'WhatsApp') {
+                                } else if (_feedbackChannel == 'WhatsApp') {
                                   openWhatsapp();
                                   Future.delayed(const Duration(seconds: 2),
                                       () async {
@@ -236,7 +236,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                   });
                                 }
                               } else if (_index == 2 &&
-                                  feedbackChannel == 'Email') {
+                                  _feedbackChannel == 'Email') {
                                 if (_emailFeedbackController.text == '') {
                                   await showSnackBar(
                                       context, 'Please provide your feedback');
@@ -244,9 +244,9 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                   var feedback = UserFeedback(
                                       _emailInputController.text,
                                       _emailFeedbackController.text,
-                                      feedbackType);
+                                      _feedbackType);
                                   setState(() {
-                                    isSendingFeedback = true;
+                                    _isSendingFeedback = true;
                                   });
                                   await _airqoApiClient!
                                       .sendFeedback(feedback)
@@ -257,7 +257,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                                     'Thanks for the feedback'),
                                                 Navigator.of(context).pop(),
                                                 setState(() {
-                                                  isSendingFeedback = false;
+                                                  _isSendingFeedback = false;
                                                 })
                                               }
                                             else
@@ -268,17 +268,17 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                                     ' your feedback.'
                                                     ' Try again later'),
                                                 setState(() {
-                                                  isSendingFeedback = false;
+                                                  _isSendingFeedback = false;
                                                 })
                                               }
                                           });
                                 }
                               }
                             },
-                            child: _index == 2 || feedbackChannel == 'WhatsApp'
+                            child: _index == 2 || _feedbackChannel == 'WhatsApp'
                                 ? containerNextButton(
                                     'Send',
-                                    isSendingFeedback
+                                    _isSendingFeedback
                                         ? ColorConstants.appColorPaleBlue
                                         : ColorConstants.appColorBlue)
                                 : containerNextButton(
@@ -294,13 +294,13 @@ class _FeedbackPageState extends State<FeedbackPage> {
                   visible: _index == 0,
                   child: GestureDetector(
                     onTap: () {
-                      if (feedbackType != '') {
+                      if (_feedbackType != '') {
                         setState(() {
                           _index = 1;
                         });
                       }
                     },
-                    child: feedbackType == ''
+                    child: _feedbackType == ''
                         ? nextButton('Next', ColorConstants.appColorPaleBlue)
                         : nextButton('Next', ColorConstants.appColorBlue),
                   ),
@@ -321,8 +321,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
                       ),
                       GestureDetector(
                         onTap: () async {
-                          if (_index == 1 && feedbackChannel != '') {
-                            if (feedbackChannel == 'Email') {
+                          if (_index == 1 && _feedbackChannel != '') {
+                            if (_feedbackChannel == 'Email') {
                               if (!_emailInputController.text.isValidEmail()) {
                                 await showSnackBar(context,
                                     'Please enter a valid email address');
@@ -331,7 +331,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                   _index = _index + 1;
                                 });
                               }
-                            } else if (feedbackChannel == 'WhatsApp') {
+                            } else if (_feedbackChannel == 'WhatsApp') {
                               openWhatsapp();
                               Future.delayed(const Duration(seconds: 2),
                                   () async {
@@ -339,7 +339,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                               });
                             }
                           } else if (_index == 2 &&
-                              feedbackChannel == 'Email') {
+                              _feedbackChannel == 'Email') {
                             if (_emailFeedbackController.text == '') {
                               await showSnackBar(
                                   context, 'Please provide your feedback');
@@ -347,9 +347,9 @@ class _FeedbackPageState extends State<FeedbackPage> {
                               var feedback = UserFeedback(
                                   _emailInputController.text,
                                   _emailFeedbackController.text,
-                                  feedbackType);
+                                  _feedbackType);
                               setState(() {
-                                isSendingFeedback = true;
+                                _isSendingFeedback = true;
                               });
                               await _airqoApiClient!
                                   .sendFeedback(feedback)
@@ -360,7 +360,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                                 'Thanks for the feedback'),
                                             Navigator.of(context).pop(),
                                             setState(() {
-                                              isSendingFeedback = false;
+                                              _isSendingFeedback = false;
                                             })
                                           }
                                         else
@@ -371,17 +371,17 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                                 ' your feedback.'
                                                 ' Try again later'),
                                             setState(() {
-                                              isSendingFeedback = false;
+                                              _isSendingFeedback = false;
                                             })
                                           }
                                       });
                             }
                           }
                         },
-                        child: _index == 2 || feedbackChannel == 'WhatsApp'
+                        child: _index == 2 || _feedbackChannel == 'WhatsApp'
                             ? containerNextButton(
                                 'Send',
-                                isSendingFeedback
+                                _isSendingFeedback
                                     ? ColorConstants.appColorPaleBlue
                                     : ColorConstants.appColorBlue)
                             : containerNextButton(
@@ -402,11 +402,11 @@ class _FeedbackPageState extends State<FeedbackPage> {
       onTap: () {
         if (_index == 0) {
           setState(() {
-            feedbackType = text;
+            _feedbackType = text;
           });
         } else if (_index == 1) {
           setState(() {
-            feedbackChannel = text;
+            _feedbackChannel = text;
           });
         }
       },
@@ -420,11 +420,11 @@ class _FeedbackPageState extends State<FeedbackPage> {
           children: [
             Visibility(
               visible: _index == 0,
-              child: unselectedCircle(feedbackType == text),
+              child: unselectedCircle(_feedbackType == text),
             ),
             Visibility(
               visible: _index == 1,
-              child: unselectedCircle(feedbackChannel == text),
+              child: unselectedCircle(_feedbackChannel == text),
             ),
             const SizedBox(
               width: 16,
@@ -521,8 +521,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
   }
 
   void openWhatsapp() async {
-    var androidUrl = '${Links.appAndroidWhatsappUrl}$feedbackType';
-    var iosUrl = '${Links.appiOSWhatsappUrl}${Uri.parse(feedbackType)}';
+    var androidUrl = '${Links.appAndroidWhatsappUrl}$_feedbackType';
+    var iosUrl = '${Links.appiOSWhatsappUrl}${Uri.parse(_feedbackType)}';
     if (Platform.isIOS) {
       if (await canLaunch(iosUrl)) {
         await launch(iosUrl, forceSafariVC: false);

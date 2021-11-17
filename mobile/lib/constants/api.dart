@@ -17,9 +17,7 @@ class AirQoUrls {
 
   String get placeSearchDetails => '${_searchBaseUrl}details/json';
 
-  // String get requestEmailVerification => '${_baseUrl}users/emailLogin';
-  String get requestEmailVerification =>
-      'https://staging-platform.airqo.net/api/v1/users/emailLogin';
+  String get requestEmailVerification => '${_baseUrl}users/emailLogin';
 
   String get searchSuggestions => '${_searchBaseUrl}autocomplete/json';
 
@@ -28,4 +26,6 @@ class AirQoUrls {
   String get sitesByGeoCoordinates => '${_baseUrl}devices/sites/nearest';
 
   String get stories => storiesLink;
+
+  String get welcomeMessage => '${_baseUrl}notifications/welcomeMessage';
 }

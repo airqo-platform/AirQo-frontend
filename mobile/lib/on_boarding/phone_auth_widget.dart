@@ -50,7 +50,7 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
             }), (r) => false)
           });
     } else {
-      _customAuth.logIn(credential, context).then((value) => {
+      _customAuth.logInWithPhoneNumber(credential, context).then((value) => {
             Navigator.pushAndRemoveUntil(context,
                 MaterialPageRoute(builder: (context) {
               return const HomePage();
@@ -534,12 +534,14 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
               }), (r) => false)
             });
       } else {
-        await _customAuth.logIn(credential, context).then((value) => {
-              Navigator.pushAndRemoveUntil(context,
-                  MaterialPageRoute(builder: (context) {
-                return const HomePage();
-              }), (r) => false)
-            });
+        await _customAuth
+            .logInWithPhoneNumber(credential, context)
+            .then((value) => {
+                  Navigator.pushAndRemoveUntil(context,
+                      MaterialPageRoute(builder: (context) {
+                    return const HomePage();
+                  }), (r) => false)
+                });
       }
     } on FirebaseAuthException catch (e) {
       if (e.code == 'invalid-verification-code') {

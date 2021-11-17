@@ -493,7 +493,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
       success = await _customAuth.signUpWithEmailAddress(
           _emailAddress, _emailVerificationLink);
     } else {
-      success = await _customAuth.signInWithEmailAddress(
+      success = await _customAuth.logInWithEmailAddress(
           _emailAddress, _emailVerificationLink, context);
     }
 

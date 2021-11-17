@@ -1,5 +1,4 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/screens/search_page.dart';
 import 'package:app/widgets/custom_widgets.dart';
@@ -15,9 +14,6 @@ class FavouritePlaces extends StatefulWidget {
 }
 
 class _FavouritePlacesState extends State<FavouritePlaces> {
-  var favouritePlaces = <Measurement>[];
-  TextEditingController searchController = TextEditingController();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,7 +26,7 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
           child: backButton(context),
         ),
         title: const Text(
-          'Favorite',
+          'Favorites',
           style: TextStyle(color: Colors.black),
         ),
       ),

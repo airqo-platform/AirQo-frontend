@@ -447,7 +447,7 @@ String pmToLongString(double pm2_5) {
 }
 
 Future<BitmapDescriptor> pmToMarker(double pm2_5) async {
-  var width = 55;
+  var width = 80;
   var value = pm2_5;
   var bgColor = pm2_5ToColor(pm2_5);
   var textColor = pm2_5TextColor(pm2_5);
@@ -467,7 +467,7 @@ Future<BitmapDescriptor> pmToMarker(double pm2_5) async {
     text: TextSpan(
       text: value.toStringAsFixed(2),
       style: TextStyle(
-        fontSize: radius - 10,
+        fontSize: 20,
         fontWeight: FontWeight.bold,
         color: textColor,
       ),

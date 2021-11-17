@@ -3,7 +3,6 @@ import 'package:app/on_boarding/phone_auth_widget.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 class SignupScreen extends StatefulWidget {
   final bool enableBackButton;
@@ -28,31 +27,6 @@ class SignupScreenState extends State<SignupScreen> {
                     widget.enableBackButton, changeOption, 'signup')
                 : EmailAuthWidget(
                     widget.enableBackButton, changeOption, 'signup')));
-  }
-
-  Widget buildV1(BuildContext context) {
-    return Scaffold(
-        body: WillPopScope(
-            onWillPop: onWillPop,
-            child: Container(
-                color: Colors.white,
-                padding: const EdgeInsets.only(left: 24, right: 24),
-                child: Center(
-                  child: Column(
-                    children: [
-                      Visibility(
-                        visible: _signUpOption == 'phone',
-                        child: PhoneAuthWidget(
-                            widget.enableBackButton, changeOption, 'signup'),
-                      ),
-                      Visibility(
-                        visible: _signUpOption == 'email',
-                        child: EmailAuthWidget(
-                            widget.enableBackButton, changeOption, 'signup'),
-                      ),
-                    ],
-                  ),
-                ))));
   }
 
   void changeOption(String value) {

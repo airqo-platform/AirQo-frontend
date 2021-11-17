@@ -6,6 +6,22 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+Widget cancelOption(BuildContext context) {
+  return GestureDetector(
+    onTap: () {
+      Navigator.pop(context, false);
+    },
+    child: Text(
+      'Cancel',
+      textAlign: TextAlign.center,
+      style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: ColorConstants.appColorBlue),
+    ),
+  );
+}
+
 Widget containerBackButton(String text, Color buttonColor) {
   return Container(
     height: 48,
@@ -387,7 +403,7 @@ Widget signButton(String text) {
   );
 }
 
-Widget signUpOptions(context) {
+Widget signUpOptions(BuildContext context) {
   return Column(
     children: [
       Row(

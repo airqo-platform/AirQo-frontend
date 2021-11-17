@@ -738,7 +738,40 @@ class CustomAuth {
     return false;
   }
 
-  Future<void> logIn(
+  Future<bool> logInWithEmailAddress(
+      String emailAddress, String link, BuildContext context) async {
+    var hasConnection = await isConnected();
+    if (!hasConnection) {
+      return false;
+    }
+
+    var userCredential = await FirebaseAuth.instance
+        .signInWithEmailLink(emailLink: link, email: emailAddress);
+
+    if (userCredential.user == null) {
+      return false;
+    }
+
+    var user = userCredential.user;
+    try {
+      if (user == null) {
+        return false;
+      }
+
+      await updateLocalStorage(user, context);
+
+      return true;
+    } catch (exception, stackTrace) {
+      debugPrint(exception.toString());
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+    }
+    return false;
+  }
+
+  Future<void> logInWithPhoneNumber(
       AuthCredential authCredential, BuildContext context) async {
     var hasConnection = await isConnected();
     if (!hasConnection) {
@@ -789,39 +822,6 @@ class CustomAuth {
         stackTrace: stackTrace,
       );
     }
-  }
-
-  Future<bool> signInWithEmailAddress(
-      String emailAddress, String link, BuildContext context) async {
-    var hasConnection = await isConnected();
-    if (!hasConnection) {
-      return false;
-    }
-
-    var userCredential = await FirebaseAuth.instance
-        .signInWithEmailLink(emailLink: link, email: emailAddress);
-
-    if (userCredential.user == null) {
-      return false;
-    }
-
-    var user = userCredential.user;
-    try {
-      if (user == null) {
-        return false;
-      }
-
-      await updateLocalStorage(user, context);
-
-      return true;
-    } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-    }
-    return false;
   }
 
   Future<bool> signUpWithEmailAddress(String emailAddress, String link) async {
@@ -1004,6 +1004,29 @@ class CustomAuth {
         stackTrace: stackTrace,
       );
     }
+  }
+
+  Future<bool> userExists(String? phoneNumber, String? email) async {
+    var hasConnection = await isConnected();
+    if (!hasConnection) {
+      return false;
+    }
+    try {
+      await _firebaseAuth.signInAnonymously();
+      if (email != null) {
+        var methods = await _firebaseAuth.fetchSignInMethodsForEmail(email);
+        return methods.isNotEmpty;
+      }
+
+      return false;
+    } on Error catch (exception, stackTrace) {
+      debugPrint(exception.toString());
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+    }
+    return false;
   }
 
   Future<void> verifyPhone(

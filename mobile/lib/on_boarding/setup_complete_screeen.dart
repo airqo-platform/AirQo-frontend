@@ -1,5 +1,7 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/screens/home_page.dart';
+import 'package:app/services/fb_notifications.dart';
+import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:flutter/material.dart';
 
@@ -14,7 +16,10 @@ class SetUpCompleteScreen extends StatefulWidget {
 }
 
 class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
-  DateTime? exitTime;
+  DateTime? _exitTime;
+  AirqoApiClient? _airqoApiClient;
+  final CustomAuth _customAuth = CustomAuth();
+  final CloudStore _cloudStore = CloudStore();
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +53,8 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   }
 
   void initialize() {
+    _airqoApiClient = AirqoApiClient(context);
+    sendWelcomeEmail();
     if (mounted) {
       Future.delayed(const Duration(seconds: 4), () async {
         await Navigator.pushAndRemoveUntil(context,
@@ -60,6 +67,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
 
   @override
   void initState() {
+    _airqoApiClient = AirqoApiClient(context);
     initialize();
     super.initState();
   }
@@ -67,9 +75,9 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   Future<bool> onWillPop() {
     var now = DateTime.now();
 
-    if (exitTime == null ||
-        now.difference(exitTime!) > const Duration(seconds: 2)) {
-      exitTime = now;
+    if (_exitTime == null ||
+        now.difference(_exitTime!) > const Duration(seconds: 2)) {
+      _exitTime = now;
 
       showSnackBar(context, 'Tap again to exit !');
       return Future.value(false);
@@ -82,5 +90,10 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
     }
 
     return Future.value(true);
+  }
+
+  Future<void> sendWelcomeEmail() async {
+    var userDetails = await _cloudStore.getProfile(_customAuth.getId());
+    await _airqoApiClient!.sendWelcomeMessage(userDetails);
   }
 }

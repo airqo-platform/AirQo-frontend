@@ -14,7 +14,9 @@ import 'package:app/models/predict.dart';
 import 'package:app/models/site.dart';
 import 'package:app/models/story.dart';
 import 'package:app/models/suggestion.dart';
+import 'package:app/models/user_details.dart';
 import 'package:app/utils/dialogs.dart';
+import 'package:app/utils/string_extension.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -23,6 +25,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 
 class AirqoApiClient {
   final BuildContext context;
+  final AirQoUrls _airQoUrls = AirQoUrls();
 
   AirqoApiClient(this.context);
 
@@ -32,7 +35,7 @@ class AirqoApiClient {
           DateTime.now().add(const Duration(hours: 1)).millisecondsSinceEpoch /
               1000;
 
-      var url = '${AirQoUrls().forecast}$channelId/${startTime.round()}';
+      var url = '${_airQoUrls.forecast}$channelId/${startTime.round()}';
 
       final responseBody = await _performGetRequestV2(<String, dynamic>{}, url);
 
@@ -70,7 +73,7 @@ class AirqoApiClient {
         ..putIfAbsent('tenant', () => 'airqo');
 
       final responseBody =
-          await _performGetRequest(queryParams, AirQoUrls().measurements);
+          await _performGetRequest(queryParams, _airQoUrls.measurements);
 
       if (responseBody != null) {
         return compute(HistoricalMeasurement.parseMeasurements, responseBody);
@@ -97,7 +100,7 @@ class AirqoApiClient {
         ..putIfAbsent('tenant', () => 'airqo');
 
       final responseBody =
-          await _performGetRequest(queryParams, AirQoUrls().measurements);
+          await _performGetRequest(queryParams, _airQoUrls.measurements);
       if (responseBody != null) {
         return compute(Measurement.parseMeasurements, responseBody);
       } else {
@@ -115,7 +118,7 @@ class AirqoApiClient {
 
   Future<List<Story>> fetchLatestStories() async {
     try {
-      final responseBody = await _performGetRequest({}, AirQoUrls().stories);
+      final responseBody = await _performGetRequest({}, _airQoUrls.stories);
 
       if (responseBody != null) {
         return compute(Story.parseStories, responseBody);
@@ -151,7 +154,7 @@ class AirqoApiClient {
         ..putIfAbsent('tenant', () => 'airqo');
 
       final responseBody =
-          await _performGetRequest(queryParams, AirQoUrls().measurements);
+          await _performGetRequest(queryParams, _airQoUrls.measurements);
 
       if (responseBody != null) {
         return compute(HistoricalMeasurement.parseMeasurements, responseBody);
@@ -203,7 +206,7 @@ class AirqoApiClient {
       }
 
       final responseBody =
-          await _performGetRequest(queryParams, AirQoUrls().measurements);
+          await _performGetRequest(queryParams, _airQoUrls.measurements);
 
       if (responseBody != null) {
         return compute(HistoricalMeasurement.parseMeasurements, responseBody);
@@ -231,7 +234,7 @@ class AirqoApiClient {
         ..putIfAbsent('tenant', () => 'airqo');
 
       final responseBody =
-          await _performGetRequest(queryParams, AirQoUrls().measurements);
+          await _performGetRequest(queryParams, _airQoUrls.measurements);
 
       if (responseBody != null) {
         return compute(Measurement.parseMeasurement, responseBody);
@@ -260,7 +263,7 @@ class AirqoApiClient {
       // 'public_id': name,
       // 'api_key': AppConfig.imageUploadApiKey
 
-      final response = await http.post(Uri.parse(AirQoUrls().imageUploadUrl),
+      final response = await http.post(Uri.parse(_airQoUrls.imageUploadUrl),
           headers: {'Content-Type': 'application/json'},
           body: json.encode(body));
 
@@ -295,7 +298,7 @@ class AirqoApiClient {
       var body = {'email': emailAddress};
 
       final response = await http.post(
-          Uri.parse(AirQoUrls().requestEmailVerification),
+          Uri.parse(_airQoUrls.requestEmailVerification),
           headers: headers,
           body: jsonEncode(body));
 
@@ -332,7 +335,7 @@ class AirqoApiClient {
       };
 
       final response = await _performPostRequest(
-          <String, dynamic>{}, AirQoUrls().feedbackUrl, jsonEncode(body));
+          <String, dynamic>{}, _airQoUrls.feedbackUrl, jsonEncode(body));
       return response;
     } on Error catch (exception, stackTrace) {
       await Sentry.captureException(
@@ -342,6 +345,29 @@ class AirqoApiClient {
     }
 
     return false;
+  }
+
+  Future<void> sendWelcomeMessage(UserDetails userDetails) async {
+    try {
+      if (!userDetails.emailAddress.isValidEmail()) {
+        return;
+      }
+
+      var body = {
+        'firstName':
+            userDetails.firstName.isNull() ? '' : userDetails.firstName,
+        'platform': 'mobile',
+        'email': userDetails.emailAddress
+      };
+
+      await _performPostRequest(
+          <String, dynamic>{}, _airQoUrls.welcomeMessage, jsonEncode(body));
+    } on Error catch (exception, stackTrace) {
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   Future<dynamic> _performGetRequest(
@@ -465,6 +491,7 @@ class SearchApi {
   final String sessionToken;
   final apiKey = AppConfig.googleApiKey;
   final BuildContext context;
+  final AirQoUrls _airQoUrls = AirQoUrls();
 
   SearchApi(this.sessionToken, this.context);
 
@@ -477,7 +504,7 @@ class SearchApi {
         ..putIfAbsent('sessiontoken', () => sessionToken);
 
       final responseBody =
-          await _performGetRequest(queryParams, AirQoUrls().searchSuggestions);
+          await _performGetRequest(queryParams, _airQoUrls.searchSuggestions);
 
       if (responseBody == null) {
         return [];
@@ -507,7 +534,7 @@ class SearchApi {
         ..putIfAbsent('sessiontoken', () => sessionToken);
 
       final responseBody =
-          await _performGetRequest(queryParams, AirQoUrls().placeSearchDetails);
+          await _performGetRequest(queryParams, _airQoUrls.placeSearchDetails);
 
       var place = Place.fromJson(responseBody['result']);
 

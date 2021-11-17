@@ -278,42 +278,10 @@ class _DashboardViewState extends State<DashboardView> {
     }
   }
 
-  void handleScroll() async {
-    _scrollController.addListener(() {
-      if (_scrollController.position.userScrollDirection ==
-              ScrollDirection.reverse &&
-          mounted) {
-        setState(() {
-          _showName = false;
-        });
-      }
-      if (_scrollController.position.userScrollDirection ==
-              ScrollDirection.forward &&
-          mounted) {
-        setState(() {
-          _showName = true;
-        });
-      }
-    });
-  }
-
-  Future<void> initialize() async {
-    _cloudAnalytics.logScreenTransition('Home Page');
-    _airqoApiClient = AirqoApiClient(context);
-    _preferences = await SharedPreferences.getInstance();
-    _setGreetings();
-    _getIncompleteKya();
-    _getCompleteKya();
-    _getLocationMeasurements();
-    _getDashboardLocations();
-    await _getLatestMeasurements();
-    _showHelpTips();
-  }
-
   @override
   void initState() {
-    initialize();
-    handleScroll();
+    _initialize();
+    _handleScroll();
     super.initState();
   }
 
@@ -470,6 +438,143 @@ class _DashboardViewState extends State<DashboardView> {
     );
   }
 
+  Widget topTabs() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        Expanded(
+            key: _favToolTipKey,
+            child: GestureDetector(
+              onTap: () async {
+                if (_favLocations.isEmpty) {
+                  showTipText(
+                      _favToolTipText, _favToolTipKey, context, () {}, false);
+                  return;
+                }
+                await Navigator.push(context,
+                    MaterialPageRoute(builder: (context) {
+                  return const FavouritePlaces();
+                }));
+              },
+              child: Container(
+                height: 56,
+                padding: const EdgeInsets.all(12.0),
+                decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.all(Radius.circular(8.0))),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Consumer<PlaceDetailsModel>(
+                      builder: (context, placeDetailsModel, child) {
+                        if (placeDetailsModel.favouritePlaces.isEmpty) {
+                          return SvgPicture.asset(
+                            'assets/icon/add_avator.svg',
+                          );
+                        }
+                        getFavourites(placeDetailsModel.favouritePlaces);
+                        return SizedBox(
+                          height: 32,
+                          width: 44,
+                          child: Stack(
+                            children: _favLocations,
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(
+                      width: 8,
+                    ),
+                    Text(
+                      'Favorites',
+                      style: TextStyle(
+                          color: ColorConstants.appColorBlue,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14),
+                    )
+                  ],
+                ),
+              ),
+            )),
+        const SizedBox(
+          width: 16,
+        ),
+        Expanded(
+            key: _kyaToolTipKey,
+            child: GestureDetector(
+              onTap: () async {
+                if (_completeKya.isEmpty) {
+                  showTipText(
+                      _kyaToolTipText, _kyaToolTipKey, context, () {}, true);
+                  return;
+                }
+                await Navigator.push(context,
+                    MaterialPageRoute(builder: (context) {
+                  return const ForYouPage();
+                }));
+              },
+              child: Container(
+                height: 56,
+                padding: const EdgeInsets.all(12.0),
+                decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.all(Radius.circular(8.0))),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      height: 32,
+                      width: 44,
+                      child: Stack(
+                        children: _completeKyaWidgets,
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 8,
+                    ),
+                    Text(
+                      'For You',
+                      style: TextStyle(
+                          color: ColorConstants.appColorBlue,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14),
+                    )
+                  ],
+                ),
+              ),
+            )),
+      ],
+    );
+  }
+
+  void updateCurrentLocation() async {
+    // try {
+    //   var prefs = await SharedPreferences.getInstance();
+    //   var dashboardSite = prefs.getString(PrefConstant.dashboardSite) ?? '';
+    //
+    //   if (dashboardSite == '') {
+    //     await LocationService().getCurrentLocationReadings().then((value)
+    //     => {
+    //           if (value != null)
+    //             {
+    //               prefs.setStringList(PrefConstant.lastKnownLocation,
+    //                   [(value.site.getUserLocation()), (value.site.id)]),
+    //               if (mounted)
+    //                 {
+    //                   setState(() {
+    //                     measurementData = value;
+    //                     isRefreshing = false;
+    //                     print(measurementData);
+    //                   }),
+    //                 }
+    //             },
+    //         });
+    //   }
+    // } catch (e) {
+    //   debugPrint(e.toString());
+    // }
+  }
+
   // Widget tipsSection() {
   //   return Container(
   //     padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
@@ -610,143 +715,6 @@ class _DashboardViewState extends State<DashboardView> {
   //     ),
   //   );
   // }
-
-  Widget topTabs() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        Expanded(
-            key: _favToolTipKey,
-            child: GestureDetector(
-              onTap: () async {
-                if (_favLocations.isEmpty) {
-                  showTipText(
-                      _favToolTipText, _favToolTipKey, context, () {}, false);
-                  return;
-                }
-                await Navigator.push(context,
-                    MaterialPageRoute(builder: (context) {
-                  return const FavouritePlaces();
-                }));
-              },
-              child: Container(
-                height: 56,
-                padding: const EdgeInsets.all(12.0),
-                decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.all(Radius.circular(8.0))),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Consumer<PlaceDetailsModel>(
-                      builder: (context, placeDetailsModel, child) {
-                        if (placeDetailsModel.favouritePlaces.isEmpty) {
-                          return SvgPicture.asset(
-                            'assets/icon/add_avator.svg',
-                          );
-                        }
-                        getFavourites(placeDetailsModel.favouritePlaces);
-                        return SizedBox(
-                          height: 32,
-                          width: 44,
-                          child: Stack(
-                            children: _favLocations,
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(
-                      width: 8,
-                    ),
-                    Text(
-                      'Favorites',
-                      style: TextStyle(
-                          color: ColorConstants.appColorBlue,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14),
-                    )
-                  ],
-                ),
-              ),
-            )),
-        const SizedBox(
-          width: 16,
-        ),
-        Expanded(
-            key: _kyaToolTipKey,
-            child: GestureDetector(
-              onTap: () async {
-                if (_completeKya.isEmpty) {
-                  showTipText(
-                      _kyaToolTipText, _kyaToolTipKey, context, () {}, true);
-                  return;
-                }
-                await Navigator.push(context,
-                    MaterialPageRoute(builder: (context) {
-                  return const ForYouPage();
-                }));
-              },
-              child: Container(
-                height: 56,
-                padding: const EdgeInsets.all(12.0),
-                decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.all(Radius.circular(8.0))),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      height: 32,
-                      width: 44,
-                      child: Stack(
-                        children: _completeKyaWidgets,
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 8,
-                    ),
-                    Text(
-                      'For You',
-                      style: TextStyle(
-                          color: ColorConstants.appColorBlue,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14),
-                    )
-                  ],
-                ),
-              ),
-            )),
-      ],
-    );
-  }
-
-  void updateCurrentLocation() async {
-    // try {
-    //   var prefs = await SharedPreferences.getInstance();
-    //   var dashboardSite = prefs.getString(PrefConstant.dashboardSite) ?? '';
-    //
-    //   if (dashboardSite == '') {
-    //     await LocationService().getCurrentLocationReadings().then((value)
-    //     => {
-    //           if (value != null)
-    //             {
-    //               prefs.setStringList(PrefConstant.lastKnownLocation,
-    //                   [(value.site.getUserLocation()), (value.site.id)]),
-    //               if (mounted)
-    //                 {
-    //                   setState(() {
-    //                     measurementData = value;
-    //                     isRefreshing = false;
-    //                     print(measurementData);
-    //                   }),
-    //                 }
-    //             },
-    //         });
-    //   }
-    // } catch (e) {
-    //   debugPrint(e.toString());
-    // }
-  }
 
   Widget _dashboardItems() {
     return MediaQuery.removePadding(
@@ -947,6 +915,38 @@ class _DashboardViewState extends State<DashboardView> {
         currentLocation = measurement;
       });
     }
+  }
+
+  void _handleScroll() async {
+    _scrollController.addListener(() {
+      if (_scrollController.position.userScrollDirection ==
+              ScrollDirection.reverse &&
+          mounted) {
+        setState(() {
+          _showName = false;
+        });
+      }
+      if (_scrollController.position.userScrollDirection ==
+              ScrollDirection.forward &&
+          mounted) {
+        setState(() {
+          _showName = true;
+        });
+      }
+    });
+  }
+
+  Future<void> _initialize() async {
+    _cloudAnalytics.logScreenTransition('Home Page');
+    _airqoApiClient = AirqoApiClient(context);
+    _preferences = await SharedPreferences.getInstance();
+    _setGreetings();
+    _getIncompleteKya();
+    _getCompleteKya();
+    _getLocationMeasurements();
+    _getDashboardLocations();
+    await _getLatestMeasurements();
+    _showHelpTips();
   }
 
   void _setGreetings() {
