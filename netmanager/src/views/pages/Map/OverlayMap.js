@@ -17,6 +17,7 @@ import Checkbox from "@material-ui/core/Checkbox";
 import { useInitScrollTop } from "utils/customHooks";
 import { ErrorBoundary } from "../../ErrorBoundary";
 import { useDashboardSitesData } from "redux/Dashboard/selectors";
+import { useOrgData } from "redux/Join/selectors";
 
 // css
 import "assets/css/overlay-map.css";
@@ -109,6 +110,7 @@ const MapControllerPosition = ({ className, children, position }) => {
 
 const PollutantSelector = ({ className, onChange }) => {
   useInitScrollTop();
+  const orgData = useOrgData();
   const [open, setOpen] = useState(false);
   const [pollutant, setPollutant] = useState("pm2_5");
   const pollutantMapper = {
@@ -161,15 +163,17 @@ const PollutantSelector = ({ className, onChange }) => {
           >
             PM<sub>10</sub>
           </MenuItem>
-          <MenuItem
-            onClick={handleMenuItemChange("no2", {
-              pm2_5: false,
-              no2: true,
-              pm10: false,
-            })}
-          >
-            NO<sub>2</sub>
-          </MenuItem>
+          {orgData.name !== "airqo" && (
+            <MenuItem
+              onClick={handleMenuItemChange("no2", {
+                pm2_5: false,
+                no2: true,
+                pm10: false,
+              })}
+            >
+              NO<sub>2</sub>
+            </MenuItem>
+          )}
         </div>
       }
       open={open}
