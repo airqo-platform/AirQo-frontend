@@ -16,6 +16,7 @@ import { MenuItem } from "@material-ui/core";
 import Checkbox from "@material-ui/core/Checkbox";
 import { useInitScrollTop } from "utils/customHooks";
 import { ErrorBoundary } from "../../ErrorBoundary";
+import { useDashboardSitesData } from "redux/Dashboard/selectors";
 
 // css
 import "assets/css/overlay-map.css";
@@ -257,6 +258,7 @@ export const OverlayMap = ({
   heatMapData,
   monitoringSiteData,
 }) => {
+  const sitesData = useDashboardSitesData();
   const MAX_OFFLINE_DURATION = 86400; // 24 HOURS
   const mapContainerRef = useRef(null);
   const [map, setMap] = useState(null);
@@ -447,8 +449,13 @@ export const OverlayMap = ({
               .setPopup(
                 new mapboxgl.Popup({ offset: 25 }).setHTML(
                   `<div>
-                    <div>Device - <span style="text-transform: uppercase"><b>${
-                      feature.properties.device || feature.properties._id
+                    <div><span style="text-transform: uppercase"><b>${
+                      (sitesData[feature.properties.site_id] &&
+                        sitesData[feature.properties.site_id].name) ||
+                      (sitesData[feature.properties.site_id] &&
+                        sitesData[feature.properties.site_id].description) ||
+                      feature.properties.device ||
+                      feature.properties._id
                     }</b></span></div>
                     <div class="${"popup-body " + markerClass}"> AQI: ${
                     (pollutantValue && pollutantValue.toFixed(2)) || "n/a"
