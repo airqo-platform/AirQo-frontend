@@ -1,5 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useDispatch } from "react-redux";
 import { Cancel } from "@material-ui/icons";
+import { updateFilteredDevicesData } from "redux/DeviceManagement/operations";
+import { useManagementFilteredDevicesData } from "redux/DeviceManagement/selectors";
+import { multiFilter } from "utils/filters";
 
 // css styles
 import "assets/css/map-filter.css";
@@ -24,6 +28,8 @@ const FilterIcon = ({ fill, stroke }) => {
 
 const MapFilter = () => {
   const ref = useRef();
+  const dispatch = useDispatch();
+  const devices = useManagementFilteredDevicesData();
   const [show, setShow] = useState(false);
   const [filters, setFilters] = useState([]);
 
@@ -32,6 +38,8 @@ const MapFilter = () => {
   const handleFilterClick = (filter) => () => {
     setFilters([...filters, filter]);
     toggleShow();
+    dispatch(updateFilteredDevicesData(multiFilter(devices, filter.condition)));
+    //   setDeviceFilters({ ...mapObject(deviceFilters, () => false)});
   };
 
   useEffect(() => {
@@ -68,6 +76,7 @@ const MapFilter = () => {
           <li
             onClick={handleFilterClick({
               label: "Online Devices",
+              condition: { isOnline: true },
               cancel: () => {},
             })}
           >
@@ -76,6 +85,7 @@ const MapFilter = () => {
           <li
             onClick={handleFilterClick({
               label: "Offline Devices",
+              condition: { isOnline: false },
               cancel: () => {},
             })}
           >
