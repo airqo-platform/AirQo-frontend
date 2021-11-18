@@ -51,25 +51,16 @@
 /*Resize the wrap to see the search bar change!*/
 .map-filter-container {
     width: 30%;
+    max-width: 450px;
     position: absolute;
     bottom: 30px;
-    /*left: 50%;*/
     right: 5px;
     font-family: 'Open Sans', sans-serif;
-    /*background: #f2f2f2;*/
-    /*border-radius: 5px;*/
 }
 .map-filter-wrapper{
-    /*width: 30%;*/
-    /*position: absolute;*/
-    /*bottom: 30px;*/
-    /*!*left: 50%;*!*/
-    /*right: 5px;*/
     font-family: 'Open Sans', sans-serif;
-    /*background: #f2f2f2;*/
     background-color: #ffffff;
     border-radius: 5px;
-    /*height: 36px;*/
 }
 
 .dropup {
@@ -134,4 +125,21 @@
 
 .du-menu .selected {
   color: #069be5;
+}
+
+.map-filter-item {
+  display: grid;
+  grid-template-columns: 40px 1fr 40px;
+  align-content: center;
+  justify-content: space-between;
+  height: 30px;
+  margin: 2px;
+  background-color: #ffffff;
+  border-radius: 2px;
+  cursor: default;
+}
+
+.grid-align-right {
+  justify-self: end;
+  cursor: pointer;
 }

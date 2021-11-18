@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
+import { Cancel } from "@material-ui/icons";
 
 // css styles
 import "assets/css/map-filter.css";
 
-const FilterIcon = () => {
+const FilterIcon = ({ fill, stroke }) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -14,8 +15,8 @@ const FilterIcon = () => {
       <path d="M0 0h24v24H0z" fill="none" />
       <path
         d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"
-        stroke="white"
-        fill="white"
+        stroke={stroke || "white"}
+        fill={fill || "white"}
       />
     </svg>
   );
@@ -24,8 +25,14 @@ const FilterIcon = () => {
 const MapFilter = () => {
   const ref = useRef();
   const [show, setShow] = useState(false);
+  const [filters, setFilters] = useState([]);
 
   const toggleShow = () => setShow(!show);
+
+  const handleFilterClick = (filter) => () => {
+    setFilters([...filters, filter]);
+    toggleShow();
+  };
 
   useEffect(() => {
     const checkIfClickedOutside = (e) => {
@@ -44,10 +51,36 @@ const MapFilter = () => {
   }, [show]);
   return (
     <div className="map-filter-container">
+      <div className="dropup">
+        {filters.map((filter, key) => (
+          <div className="map-filter-item" key={key}>
+            <FilterIcon fill="black" stroke="black" /> {filter.label}{" "}
+            <Cancel
+              className="grid-align-right"
+              style={{ color: "red" }}
+              onClick={filter.cancel}
+            />
+          </div>
+        ))}
+      </div>
       <label className="dropup" ref={ref}>
         <ul className={`du-menu ${(!show && "du-input") || ""}`}>
-          <li>Online devices</li>
-          <li>Offline devices</li>
+          <li
+            onClick={handleFilterClick({
+              label: "Online Devices",
+              cancel: () => {},
+            })}
+          >
+            Online devices
+          </li>
+          <li
+            onClick={handleFilterClick({
+              label: "Offline Devices",
+              cancel: () => {},
+            })}
+          >
+            Offline devices
+          </li>
           <li className="divider" />
           <li>ADD A CUSTOM FILTER</li>
         </ul>
