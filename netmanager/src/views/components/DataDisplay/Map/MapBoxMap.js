@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import ReactMapGL, { Marker, Popup } from "react-map-gl";
 import { useHistory } from "react-router-dom";
 import { MapKey } from "./MapKey";
+import MapFilter from "./MapFilter";
 import ErrorBoundary from "views/ErrorBoundary/ErrorBoundary";
 
 import "assets/css/manager-map.css";
@@ -114,6 +115,7 @@ const MapBoxMap = ({ devices }) => {
             </Popup>
           )}
           <MapKey />
+          <MapFilter />
         </ReactMapGL>
       </div>
     </ErrorBoundary>
