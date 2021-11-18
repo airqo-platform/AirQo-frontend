@@ -3,6 +3,7 @@ import ReactMapGL, { Marker, Popup } from "react-map-gl";
 import { useHistory } from "react-router-dom";
 import { MapKey } from "./MapKey";
 import MapFilter from "./MapFilter";
+import { useManagementFilteredDevicesData } from "redux/DeviceManagement/selectors";
 import ErrorBoundary from "views/ErrorBoundary/ErrorBoundary";
 
 import "assets/css/manager-map.css";
@@ -30,8 +31,9 @@ const maintenanceLabelColorGenerator = (maintenanceStatus) => {
   return "popup-success";
 };
 
-const MapBoxMap = ({ devices }) => {
+const MapBoxMap = () => {
   const history = useHistory();
+  const devices = useManagementFilteredDevicesData();
   const [viewport, setViewport] = useState({
     latitude: 0.3341424,
     longitude: 32.5600613,
