@@ -19,6 +19,7 @@ import { DEFAULTS_URI } from "config/urls/authService";
 import { getMonitoringSitesLocationsApi } from "views/apis/location";
 import { getUserChartDefaultsApi } from "views/apis/authService";
 import { getSitesApi } from "views/apis/analytics";
+import { transformArray } from "../utils";
 
 export const loadSites = () => async (dispatch) => {
   return await getSitesApi()
@@ -26,7 +27,7 @@ export const loadSites = () => async (dispatch) => {
       if (isEmpty(res.data)) return;
       dispatch({
         type: LOAD_DASHBOARD_SITES_SUCCESS,
-        payload: res.data || [],
+        payload: transformArray(res.data || [], "_id"),
       });
     })
     .catch((err) => {

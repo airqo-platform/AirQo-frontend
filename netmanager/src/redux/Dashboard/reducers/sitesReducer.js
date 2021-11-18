@@ -1,7 +1,7 @@
 import { LOAD_DASHBOARD_SITES_SUCCESS } from "../actions";
 import { LOGOUT_USER_SUCCESS } from "redux/Join/types";
 
-const initialState = [];
+const initialState = {};
 
 export default function (state = initialState, action) {
   switch (action.type) {

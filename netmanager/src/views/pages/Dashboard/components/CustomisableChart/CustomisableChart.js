@@ -39,9 +39,7 @@ import OutlinedSelect from "views/components/CustomSelects/OutlinedSelect";
 import { formatDateString } from "utils/dateTime";
 import { omit } from "underscore";
 import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
-import {
-  usePollutantsOptions,
-} from "utils/customHooks";
+import { usePollutantsOptions } from "utils/customHooks";
 import {
   deleteUserChartDefaultsApi,
   updateUserChartDefaultsApi,
@@ -163,21 +161,25 @@ const CustomisableChart = (props) => {
   ];
 
   const initialPeriod = () => {
-    let period = periodOptions[0];
-    if (defaultFilter.period !== undefined) {
-      try {
-        period = JSON.parse(defaultFilter.period);
-        // eslint-disable-next-line no-empty
-      } catch (err) {}
+    try {
+      return JSON.parse(defaultFilter.period) || periodOptions[0];
+    } catch (err) {
+      return periodOptions[0];
     }
-    return period;
   };
 
   const [selectedPeriod, setSelectedPeriod] = useState(initialPeriod());
   const [disableDatePickers, setDisableDatePickers] = useState(true);
   const [loading, setLoading] = useState(true);
 
+  const isCustomPeriod = (period) => {
+    return period.label.toLowerCase() === "Custom range".toLowerCase();
+  };
+
   const generateStartAndEndDates = (period) => {
+    if (isCustomPeriod(period)) {
+      return [new Date(period.startDate), new Date(period.endDate)];
+    }
     let endDate = period.endDate ? new Date(period.endDate) : new Date();
     let startDate = new Date(
       endDate.getFullYear(),
@@ -190,6 +192,7 @@ const CustomisableChart = (props) => {
 
   const handlePeriodChange = (selectedPeriodOption) => {
     if (isCustomPeriod(selectedPeriodOption)) {
+      setSelectedPeriod(selectedPeriodOption);
       setDisableDatePickers(false);
       return;
     }
@@ -198,10 +201,6 @@ const CustomisableChart = (props) => {
     setSelectedEndDate(endDate);
     setSelectedPeriod(selectedPeriodOption);
     setDisableDatePickers(true);
-  };
-
-  const isCustomPeriod = (period) => {
-    return period.label.toLowerCase() === "Custom range".toLowerCase();
   };
 
   let [startDate, endDate] = generateStartAndEndDates(initialPeriod());
@@ -353,8 +352,8 @@ const CustomisableChart = (props) => {
 
   const title = `Mean ${selectedFrequency.label} ${
     selectedPollutant.label
-  } from ${formatDate(startDate, "YYYY-MM-DD")} to ${formatDateString(
-    endDate,
+  } from ${formatDate(selectedDate, "YYYY-MM-DD")} to ${formatDateString(
+    selectedEndDate,
     "YYYY-MM-DD"
   )}`;
 
@@ -437,13 +436,15 @@ const CustomisableChart = (props) => {
       "startDate"
     );
 
-    if (!isCustomPeriod(period)) {
-      period = { ...period, endDate: null };
-    }
+    period = {
+      ...selectedPeriod,
+      startDate: selectedDate.toISOString(),
+      endDate: selectedEndDate.toISOString(),
+    };
 
     let newFilter = {
       ...defaultFilter,
-      period: period,
+      period: JSON.stringify(period),
       sites: optionToList(tempState.sites.selectedOption),
       startDate: selectedDate.toISOString(),
       endDate: selectedEndDate.toISOString(),
@@ -465,7 +466,7 @@ const CustomisableChart = (props) => {
 
     setFormState((formState) => ({
       ...formState,
-      isValid: errors ? false : true,
+      isValid: !!errors,
       errors: errors || {},
     }));
   }, [formState.values]);
