@@ -405,12 +405,7 @@ export default function DeviceManagement() {
           }}
         >
           <ApexChart
-            options={timeSeriesChartOptions({
-              yaxis: {
-                min: 0,
-                max: 100,
-              },
-            })}
+            options={timeSeriesChartOptions({})}
             title={"Network uptime"}
             series={series}
             lastUpdated={
