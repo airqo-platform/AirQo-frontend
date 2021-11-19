@@ -16,11 +16,13 @@ import {
   useDevicesStatusData,
   useNetworkUptimeData,
   useManagementFilteredDevicesData,
+  useActiveFiltersData,
 } from "redux/DeviceManagement/selectors";
 import {
   loadDevicesStatusData,
   loadNetworkUptimeData,
   updateFilteredDevicesData,
+  updateActiveFilters,
 } from "redux/DeviceManagement/operations";
 import { createBarChartData, ApexTimeSeriesData } from "utils/charts";
 import { updateDeviceBackUrl } from "redux/Urls/operations";
@@ -46,15 +48,6 @@ import ErrorBoundary from "views/ErrorBoundary/ErrorBoundary";
 import "chartjs-plugin-annotation";
 import "assets/scss/device-management.sass";
 import "assets/css/device-view.css"; // there are some shared styles here too :)
-
-const DEFAULT_DEVICE_FILTERS = {
-  all: true,
-  due: true,
-  overDue: true,
-  solar: true,
-  alternator: true,
-  mains: true,
-};
 
 const DEVICE_FILTER_FIELDS = {
   all: {},
@@ -131,16 +124,15 @@ export default function DeviceManagement() {
   const location = useLocation();
   const devicesStatusData = useDevicesStatusData();
   const networkUptimeData = useNetworkUptimeData();
+  const activeFilters = useActiveFiltersData();
   const leaderboardData = useDeviceUptimeLeaderboard();
   const allDevices = useDevicesData();
   const dispatch = useDispatch();
   const [devicesUptime, setDevicesUptime] = useState([]);
-  const [showBarChart, setShowBarChart] = useState(false);
   const [devicesUptimeDescending, setDevicesUptimeDescending] = useState(true);
   const [devices, setDevices] = useState([]);
-  // const [filteredDevices, setFilteredDevices] = useState(devices);
   const filteredDevices = useManagementFilteredDevicesData();
-  const [deviceFilters, setDeviceFilters] = useState(DEFAULT_DEVICE_FILTERS);
+  const deviceFilters = activeFilters.main;
   const [pieChartStatusValues, setPieChartStatusValues] = useState([]);
   const [networkUptimeDataset, setNetworkUptimeDataset] = useState({
     bar: { label: [], data: [] },
@@ -171,10 +163,9 @@ export default function DeviceManagement() {
       return [...prevFiltered, ...filtered];
     }
 
-    const filtered = filteredDevices.filter((device) => {
-      return device[filter.key] !== filter.value;
-    });
-    return filtered;
+    return filteredDevices.filter(
+      (device) => device[filter.key] !== filter.value
+    );
   };
 
   const toggleDeviceFilter = (key) => {
@@ -192,9 +183,8 @@ export default function DeviceManagement() {
   };
 
   const handleDeviceFilterClick = (key) => () => {
-    // setFilteredDevices(filterDevices(devices, key));
     dispatch(updateFilteredDevicesData(filterDevices(devices, key)));
-    setDeviceFilters(toggleDeviceFilter(key));
+    dispatch(updateActiveFilters({ main: toggleDeviceFilter(key) }));
   };
 
   const sortLeaderBoardData = (leaderboardData) => {

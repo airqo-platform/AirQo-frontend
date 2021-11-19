@@ -1,9 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import { Cancel } from "@material-ui/icons";
-import { updateFilteredDevicesData } from "redux/DeviceManagement/operations";
-import { useManagementFilteredDevicesData } from "redux/DeviceManagement/selectors";
+import {
+  updateFilteredDevicesData,
+  updateActiveFilters,
+} from "redux/DeviceManagement/operations";
+import {
+  useManagementDevicesData,
+  useManagementFilteredDevicesData,
+  useActiveFiltersData,
+} from "redux/DeviceManagement/selectors";
 import { multiFilter } from "utils/filters";
+import { mapObject, omit } from "underscore";
 
 // css styles
 import "assets/css/map-filter.css";
@@ -29,9 +37,53 @@ const FilterIcon = ({ fill, stroke }) => {
 const MapFilter = () => {
   const ref = useRef();
   const dispatch = useDispatch();
+  const activeFilters = useActiveFiltersData();
+  const allDevices = useManagementDevicesData();
   const devices = useManagementFilteredDevicesData();
   const [show, setShow] = useState(false);
   const [filters, setFilters] = useState([]);
+
+  const updateFilteredDevices = (filters) => {
+    let filteredDevices = allDevices;
+
+    filters.map((filter) => {
+      filteredDevices = multiFilter(filteredDevices, filter.condition);
+    });
+
+    dispatch(updateFilteredDevicesData(filteredDevices));
+  };
+
+  const cancelOnlineFilters = () => {
+    dispatch(
+      updateActiveFilters(
+        omit(
+          {
+            ...activeFilters,
+            main: { ...mapObject(activeFilters.main, () => false) },
+          },
+          "isOnline"
+        )
+      )
+    );
+    updateFilteredDevices(
+      filters.filter((fil) => {
+        return Object.keys(fil.condition)[0] !== "isOnline";
+      })
+    );
+  };
+
+  const defaultFilters = [
+    {
+      label: "Online Devices",
+      condition: { isOnline: true },
+      cancel: cancelOnlineFilters,
+    },
+    {
+      label: "Offline Devices",
+      condition: { isOnline: false },
+      cancel: cancelOnlineFilters,
+    },
+  ];
 
   const toggleShow = () => setShow(!show);
 
@@ -39,8 +91,26 @@ const MapFilter = () => {
     setFilters([...filters, filter]);
     toggleShow();
     dispatch(updateFilteredDevicesData(multiFilter(devices, filter.condition)));
-    //   setDeviceFilters({ ...mapObject(deviceFilters, () => false)});
+    dispatch(
+      updateActiveFilters({
+        ...activeFilters,
+        main: { ...mapObject(activeFilters.main, () => false) },
+        ...filter.condition,
+      })
+    );
   };
+
+  useEffect(() => {
+    const newFilters = [];
+    filters.map((filter) => {
+      const filterKeys = Object.keys(filter.condition);
+      const filterKey = filterKeys[0];
+      if (filter.condition[filterKey] === activeFilters[filterKey]) {
+        newFilters.push(filter);
+      }
+    });
+    setFilters(newFilters);
+  }, [devices, activeFilters]);
 
   useEffect(() => {
     const checkIfClickedOutside = (e) => {
@@ -60,37 +130,26 @@ const MapFilter = () => {
   return (
     <div className="map-filter-container">
       <div className="dropup">
-        {filters.map((filter, key) => (
-          <div className="map-filter-item" key={key}>
-            <FilterIcon fill="black" stroke="black" /> {filter.label}{" "}
-            <Cancel
-              className="grid-align-right"
-              style={{ color: "red" }}
-              onClick={filter.cancel}
-            />
-          </div>
-        ))}
+        {filters.map((filter, key) => {
+          return (
+            <div className="map-filter-item" key={key}>
+              <FilterIcon fill="black" stroke="black" /> {filter.label}{" "}
+              <Cancel
+                className="grid-align-right"
+                style={{ color: "red" }}
+                onClick={filter.cancel}
+              />
+            </div>
+          );
+        })}
       </div>
       <label className="dropup" ref={ref}>
         <ul className={`du-menu ${(!show && "du-input") || ""}`}>
-          <li
-            onClick={handleFilterClick({
-              label: "Online Devices",
-              condition: { isOnline: true },
-              cancel: () => {},
-            })}
-          >
-            Online devices
-          </li>
-          <li
-            onClick={handleFilterClick({
-              label: "Offline Devices",
-              condition: { isOnline: false },
-              cancel: () => {},
-            })}
-          >
-            Offline devices
-          </li>
+          {defaultFilters.map((filter, key) => (
+            <li key={key} onClick={handleFilterClick(filter)}>
+              {filter.label}
+            </li>
+          ))}
           <li className="divider" />
           <li>ADD A CUSTOM FILTER</li>
         </ul>
