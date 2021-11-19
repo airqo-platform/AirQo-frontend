@@ -6,6 +6,7 @@ import uptimeLeaderboard from "./uptimeLeaderboard";
 import {
   devicesReducer as devices,
   filteredDevicesReducer as filteredDevices,
+  activeFiltersReducer as activeFilters,
 } from "./devices";
 
 export default combineReducers({
@@ -15,4 +16,5 @@ export default combineReducers({
   uptimeLeaderboard,
   devices,
   filteredDevices,
+  activeFilters,
 });
