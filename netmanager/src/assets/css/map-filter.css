@@ -10,6 +10,9 @@
     /*height: 36px;*/
   position: relative;
   display: flex;
+
+  justify-content: flex-end;
+
 }
 
 .map-filter-searchTerm {
@@ -51,7 +54,7 @@
 /*Resize the wrap to see the search bar change!*/
 .map-filter-container {
     width: 30%;
-    max-width: 450px;
+    max-width: 350px;
     position: absolute;
     bottom: 30px;
     right: 5px;
@@ -59,7 +62,8 @@
 }
 .map-filter-wrapper{
     font-family: 'Open Sans', sans-serif;
-    background-color: #ffffff;
+    background-color: transparent;
+    /*background-color: #ffffff;*/
     border-radius: 5px;
 }
 
@@ -121,6 +125,12 @@
 .du-menu li.divider{
   padding: 0;
   border-bottom: 1px solid #cccccc;
+}
+
+.du-menu li.disabled{
+  cursor: not-allowed;
+  background-color: #f6f6f6;
+  color: #646262
 }
 
 .du-menu .selected {

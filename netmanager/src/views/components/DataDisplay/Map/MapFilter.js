@@ -151,17 +151,21 @@ const MapFilter = () => {
             </li>
           ))}
           <li className="divider" />
-          <li>ADD A CUSTOM FILTER</li>
+          <li className="disabled">ADD A CUSTOM FILTER</li>
         </ul>
       </label>
       <div className="map-filter-wrapper">
-        <div className="map-filter-search" onClick={toggleShow}>
-          <input
-            type="text"
-            className="map-filter-searchTerm"
-            placeholder="Add a filter"
-          />
-          <button type="submit" className="map-filter-searchButton">
+        <div className="map-filter-search">
+          {/*<input*/}
+          {/*  type="text"*/}
+          {/*  className="map-filter-searchTerm"*/}
+          {/*  placeholder="Add a filter"*/}
+          {/*/>*/}
+          <button
+            type="submit"
+            className="map-filter-searchButton"
+            onClick={toggleShow}
+          >
             <FilterIcon />
           </button>
         </div>
