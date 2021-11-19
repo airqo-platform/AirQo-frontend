@@ -11,7 +11,7 @@ import {
   useActiveFiltersData,
 } from "redux/DeviceManagement/selectors";
 import { multiFilter } from "utils/filters";
-import { mapObject, omit } from "underscore";
+import { mapObject, omit, isEmpty, isEqual } from "underscore";
 
 // css styles
 import "assets/css/map-filter.css";
@@ -87,17 +87,25 @@ const MapFilter = () => {
 
   const toggleShow = () => setShow(!show);
 
+  const compareFilters = (filter1, filter2) => {
+    return isEqual(omit(filter1, "cancel"), omit(filter2, "cancel"));
+  };
+
   const handleFilterClick = (filter) => () => {
-    setFilters([...filters, filter]);
     toggleShow();
-    dispatch(updateFilteredDevicesData(multiFilter(devices, filter.condition)));
-    dispatch(
-      updateActiveFilters({
-        ...activeFilters,
-        main: { ...mapObject(activeFilters.main, () => false) },
-        ...filter.condition,
-      })
-    );
+    if (isEmpty(filters.filter((fil) => compareFilters(fil, filter)))) {
+      setFilters([...filters, filter]);
+      dispatch(
+        updateFilteredDevicesData(multiFilter(allDevices, filter.condition))
+      );
+      dispatch(
+        updateActiveFilters({
+          ...activeFilters,
+          main: { ...mapObject(activeFilters.main, () => false) },
+          ...filter.condition,
+        })
+      );
+    }
   };
 
   useEffect(() => {
