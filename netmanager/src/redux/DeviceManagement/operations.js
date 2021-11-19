@@ -13,6 +13,7 @@ import {
   LOAD_SINGLE_UPTIME_FAILURE,
   LOAD_MANAGEMENT_DEVICES_SUCCESS,
   LOAD_FILTERED_DEVICES_SUCCESS,
+  LOAD_ACTIVE_FILTERS_SUCCESS,
 } from "./actions";
 import {
   getDevicesStatusApi,
@@ -79,6 +80,13 @@ export const updateFilteredDevicesData = (filteredDevices) => (dispatch) => {
   return dispatch({
     type: LOAD_FILTERED_DEVICES_SUCCESS,
     payload: filteredDevices,
+  });
+};
+
+export const updateActiveFilters = (filters) => (dispatch) => {
+  return dispatch({
+    type: LOAD_ACTIVE_FILTERS_SUCCESS,
+    payload: filters,
   });
 };
 

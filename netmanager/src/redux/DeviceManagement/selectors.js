@@ -31,3 +31,7 @@ export const useManagementDevicesData = () => {
 export const useManagementFilteredDevicesData = () => {
   return useSelector((state) => state.deviceManagement.filteredDevices);
 };
+
+export const useActiveFiltersData = () => {
+  return useSelector((state) => state.deviceManagement.activeFilters);
+};
