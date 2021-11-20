@@ -87,7 +87,7 @@ const Download = (props) => {
   }, []);
 
   useEffect(() => {
-    setSiteOptions(createSiteOptions(sites));
+    setSiteOptions(createSiteOptions(Object.values(sites)));
   }, [sites]);
 
   const disableDownloadBtn = () => {
@@ -164,6 +164,8 @@ const Download = (props) => {
             "time",
             ...getValues(pollutants),
             "frequency",
+            "latitude",
+            "longitude",
             "site_id",
             "site_description",
           ];

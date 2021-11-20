@@ -15,12 +15,15 @@ import { isEmpty, mapObject, omit, values } from "underscore";
 import {
   useDevicesStatusData,
   useNetworkUptimeData,
+  useManagementFilteredDevicesData,
+  useActiveFiltersData,
 } from "redux/DeviceManagement/selectors";
 import {
   loadDevicesStatusData,
   loadNetworkUptimeData,
+  updateFilteredDevicesData,
+  updateActiveFilters,
 } from "redux/DeviceManagement/operations";
-import { multiFilter } from "utils/filters";
 import { createBarChartData, ApexTimeSeriesData } from "utils/charts";
 import { updateDeviceBackUrl } from "redux/Urls/operations";
 import { loadDevicesData } from "redux/DeviceRegistry/operations";
@@ -45,15 +48,6 @@ import ErrorBoundary from "views/ErrorBoundary/ErrorBoundary";
 import "chartjs-plugin-annotation";
 import "assets/scss/device-management.sass";
 import "assets/css/device-view.css"; // there are some shared styles here too :)
-
-const DEFAULT_DEVICE_FILTERS = {
-  all: true,
-  due: true,
-  overDue: true,
-  solar: true,
-  alternator: true,
-  mains: true,
-};
 
 const DEVICE_FILTER_FIELDS = {
   all: {},
@@ -130,15 +124,15 @@ export default function DeviceManagement() {
   const location = useLocation();
   const devicesStatusData = useDevicesStatusData();
   const networkUptimeData = useNetworkUptimeData();
+  const activeFilters = useActiveFiltersData();
   const leaderboardData = useDeviceUptimeLeaderboard();
   const allDevices = useDevicesData();
   const dispatch = useDispatch();
   const [devicesUptime, setDevicesUptime] = useState([]);
-  const [showBarChart, setShowBarChart] = useState(false);
   const [devicesUptimeDescending, setDevicesUptimeDescending] = useState(true);
   const [devices, setDevices] = useState([]);
-  const [filteredDevices, setFilteredDevices] = useState(devices);
-  const [deviceFilters, setDeviceFilters] = useState(DEFAULT_DEVICE_FILTERS);
+  const filteredDevices = useManagementFilteredDevicesData();
+  const deviceFilters = activeFilters.main;
   const [pieChartStatusValues, setPieChartStatusValues] = useState([]);
   const [networkUptimeDataset, setNetworkUptimeDataset] = useState({
     bar: { label: [], data: [] },
@@ -169,10 +163,9 @@ export default function DeviceManagement() {
       return [...prevFiltered, ...filtered];
     }
 
-    const filtered = filteredDevices.filter((device) => {
-      return device[filter.key] !== filter.value;
-    });
-    return filtered;
+    return filteredDevices.filter(
+      (device) => device[filter.key] !== filter.value
+    );
   };
 
   const toggleDeviceFilter = (key) => {
@@ -190,8 +183,8 @@ export default function DeviceManagement() {
   };
 
   const handleDeviceFilterClick = (key) => () => {
-    setFilteredDevices(filterDevices(devices, key));
-    setDeviceFilters(toggleDeviceFilter(key));
+    dispatch(updateFilteredDevicesData(filterDevices(devices, key)));
+    dispatch(updateActiveFilters({ main: toggleDeviceFilter(key) }));
   };
 
   const sortLeaderBoardData = (leaderboardData) => {
@@ -229,23 +222,9 @@ export default function DeviceManagement() {
     return sortLeaderBoardData(patched);
   };
 
-  const handleNetworkUptimeClick = () => {
-    setShowBarChart(!showBarChart);
-  };
-
   const handleSortIconClick = () => {
     setDevicesUptime(devicesUptime.reverse());
     setDevicesUptimeDescending(!devicesUptimeDescending);
-  };
-
-  const handlePieChartClick = (event) => {
-    const chartElement = event[0];
-    if (chartElement === undefined) return;
-    const onlineIndex = 1;
-    setFilteredDevices(
-      multiFilter(devices, { isOnline: chartElement._index === onlineIndex })
-    );
-    setDeviceFilters({ ...mapObject(deviceFilters, () => false), all: true });
   };
 
   const cardsData = [
@@ -351,7 +330,6 @@ export default function DeviceManagement() {
       ...updateDevices(devicesStatusData.online_devices, { isOnline: true }),
     ];
     setDevices(devices);
-    setFilteredDevices(devices);
     setPieChartStatusValues([
       devicesStatusData.count_of_offline_devices,
       devicesStatusData.count_of_online_devices,
@@ -416,7 +394,7 @@ export default function DeviceManagement() {
             })}
           </Hidden>
         </div>
-        <MapBoxMap devices={filteredDevices} />
+        <MapBoxMap />
 
         <div
           style={{
@@ -427,12 +405,7 @@ export default function DeviceManagement() {
           }}
         >
           <ApexChart
-            options={timeSeriesChartOptions({
-              yaxis: {
-                min: 0,
-                max: 100,
-              },
-            })}
+            options={timeSeriesChartOptions({})}
             title={"Network uptime"}
             series={series}
             lastUpdated={

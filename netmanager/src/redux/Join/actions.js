@@ -68,6 +68,7 @@ import {
   UPDATE_PWD_IN_URI,
   REGISTER_CANDIDATE_URI,
   DEFAULTS_URI } from "config/urls/authService";
+import { setDefaultAirQloud } from "../AirQloud/operations";
 
 
 /***************************errors ********************************* */
@@ -414,6 +415,7 @@ export const loginUser = userData => dispatch => {
         // Set current user
         dispatch(setCurrentUser(decoded));
         dispatch(updateOrganization({name: decoded.organization}))
+        dispatch(setDefaultAirQloud());
       } catch (e) {
         console.log(e);
       }

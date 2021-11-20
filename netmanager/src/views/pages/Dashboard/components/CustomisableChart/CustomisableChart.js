@@ -39,16 +39,13 @@ import OutlinedSelect from "views/components/CustomSelects/OutlinedSelect";
 import { formatDateString } from "utils/dateTime";
 import { omit } from "underscore";
 import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
-import {
-  useDashboardSiteOptions,
-  usePollutantsOptions,
-} from "utils/customHooks";
+import { usePollutantsOptions } from "utils/customHooks";
 import {
   deleteUserChartDefaultsApi,
   updateUserChartDefaultsApi,
 } from "views/apis/authService";
-import { loadUserDefaultGraphData } from "redux/Dashboard/operations";
 import { updateMainAlert } from "redux/MainAlert/operations";
+import { useCurrentAirQloudData } from "redux/AirQloud/selectors";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -130,6 +127,8 @@ const CustomisableChart = (props) => {
   const classes = useStyles();
   const dispatch = useDispatch();
 
+  const airqloud = useCurrentAirQloudData();
+
   const [formState, setFormState] = useState({
     isValid: false,
     values: {},
@@ -162,21 +161,25 @@ const CustomisableChart = (props) => {
   ];
 
   const initialPeriod = () => {
-    let period = periodOptions[0];
-    if (defaultFilter.period !== undefined) {
-      try {
-        period = JSON.parse(defaultFilter.period);
-        // eslint-disable-next-line no-empty
-      } catch (err) {}
+    try {
+      return JSON.parse(defaultFilter.period) || periodOptions[0];
+    } catch (err) {
+      return periodOptions[0];
     }
-    return period;
   };
 
   const [selectedPeriod, setSelectedPeriod] = useState(initialPeriod());
   const [disableDatePickers, setDisableDatePickers] = useState(true);
   const [loading, setLoading] = useState(true);
 
+  const isCustomPeriod = (period) => {
+    return period.label.toLowerCase() === "Custom range".toLowerCase();
+  };
+
   const generateStartAndEndDates = (period) => {
+    if (isCustomPeriod(period)) {
+      return [new Date(period.startDate), new Date(period.endDate)];
+    }
     let endDate = period.endDate ? new Date(period.endDate) : new Date();
     let startDate = new Date(
       endDate.getFullYear(),
@@ -189,6 +192,7 @@ const CustomisableChart = (props) => {
 
   const handlePeriodChange = (selectedPeriodOption) => {
     if (isCustomPeriod(selectedPeriodOption)) {
+      setSelectedPeriod(selectedPeriodOption);
       setDisableDatePickers(false);
       return;
     }
@@ -197,10 +201,6 @@ const CustomisableChart = (props) => {
     setSelectedEndDate(endDate);
     setSelectedPeriod(selectedPeriodOption);
     setDisableDatePickers(true);
-  };
-
-  const isCustomPeriod = (period) => {
-    return period.label.toLowerCase() === "Custom range".toLowerCase();
   };
 
   let [startDate, endDate] = generateStartAndEndDates(initialPeriod());
@@ -228,7 +228,7 @@ const CustomisableChart = (props) => {
     clearTempState();
   };
 
-  const sitesOptions = useDashboardSiteOptions();
+  const sitesOptions = airqloud.siteOptions || [];
 
   const siteFilter = (selectedSites) => (site) => {
     return selectedSites.includes(site.value);
@@ -352,8 +352,8 @@ const CustomisableChart = (props) => {
 
   const title = `Mean ${selectedFrequency.label} ${
     selectedPollutant.label
-  } from ${formatDate(startDate, "YYYY-MM-DD")} to ${formatDateString(
-    endDate,
+  } from ${formatDate(selectedDate, "YYYY-MM-DD")} to ${formatDateString(
+    selectedEndDate,
     "YYYY-MM-DD"
   )}`;
 
@@ -436,13 +436,15 @@ const CustomisableChart = (props) => {
       "startDate"
     );
 
-    if (!isCustomPeriod(period)) {
-      period = { ...period, endDate: null };
-    }
+    period = {
+      ...selectedPeriod,
+      startDate: selectedDate.toISOString(),
+      endDate: selectedEndDate.toISOString(),
+    };
 
     let newFilter = {
       ...defaultFilter,
-      period: period,
+      period: JSON.stringify(period),
       sites: optionToList(tempState.sites.selectedOption),
       startDate: selectedDate.toISOString(),
       endDate: selectedEndDate.toISOString(),
@@ -451,6 +453,7 @@ const CustomisableChart = (props) => {
       pollutant: tempState.pollutant.value,
       chartTitle: title,
       chartSubTitle: tempState.subTitle,
+      airqloud: airqloud._id,
     };
 
     transferFromTempState();
@@ -463,7 +466,7 @@ const CustomisableChart = (props) => {
 
     setFormState((formState) => ({
       ...formState,
-      isValid: errors ? false : true,
+      isValid: !!errors,
       errors: errors || {},
     }));
   }, [formState.values]);

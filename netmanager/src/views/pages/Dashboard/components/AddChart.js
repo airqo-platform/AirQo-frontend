@@ -6,6 +6,7 @@ import {
   useDashboardSiteOptions,
   usePollutantsOptions,
 } from "utils/customHooks";
+import { useCurrentAirQloudData } from "redux/AirQloud/selectors";
 import { updateUserDefaultGraphData } from "redux/Dashboard/operations";
 import { useAuthUser } from "redux/Join/selectors";
 import { createUserChartDefaultsApi } from "views/apis/authService";
@@ -34,7 +35,8 @@ const AddChart = ({ className }) => {
   const dispatch = useDispatch();
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
-  const siteOptions = useDashboardSiteOptions();
+  const airqloud = useCurrentAirQloudData();
+  const siteOptions = airqloud.siteOptions;
   const user = useAuthUser();
 
   const [startDate, endDate] = generateStartAndEndDates();
@@ -55,7 +57,7 @@ const AddChart = ({ className }) => {
       unit: "day",
     },
     user: user._id,
-    airqloud: user._id,
+    airqloud: airqloud._id,
   };
   const [defaultsData, setDefaultsData] = useState(initialDefaultsData);
   const [errors, setErrors] = useState({});

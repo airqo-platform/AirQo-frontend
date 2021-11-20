@@ -11,6 +11,8 @@ import store from "./store";
 import { ThemeProvider } from "@material-ui/styles";
 import theme from "./assets/theme";
 import { setOrganization } from "./redux/Join/actions";
+import { setDefaultAirQloud } from "./redux/AirQloud/operations";
+import { loadSites } from "./redux/Dashboard/operations";
 import AppRoutes from "./AppRoutes";
 
 
@@ -39,6 +41,8 @@ if (localStorage.jwtToken) {
     window.location.href = "./";
   }
   store.dispatch(setOrganization());
+  store.dispatch(setDefaultAirQloud());
+  store.dispatch(loadSites());
 }
 
 const App = () => {

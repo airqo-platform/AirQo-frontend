@@ -114,21 +114,21 @@ const SitesTable = () => {
                 <div>
                   <Tooltip title="Delete">
                     <DeleteIcon
-                      className={"hover-red"}
-                      // style={{
-                      //   margin: "0 5px",
-                      //   cursor: "not-allowed",
-                      //   color: "grey",
-                      // }}
-                      // disable deletion for now
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        setDelState({
-                          open: true,
-                          name: rowData.name || rowData.description,
-                          id: rowData._id,
-                        });
+                      // className={"hover-red"}
+                      style={{
+                        margin: "0 5px",
+                        cursor: "not-allowed",
+                        color: "grey",
                       }}
+                      // disable deletion for now
+                      // onClick={(event) => {
+                      //   event.stopPropagation();
+                      //   setDelState({
+                      //     open: true,
+                      //     name: rowData.name || rowData.description,
+                      //     id: rowData._id,
+                      //   });
+                      // }}
                     />
                   </Tooltip>
                 </div>
