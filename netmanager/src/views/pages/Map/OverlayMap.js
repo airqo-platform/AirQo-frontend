@@ -16,6 +16,8 @@ import { MenuItem } from "@material-ui/core";
 import Checkbox from "@material-ui/core/Checkbox";
 import { useInitScrollTop } from "utils/customHooks";
 import { ErrorBoundary } from "../../ErrorBoundary";
+import { useDashboardSitesData } from "redux/Dashboard/selectors";
+import { useOrgData } from "redux/Join/selectors";
 
 // css
 import "assets/css/overlay-map.css";
@@ -108,6 +110,7 @@ const MapControllerPosition = ({ className, children, position }) => {
 
 const PollutantSelector = ({ className, onChange }) => {
   useInitScrollTop();
+  const orgData = useOrgData();
   const [open, setOpen] = useState(false);
   const [pollutant, setPollutant] = useState("pm2_5");
   const pollutantMapper = {
@@ -160,15 +163,17 @@ const PollutantSelector = ({ className, onChange }) => {
           >
             PM<sub>10</sub>
           </MenuItem>
-          <MenuItem
-            onClick={handleMenuItemChange("no2", {
-              pm2_5: false,
-              no2: true,
-              pm10: false,
-            })}
-          >
-            NO<sub>2</sub>
-          </MenuItem>
+          {orgData.name !== "airqo" && (
+            <MenuItem
+              onClick={handleMenuItemChange("no2", {
+                pm2_5: false,
+                no2: true,
+                pm10: false,
+              })}
+            >
+              NO<sub>2</sub>
+            </MenuItem>
+          )}
         </div>
       }
       open={open}
@@ -257,6 +262,7 @@ export const OverlayMap = ({
   heatMapData,
   monitoringSiteData,
 }) => {
+  const sitesData = useDashboardSitesData();
   const MAX_OFFLINE_DURATION = 86400; // 24 HOURS
   const mapContainerRef = useRef(null);
   const [map, setMap] = useState(null);
@@ -447,8 +453,13 @@ export const OverlayMap = ({
               .setPopup(
                 new mapboxgl.Popup({ offset: 25 }).setHTML(
                   `<div>
-                    <div>Device - <span style="text-transform: uppercase"><b>${
-                      feature.properties.device || feature.properties._id
+                    <div><span style="text-transform: uppercase"><b>${
+                      (sitesData[feature.properties.site_id] &&
+                        sitesData[feature.properties.site_id].name) ||
+                      (sitesData[feature.properties.site_id] &&
+                        sitesData[feature.properties.site_id].description) ||
+                      feature.properties.device ||
+                      feature.properties._id
                     }</b></span></div>
                     <div class="${"popup-body " + markerClass}"> AQI: ${
                     (pollutantValue && pollutantValue.toFixed(2)) || "n/a"

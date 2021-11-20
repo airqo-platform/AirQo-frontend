@@ -87,7 +87,7 @@ const Download = (props) => {
   }, []);
 
   useEffect(() => {
-    setSiteOptions(createSiteOptions(sites));
+    setSiteOptions(createSiteOptions(Object.values(sites)));
   }, [sites]);
 
   const disableDownloadBtn = () => {
