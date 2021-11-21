@@ -79,7 +79,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
     ));
   }
 
-  void initialize() {
+  Future<void> initialize() async {
     Future.delayed(const Duration(seconds: 4), () async {
       await Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (context) {
@@ -91,7 +91,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
   @override
   void initState() {
     super.initState();
-    // initialize();
+    initialize();
   }
 
   Future<bool> onWillPop() {

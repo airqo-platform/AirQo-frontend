@@ -5,6 +5,7 @@ import 'package:app/models/historical_measurement.dart';
 import 'package:app/models/insights_chart_data.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/predict.dart';
+import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/data_formatter.dart';
 import 'package:app/utils/date.dart';
@@ -56,6 +57,7 @@ class _InsightsCardState extends State<InsightsCard> {
 
   final GlobalKey _forecastToolTipKey = GlobalKey();
   final GlobalKey _infoToolTipKey = GlobalKey();
+  final DBHelper _dbHelper = DBHelper();
 
   @override
   Widget build(BuildContext context) {
@@ -315,7 +317,7 @@ class _InsightsCardState extends State<InsightsCard> {
               try {
                 var value = model.selectedDatum[0].index;
                 if (value != null) {
-                  updateUI(model.selectedSeries[0].data[value]);
+                  _updateUI(model.selectedSeries[0].data[value]);
                 }
               } on Error catch (e) {
                 debugPrint(e.toString());
@@ -392,7 +394,7 @@ class _InsightsCardState extends State<InsightsCard> {
               try {
                 var value = model.selectedDatum[0].index;
                 if (value != null) {
-                  updateUI(model.selectedSeries[0].data[value]);
+                  _updateUI(model.selectedSeries[0].data[value]);
                 }
               } on Error catch (e) {
                 debugPrint(e.toString());
@@ -441,9 +443,9 @@ class _InsightsCardState extends State<InsightsCard> {
       setState(() {
         _measurements = value;
         _hourlyPm2_5ChartData =
-            insightsHourlyChartData(value, 'pm2.5', widget.placeDetails);
+            insightsHourlyChartData(value, 'pm2.5', widget.placeDetails, []);
         _hourlyPm10ChartData =
-            insightsHourlyChartData(value, 'pm10', widget.placeDetails);
+            insightsHourlyChartData(value, 'pm10', widget.placeDetails, []);
       });
       widget.insightsValueCallBack(
           _hourlyPm2_5ChartData.toList().first.data.last);
@@ -468,9 +470,9 @@ class _InsightsCardState extends State<InsightsCard> {
     setState(() {
       _measurements = combined;
       _hourlyPm2_5ChartData =
-          insightsHourlyChartData(combined, 'pm2.5', widget.placeDetails);
+          insightsHourlyChartData(combined, 'pm2.5', widget.placeDetails, []);
       _hourlyPm10ChartData =
-          insightsHourlyChartData(combined, 'pm10', widget.placeDetails);
+          insightsHourlyChartData(combined, 'pm10', widget.placeDetails, []);
     });
     widget
         .insightsValueCallBack(_hourlyPm2_5ChartData.toList().first.data.last);
@@ -531,7 +533,7 @@ class _InsightsCardState extends State<InsightsCard> {
               try {
                 var value = model.selectedDatum[0].index;
                 if (value != null) {
-                  updateUI(model.selectedSeries[0].data[value]);
+                  _updateUI(model.selectedSeries[0].data[value]);
                 }
               } on Error catch (e) {
                 debugPrint(e.toString());
@@ -583,32 +585,16 @@ class _InsightsCardState extends State<InsightsCard> {
     super.initState();
   }
 
-  void updateUI(InsightsChartData insightsChartData) {
-    widget.insightsValueCallBack(insightsChartData);
-    setState(() {
-      _selectedMeasurement = insightsChartData;
-    });
-    if (_lastUpdated == '') {
-      setState(() {
-        _lastUpdated =
-            dateToString(_selectedMeasurement!.time.toString(), false);
-      });
+  Future<void> _getDBMeasurements() async {
+    var measurements =
+        await _dbHelper.getInsightsChartData(widget.placeDetails.getName());
+    if (measurements.isEmpty) {
+      return;
     }
-    var time = insightsChartData.time;
-
-    if (time.day == DateTime.now().day) {
-      setState(() {
-        _viewDay = 'today';
-      });
-    } else if ((time.month == DateTime.now().month) &&
-        (time.day + 1) == DateTime.now().day) {
-      setState(() {
-        _viewDay = 'tomorrow';
-      });
-    }
+    await _setMeasurements(measurements);
   }
 
-  Future<void> _getMeasurements() async {
+  Future<void> _getRemoteMeasurements() async {
     var measurements = await _airqoApiClient!.fetchSiteHistoricalMeasurements(
         widget.placeDetails.siteId, widget.daily);
 
@@ -630,10 +616,10 @@ class _InsightsCardState extends State<InsightsCard> {
     if (widget.daily) {
       setState(() {
         _measurements = measurements;
-        _dailyPm2_5ChartData =
-            insightsDailyChartData(measurements, 'pm2.5', widget.placeDetails);
-        _dailyPm10ChartData =
-            insightsDailyChartData(measurements, 'pm10', widget.placeDetails);
+        _dailyPm2_5ChartData = insightsDailyChartData(
+            measurements, 'pm2.5', widget.placeDetails, []);
+        _dailyPm10ChartData = insightsDailyChartData(
+            measurements, 'pm10', widget.placeDetails, []);
       });
       if (widget.pollutant == 'pm2.5') {
         widget.insightsValueCallBack(
@@ -642,7 +628,10 @@ class _InsightsCardState extends State<InsightsCard> {
         widget.insightsValueCallBack(
             _dailyPm10ChartData.toList().first.data.last);
       }
+
       _showHelpTips();
+      await _saveMeasurements(_dailyPm2_5ChartData.toList().first.data);
+      await _saveMeasurements(_dailyPm2_5ChartData.toList().first.data);
     } else {
       // setState(() {
       //   _measurements = value;
@@ -661,13 +650,15 @@ class _InsightsCardState extends State<InsightsCard> {
         setState(() {
           _measurements = measurements;
           _hourlyPm2_5ChartData = insightsHourlyChartData(
-              measurements, 'pm2.5', widget.placeDetails);
+              measurements, 'pm2.5', widget.placeDetails, []);
           _hourlyPm10ChartData = insightsHourlyChartData(
-              measurements, 'pm10', widget.placeDetails);
+              measurements, 'pm10', widget.placeDetails, []);
         });
         widget.insightsValueCallBack(
             _hourlyPm10ChartData.toList().first.data.last);
         _showHelpTips();
+        await _saveMeasurements(_hourlyPm2_5ChartData.toList().first.data);
+        await _saveMeasurements(_hourlyPm10ChartData.toList().first.data);
       }
     }
   }
@@ -675,7 +666,77 @@ class _InsightsCardState extends State<InsightsCard> {
   Future<void> _initialize() async {
     _preferences = await SharedPreferences.getInstance();
     _airqoApiClient = AirqoApiClient(context);
-    await _getMeasurements();
+    await _getDBMeasurements();
+    await _getRemoteMeasurements();
+  }
+
+  Future<void> _saveMeasurements(
+      List<InsightsChartData> insightsChartData) async {
+    await _dbHelper.insertInsightsChartData(insightsChartData);
+  }
+
+  Future<void> _setMeasurements(
+      List<InsightsChartData> insightsChartData) async {
+    if (insightsChartData.isEmpty || !mounted) {
+      return;
+    }
+    setState(() {
+      _selectedMeasurement = insightsChartData.last;
+    });
+
+    if (_lastUpdated == '') {
+      setState(() {
+        _lastUpdated =
+            dateToString(_selectedMeasurement!.time.toString(), false);
+      });
+    }
+
+    if (widget.daily) {
+      var measurements = insightsChartData
+          .where((element) => element.frequency == 'daily')
+          .toList();
+      var pm25Data = measurements
+          .where((element) => element.pollutant == 'pm2.5')
+          .toList();
+      var pm10Data =
+          measurements.where((element) => element.pollutant == 'pm10').toList();
+      setState(() {
+        _dailyPm2_5ChartData =
+            insightsDailyChartData([], 'pm2.5', widget.placeDetails, pm25Data);
+        _dailyPm10ChartData =
+            insightsDailyChartData([], 'pm10', widget.placeDetails, pm10Data);
+      });
+      if (widget.pollutant == 'pm2.5') {
+        widget.insightsValueCallBack(
+            _dailyPm2_5ChartData.toList().first.data.last);
+      } else {
+        widget.insightsValueCallBack(
+            _dailyPm10ChartData.toList().first.data.last);
+      }
+    } else {
+      var measurements = insightsChartData
+          .where((element) => element.frequency == 'hourly')
+          .toList();
+      var pm25Data = measurements
+          .where((element) => element.pollutant == 'pm2.5')
+          .toList();
+      var pm10Data =
+          measurements.where((element) => element.pollutant == 'pm10').toList();
+
+      setState(() {
+        _hourlyPm2_5ChartData =
+            insightsHourlyChartData([], 'pm2.5', widget.placeDetails, pm25Data);
+        _hourlyPm10ChartData =
+            insightsHourlyChartData([], 'pm10', widget.placeDetails, pm10Data);
+      });
+      if (widget.pollutant == 'pm2.5') {
+        widget.insightsValueCallBack(
+            _hourlyPm2_5ChartData.toList().first.data.last);
+      } else {
+        widget.insightsValueCallBack(
+            _hourlyPm10ChartData.toList().first.data.last);
+      }
+    }
   }
 
   void _showHelpTips() {
@@ -692,6 +753,31 @@ class _InsightsCardState extends State<InsightsCard> {
       }
     } catch (e) {
       debugPrint(e.toString());
+    }
+  }
+
+  void _updateUI(InsightsChartData insightsChartData) {
+    widget.insightsValueCallBack(insightsChartData);
+    setState(() {
+      _selectedMeasurement = insightsChartData;
+    });
+    if (_lastUpdated == '') {
+      setState(() {
+        _lastUpdated =
+            dateToString(_selectedMeasurement!.time.toString(), false);
+      });
+    }
+    var time = insightsChartData.time;
+
+    if (time.day == DateTime.now().day) {
+      setState(() {
+        _viewDay = 'today';
+      });
+    } else if ((time.month == DateTime.now().month) &&
+        (time.day + 1) == DateTime.now().day) {
+      setState(() {
+        _viewDay = 'tomorrow';
+      });
     }
   }
 }

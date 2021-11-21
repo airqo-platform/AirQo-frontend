@@ -475,10 +475,13 @@ class _MapViewState extends State<MapView> {
       await controller.animateCamera(
           CameraUpdate.newCameraPosition(_defaultCameraPosition));
 
-      setState(() {
-        _markers.clear();
-        _markers = {};
-      });
+      if (mounted) {
+        setState(() {
+          _markers.clear();
+          _markers = {};
+        });
+      }
+
       return;
     }
     var markers = <String, Marker>{};

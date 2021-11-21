@@ -27,8 +27,9 @@ class _SearchPageState extends State<SearchPage> {
   List<Measurement> _allSites = [];
   bool _isSearching = false;
   bool _hasNearbyLocations = true;
-  final String _sessionToken = const Uuid().v4();
   SearchApi? _searchApiClient;
+
+  final String _sessionToken = const Uuid().v4();
   final DBHelper _dbHelper = DBHelper();
   final LocationService _locationService = LocationService();
   final TextEditingController _textEditingController = TextEditingController();

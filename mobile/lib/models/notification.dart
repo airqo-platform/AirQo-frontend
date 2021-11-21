@@ -5,15 +5,9 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import 'json_parsers.dart';
+
 part 'notification.g.dart';
-
-bool _isNewFromJson(dynamic json) {
-  return '$json' == 'true' ? true : false;
-}
-
-String _isNewToJson(bool isNew) {
-  return isNew ? 'true' : 'false';
-}
 
 class NotificationModel extends ChangeNotifier {
   final List<UserNotification> _notifications = [];
@@ -70,7 +64,7 @@ class UserNotification {
   String body;
   String time;
 
-  @JsonKey(fromJson: _isNewFromJson, toJson: _isNewToJson)
+  @JsonKey(fromJson: boolFromJson, toJson: boolToJson)
   bool isNew = true;
 
   UserNotification(this.id, this.title, this.body, this.isNew, this.time);

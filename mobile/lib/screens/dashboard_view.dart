@@ -43,6 +43,8 @@ class _DashboardViewState extends State<DashboardView> {
   Measurement? currentLocation;
   Kya? _kya;
   bool _showAnalyticsCardTips = false;
+  SharedPreferences? _preferences;
+
   final String _kyaToolTipText = 'All your complete tasks will show up here';
   final String _favToolTipText = 'Tap the \u2665 Favorite on any '
       'location air quality to save them here for later';
@@ -54,8 +56,6 @@ class _DashboardViewState extends State<DashboardView> {
   final LocationService _locationService = LocationService();
   final CloudAnalytics _cloudAnalytics = CloudAnalytics();
   final DBHelper _dbHelper = DBHelper();
-  SharedPreferences? _preferences;
-
   final ScrollController _scrollController = ScrollController();
   final List<Widget> _dashBoardPlaces = [
     loadingAnimation(255.0, 16.0),
@@ -784,49 +784,14 @@ class _DashboardViewState extends State<DashboardView> {
       return;
     }
 
-    var completeKya = await _cloudStore.getCompleteKya(_customAuth.getId());
+    var dbKya = await _dbHelper.getKyas();
+    var completeKya =
+        dbKya.where((element) => element.progress >= 100).toList();
+    _loadCompleteKya(completeKya);
 
-    if (completeKya.isEmpty) {
-      widgets.add(SvgPicture.asset(
-        'assets/icon/add_avator.svg',
-      ));
-    } else {
-      setState(() {
-        _completeKya = completeKya;
-      });
-      try {
-        if (completeKya.length == 1) {
-          widgets.add(kyaAvatar(7, completeKya[0]));
-        } else if (completeKya.length == 2) {
-          widgets
-            ..add(kyaAvatar(0, completeKya[0]))
-            ..add(kyaAvatar(7, completeKya[1]));
-        } else if (completeKya.length >= 3) {
-          widgets
-            ..add(kyaAvatar(0, completeKya[0]))
-            ..add(kyaAvatar(7, completeKya[1]))
-            ..add(kyaAvatar(14, completeKya[2]));
-        } else {}
-      } on Error catch (exception, stackTrace) {
-        debugPrint(exception.toString());
-        await Sentry.captureException(
-          exception,
-          stackTrace: stackTrace,
-        );
-      }
-    }
-
-    if (mounted) {
-      if (widgets.isEmpty) {
-        widgets.add(SvgPicture.asset(
-          'assets/icon/add_avator.svg',
-        ));
-      }
-      setState(() {
-        _completeKyaWidgets.clear();
-        _completeKyaWidgets = widgets;
-      });
-    }
+    var onlineCompleteKya =
+        await _cloudStore.getCompleteKya(_customAuth.getId());
+    _loadCompleteKya(onlineCompleteKya);
   }
 
   void _getDashboardLocations() async {
@@ -880,6 +845,18 @@ class _DashboardViewState extends State<DashboardView> {
     if (!_customAuth.isLoggedIn()) {
       return;
     }
+
+    var dbKya = await _dbHelper.getKyas();
+    var inCompleteKya =
+        dbKya.where((element) => element.progress < 100).toList();
+    if (inCompleteKya.isNotEmpty) {
+      if (mounted) {
+        setState(() {
+          _kya = inCompleteKya.first;
+        });
+      }
+    }
+
     var userKya = await _cloudStore.getIncompleteKya(_customAuth.getId());
     if (userKya != null) {
       if (mounted) {
@@ -887,6 +864,8 @@ class _DashboardViewState extends State<DashboardView> {
           _kya = userKya;
         });
       }
+      var kyas = await _cloudStore.getKya(_customAuth.getId());
+      await _dbHelper.insertKyas(kyas);
     }
   }
 
@@ -941,12 +920,64 @@ class _DashboardViewState extends State<DashboardView> {
     _airqoApiClient = AirqoApiClient(context);
     _preferences = await SharedPreferences.getInstance();
     _setGreetings();
-    _getIncompleteKya();
-    _getCompleteKya();
     _getLocationMeasurements();
     _getDashboardLocations();
+    await _loadKya();
+    _getIncompleteKya();
+    _getCompleteKya();
     await _getLatestMeasurements();
     _showHelpTips();
+  }
+
+  void _loadCompleteKya(List<Kya> completeKya) async {
+    var widgets = <Widget>[];
+
+    if (completeKya.isEmpty) {
+      widgets.add(SvgPicture.asset(
+        'assets/icon/add_avator.svg',
+      ));
+    } else {
+      setState(() {
+        _completeKya = completeKya;
+      });
+      try {
+        if (completeKya.length == 1) {
+          widgets.add(kyaAvatar(7, completeKya[0]));
+        } else if (completeKya.length == 2) {
+          widgets
+            ..add(kyaAvatar(0, completeKya[0]))
+            ..add(kyaAvatar(7, completeKya[1]));
+        } else if (completeKya.length >= 3) {
+          widgets
+            ..add(kyaAvatar(0, completeKya[0]))
+            ..add(kyaAvatar(7, completeKya[1]))
+            ..add(kyaAvatar(14, completeKya[2]));
+        } else {}
+      } on Error catch (exception, stackTrace) {
+        debugPrint(exception.toString());
+        await Sentry.captureException(
+          exception,
+          stackTrace: stackTrace,
+        );
+      }
+    }
+
+    if (mounted) {
+      if (widgets.isEmpty) {
+        widgets.add(SvgPicture.asset(
+          'assets/icon/add_avator.svg',
+        ));
+      }
+      setState(() {
+        _completeKyaWidgets.clear();
+        _completeKyaWidgets = widgets;
+      });
+    }
+  }
+
+  Future<void> _loadKya() async {
+    var kyas = await _cloudStore.getKya(_customAuth.getId());
+    await _dbHelper.insertKyas(kyas);
   }
 
   void _setGreetings() {

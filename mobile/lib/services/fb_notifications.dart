@@ -257,17 +257,17 @@ class CloudStore {
           .collection('${CloudStorage.usersKyaCollection}/$id/$id')
           .get();
 
-      var notifications = <Kya>[];
+      var kyas = <Kya>[];
 
-      var notificationDocs = kyasJson.docs;
-      for (var doc in notificationDocs) {
+      var kyaDocs = kyasJson.docs;
+      for (var doc in kyaDocs) {
         var notification = await compute(Kya.parseKya, doc.data());
         if (notification != null) {
-          notifications.add(notification);
+          kyas.add(notification);
         }
       }
 
-      return notifications;
+      return kyas;
     } on Error catch (exception, stackTrace) {
       debugPrint(exception.toString());
       await Sentry.captureException(

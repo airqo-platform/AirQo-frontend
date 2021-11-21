@@ -22,6 +22,7 @@ class SplashScreenState extends State<SplashScreen> {
   bool _visible = false;
   final DBHelper _dbHelper = DBHelper();
   AirqoApiClient? _airqoApiClient;
+  final CloudStore _cloudStore = CloudStore();
 
   @override
   Widget build(BuildContext context) {
@@ -36,14 +37,35 @@ class SplashScreenState extends State<SplashScreen> {
     );
   }
 
-  void initialize() {
+  Future<void> initialize() async {
     _getLatestMeasurements();
+    _loadKya();
     _loadNotifiers();
     Future.delayed(const Duration(seconds: 2), () async {
       _updateWidget();
     });
 
-    _customAuth.isFirstUse().then((value) => {
+    // var firstUse = await _customAuth.isFirstUse();
+    //
+    // if(firstUse){
+    //
+    //   Future.delayed(const Duration(seconds: 7), () async {
+    //     await Navigator.pushAndRemoveUntil(context,
+    //         MaterialPageRoute(builder: (context) {
+    //           return const WelcomeScreen();
+    //         }), (r) => false);
+    //   });
+    //
+    // }
+    // else{
+    //   Future.delayed(const Duration(seconds: 7), () async {
+    //     await Navigator.pushAndRemoveUntil(context,
+    //         MaterialPageRoute(builder: (context) {
+    //           return const HomePage();
+    //         }), (r) => false);
+    //   });
+    // }
+    await _customAuth.isFirstUse().then((value) => {
           Future.delayed(const Duration(seconds: 7), () async {
             await Navigator.pushAndRemoveUntil(context,
                 MaterialPageRoute(builder: (context) {
@@ -116,6 +138,11 @@ class SplashScreenState extends State<SplashScreen> {
     } catch (e) {
       debugPrint(e.toString());
     }
+  }
+
+  void _loadKya() async {
+    var kyas = await _cloudStore.getKya(_customAuth.getId());
+    await _dbHelper.insertKyas(kyas);
   }
 
   void _loadNotifiers() {

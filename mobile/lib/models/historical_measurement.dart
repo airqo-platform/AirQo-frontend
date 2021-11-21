@@ -82,7 +82,7 @@ class HistoricalMeasurement {
 
   static String createTableStmt() =>
       'CREATE TABLE IF NOT EXISTS ${historicalMeasurementsDb()}('
-      'id INTEGER PRIMARY KEY, ${Site.dbId()} TEXT,'
+      'id PRIMARY KEY, ${Site.dbId()} TEXT,'
       '${dbTime()} TEXT, ${dbPm25()} REAL, '
       '${dbPm10()} REAL, ${dbAltitude()} REAL, '
       '${dbSpeed()} REAL, ${dbTemperature()} REAL, '

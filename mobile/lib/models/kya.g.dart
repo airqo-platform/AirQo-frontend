@@ -20,20 +20,18 @@ KyaItem _$KyaItemFromJson(Map<String, dynamic> json) => KyaItem(
       json['title'] as String,
       json['imageUrl'] as String,
       json['body'] as String,
-      json['viewed'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$KyaItemToJson(KyaItem instance) => <String, dynamic>{
       'title': instance.title,
       'imageUrl': instance.imageUrl,
       'body': instance.body,
-      'viewed': instance.viewed,
     };
 
 Map<String, dynamic> _$KyaToJson(Kya instance) => <String, dynamic>{
+      'progress': instance.progress,
       'title': instance.title,
       'imageUrl': instance.imageUrl,
       'id': instance.id,
       'kyaItems': instance.kyaItems.map((e) => e.toJson()).toList(),
-      'progress': instance.progress,
     };

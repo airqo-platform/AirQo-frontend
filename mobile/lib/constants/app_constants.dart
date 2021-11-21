@@ -167,6 +167,8 @@ class PrefConstant {
 
   static String get firstUse => 'isFirstUse';
 
+  static String get hasCompleteOnBoarding => 'hasCompleteOnBoarding';
+
   static String get homePageTips => 'homePageTips';
 
   static String get initialDbLoad => 'initialDbLoad';

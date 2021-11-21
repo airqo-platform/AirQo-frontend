@@ -14,7 +14,7 @@ class AnalyticsView extends StatefulWidget {
 }
 
 class _AnalyticsViewState extends State<AnalyticsView> {
-  var favouritePlaces = <Measurement>[];
+  var _favouritePlaces = <Measurement>[];
   final DBHelper _dbHelper = DBHelper();
 
   @override
@@ -25,9 +25,9 @@ class _AnalyticsViewState extends State<AnalyticsView> {
             future: _dbHelper.getLatestMeasurements(),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
-                favouritePlaces = snapshot.data as List<Measurement>;
+                _favouritePlaces = snapshot.data as List<Measurement>;
 
-                if (favouritePlaces.isEmpty) {
+                if (_favouritePlaces.isEmpty) {
                   return Center(
                     child: Container(
                       padding: const EdgeInsets.all(16.0),
@@ -52,8 +52,8 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                   child: ListView.builder(
                     itemBuilder: (context, index) => MiniAnalyticsCard(
                         PlaceDetails.measurementToPLace(
-                            favouritePlaces[index])),
-                    itemCount: favouritePlaces.length,
+                            _favouritePlaces[index])),
+                    itemCount: _favouritePlaces.length,
                   ),
                 );
               } else {
@@ -86,7 +86,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
           if (mounted)
             {
               setState(() {
-                favouritePlaces = value;
+                _favouritePlaces = value;
               })
             }
         });

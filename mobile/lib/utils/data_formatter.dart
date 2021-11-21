@@ -74,9 +74,13 @@ List<charts.Series<HistoricalMeasurement, DateTime>> insightsChartData(
 List<charts.Series<InsightsChartData, String>> insightsDailyChartData(
     List<HistoricalMeasurement> measurements,
     String pollutant,
-    PlaceDetails placeDetails) {
-  var data = InsightsChartData.getDailyInsightsData(
-      measurements, pollutant, placeDetails);
+    PlaceDetails placeDetails,
+    List<InsightsChartData> insightsChartData) {
+  var data = insightsChartData;
+  if (data.isEmpty) {
+    data = InsightsChartData.getDailyInsightsData(
+        measurements, pollutant, placeDetails);
+  }
 
   return [
     charts.Series<InsightsChartData, String>(
@@ -97,9 +101,13 @@ List<charts.Series<InsightsChartData, String>> insightsDailyChartData(
 List<charts.Series<InsightsChartData, String>> insightsHourlyChartData(
     List<HistoricalMeasurement> measurements,
     String pollutant,
-    PlaceDetails placeDetails) {
-  var data = InsightsChartData.getHourlyInsightsData(
-      measurements, pollutant, placeDetails);
+    PlaceDetails placeDetails,
+    List<InsightsChartData> insightsChartData) {
+  var data = insightsChartData;
+  if (data.isEmpty) {
+    data = InsightsChartData.getHourlyInsightsData(
+        measurements, pollutant, placeDetails);
+  }
 
   return [
     charts.Series<InsightsChartData, String>(

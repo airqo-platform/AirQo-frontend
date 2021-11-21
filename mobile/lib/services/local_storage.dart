@@ -2,13 +2,14 @@ import 'dart:async';
 
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/historical_measurement.dart';
+import 'package:app/models/insights_chart_data.dart';
+import 'package:app/models/kya.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/predict.dart';
 import 'package:app/models/site.dart';
 import 'package:app/models/story.dart';
-import 'package:app/models/suggestion.dart';
 import 'package:app/models/user_details.dart';
 import 'package:app/utils/distance.dart';
 import 'package:flutter/material.dart';
@@ -46,7 +47,6 @@ class DBHelper {
 
     if (initialLoading) {
       await db.execute(Measurement.dropTableStmt());
-      await db.execute(Suggestion.dropTableStmt());
       await db.execute(HistoricalMeasurement.dropTableStmt());
       await db.execute(Predict.dropTableStmt());
       await db.execute(Site.dropTableStmt());
@@ -54,11 +54,13 @@ class DBHelper {
       await db.execute(UserDetails.dropTableStmt());
       await db.execute(PlaceDetails.dropTableStmt());
       await db.execute(UserNotification.dropTableStmt());
+      await db.execute(InsightsChartData.dropTableStmt());
+      await db.execute(Kya.dropTableStmt());
+      await db.execute(KyaItem.dropTableStmt());
       await prefs.setBool(PrefConstant.reLoadDb, false);
     }
 
     await db.execute(Measurement.createTableStmt());
-    await db.execute(Suggestion.createTableStmt());
     await db.execute(HistoricalMeasurement.createTableStmt());
     await db.execute(Predict.createTableStmt());
     await db.execute(Site.createTableStmt());
@@ -66,22 +68,9 @@ class DBHelper {
     await db.execute(UserDetails.createTableStmt());
     await db.execute(PlaceDetails.createTableStmt());
     await db.execute(UserNotification.createTableStmt());
-  }
-
-  Future<void> deleteSearchHistory(Suggestion suggestion) async {
-    try {
-      final db = await database;
-
-      try {
-        await db.delete(Suggestion.dbName(),
-            where: '${Suggestion.dbPlaceId()} = ?',
-            whereArgs: [suggestion.placeId]);
-      } on Error catch (e) {
-        debugPrint(e.toString());
-      }
-    } catch (e) {
-      debugPrint(e.toString());
-    }
+    await db.execute(InsightsChartData.createTableStmt());
+    await db.execute(Kya.createTableStmt());
+    await db.execute(KyaItem.createTableStmt());
   }
 
   Future<List<PlaceDetails>> getFavouritePlaces() async {
@@ -173,6 +162,60 @@ class DBHelper {
     } catch (e) {
       debugPrint(e.toString());
       return <HistoricalMeasurement>[];
+    }
+  }
+
+  Future<List<InsightsChartData>> getInsightsChartData(String name) async {
+    try {
+      final db = await database;
+
+      var res = await db.query(InsightsChartData.dbName(),
+          where: 'name = ?', whereArgs: [name]);
+
+      return res.isNotEmpty
+          ? List.generate(res.length, (i) {
+              return InsightsChartData.fromJson(res[i]);
+            })
+          : <InsightsChartData>[];
+    } catch (e) {
+      debugPrint(e.toString());
+      return <InsightsChartData>[];
+    }
+  }
+
+  Future<List<Kya>> getKyas() async {
+    try {
+      final db = await database;
+
+      var res = await db.query(Kya.dbName());
+      var kyaList = <Kya>[];
+
+      var kyas = res.isNotEmpty
+          ? List.generate(res.length, (i) {
+              return Kya.fromJson(res[i]);
+            })
+          : <Kya>[];
+
+      for (var kya in kyas) {
+        var kyaItemRes = await db.query(KyaItem.dbName(),
+            where: 'parentId = ?', whereArgs: [kya.id]);
+        if (kyaItemRes.isEmpty) {
+          continue;
+        }
+
+        var kyaItems = kyaItemRes.isNotEmpty
+            ? List.generate(kyaItemRes.length, (i) {
+                return KyaItem.fromJson(kyaItemRes[i]);
+              })
+            : <KyaItem>[];
+
+        kya.kyaItems = kyaItems;
+        kyaList.add(kya);
+      }
+      return kyaList;
+    } catch (e) {
+      debugPrint(e.toString());
+      return <Kya>[];
     }
   }
 
@@ -272,25 +315,6 @@ class DBHelper {
     } catch (e) {
       debugPrint(e.toString());
       return <Measurement>[];
-    }
-  }
-
-  Future<List<Suggestion>> getSearchHistory() async {
-    try {
-      final db = await database;
-
-      var res = await db.query(Suggestion.dbName());
-
-      var history = res.isNotEmpty
-          ? List.generate(res.length, (i) {
-              return Suggestion.fromJson(res[i]);
-            })
-          : <Suggestion>[];
-
-      return history;
-    } catch (e) {
-      debugPrint(e.toString());
-      return <Suggestion>[];
     }
   }
 
@@ -463,6 +487,67 @@ class DBHelper {
     }
   }
 
+  Future<void> insertInsightsChartData(
+      List<InsightsChartData> insightsChartData) async {
+    try {
+      final db = await database;
+
+      if (insightsChartData.isEmpty) {
+        return;
+      }
+
+      var name = insightsChartData.first.name;
+
+      await db.delete(InsightsChartData.dbName(),
+          where: 'name = ?', whereArgs: [name]);
+
+      for (var row in insightsChartData) {
+        try {
+          var jsonData = row.toJson();
+          await db.insert(
+            InsightsChartData.dbName(),
+            jsonData,
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+        } catch (e) {
+          debugPrint(e.toString());
+        }
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
+  Future<void> insertKyas(List<Kya> Kyas) async {
+    final db = await database;
+
+    if (Kyas.isEmpty) {
+      return;
+    }
+
+    for (var kya in Kyas) {
+      try {
+        var kyaJson = Kya.parseKyaToDb(kya);
+        await db.insert(
+          Kya.dbName(),
+          kyaJson,
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+
+        var kyaItemsJson = KyaItem.parseKyaItemsToDb(kya);
+        for (var kyaItemJson in kyaItemsJson) {
+          await db.insert(
+            KyaItem.dbName(),
+            kyaItemJson,
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+        }
+      } catch (e) {
+        debugPrint(e.toString());
+      }
+    }
+  }
+
   Future<void> insertLatestMeasurements(List<Measurement> measurements) async {
     try {
       final db = await database;
@@ -509,26 +594,6 @@ class DBHelper {
             debugPrint(e.toString());
           }
         }
-      }
-    } catch (e) {
-      debugPrint(e.toString());
-    }
-  }
-
-  Future<void> insertSearchHistory(Suggestion suggestion) async {
-    try {
-      final db = await database;
-
-      var jsonData = suggestion.toJson();
-
-      try {
-        await db.insert(
-          Suggestion.dbName(),
-          jsonData,
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
-      } on Error catch (e) {
-        debugPrint(e.toString());
       }
     } catch (e) {
       debugPrint(e.toString());

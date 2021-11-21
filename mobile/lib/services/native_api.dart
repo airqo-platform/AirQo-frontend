@@ -5,22 +5,24 @@ import 'package:app/services/local_storage.dart';
 import 'package:app/utils/distance.dart';
 import 'package:app/utils/string_extension.dart';
 import 'package:flutter/material.dart';
-import 'package:geocoder/geocoder.dart';
+import 'package:geocoding/geocoding.dart';
+
+// import 'package:geocoder/geocoder.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:location/location.dart';
+import 'package:location/location.dart' as locate_api;
 
 import 'fb_notifications.dart';
 
 class LocationService {
-  Location location = Location();
+  final locate_api.Location _location = locate_api.Location();
   final DBHelper _dbHelper = DBHelper();
   final CustomAuth _customAuth = CustomAuth();
   final CloudStore _cloudStore = CloudStore();
 
   Future<bool> checkPermission() async {
     try {
-      var status = await location.hasPermission();
-      if (status == PermissionStatus.granted) {
+      var status = await _location.hasPermission();
+      if (status == locate_api.PermissionStatus.granted) {
         return true;
       }
     } catch (e) {
@@ -58,21 +60,32 @@ class LocationService {
     return measurement;
   }
 
-  Future<Address> getAddress(double lat, double lng) async {
-    var addresses = await getAddressGoogle(lat, lng);
-    if (addresses.isEmpty) {
-      addresses = await getLocalAddress(lat, lng);
-    }
-    return addresses.first;
+  // Future<Address> getAddress(double lat, double lng) async {
+  //   var addresses = await getAddressGoogle(lat, lng);
+  //   if (addresses.isEmpty) {
+  //     addresses = await getLocalAddress(lat, lng);
+  //   }
+  //   return addresses.first;
+  // }
+
+  Future<String> getAddress(double lat, double lng) async {
+    var placeMarks = await placemarkFromCoordinates(lat, lng);
+    var place = placeMarks[0];
+    var name = place.thoroughfare ?? place.name;
+    name = name ?? place.subLocality;
+    name = name ?? place.locality;
+    name = name ?? '';
+
+    return name;
   }
 
-  Future<List<Address>> getAddressGoogle(double lat, double lang) async {
-    final coordinates = Coordinates(lat, lang);
-    List<Address> googleAddresses =
-        await Geocoder.google(AppConfig.googleApiKey)
-            .findAddressesFromCoordinates(coordinates);
-    return googleAddresses;
-  }
+  // Future<List<Address>> getAddressGoogle(double lat, double lang) async {
+  //   final coordinates = Coordinates(lat, lang);
+  //   List<Address> googleAddresses =
+  //       await Geocoder.google(AppConfig.googleApiKey)
+  //           .findAddressesFromCoordinates(coordinates);
+  //   return googleAddresses;
+  // }
 
   Future<Measurement?> getCurrentLocationReadings() async {
     try {
@@ -94,9 +107,14 @@ class LocationService {
           if (distanceInMeters < AppConfig.maxSearchRadius.toDouble()) {
             measurement.site.distance = distanceInMeters;
             try {
-              if (!address.thoroughfare.isNull()) {
-                measurement.site.name = address.thoroughfare;
-                measurement.site.description = address.thoroughfare;
+              // if (!address.thoroughfare.isNull()) {
+              //   measurement.site.name = address.thoroughfare;
+              //   measurement.site.description = address.thoroughfare;
+              // }
+
+              if (!address.isNull()) {
+                measurement.site.name = address;
+                measurement.site.description = address;
               }
             } catch (e) {
               debugPrint(e.toString());
@@ -121,29 +139,29 @@ class LocationService {
     }
   }
 
-  Future<List<Address>> getLocalAddress(double lat, double lang) async {
-    final coordinates = Coordinates(lat, lang);
-    List<Address> localAddresses =
-        await Geocoder.local.findAddressesFromCoordinates(coordinates);
-    return localAddresses;
-  }
+  // Future<List<Address>> getLocalAddress(double lat, double lang) async {
+  //   final coordinates = Coordinates(lat, lang);
+  //   List<Address> localAddresses =
+  //       await Geocoder.local.findAddressesFromCoordinates(coordinates);
+  //   return localAddresses;
+  // }
 
-  Future<LocationData> getLocation() async {
+  Future<locate_api.LocationData> getLocation() async {
     bool _serviceEnabled;
-    PermissionStatus _permissionGranted;
+    locate_api.PermissionStatus _permissionGranted;
 
-    _serviceEnabled = await location.serviceEnabled();
+    _serviceEnabled = await _location.serviceEnabled();
     if (!_serviceEnabled) {
-      _serviceEnabled = await location.requestService();
+      _serviceEnabled = await _location.requestService();
       if (!_serviceEnabled) {
         throw Exception('Please enable location');
       }
     }
 
-    _permissionGranted = await location.hasPermission();
-    if (_permissionGranted == PermissionStatus.denied) {
-      _permissionGranted = await location.requestPermission();
-      if (_permissionGranted != PermissionStatus.granted) {
+    _permissionGranted = await _location.hasPermission();
+    if (_permissionGranted == locate_api.PermissionStatus.denied) {
+      _permissionGranted = await _location.requestPermission();
+      if (_permissionGranted != locate_api.PermissionStatus.granted) {
         throw Exception('Please enable'
             ' permission to access your location');
       }
@@ -155,7 +173,7 @@ class LocationService {
     //   print('${locationData.longitude} : ${locationData.longitude}');
     // });
 
-    var _locationData = await location.getLocation();
+    var _locationData = await _location.getLocation();
     return _locationData;
   }
 
@@ -247,6 +265,31 @@ class LocationService {
     }
   }
 
+  Future<Position> getLocationUsingGeoLocator() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('Location services are disabled.');
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        throw Exception('Please enable'
+            ' permission to access your location');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      throw Exception('Location permissions are permanently denied, '
+          'please enable permission to access your location');
+    }
+    return await Geolocator.getCurrentPosition();
+  }
+
   Future<Site?> getNearestSite(double latitude, double longitude) async {
     try {
       var nearestSites = await getNearestSites(latitude, longitude);
@@ -291,15 +334,25 @@ class LocationService {
     return nearestSites;
   }
 
+  // Future<bool> requestLocationAccess() async {
+  //   try {
+  //     var status = await location.requestPermission();
+  //     var id = _customAuth.getId();
+  //     if (id != '') {
+  //       await _cloudStore.updatePreferenceFields(
+  //           id, 'location', status == PermissionStatus.granted, 'bool');
+  //     }
+  //     return status == PermissionStatus.granted;
+  //   } catch (e) {
+  //     debugPrint(e.toString());
+  //   }
+  //   return false;
+  // }
+
   Future<bool> requestLocationAccess() async {
     try {
-      var status = await location.requestPermission();
-      var id = _customAuth.getId();
-      if (id != '') {
-        await _cloudStore.updatePreferenceFields(
-            id, 'location', status == PermissionStatus.granted, 'bool');
-      }
-      return status == PermissionStatus.granted;
+      var status = await Geolocator.requestPermission();
+      return !(status == LocationPermission.denied);
     } catch (e) {
       debugPrint(e.toString());
     }

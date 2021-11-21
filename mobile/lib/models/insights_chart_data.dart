@@ -1,24 +1,47 @@
 import 'package:app/models/place_details.dart';
 import 'package:intl/intl.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 import 'historical_measurement.dart';
+import 'json_parsers.dart';
 
+part 'insights_chart_data.g.dart';
+
+@JsonSerializable(explicitToJson: true)
 class InsightsChartData {
+  @JsonKey(fromJson: timeFromJson, toJson: timeToJson)
   DateTime time;
   double value;
   String pollutant;
+  @JsonKey(fromJson: boolFromJson, toJson: boolToJson)
   bool available = false;
   String name;
   String location;
   String day;
+  String frequency;
 
   InsightsChartData(this.time, this.value, this.pollutant, this.available,
-      this.name, this.location, this.day);
+      this.name, this.location, this.day, this.frequency);
+
+  factory InsightsChartData.fromJson(Map<String, dynamic> json) =>
+      _$InsightsChartDataFromJson(json);
+
+  Map<String, dynamic> toJson() => _$InsightsChartDataToJson(this);
 
   @override
   String toString() {
     return 'InsightsChartData{time: $time,}';
   }
+
+  static String createTableStmt() => 'CREATE TABLE IF NOT EXISTS ${dbName()}('
+      'id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, time TEXT, '
+      'pollutant TEXT, value REAL, '
+      'available TEXT, name TEXT, '
+      'day TEXT, location TEXT )';
+
+  static String dbName() => 'insights_db';
+
+  static String dropTableStmt() => 'DROP TABLE IF EXISTS ${dbName()}';
 
   static List<InsightsChartData> formatData(List<InsightsChartData> data) {
     data.sort((x, y) {
@@ -45,7 +68,8 @@ class InsightsChartData {
           true,
           placeDetails.getName(),
           placeDetails.getLocation(),
-          DateFormat('EEE').format(DateTime.parse(measurement.time)));
+          DateFormat('EEE').format(DateTime.parse(measurement.time)),
+          'daily');
 
       insights.add(insight);
     }
@@ -61,7 +85,8 @@ class InsightsChartData {
           false,
           placeDetails.getName(),
           placeDetails.getLocation(),
-          DateFormat('EEE').format(nextTime)));
+          DateFormat('EEE').format(nextTime),
+          'daily'));
 
       lastInsight = insights.last;
     }
@@ -88,7 +113,8 @@ class InsightsChartData {
           true,
           placeDetails.getName(),
           placeDetails.getLocation(),
-          DateFormat('EEE').format(time));
+          DateFormat('EEE').format(time),
+          'hourly');
       hours.add(time.hour);
       insights.add(insight);
     }
@@ -111,7 +137,8 @@ class InsightsChartData {
             false,
             placeDetails.getName(),
             placeDetails.getLocation(),
-            DateFormat('EEE').format(time)));
+            DateFormat('EEE').format(time),
+            'hourly'));
       }
     }
     return formatData(insights);
@@ -134,6 +161,7 @@ class InsightsChartData {
         true,
         placeDetails.getName(),
         placeDetails.getLocation(),
-        DateFormat('EEE').format(DateTime.parse(measurement.time)));
+        DateFormat('EEE').format(DateTime.parse(measurement.time)),
+        '');
   }
 }

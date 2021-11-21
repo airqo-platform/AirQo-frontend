@@ -31,7 +31,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
   double _tipsProgress = 0.1;
   bool isSaving = false;
   double? _interval;
-  double maxProgress = 1.0;
+  double _maxProgress = 1.0;
 
   final PageController _controller = PageController();
   final CloudAnalytics _cloudAnalytics = CloudAnalytics();
@@ -191,7 +191,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
     _interval =
         double.parse((1 / widget.kya.kyaItems.length).toStringAsFixed(3));
     _tipsProgress = _interval!;
-    maxProgress = _tipsProgress * widget.kya.kyaItems.length;
+    _maxProgress = _tipsProgress * widget.kya.kyaItems.length;
     super.initState();
   }
 
@@ -475,7 +475,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
                     child: circularButton('assets/icon/previous_arrow.svg')),
                 GestureDetector(
                     onTap: () async {
-                      if (_tipsProgress >= maxProgress) {
+                      if (_tipsProgress >= _maxProgress) {
                         showLastPage();
                       } else {
                         if (_currentPage < (widget.kya.kyaItems.length - 1)) {

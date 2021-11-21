@@ -36,7 +36,7 @@ class Predict {
 
   static String createTableStmt() =>
       'CREATE TABLE IF NOT EXISTS ${forecastDb()}('
-      'id INTEGER PRIMARY KEY, ${Site.dbId()} TEXT,'
+      'id PRIMARY KEY, ${Site.dbId()} TEXT,'
       '${dbTime()} TEXT, ${dbUpper()} REAL, '
       '${dbValue()} REAL, ${dbLower()} REAL)';
 
