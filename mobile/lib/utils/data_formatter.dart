@@ -19,9 +19,10 @@ charts.Color getInsightsChartBarColor(InsightsChartData series) {
     return charts.ColorUtil.fromDartColor(ColorConstants.greyColor);
   }
 
-  if (series.time.isAfter(DateTime.now())) {
+  if (series.isForecast) {
     return charts.ColorUtil.fromDartColor(ColorConstants.appColorPaleBlue);
   }
+
   return pmToChartColor(series.value, series.pollutant);
 }
 
@@ -72,14 +73,16 @@ List<charts.Series<HistoricalMeasurement, DateTime>> insightsChartData(
 }
 
 List<charts.Series<InsightsChartData, String>> insightsDailyChartData(
-    List<HistoricalMeasurement> measurements,
-    String pollutant,
-    PlaceDetails placeDetails,
-    List<InsightsChartData> insightsChartData) {
+  List<HistoricalMeasurement> allMeasurements,
+  String pollutant,
+  PlaceDetails placeDetails,
+  List<InsightsChartData> insightsChartData,
+  List<HistoricalMeasurement> measurements,
+) {
   var data = insightsChartData;
   if (data.isEmpty) {
     data = InsightsChartData.getDailyInsightsData(
-        measurements, pollutant, placeDetails);
+        allMeasurements, pollutant, placeDetails, measurements);
   }
 
   return [
@@ -99,14 +102,16 @@ List<charts.Series<InsightsChartData, String>> insightsDailyChartData(
 }
 
 List<charts.Series<InsightsChartData, String>> insightsHourlyChartData(
-    List<HistoricalMeasurement> measurements,
-    String pollutant,
-    PlaceDetails placeDetails,
-    List<InsightsChartData> insightsChartData) {
+  List<HistoricalMeasurement> allMeasurements,
+  String pollutant,
+  PlaceDetails placeDetails,
+  List<InsightsChartData> insightsChartData,
+  List<HistoricalMeasurement> measurements,
+) {
   var data = insightsChartData;
   if (data.isEmpty) {
     data = InsightsChartData.getHourlyInsightsData(
-        measurements, pollutant, placeDetails);
+        allMeasurements, pollutant, placeDetails, measurements);
   }
 
   return [

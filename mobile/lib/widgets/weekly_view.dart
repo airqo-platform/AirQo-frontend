@@ -21,13 +21,13 @@ class _WeeklyViewState extends State<WeeklyView> with TickerProviderStateMixin {
   TabController? _weeklyTabController;
   int currentIndex = 0;
   List<Widget> placeHolders = [
-    loadingAnimation(253.0, 16.0),
-    loadingAnimation(253.0, 16.0),
-    loadingAnimation(253.0, 16.0),
-    loadingAnimation(253.0, 16.0),
-    loadingAnimation(253.0, 16.0),
-    loadingAnimation(253.0, 16.0),
-    loadingAnimation(253.0, 16.0),
+    containerLoadingAnimation(253.0, 16.0),
+    containerLoadingAnimation(253.0, 16.0),
+    containerLoadingAnimation(253.0, 16.0),
+    containerLoadingAnimation(253.0, 16.0),
+    containerLoadingAnimation(253.0, 16.0),
+    containerLoadingAnimation(253.0, 16.0),
+    containerLoadingAnimation(253.0, 16.0),
   ];
 
   @override

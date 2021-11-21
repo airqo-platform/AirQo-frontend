@@ -58,10 +58,10 @@ class _DashboardViewState extends State<DashboardView> {
   final DBHelper _dbHelper = DBHelper();
   final ScrollController _scrollController = ScrollController();
   final List<Widget> _dashBoardPlaces = [
-    loadingAnimation(255.0, 16.0),
-    loadingAnimation(255.0, 16.0),
-    loadingAnimation(255.0, 16.0),
-    loadingAnimation(255.0, 16.0)
+    containerLoadingAnimation(255.0, 16.0),
+    containerLoadingAnimation(255.0, 16.0),
+    containerLoadingAnimation(255.0, 16.0),
+    containerLoadingAnimation(255.0, 16.0)
   ];
 
   Widget appNavBar() {
@@ -423,7 +423,7 @@ class _DashboardViewState extends State<DashboardView> {
                 placeholder: (context, url) => SizedBox(
                   width: 104,
                   height: 104,
-                  child: loadingAnimation(104, 8.0),
+                  child: containerLoadingAnimation(104, 8.0),
                 ),
                 imageUrl: _kya!.imageUrl,
                 errorWidget: (context, url, error) => Icon(
@@ -743,7 +743,8 @@ class _DashboardViewState extends State<DashboardView> {
               if (currentLocation != null)
                 AnalyticsCard(PlaceDetails.measurementToPLace(currentLocation!),
                     currentLocation!, _isRefreshing, _showAnalyticsCardTips),
-              if (currentLocation == null) loadingAnimation(255.0, 16.0),
+              if (currentLocation == null)
+                containerLoadingAnimation(255.0, 16.0),
               const SizedBox(
                 height: 16,
               ),

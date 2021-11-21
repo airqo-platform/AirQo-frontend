@@ -6,7 +6,6 @@ import 'package:app/utils/distance.dart';
 import 'package:app/utils/string_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
-
 // import 'package:geocoder/geocoder.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:location/location.dart' as locate_api;

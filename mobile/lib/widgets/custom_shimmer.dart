@@ -19,16 +19,58 @@ Widget circularLoadingAnimation(double size) {
       ));
 }
 
-Widget loadingAnimation(double height, double radius) {
+Widget containerLoadingAnimation(double height, double radius) {
   return SizedBox(
     height: height,
     child: Shimmer.fromColors(
       baseColor: ColorConstants.appColorBlue.withOpacity(0.1),
       highlightColor: ColorConstants.appColorBlue.withOpacity(0.2),
       child: Container(
+          constraints: BoxConstraints(minHeight: height, maxHeight: height),
           decoration: BoxDecoration(
               color: ColorConstants.appColorBlue,
               borderRadius: BorderRadius.all(Radius.circular(radius)))),
+    ),
+  );
+}
+
+Widget sizedContainerLoadingAnimation(
+    double height, double width, double radius) {
+  return SizedBox(
+    height: height,
+    width: width,
+    child: Shimmer.fromColors(
+      baseColor: ColorConstants.appColorBlue.withOpacity(0.1),
+      highlightColor: ColorConstants.appColorBlue.withOpacity(0.2),
+      child: Container(
+          constraints: BoxConstraints(
+              minWidth: width,
+              minHeight: height,
+              maxWidth: width,
+              maxHeight: height),
+          decoration: BoxDecoration(
+              color: ColorConstants.appColorBlue,
+              borderRadius: BorderRadius.all(Radius.circular(radius)))),
+    ),
+  );
+}
+
+Widget textLoadingAnimation(double height, double width) {
+  return SizedBox(
+    height: height,
+    width: width,
+    child: Shimmer.fromColors(
+      baseColor: ColorConstants.appColorBlue.withOpacity(0.1),
+      highlightColor: ColorConstants.appColorBlue.withOpacity(0.2),
+      child: Container(
+          constraints: BoxConstraints(
+              minWidth: width,
+              minHeight: height,
+              maxWidth: width,
+              maxHeight: height),
+          decoration: BoxDecoration(
+              color: ColorConstants.appColorBlue,
+              borderRadius: const BorderRadius.all(Radius.circular(2)))),
     ),
   );
 }

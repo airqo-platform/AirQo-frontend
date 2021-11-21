@@ -169,7 +169,7 @@ Widget shareCardImage(
                               maxWidth:
                                   MediaQuery.of(context).size.width / 3.2),
                           child: Text(
-                            dateToString(measurement.time, true),
+                            dateToString(measurement.time),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(

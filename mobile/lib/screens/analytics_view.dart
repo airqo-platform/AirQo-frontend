@@ -62,19 +62,19 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                     const SizedBox(
                       height: 10,
                     ),
-                    loadingAnimation(120.0, 16.0),
+                    containerLoadingAnimation(120.0, 16.0),
                     const SizedBox(
                       height: 15,
                     ),
-                    loadingAnimation(120.0, 16.0),
+                    containerLoadingAnimation(120.0, 16.0),
                     const SizedBox(
                       height: 15,
                     ),
-                    loadingAnimation(120.0, 16.0),
+                    containerLoadingAnimation(120.0, 16.0),
                     const SizedBox(
                       height: 15,
                     ),
-                    loadingAnimation(120.0, 16.0),
+                    containerLoadingAnimation(120.0, 16.0),
                   ],
                 );
               }

@@ -200,7 +200,9 @@ Widget insightsAvatar(
         children: [
           const Spacer(),
           SvgPicture.asset(
-            'assets/icon/PM2.5.svg',
+            pollutant.trim().toLowerCase() == 'pm2.5'
+                ? 'assets/icon/PM2.5.svg'
+                : 'assets/icon/PM10.svg',
             semanticsLabel: 'Pm2.5',
             height: 6,
             width: 32.45,
@@ -244,7 +246,9 @@ Widget insightsAvatar(
       children: [
         const Spacer(),
         SvgPicture.asset(
-          'assets/icon/PM2.5.svg',
+          pollutant.trim().toLowerCase() == 'pm2.5'
+              ? 'assets/icon/PM2.5.svg'
+              : 'assets/icon/PM10.svg',
           semanticsLabel: 'Pm2.5',
           height: 6,
           width: 32.45,

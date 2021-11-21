@@ -34,6 +34,11 @@ class Predict {
 
   Map<String, dynamic> toJson() => _$PredictToJson(this);
 
+  @override
+  String toString() {
+    return 'Predict{time: $time}';
+  }
+
   static String createTableStmt() =>
       'CREATE TABLE IF NOT EXISTS ${forecastDb()}('
       'id PRIMARY KEY, ${Site.dbId()} TEXT,'
@@ -53,45 +58,17 @@ class Predict {
   static String forecastDb() => 'forecast_measurements';
 
   static List<HistoricalMeasurement> getMeasurements(
-      List<Predict> predictions, String siteId, int deviceNumber, bool today) {
+      List<Predict> predictions, String siteId, int deviceNumber) {
     var measurements = <HistoricalMeasurement>[];
     var emptyValue = MeasurementValue(value: 0.0, calibratedValue: 0.0);
-    final formatter = DateFormat('EEE, d MMM yyyy HH:mm:ss');
 
     for (var predict in predictions) {
       var pmValue = MeasurementValue(
           value: predict.value, calibratedValue: predict.value);
 
-      var time =
-          formatter.parse(predict.time).subtract(const Duration(hours: 3));
-
-      if (today) {
-        if (time.day == DateTime.now().day) {
-          var measurement = HistoricalMeasurement(
-              time.toUtc().toString(),
-              pmValue,
-              emptyValue,
-              emptyValue,
-              emptyValue,
-              emptyValue,
-              emptyValue,
-              siteId,
-              deviceNumber);
-          measurements.add(measurement);
-        }
-      } else {
-        var measurement = HistoricalMeasurement(
-            time.toUtc().toString(),
-            pmValue,
-            emptyValue,
-            emptyValue,
-            emptyValue,
-            emptyValue,
-            emptyValue,
-            siteId,
-            deviceNumber);
-        measurements.add(measurement);
-      }
+      var measurement = HistoricalMeasurement(predict.time, pmValue, emptyValue,
+          emptyValue, emptyValue, emptyValue, emptyValue, siteId, deviceNumber);
+      measurements.add(measurement);
     }
     return measurements;
   }
@@ -117,10 +94,20 @@ class Predict {
 
   static List<Predict> parsePredictions(dynamic jsonBody) {
     var predictions = <Predict>[];
-
+    final formatter = DateFormat('EEE, d MMM yyyy HH:mm:ss');
+    var offSet = DateTime.now().timeZoneOffset.inHours;
     for (var element in jsonBody) {
       try {
         var predict = Predict.fromJson(element);
+        var time = formatter.parse(predict.time);
+        time = time.subtract(const Duration(hours: 3));
+        time = time.add(Duration(hours: offSet));
+        if (offSet.isNegative) {
+          time = time.subtract(Duration(hours: offSet));
+        } else {
+          time = time.add(Duration(hours: offSet));
+        }
+        predict.time = DateFormat('yyyy-MM-dd HH:mm:ss').format(time);
         predictions.add(predict);
       } on Error catch (e) {
         debugPrint(e.toString());

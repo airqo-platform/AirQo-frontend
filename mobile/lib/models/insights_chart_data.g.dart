@@ -16,6 +16,7 @@ InsightsChartData _$InsightsChartDataFromJson(Map<String, dynamic> json) =>
       json['location'] as String,
       json['day'] as String,
       json['frequency'] as String,
+      boolFromJson(json['isForecast']),
     );
 
 Map<String, dynamic> _$InsightsChartDataToJson(InsightsChartData instance) =>
@@ -24,6 +25,7 @@ Map<String, dynamic> _$InsightsChartDataToJson(InsightsChartData instance) =>
       'value': instance.value,
       'pollutant': instance.pollutant,
       'available': boolToJson(instance.available),
+      'isForecast': boolToJson(instance.isForecast),
       'name': instance.name,
       'location': instance.location,
       'day': instance.day,

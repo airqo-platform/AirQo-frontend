@@ -138,7 +138,7 @@ class _MonthlyViewState extends State<MonthlyView>
     var lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
     for (var dateIndex = 0; dateIndex <= lastDayOfMonth.day; dateIndex++) {
       days.add(
-        loadingAnimation(253.0, 16.0),
+        containerLoadingAnimation(253.0, 16.0),
       );
     }
     return days;

@@ -15,13 +15,15 @@ class InsightsChartData {
   String pollutant;
   @JsonKey(fromJson: boolFromJson, toJson: boolToJson)
   bool available = false;
+  @JsonKey(fromJson: boolFromJson, toJson: boolToJson)
+  bool isForecast = false;
   String name;
   String location;
   String day;
   String frequency;
 
   InsightsChartData(this.time, this.value, this.pollutant, this.available,
-      this.name, this.location, this.day, this.frequency);
+      this.name, this.location, this.day, this.frequency, this.isForecast);
 
   factory InsightsChartData.fromJson(Map<String, dynamic> json) =>
       _$InsightsChartDataFromJson(json);
@@ -52,11 +54,13 @@ class InsightsChartData {
   }
 
   static List<InsightsChartData> getDailyInsightsData(
-      List<HistoricalMeasurement> measurements,
-      String pollutant,
-      PlaceDetails placeDetails) {
+    List<HistoricalMeasurement> allMeasurements,
+    String pollutant,
+    PlaceDetails placeDetails,
+    List<HistoricalMeasurement> measurements,
+  ) {
     var insights = <InsightsChartData>[];
-    for (var measurement in measurements) {
+    for (var measurement in allMeasurements) {
       var value = measurement.getPm2_5Value();
       if (pollutant == 'pm10') {
         value = measurement.getPm10Value();
@@ -69,7 +73,8 @@ class InsightsChartData {
           placeDetails.getName(),
           placeDetails.getLocation(),
           DateFormat('EEE').format(DateTime.parse(measurement.time)),
-          'daily');
+          'daily',
+          !measurements.contains(measurement));
 
       insights.add(insight);
     }
@@ -86,7 +91,8 @@ class InsightsChartData {
           placeDetails.getName(),
           placeDetails.getLocation(),
           DateFormat('EEE').format(nextTime),
-          'daily'));
+          'daily',
+          false));
 
       lastInsight = insights.last;
     }
@@ -95,17 +101,28 @@ class InsightsChartData {
   }
 
   static List<InsightsChartData> getHourlyInsightsData(
-      List<HistoricalMeasurement> measurements,
-      String pollutant,
-      PlaceDetails placeDetails) {
+    List<HistoricalMeasurement> allMeasurements,
+    String pollutant,
+    PlaceDetails placeDetails,
+    List<HistoricalMeasurement> measurements,
+  ) {
     var insights = <InsightsChartData>[];
     var hours = <int>[];
+
+    var measurementsHours = <int>[];
+
     for (var measurement in measurements) {
+      measurementsHours.add(DateTime.parse(measurement.time).hour);
+    }
+
+    for (var measurement in allMeasurements) {
       var value = measurement.getPm2_5Value();
       if (pollutant == 'pm10') {
         value = measurement.getPm10Value();
       }
+
       var time = DateTime.parse(measurement.time);
+
       var insight = InsightsChartData(
           time,
           value,
@@ -113,14 +130,35 @@ class InsightsChartData {
           true,
           placeDetails.getName(),
           placeDetails.getLocation(),
-          DateFormat('EEE').format(time),
-          'hourly');
+          DateFormat('EEE').format(DateTime.parse(measurement.time)),
+          'hourly',
+          !measurementsHours.contains(time.hour));
       hours.add(time.hour);
       insights.add(insight);
     }
 
     if (insights.isEmpty) {
-      return [];
+      var now = DateTime.now();
+      for (var i = 0; i <= 23; i++) {
+        if (!hours.contains(i)) {
+          var hour = i.toString().length == 2 ? '$i' : '0$i';
+          var time = DateTime.parse(
+              '${DateFormat('yyyy-MM-dd').format(now)} $hour:00:00');
+
+          insights.add(InsightsChartData(
+              time,
+              50,
+              pollutant,
+              false,
+              placeDetails.getName(),
+              placeDetails.getLocation(),
+              DateFormat('EEE').format(time),
+              'hourly',
+              false));
+        }
+      }
+      insights.removeWhere((element) => element.time.day != DateTime.now().day);
+      return formatData(insights);
     }
 
     var referenceInsight = insights.first;
@@ -128,7 +166,8 @@ class InsightsChartData {
       if (!hours.contains(i)) {
         var hour = i.toString().length == 2 ? '$i' : '0$i';
         var time = DateTime.parse(
-            '${DateFormat('yyyy-MM-dd').format(referenceInsight.time)}T$hour:00:00.000Z');
+            '${DateFormat('yyyy-MM-dd').format(referenceInsight.time)}'
+            ' $hour:00:00');
 
         insights.add(InsightsChartData(
             time,
@@ -138,9 +177,11 @@ class InsightsChartData {
             placeDetails.getName(),
             placeDetails.getLocation(),
             DateFormat('EEE').format(time),
-            'hourly'));
+            'hourly',
+            false));
       }
     }
+    insights.removeWhere((element) => element.time.day != DateTime.now().day);
     return formatData(insights);
   }
 
@@ -162,6 +203,7 @@ class InsightsChartData {
         placeDetails.getName(),
         placeDetails.getLocation(),
         DateFormat('EEE').format(DateTime.parse(measurement.time)),
-        '');
+        '',
+        false);
   }
 }

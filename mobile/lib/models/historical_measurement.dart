@@ -1,6 +1,7 @@
 import 'package:app/models/measurement.dart';
 import 'package:app/models/site.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -11,7 +12,7 @@ part 'historical_measurement.g.dart';
 @JsonSerializable()
 class HistoricalMeasurement {
   @JsonKey(required: true)
-  final String time;
+  String time;
 
   @JsonKey(required: true, name: 'average_pm2_5')
   final MeasurementValue pm2_5;
@@ -133,35 +134,21 @@ class HistoricalMeasurement {
     };
   }
 
-  static HistoricalMeasurement parseMeasurement(dynamic jsonBody) {
-    var measurements = <HistoricalMeasurement>[];
-
-    var jsonArray = jsonBody['measurements'];
-    for (var jsonElement in jsonArray) {
-      try {
-        var measurement = HistoricalMeasurement.fromJson(jsonElement);
-        if (measurement.getPm2_5Value() != -0.1 &&
-            measurement.getPm2_5Value() >= 0 &&
-            measurement.getPm2_5Value() <= 500.4) {
-          measurements.add(measurement);
-        }
-      } catch (e) {
-        debugPrint(e.toString());
-      }
-    }
-    return measurements.first;
-  }
-
   static List<HistoricalMeasurement> parseMeasurements(dynamic jsonBody) {
     var measurements = <HistoricalMeasurement>[];
 
     var jsonArray = jsonBody['measurements'];
+    var offSet = DateTime.now().timeZoneOffset.inHours;
     for (var jsonElement in jsonArray) {
       try {
         var measurement = HistoricalMeasurement.fromJson(jsonElement);
         if (measurement.getPm2_5Value() != -0.1 &&
             measurement.getPm2_5Value() >= 0 &&
             measurement.getPm2_5Value() <= 500.4) {
+          var formattedDate =
+              DateTime.parse(measurement.time).add(Duration(hours: offSet));
+          measurement.time =
+              DateFormat('yyyy-MM-dd HH:mm:ss').format(formattedDate);
           measurements.add(measurement);
         }
       } catch (exception, stackTrace) {

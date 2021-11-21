@@ -35,9 +35,10 @@ class InsightsCard extends StatefulWidget {
 }
 
 class _InsightsCardState extends State<InsightsCard> {
-  List<HistoricalMeasurement> _measurements = [];
+  // List<HistoricalMeasurement> _measurements = [];
   InsightsChartData? _selectedMeasurement;
   String _lastUpdated = '';
+  bool _hasMeasurements = false;
   final List<charts.Series<InsightsChartData, DateTime>> _chartData = [];
   List<charts.Series<InsightsChartData, String>> _dailyPm2_5ChartData = [];
   List<charts.Series<InsightsChartData, String>> _hourlyPm2_5ChartData = [];
@@ -61,8 +62,8 @@ class _InsightsCardState extends State<InsightsCard> {
 
   @override
   Widget build(BuildContext context) {
-    if (_measurements.isEmpty) {
-      return loadingAnimation(290.0, 8.0);
+    if (!_hasMeasurements) {
+      return containerLoadingAnimation(290.0, 8.0);
     }
     return Container(
         padding: const EdgeInsets.only(top: 12, bottom: 12),
@@ -120,7 +121,7 @@ class _InsightsCardState extends State<InsightsCard> {
                       )
                     ],
                   ),
-                  widget.daily ? dailyChart() : hourlyChart(),
+                  widget.daily ? _dailyChart() : _hourlyChart(),
                   const SizedBox(
                     height: 13.0,
                   ),
@@ -274,7 +275,13 @@ class _InsightsCardState extends State<InsightsCard> {
         ));
   }
 
-  Widget chart() {
+  @override
+  void initState() {
+    _initialize();
+    super.initState();
+  }
+
+  Widget _chart() {
     return SizedBox(
       width: widget.pollutant == 'pm2.5'
           ? MediaQuery.of(context).size.width * 2
@@ -355,7 +362,7 @@ class _InsightsCardState extends State<InsightsCard> {
     );
   }
 
-  Widget dailyChart() {
+  Widget _dailyChart() {
     var staticTicks = <charts.TickSpec<String>>[];
     var daysList = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     for (var day in daysList) {
@@ -435,20 +442,27 @@ class _InsightsCardState extends State<InsightsCard> {
     );
   }
 
-  Future<void> getForecast(
+  Future<void> _getDBMeasurements() async {
+    var measurements =
+        await _dbHelper.getInsightsChartData(widget.placeDetails.getName());
+    if (measurements.isEmpty) {
+      return;
+    }
+    await _setMeasurements(measurements);
+  }
+
+  Future<void> _getForecast(
       int deviceNumber, List<HistoricalMeasurement> value) async {
     var predictions = await _airqoApiClient!.fetchForecast(deviceNumber);
 
     if (predictions.isEmpty) {
       setState(() {
-        _measurements = value;
         _hourlyPm2_5ChartData =
             insightsHourlyChartData(value, 'pm2.5', widget.placeDetails, []);
         _hourlyPm10ChartData =
             insightsHourlyChartData(value, 'pm10', widget.placeDetails, []);
+        _hasMeasurements = true;
       });
-      widget.insightsValueCallBack(
-          _hourlyPm2_5ChartData.toList().first.data.last);
       return;
     }
     var combined = value;
@@ -468,18 +482,16 @@ class _InsightsCardState extends State<InsightsCard> {
     }
 
     setState(() {
-      _measurements = combined;
+      // _measurements = combined;
       _hourlyPm2_5ChartData =
           insightsHourlyChartData(combined, 'pm2.5', widget.placeDetails, []);
       _hourlyPm10ChartData =
           insightsHourlyChartData(combined, 'pm10', widget.placeDetails, []);
+      _hasMeasurements = true;
     });
-    widget
-        .insightsValueCallBack(_hourlyPm2_5ChartData.toList().first.data.last);
-    _showHelpTips();
   }
 
-  void getHourlyTicks() {
+  void _getHourlyTicks() {
     setState(() {
       _hourlyStaticTicks = [];
     });
@@ -503,8 +515,76 @@ class _InsightsCardState extends State<InsightsCard> {
     });
   }
 
-  Widget hourlyChart() {
-    getHourlyTicks();
+  Future<void> _getRemoteMeasurements() async {
+    var measurements = await _airqoApiClient!.fetchSiteHistoricalMeasurements(
+        widget.placeDetails.siteId, widget.daily);
+
+    if (measurements.isEmpty || !mounted) {
+      return;
+    }
+    setState(() {
+      _selectedMeasurement = InsightsChartData.historicalDataToInsightsData(
+          measurements.last, widget.pollutant, widget.placeDetails);
+    });
+    widget.insightsValueCallBack(_selectedMeasurement!);
+
+    if (_lastUpdated == '') {
+      setState(() {
+        _lastUpdated = dateToString(_selectedMeasurement!.time.toString());
+      });
+    }
+
+    if (widget.daily) {
+      setState(() {
+        // _measurements = measurements;
+        _dailyPm2_5ChartData = insightsDailyChartData(
+            measurements, 'pm2.5', widget.placeDetails, []);
+        _dailyPm10ChartData = insightsDailyChartData(
+            measurements, 'pm10', widget.placeDetails, []);
+        _hasMeasurements = true;
+      });
+      // if (widget.pollutant == 'pm2.5') {
+      //   widget.insightsValueCallBack(
+      //       _dailyPm2_5ChartData.toList().first.data.last);
+      // } else {
+      //   widget.insightsValueCallBack(
+      //       _dailyPm10ChartData.toList().first.data.last);
+      // }
+      await _saveMeasurements(_dailyPm2_5ChartData.toList().first.data);
+      await _saveMeasurements(_dailyPm2_5ChartData.toList().first.data);
+    } else {
+      // setState(() {
+      //   _measurements = value;
+      //   _hourlyPm2_5ChartData = insightsHourlyChartData(
+      //       value, 'pm2.5', widget.placeDetails);
+      //   _hourlyPm10ChartData = insightsHourlyChartData(
+      //       value, 'pm10', widget.placeDetails);
+      // }),
+      // widget.insightsValueCallBack(
+      //     _hourlyPm2_5ChartData.toList().first.data.last);
+      if (widget.pollutant == 'pm2.5') {
+        // widget.insightsValueCallBack(
+        //     _hourlyPm2_5ChartData.toList().first.data.last),
+        await _getForecast(measurements.first.deviceNumber, measurements);
+      } else {
+        setState(() {
+          // _measurements = measurements;
+          _hourlyPm2_5ChartData = insightsHourlyChartData(
+              measurements, 'pm2.5', widget.placeDetails, []);
+          _hourlyPm10ChartData = insightsHourlyChartData(
+              measurements, 'pm10', widget.placeDetails, []);
+          _hasMeasurements = true;
+        });
+        // widget.insightsValueCallBack(
+        //     _hourlyPm10ChartData.toList().first.data.last);
+        await _saveMeasurements(_hourlyPm2_5ChartData.toList().first.data);
+        await _saveMeasurements(_hourlyPm10ChartData.toList().first.data);
+      }
+    }
+  }
+
+  Widget _hourlyChart() {
+    _getHourlyTicks();
     return SizedBox(
       width: MediaQuery.of(context).size.width,
       height: 150,
@@ -579,95 +659,11 @@ class _InsightsCardState extends State<InsightsCard> {
     );
   }
 
-  @override
-  void initState() {
-    _initialize();
-    super.initState();
-  }
-
-  Future<void> _getDBMeasurements() async {
-    var measurements =
-        await _dbHelper.getInsightsChartData(widget.placeDetails.getName());
-    if (measurements.isEmpty) {
-      return;
-    }
-    await _setMeasurements(measurements);
-  }
-
-  Future<void> _getRemoteMeasurements() async {
-    var measurements = await _airqoApiClient!.fetchSiteHistoricalMeasurements(
-        widget.placeDetails.siteId, widget.daily);
-
-    if (measurements.isEmpty || !mounted) {
-      return;
-    }
-    setState(() {
-      _selectedMeasurement = InsightsChartData.historicalDataToInsightsData(
-          measurements.last, widget.pollutant, widget.placeDetails);
-    });
-
-    if (_lastUpdated == '') {
-      setState(() {
-        _lastUpdated =
-            dateToString(_selectedMeasurement!.time.toString(), false);
-      });
-    }
-
-    if (widget.daily) {
-      setState(() {
-        _measurements = measurements;
-        _dailyPm2_5ChartData = insightsDailyChartData(
-            measurements, 'pm2.5', widget.placeDetails, []);
-        _dailyPm10ChartData = insightsDailyChartData(
-            measurements, 'pm10', widget.placeDetails, []);
-      });
-      if (widget.pollutant == 'pm2.5') {
-        widget.insightsValueCallBack(
-            _dailyPm2_5ChartData.toList().first.data.last);
-      } else {
-        widget.insightsValueCallBack(
-            _dailyPm10ChartData.toList().first.data.last);
-      }
-
-      _showHelpTips();
-      await _saveMeasurements(_dailyPm2_5ChartData.toList().first.data);
-      await _saveMeasurements(_dailyPm2_5ChartData.toList().first.data);
-    } else {
-      // setState(() {
-      //   _measurements = value;
-      //   _hourlyPm2_5ChartData = insightsHourlyChartData(
-      //       value, 'pm2.5', widget.placeDetails);
-      //   _hourlyPm10ChartData = insightsHourlyChartData(
-      //       value, 'pm10', widget.placeDetails);
-      // }),
-      // widget.insightsValueCallBack(
-      //     _hourlyPm2_5ChartData.toList().first.data.last);
-      if (widget.pollutant == 'pm2.5') {
-        // widget.insightsValueCallBack(
-        //     _hourlyPm2_5ChartData.toList().first.data.last),
-        await getForecast(measurements.first.deviceNumber, measurements);
-      } else {
-        setState(() {
-          _measurements = measurements;
-          _hourlyPm2_5ChartData = insightsHourlyChartData(
-              measurements, 'pm2.5', widget.placeDetails, []);
-          _hourlyPm10ChartData = insightsHourlyChartData(
-              measurements, 'pm10', widget.placeDetails, []);
-        });
-        widget.insightsValueCallBack(
-            _hourlyPm10ChartData.toList().first.data.last);
-        _showHelpTips();
-        await _saveMeasurements(_hourlyPm2_5ChartData.toList().first.data);
-        await _saveMeasurements(_hourlyPm10ChartData.toList().first.data);
-      }
-    }
-  }
-
   Future<void> _initialize() async {
     _preferences = await SharedPreferences.getInstance();
     _airqoApiClient = AirqoApiClient(context);
-    await _getDBMeasurements();
-    await _getRemoteMeasurements();
+    // await _getDBMeasurements();
+    // await _getRemoteMeasurements();
   }
 
   Future<void> _saveMeasurements(
@@ -682,6 +678,7 @@ class _InsightsCardState extends State<InsightsCard> {
     }
     setState(() {
       _selectedMeasurement = insightsChartData.last;
+      _hasMeasurements = true;
     });
 
     if (_lastUpdated == '') {
@@ -736,23 +733,6 @@ class _InsightsCardState extends State<InsightsCard> {
         widget.insightsValueCallBack(
             _hourlyPm10ChartData.toList().first.data.last);
       }
-    }
-  }
-
-  void _showHelpTips() {
-    return;
-    try {
-      var showHelpTips =
-          _preferences!.getBool(PrefConstant.insightsCardTips) ?? true;
-      if (showHelpTips) {
-        showTipText(_infoToolTipText, _infoToolTipKey, context, () {
-          showTipText(_forecastToolTipText, _forecastToolTipKey, context, () {
-            _preferences!.setBool(PrefConstant.insightsCardTips, false);
-          }, true);
-        }, true);
-      }
-    } catch (e) {
-      debugPrint(e.toString());
     }
   }
 

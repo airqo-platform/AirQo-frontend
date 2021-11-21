@@ -9,7 +9,7 @@ part 'measurement.g.dart';
 @JsonSerializable()
 class Measurement {
   @JsonKey(required: true)
-  final String time;
+  String time;
 
   @JsonKey(required: true, name: 'average_pm2_5')
   final MeasurementValue pm2_5;
@@ -135,20 +135,7 @@ class Measurement {
   }
 
   static Measurement parseMeasurement(dynamic jsonBody) {
-    var measurements = <Measurement>[];
-
-    var jsonArray = jsonBody['measurements'];
-    for (var jsonElement in jsonArray) {
-      try {
-        var measurement = Measurement.fromJson(jsonElement);
-        var value = measurement.getPm2_5Value();
-        if (value != -0.1 && value >= 0.00 && value <= 500.4) {
-          measurements.add(measurement);
-        }
-      } catch (e) {
-        debugPrint(e.toString());
-      }
-    }
+    var measurements = parseMeasurements(jsonBody);
     return measurements.first;
   }
 
@@ -156,11 +143,15 @@ class Measurement {
     var measurements = <Measurement>[];
 
     var jsonArray = jsonBody['measurements'];
+    var offSet = DateTime.now().timeZoneOffset.inHours;
     for (var jsonElement in jsonArray) {
       try {
         var measurement = Measurement.fromJson(jsonElement);
         var value = measurement.getPm2_5Value();
         if (value != -0.1 && value >= 0.00 && value <= 500.40) {
+          var formattedDate =
+              DateTime.parse(measurement.time).add(Duration(hours: offSet));
+          measurement.time = formattedDate.toString();
           measurements.add(measurement);
         }
       } catch (e) {

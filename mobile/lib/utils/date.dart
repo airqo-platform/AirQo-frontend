@@ -37,19 +37,10 @@ String chartDateToString(String formattedString, bool format) {
   }
 }
 
-String dateToString(String formattedString, bool addOffset) {
+String dateToString(String formattedString) {
   try {
     var now = DateTime.now();
-
-    DateTime formattedDate;
-
-    if (addOffset) {
-      var offSet = now.timeZoneOffset.inHours;
-      formattedDate =
-          DateTime.parse(formattedString).add(Duration(hours: offSet));
-    } else {
-      formattedDate = DateTime.parse(formattedString);
-    }
+    var formattedDate = DateTime.parse(formattedString);
 
     if (now.day == formattedDate.day) {
       return 'Updated today at ${DateFormat('hh:mm a').format(formattedDate)}';

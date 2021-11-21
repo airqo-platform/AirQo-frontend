@@ -127,6 +127,7 @@ flutter:
     - assets/icon/airqo_home.svg
     - assets/icon/unit.svg
     - assets/icon/PM2.5.svg
+    - assets/icon/PM10.svg
     - assets/icon/info_icon.svg
     - assets/icon/loader.svg
     - assets/icon/chart.svg
