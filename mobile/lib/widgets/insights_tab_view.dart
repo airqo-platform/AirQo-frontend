@@ -545,34 +545,6 @@ class _InsightsTabViewState extends State<InsightsTabView> {
         ));
   }
 
-  void setSelectedMeasurement(InsightsChartData insightsChartData) {
-    var time = insightsChartData.time;
-    var tomorrow = DateTime.now().add(const Duration(days: 1));
-    if (insightsChartData.available) {
-      setState(() {
-        _recommendations = getHealthRecommendations(insightsChartData.value);
-      });
-      if (time.day == DateTime.now().day) {
-        setState(() {
-          _viewDay = 'today';
-        });
-      } else if (time.day == tomorrow.day) {
-        setState(() {
-          _viewDay = 'tomorrow';
-        });
-      } else {
-        setState(() {
-          _viewDay = '';
-        });
-      }
-    } else {
-      setState(() {
-        _viewDay = '';
-        _recommendations = [];
-      });
-    }
-  }
-
   void togglePollutant() {
     setState(() {
       _pollutant = _pollutant == 'pm2.5' ? 'pm10' : 'pm2.5';
@@ -687,7 +659,6 @@ class _InsightsTabViewState extends State<InsightsTabView> {
       setState(() {
         _hourlyPm2_5ChartData = insightsHourlyChartData(
             measurements, 'pm2.5', widget.placeDetails, [], measurements);
-        _hasMeasurements = true;
       });
     } else {
       var combinedMeasurements = <HistoricalMeasurement>[...measurements];
@@ -710,6 +681,12 @@ class _InsightsTabViewState extends State<InsightsTabView> {
           _hasMeasurements = true;
         });
       }
+    }
+
+    if (_pollutant == 'pm2.5') {
+      _setSelectedMeasurement(_hourlyPm2_5ChartData);
+    } else {
+      _setSelectedMeasurement(_hourlyPm10ChartData);
     }
 
     await _saveMeasurements(_hourlyPm2_5ChartData.toList().first.data);
@@ -744,19 +721,12 @@ class _InsightsTabViewState extends State<InsightsTabView> {
     var measurements = await _airqoApiClient!.fetchSiteHistoricalMeasurements(
         widget.placeDetails.siteId, widget.daily);
 
-    if (measurements.isEmpty || !mounted) {
+    if (!mounted) {
       return;
     }
-    setState(() {
-      _selectedMeasurement = InsightsChartData.historicalDataToInsightsData(
-          measurements.first, _pollutant, widget.placeDetails);
-    });
-    setSelectedMeasurement(_selectedMeasurement!);
 
-    if (_lastUpdated == '') {
-      setState(() {
-        _lastUpdated = dateToString(_selectedMeasurement!.time.toString());
-      });
+    if (measurements.isEmpty) {
+      return;
     }
 
     if (widget.daily) {
@@ -765,8 +735,14 @@ class _InsightsTabViewState extends State<InsightsTabView> {
             measurements, 'pm2.5', widget.placeDetails, [], measurements);
         _dailyPm10ChartData = insightsDailyChartData(
             measurements, 'pm10', widget.placeDetails, [], measurements);
-        _hasMeasurements = true;
       });
+
+      if (_pollutant == 'pm2.5') {
+        _setSelectedMeasurement(_dailyPm2_5ChartData);
+      } else {
+        _setSelectedMeasurement(_dailyPm10ChartData);
+      }
+
       await _saveMeasurements(_dailyPm2_5ChartData.toList().first.data);
       await _saveMeasurements(_dailyPm2_5ChartData.toList().first.data);
     } else {
@@ -774,7 +750,19 @@ class _InsightsTabViewState extends State<InsightsTabView> {
         _hourlyPm10ChartData = insightsHourlyChartData(
             measurements, 'pm10', widget.placeDetails, [], measurements);
       });
-      await _getForecast(measurements.first.deviceNumber, measurements);
+      if (measurements.isNotEmpty) {
+        await _getForecast(measurements.first.deviceNumber, measurements);
+      } else {
+        setState(() {
+          _hourlyPm2_5ChartData = insightsHourlyChartData(
+              measurements, 'pm2.5', widget.placeDetails, [], measurements);
+        });
+        if (_pollutant == 'pm2.5') {
+          _setSelectedMeasurement(_hourlyPm2_5ChartData);
+        } else {
+          _setSelectedMeasurement(_hourlyPm10ChartData);
+        }
+      }
     }
   }
 
@@ -869,63 +857,57 @@ class _InsightsTabViewState extends State<InsightsTabView> {
       return;
     }
 
-    if (widget.daily) {
-      var dailyMeasurements = insightsChartData
-          .where((element) => element.frequency == 'daily')
-          .toList();
-      var pm25Data = dailyMeasurements
-          .where((element) => element.pollutant == 'pm2.5')
-          .toList();
-      var pm10Data = dailyMeasurements
-          .where((element) => element.pollutant == 'pm10')
-          .toList();
-      setState(() {
-        _dailyPm2_5ChartData = insightsDailyChartData(
-            [], 'pm2.5', widget.placeDetails, pm25Data, []);
-        _dailyPm10ChartData = insightsDailyChartData(
-            [], 'pm10', widget.placeDetails, pm10Data, []);
-        _hasMeasurements = true;
-      });
+    try {
+      if (widget.daily) {
+        var dailyMeasurements = insightsChartData
+            .where((element) => element.frequency == 'daily')
+            .toList();
+        var pm25Data = dailyMeasurements
+            .where((element) => element.pollutant == 'pm2.5')
+            .toList();
+        var pm10Data = dailyMeasurements
+            .where((element) => element.pollutant == 'pm10')
+            .toList();
+        setState(() {
+          _dailyPm2_5ChartData = insightsDailyChartData(
+              [], 'pm2.5', widget.placeDetails, pm25Data, []);
+          _dailyPm10ChartData = insightsDailyChartData(
+              [], 'pm10', widget.placeDetails, pm10Data, []);
+        });
 
-      if (_pollutant == 'pm2.5') {
-        setState(() {
-          _selectedMeasurement = _dailyPm2_5ChartData.toList().first.data.first;
-        });
+        if (_pollutant == 'pm2.5') {
+          _setSelectedMeasurement(_dailyPm2_5ChartData);
+        } else {
+          _setSelectedMeasurement(_dailyPm10ChartData);
+        }
       } else {
+        var hourlyMeasurements = insightsChartData
+            .where((element) => element.frequency == 'hourly')
+            .toList();
+        var pm25Data = hourlyMeasurements
+            .where((element) => element.pollutant == 'pm2.5')
+            .toList();
+        var pm10Data = hourlyMeasurements
+            .where((element) => element.pollutant == 'pm10')
+            .toList();
         setState(() {
-          _selectedMeasurement = _dailyPm10ChartData.toList().first.data.first;
+          _hourlyPm2_5ChartData = insightsHourlyChartData(
+              [], 'pm2.5', widget.placeDetails, pm25Data, []);
+          _hourlyPm10ChartData = insightsHourlyChartData(
+              [], 'pm10', widget.placeDetails, pm10Data, []);
         });
+        if (_pollutant == 'pm2.5') {
+          _setSelectedMeasurement(_hourlyPm2_5ChartData);
+        } else {
+          _setSelectedMeasurement(_hourlyPm10ChartData);
+        }
       }
-    } else {
-      var hourlyMeasurements = insightsChartData
-          .where((element) => element.frequency == 'hourly')
-          .toList();
-      var pm25Data = hourlyMeasurements
-          .where((element) => element.pollutant == 'pm2.5')
-          .toList();
-      var pm10Data = hourlyMeasurements
-          .where((element) => element.pollutant == 'pm10')
-          .toList();
-
-      setState(() {
-        _hourlyPm2_5ChartData = insightsHourlyChartData(
-            [], 'pm2.5', widget.placeDetails, pm25Data, []);
-        _hourlyPm10ChartData = insightsHourlyChartData(
-            [], 'pm10', widget.placeDetails, pm10Data, []);
-      });
-      if (_pollutant == 'pm2.5') {
-        setState(() {
-          _selectedMeasurement =
-              _hourlyPm2_5ChartData.toList().first.data.first;
-        });
-      } else {
-        setState(() {
-          _selectedMeasurement = _hourlyPm10ChartData.toList().first.data.first;
-        });
-      }
+    } catch (e) {
+      debugPrint(e.toString());
+      return;
     }
 
-    setSelectedMeasurement(_selectedMeasurement!);
+    _updateSelectedMeasurement(_selectedMeasurement!);
     if (_lastUpdated == '') {
       setState(() {
         _lastUpdated = dateToString(_selectedMeasurement!.time.toString());
@@ -933,8 +915,63 @@ class _InsightsTabViewState extends State<InsightsTabView> {
     }
   }
 
+  void _setSelectedMeasurement(
+      List<charts.Series<InsightsChartData, String>> chartData) {
+    var lastAvailable = chartData
+        .toList()
+        .first
+        .data
+        .where((element) => element.available && !element.isForecast);
+    if (lastAvailable.isEmpty) {
+      lastAvailable = chartData.toList().first.data;
+    }
+    setState(() {
+      _selectedMeasurement = lastAvailable.last;
+    });
+
+    _updateSelectedMeasurement(_selectedMeasurement!);
+
+    if (_lastUpdated == '') {
+      setState(() {
+        _lastUpdated = dateToString(_selectedMeasurement!.time.toString());
+      });
+    }
+
+    setState(() {
+      _hasMeasurements = true;
+    });
+  }
+
+  void _updateSelectedMeasurement(InsightsChartData insightsChartData) {
+    var time = insightsChartData.time;
+    var tomorrow = DateTime.now().add(const Duration(days: 1));
+    if (insightsChartData.available) {
+      setState(() {
+        _recommendations = getHealthRecommendations(insightsChartData.value);
+      });
+      if (time.day == DateTime.now().day) {
+        setState(() {
+          _viewDay = 'today';
+        });
+      } else if (time.day == tomorrow.day) {
+        setState(() {
+          _viewDay = 'tomorrow';
+        });
+      } else {
+        setState(() {
+          _viewDay = '';
+        });
+      }
+    } else {
+      setState(() {
+        _viewDay = '';
+        _recommendations = [];
+      });
+    }
+  }
+
   void _updateUI(InsightsChartData insightsChartData) {
-    setSelectedMeasurement(insightsChartData);
+    _updateSelectedMeasurement(insightsChartData);
     setState(() {
       _selectedMeasurement = insightsChartData;
     });

@@ -1,4 +1,5 @@
 import 'package:app/models/place_details.dart';
+import 'package:app/utils/date.dart';
 import 'package:intl/intl.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -61,6 +62,7 @@ class InsightsChartData {
     List<HistoricalMeasurement> measurements,
   ) {
     var insights = <InsightsChartData>[];
+    var days = <int>[];
     for (var measurement in allMeasurements) {
       var value = measurement.getPm2_5Value();
       if (pollutant == 'pm10') {
@@ -77,7 +79,43 @@ class InsightsChartData {
           'daily',
           !measurements.contains(measurement));
 
+      days.add(insight.time.weekday);
       insights.add(insight);
+    }
+
+    if (insights.isEmpty) {
+      var monday = DateTime.now().getDateOfFirstDayOfWeek();
+      var lastInsight = InsightsChartData(
+          monday,
+          55,
+          pollutant,
+          false,
+          placeDetails.getName(),
+          placeDetails.getLocation(),
+          DateFormat('EEE').format(monday),
+          'daily',
+          false);
+
+      insights.add(lastInsight);
+
+      while (insights.length != 7) {
+        var nextTime = lastInsight.time.add(const Duration(days: 1));
+
+        insights.add(InsightsChartData(
+            nextTime,
+            lastInsight.value,
+            pollutant,
+            false,
+            placeDetails.getName(),
+            placeDetails.getLocation(),
+            DateFormat('EEE').format(nextTime),
+            'daily',
+            false));
+
+        lastInsight = insights.last;
+      }
+
+      return formatData(insights);
     }
 
     var lastInsight = insights.last;

@@ -111,7 +111,8 @@ class CloudStore {
       return;
     }
 
-    // TODO DELETE NOTIFICATIONS
+    // TODO IMPLEMENT DELETE NOTIFICATIONS
+    // TODO IMPLEMENT DELETE KYA
     try {
       await _firebaseFirestore
           .collection(CloudStorage.usersCollection)
@@ -605,6 +606,7 @@ class CustomAuth {
   final SecureStorage _secureStorage = SecureStorage();
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   final SharedPreferencesHelper _preferencesHelper = SharedPreferencesHelper();
+  final DBHelper _dbHelper = DBHelper();
 
   Future<void> createProfile() async {
     var hasConnection = await isConnected();
@@ -659,6 +661,8 @@ class CustomAuth {
       await _secureStorage.clearUserDetails();
       await _preferencesHelper.clearPreferences();
       await _cloudStore.deleteAccount(id);
+      await _dbHelper.clearAccount();
+
       await currentUser.delete();
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());

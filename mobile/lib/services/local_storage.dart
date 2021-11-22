@@ -32,6 +32,17 @@ class DBHelper {
     return _database!;
   }
 
+  Future<void> clearAccount() async {
+    try {
+      final db = await database;
+      await db.delete(KyaItem.dbName());
+      await db.delete(Kya.dbName());
+      await db.delete(UserNotification.dbName());
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
   Future<void> clearFavouritePlaces() async {
     try {
       final db = await database;
@@ -51,7 +62,6 @@ class DBHelper {
       await db.execute(Predict.dropTableStmt());
       await db.execute(Site.dropTableStmt());
       await db.execute(Story.dropTableStmt());
-      await db.execute(UserDetails.dropTableStmt());
       await db.execute(PlaceDetails.dropTableStmt());
       await db.execute(UserNotification.dropTableStmt());
       await db.execute(InsightsChartData.dropTableStmt());
@@ -65,7 +75,6 @@ class DBHelper {
     await db.execute(Predict.createTableStmt());
     await db.execute(Site.createTableStmt());
     await db.execute(Story.createTableStmt());
-    await db.execute(UserDetails.createTableStmt());
     await db.execute(PlaceDetails.createTableStmt());
     await db.execute(UserNotification.createTableStmt());
     await db.execute(InsightsChartData.createTableStmt());
@@ -370,18 +379,6 @@ class DBHelper {
     }
   }
 
-  Future<UserDetails?> getUserData() async {
-    try {
-      final db = await database;
-      var res = await db.query(UserDetails.dbName());
-
-      return UserDetails.fromJson(res.first);
-    } catch (e) {
-      debugPrint(e.toString());
-      return null;
-    }
-  }
-
   Future<List<UserNotification>> getUserNotifications() async {
     try {
       final db = await database;
@@ -497,9 +494,12 @@ class DBHelper {
       }
 
       var name = insightsChartData.first.name;
+      var frequency = insightsChartData.first.frequency;
+      var pollutant = insightsChartData.first.pollutant;
 
       await db.delete(InsightsChartData.dbName(),
-          where: 'name = ?', whereArgs: [name]);
+          where: 'name = ? and frequency = ? and pollutant = ?',
+          whereArgs: [name, frequency, pollutant]);
 
       for (var row in insightsChartData) {
         try {
@@ -518,14 +518,14 @@ class DBHelper {
     }
   }
 
-  Future<void> insertKyas(List<Kya> Kyas) async {
+  Future<void> insertKyas(List<Kya> kyas) async {
     final db = await database;
 
-    if (Kyas.isEmpty) {
+    if (kyas.isEmpty) {
       return;
     }
 
-    for (var kya in Kyas) {
+    for (var kya in kyas) {
       try {
         var kyaJson = Kya.parseKyaToDb(kya);
         await db.insert(

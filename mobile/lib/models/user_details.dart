@@ -41,29 +41,6 @@ class UserDetails {
         'phoneNumber: $phoneNumber, device: $device, photoUrl: $photoUrl}';
   }
 
-  static String createTableStmt() => 'CREATE TABLE IF NOT EXISTS ${dbName()}('
-      '${dbId()} TEXT PRIMARY KEY, ${dbEmailAddress()} TEXT,'
-      '${dbLastName()} TEXT, ${dbDevice()} TEXT, ${dbPhotoUrl()} TEXT, '
-      '${dbPhoneNumber()} TEXT, ${dbFirstName()} TEXT)';
-
-  static String dbDevice() => 'device';
-
-  static String dbEmailAddress() => 'emailAddress';
-
-  static String dbFirstName() => 'firstName';
-
-  static String dbId() => 'id';
-
-  static String dbLastName() => 'lastName';
-
-  static String dbName() => 'user_db';
-
-  static String dbPhoneNumber() => 'phoneNumber';
-
-  static String dbPhotoUrl() => 'photoUrl';
-
-  static String dropTableStmt() => 'DROP TABLE IF EXISTS ${dbName()}';
-
   static List<String> getNames(String fullName) {
     var namesArray = fullName.split(' ');
     if (namesArray.isEmpty) {
