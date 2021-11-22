@@ -828,6 +828,60 @@ class CustomAuth {
     }
   }
 
+  Future<bool> reAuthenticateWithEmailAddress(
+      String emailAddress, String link, BuildContext context) async {
+    var hasConnection = await isConnected();
+    if (!hasConnection) {
+      return false;
+    }
+
+    try {
+      var userCredential = await _firebaseAuth.signInWithEmailLink(
+          emailLink: link, email: emailAddress);
+
+      return userCredential.user != null;
+    } catch (exception, stackTrace) {
+      debugPrint(exception.toString());
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+    }
+    return false;
+  }
+
+  Future<bool> reAuthenticateWithPhoneNumber(
+      AuthCredential authCredential, BuildContext context) async {
+    var hasConnection = await isConnected();
+    if (!hasConnection) {
+      return false;
+    }
+
+    try {
+      var userCredential =
+          await _firebaseAuth.signInWithCredential(authCredential);
+      return userCredential.user != null;
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'invalid-verification-code') {
+        await showSnackBar(context, 'Invalid Code');
+      }
+      if (e.code == 'session-expired') {
+        await showSnackBar(
+            context,
+            'Your verification '
+            'has timed out. we have sent your'
+            ' another verification code');
+      }
+    } catch (exception, stackTrace) {
+      debugPrint(exception.toString());
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+    }
+    return false;
+  }
+
   Future<bool> signUpWithEmailAddress(String emailAddress, String link) async {
     var hasConnection = await isConnected();
     if (!hasConnection) {
@@ -910,26 +964,32 @@ class CustomAuth {
   }
 
   Future<bool> updateEmailAddress(
-      User user, String emailAddress, String link) async {
+      String emailAddress, BuildContext context) async {
     var hasConnection = await isConnected();
     if (!hasConnection) {
       return false;
     }
-
-    var userCredential = await FirebaseAuth.instance
-        .signInWithEmailLink(emailLink: link, email: emailAddress);
-
-    if (userCredential.user != null) {
-      try {
-        await updateCredentials(null, userCredential.user!.email);
-      } catch (exception, stackTrace) {
-        debugPrint(exception.toString());
-        await Sentry.captureException(
-          exception,
-          stackTrace: stackTrace,
-        );
+    try {
+      await FirebaseAuth.instance.currentUser!.updateEmail(emailAddress);
+      await updateCredentials(null, emailAddress);
+      return true;
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'email-already-in-use') {
+        await showSnackBar(context, 'Email Address already taken');
+        return false;
       }
+      if (e.code == 'invalid-email') {
+        await showSnackBar(context, 'Invalid email address');
+        return false;
+      }
+    } catch (exception, stackTrace) {
+      debugPrint(exception.toString());
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
     }
+
     return false;
   }
 
@@ -960,6 +1020,43 @@ class CustomAuth {
     } catch (e) {
       debugPrint(e.toString());
     }
+  }
+
+  Future<bool> updatePhoneNumber(
+      PhoneAuthCredential authCredential, BuildContext context) async {
+    var hasConnection = await isConnected();
+    if (!hasConnection) {
+      return false;
+    }
+
+    try {
+      await FirebaseAuth.instance.currentUser!
+          .updatePhoneNumber(authCredential);
+      await updateCredentials(
+          FirebaseAuth.instance.currentUser!.phoneNumber, null);
+      return true;
+    } on FirebaseAuthException catch (e) {
+      print(e.toString());
+      if (e.code == 'credential-already-in-use') {
+        await showSnackBar(context, 'Phone number already taken');
+        return false;
+      } else if (e.code == 'invalid-verification-id') {
+        await showSnackBar(
+            context, 'Failed to change phone number. Try again later');
+        return false;
+      } else if (e.code == 'session-expired') {
+        await showSnackBar(context, 'Your code has expired. Try again later');
+        return false;
+      }
+    } catch (exception, stackTrace) {
+      debugPrint(exception.toString());
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return false;
   }
 
   Future<void> updateProfile(UserDetails userDetails) async {

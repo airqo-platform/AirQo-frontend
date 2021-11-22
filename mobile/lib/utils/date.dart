@@ -231,7 +231,7 @@ extension DateTimeExtension on DateTime {
       }
       return '$hours:$minutes';
     } else {
-      return '$day $getShortMonthString';
+      return '$day ${getShortMonthString()}';
     }
   }
 

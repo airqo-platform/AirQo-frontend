@@ -176,6 +176,8 @@ class InsightsChartData {
       insights.add(insight);
     }
 
+    insights.removeWhere((element) => element.time.day != DateTime.now().day);
+
     if (insights.isEmpty) {
       var now = DateTime.now();
       for (var i = 0; i <= 23; i++) {
@@ -196,7 +198,6 @@ class InsightsChartData {
               false));
         }
       }
-      insights.removeWhere((element) => element.time.day != DateTime.now().day);
       return formatData(insights);
     }
 
@@ -220,7 +221,7 @@ class InsightsChartData {
             false));
       }
     }
-    insights.removeWhere((element) => element.time.day != DateTime.now().day);
+
     return formatData(insights);
   }
 

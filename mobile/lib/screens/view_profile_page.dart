@@ -4,6 +4,8 @@ import 'dart:io';
 
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/user_details.dart';
+import 'package:app/screens/email_reauthenticate_screen.dart';
+import 'package:app/screens/phone_reauthenticate_screen.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/services/secure_storage.dart';
@@ -15,6 +17,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
+
+import 'change_email_screen.dart';
+import 'change_phone_screen.dart';
 
 class ViewProfilePage extends StatefulWidget {
   final UserDetails userDetails;
@@ -31,11 +36,13 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
   final CustomAuth _customAuth = CustomAuth();
   final ImagePicker _imagePicker = ImagePicker();
   AirqoApiClient? _airqoApiClient;
-  String _profilePic = '';
+
+  // String _profilePic = '';
   final TextEditingController _phoneEditor = TextEditingController();
   final TextEditingController _emailEditor = TextEditingController();
   bool changeImage = false;
   final SecureStorage _secureStorage = SecureStorage();
+  UserDetails? userDetails;
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +98,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                   keyboardType: TextInputType.name,
                   decoration: profileFormFieldDecoration(),
                   onChanged: (text) {
-                    widget.userDetails.firstName = text;
+                    userDetails!.firstName = text;
                   },
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -112,7 +119,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                   height: 4,
                 ),
                 TextFormField(
-                  initialValue: widget.userDetails.lastName,
+                  initialValue: userDetails!.lastName,
                   autofocus: true,
                   enableSuggestions: false,
                   cursorWidth: 1,
@@ -120,7 +127,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                   keyboardType: TextInputType.name,
                   decoration: profileFormFieldDecoration(),
                   onChanged: (text) {
-                    widget.userDetails.lastName = text;
+                    userDetails!.lastName = text;
                   },
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -129,9 +136,9 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                     return null;
                   },
                 ),
-                const SizedBox(
-                  height: 16,
-                ),
+                // const SizedBox(
+                //   height: 16,
+                // ),
                 // Text(
                 //   'Phone Number',
                 //   style: TextStyle(
@@ -140,84 +147,137 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                 // const SizedBox(
                 //   height: 4,
                 // ),
-                // SizedBox(
-                //   width: MediaQuery.of(context).size.width,
-                //   child: Row(
-                //     children: <Widget>[
-                //       Expanded(
-                //         child: TextFormField(
-                //           controller: _phoneEditor,
-                //           enableSuggestions: false,
-                //           readOnly: true,
-                //           style: TextStyle(color: ColorConstants
-                //           .inactiveColor),
-                //           decoration: profileFormInactiveFieldDecoration(),
-                //         ),
-                //       ),
-                //       const SizedBox(
-                //         width: 16,
-                //       ),
-                //       GestureDetector(
-                //         onTap: () async {
-                //           var response = await Navigator.push(context,
-                //               MaterialPageRoute(builder: (context) {
-                //             return const UpdateCredentialsScreen('phone');
-                //           }));
-                //           if (response) {
-                //             await initialize();
-                //           }
-                //         },
-                //         child: editCredentialsButton(),
-                //       )
-                //     ],
-                //   ),
-                // ),
-                // const SizedBox(
-                //   height: 16,
-                // ),
-                // Text(
-                //   'Email',
-                //   style: TextStyle(
-                //       fontSize: 12, color: ColorConstants.inactiveColor),
-                // ),
-                // const SizedBox(
-                //   height: 4,
-                // ),
-                // SizedBox(
-                //   width: MediaQuery.of(context).size.width,
-                //   child: Row(
-                //     children: <Widget>[
-                //       Expanded(
-                //         child: TextFormField(
-                //           controller: _emailEditor,
-                //           enableSuggestions: false,
-                //           readOnly: true,
-                //           style: TextStyle(color: ColorConstants
-                //           .inactiveColor),
-                //           decoration: profileFormInactiveFieldDecoration(),
-                //         ),
-                //       ),
-                //       const SizedBox(
-                //         width: 16,
-                //       ),
-                //       GestureDetector(
-                //         onTap: () async {
-                //           var response = await Navigator.push(context,
-                //               MaterialPageRoute(builder: (context) {
-                //             return const ChangeEmailScreen();
-                //           }));
-                //           if (response) {
-                //             await initialize();
-                //           }
-                //         },
-                //         child: editCredentialsButton(),
-                //       )
-                //     ],
-                //   ),
-                // ),
-                // const SizedBox(
-                //   height: 16,
-                // ),
+
+                Visibility(
+                  visible: _phoneEditor.text.isNotEmpty,
+                  child: const SizedBox(
+                    height: 16,
+                  ),
+                ),
+                Visibility(
+                  visible: _phoneEditor.text.isNotEmpty,
+                  child: Text(
+                    'Phone Number',
+                    style: TextStyle(
+                        fontSize: 12, color: ColorConstants.inactiveColor),
+                  ),
+                ),
+                Visibility(
+                  visible: _phoneEditor.text.isNotEmpty,
+                  child: const SizedBox(
+                    height: 4,
+                  ),
+                ),
+                Visibility(
+                  visible: _phoneEditor.text.isNotEmpty,
+                  child: SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    child: Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: TextFormField(
+                            controller: _phoneEditor,
+                            enableSuggestions: false,
+                            readOnly: true,
+                            style:
+                                TextStyle(color: ColorConstants.inactiveColor),
+                            decoration: profileFormInactiveFieldDecoration(),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 16,
+                        ),
+                        GestureDetector(
+                          onTap: () async {
+                            var authResponse = await Navigator.push(context,
+                                MaterialPageRoute(builder: (context) {
+                              return PhoneReAuthenticateScreen(userDetails!);
+                            }));
+                            if (!authResponse) {
+                              return;
+                            }
+                            var changeResponse = await Navigator.push(context,
+                                MaterialPageRoute(builder: (context) {
+                              return const ChangePhoneScreen();
+                            }));
+
+                            if (changeResponse) {
+                              await initialize();
+                            }
+                          },
+                          child: editCredentialsButton(),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+
+                Visibility(
+                  visible: _emailEditor.text.isNotEmpty,
+                  child: const SizedBox(
+                    height: 16,
+                  ),
+                ),
+                Visibility(
+                  visible: _emailEditor.text.isNotEmpty,
+                  child: Text(
+                    'Email',
+                    style: TextStyle(
+                        fontSize: 12, color: ColorConstants.inactiveColor),
+                  ),
+                ),
+                Visibility(
+                  visible: _emailEditor.text.isNotEmpty,
+                  child: const SizedBox(
+                    height: 4,
+                  ),
+                ),
+                Visibility(
+                  visible: _emailEditor.text.isNotEmpty,
+                  child: SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    child: Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: TextFormField(
+                            controller: _emailEditor,
+                            enableSuggestions: false,
+                            readOnly: true,
+                            style:
+                                TextStyle(color: ColorConstants.inactiveColor),
+                            decoration: profileFormInactiveFieldDecoration(),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 16,
+                        ),
+                        GestureDetector(
+                          onTap: () async {
+                            var authResponse = await Navigator.push(context,
+                                MaterialPageRoute(builder: (context) {
+                              return EmailReAuthenticateScreen(userDetails!);
+                            }));
+                            if (!authResponse) {
+                              return;
+                            }
+                            var changeResponse = await Navigator.push(context,
+                                MaterialPageRoute(builder: (context) {
+                              return const ChangeEmailScreen();
+                            }));
+
+                            if (changeResponse) {
+                              await initialize();
+                            }
+                          },
+                          child: editCredentialsButton(),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                  height: 16,
+                ),
               ],
             ),
           )),
@@ -244,7 +304,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
     );
     if (pickedFile != null) {
       setState(() {
-        widget.userDetails.photoUrl = pickedFile.path;
+        userDetails!.photoUrl = pickedFile.path;
       });
     }
   }
@@ -261,7 +321,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
   @override
   void initState() {
     setState(() {
-      _profilePic = widget.userDetails.photoUrl;
+      userDetails = widget.userDetails;
       _phoneEditor.text = widget.userDetails.phoneNumber;
       _emailEditor.text = widget.userDetails.emailAddress;
     });
@@ -317,7 +377,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
         Stack(
           alignment: AlignmentDirectional.center,
           children: [
-            _profilePic == ''
+            userDetails!.photoUrl == ''
                 ? RotationTransition(
                     turns: const AlwaysStoppedAnimation(-5 / 360),
                     child: Container(
@@ -334,22 +394,22 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                       ),
                     ),
                   )
-                : _profilePic.startsWith('http')
+                : userDetails!.photoUrl.startsWith('http')
                     ? CircleAvatar(
                         radius: 44,
                         backgroundColor: ColorConstants.appPicColor,
                         foregroundColor: ColorConstants.appPicColor,
                         backgroundImage: CachedNetworkImageProvider(
-                          _profilePic,
+                          userDetails!.photoUrl,
                         ),
                       )
                     : CircleAvatar(
                         radius: 44,
                         backgroundColor: ColorConstants.appPicColor,
                         foregroundColor: ColorConstants.appPicColor,
-                        backgroundImage: FileImage(File(_profilePic)),
+                        backgroundImage: FileImage(File(userDetails!.photoUrl)),
                       ),
-            if (_profilePic == '')
+            if (userDetails!.photoUrl == '')
               const Text(
                 'A',
                 style: TextStyle(
@@ -409,7 +469,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
       final image = await _controller.takePicture();
 
       setState(() {
-        widget.userDetails.photoUrl = image.path;
+        userDetails!.photoUrl = image.path;
       });
     } catch (e) {
       debugPrint(e.toString());
@@ -422,7 +482,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
       setState(() {
         updating = true;
       });
-      await _customAuth.updateProfile(widget.userDetails).then((value) => {
+      await _customAuth.updateProfile(userDetails!).then((value) => {
             uploadPicture().then((_) => {
                   updating = false,
                   showSnackBar(context, 'Profile updated'),
@@ -455,18 +515,18 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
     }
 
     try {
-      var mimeType = lookupMimeType(_profilePic);
+      var mimeType = lookupMimeType(userDetails!.photoUrl);
 
       mimeType ??= 'jpeg';
 
-      var imageBytes = await File(_profilePic).readAsBytes();
+      var imageBytes = await File(userDetails!.photoUrl).readAsBytes();
 
-      var imageUrl = await _airqoApiClient!.imageUpload(
-          base64Encode(imageBytes), mimeType, widget.userDetails.userId);
+      var imageUrl = await _airqoApiClient!
+          .imageUpload(base64Encode(imageBytes), mimeType, userDetails!.userId);
 
-      widget.userDetails.photoUrl = imageUrl;
+      userDetails!.photoUrl = imageUrl;
 
-      await _customAuth.updateProfile(widget.userDetails);
+      await _customAuth.updateProfile(userDetails!);
     } catch (e) {
       debugPrint(e.toString());
     }
@@ -477,8 +537,8 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
       updating = false;
     });
 
-    widget.userDetails.photoUrl = value;
-    await _customAuth.updateProfile(widget.userDetails);
+    userDetails!.photoUrl = value;
+    await _customAuth.updateProfile(userDetails!);
     await showSnackBar(context, 'success');
   }
 
@@ -490,7 +550,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
     );
     if (pickedFile != null) {
       setState(() {
-        _profilePic = pickedFile.path;
+        userDetails!.photoUrl = pickedFile.path;
         changeImage = true;
       });
     }

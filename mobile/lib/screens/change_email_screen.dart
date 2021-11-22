@@ -5,6 +5,7 @@ import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/string_extension.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/text_fields.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
@@ -23,7 +24,6 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
   bool _isVerifying = false;
   bool _isResending = false;
   int _emailToken = 1;
-  var _emailVerificationLink = '';
   var _requestCode = false;
   var _showResendCode = false;
   var _emailVerificationCode = <String>['', '', '', '', '', ''];
@@ -31,6 +31,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
 
   final _emailFormKey = GlobalKey<FormState>();
   final CustomAuth _customAuth = CustomAuth();
+  User? _user;
   final TextEditingController _emailInputController = TextEditingController();
   AirqoApiClient? _airqoApiClient;
 
@@ -59,7 +60,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
         Visibility(
           visible: !_requestCode,
           child: const Text(
-            'Change your email',
+            'Change email',
             textAlign: TextAlign.center,
             style: TextStyle(
                 fontWeight: FontWeight.bold, fontSize: 24, color: Colors.black),
@@ -83,7 +84,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
         Visibility(
             visible: !_requestCode,
             child: Text(
-              'We’ll send you a verification code',
+              'We’ll send you a code to verify you new email address',
               textAlign: TextAlign.center,
               style:
                   TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.6)),
@@ -92,9 +93,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
         const SizedBox(
           height: 32,
         ),
-        // End Common widgets
 
-        // input fields
         Visibility(
           visible: _requestCode,
           child: Padding(
@@ -212,28 +211,12 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
         const SizedBox(
           height: 20,
         ),
-        cancelOption(),
+        cancelOption(context),
         const SizedBox(
           height: 20,
         ),
       ])),
     ));
-  }
-
-  Widget cancelOption() {
-    return GestureDetector(
-      onTap: () {
-        Navigator.pop(context, false);
-      },
-      child: Text(
-        'Cancel',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: ColorConstants.appColorBlue),
-      ),
-    );
   }
 
   void clearEmailCallBack() {
@@ -263,7 +246,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
           onChanged: emailValueChange,
           validator: (value) {
             if (value == null || value.isEmpty) {
-              showSnackBar(context, 'Please enter your email address');
+              showSnackBar(context, 'Please enter your new email address');
               setState(() {
                 _emailFormValid = false;
               });
@@ -284,7 +267,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
           decoration: InputDecoration(
             focusedBorder: InputBorder.none,
             enabledBorder: InputBorder.none,
-            hintText: 'Enter your email',
+            hintText: 'Enter your new email',
             suffixIcon: GestureDetector(
                 onTap: () {
                   _emailInputController.text = '';
@@ -317,11 +300,11 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
       _isVerifying = false;
       _isResending = false;
       _emailToken = 000000;
-      _emailVerificationLink = '';
       _requestCode = false;
       _showResendCode = false;
       _emailVerificationCode = <String>['', '', '', '', '', ''];
       _nextBtnColor = ColorConstants.appColorDisabled;
+      _user = _customAuth.getUser();
     });
   }
 
@@ -336,6 +319,12 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
     _emailFormKey.currentState!.validate();
 
     if (!_emailFormValid || _isVerifying) {
+      return;
+    }
+
+    if (_user!.email!.trim().toLowerCase() ==
+        _emailAddress.trim().toLowerCase()) {
+      await showSnackBar(context, 'Enter a different email address');
       return;
     }
 
@@ -358,7 +347,6 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
 
     setState(() {
       _emailToken = emailVerificationResponse.token;
-      _emailVerificationLink = emailVerificationResponse.loginLink;
       _requestCode = true;
       _isVerifying = false;
       _showResendCode = false;
@@ -386,7 +374,6 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
     setState(() {
       _isResending = false;
       _emailToken = emailVerificationResponse.token;
-      _emailVerificationLink = emailVerificationResponse.loginLink;
     });
   }
 
@@ -404,15 +391,6 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
         _nextBtnColor = ColorConstants.appColorDisabled;
       });
     }
-  }
-
-  Future<void> updateEmailAddress() async {
-    var user = _customAuth.getUser();
-
-    await user!.updateEmail(_emailAddress).then((value) => {
-          _customAuth.updateCredentials(null, user.email),
-          Navigator.pop(context, true)
-        });
   }
 
   Future<void> verifySentCode() async {
@@ -447,8 +425,8 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
       return;
     }
 
-    var success = await _customAuth.updateEmailAddress(
-        user, _emailAddress, _emailVerificationLink);
+    var success = await _customAuth.updateEmailAddress(_emailAddress, context);
+
     if (success) {
       Navigator.pop(context, true);
     } else {

@@ -2,6 +2,7 @@ import 'package:app/config/env.dart';
 
 class AirQoUrls {
   final String _baseUrl = baseUrl;
+  final _stageBaseUrl = stageBaseUrl;
   final String _baseUrlV2 = baseUrlV2;
   final String _searchBaseUrl = placesSearchUrl;
 
@@ -27,5 +28,5 @@ class AirQoUrls {
 
   String get stories => storiesLink;
 
-  String get welcomeMessage => '${_baseUrl}notifications/welcomeMessage';
+  String get welcomeMessage => '${_stageBaseUrl}notifications/welcomeMessage';
 }
