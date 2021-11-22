@@ -21,17 +21,18 @@ import 'package:provider/provider.dart';
 import 'custom_shimmer.dart';
 import 'custom_widgets.dart';
 
-class DailyView extends StatefulWidget {
+class InsightsTabView extends StatefulWidget {
   final PlaceDetails placeDetails;
   final bool daily;
 
-  const DailyView(this.placeDetails, this.daily, {Key? key}) : super(key: key);
+  const InsightsTabView(this.placeDetails, this.daily, {Key? key})
+      : super(key: key);
 
   @override
-  _DailyViewState createState() => _DailyViewState();
+  _InsightsTabViewState createState() => _InsightsTabViewState();
 }
 
-class _DailyViewState extends State<DailyView> {
+class _InsightsTabViewState extends State<InsightsTabView> {
   String _viewDay = 'today';
   String _pollutant = 'pm2.5';
   bool _showHeartAnimation = false;
@@ -853,14 +854,13 @@ class _DailyViewState extends State<DailyView> {
 
   Future<void> _initialize() async {
     _airqoApiClient = AirqoApiClient(context);
-    // await _getDBMeasurements();
+    await _getDBMeasurements();
     await _getRemoteMeasurements();
   }
 
   Future<void> _saveMeasurements(
       List<InsightsChartData> insightsChartData) async {
-    // TODO implement save measurements
-    // await _dbHelper.insertInsightsChartData(insightsChartData);
+    await _dbHelper.insertInsightsChartData(insightsChartData);
   }
 
   Future<void> _setMeasurements(
@@ -868,46 +868,44 @@ class _DailyViewState extends State<DailyView> {
     if (insightsChartData.isEmpty || !mounted) {
       return;
     }
-    setState(() {
-      _selectedMeasurement = insightsChartData.last;
-      _hasMeasurements = true;
-    });
-
-    if (_lastUpdated == '') {
-      setState(() {
-        _lastUpdated = dateToString(_selectedMeasurement!.time.toString());
-      });
-    }
 
     if (widget.daily) {
-      var measurements = insightsChartData
+      var dailyMeasurements = insightsChartData
           .where((element) => element.frequency == 'daily')
           .toList();
-      var pm25Data = measurements
+      var pm25Data = dailyMeasurements
           .where((element) => element.pollutant == 'pm2.5')
           .toList();
-      var pm10Data =
-          measurements.where((element) => element.pollutant == 'pm10').toList();
+      var pm10Data = dailyMeasurements
+          .where((element) => element.pollutant == 'pm10')
+          .toList();
       setState(() {
         _dailyPm2_5ChartData = insightsDailyChartData(
             [], 'pm2.5', widget.placeDetails, pm25Data, []);
         _dailyPm10ChartData = insightsDailyChartData(
             [], 'pm10', widget.placeDetails, pm10Data, []);
+        _hasMeasurements = true;
       });
+
       if (_pollutant == 'pm2.5') {
-        setSelectedMeasurement(_dailyPm2_5ChartData.toList().first.data.last);
+        setState(() {
+          _selectedMeasurement = _dailyPm2_5ChartData.toList().first.data.first;
+        });
       } else {
-        setSelectedMeasurement(_dailyPm10ChartData.toList().first.data.last);
+        setState(() {
+          _selectedMeasurement = _dailyPm10ChartData.toList().first.data.first;
+        });
       }
     } else {
-      var measurements = insightsChartData
+      var hourlyMeasurements = insightsChartData
           .where((element) => element.frequency == 'hourly')
           .toList();
-      var pm25Data = measurements
+      var pm25Data = hourlyMeasurements
           .where((element) => element.pollutant == 'pm2.5')
           .toList();
-      var pm10Data =
-          measurements.where((element) => element.pollutant == 'pm10').toList();
+      var pm10Data = hourlyMeasurements
+          .where((element) => element.pollutant == 'pm10')
+          .toList();
 
       setState(() {
         _hourlyPm2_5ChartData = insightsHourlyChartData(
@@ -916,10 +914,22 @@ class _DailyViewState extends State<DailyView> {
             [], 'pm10', widget.placeDetails, pm10Data, []);
       });
       if (_pollutant == 'pm2.5') {
-        setSelectedMeasurement(_hourlyPm2_5ChartData.toList().first.data.last);
+        setState(() {
+          _selectedMeasurement =
+              _hourlyPm2_5ChartData.toList().first.data.first;
+        });
       } else {
-        setSelectedMeasurement(_hourlyPm10ChartData.toList().first.data.last);
+        setState(() {
+          _selectedMeasurement = _hourlyPm10ChartData.toList().first.data.first;
+        });
       }
+    }
+
+    setSelectedMeasurement(_selectedMeasurement!);
+    if (_lastUpdated == '') {
+      setState(() {
+        _lastUpdated = dateToString(_selectedMeasurement!.time.toString());
+      });
     }
   }
 

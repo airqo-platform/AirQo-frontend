@@ -170,9 +170,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _getLatestMeasurements() {
-    _airqoApiClient!.fetchLatestMeasurements().then((value) => {
-          if (value.isNotEmpty) {_dbHelper.insertLatestMeasurements(value)}
-        });
+    _airqoApiClient!.fetchLatestMeasurements().then((value) =>
+        {if (value.isNotEmpty) _dbHelper.insertLatestMeasurements(value)});
   }
 
   void _onItemTapped(int index) {

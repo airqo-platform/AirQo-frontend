@@ -179,7 +179,7 @@ class PrefConstant {
 
   static String get lastKnownLocation => 'lastKnownLocation';
 
-  static String get reLoadDb => 'recreateTables';
+  static String get reLoadDb => 'recreateAllTables';
 
   static String get siteAlerts => 'siteAlerts';
 }

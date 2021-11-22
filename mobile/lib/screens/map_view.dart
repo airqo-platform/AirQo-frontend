@@ -119,6 +119,73 @@ class _MapViewState extends State<MapView> {
     );
   }
 
+  Widget emptyView(String title, String bodyInnerText, bool topBars) {
+    return Column(
+      children: [
+        Visibility(
+            visible: topBars,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Container(
+                    height: 32,
+                    width: 32,
+                    decoration: BoxDecoration(
+                        color: ColorConstants.appBodyColor,
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(8.0))),
+                    child: Center(
+                      child: IconButton(
+                        iconSize: 10,
+                        icon: Icon(
+                          Icons.clear,
+                          color: ColorConstants.appBarTitleColor,
+                        ),
+                        onPressed: showRegions,
+                      ),
+                    ))
+              ],
+            )),
+        const SizedBox(
+          height: 80,
+        ),
+        Image.asset(
+          'assets/icon/coming_soon.png',
+          height: 80,
+          width: 80,
+        ),
+        const SizedBox(
+          height: 16,
+        ),
+        Padding(
+            padding: const EdgeInsets.only(left: 30, right: 30),
+            child: Text(
+              '$title\nComing soon on the network'.trim(),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            )),
+        const SizedBox(
+          height: 8,
+        ),
+        Padding(
+            padding: const EdgeInsets.only(left: 20, right: 20),
+            child: Text(
+              'We currently do not support air quality '
+              'monitoring in this $bodyInnerText, but we’re working on it.',
+              textAlign: TextAlign.center,
+              style:
+                  TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.4)),
+            )),
+        const SizedBox(
+          height: 158,
+        ),
+      ],
+    );
+  }
+
   LatLngBounds getBounds(List<Marker> markers) {
     var latitudes =
         markers.map<double>((marker) => marker.position.latitude).toList();
@@ -138,12 +205,21 @@ class _MapViewState extends State<MapView> {
     return bounds;
   }
 
+  Widget getLocationDisplay() {
+    if (_locationMeasurement != null && _locationPlaceMeasurement != null) {
+      return MapAnalyticsCard(
+          _locationPlaceMeasurement!, _locationMeasurement!, showLocation);
+    }
+
+    return emptyView('', 'area', true);
+  }
+
   @override
   void initState() {
-    super.initState();
     _airqoApiClient = AirqoApiClient(context);
     _searchApiClient = SearchApi(sessionToken, context);
     _cloudAnalytics.logScreenTransition('Map Tab');
+    super.initState();
   }
 
   Widget locationContent() {
@@ -152,8 +228,17 @@ class _MapViewState extends State<MapView> {
         const SizedBox(height: 8),
         draggingHandle(),
         const SizedBox(height: 24),
-        MapAnalyticsCard(
-            _locationPlaceMeasurement!, _locationMeasurement!, showLocation),
+        getLocationDisplay(),
+        // Visibility(
+        //   visible: _locationMeasurement != null &&
+        //       _locationPlaceMeasurement != null,
+        //     child: MapAnalyticsCard(
+        //         _locationPlaceMeasurement!,
+        //         _locationMeasurement!, showLocation),),
+        // Visibility(
+        //   visible: _locationMeasurement == null ||
+        //       _locationPlaceMeasurement != null,
+        //   child: emptyView('', 'area'),),
         const SizedBox(height: 16),
       ],
     );
@@ -583,6 +668,12 @@ class _MapViewState extends State<MapView> {
         _locationMeasurement = measurement;
         _showLocationDetails = true;
       });
+    } else {
+      setState(() {
+        _locationMeasurement = null;
+        _locationPlaceMeasurement = null;
+        _showLocationDetails = true;
+      });
     }
   }
 
@@ -633,10 +724,11 @@ class _MapViewState extends State<MapView> {
           place.geometry.location.lat, place.geometry.location.lng);
 
       if (nearestSite == null) {
-        await showSnackBar(
-            context,
-            'Sorry, we currently don\'t have air quality for '
-            '${suggestion.suggestionDetails.getMainText()}');
+        // await showSnackBar(
+        //     context,
+        //     'Sorry, we currently don\'t have air quality for '
+        //     '${suggestion.suggestionDetails.getMainText()}');
+        showLocationContent(null, null);
         return;
       }
 
@@ -681,46 +773,7 @@ class _MapViewState extends State<MapView> {
                 ))),
         Visibility(
             visible: _regionSites.isEmpty,
-            child: Column(
-              children: [
-                const SizedBox(
-                  height: 80,
-                ),
-                Image.asset(
-                  'assets/icon/coming_soon.png',
-                  height: 80,
-                  width: 80,
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
-                Padding(
-                    padding: const EdgeInsets.only(left: 30, right: 30),
-                    child: Text(
-                      '$_selectedRegion\nComing soon on the network',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    )),
-                const SizedBox(
-                  height: 8,
-                ),
-                Padding(
-                    padding: const EdgeInsets.only(left: 20, right: 20),
-                    child: Text(
-                      'We currently do not support air quality '
-                      'monitoring in this region, but we’re working on it.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          fontSize: 14, color: Colors.black.withOpacity(0.4)),
-                    )),
-                const SizedBox(
-                  height: 158,
-                ),
-              ],
-            ))
+            child: emptyView(_selectedRegion, 'region', false))
       ],
     );
   }
@@ -763,25 +816,22 @@ class _MapViewState extends State<MapView> {
     var dbMeasurements = await _dbHelper.getLatestMeasurements();
 
     if (dbMeasurements.isNotEmpty && mounted) {
-      if (mounted) {
-        await setMarkers(dbMeasurements, false, 6.6);
-        setState(() {
-          _latestMeasurements = dbMeasurements;
-        });
-      }
-
-      var measurements = await _airqoApiClient!.fetchLatestMeasurements();
-
-      if (measurements.isNotEmpty) {
-        if (mounted) {
-          await setMarkers(measurements, false, 6.6);
-          setState(() {
-            _latestMeasurements = measurements;
-          });
-        }
-        await _dbHelper.insertLatestMeasurements(measurements);
-      }
+      await setMarkers(dbMeasurements, false, 6.6);
+      setState(() {
+        _latestMeasurements = dbMeasurements;
+      });
     }
+
+    var measurements = await _airqoApiClient!.fetchLatestMeasurements();
+
+    if (measurements.isNotEmpty && mounted) {
+      await setMarkers(measurements, false, 6.6);
+      setState(() {
+        _latestMeasurements = measurements;
+      });
+    }
+
+    await _dbHelper.insertLatestMeasurements(measurements);
   }
 
   Future<void> _loadTheme() async {

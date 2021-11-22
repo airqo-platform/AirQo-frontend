@@ -8,6 +8,7 @@ import 'package:app/constants/app_constants.dart';
 import 'package:app/models/email_signup_model.dart';
 import 'package:app/models/feedback.dart';
 import 'package:app/models/historical_measurement.dart';
+import 'package:app/models/json_parsers.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place.dart';
 import 'package:app/models/predict.dart';
@@ -102,7 +103,7 @@ class AirqoApiClient {
       final responseBody =
           await _performGetRequest(queryParams, _airQoUrls.measurements);
       if (responseBody != null) {
-        return compute(Measurement.parseMeasurements, responseBody);
+        return await compute(parseMeasurements, responseBody);
       } else {
         return <Measurement>[];
       }
@@ -237,7 +238,7 @@ class AirqoApiClient {
           await _performGetRequest(queryParams, _airQoUrls.measurements);
 
       if (responseBody != null) {
-        return compute(Measurement.parseMeasurement, responseBody);
+        return await compute(parseMeasurement, responseBody);
       } else {
         throw Exception('site does not exist');
       }
@@ -384,6 +385,7 @@ class AirqoApiClient {
         });
       }
 
+      print(url);
       Map<String, String> headers = HashMap()
         ..putIfAbsent('Authorization', () => 'JWT ${AppConfig.airQoApiKey}');
       final response = await http.get(Uri.parse(url), headers: headers);

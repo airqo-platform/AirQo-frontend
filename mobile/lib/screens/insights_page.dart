@@ -1,7 +1,7 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/widgets/custom_widgets.dart';
-import 'package:app/widgets/daily_view.dart';
+import 'package:app/widgets/insights_tab_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -106,8 +106,8 @@ class _InsightsPageState extends State<InsightsPage>
               controller: _tabController,
               physics: const NeverScrollableScrollPhysics(),
               children: <Widget>[
-                DailyView(widget.placeDetails, false),
-                DailyView(widget.placeDetails, true),
+                InsightsTabView(widget.placeDetails, false),
+                InsightsTabView(widget.placeDetails, true),
                 // MonthlyView(site),
               ],
             )),

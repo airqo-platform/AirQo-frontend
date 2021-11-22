@@ -36,9 +36,10 @@ class InsightsChartData {
   }
 
   static String createTableStmt() => 'CREATE TABLE IF NOT EXISTS ${dbName()}('
-      'id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, time TEXT, '
+      'id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
+      'time TEXT, isForecast TEXT, '
       'pollutant TEXT, value REAL, '
-      'available TEXT, name TEXT, '
+      'available TEXT, name TEXT, frequency TEXT,'
       'day TEXT, location TEXT )';
 
   static String dbName() => 'insights_db';

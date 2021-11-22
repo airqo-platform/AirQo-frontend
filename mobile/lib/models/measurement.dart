@@ -1,5 +1,4 @@
 import 'package:app/models/site.dart';
-import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import 'measurement_value.dart';
@@ -132,38 +131,6 @@ class Measurement {
       });
 
     return measurementMap;
-  }
-
-  static Measurement parseMeasurement(dynamic jsonBody) {
-    var measurements = parseMeasurements(jsonBody);
-    return measurements.first;
-  }
-
-  static List<Measurement> parseMeasurements(dynamic jsonBody) {
-    var measurements = <Measurement>[];
-
-    var jsonArray = jsonBody['measurements'];
-    var offSet = DateTime.now().timeZoneOffset.inHours;
-    for (var jsonElement in jsonArray) {
-      try {
-        var measurement = Measurement.fromJson(jsonElement);
-        var value = measurement.getPm2_5Value();
-        if (value != -0.1 && value >= 0.00 && value <= 500.40) {
-          var formattedDate =
-              DateTime.parse(measurement.time).add(Duration(hours: offSet));
-          measurement.time = formattedDate.toString();
-          measurements.add(measurement);
-        }
-      } catch (e) {
-        debugPrint(e.toString());
-      }
-    }
-    measurements.sort((siteA, siteB) => siteA.site
-        .getName()
-        .toLowerCase()
-        .compareTo(siteB.site.getName().toLowerCase()));
-
-    return measurements;
   }
 }
 

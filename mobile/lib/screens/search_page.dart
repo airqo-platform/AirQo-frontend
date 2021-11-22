@@ -26,6 +26,7 @@ class _SearchPageState extends State<SearchPage> {
   List<Suggestion> _searchSuggestions = [];
   List<Measurement> _allSites = [];
   bool _isSearching = false;
+  bool _emptyView = false;
   bool _hasNearbyLocations = true;
   SearchApi? _searchApiClient;
 
@@ -71,46 +72,7 @@ class _SearchPageState extends State<SearchPage> {
                     color: ColorConstants.inactiveColor, fontSize: 12),
               ),
             ),
-            Visibility(
-              visible: _isSearching,
-              child: Expanded(
-                child: MediaQuery.removePadding(
-                    context: context,
-                    removeTop: true,
-                    child: ListView(
-                      shrinkWrap: true,
-                      children: [
-                        searchLocations(),
-                      ],
-                    )),
-              ),
-            ),
-            Visibility(
-              visible: !_isSearching && _hasNearbyLocations,
-              child: Expanded(
-                child: MediaQuery.removePadding(
-                    context: context,
-                    removeTop: true,
-                    child: ListView(
-                      shrinkWrap: true,
-                      children: [
-                        if (_nearbySites.isEmpty) requestLocationAccess(),
-                        if (_nearbySites.isNotEmpty) nearByLocations(),
-                      ],
-                    )),
-              ),
-            ),
-            Visibility(
-              visible: !_isSearching && !_hasNearbyLocations,
-              child: Expanded(
-                child: ListView(
-                  shrinkWrap: true,
-                  children: [
-                    noNearbyLocations(),
-                  ],
-                ),
-              ),
-            ),
+            loadMainView(),
           ],
         ),
       ),
@@ -172,6 +134,115 @@ class _SearchPageState extends State<SearchPage> {
     getSites();
     getUserLocation();
     super.initState();
+  }
+
+  Widget loadMainView() {
+    if (_emptyView) {
+      return ListView(
+        shrinkWrap: true,
+        children: [
+          const SizedBox(
+            height: 80,
+          ),
+          Visibility(
+            visible: false,
+            child: Image.asset(
+              'assets/icon/coming_soon.png',
+              height: 80,
+              width: 80,
+            ),
+          ),
+          Center(
+            child: Stack(
+              children: [
+                Image.asset(
+                  'assets/images/world-map.png',
+                  height: 130,
+                  width: 130,
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    color: ColorConstants.appColorBlue,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Padding(
+                    padding: EdgeInsets.all(12.0),
+                    child: Icon(
+                      Icons.map_outlined,
+                      size: 30,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(
+            height: 16,
+          ),
+          const Padding(
+              padding: EdgeInsets.only(left: 30, right: 30),
+              child: Text(
+                'Coming soon on the network',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              )),
+          const SizedBox(
+            height: 8,
+          ),
+          Padding(
+              padding: const EdgeInsets.only(left: 20, right: 20),
+              child: Text(
+                'We currently do not support air quality '
+                'monitoring in this area, but we’re working on it.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 14, color: Colors.black.withOpacity(0.4)),
+              )),
+        ],
+      );
+    }
+
+    if (_isSearching) {
+      return Expanded(
+        child: MediaQuery.removePadding(
+            context: context,
+            removeTop: true,
+            child: ListView(
+              shrinkWrap: true,
+              children: [
+                searchLocations(),
+              ],
+            )),
+      );
+    }
+
+    if (_hasNearbyLocations) {
+      return Expanded(
+        child: MediaQuery.removePadding(
+            context: context,
+            removeTop: true,
+            child: ListView(
+              shrinkWrap: true,
+              children: [
+                if (_nearbySites.isEmpty) requestLocationAccess(),
+                if (_nearbySites.isNotEmpty) nearByLocations(),
+              ],
+            )),
+      );
+    }
+
+    return Expanded(
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          noNearbyLocations(),
+        ],
+      ),
+    );
   }
 
   Widget nearByLocations() {
@@ -378,10 +449,12 @@ class _SearchPageState extends State<SearchPage> {
     if (text.isEmpty) {
       setState(() {
         _isSearching = false;
+        _emptyView = false;
       });
     } else {
       setState(() {
         _isSearching = true;
+        _emptyView = false;
       });
 
       _searchApiClient!.fetchSuggestions(text).then((value) => {
@@ -588,10 +661,9 @@ class _SearchPageState extends State<SearchPage> {
           place.geometry.location.lat, place.geometry.location.lng);
 
       if (nearestSite == null) {
-        await showSnackBar(
-            context,
-            'Sorry, we currently don\'t have air quality for '
-            '${suggestion.suggestionDetails.getMainText()}');
+        setState(() {
+          _emptyView = true;
+        });
         return;
       }
 

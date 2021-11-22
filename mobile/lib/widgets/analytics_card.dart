@@ -218,7 +218,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                                   3.2),
                                           child: Text(
                                             dateToString(
-                                                widget.measurement.time, true),
+                                                widget.measurement.time),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
@@ -541,7 +541,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                                   3.2),
                                           child: Text(
                                             dateToString(
-                                                widget.measurement.time, true),
+                                                widget.measurement.time),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
