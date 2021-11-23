@@ -318,7 +318,7 @@ class _NotificationPageState extends State<NotificationPage> {
 
     if (offlineData.isNotEmpty && mounted) {
       setState(() {
-        _notifications = offlineData;
+        _notifications = UserNotification.reorderNotifications(offlineData);
       });
     }
 
@@ -335,7 +335,7 @@ class _NotificationPageState extends State<NotificationPage> {
     if (mounted) {
       setState(() {
         _isLoading = false;
-        _notifications = notifies;
+        _notifications = UserNotification.reorderNotifications(notifies);
       });
     }
 

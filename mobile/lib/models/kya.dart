@@ -48,20 +48,23 @@ class Kya {
 
   factory Kya.fromJson(Map<String, dynamic> json) => _$KyaFromJson(json);
 
-  Map<String, dynamic> parseKyaToDb() {
+  List<Map<String, dynamic>> parseKyaToDb() {
     try {
       var kyaItems = this.kyaItems;
       var kyaJson = toJson()..remove('kyaItems');
+      var kyaJsonList = <Map<String, dynamic>>[];
 
       for (var item in kyaItems) {
-        var itemJson = {
+        var itemJson = <String, dynamic>{
           'item_title': item.title,
           'item_imageUrl': item.imageUrl,
           'item_body': item.body,
         };
         kyaJson.addAll(itemJson);
+        var jsonBody = itemJson..addAll(kyaJson);
+        kyaJsonList.add(jsonBody);
       }
-      return kyaJson;
+      return kyaJsonList;
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
       debugPrint(stackTrace.toString());
@@ -70,13 +73,14 @@ class Kya {
         stackTrace: stackTrace,
       );
     }
-    return {};
+    return [];
   }
 
   Map<String, dynamic> toJson() => _$KyaToJson(this);
 
   static String createTableStmt() => 'CREATE TABLE IF NOT EXISTS ${dbName()}('
-      'id TEXT PRIMARY KEY, progress REAL, title TEXT, imageUrl TEXT,'
+      'auto_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, id TEXT, '
+      'progress REAL, title TEXT, imageUrl TEXT,'
       'item_title TEXT, item_imageUrl TEXT, item_body TEXT)';
 
   static String dbName() => 'kya_db';

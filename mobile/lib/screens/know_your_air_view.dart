@@ -180,6 +180,6 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
       });
     }
 
-    await _dbHelper.insertKyas(completeKyaCards);
+    await _dbHelper.insertKyas(kyaCards);
   }
 }

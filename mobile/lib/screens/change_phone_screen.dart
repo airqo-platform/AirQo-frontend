@@ -226,7 +226,6 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
               ),
             ),
           ),
-
           const Spacer(),
           Visibility(
             visible: _verifyCode,

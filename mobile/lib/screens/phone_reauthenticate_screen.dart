@@ -54,7 +54,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
       color: Colors.white,
       padding: const EdgeInsets.only(left: 24, right: 24),
       child: Center(
-          child: ListView(children: [
+          child: Column(children: [
         const SizedBox(
           height: 42,
         ),
@@ -111,12 +111,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
             ),
           ),
         ),
-        const SizedBox(
-          height: 19,
-        ),
-        const SizedBox(
-          height: 212,
-        ),
+        const Spacer(),
         GestureDetector(
           onTap: () async {
             await _verifySentCode();

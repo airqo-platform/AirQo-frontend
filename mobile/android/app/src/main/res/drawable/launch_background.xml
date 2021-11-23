@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Modify this file to customize your launch splash screen -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@color/appColor" />
+    <item android:drawable="@color/whiteColor" />
 
     <!-- You can insert your own image assets here -->
-<!--    <item>-->
+<!--    <item-->
+<!--        android:width="118dp"-->
+<!--        android:height="81dp">-->
 <!--        <bitmap-->
 <!--            android:gravity="center"-->
-<!--            android:src="@mipmap/airqo_logo_tagline_inverted" />-->
+<!--            android:src="@mipmap/splash_screen_icon" />-->
 <!--    </item>-->
 </layer-list>

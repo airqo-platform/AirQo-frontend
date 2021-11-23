@@ -1,3 +1,4 @@
+import 'package:animations/animations.dart';
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/models/place_details.dart';
@@ -40,8 +41,21 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: ColorConstants.appBodyColor,
       body: WillPopScope(
         onWillPop: onWillPop,
-        child: Center(
-          child: _widgetOptions.elementAt(_selectedIndex),
+        child: PageTransitionSwitcher(
+          transitionBuilder: (
+            Widget child,
+            Animation<double> primaryAnimation,
+            Animation<double> secondaryAnimation,
+          ) {
+            return FadeThroughTransition(
+              child: child,
+              animation: primaryAnimation,
+              secondaryAnimation: secondaryAnimation,
+            );
+          },
+          child: Center(
+            child: _widgetOptions.elementAt(_selectedIndex),
+          ),
         ),
       ),
       bottomNavigationBar: Theme(

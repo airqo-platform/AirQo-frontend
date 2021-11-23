@@ -57,8 +57,8 @@ class _InsightsTabViewState extends State<InsightsTabView> {
   AirqoApiClient? _airqoApiClient;
   List<charts.TickSpec<String>> _hourlyStaticTicks = [];
 
-  final String _forecastToolTipText = 'This icon turns blue when viewing '
-      'forecast';
+  final String _forecastToolTipText = 'This icon turns blue when the selected '
+      'bar on the graph is forecast.';
   final String _infoToolTipText = 'Tap this icon to understand what air '
       'quality analytics mean';
 
@@ -439,39 +439,48 @@ class _InsightsTabViewState extends State<InsightsTabView> {
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
               child: Row(
                 children: [
-                  Visibility(
-                    visible: _selectedMeasurement!.available,
-                    child: Container(
-                      padding: const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
-                      constraints: BoxConstraints(
-                          maxWidth: MediaQuery.of(context).size.width / 2),
-                      decoration: BoxDecoration(
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(40.0)),
-                          color: _selectedMeasurement!.time
-                                  .isAfter(DateTime.now())
-                              ? ColorConstants.appColorPaleBlue
-                              : _pollutant == 'pm2.5'
-                                  ? pm2_5ToColor(_selectedMeasurement!.value)
-                                      .withOpacity(0.4)
-                                  : pm10ToColor(_selectedMeasurement!.value)
-                                      .withOpacity(0.4),
-                          border: Border.all(color: Colors.transparent)),
-                      child: Text(
-                        _pollutant == 'pm2.5'
-                            ? pm2_5ToString(_selectedMeasurement!.value)
-                            : pm10ToString(_selectedMeasurement!.value),
-                        maxLines: 1,
-                        textAlign: TextAlign.start,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: _selectedMeasurement!.time
-                                  .isAfter(DateTime.now())
-                              ? ColorConstants.appColorBlue
-                              : _pollutant == 'pm2.5'
-                                  ? pm2_5TextColor(_selectedMeasurement!.value)
-                                  : pm10TextColor(_selectedMeasurement!.value),
+                  GestureDetector(
+                    onTap: () {
+                      showTipText(_infoToolTipText, _infoToolTipKey, context,
+                          () {}, false);
+                    },
+                    child: Visibility(
+                      visible: _selectedMeasurement!.available,
+                      child: Container(
+                        padding:
+                            const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
+                        constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context).size.width / 2),
+                        decoration: BoxDecoration(
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(40.0)),
+                            color: _selectedMeasurement!.time
+                                    .isAfter(DateTime.now())
+                                ? ColorConstants.appColorPaleBlue
+                                : _pollutant == 'pm2.5'
+                                    ? pm2_5ToColor(_selectedMeasurement!.value)
+                                        .withOpacity(0.4)
+                                    : pm10ToColor(_selectedMeasurement!.value)
+                                        .withOpacity(0.4),
+                            border: Border.all(color: Colors.transparent)),
+                        child: Text(
+                          _pollutant == 'pm2.5'
+                              ? pm2_5ToString(_selectedMeasurement!.value)
+                              : pm10ToString(_selectedMeasurement!.value),
+                          maxLines: 1,
+                          textAlign: TextAlign.start,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: _selectedMeasurement!.time
+                                    .isAfter(DateTime.now())
+                                ? ColorConstants.appColorBlue
+                                : _pollutant == 'pm2.5'
+                                    ? pm2_5TextColor(
+                                        _selectedMeasurement!.value)
+                                    : pm10TextColor(
+                                        _selectedMeasurement!.value),
+                          ),
                         ),
                       ),
                     ),
@@ -531,11 +540,17 @@ class _InsightsTabViewState extends State<InsightsTabView> {
                       const SizedBox(
                         width: 8.0,
                       ),
-                      Text(
-                        'Forecast',
-                        style: TextStyle(
-                            fontSize: 12, color: ColorConstants.appColorBlue),
-                      )
+                      GestureDetector(
+                        onTap: () {
+                          showTipText(_forecastToolTipText, _forecastToolTipKey,
+                              context, () {}, false);
+                        },
+                        child: Text(
+                          'Forecast',
+                          style: TextStyle(
+                              fontSize: 12, color: ColorConstants.appColorBlue),
+                        ),
+                      ),
                     ],
                   ),
                 ],

@@ -547,175 +547,6 @@ class _DashboardViewState extends State<DashboardView> {
     );
   }
 
-  void updateCurrentLocation() async {
-    // try {
-    //   var prefs = await SharedPreferences.getInstance();
-    //   var dashboardSite = prefs.getString(PrefConstant.dashboardSite) ?? '';
-    //
-    //   if (dashboardSite == '') {
-    //     await LocationService().getCurrentLocationReadings().then((value)
-    //     => {
-    //           if (value != null)
-    //             {
-    //               prefs.setStringList(PrefConstant.lastKnownLocation,
-    //                   [(value.site.getUserLocation()), (value.site.id)]),
-    //               if (mounted)
-    //                 {
-    //                   setState(() {
-    //                     measurementData = value;
-    //                     isRefreshing = false;
-    //                     print(measurementData);
-    //                   }),
-    //                 }
-    //             },
-    //         });
-    //   }
-    // } catch (e) {
-    //   debugPrint(e.toString());
-    // }
-  }
-
-  // Widget tipsSection() {
-  //   return Container(
-  //     padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
-  //     decoration: const BoxDecoration(
-  //         color: Colors.white,
-  //         borderRadius: BorderRadius.all(Radius.circular(16.0))),
-  //     child: Row(
-  //       crossAxisAlignment: CrossAxisAlignment.center,
-  //       children: [
-  //         Expanded(
-  //           child: Column(
-  //             children: [
-  //               GestureDetector(
-  //                 onTap: () async {
-  //                   await Navigator.push(context,
-  //                       MaterialPageRoute(builder: (context) {
-  //                     if (tipsProgress >= 1.0) {
-  //                       return const ForYouPage();
-  //                     }
-  //                     return const AirPollutionWaysPageV1();
-  //                   }));
-  //                 },
-  //                 child: const Text('The Tid Tips On Air Quality!',
-  //                     maxLines: 2,
-  //                     overflow: TextOverflow.ellipsis,
-  //                     style: TextStyle(
-  //                       fontSize: 18,
-  //                       fontWeight: FontWeight.bold,
-  //                     )),
-  //               ),
-  //               const SizedBox(
-  //                 height: 28,
-  //               ),
-  //               GestureDetector(
-  //                 onTap: () async {
-  //                   await Navigator.push(context,
-  //                       MaterialPageRoute(builder: (context) {
-  //                     if (tipsProgress >= 1.0) {
-  //                       return const ForYouPage();
-  //                     }
-  //                     return const AirPollutionWaysPageV1();
-  //                   }));
-  //                 },
-  //                 child: Row(
-  //                   crossAxisAlignment: CrossAxisAlignment.center,
-  //                   mainAxisAlignment: MainAxisAlignment.start,
-  //                   children: [
-  //                     if (tipsProgress == 0.0)
-  //                       Text('Start learning',
-  //                           maxLines: 1,
-  //                           overflow: TextOverflow.ellipsis,
-  //                           textAlign: TextAlign.center,
-  //                           style: TextStyle(
-  //                             fontSize: 12,
-  //                             color: ColorConstants.appColorBlue,
-  //                           )),
-  //                     if (tipsProgress > 0.0 && tipsProgress < 1.0)
-  //                       Text('Continue',
-  //                           maxLines: 1,
-  //                           overflow: TextOverflow.ellipsis,
-  //                           textAlign: TextAlign.center,
-  //                           style: TextStyle(
-  //                             fontSize: 12,
-  //                             color: ColorConstants.appColorBlue,
-  //                           )),
-  //                     if (tipsProgress >= 1.0)
-  //                       const Text('Complete! Move to ',
-  //                           maxLines: 1,
-  //                           overflow: TextOverflow.ellipsis,
-  //                           textAlign: TextAlign.center,
-  //                           style: TextStyle(
-  //                             fontSize: 12,
-  //                           )),
-  //                     if (tipsProgress >= 1.0)
-  //                       Text('For You',
-  //                           maxLines: 1,
-  //                           overflow: TextOverflow.ellipsis,
-  //                           textAlign: TextAlign.center,
-  //                           style: TextStyle(
-  //                             fontSize: 12,
-  //                             color: ColorConstants.appColorBlue,
-  //                           )),
-  //                     const SizedBox(
-  //                       width: 6,
-  //                     ),
-  //                     Icon(
-  //                       Icons.arrow_forward_ios_sharp,
-  //                       size: 10,
-  //                       color: ColorConstants.appColorBlue,
-  //                     )
-  //                   ],
-  //                 ),
-  //               ),
-  //               const SizedBox(
-  //                 height: 2,
-  //               ),
-  //               Visibility(
-  //                 visible: tipsProgress > 0.0 && tipsProgress < 1.0,
-  //                 child: Container(
-  //                     height: 4,
-  //                     decoration: const BoxDecoration(
-  //                       borderRadius: BorderRadius.all(Radius.circular(8.0)),
-  //                     ),
-  //                     child: LinearProgressIndicator(
-  //                       color: ColorConstants.appColorBlue,
-  //                       value: tipsProgress,
-  //                       backgroundColor:
-  //                           ColorConstants.appColorDisabled.withOpacity(0.2),
-  //                     )),
-  //               ),
-  //             ],
-  //           ),
-  //         ),
-  //         const SizedBox(
-  //           width: 16,
-  //         ),
-  //         GestureDetector(
-  //           onTap: () async {
-  //             await Navigator.push(context,
-  //                 MaterialPageRoute(builder: (context) {
-  //               if (tipsProgress >= 1.0) {
-  //                 return const ForYouPage();
-  //               }
-  //               return const AirPollutionWaysPageV1();
-  //             }));
-  //           },
-  //           child: ClipRRect(
-  //             borderRadius: BorderRadius.circular(8.0),
-  //             child: Image.asset(
-  //               'assets/images/know-your-air.png',
-  //               width: 104,
-  //               height: 104,
-  //               fit: BoxFit.cover,
-  //             ),
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
   Widget _dashboardItems() {
     return MediaQuery.removePadding(
         context: context,
@@ -790,9 +621,14 @@ class _DashboardViewState extends State<DashboardView> {
         dbKya.where((element) => element.progress >= 100).toList();
     _loadCompleteKya(completeKya);
 
-    var onlineCompleteKya =
-        await _cloudStore.getCompleteKya(_customAuth.getId());
-    _loadCompleteKya(onlineCompleteKya);
+    var kyaCards = await _cloudStore.getKya(_customAuth.getId());
+    var completeKyaCards =
+        kyaCards.where((element) => element.progress >= 100.0).toList();
+
+    if (completeKyaCards.isNotEmpty) {
+      _loadCompleteKya(completeKyaCards);
+      await _dbHelper.insertKyas(kyaCards);
+    }
   }
 
   void _getDashboardLocations() async {
@@ -847,26 +683,20 @@ class _DashboardViewState extends State<DashboardView> {
       return;
     }
 
-    var dbKya = await _dbHelper.getKyas();
+    var kyas = await _cloudStore.getKya(_customAuth.getId());
     var inCompleteKya =
-        dbKya.where((element) => element.progress < 100).toList();
+        kyas.where((element) => element.progress < 100).toList();
+
+    if (kyas.isNotEmpty) {
+      await _dbHelper.insertKyas(kyas);
+    }
+
     if (inCompleteKya.isNotEmpty) {
       if (mounted) {
         setState(() {
           _kya = inCompleteKya.first;
         });
       }
-    }
-
-    var userKya = await _cloudStore.getIncompleteKya(_customAuth.getId());
-    if (userKya != null) {
-      if (mounted) {
-        setState(() {
-          _kya = userKya;
-        });
-      }
-      var kyas = await _cloudStore.getKya(_customAuth.getId());
-      await _dbHelper.insertKyas(kyas);
     }
   }
 

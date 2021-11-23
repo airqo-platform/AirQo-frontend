@@ -524,14 +524,24 @@ class DBHelper {
           where: 'id = ?',
           whereArgs: [kya.id],
         );
+      } catch (exception, stackTrace) {
+        debugPrint(exception.toString());
+        debugPrint(stackTrace.toString());
+        await db.execute(Kya.dropTableStmt());
+        await db.execute(Kya.createTableStmt());
+      }
+    }
 
+    for (var kya in kyas) {
+      try {
         var kyaJson = kya.parseKyaToDb();
-
-        await db.insert(
-          Kya.dbName(),
-          kyaJson,
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
+        for (var jsonBody in kyaJson) {
+          await db.insert(
+            Kya.dbName(),
+            jsonBody,
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+        }
       } catch (exception, stackTrace) {
         debugPrint(exception.toString());
         debugPrint(stackTrace.toString());

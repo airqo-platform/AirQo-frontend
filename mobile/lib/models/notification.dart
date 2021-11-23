@@ -124,4 +124,12 @@ class UserNotification {
     }
     return notifications;
   }
+
+  static List<UserNotification> reorderNotifications(
+      List<UserNotification> notificationList) {
+    notificationList.sort((x, y) {
+      return -(DateTime.parse(x.time).compareTo(DateTime.parse(y.time)));
+    });
+    return notificationList;
+  }
 }
