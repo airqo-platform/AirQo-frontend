@@ -131,6 +131,7 @@ class PlaceDetailsModel extends ChangeNotifier {
       notifyListeners();
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -147,6 +148,7 @@ class PlaceDetailsModel extends ChangeNotifier {
           });
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -167,6 +169,7 @@ class PlaceDetailsModel extends ChangeNotifier {
       // }
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,

@@ -60,6 +60,7 @@ class CloudStore {
           .set(placeDetails.toJson());
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -87,6 +88,7 @@ class CloudStore {
           }
         } on Error catch (exception, stackTrace) {
           debugPrint(exception.toString());
+          debugPrint(stackTrace.toString());
           await Sentry.captureException(
             exception,
             stackTrace: stackTrace,
@@ -97,6 +99,7 @@ class CloudStore {
       return false;
     } on Error catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -120,6 +123,7 @@ class CloudStore {
           .delete();
     } on Error catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -147,6 +151,7 @@ class CloudStore {
       return complete;
     } on Error catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -182,6 +187,7 @@ class CloudStore {
       return favPlaces;
     } on Error catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -235,6 +241,7 @@ class CloudStore {
       return incomplete.first;
     } on Error catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -271,6 +278,7 @@ class CloudStore {
       return kyas;
     } on Error catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -309,6 +317,7 @@ class CloudStore {
       return notifications;
     } on Error catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -336,6 +345,7 @@ class CloudStore {
       return await compute(UserDetails.parseUserDetails, userJson.data());
     } on Error catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -376,6 +386,7 @@ class CloudStore {
       return updated;
     } on Error catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -409,6 +420,7 @@ class CloudStore {
       });
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -431,6 +443,7 @@ class CloudStore {
       return data.exists;
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -454,6 +467,7 @@ class CloudStore {
           .delete();
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -481,6 +495,7 @@ class CloudStore {
           .set(notification.toJson());
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -505,6 +520,7 @@ class CloudStore {
           .update({'progress': progress});
     } on Error catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -543,6 +559,7 @@ class CloudStore {
       }
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -571,6 +588,7 @@ class CloudStore {
       }
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -592,6 +610,7 @@ class CloudStore {
           .update(fields);
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -639,6 +658,7 @@ class CustomAuth {
       }
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -662,10 +682,10 @@ class CustomAuth {
       await _preferencesHelper.clearPreferences();
       await _cloudStore.deleteAccount(id);
       await _dbHelper.clearAccount();
-
       await currentUser.delete();
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -703,8 +723,9 @@ class CustomAuth {
         return true;
       }
       return false;
-    } catch (exception) {
+    } catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
     }
 
     return false;
@@ -734,6 +755,7 @@ class CustomAuth {
       return false;
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -767,6 +789,7 @@ class CustomAuth {
       return true;
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -797,6 +820,7 @@ class CustomAuth {
       await updateLocalStorage(user, context);
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -819,8 +843,10 @@ class CustomAuth {
       await _secureStorage.clearUserDetails();
       await _preferencesHelper.clearPreferences();
       await _firebaseAuth.signOut();
+      await _dbHelper.clearAccount();
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -842,6 +868,7 @@ class CustomAuth {
       return userCredential.user != null;
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -874,6 +901,7 @@ class CustomAuth {
       }
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -905,6 +933,7 @@ class CustomAuth {
       return true;
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -930,6 +959,7 @@ class CustomAuth {
         }
       } catch (exception, stackTrace) {
         debugPrint(exception.toString());
+        debugPrint(stackTrace.toString());
         await Sentry.captureException(
           exception,
           stackTrace: stackTrace,
@@ -956,6 +986,7 @@ class CustomAuth {
       }
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -984,6 +1015,7 @@ class CustomAuth {
       }
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -995,12 +1027,16 @@ class CustomAuth {
 
   Future<void> updateLocalStorage(User user, BuildContext context) async {
     try {
-      // await _cloudStore.sendWelcomeNotification(user.uid);
       var device = await getDeviceToken();
       if (device != null) {
         await _cloudStore.updateProfileFields(user.uid, {'device': device});
       }
       var userDetails = await _cloudStore.getProfile(user.uid);
+      if (userDetails.userId.isEmpty) {
+        await createProfile();
+        userDetails = await _cloudStore.getProfile(user.uid);
+      }
+
       await _secureStorage.updateUserDetails(userDetails);
       await _preferencesHelper.updatePreferences(userDetails.preferences);
       await _cloudStore.getFavPlaces(user.uid).then((value) => {
@@ -1050,6 +1086,7 @@ class CustomAuth {
       }
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -1100,6 +1137,7 @@ class CustomAuth {
       }
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -1113,15 +1151,20 @@ class CustomAuth {
       return false;
     }
     try {
-      await _firebaseAuth.signInAnonymously();
       if (email != null) {
         var methods = await _firebaseAuth.fetchSignInMethodsForEmail(email);
         return methods.isNotEmpty;
+      }
+      // TODO implement phone checking
+      if (phoneNumber != null) {
+        await _firebaseAuth.signInAnonymously();
+        return _cloudStore.credentialsExist(phoneNumber, null);
       }
 
       return false;
     } on Error catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -1164,6 +1207,7 @@ class CustomAuth {
           timeout: const Duration(minutes: 2));
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -1197,6 +1241,7 @@ class NotificationService {
       return token;
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -1229,6 +1274,7 @@ class NotificationService {
       return status;
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,

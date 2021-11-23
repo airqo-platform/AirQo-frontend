@@ -537,6 +537,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
       }
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,

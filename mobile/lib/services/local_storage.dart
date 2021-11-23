@@ -12,6 +12,7 @@ import 'package:app/models/site.dart';
 import 'package:app/models/story.dart';
 import 'package:app/models/user_details.dart';
 import 'package:app/utils/distance.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:path/path.dart';
@@ -35,7 +36,6 @@ class DBHelper {
   Future<void> clearAccount() async {
     try {
       final db = await database;
-      await db.delete(KyaItem.dbName());
       await db.delete(Kya.dbName());
       await db.delete(UserNotification.dbName());
     } catch (e) {
@@ -66,7 +66,6 @@ class DBHelper {
       await db.execute(UserNotification.dropTableStmt());
       await db.execute(InsightsChartData.dropTableStmt());
       await db.execute(Kya.dropTableStmt());
-      await db.execute(KyaItem.dropTableStmt());
       await prefs.setBool(PrefConstant.reLoadDb, false);
     }
 
@@ -79,7 +78,6 @@ class DBHelper {
     await db.execute(UserNotification.createTableStmt());
     await db.execute(InsightsChartData.createTableStmt());
     await db.execute(Kya.createTableStmt());
-    await db.execute(KyaItem.createTableStmt());
   }
 
   Future<List<PlaceDetails>> getFavouritePlaces() async {
@@ -197,33 +195,25 @@ class DBHelper {
       final db = await database;
 
       var res = await db.query(Kya.dbName());
+
+      if (res.isEmpty) {
+        return [];
+      }
+
+      var collections = groupBy(res, (Map obj) => obj['id']);
       var kyaList = <Kya>[];
-
-      var kyas = res.isNotEmpty
-          ? List.generate(res.length, (i) {
-              return Kya.fromJson(res[i]);
-            })
-          : <Kya>[];
-
-      for (var kya in kyas) {
-        var kyaItemRes = await db.query(KyaItem.dbName(),
-            where: 'parentId = ?', whereArgs: [kya.id]);
-        if (kyaItemRes.isEmpty) {
-          continue;
+      for (var key in collections.keys) {
+        if (collections.containsKey(key)) {
+          var kya = Kya.fromDbJson(collections[key]);
+          if (kya.id.isNotEmpty) {
+            kyaList.add(kya);
+          }
         }
-
-        var kyaItems = kyaItemRes.isNotEmpty
-            ? List.generate(kyaItemRes.length, (i) {
-                return KyaItem.fromJson(kyaItemRes[i]);
-              })
-            : <KyaItem>[];
-
-        kya.kyaItems = kyaItems;
-        kyaList.add(kya);
       }
       return kyaList;
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       return <Kya>[];
     }
   }
@@ -509,12 +499,14 @@ class DBHelper {
             jsonData,
             conflictAlgorithm: ConflictAlgorithm.replace,
           );
-        } catch (e) {
-          debugPrint(e.toString());
+        } catch (exception, stackTrace) {
+          debugPrint(exception.toString());
+          debugPrint(stackTrace.toString());
         }
       }
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
     }
   }
 
@@ -527,23 +519,24 @@ class DBHelper {
 
     for (var kya in kyas) {
       try {
-        var kyaJson = Kya.parseKyaToDb(kya);
+        await db.delete(
+          Kya.dbName(),
+          where: 'id = ?',
+          whereArgs: [kya.id],
+        );
+
+        var kyaJson = kya.parseKyaToDb();
+
         await db.insert(
           Kya.dbName(),
           kyaJson,
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
-
-        var kyaItemsJson = KyaItem.parseKyaItemsToDb(kya);
-        for (var kyaItemJson in kyaItemsJson) {
-          await db.insert(
-            KyaItem.dbName(),
-            kyaItemJson,
-            conflictAlgorithm: ConflictAlgorithm.replace,
-          );
-        }
-      } catch (e) {
-        debugPrint(e.toString());
+      } catch (exception, stackTrace) {
+        debugPrint(exception.toString());
+        debugPrint(stackTrace.toString());
+        await db.execute(Kya.dropTableStmt());
+        await db.execute(Kya.createTableStmt());
       }
     }
   }
@@ -588,15 +581,17 @@ class DBHelper {
               jsonData,
               conflictAlgorithm: ConflictAlgorithm.replace,
             );
-          } catch (e) {
+          } catch (exception, stackTrace) {
             await db.execute(Story.dropTableStmt());
             await db.execute(Story.createTableStmt());
-            debugPrint(e.toString());
+            debugPrint(exception.toString());
+            debugPrint(stackTrace.toString());
           }
         }
       }
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
     }
   }
 

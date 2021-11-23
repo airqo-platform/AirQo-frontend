@@ -411,22 +411,23 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
         _codeSent = false;
       });
 
-      if (widget.action == 'signup') {
-        var phoneExists = await _cloudStore.credentialsExist(
-            '$_countryCode$_phoneNumber', null);
-        if (phoneExists) {
-          await showSnackBar(
-              context,
-              'Phone number already taken. '
-              'Try logging in');
-          setState(() {
-            _nextBtnColor = ColorConstants.appColorBlue;
-            _isVerifying = false;
-            _codeSent = false;
-          });
-          return;
-        }
-      }
+      // TODO implement phone number checking
+      // if (widget.action == 'signup') {
+      //   var phoneExists = await _customAuth.userExists(
+      //       '$_countryCode$_phoneNumber', null);
+      //   if (phoneExists) {
+      //     await showSnackBar(
+      //         context,
+      //         'Phone number already taken. '
+      //         'Try logging in');
+      //     setState(() {
+      //       _nextBtnColor = ColorConstants.appColorBlue;
+      //       _isVerifying = false;
+      //       _codeSent = false;
+      //     });
+      //     return;
+      //   }
+      // }
 
       await _customAuth.verifyPhone('$_countryCode$_phoneNumber', context,
           verifyPhoneFn, autoVerifyPhoneFn);

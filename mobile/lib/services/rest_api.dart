@@ -244,6 +244,7 @@ class AirqoApiClient {
       }
     } on Error catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -282,6 +283,7 @@ class AirqoApiClient {
       return '';
     } on Error catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -307,6 +309,7 @@ class AirqoApiClient {
           EmailSignupModel.parseEmailSignupModel, json.decode(response.body));
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -400,6 +403,7 @@ class AirqoApiClient {
       await showSnackBar(context, ErrorMessages.timeoutException);
     } on Error catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -435,6 +439,7 @@ class AirqoApiClient {
       await showSnackBar(context, ErrorMessages.timeoutException);
     } on Error catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -478,6 +483,7 @@ class AirqoApiClient {
       return false;
     } on Error catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,

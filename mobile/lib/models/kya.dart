@@ -15,13 +15,69 @@ class Kya {
 
   Kya(this.title, this.imageUrl, this.id, this.kyaItems, this.progress);
 
+  factory Kya.fromDbJson(List<Map<String, Object?>>? json) {
+    if (json == null) {
+      return Kya('', '', '', [], 0.0);
+    }
+
+    try {
+      var singleKya = json.first;
+      var kya = Kya(
+          singleKya['title'] as String,
+          singleKya['imageUrl'] as String,
+          singleKya['id'] as String,
+          [],
+          singleKya['progress'] as double);
+
+      var kyaItems = <KyaItem>[];
+      for (var item in json) {
+        var kyaItem = KyaItem(item['item_title'] as String,
+            item['item_imageUrl'] as String, item['item_body'] as String);
+        kyaItems.add(kyaItem);
+      }
+
+      kya.kyaItems = kyaItems;
+      return kya;
+    } catch (exception, stackTrace) {
+      debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
+    }
+
+    return Kya('', '', '', [], 0.0);
+  }
+
   factory Kya.fromJson(Map<String, dynamic> json) => _$KyaFromJson(json);
+
+  Map<String, dynamic> parseKyaToDb() {
+    try {
+      var kyaItems = this.kyaItems;
+      var kyaJson = toJson()..remove('kyaItems');
+
+      for (var item in kyaItems) {
+        var itemJson = {
+          'item_title': item.title,
+          'item_imageUrl': item.imageUrl,
+          'item_body': item.body,
+        };
+        kyaJson.addAll(itemJson);
+      }
+      return kyaJson;
+    } catch (exception, stackTrace) {
+      debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
+      Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+    }
+    return {};
+  }
 
   Map<String, dynamic> toJson() => _$KyaToJson(this);
 
   static String createTableStmt() => 'CREATE TABLE IF NOT EXISTS ${dbName()}('
-      'id TEXT PRIMARY KEY, progress REAL, '
-      'title TEXT, imageUrl TEXT)';
+      'id TEXT PRIMARY KEY, progress REAL, title TEXT, imageUrl TEXT,'
+      'item_title TEXT, item_imageUrl TEXT, item_body TEXT)';
 
   static String dbName() => 'kya_db';
 
@@ -32,25 +88,13 @@ class Kya {
       return Kya.fromJson(jsonBody);
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       Sentry.captureException(
         exception,
         stackTrace: stackTrace,
       );
     }
     return null;
-  }
-
-  static Map<String, dynamic> parseKyaToDb(Kya kya) {
-    try {
-      return kya.toJson().remove('kyaItems');
-    } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-    }
-    return {};
   }
 }
 
@@ -66,33 +110,4 @@ class KyaItem {
       _$KyaItemFromJson(json);
 
   Map<String, dynamic> toJson() => _$KyaItemToJson(this);
-
-  static String createTableStmt() => 'CREATE TABLE IF NOT EXISTS ${dbName()}('
-      'id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
-      'body TEXT, parentId TEXT, title TEXT, imageUrl TEXT)';
-
-  static String dbName() => 'kya_items_db';
-
-  static String dropTableStmt() => 'DROP TABLE IF EXISTS ${dbName()}';
-
-  static List<Map<String, dynamic>> parseKyaItemsToDb(Kya kya) {
-    try {
-      var kyaJson = kya.toJson()['kyaItems'];
-      var parentId = kya.id;
-      var itemsJson = <Map<String, dynamic>>[];
-
-      for (var item in kyaJson) {
-        item['parentId'] = parentId;
-        itemsJson.add(item);
-      }
-      return itemsJson;
-    } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-    }
-    return [{}];
-  }
 }

@@ -369,7 +369,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
     });
 
     if (widget.action == 'signup') {
-      var emailExists = await _cloudStore.credentialsExist(null, _emailAddress);
+      var emailExists = await _customAuth.userExists(null, _emailAddress);
 
       if (emailExists) {
         setState(() {

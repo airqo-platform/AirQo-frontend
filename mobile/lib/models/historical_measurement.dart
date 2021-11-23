@@ -153,6 +153,7 @@ class HistoricalMeasurement {
         }
       } catch (exception, stackTrace) {
         debugPrint(exception.toString());
+        debugPrint(stackTrace.toString());
         Sentry.captureException(
           exception,
           stackTrace: stackTrace,

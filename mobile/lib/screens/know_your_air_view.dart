@@ -1,6 +1,7 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/models/kya.dart';
 import 'package:app/services/fb_notifications.dart';
+import 'package:app/services/local_storage.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +20,7 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
   final CloudStore _cloudStore = CloudStore();
   final CustomAuth _customAuth = CustomAuth();
   String _error = 'You haven\'t completed any lessons';
+  final DBHelper _dbHelper = DBHelper();
 
   @override
   Widget build(BuildContext context) {
@@ -143,6 +145,16 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
   }
 
   Future<void> _getKya() async {
+    var dbKya = await _dbHelper.getKyas();
+    var completeKya =
+        dbKya.where((element) => element.progress >= 100).toList();
+
+    if (mounted) {
+      setState(() {
+        _kyaCards = completeKya;
+      });
+    }
+
     var isConnected = await _cloudStore.isConnected();
     if (!isConnected) {
       await showSnackBar(context, ErrorMessages.timeoutException);
@@ -158,13 +170,16 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
       return;
     }
 
-    var kyaCards = await _cloudStore.getCompleteKya(_customAuth.getId());
-    if (mounted) {
+    var kyaCards = await _cloudStore.getKya(_customAuth.getId());
+    var completeKyaCards =
+        kyaCards.where((element) => element.progress >= 100.0).toList();
+
+    if (completeKyaCards.isNotEmpty && mounted) {
       setState(() {
-        _kyaCards = kyaCards;
+        _kyaCards = completeKyaCards;
       });
     }
 
-    if (_kyaCards.isNotEmpty) {}
+    await _dbHelper.insertKyas(completeKyaCards);
   }
 }

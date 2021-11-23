@@ -956,6 +956,7 @@ class _DashboardViewState extends State<DashboardView> {
         } else {}
       } on Error catch (exception, stackTrace) {
         debugPrint(exception.toString());
+        debugPrint(stackTrace.toString());
         await Sentry.captureException(
           exception,
           stackTrace: stackTrace,
