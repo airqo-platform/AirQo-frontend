@@ -44,3 +44,5 @@ export const SITES = `${BASE_DEVICE_REGISTRY_URL}/devices/sites`;
 export const AIRQLOUDS = `${BASE_DEVICE_REGISTRY_URL}/devices/airqlouds`;
 
 export const DECRYPT = `${BASE_DEVICE_REGISTRY_URL}/devices/decrypt`;
+
+export const QRCODE = `${BASE_DEVICE_REGISTRY_URL}/devices/qrcode`;
