@@ -42,3 +42,5 @@ export const EVENTS = `${BASE_DEVICE_REGISTRY_URL}/devices/events`;
 export const SITES = `${BASE_DEVICE_REGISTRY_URL}/devices/sites`;
 
 export const AIRQLOUDS = `${BASE_DEVICE_REGISTRY_URL}/devices/airqlouds`;
+
+export const DECRYPT = `${BASE_DEVICE_REGISTRY_URL}/devices/decrypt`;

@@ -14,7 +14,8 @@ import {
   EVENTS,
   RECALL_DEVICE_URI,
   SITES,
-    AIRQLOUDS
+  AIRQLOUDS,
+  DECRYPT,
 } from "config/urls/deviceRegistry";
 import { DEVICE_MAINTENANCE_LOG_URI } from "config/urls/deviceMonitoring";
 import { DEVICE_RECENT_FEEDS } from "config/urls/dataManagement";
@@ -157,4 +158,10 @@ export const deleteSiteApi = async (siteId) => {
 
 export const getAirQloudsApi = async (params) => {
   return axios.get(AIRQLOUDS, { params }).then((response) => response.data);
+};
+
+export const decryptKeyApi = async (encrypted_key) => {
+  return axios
+    .post(DECRYPT, { encrypted_key })
+    .then((response) => response.data);
 };
