@@ -17,6 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'custom_shimmer.dart';
 import 'custom_widgets.dart';
@@ -699,9 +700,9 @@ class _InsightsTabViewState extends State<InsightsTabView> {
     }
 
     if (_pollutant == 'pm2.5') {
-      _setSelectedMeasurement(_hourlyPm2_5ChartData);
+      await _setSelectedMeasurement(_hourlyPm2_5ChartData);
     } else {
-      _setSelectedMeasurement(_hourlyPm10ChartData);
+      await _setSelectedMeasurement(_hourlyPm10ChartData);
     }
 
     await _saveMeasurements(_hourlyPm2_5ChartData.toList().first.data);
@@ -753,9 +754,9 @@ class _InsightsTabViewState extends State<InsightsTabView> {
       });
 
       if (_pollutant == 'pm2.5') {
-        _setSelectedMeasurement(_dailyPm2_5ChartData);
+        await _setSelectedMeasurement(_dailyPm2_5ChartData);
       } else {
-        _setSelectedMeasurement(_dailyPm10ChartData);
+        await _setSelectedMeasurement(_dailyPm10ChartData);
       }
 
       await _saveMeasurements(_dailyPm2_5ChartData.toList().first.data);
@@ -773,9 +774,9 @@ class _InsightsTabViewState extends State<InsightsTabView> {
               measurements, 'pm2.5', widget.placeDetails, [], measurements);
         });
         if (_pollutant == 'pm2.5') {
-          _setSelectedMeasurement(_hourlyPm2_5ChartData);
+          await _setSelectedMeasurement(_hourlyPm2_5ChartData);
         } else {
-          _setSelectedMeasurement(_hourlyPm10ChartData);
+          await _setSelectedMeasurement(_hourlyPm10ChartData);
         }
       }
     }
@@ -891,9 +892,9 @@ class _InsightsTabViewState extends State<InsightsTabView> {
         });
 
         if (_pollutant == 'pm2.5') {
-          _setSelectedMeasurement(_dailyPm2_5ChartData);
+          await _setSelectedMeasurement(_dailyPm2_5ChartData);
         } else {
-          _setSelectedMeasurement(_dailyPm10ChartData);
+          await _setSelectedMeasurement(_dailyPm10ChartData);
         }
       } else {
         var hourlyMeasurements = insightsChartData
@@ -912,9 +913,9 @@ class _InsightsTabViewState extends State<InsightsTabView> {
               [], 'pm10', widget.placeDetails, pm10Data, []);
         });
         if (_pollutant == 'pm2.5') {
-          _setSelectedMeasurement(_hourlyPm2_5ChartData);
+          await _setSelectedMeasurement(_hourlyPm2_5ChartData);
         } else {
-          _setSelectedMeasurement(_hourlyPm10ChartData);
+          await _setSelectedMeasurement(_hourlyPm10ChartData);
         }
       }
     } catch (e) {
@@ -930,31 +931,41 @@ class _InsightsTabViewState extends State<InsightsTabView> {
     }
   }
 
-  void _setSelectedMeasurement(
-      List<charts.Series<InsightsChartData, String>> chartData) {
-    var lastAvailable = chartData
-        .toList()
-        .first
-        .data
-        .where((element) => element.available && !element.isForecast);
-    if (lastAvailable.isEmpty) {
-      lastAvailable = chartData.toList().first.data;
-    }
-    setState(() {
-      _selectedMeasurement = lastAvailable.last;
-    });
+  Future<void> _setSelectedMeasurement(
+      List<charts.Series<InsightsChartData, String>> chartData) async {
+    try {
+      if (chartData.isEmpty) {
+        throw Exception('Chart data is empty');
+      }
 
-    _updateSelectedMeasurement(_selectedMeasurement!);
-
-    if (_lastUpdated == '') {
+      var lastAvailable = chartData.first.data
+          .where((element) => element.available && !element.isForecast);
+      if (lastAvailable.isEmpty) {
+        lastAvailable = chartData.first.data;
+      }
       setState(() {
-        _lastUpdated = dateToString(_selectedMeasurement!.time.toString());
+        _selectedMeasurement = lastAvailable.last;
       });
-    }
 
-    setState(() {
-      _hasMeasurements = true;
-    });
+      _updateSelectedMeasurement(_selectedMeasurement!);
+
+      if (_lastUpdated == '') {
+        setState(() {
+          _lastUpdated = dateToString(_selectedMeasurement!.time.toString());
+        });
+      }
+
+      setState(() {
+        _hasMeasurements = true;
+      });
+    } catch (exception, stackTrace) {
+      debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   void _updateSelectedMeasurement(InsightsChartData insightsChartData) {

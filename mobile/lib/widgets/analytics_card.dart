@@ -69,7 +69,7 @@ class AnalyticsCard extends StatefulWidget {
 class MapAnalyticsCard extends StatefulWidget {
   final PlaceDetails placeDetails;
   final Measurement measurement;
-  final dynamic closeCallBack;
+  final VoidCallback closeCallBack;
 
   const MapAnalyticsCard(
       this.placeDetails, this.measurement, this.closeCallBack,

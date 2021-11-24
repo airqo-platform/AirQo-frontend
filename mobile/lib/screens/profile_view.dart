@@ -3,7 +3,6 @@ import 'package:app/models/notification.dart';
 import 'package:app/models/user_details.dart';
 import 'package:app/on_boarding/signup_screen.dart';
 import 'package:app/screens/settings_page.dart';
-import 'package:app/screens/tips_page.dart';
 import 'package:app/screens/view_profile_page.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/secure_storage.dart';
@@ -210,11 +209,12 @@ class _ProfileViewState extends State<ProfileView> {
     });
 
     if (_isLoggedIn) {
-      await _secureStorage.getUserDetails().then((value) => {
-            setState(() {
-              _userProfile = value;
-            })
-          });
+      var userDetails = await _secureStorage.getUserDetails();
+      if (mounted) {
+        setState(() {
+          _userProfile = userDetails;
+        });
+      }
     }
   }
 
@@ -357,12 +357,6 @@ class _ProfileViewState extends State<ProfileView> {
         ],
       ),
     );
-  }
-
-  Future<void> tips() async {
-    await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return const TipsPage();
-    }));
   }
 
   Future<void> viewProfile() async {
