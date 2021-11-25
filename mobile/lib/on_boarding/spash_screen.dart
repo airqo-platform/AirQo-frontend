@@ -1,3 +1,4 @@
+import 'package:animations/animations.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/on_boarding/welcome_screen.dart';
@@ -27,10 +28,19 @@ class SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AnimatedSwitcher(
+      body: PageTransitionSwitcher(
         duration: const Duration(seconds: 3),
-        transitionBuilder: (Widget child, Animation<double> animation) {
-          return FadeTransition(opacity: animation, child: child);
+        transitionBuilder: (
+          child,
+          animation,
+          secondaryAnimation,
+        ) {
+          return SharedAxisTransition(
+            animation: animation,
+            secondaryAnimation: secondaryAnimation,
+            transitionType: SharedAxisTransitionType.horizontal,
+            child: child,
+          );
         },
         child: _renderWidget(),
       ),
@@ -45,28 +55,8 @@ class SplashScreenState extends State<SplashScreen> {
       _updateWidget();
     });
 
-    // var firstUse = await _customAuth.isFirstUse();
-    //
-    // if(firstUse){
-    //
-    //   Future.delayed(const Duration(seconds: 7), () async {
-    //     await Navigator.pushAndRemoveUntil(context,
-    //         MaterialPageRoute(builder: (context) {
-    //           return const WelcomeScreen();
-    //         }), (r) => false);
-    //   });
-    //
-    // }
-    // else{
-    //   Future.delayed(const Duration(seconds: 7), () async {
-    //     await Navigator.pushAndRemoveUntil(context,
-    //         MaterialPageRoute(builder: (context) {
-    //           return const HomePage();
-    //         }), (r) => false);
-    //   });
-    // }
     await _customAuth.isFirstUse().then((value) => {
-          Future.delayed(const Duration(seconds: 7), () async {
+          Future.delayed(const Duration(seconds: 5), () async {
             await Navigator.pushAndRemoveUntil(context,
                 MaterialPageRoute(builder: (context) {
               if (value) {

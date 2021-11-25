@@ -30,7 +30,7 @@ class MapView extends StatefulWidget {
 
 class _MapViewState extends State<MapView> {
   bool _showLocationDetails = false;
-  double _scrollSheetHeight = 0.20;
+  double _scrollSheetHeight = 0.30;
   bool _isSearching = false;
   bool _displayRegions = true;
   List<Measurement> _regionSites = [];
@@ -58,17 +58,64 @@ class _MapViewState extends State<MapView> {
       body: Stack(
         children: <Widget>[
           mapWidget(),
-          DraggableScrollableSheet(
-            initialChildSize: _scrollSheetHeight,
-            minChildSize: 0.18,
-            builder: (BuildContext context, ScrollController scrollController) {
-              return SingleChildScrollView(
-                controller: scrollController,
-                child: scrollViewContent(),
-              );
-            },
+          Visibility(
+            visible: false,
+            child: DraggableScrollableSheet(
+              initialChildSize: _scrollSheetHeight,
+              minChildSize: 0.18,
+              maxChildSize: 0.92,
+              builder:
+                  (BuildContext context, ScrollController scrollController) {
+                return SingleChildScrollView(
+                  controller: scrollController,
+                  child: scrollViewContent(),
+                );
+              },
+            ),
+          ),
+          Visibility(
+            visible: _showLocationDetails,
+            child: DraggableScrollableSheet(
+              initialChildSize: 0.5,
+              minChildSize: 0.4,
+              maxChildSize: 0.6,
+              builder:
+                  (BuildContext context, ScrollController scrollController) {
+                return SingleChildScrollView(
+                    controller: scrollController,
+                    child: cardWidget(locationContent()));
+              },
+            ),
+          ),
+          Visibility(
+            visible: !_showLocationDetails,
+            child: DraggableScrollableSheet(
+              initialChildSize: _scrollSheetHeight,
+              minChildSize: 0.18,
+              maxChildSize: 0.92,
+              builder:
+                  (BuildContext context, ScrollController scrollController) {
+                return SingleChildScrollView(
+                    controller: scrollController,
+                    child: cardWidget(defaultContent()));
+              },
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget cardWidget(Widget child) {
+    return Card(
+      margin: EdgeInsets.zero,
+      elevation: 12.0,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(16), topRight: Radius.circular(16))),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 16.0),
+        child: child,
       ),
     );
   }
@@ -224,22 +271,25 @@ class _MapViewState extends State<MapView> {
 
   Widget locationContent() {
     return Column(
-      children: <Widget>[
+      children: [
         const SizedBox(height: 8),
-        draggingHandle(),
-        const SizedBox(height: 24),
-        getLocationDisplay(),
-        // Visibility(
-        //   visible: _locationMeasurement != null &&
-        //       _locationPlaceMeasurement != null,
-        //     child: MapAnalyticsCard(
-        //         _locationPlaceMeasurement!,
-        //         _locationMeasurement!, showLocation),),
-        // Visibility(
-        //   visible: _locationMeasurement == null ||
-        //       _locationPlaceMeasurement != null,
-        //   child: emptyView('', 'area'),),
+        Padding(
+          padding: const EdgeInsets.only(left: 10, right: 10),
+          child: draggingHandle(),
+        ),
         const SizedBox(height: 16),
+        MediaQuery.removePadding(
+            context: context,
+            removeTop: true,
+            child: ListView(
+              shrinkWrap: true,
+              children: <Widget>[
+                getLocationDisplay(),
+                SizedBox(
+                  height: MediaQuery.of(context).size.height,
+                ),
+              ],
+            )),
       ],
     );
   }
@@ -258,6 +308,7 @@ class _MapViewState extends State<MapView> {
       initialCameraPosition: _defaultCameraPosition,
       markers: _markers.values.toSet(),
       onTap: (_) {
+        // showRegions();
         // setState(() {
         //   _showInfoWindow = false;
         //   _isSearching = false;
@@ -280,15 +331,24 @@ class _MapViewState extends State<MapView> {
   }
 
   Widget regionsList() {
-    return ListView(
-      shrinkWrap: true,
-      children: <Widget>[
-        regionTile('Central Region'),
-        regionTile('Western Region'),
-        regionTile('Eastern Region'),
-        regionTile('Northern Region'),
-      ],
-    );
+    return MediaQuery.removePadding(
+        removeTop: true,
+        context: context,
+        child: ListView(
+          shrinkWrap: true,
+          children: <Widget>[
+            const SizedBox(
+              height: 5,
+            ),
+            regionTile('Central Region'),
+            regionTile('Western Region'),
+            regionTile('Eastern Region'),
+            regionTile('Northern Region'),
+            SizedBox(
+              height: MediaQuery.of(context).size.height,
+            ),
+          ],
+        ));
   }
 
   ListTile regionTile(String name) {
@@ -318,16 +378,20 @@ class _MapViewState extends State<MapView> {
 
   Widget scrollViewContent() {
     return Card(
-      margin: EdgeInsets.zero,
-      elevation: 12.0,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(16), topRight: Radius.circular(16))),
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(32.0, 0, 32.0, 16.0),
-        child: _showLocationDetails ? locationContent() : defaultContent(),
-      ),
-    );
+        margin: EdgeInsets.zero,
+        elevation: 12.0,
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(16), topRight: Radius.circular(16))),
+        child: _showLocationDetails
+            ? Container(
+                padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 16.0),
+                child: locationContent(),
+              )
+            : Container(
+                padding: const EdgeInsets.fromLTRB(32.0, 0, 32.0, 16.0),
+                child: defaultContent(),
+              ));
   }
 
   void searchChanged(String text) {
@@ -435,8 +499,8 @@ class _MapViewState extends State<MapView> {
   }
 
   Widget searchResultsList() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return ListView(
+      shrinkWrap: true,
       children: [
         Visibility(
             visible: _searchSites.isEmpty && _searchSuggestions.isEmpty,
@@ -516,6 +580,9 @@ class _MapViewState extends State<MapView> {
             )),
         const SizedBox(
           height: 8,
+        ),
+        SizedBox(
+          height: MediaQuery.of(context).size.height,
         ),
       ],
     );
@@ -746,36 +813,42 @@ class _MapViewState extends State<MapView> {
   }
 
   Widget sitesList() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(
-          height: 32,
-        ),
-        Visibility(
-          visible: _regionSites.isNotEmpty,
-          child: Text(
-            _selectedRegion,
-            style: TextStyle(color: Colors.black.withOpacity(0.32)),
-          ),
-        ),
-        Visibility(
-            visible: _regionSites.isNotEmpty,
-            child: MediaQuery.removePadding(
-                context: context,
-                removeTop: true,
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  controller: ScrollController(),
-                  itemBuilder: (context, index) =>
-                      siteTile(_regionSites[index]),
-                  itemCount: _regionSites.length,
-                ))),
-        Visibility(
-            visible: _regionSites.isEmpty,
-            child: emptyView(_selectedRegion, 'region', false))
-      ],
-    );
+    return MediaQuery.removePadding(
+        removeTop: true,
+        context: context,
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            const SizedBox(
+              height: 10,
+            ),
+            Visibility(
+              visible: _regionSites.isNotEmpty,
+              child: Text(
+                _selectedRegion,
+                style: TextStyle(color: Colors.black.withOpacity(0.32)),
+              ),
+            ),
+            Visibility(
+                visible: _regionSites.isNotEmpty,
+                child: MediaQuery.removePadding(
+                    context: context,
+                    removeTop: true,
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      controller: ScrollController(),
+                      itemBuilder: (context, index) =>
+                          siteTile(_regionSites[index]),
+                      itemCount: _regionSites.length,
+                    ))),
+            Visibility(
+                visible: _regionSites.isEmpty,
+                child: emptyView(_selectedRegion, 'region', false)),
+            SizedBox(
+              height: MediaQuery.of(context).size.height,
+            ),
+          ],
+        ));
   }
 
   Widget siteTile(Measurement measurement) {

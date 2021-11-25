@@ -18,6 +18,34 @@ import 'package:provider/provider.dart';
 
 import 'custom_widgets.dart';
 
+Widget mapMoreInsightsWidget(PlaceDetails placeDetails) {
+  return ListTile(
+    contentPadding: const EdgeInsets.only(left: 20, right: 30),
+    title: Row(
+      children: [
+        SvgPicture.asset(
+          'assets/icon/chart.svg',
+          semanticsLabel: 'chart',
+          height: 16,
+          width: 16,
+        ),
+        const SizedBox(width: 8.0),
+        Text(
+          'View More Insights',
+          style: TextStyle(fontSize: 12, color: ColorConstants.appColorBlue),
+        ),
+        const Spacer(),
+        SvgPicture.asset(
+          'assets/icon/more_arrow.svg',
+          semanticsLabel: 'more',
+          height: 10.99,
+          width: 4,
+        ),
+      ],
+    ),
+  );
+}
+
 Widget moreInsightsWidget(PlaceDetails placeDetails, context) {
   return ListTile(
     contentPadding: const EdgeInsets.only(left: 20, right: 30),
@@ -128,7 +156,6 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                       ),
                     ),
                   ),
-
                   Column(
                     children: [
                       // Details section
@@ -144,29 +171,64 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                     context, () {}, false);
                               },
                             ),
-                            const SizedBox(width: 16.0),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(context,
+                                    MaterialPageRoute(builder: (context) {
+                                  return InsightsPage(widget.placeDetails);
+                                }));
+                              },
+                              child: const SizedBox(width: 16.0),
+                            ),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    widget.placeDetails.getName(),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 20),
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(context,
+                                          MaterialPageRoute(builder: (context) {
+                                        return InsightsPage(
+                                            widget.placeDetails);
+                                      }));
+                                    },
+                                    child: Text(
+                                      widget.placeDetails.getName(),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20),
+                                    ),
                                   ),
-                                  Text(
-                                    widget.placeDetails.getLocation(),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.black.withOpacity(0.3)),
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(context,
+                                          MaterialPageRoute(builder: (context) {
+                                        return InsightsPage(
+                                            widget.placeDetails);
+                                      }));
+                                    },
+                                    child: Text(
+                                      widget.placeDetails.getLocation(),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.black.withOpacity(0.3)),
+                                    ),
                                   ),
-                                  const SizedBox(
-                                    height: 12,
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(context,
+                                          MaterialPageRoute(builder: (context) {
+                                        return InsightsPage(
+                                            widget.placeDetails);
+                                      }));
+                                    },
+                                    child: const SizedBox(
+                                      height: 12,
+                                    ),
                                   ),
                                   GestureDetector(
                                     child: Container(
@@ -203,32 +265,49 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                           false);
                                     },
                                   ),
-                                  const SizedBox(
-                                    height: 8,
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(context,
+                                          MaterialPageRoute(builder: (context) {
+                                        return InsightsPage(
+                                            widget.placeDetails);
+                                      }));
+                                    },
+                                    child: const SizedBox(
+                                      height: 8,
+                                    ),
                                   ),
                                   Row(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Container(
-                                          constraints: BoxConstraints(
-                                              maxWidth: MediaQuery.of(context)
-                                                      .size
-                                                      .width /
-                                                  3.2),
-                                          child: Text(
-                                            dateToString(
-                                                widget.measurement.time),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                                fontSize: 8,
-                                                color: Colors.black
-                                                    .withOpacity(0.3)),
-                                          )),
-                                      const SizedBox(
-                                        width: 8.0,
+                                      GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(context,
+                                              MaterialPageRoute(
+                                                  builder: (context) {
+                                            return InsightsPage(
+                                                widget.placeDetails);
+                                          }));
+                                        },
+                                        child: Container(
+                                            constraints: BoxConstraints(
+                                                maxWidth: MediaQuery.of(context)
+                                                        .size
+                                                        .width /
+                                                    3.2),
+                                            child: Text(
+                                              dateToString(
+                                                  widget.measurement.time),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                  fontSize: 8,
+                                                  color: Colors.black
+                                                      .withOpacity(0.3)),
+                                            )),
                                       ),
+
                                       // Visibility(
                                       //   visible: widget.isRefreshing,
                                       //   child: SizedBox(
@@ -241,6 +320,19 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                       //     ),
                                       //   ),
                                       // ),
+                                      GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(context,
+                                              MaterialPageRoute(
+                                                  builder: (context) {
+                                            return InsightsPage(
+                                                widget.placeDetails);
+                                          }));
+                                        },
+                                        child: const SizedBox(
+                                          width: 8.0,
+                                        ),
+                                      ),
                                       Visibility(
                                         visible: widget.isRefreshing,
                                         child: SvgPicture.asset(
@@ -259,7 +351,16 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                         ),
                       ),
 
-                      const SizedBox(height: 20),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(context,
+                              MaterialPageRoute(builder: (context) {
+                            return InsightsPage(widget.placeDetails);
+                          }));
+                        },
+                        child: const SizedBox(height: 20),
+                      ),
+
                       // Analytics
                       moreInsightsWidget(widget.placeDetails, context),
                       Visibility(
@@ -319,12 +420,26 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                       )
                     ],
                   ),
-                  const Divider(color: Color(0xffC4C4C4)),
-                  // Actions
-                  const SizedBox(
-                    height: 10,
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) {
+                        return InsightsPage(widget.placeDetails);
+                      }));
+                    },
+                    child: const Divider(color: Color(0xffC4C4C4)),
                   ),
-
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) {
+                        return InsightsPage(widget.placeDetails);
+                      }));
+                    },
+                    child: const SizedBox(
+                      height: 10,
+                    ),
+                  ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -353,8 +468,16 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                       ),
                     ],
                   ),
-                  const SizedBox(
-                    height: 10,
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) {
+                        return InsightsPage(widget.placeDetails);
+                      }));
+                    },
+                    child: const SizedBox(
+                      height: 10,
+                    ),
                   ),
                 ],
               ),
@@ -470,109 +593,118 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                       ),
                     ),
                   ),
-                  Column(
-                    children: [
-                      // Details section
-                      Padding(
-                        padding: const EdgeInsets.only(left: 20, right: 20),
-                        child: Row(
-                          children: [
-                            analyticsAvatar(widget.measurement, 104, 40, 12),
-                            const SizedBox(width: 16.0),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    widget.placeDetails.getName(),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 20),
-                                  ),
-                                  Text(
-                                    widget.placeDetails.getLocation(),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.black.withOpacity(0.3)),
-                                  ),
-                                  const SizedBox(
-                                    height: 12,
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.fromLTRB(
-                                        10.0, 2.0, 10.0, 2.0),
-                                    decoration: BoxDecoration(
-                                        borderRadius: const BorderRadius.all(
-                                            Radius.circular(40.0)),
-                                        color: pm2_5ToColor(widget.measurement
-                                                .getPm2_5Value())
-                                            .withOpacity(0.4),
-                                        border: Border.all(
-                                            color: Colors.transparent)),
-                                    child: Text(
-                                      pm2_5ToString(
-                                          widget.measurement.getPm2_5Value()),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) {
+                        return InsightsPage(widget.placeDetails);
+                      }));
+                    },
+                    child: Column(
+                      children: [
+                        // Details section
+                        Padding(
+                          padding: const EdgeInsets.only(left: 20, right: 20),
+                          child: Row(
+                            children: [
+                              analyticsAvatar(widget.measurement, 104, 40, 12),
+                              const SizedBox(width: 16.0),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      widget.placeDetails.getName(),
                                       maxLines: 1,
-                                      textAlign: TextAlign.start,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20),
+                                    ),
+                                    Text(
+                                      widget.placeDetails.getLocation(),
+                                      maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
-                                        fontSize: 14,
-                                        color: pm2_5TextColor(
+                                          fontSize: 14,
+                                          color: Colors.black.withOpacity(0.3)),
+                                    ),
+                                    const SizedBox(
+                                      height: 12,
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.fromLTRB(
+                                          10.0, 2.0, 10.0, 2.0),
+                                      decoration: BoxDecoration(
+                                          borderRadius: const BorderRadius.all(
+                                              Radius.circular(40.0)),
+                                          color: pm2_5ToColor(widget.measurement
+                                                  .getPm2_5Value())
+                                              .withOpacity(0.4),
+                                          border: Border.all(
+                                              color: Colors.transparent)),
+                                      child: Text(
+                                        pm2_5ToString(
                                             widget.measurement.getPm2_5Value()),
+                                        maxLines: 1,
+                                        textAlign: TextAlign.start,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: pm2_5TextColor(widget
+                                              .measurement
+                                              .getPm2_5Value()),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  const SizedBox(
-                                    height: 8,
-                                  ),
-                                  Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                          constraints: BoxConstraints(
-                                              maxWidth: MediaQuery.of(context)
-                                                      .size
-                                                      .width /
-                                                  3.2),
-                                          child: Text(
-                                            dateToString(
-                                                widget.measurement.time),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                                fontSize: 8,
-                                                color: Colors.black
-                                                    .withOpacity(0.3)),
-                                          )),
-                                      const SizedBox(
-                                        width: 8.0,
-                                      ),
-                                      SvgPicture.asset(
-                                        'assets/icon/loader.svg',
-                                        semanticsLabel: 'loader',
-                                        height: 8,
-                                        width: 8,
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            )
-                          ],
+                                    const SizedBox(
+                                      height: 8,
+                                    ),
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                            constraints: BoxConstraints(
+                                                maxWidth: MediaQuery.of(context)
+                                                        .size
+                                                        .width /
+                                                    3.2),
+                                            child: Text(
+                                              dateToString(
+                                                  widget.measurement.time),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                  fontSize: 8,
+                                                  color: Colors.black
+                                                      .withOpacity(0.3)),
+                                            )),
+                                        const SizedBox(
+                                          width: 8.0,
+                                        ),
+                                        // SvgPicture.asset(
+                                        //   'assets/icon/loader.svg',
+                                        //   semanticsLabel: 'loader',
+                                        //   height: 8,
+                                        //   width: 8,
+                                        // ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              )
+                            ],
+                          ),
                         ),
-                      ),
 
-                      const SizedBox(height: 20),
-                      // Analytics
-                      moreInsightsWidget(
+                        const SizedBox(height: 20),
+                        // Analytics
+                        mapMoreInsightsWidget(
                           PlaceDetails.measurementToPLace(widget.measurement),
-                          context),
-                    ],
+                        ),
+                      ],
+                    ),
                   ),
 
                   const Divider(color: Color(0xffC4C4C4)),
