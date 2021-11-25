@@ -64,8 +64,8 @@ const MapBoxMap = () => {
               device.longitude && (
                 <Marker
                   key={device.name}
-                  longitude={device.longitude}
-                  latitude={device.latitude}
+                  longitude={parseFloat(device.longitude)}
+                  latitude={parseFloat(device.latitude)}
                 >
                   <div
                     onClick={() => setSelectedDevice(device)}
@@ -78,8 +78,8 @@ const MapBoxMap = () => {
           )}
           {selectedDevice && (
             <Popup
-              longitude={selectedDevice.longitude}
-              latitude={selectedDevice.latitude}
+              longitude={parseFloat(selectedDevice.longitude)}
+              latitude={parseFloat(selectedDevice.latitude)}
               offsetLeft={17}
               offsetTop={5}
               onClose={() => setSelectedDevice(null)}
