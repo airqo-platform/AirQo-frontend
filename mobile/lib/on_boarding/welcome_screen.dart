@@ -79,21 +79,6 @@ class WelcomeScreenState extends State<WelcomeScreen> {
     ));
   }
 
-  Future<void> initialize() async {
-    Future.delayed(const Duration(seconds: 4), () async {
-      await Navigator.pushReplacement(context,
-          MaterialPageRoute(builder: (context) {
-        return const SignupScreen(false);
-      }));
-    });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    initialize();
-  }
-
   Future<bool> onWillPop() {
     var now = DateTime.now();
 

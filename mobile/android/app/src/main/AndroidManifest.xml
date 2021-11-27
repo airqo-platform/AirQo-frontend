@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="net.airqo.app">
+    package="com.airqo.app">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
@@ -12,7 +12,7 @@
 
    <application
         android:requestLegacyExternalStorage="true"
-        android:label="AirQo Beta"
+        android:label="AirQo"
         android:icon="@mipmap/launcher_icon">
 
 

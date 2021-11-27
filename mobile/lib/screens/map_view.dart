@@ -97,7 +97,17 @@ class _MapViewState extends State<MapView> {
                   (BuildContext context, ScrollController scrollController) {
                 return SingleChildScrollView(
                     controller: scrollController,
-                    child: cardWidget(defaultContent()));
+                    physics: const ScrollPhysics(),
+                    child: Card(
+                        margin: EdgeInsets.zero,
+                        elevation: 12.0,
+                        shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(16), topRight: Radius.circular(16))),
+                        child: Container(
+                          padding: const EdgeInsets.fromLTRB(32.0, 0, 32.0, 16.0),
+                          child: defaultContent(),
+                        )));
               },
             ),
           ),
@@ -283,10 +293,12 @@ class _MapViewState extends State<MapView> {
             removeTop: true,
             child: ListView(
               shrinkWrap: true,
+              physics: const ScrollPhysics(),
+              controller: ScrollController(),
               children: <Widget>[
                 getLocationDisplay(),
                 SizedBox(
-                  height: MediaQuery.of(context).size.height,
+                  height: MediaQuery.of(context).size.height/2,
                 ),
               ],
             )),
@@ -336,6 +348,8 @@ class _MapViewState extends State<MapView> {
         context: context,
         child: ListView(
           shrinkWrap: true,
+          physics: const ScrollPhysics(),
+          controller: ScrollController(),
           children: <Widget>[
             const SizedBox(
               height: 5,
@@ -556,6 +570,7 @@ class _MapViewState extends State<MapView> {
                   context: context,
                   removeTop: true,
                   child: ListView.builder(
+                    physics: const ScrollPhysics(),
                     controller: ScrollController(),
                     shrinkWrap: true,
                     itemBuilder: (context, index) =>
@@ -818,6 +833,8 @@ class _MapViewState extends State<MapView> {
         context: context,
         child: ListView(
           shrinkWrap: true,
+          physics: const ScrollPhysics(),
+          controller: ScrollController(),
           children: [
             const SizedBox(
               height: 10,

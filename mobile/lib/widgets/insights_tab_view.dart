@@ -705,8 +705,8 @@ class _InsightsTabViewState extends State<InsightsTabView> {
       await _setSelectedMeasurement(_hourlyPm10ChartData);
     }
 
-    await _saveMeasurements(_hourlyPm2_5ChartData.toList().first.data);
-    await _saveMeasurements(_hourlyPm10ChartData.toList().first.data);
+    await _saveMeasurements(_hourlyPm2_5ChartData.first.data);
+    await _saveMeasurements(_hourlyPm10ChartData.first.data);
   }
 
   void _getHourlyTicks() {
@@ -759,8 +759,8 @@ class _InsightsTabViewState extends State<InsightsTabView> {
         await _setSelectedMeasurement(_dailyPm10ChartData);
       }
 
-      await _saveMeasurements(_dailyPm2_5ChartData.toList().first.data);
-      await _saveMeasurements(_dailyPm2_5ChartData.toList().first.data);
+      await _saveMeasurements(_dailyPm2_5ChartData.first.data);
+      await _saveMeasurements(_dailyPm2_5ChartData.first.data);
     } else {
       setState(() {
         _hourlyPm10ChartData = insightsHourlyChartData(

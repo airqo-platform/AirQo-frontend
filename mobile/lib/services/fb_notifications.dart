@@ -1131,6 +1131,8 @@ class CustomAuth {
           'firstName': userDetails.firstName,
           'lastName': userDetails.lastName,
           'photoUrl': userDetails.photoUrl,
+          'emailAddress': userDetails.emailAddress,
+          'phoneNumber': userDetails.phoneNumber,
         };
 
         await _cloudStore.updateProfileFields(firebaseUser.uid, fields);
