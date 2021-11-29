@@ -71,6 +71,8 @@ class ColorConstants {
 
   static Color get appColorPaleBlue => const Color(0xffCEDDFF);
 
+  static Color get appLoadingColor => const Color(0xffEBEAEF);
+
   static Color get appPicColor => const Color(0xffFF79C1);
 
   static Color get appTipColor => const Color(0xffD5FFD4);

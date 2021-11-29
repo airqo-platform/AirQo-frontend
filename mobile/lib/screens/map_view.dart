@@ -58,21 +58,21 @@ class _MapViewState extends State<MapView> {
       body: Stack(
         children: <Widget>[
           mapWidget(),
-          Visibility(
-            visible: false,
-            child: DraggableScrollableSheet(
-              initialChildSize: _scrollSheetHeight,
-              minChildSize: 0.18,
-              maxChildSize: 0.92,
-              builder:
-                  (BuildContext context, ScrollController scrollController) {
-                return SingleChildScrollView(
-                  controller: scrollController,
-                  child: scrollViewContent(),
-                );
-              },
-            ),
-          ),
+          // Visibility(
+          //   visible: false,
+          //   child: DraggableScrollableSheet(
+          //     initialChildSize: _scrollSheetHeight,
+          //     minChildSize: 0.18,
+          //     maxChildSize: 0.92,
+          //     builder:
+          //         (BuildContext context, ScrollController scrollController) {
+          //       return SingleChildScrollView(
+          //         controller: scrollController,
+          //         child: scrollViewContent(),
+          //       );
+          //     },
+          //   ),
+          // ),
           Visibility(
             visible: _showLocationDetails,
             child: DraggableScrollableSheet(
@@ -82,6 +82,7 @@ class _MapViewState extends State<MapView> {
               builder:
                   (BuildContext context, ScrollController scrollController) {
                 return SingleChildScrollView(
+                    padding: EdgeInsets.zero,
                     controller: scrollController,
                     child: cardWidget(locationContent()));
               },
@@ -293,6 +294,8 @@ class _MapViewState extends State<MapView> {
         MediaQuery.removePadding(
             context: context,
             removeTop: true,
+            removeLeft: true,
+            removeRight: true,
             child: ListView(
               shrinkWrap: true,
               physics: const ScrollPhysics(),
@@ -392,23 +395,23 @@ class _MapViewState extends State<MapView> {
     );
   }
 
-  Widget scrollViewContent() {
-    return Card(
-        margin: EdgeInsets.zero,
-        elevation: 12.0,
-        shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(16), topRight: Radius.circular(16))),
-        child: _showLocationDetails
-            ? Container(
-                padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 16.0),
-                child: locationContent(),
-              )
-            : Container(
-                padding: const EdgeInsets.fromLTRB(32.0, 0, 32.0, 16.0),
-                child: defaultContent(),
-              ));
-  }
+  // Widget scrollViewContent() {
+  //   return Card(
+  //       margin: EdgeInsets.zero,
+  //       elevation: 12.0,
+  //       shape: const RoundedRectangleBorder(
+  //           borderRadius: BorderRadius.only(
+  //               topLeft: Radius.circular(16), topRight: Radius.circular(16))),
+  //       child: _showLocationDetails
+  //           ? Container(
+  //               padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 16.0),
+  //               child: locationContent(),
+  //             )
+  //           : Container(
+  //               padding: const EdgeInsets.fromLTRB(32.0, 0, 32.0, 16.0),
+  //               child: defaultContent(),
+  //             ));
+  // }
 
   void searchChanged(String text) {
     if (text.isEmpty) {
@@ -644,12 +647,10 @@ class _MapViewState extends State<MapView> {
       await controller.animateCamera(
           CameraUpdate.newCameraPosition(_defaultCameraPosition));
 
-      if (mounted) {
-        setState(() {
-          _markers.clear();
-          _markers = {};
-        });
-      }
+      setState(() {
+        _markers.clear();
+        _markers = {};
+      });
 
       return;
     }
@@ -908,19 +909,19 @@ class _MapViewState extends State<MapView> {
     var dbMeasurements = await _dbHelper.getLatestMeasurements();
 
     if (dbMeasurements.isNotEmpty && mounted) {
-      await setMarkers(dbMeasurements, false, 6.6);
       setState(() {
         _latestMeasurements = dbMeasurements;
       });
+      await setMarkers(dbMeasurements, false, 6.6);
     }
 
     var measurements = await _airqoApiClient!.fetchLatestMeasurements();
 
     if (measurements.isNotEmpty && mounted) {
-      await setMarkers(measurements, false, 6.6);
       setState(() {
         _latestMeasurements = measurements;
       });
+      await setMarkers(measurements, false, 6.6);
     }
 
     await _dbHelper.insertLatestMeasurements(measurements);

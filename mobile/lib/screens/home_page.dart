@@ -53,8 +53,12 @@ class _HomePageState extends State<HomePage> {
               secondaryAnimation: secondaryAnimation,
             );
           },
-          child: Center(
-            child: _widgetOptions.elementAt(_selectedIndex),
+          // child: Center(
+          //   child: _widgetOptions.elementAt(_selectedIndex),
+          // ),
+          child: IndexedStack(
+            index: _selectedIndex,
+            children: _widgetOptions,
           ),
         ),
       ),

@@ -12,7 +12,6 @@ import 'package:app/services/rest_api.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/widgets/analytics_card.dart';
-import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -58,10 +57,10 @@ class _DashboardViewState extends State<DashboardView> {
   final DBHelper _dbHelper = DBHelper();
   final ScrollController _scrollController = ScrollController();
   final List<Widget> _dashBoardPlaces = [
-    containerLoadingAnimation(255.0, 16.0),
-    containerLoadingAnimation(255.0, 16.0),
-    containerLoadingAnimation(255.0, 16.0),
-    containerLoadingAnimation(255.0, 16.0)
+    analyticsCardLoading(),
+    analyticsCardLoading(),
+    analyticsCardLoading(),
+    analyticsCardLoading()
   ];
 
   Widget appNavBar() {
@@ -308,7 +307,7 @@ class _DashboardViewState extends State<DashboardView> {
 
   Widget kyaSection() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
+      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 16.0),
       decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.all(Radius.circular(16.0))),
@@ -423,7 +422,7 @@ class _DashboardViewState extends State<DashboardView> {
                 placeholder: (context, url) => SizedBox(
                   width: 104,
                   height: 104,
-                  child: containerLoadingAnimation(104, 8.0),
+                  child: analyticsCardLoading(),
                 ),
                 imageUrl: _kya!.imageUrl,
                 errorWidget: (context, url, error) => Icon(
@@ -574,17 +573,11 @@ class _DashboardViewState extends State<DashboardView> {
               if (currentLocation != null)
                 AnalyticsCard(PlaceDetails.measurementToPLace(currentLocation!),
                     currentLocation!, _isRefreshing, _showAnalyticsCardTips),
-              if (currentLocation == null)
-                containerLoadingAnimation(255.0, 16.0),
+              if (currentLocation == null) analyticsCardLoading(),
               const SizedBox(
                 height: 16,
               ),
               if (_kya != null && _customAuth.isLoggedIn()) kyaSection(),
-
-              // tipsSection(),
-              const SizedBox(
-                height: 16,
-              ),
               if (_dashBoardPlaces.isNotEmpty) _dashBoardPlaces[0],
               const SizedBox(
                 height: 16,
