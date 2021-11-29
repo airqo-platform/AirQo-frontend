@@ -48,25 +48,25 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> initialize() async {
-    _getLatestMeasurements();
-    _loadKya();
-    _loadNotifiers();
+    var isLoggedIn = _customAuth.isLoggedIn();
     Future.delayed(const Duration(seconds: 2), () async {
       _updateWidget();
     });
-
-    await _customAuth.isFirstUse().then((value) => {
-          Future.delayed(const Duration(seconds: 5), () async {
-            await Navigator.pushAndRemoveUntil(context,
-                MaterialPageRoute(builder: (context) {
-              if (value) {
-                return const WelcomeScreen();
-              } else {
-                return const HomePage();
-              }
-            }), (r) => false);
-          }),
-        });
+    Future.delayed(const Duration(seconds: 5), () async {
+      await Navigator.pushAndRemoveUntil(context,
+          MaterialPageRoute(builder: (context) {
+        if (isLoggedIn) {
+          return const HomePage();
+        } else {
+          return const WelcomeScreen();
+        }
+      }), (r) => false);
+    });
+    _getLatestMeasurements();
+    if (isLoggedIn) {
+      _loadKya();
+      _loadNotifiers();
+    }
   }
 
   @override

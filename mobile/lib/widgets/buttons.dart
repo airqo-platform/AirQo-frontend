@@ -216,7 +216,7 @@ Widget signButton(String text) {
   return Container(
     height: 48,
     padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-    constraints: const BoxConstraints(minWidth: double.infinity),
+    constraints: const BoxConstraints(minWidth: double.infinity, maxHeight: 48),
     decoration: BoxDecoration(
         color: const Color(0xff8D8D8D).withOpacity(0.1),
         borderRadius: const BorderRadius.all(Radius.circular(8.0))),

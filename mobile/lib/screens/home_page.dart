@@ -132,6 +132,9 @@ class _HomePageState extends State<HomePage> {
           onTap: _onItemTapped,
           showSelectedLabels: true,
           showUnselectedLabels: true,
+          type: BottomNavigationBarType.fixed,
+          selectedFontSize: 10,
+          unselectedFontSize: 10,
         ),
       ),
     );

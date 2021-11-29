@@ -671,6 +671,10 @@ class _InsightsTabViewState extends State<InsightsTabView> {
       int deviceNumber, List<HistoricalMeasurement> measurements) async {
     var predictions = await _airqoApiClient!.fetchForecast(deviceNumber);
 
+    if (!mounted) {
+      return;
+    }
+
     if (predictions.isEmpty) {
       setState(() {
         _hourlyPm2_5ChartData = insightsHourlyChartData(
@@ -699,14 +703,16 @@ class _InsightsTabViewState extends State<InsightsTabView> {
       }
     }
 
-    if (_pollutant == 'pm2.5') {
-      await _setSelectedMeasurement(_hourlyPm2_5ChartData);
-    } else {
-      await _setSelectedMeasurement(_hourlyPm10ChartData);
-    }
+    if (mounted) {
+      if (_pollutant == 'pm2.5') {
+        await _setSelectedMeasurement(_hourlyPm2_5ChartData);
+      } else {
+        await _setSelectedMeasurement(_hourlyPm10ChartData);
+      }
 
-    await _saveMeasurements(_hourlyPm2_5ChartData.first.data);
-    await _saveMeasurements(_hourlyPm10ChartData.first.data);
+      await _saveMeasurements(_hourlyPm2_5ChartData.first.data);
+      await _saveMeasurements(_hourlyPm10ChartData.first.data);
+    }
   }
 
   void _getHourlyTicks() {

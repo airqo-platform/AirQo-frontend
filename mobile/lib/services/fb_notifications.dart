@@ -885,9 +885,12 @@ class CustomAuth {
     }
 
     try {
-      var userCredential =
-          await _firebaseAuth.signInWithCredential(authCredential);
-      return userCredential.user != null;
+      var userCredentials = await _firebaseAuth.currentUser!
+          .reauthenticateWithCredential(authCredential);
+
+      // var userCredential =
+      //     await _firebaseAuth.signInWithCredential(authCredential);
+      return userCredentials.user != null;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'invalid-verification-code') {
         await showSnackBar(context, 'Invalid Code');
@@ -915,9 +918,8 @@ class CustomAuth {
     if (!hasConnection) {
       return false;
     }
-
-    var userCredential = await FirebaseAuth.instance
-        .signInWithEmailLink(emailLink: link, email: emailAddress);
+    var userCredential = await _firebaseAuth.signInWithEmailLink(
+        emailLink: link, email: emailAddress);
 
     if (userCredential.user == null) {
       return false;

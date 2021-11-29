@@ -53,7 +53,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
           child: ListView(children: [
         // Start Common widgets
         const SizedBox(
-          height: 42,
+          height: 56,
         ),
 
         Visibility(
@@ -61,6 +61,8 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
           child: const Text(
             'Verify your email address!',
             textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
                 fontWeight: FontWeight.bold, fontSize: 24, color: Colors.black),
           ),
@@ -72,6 +74,8 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
                 ? 'Sign up with your email\nor mobile number'
                 : 'Login with your email\nor mobile number',
             textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
                 fontWeight: FontWeight.bold, fontSize: 24, color: Colors.black),
           ),
@@ -87,6 +91,8 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
             'Enter the 6 digit code sent to\n'
             '$_emailAddress',
             textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style:
                 TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.6)),
           ),
@@ -96,6 +102,8 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
             child: Text(
               'We’ll send you a verification code',
               textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style:
                   TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.6)),
             )),
@@ -123,7 +131,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
         // end input fields
 
         const SizedBox(
-          height: 24,
+          height: 32,
         ),
 
         Visibility(
@@ -237,7 +245,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
           ),
         ),
         const SizedBox(
-          height: 20,
+          height: 16,
         ),
         Visibility(
           visible: widget.action == 'signup',

@@ -28,5 +28,5 @@ class AirQoUrls {
 
   String get stories => storiesLink;
 
-  String get welcomeMessage => '${_stageBaseUrl}notifications/welcomeMessage';
+  String get welcomeMessage => '${_baseUrl}notifications/welcomeMessage';
 }

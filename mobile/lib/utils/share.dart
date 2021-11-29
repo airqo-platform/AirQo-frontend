@@ -47,8 +47,10 @@ Future<void> shareCard(BuildContext buildContext, GlobalKey globalKey,
     var message = '${measurement.site.getName()}, Current Air Quality. \n\n'
         'Source: AiQo App';
     await Share.shareFiles([imgFile.path], text: message);
-  } else {
+  } else if (dialogResponse == 'text') {
     shareMeasurementText(measurement);
+  } else {
+    return;
   }
 }
 

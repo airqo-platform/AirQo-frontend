@@ -27,12 +27,13 @@ Future<void> main() async {
   HttpOverrides.global = AppHttpOverrides();
 
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
+    // statusBarColor: Colors.transparent,
+    statusBarColor: ColorConstants.appBodyColor,
     statusBarIconBrightness: Brightness.dark,
     systemNavigationBarDividerColor: ColorConstants.appBodyColor,
     systemNavigationBarColor: ColorConstants.appBodyColor,
     // statusBarBrightness: Brightness.light,
-    // systemNavigationBarIconBrightness: Brightness.dark,
+    systemNavigationBarIconBrightness: Brightness.dark,
   ));
 
   WidgetsFlutterBinding.ensureInitialized();

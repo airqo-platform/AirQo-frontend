@@ -85,7 +85,7 @@ class ColorConstants {
 
   static Color get greyTextColor => const Color(0xffADAFB6);
 
-  static Color get inactiveColor => appColor.withOpacity(0.5);
+  static Color get inactiveColor => appColorBlack.withOpacity(0.4);
 
   // pm colors
   static Color get linkedInColor => const Color(0xff2867B2);
