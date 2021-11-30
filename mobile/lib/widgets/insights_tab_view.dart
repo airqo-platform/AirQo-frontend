@@ -15,6 +15,7 @@ import 'package:app/widgets/recomendation.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -396,30 +397,44 @@ class _InsightsTabViewState extends State<InsightsTabView> {
                   const SizedBox(
                     height: 13.0,
                   ),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                          constraints: BoxConstraints(
-                              maxWidth: MediaQuery.of(context).size.width / 2),
-                          child: Text(
-                            _lastUpdated,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                                fontSize: 8,
-                                color: Colors.black.withOpacity(0.3)),
-                          )),
-                      const SizedBox(
-                        width: 8.0,
-                      ),
-                      SvgPicture.asset(
-                        'assets/icon/loader.svg',
-                        semanticsLabel: 'loader',
-                        height: 8,
-                        width: 8,
-                      ),
-                    ],
+                  Visibility(
+                    visible: widget.daily,
+                    child: _hourlyChart(),
+                  ),
+                  Visibility(
+                    visible: widget.daily,
+                    child: const SizedBox(
+                      height: 13.0,
+                    ),
+                  ),
+                  Visibility(
+                    visible: !widget.daily,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                            constraints: BoxConstraints(
+                                maxWidth:
+                                    MediaQuery.of(context).size.width / 2),
+                            child: Text(
+                              _lastUpdated,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                  fontSize: 8,
+                                  color: Colors.black.withOpacity(0.3)),
+                            )),
+                        const SizedBox(
+                          width: 8.0,
+                        ),
+                        SvgPicture.asset(
+                          'assets/icon/loader.svg',
+                          semanticsLabel: 'loader',
+                          height: 8,
+                          width: 8,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -658,6 +673,120 @@ class _InsightsTabViewState extends State<InsightsTabView> {
     );
   }
 
+  Future<void> _fetchHourlyMeasurements() async {
+    var dbMeasurements =
+        await _dbHelper.getInsightsChartData(widget.placeDetails.getName());
+    if (dbMeasurements.isNotEmpty) {
+      var hourlyMeasurements = dbMeasurements
+          .where((element) => element.frequency == 'hourly')
+          .toList();
+      var pm25Data = hourlyMeasurements
+          .where((element) => element.pollutant == 'pm2.5')
+          .toList();
+      var pm10Data = hourlyMeasurements
+          .where((element) => element.pollutant == 'pm10')
+          .toList();
+      setState(() {
+        _hourlyPm2_5ChartData = insightsHourlyChartData(
+            [], 'pm2.5', widget.placeDetails, pm25Data, []);
+        _hourlyPm10ChartData = insightsHourlyChartData(
+            [], 'pm10', widget.placeDetails, pm10Data, []);
+      });
+    } else {
+      setState(() {
+        _hourlyPm2_5ChartData =
+            insightsHourlyChartData([], 'pm2.5', widget.placeDetails, [], []);
+        _hourlyPm10ChartData =
+            insightsHourlyChartData([], 'pm10', widget.placeDetails, [], []);
+      });
+    }
+
+    var measurements = await _airqoApiClient!.fetchSiteHistoricalMeasurements(
+        widget.placeDetails.siteId, widget.daily);
+
+    if (!mounted) {
+      return;
+    }
+
+    if (measurements.isEmpty) {
+      return;
+    }
+
+    setState(() {
+      _hourlyPm10ChartData = insightsHourlyChartData(
+          measurements, 'pm10', widget.placeDetails, [], measurements);
+      _hourlyPm2_5ChartData = insightsHourlyChartData(
+          measurements, 'pm2.5', widget.placeDetails, [], measurements);
+    });
+  }
+
+  Future<void> _fetchMeasurements() async {
+    var measurements = await _airqoApiClient!.fetchSiteHistoricalMeasurements(
+        widget.placeDetails.siteId, widget.daily);
+
+    if (widget.daily) {
+      var siteTodayMeasurements =
+          await _dbHelper.getSiteLatestMeasurements(widget.placeDetails.siteId);
+      if (siteTodayMeasurements != null) {
+        var relatedDate = DateTime.parse(siteTodayMeasurements.time);
+        var hour = relatedDate.hour.toString().length >= 2
+            ? relatedDate.hour.toString()
+            : '0${relatedDate.hour}';
+        siteTodayMeasurements.time =
+            '${DateFormat('yyyy-MM-dd').format(relatedDate)}T$hour:00:00Z';
+        measurements
+          ..removeWhere((element) {
+            return relatedDate.weekday == DateTime.now().weekday;
+          })
+          ..add(siteTodayMeasurements.toHistorical());
+      }
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    if (measurements.isEmpty) {
+      return;
+    }
+
+    if (widget.daily) {
+      setState(() {
+        _dailyPm2_5ChartData = insightsDailyChartData(
+            measurements, 'pm2.5', widget.placeDetails, [], measurements);
+        _dailyPm10ChartData = insightsDailyChartData(
+            measurements, 'pm10', widget.placeDetails, [], measurements);
+      });
+
+      if (_pollutant == 'pm2.5') {
+        await _setSelectedMeasurement(_dailyPm2_5ChartData);
+      } else {
+        await _setSelectedMeasurement(_dailyPm10ChartData);
+      }
+
+      await _saveMeasurements(_dailyPm2_5ChartData.first.data);
+      await _saveMeasurements(_dailyPm2_5ChartData.first.data);
+    } else {
+      setState(() {
+        _hourlyPm10ChartData = insightsHourlyChartData(
+            measurements, 'pm10', widget.placeDetails, [], measurements);
+      });
+      if (measurements.isNotEmpty) {
+        await _getForecast(measurements.first.deviceNumber, measurements);
+      } else {
+        setState(() {
+          _hourlyPm2_5ChartData = insightsHourlyChartData(
+              measurements, 'pm2.5', widget.placeDetails, [], measurements);
+        });
+        if (_pollutant == 'pm2.5') {
+          await _setSelectedMeasurement(_hourlyPm2_5ChartData);
+        } else {
+          await _setSelectedMeasurement(_hourlyPm10ChartData);
+        }
+      }
+    }
+  }
+
   Future<void> _getDBMeasurements() async {
     var measurements =
         await _dbHelper.getInsightsChartData(widget.placeDetails.getName());
@@ -739,55 +868,6 @@ class _InsightsTabViewState extends State<InsightsTabView> {
     });
   }
 
-  Future<void> _getRemoteMeasurements() async {
-    var measurements = await _airqoApiClient!.fetchSiteHistoricalMeasurements(
-        widget.placeDetails.siteId, widget.daily);
-
-    if (!mounted) {
-      return;
-    }
-
-    if (measurements.isEmpty) {
-      return;
-    }
-
-    if (widget.daily) {
-      setState(() {
-        _dailyPm2_5ChartData = insightsDailyChartData(
-            measurements, 'pm2.5', widget.placeDetails, [], measurements);
-        _dailyPm10ChartData = insightsDailyChartData(
-            measurements, 'pm10', widget.placeDetails, [], measurements);
-      });
-
-      if (_pollutant == 'pm2.5') {
-        await _setSelectedMeasurement(_dailyPm2_5ChartData);
-      } else {
-        await _setSelectedMeasurement(_dailyPm10ChartData);
-      }
-
-      await _saveMeasurements(_dailyPm2_5ChartData.first.data);
-      await _saveMeasurements(_dailyPm2_5ChartData.first.data);
-    } else {
-      setState(() {
-        _hourlyPm10ChartData = insightsHourlyChartData(
-            measurements, 'pm10', widget.placeDetails, [], measurements);
-      });
-      if (measurements.isNotEmpty) {
-        await _getForecast(measurements.first.deviceNumber, measurements);
-      } else {
-        setState(() {
-          _hourlyPm2_5ChartData = insightsHourlyChartData(
-              measurements, 'pm2.5', widget.placeDetails, [], measurements);
-        });
-        if (_pollutant == 'pm2.5') {
-          await _setSelectedMeasurement(_hourlyPm2_5ChartData);
-        } else {
-          await _setSelectedMeasurement(_hourlyPm10ChartData);
-        }
-      }
-    }
-  }
-
   Widget _hourlyChart() {
     _getHourlyTicks();
     return SizedBox(
@@ -865,7 +945,7 @@ class _InsightsTabViewState extends State<InsightsTabView> {
   Future<void> _initialize() async {
     _airqoApiClient = AirqoApiClient(context);
     await _getDBMeasurements();
-    await _getRemoteMeasurements();
+    await _fetchMeasurements();
   }
 
   Future<void> _saveMeasurements(
@@ -964,6 +1044,10 @@ class _InsightsTabViewState extends State<InsightsTabView> {
       setState(() {
         _hasMeasurements = true;
       });
+
+      if (widget.daily) {
+        await _fetchHourlyMeasurements();
+      }
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
       debugPrint(stackTrace.toString());
@@ -1000,6 +1084,9 @@ class _InsightsTabViewState extends State<InsightsTabView> {
         _recommendations = [];
       });
     }
+    if (widget.daily) {
+      _fetchHourlyMeasurements();
+    }
   }
 
   void _updateUI(InsightsChartData insightsChartData) {
@@ -1009,7 +1096,10 @@ class _InsightsTabViewState extends State<InsightsTabView> {
     });
     if (_lastUpdated == '') {
       setState(() {
-        _lastUpdated = dateToString(_selectedMeasurement!.time.toString());
+        _lastUpdated =
+            _selectedMeasurement!.time.weekday == DateTime.now().weekday
+                ? dateToString(_selectedMeasurement!.time.toString())
+                : 'Updated today';
       });
     }
     var time = insightsChartData.time;

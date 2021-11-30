@@ -18,6 +18,8 @@ class AirQoUrls {
 
   String get placeSearchDetails => '${_searchBaseUrl}details/json';
 
+  String get requestEmailReAuthentication => '${_baseUrl}users/emailAuth';
+
   String get requestEmailVerification => '${_baseUrl}users/emailLogin';
 
   String get searchSuggestions => '${_searchBaseUrl}autocomplete/json';

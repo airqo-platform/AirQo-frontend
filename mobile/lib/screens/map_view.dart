@@ -73,6 +73,7 @@ class _MapViewState extends State<MapView> {
           //     },
           //   ),
           // ),
+
           Visibility(
             visible: _showLocationDetails,
             child: DraggableScrollableSheet(
@@ -81,10 +82,13 @@ class _MapViewState extends State<MapView> {
               maxChildSize: 0.6,
               builder:
                   (BuildContext context, ScrollController scrollController) {
-                return SingleChildScrollView(
-                    padding: EdgeInsets.zero,
-                    controller: scrollController,
-                    child: cardWidget(locationContent()));
+                return cardWidget(
+                    SingleChildScrollView(
+                        physics: const ScrollPhysics(),
+                        padding: EdgeInsets.zero,
+                        controller: scrollController,
+                        child: locationContent()),
+                    16.0);
               },
             ),
           ),
@@ -96,21 +100,13 @@ class _MapViewState extends State<MapView> {
               maxChildSize: 0.92,
               builder:
                   (BuildContext context, ScrollController scrollController) {
-                return SingleChildScrollView(
-                    controller: scrollController,
-                    physics: const ScrollPhysics(),
-                    child: Card(
-                        margin: EdgeInsets.zero,
-                        elevation: 12.0,
-                        shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(16),
-                                topRight: Radius.circular(16))),
-                        child: Container(
-                          padding:
-                              const EdgeInsets.fromLTRB(32.0, 0, 32.0, 16.0),
-                          child: defaultContent(),
-                        )));
+                return cardWidget(
+                    SingleChildScrollView(
+                      controller: scrollController,
+                      physics: const ScrollPhysics(),
+                      child: defaultContent(),
+                    ),
+                    32);
               },
             ),
           ),
@@ -119,7 +115,7 @@ class _MapViewState extends State<MapView> {
     );
   }
 
-  Widget cardWidget(Widget child) {
+  Widget cardWidget(Widget child, double padding) {
     return Card(
       margin: EdgeInsets.zero,
       elevation: 12.0,
@@ -127,7 +123,7 @@ class _MapViewState extends State<MapView> {
           borderRadius: BorderRadius.only(
               topLeft: Radius.circular(16), topRight: Radius.circular(16))),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 16.0),
+        padding: EdgeInsets.fromLTRB(padding, 0, padding, 16.0),
         child: child,
       ),
     );

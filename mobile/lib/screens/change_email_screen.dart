@@ -333,8 +333,8 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
       _isVerifying = true;
     });
 
-    var emailVerificationResponse =
-        await _airqoApiClient!.requestEmailVerificationCode(_emailAddress);
+    var emailVerificationResponse = await _airqoApiClient!
+        .requestEmailVerificationCode(_emailAddress, false);
 
     if (emailVerificationResponse == null) {
       await showSnackBar(context, 'email verification failed');
@@ -364,8 +364,8 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
       _isResending = true;
     });
 
-    var emailVerificationResponse =
-        await _airqoApiClient!.requestEmailVerificationCode(_emailAddress);
+    var emailVerificationResponse = await _airqoApiClient!
+        .requestEmailVerificationCode(_emailAddress, false);
 
     if (emailVerificationResponse == null) {
       await showSnackBar(context, 'Email verification failed');

@@ -5,7 +5,7 @@ import 'dart:io';
 
 import 'package:app/constants/api.dart';
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/email_signup_model.dart';
+import 'package:app/models/email_auth_model.dart';
 import 'package:app/models/feedback.dart';
 import 'package:app/models/historical_measurement.dart';
 import 'package:app/models/json_parsers.dart';
@@ -292,21 +292,23 @@ class AirqoApiClient {
     }
   }
 
-  Future<EmailSignupModel?> requestEmailVerificationCode(
-      String emailAddress) async {
+  Future<EmailAuthModel?> requestEmailVerificationCode(
+      String emailAddress, bool reAuthenticate) async {
     try {
       Map<String, String> headers = HashMap()
         ..putIfAbsent('Content-Type', () => 'application/json');
 
       var body = {'email': emailAddress};
 
-      final response = await http.post(
-          Uri.parse(_airQoUrls.requestEmailVerification),
-          headers: headers,
-          body: jsonEncode(body));
+      var uri = reAuthenticate
+          ? _airQoUrls.requestEmailReAuthentication
+          : _airQoUrls.requestEmailVerification;
+
+      final response = await http.post(Uri.parse(uri),
+          headers: headers, body: jsonEncode(body));
 
       return compute(
-          EmailSignupModel.parseEmailSignupModel, json.decode(response.body));
+          EmailAuthModel.parseEmailAuthModel, json.decode(response.body));
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
       debugPrint(stackTrace.toString());

@@ -392,8 +392,8 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
       }
     }
 
-    var emailSignupResponse =
-        await _airqoApiClient!.requestEmailVerificationCode(_emailAddress);
+    var emailSignupResponse = await _airqoApiClient!
+        .requestEmailVerificationCode(_emailAddress, false);
 
     if (emailSignupResponse == null) {
       await showSnackBar(context, 'email signup verification failed');
@@ -434,8 +434,8 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
       _isResending = true;
     });
 
-    var emailSignupResponse =
-        await _airqoApiClient!.requestEmailVerificationCode(_emailAddress);
+    var emailSignupResponse = await _airqoApiClient!
+        .requestEmailVerificationCode(_emailAddress, false);
 
     if (emailSignupResponse == null) {
       await showSnackBar(context, 'Email signup verification failed');
