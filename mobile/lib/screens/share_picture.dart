@@ -82,7 +82,7 @@ class TakePictureState extends State<TakePicture> {
               ),
             );
           } catch (e) {
-            print(e);
+            debugPrint(e.toString());
           }
         },
         child: const Icon(Icons.camera_alt_outlined),
@@ -172,14 +172,12 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
           ),
           if (isUploading)
             Positioned.fill(
-              child: Container(
-                child: Align(
-                    alignment: Alignment.center,
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                          ColorConstants.appColor),
-                    )),
-              ),
+              child: Align(
+                  alignment: Alignment.center,
+                  child: CircularProgressIndicator(
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(ColorConstants.appColor),
+                  )),
             ),
         ]));
   }
@@ -194,7 +192,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
 
     await File(widget.imagePath).readAsBytes().then((value) => {
           AirqoApiClient(context)
-              .imageUpload(base64Encode(value), mimeType)
+              .imageUpload(base64Encode(value), mimeType, '')
               .whenComplete(() => {uploadCompeteHandler()})
               .catchError(uploadFailureHandler)
               .then((value) => uploadSuccessHandler)

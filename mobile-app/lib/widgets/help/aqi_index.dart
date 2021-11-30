@@ -1,43 +1,52 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:app/screens/web_view.dart';
 import 'package:app/utils/pm.dart';
 import 'package:flutter/material.dart';
 
 class AqiDialog extends StatelessWidget {
-  final String good = 'Air quality is satisfactory,'
-      ' and air pollution poses little or no risk.';
+  final String good = 'Air quality is considered satisfactory,'
+      ' and air pollution poses little or no risk';
 
   final String moderate = ''
-      'Air quality is acceptable. However, '
-      'there may be a risk for some people, '
-      'particularly those who are unusually sensitive to air pollution.\n\n'
-      '- Unusually sensitive people consider '
-      'reducing prolonged or heavy exertion.';
+      'Air quality is acceptable; however, for some '
+      'pollutants, there may be a moderate health concern for'
+      ' a very small number of people who are unusually'
+      ' sensitive to air pollution.'
+      '\n\n'
+      '- People who are unusually sensitive to ozone may '
+      'experience respiratory symptoms';
 
   final String sensitive =
       'Members of sensitive groups may experience health effects.'
-      ' The general public is less likely to be affected.\n\n'
-      '- Sensitive people should reduce prolonged or heavy exertion.\n\n'
-      '- People with asthma should follow their asthma action'
-      ' plans and keep quick relief medicine handy.';
+      ' The general public is not likely to be affected.'
+      '\n\n'
+      '- Although the general public is not likely to be affected'
+      ' at this AQI range, people with lung disease, older adults, '
+      'and children are at greater risk from exposure to ozone, '
+      'whereas persons with heart and lung disease, older adults'
+      ' and children are at greater risk from the presence of '
+      'particles in the air.'
+      '';
 
-  final String unHealthy =
-      'Some members of the general public may experience health effects;'
-      ' members of sensitive groups may experience'
-      ' more serious health effects.\n\n'
+  final String unHealthy = 'Everyone may begin to experience health effects;'
+      ' members of sensitive groups may experience more serious health effect'
+      '\n\n'
       '- Everyone should avoid all physical activity outdoors. \n\n'
-      '- Sensitive people should avoid prolonged or heavy exertion.\n\n'
+      '- Sensitive people should avoid prolonged or intense outdoor activities '
+      'activities .\n\n'
       '- Consider moving activities indoors or rescheduling.';
 
-  final String veryUnhealthy =
-      'Health alert: The risk of health effects is increased for everyone.\n\n'
+  final String veryUnhealthy = 'Health warnings of emergency conditions. '
+      'The entire population is more likely to be affected.'
+      '\n\n'
       '- Sensitive people should avoid all physical activity outdoors.\n\n'
       '- Consider indoors activities or reschedule to a time when air '
       'quality is better.';
 
-  final String hazardous = 'Health warning of emergency conditions: '
-      'everyone is more likely to be affected.\n\n'
-      '- Everyone should avoid all physical activity outdoors. \n\n'
-      '- Follow tips for keeping particle levels low indoors.';
+  final String hazardous =
+      'Health alert: everyone may experience more serious health effect'
+      '\n\n'
+      '- Everyone should avoid all physical outdoor activities';
 
   final Widget whatIsAQI = Container(
       color: ColorConstants.appBodyColor,
@@ -116,14 +125,14 @@ class AqiDialog extends StatelessWidget {
         children: [
           whatIsAQI,
           aqiGuide('assets/images/good-face.png', good, pm2_5ToColor(0),
-              pm2_5TextColor(0), 'Good (0 - 12)'),
+              pm2_5TextColor(0), '0-50   Good'),
           Divider(
             indent: 30,
             endIndent: 30,
             color: ColorConstants.appColor,
           ),
           aqiGuide('assets/images/moderate-face.png', moderate,
-              pm2_5ToColor(20), pm2_5TextColor(20), 'Moderate (12.1 - 35.4)'),
+              pm2_5ToColor(20), pm2_5TextColor(20), '51 -100  Moderate'),
           Divider(
             indent: 30,
             endIndent: 30,
@@ -134,18 +143,14 @@ class AqiDialog extends StatelessWidget {
               sensitive,
               pm2_5ToColor(40),
               pm2_5TextColor(40),
-              'Unhealthy for sensitive groups (35.6 - 55.4)'),
+              '101-150  Unhealthy for Sensitive Groups'),
           Divider(
             indent: 30,
             endIndent: 30,
             color: ColorConstants.appColor,
           ),
-          aqiGuide(
-              'assets/images/unhealthy-face.png',
-              unHealthy,
-              pm2_5ToColor(100),
-              pm2_5TextColor(100),
-              'Unhealthy (55.5 - 150.4)'),
+          aqiGuide('assets/images/unhealthy-face.png', unHealthy,
+              pm2_5ToColor(100), pm2_5TextColor(100), '151-200  Unhealthy'),
           Divider(
             indent: 30,
             endIndent: 30,
@@ -156,18 +161,40 @@ class AqiDialog extends StatelessWidget {
               veryUnhealthy,
               pm2_5ToColor(200),
               pm2_5TextColor(200),
-              'Very unhealthy (150.5 - 250.4)'),
+              '201-300  Very unhealthy'),
           Divider(
             indent: 30,
             endIndent: 30,
             color: ColorConstants.appColor,
           ),
-          aqiGuide(
-              'assets/images/hazardous-face.png',
-              hazardous,
-              pm2_5ToColor(500),
-              pm2_5TextColor(500),
-              'Hazardous (250.5 - 500.4)'),
+          aqiGuide('assets/images/hazardous-face.png', hazardous,
+              pm2_5ToColor(500), pm2_5TextColor(500), '300+  Hazardous'),
+          reference(),
+        ],
+      ),
+    );
+  }
+
+  Widget reference() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          ElevatedButton(
+              style: ElevatedButton.styleFrom(primary: ColorConstants.appColor),
+              onPressed: () {
+                openUrl(Links.epaUrl);
+              },
+              child: const Text('Source: U.S. Environmental Protection Agency',
+                  softWrap: true,
+                  style: TextStyle(
+                      height: 1.5,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold
+                      // letterSpacing: 1.0
+                      )))
         ],
       ),
     );

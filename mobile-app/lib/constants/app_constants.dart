@@ -86,6 +86,8 @@ class Links {
 
   static String get contactUsUrl => contactUs;
 
+  static String get epaUrl => epaReference;
+
   static String get facebookUrl => facebook;
 
   static String get faqsUrl => faqs;
@@ -103,6 +105,8 @@ class Links {
   static String get twitterUrl => twitter;
 
   static String get websiteUrl => airqoWebsite;
+
+  static String get whoUrl => whoReference;
 
   static String get youtubeUrl => youtube;
 }
@@ -126,23 +130,21 @@ class PollutantBio {
       ' 1.1 grams of water in the air at -10 degrees Celsius, '
       'we are at 50 percent relative humidity.';
 
-  static String get pm10 => 'PM10 are pollutants about 10 micrometers in '
-      'size (5–7 times smaller than the '
-      'thickness of a human hair.\n'
-      'These particles can certainly be damaging and include dust '
-      'and thick smoke, many can be processed by the lungs and can be'
-      ' coughed out but others especially if toxic can contribute to'
-      ' respiratory illness and more. They are measured but'
-      ' not always reported worldwide';
+  static String get pm10 => 'PM10 are pollutants that have a diameter of '
+      '10 micrometers (0.01 mm) or smaller; they can be found '
+      'in dust and smoke and can penetrate and lodge deep inside the'
+      ' lungs. They are even more health-damaging particles than'
+      ' the PM2.5  pollutants.';
 
-  static String get pm2_5 => 'PM2.5 are pollutants'
-      ' about 2.5 micrometers (20–30 times '
-      'smaller than the thickness of a human hair.)\n'
-      'Once in the bloodstream, they can contribute to cancers, '
-      'cardiovascular problems, affect brain function and as well as '
-      'cause developmental issues for growing children.\nThey have '
-      'also increasingly been implicated in contributing to the spread '
-      'of COVID-19';
+  static String get pm2_5 => 'PM2.5 are pollutants that have a diameter '
+      'of 2.5 micrometers (20-30 times smaller than the thickness of'
+      ' human hair). They are very small particles usually '
+      'found in smoke. PM2.5 '
+      'particles are small enough for you to breathe and '
+      'can penetrate the lung barrier and enter the blood system.'
+      ' Prolonged exposure to particles contributes to the risk of '
+      'developing cardiovascular and respiratory diseases, '
+      'as well as lung cancer.';
 
   static String get temperature => 'Temperature is the degree of hotness or'
       ' coldness of an object. When we talk about something feeling hot '
@@ -152,88 +154,39 @@ class PollutantBio {
 }
 
 class PollutantConstant {
-  static String get humidity => 'humidity';
-
   static String get pm10 => 'pm10';
 
   static String get pm2_5 => 'pm2_5';
-
-  static String get temperature => 'temperature';
 }
 
 class PollutantDescription {
-  static String get humidity => 'Relative humidity is the amount of water '
-      'vapor actually in the air, expressed as a percentage of the maximum '
-      'amount of water vapor the air can hold at the same temperature. '
-      '\n\nThink of the air at a chilly -10 degrees Celsius '
-      '(14 degrees Fahrenheit). At that temperature, the air can hold,'
-      ' at most, 2.2 grams of water per cubic meter. So if there are 2.2'
-      ' grams of water per cubic meter when its -10 degrees Celsius outside, '
-      'we are at an uncomfortable 100 percent relative humidity. If there was'
-      ' 1.1 grams of water in the air at -10 degrees Celsius, '
-      'we are at 50 percent relative humidity.';
-
-  static String get pm10 => 'PM10 refers to the quantity of particulate'
-      ' matter smaller than 10 micrometers present in the air including'
-      ' PM2.5. This is about 5–7 times smaller than the '
-      'thickness of a human hair\n\n'
-      'To measure the amount of PM10 we use the unit 𝜇g/m3 meaning'
-      ' micrograms per cubic metre of air. So if we say current'
-      ' PM10 level is 60𝜇g/m3 (a reasonable day in Kampala) we mean '
-      'that each cubic metre of air contains 60 micrograms of particulate'
-      ' matter that has a diameter less than 10 micrometres'
+  static String get pm10 => 'PM\u2081\u2080 are pollutants that have a diameter'
+      ' of 10 micrometers (0.01 mm) or smaller.'
       '\n\n'
-      'These are bigger and are often more visible than PM2.5. '
-      'These particles can certainly be damaging and include dust '
-      'and thick smoke, many can be processed by the lungs and can be'
-      ' coughed out but others especially if toxic can contribute to'
-      ' respiratory illness and more. Small particles are also implicated'
-      ' in contributing to the spread of COVID-19. They are measured but'
-      ' not always reported worldwide';
+      'They can be found in smoke, dust, soot, salts, acids, dust '
+      'from unpaved roads, and metals and can penetrate and '
+      'lodge deep inside the lungs. They are even more'
+      ' health-damaging particles than the PM2.5  pollutants. '
+      '\n\n'
+      'PM\u2081\u2080 can penetrate and lodge deep inside the lungs and is'
+      ' associated with adverse health impacts, '
+      'such as lung tissue damage and asthma.';
 
-  static String get pm2_5 => 'PM2.5 refers to the quantity of '
-      'particulate matter smaller than 2.5 micrometers'
-      ' present in the air. To give an idea of what that '
-      'means, 2.5 micrometers is about 20–30 times '
-      'smaller than the thickness of a human hair. \n\n'
-      'To measure the amount of PM2.5 we use the unit 𝜇g/m3 meaning '
-      'micrograms per cubic metre of air. So if we say current PM2.5 level '
-      'is 40𝜇g/m3 (a reasonable day in Kampala), we mean that each '
-      'cubic metre of air contains 40 micrograms of particulate matter'
-      ' that has a diameter less than 2.5 micrometres.\n\n'
-      'PM2.5 is the pollutant we are currently most concerned about'
-      ' and is the most common measure of air quality around the world.'
-      ' As well as respiratory illnesses such as asthma and Chronic '
-      'obstructive pulmonary disease (COPD), individual particles are '
-      'small enough to enter the bloodstream and contribute to cancers, '
-      'cardiovascular problems, affect brain function and as well as '
-      'developmental issues for growing children. Small particles have '
-      'also increasingly been implicated in contributing to the spread '
-      'of COVID-19';
-
-  static String get temperature => 'Temperature is the degree of hotness or'
-      ' coldness of an object. When we talk about something feeling hot '
-      '(like the soup we drink when were sick) or cold (like the snow, '
-      'especially if youre not wearing gloves), '
-      'were talking about temperature.';
-}
-
-class PollutantEffect {
-  static String get pm10 => 'Particulate matter contains microscopic '
-      'solids or liquid droplets that are so small that they '
-      'can be inhaled and cause serious health problems. '
-      'Some particles less than 10 micrometers in diameter can get deep '
-      'into your lungs and some may even get into your bloodstream. '
-      'Of these, particles less than 10 micrometers in diameter, also known '
-      'as fine particles or PM10, pose the greatest risk to health.';
-
-  static String get pm2_5 => 'Particulate matter contains microscopic '
-      'solids or liquid droplets that are so small that they '
-      'can be inhaled and cause serious health problems. '
-      'Some particles less than 10 micrometers in diameter can get deep '
-      'into your lungs and some may even get into your bloodstream. '
-      'Of these, particles less than 2.5 micrometers in diameter, also known '
-      'as fine particles or PM2.5, pose the greatest risk to health.';
+  static String get pm2_5 => 'PM2.5 are pollutants that have'
+      ' a diameter of '
+      '2.5 micrometers (20-30 times smaller than the thickness of human hair).'
+      '\n\n'
+      'They are very small particles usually found in smoke from car exhausts,'
+      ' crop burning, garbage burning,industrial processes,'
+      ' road construction. stoves, fireplaces, and home wood burning'
+      '\n\n'
+      'PM2.5 particles are small enough for you to breathe and can'
+      ' penetrate the lung barrier and enter the blood system. '
+      'Exposure to fine particles can cause short-term health effects'
+      ' such as eye, nose, throat and lung irritation, coughing, '
+      'sneezing, runny nose and shortness of breath. Prolonged '
+      'exposure to particles contributes to the risk of developing '
+      'cardiovascular and respiratory diseases, as well as lung cancer.';
 }
 
 enum PollutantLevel {
@@ -243,44 +196,6 @@ enum PollutantLevel {
   unhealthy,
   veryUnhealthy,
   hazardous
-}
-
-class PollutantReduction {
-  static String get pm10 => 'Particulate matter contains microscopic '
-      'solids or liquid droplets that are so small that they '
-      'can be inhaled and cause serious health problems. '
-      'Some particles less than 10 micrometers in diameter can get deep '
-      'into your lungs and some may even get into your bloodstream. '
-      'Of these, particles less than 10 micrometers in diameter, also known '
-      'as fine particles or PM10, pose the greatest risk to health.';
-
-  static String get pm2_5 => 'Particulate matter contains microscopic '
-      'solids or liquid droplets that are so small that they '
-      'can be inhaled and cause serious health problems. '
-      'Some particles less than 10 micrometers in diameter can get deep '
-      'into your lungs and some may even get into your bloodstream. '
-      'Of these, particles less than 2.5 micrometers in diameter, also known '
-      'as fine particles or PM2.5, pose the greatest risk to health.';
-}
-
-class PollutantSource {
-  static String get pm10 => 'These particles come in many sizes and shapes'
-      ' and can be made up of hundreds of different chemicals.'
-      '\n\nSome are emitted directly from a source, such as construction '
-      'sites, unpaved roads, fields, smokestacks or fires.'
-      '\n\nMost particles form in the atmosphere as a result of complex '
-      'reactions of chemicals such as sulfur dioxide and nitrogen oxides, '
-      'which are pollutants emitted from power plants, '
-      'industries and automobiles.';
-
-  static String get pm2_5 => 'These particles come in many sizes and shapes'
-      ' and can be made up of hundreds of different chemicals. '
-      '\n\nSome are emitted directly from a source, such as construction '
-      'sites, unpaved roads, fields, smokestacks or fires. '
-      '\n\nMost particles form in the atmosphere as a result of complex '
-      'reactions of chemicals such as sulfur dioxide and nitrogen oxides, '
-      'which are pollutants emitted from power plants, '
-      'industries and automobiles.';
 }
 
 class PrefConstant {

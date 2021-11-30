@@ -7,16 +7,19 @@ part of 'story.dart';
 // **************************************************************************
 
 Story _$StoryFromJson(Map<String, dynamic> json) {
-  $checkKeys(json, requiredKeys: const [
-    'link',
-    'pubDate',
-    'title',
-    'author',
-    'guid',
-    'thumbnail',
-    'content',
-    'description'
-  ]);
+  $checkKeys(
+    json,
+    requiredKeys: const [
+      'link',
+      'pubDate',
+      'title',
+      'author',
+      'guid',
+      'thumbnail',
+      'content',
+      'description'
+    ],
+  );
   return Story(
     json['link'] as String,
     json['pubDate'] as String,

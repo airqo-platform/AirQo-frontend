@@ -1,14 +1,14 @@
 import 'package:app/models/site.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import 'measurementValue.dart';
+import 'measurement_value.dart';
 
 part 'measurement.g.dart';
 
 @JsonSerializable()
 class Measurement {
   @JsonKey(required: true)
-  final String time;
+  String time;
 
   @JsonKey(required: true, name: 'average_pm2_5')
   final MeasurementValue pm2_5;
@@ -66,7 +66,8 @@ class Measurement {
 
   @override
   String toString() {
-    return 'Measurement{pm10: $pm10, deviceNumber: $deviceNumber}';
+    return 'Measurement{time: $time, pm2_5: $pm2_5, pm10: $pm10,'
+        ' site: $site, deviceNumber: $deviceNumber}';
   }
 
   static String createTableStmt() =>
@@ -105,88 +106,32 @@ class Measurement {
 
     return {
       'siteDetails': siteDetails,
-      'time': json['${dbTime()}'] as String,
-      'average_pm2_5': {'value': json['${dbPm25()}'] as double},
-      'average_pm10': {'value': json['${dbPm10()}'] as double},
-      'externalTemperature': {'value': json['${dbTemperature()}'] as double},
-      'externalHumidity': {'value': json['${dbHumidity()}'] as double},
-      'speed': {'value': json['${dbSpeed()}'] as double},
-      'altitude': {'value': json['${dbAltitude()}'] as double},
-      'device_number': (json['${dbDeviceNumber()}'] as double).round(),
+      'time': json[dbTime()] as String,
+      'average_pm2_5': {'value': json[dbPm25()] as double},
+      'average_pm10': {'value': json[dbPm10()] as double},
+      'externalTemperature': {'value': json[dbTemperature()] as double},
+      'externalHumidity': {'value': json[dbHumidity()] as double},
+      'speed': {'value': json[dbSpeed()] as double},
+      'altitude': {'value': json[dbAltitude()] as double},
+      'device_number': (json[dbDeviceNumber()] as double).round(),
     };
   }
 
   static Map<String, dynamic> mapToDb(Measurement measurement) {
     var measurementMap = Site.toDbMap(measurement.site)
       ..addAll({
-        '${dbTime()}': measurement.time,
-        '${dbPm25()}': measurement.getPm2_5Value(),
-        '${dbPm10()}': measurement.getPm10Value(),
-        '${dbAltitude()}': measurement.altitude.value,
-        '${dbSpeed()}': measurement.speed.value,
-        '${dbTemperature()}': measurement.temperature.value,
-        '${dbHumidity()}': measurement.humidity.value,
-        '${dbDeviceNumber()}': measurement.deviceNumber,
+        dbTime(): measurement.time,
+        dbPm25(): measurement.getPm2_5Value(),
+        dbPm10(): measurement.getPm10Value(),
+        dbAltitude(): measurement.altitude.value,
+        dbSpeed(): measurement.speed.value,
+        dbTemperature(): measurement.temperature.value,
+        dbHumidity(): measurement.humidity.value,
+        dbDeviceNumber(): measurement.deviceNumber,
       });
 
     return measurementMap;
   }
-
-  static Measurement parseMeasurement(dynamic jsonBody) {
-    var measurements = <Measurement>[];
-
-    var jsonArray = jsonBody['measurements'];
-    for (var jsonElement in jsonArray) {
-      try {
-        var measurement = Measurement.fromJson(jsonElement);
-        var value = measurement.getPm2_5Value();
-        if (value != -0.1 && value >= 0.00 && value <= 500.4) {
-          measurements.add(measurement);
-        }
-      } catch (e) {
-        print(e);
-      }
-    }
-    return measurements.first;
-  }
-
-  static List<Measurement> parseMeasurements(dynamic jsonBody) {
-    var measurements = <Measurement>[];
-
-    var jsonArray = jsonBody['measurements'];
-    for (var jsonElement in jsonArray) {
-      try {
-        var measurement = Measurement.fromJson(jsonElement);
-        var value = measurement.getPm2_5Value();
-        if (value != -0.1 && value >= 0.00 && value <= 500.40) {
-          measurements.add(measurement);
-        }
-      } catch (e) {
-        print(e);
-      }
-    }
-
-    measurements.sort((siteA, siteB) => siteA.site
-        .getName()
-        .toLowerCase()
-        .compareTo(siteB.site.getName().toLowerCase()));
-
-    return measurements;
-  }
-}
-
-@JsonSerializable()
-class Measurements {
-  final List<Measurement> measurements;
-
-  Measurements({
-    required this.measurements,
-  });
-
-  factory Measurements.fromJson(Map<String, dynamic> json) =>
-      _$MeasurementsFromJson(json);
-
-  Map<String, dynamic> toJson() => _$MeasurementsToJson(this);
 }
 
 extension ParseMeasurement on Measurement {

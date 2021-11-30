@@ -6,26 +6,22 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class PlaceView extends StatefulWidget {
-  Site site;
+  final Site site;
 
-  PlaceView(this.site);
+  const PlaceView(this.site, {Key? key}) : super(key: key);
 
   @override
-  _PlaceViewState createState() => _PlaceViewState(this.site);
+  _PlaceViewState createState() => _PlaceViewState();
 }
 
 class _PlaceViewState extends State<PlaceView>
     with SingleTickerProviderStateMixin {
-  var _tabController;
+  TabController? _tabController;
   bool isWeekly = true;
-
-  Site site;
 
   int segmentedControlValue = 0;
 
   int currentSegment = 0;
-
-  _PlaceViewState(this.site);
 
   Widget backButton() {
     return Container(
@@ -55,7 +51,7 @@ class _PlaceViewState extends State<PlaceView>
         elevation: 0,
         backgroundColor: ColorConstants.appBodyColor,
         leading: Padding(
-          padding: const EdgeInsets.only(top: 7, bottom: 7, left: 16),
+          padding: const EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
           child: backButton(),
         ),
         title: Padding(
@@ -68,7 +64,7 @@ class _PlaceViewState extends State<PlaceView>
                 indicatorColor: Colors.transparent,
                 labelColor: Colors.transparent,
                 unselectedLabelColor: Colors.transparent,
-                labelPadding: const EdgeInsets.all(4.0),
+                labelPadding: const EdgeInsets.all(3.0),
                 onTap: (value) {
                   if (value == 0) {
                     setState(() {
@@ -89,7 +85,7 @@ class _PlaceViewState extends State<PlaceView>
                             ? ColorConstants.appColorBlue
                             : Colors.white,
                         borderRadius:
-                            BorderRadius.all(const Radius.circular(7.0))),
+                            const BorderRadius.all(Radius.circular(5.0))),
                     child: Tab(
                         child: Text(
                       'Week',
@@ -105,7 +101,8 @@ class _PlaceViewState extends State<PlaceView>
                         color: isWeekly
                             ? Colors.white
                             : ColorConstants.appColorBlue,
-                        borderRadius: BorderRadius.all(Radius.circular(5.0))),
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(5.0))),
                     child: Tab(
                         child: Text(
                       'Month',
@@ -121,8 +118,8 @@ class _PlaceViewState extends State<PlaceView>
       body: TabBarView(
         controller: _tabController,
         children: <Widget>[
-          WeeklyView(site),
-          MonthlyView(site),
+          WeeklyView(widget.site),
+          MonthlyView(widget.site),
         ],
       ),
     );
@@ -131,7 +128,7 @@ class _PlaceViewState extends State<PlaceView>
   @override
   void dispose() {
     super.dispose();
-    _tabController.dispose();
+    _tabController!.dispose();
   }
 
   @override
@@ -146,26 +143,5 @@ class _PlaceViewState extends State<PlaceView>
         currentSegment = newValue;
       });
     }
-  }
-
-  Widget segmentedControl() {
-    return Container(
-      width: 300,
-      child: CupertinoSlidingSegmentedControl(
-          groupValue: segmentedControlValue,
-          backgroundColor: Colors.blue.shade200,
-          children: const <int, Widget>{
-            0: Text('One'),
-            1: Text('Two'),
-            2: Text('Three')
-          },
-          onValueChanged: (value) {
-            setState(() {
-              if (value != null) {
-                segmentedControlValue = value as int;
-              }
-            });
-          }),
-    );
   }
 }

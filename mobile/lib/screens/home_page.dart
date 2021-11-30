@@ -1,40 +1,37 @@
+import 'package:animations/animations.dart';
 import 'package:app/constants/app_constants.dart';
-import 'package:app/on_boarding/onBoarding_page.dart';
+import 'package:app/models/notification.dart';
+import 'package:app/models/place_details.dart';
 import 'package:app/screens/profile_view.dart';
-import 'package:app/screens/settings_page.dart';
-import 'package:app/screens/share_picture.dart';
+import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dialogs.dart';
-import 'package:app/utils/share.dart';
-import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
 
 import 'dashboard_view.dart';
-import 'help_page.dart';
-import 'maps_view.dart';
+import 'map_view.dart';
 
 class HomePage extends StatefulWidget {
-  final String title = 'AirQo';
+  const HomePage({Key? key}) : super(key: key);
 
   @override
   _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  static const TextStyle optionStyle =
-      TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
-  final PageController _pageCtrl = PageController(initialPage: 0);
-  String title = '${AppConfig.name}';
-  bool showAddPlace = true;
-  DateTime? exitTime;
-
-  double selectedPage = 0;
+  DateTime? _exitTime;
+  AirqoApiClient? _airqoApiClient;
   int _selectedIndex = 0;
+
+  final CustomAuth _customAuth = CustomAuth();
+  final DBHelper _dbHelper = DBHelper();
+  final CloudStore _cloudStore = CloudStore();
   final List<Widget> _widgetOptions = <Widget>[
-    DashboardView(),
-    MapView(),
+    const DashboardView(),
+    const MapView(),
     const ProfileView(),
   ];
 
@@ -42,28 +39,88 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ColorConstants.appBodyColor,
-      body: Center(
-        child: _widgetOptions.elementAt(_selectedIndex),
+      body: WillPopScope(
+        onWillPop: onWillPop,
+        child: PageTransitionSwitcher(
+          transitionBuilder: (
+            Widget child,
+            Animation<double> primaryAnimation,
+            Animation<double> secondaryAnimation,
+          ) {
+            return FadeThroughTransition(
+              child: child,
+              animation: primaryAnimation,
+              secondaryAnimation: secondaryAnimation,
+            );
+          },
+          child: Center(
+            child: _widgetOptions.elementAt(_selectedIndex),
+          ),
+        ),
       ),
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
             canvasColor: ColorConstants.appBodyColor,
-            primaryColor: Colors.black,
-            textTheme: Theme.of(context)
-                .textTheme
-                .copyWith(caption: const TextStyle(color: Colors.black))),
+            primaryColor: ColorConstants.appColorBlack,
+            textTheme: Theme.of(context).textTheme.copyWith(
+                caption: TextStyle(color: ColorConstants.appColorBlack))),
         child: BottomNavigationBar(
-          items: const <BottomNavigationBarItem>[
+          items: <BottomNavigationBarItem>[
             BottomNavigationBarItem(
-              icon: Icon(Icons.home),
+              icon: SvgPicture.asset(
+                'assets/icon/home_icon.svg',
+                semanticsLabel: 'Home',
+                color: _selectedIndex == 0
+                    ? ColorConstants.appColorBlue
+                    : ColorConstants.appColorBlack.withOpacity(0.4),
+              ),
               label: 'Home',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.location_on),
-              label: 'Map',
+              icon: SvgPicture.asset(
+                'assets/icon/location.svg',
+                color: _selectedIndex == 1
+                    ? ColorConstants.appColorBlue
+                    : ColorConstants.appColorBlack.withOpacity(0.4),
+                semanticsLabel: 'AirQo Map',
+              ),
+              label: 'AirQo Map',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.account_circle_sharp),
+              icon: Stack(
+                children: [
+                  SvgPicture.asset(
+                    'assets/icon/profile.svg',
+                    color: _selectedIndex == 2
+                        ? ColorConstants.appColorBlue
+                        : ColorConstants.appColorBlack.withOpacity(0.4),
+                    semanticsLabel: 'Search',
+                  ),
+                  Positioned(
+                    right: 0.0,
+                    child: Consumer<NotificationModel>(
+                      builder: (context, notificationModel, child) {
+                        if (notificationModel.navBarNotification) {
+                          return Container(
+                            height: 4,
+                            width: 4,
+                            decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: ColorConstants.red),
+                          );
+                        }
+                        return Container(
+                          height: 0.1,
+                          width: 0.1,
+                          decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.transparent),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
               label: 'Profile',
             ),
           ],
@@ -81,45 +138,33 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> initialize() async {
+    _airqoApiClient = AirqoApiClient(context);
     _getLatestMeasurements();
+    _getFavPlaces();
+    await _getCloudStore();
   }
 
   @override
   void initState() {
-    super.initState();
     initialize();
-  }
-
-  void navigateToMenuItem(dynamic position) {
-    var menuItem = position.toString();
-
-    if (menuItem.trim().toLowerCase() == 'share') {
-      shareApp();
-    } else if (menuItem.trim().toLowerCase() == 'aqi index') {
-      Navigator.push(
-        context,
-        MaterialPageRoute<void>(
-          builder: (BuildContext context) => const HelpPage(
-            initialIndex: 0,
-          ),
-          fullscreenDialog: true,
-        ),
-      );
-    } else if (menuItem.trim().toLowerCase() == 'camera') {
-      takePhoto();
-    } else {
-      Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return SettingsPage();
-      }));
-    }
+    super.initState();
   }
 
   Future<bool> onWillPop() {
+    var currentPage = _selectedIndex;
+
+    if (currentPage != 0) {
+      setState(() {
+        _selectedIndex = 0;
+      });
+      return Future.value(false);
+    }
+
     var now = DateTime.now();
 
-    if (exitTime == null ||
-        now.difference(exitTime!) > const Duration(seconds: 2)) {
-      exitTime = now;
+    if (_exitTime == null ||
+        now.difference(_exitTime!) > const Duration(seconds: 2)) {
+      _exitTime = now;
 
       showSnackBar(context, 'Tap again to exit !');
       return Future.value(false);
@@ -127,85 +172,30 @@ class _HomePageState extends State<HomePage> {
     return Future.value(true);
   }
 
-  void switchTitle(tile) {
-    switch (tile) {
-      case 0:
-        setState(() {
-          title = '${AppConfig.name}';
-          showAddPlace = true;
-          selectedPage = 0;
-        });
-        break;
-      case 1:
-        setState(() {
-          title = 'MyPlaces';
-          showAddPlace = false;
-          selectedPage = 1;
-        });
-        break;
-      case 2:
-        setState(() {
-          title = 'News Feed';
-          showAddPlace = false;
-          selectedPage = 2;
-        });
-        break;
-      case 3:
-        setState(() {
-          title = 'Settings';
-          showAddPlace = false;
-          selectedPage = 3;
-        });
-        break;
-      default:
-        setState(() {
-          title = '${AppConfig.name}';
-          showAddPlace = true;
-          selectedPage = 0;
-        });
-        break;
+  Future<void> _getCloudStore() async {
+    if (_customAuth.isLoggedIn()) {
+      await _cloudStore.monitorNotifications(context, _customAuth.getId());
     }
   }
 
-  Future<void> takePhoto() async {
-    // Obtain a list of the available cameras on the phone.
-    final cameras = await availableCameras();
-
-    // Get a specific camera from the list of available cameras.
-    if (cameras.isEmpty) {
-      await showSnackBar(context, 'Could not open AQI camera');
-      return;
-    }
-    final firstCamera = cameras.first;
-
-    await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return TakePicture(
-        camera: firstCamera,
-      );
-    }));
+  void _getFavPlaces() {
+    Provider.of<PlaceDetailsModel>(context, listen: false)
+        .reloadFavouritePlaces();
   }
 
-  Future<void> _displayOnBoarding() async {
-    var prefs = await SharedPreferences.getInstance();
-    var isFirstUse = prefs.getBool(PrefConstant.firstUse) ?? true;
-
-    if (isFirstUse) {
-      await Navigator.pushAndRemoveUntil(context,
-          MaterialPageRoute(builder: (context) {
-        return OnBoardingPage();
-      }), (r) => false);
-    }
-  }
-
-  void _getLatestMeasurements() async {
-    await AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
-          if (value.isNotEmpty) {DBHelper().insertLatestMeasurements(value)}
-        });
+  void _getLatestMeasurements() {
+    _airqoApiClient!.fetchLatestMeasurements().then((value) =>
+        {if (value.isNotEmpty) _dbHelper.insertLatestMeasurements(value)});
   }
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
+
+    if (index == 2) {
+      Provider.of<NotificationModel>(context, listen: false)
+          .removeNavBarNotification();
+    }
   }
 }

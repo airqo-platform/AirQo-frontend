@@ -1,5 +1,5 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/providers/ThemeProvider.dart';
+import 'package:app/providers/theme_provider.dart';
 import 'package:flutter/material.dart';
 
 class ChangeThemeDialog extends StatefulWidget {
@@ -8,7 +8,8 @@ class ChangeThemeDialog extends StatefulWidget {
   final void Function(Themes) onValueChange;
 
   const ChangeThemeDialog(
-      {required this.onValueChange, required this.initialValue});
+      {Key? key, required this.onValueChange, required this.initialValue})
+      : super(key: key);
 
   @override
   State createState() => ChangeThemeDialogState();

@@ -48,7 +48,6 @@ class _AddAlertPageState extends State<AddAlertPage> {
             Expanded(
               child: Stepper(
                 type: StepperType.horizontal,
-                // physics: const ScrollPhysics(),
                 physics: const ClampingScrollPhysics(),
                 controlsBuilder: (BuildContext context,
                     {VoidCallback? onStepContinue,
@@ -173,10 +172,6 @@ class _AddAlertPageState extends State<AddAlertPage> {
                                 }
                                 return null;
                               },
-                              // style: OutlinedButton.styleFrom(
-                              //   shape: const CircleBorder(),
-                              //   padding: const EdgeInsets.all(24),
-                              // ),
                               child: Text(
                                 'Change time',
                                 style:
@@ -205,18 +200,6 @@ class _AddAlertPageState extends State<AddAlertPage> {
                                   ))
                             ],
                           ),
-                          // subtitle: Slider(
-                          //   value: _currentSliderValue,
-                          //   min: 0,
-                          //   max: 100,
-                          //   divisions: 5,
-                          //   label: _currentSliderValue.round().toString(),
-                          //   onChanged: (double value) {
-                          //     setState(() {
-                          //       _currentSliderValue = value;
-                          //     });
-                          //   },
-                          // ),
                           subtitle: Column(
                             children: [
                               Row(

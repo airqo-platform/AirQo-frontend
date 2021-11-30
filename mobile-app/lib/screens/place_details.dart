@@ -51,16 +51,11 @@ class PlaceMenuSwitch extends StatefulWidget {
 class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
   var siteAlerts = <String>[];
   bool isFavourite = false;
-  bool hazardousAlerts = false;
-  bool unhealthyAlerts = false;
-  bool veryUnhealthyAlerts = false;
-  bool sensitiveAlerts = false;
 
   var historicalData = <HistoricalMeasurement>[];
   var forecastData = <Predict>[];
 
   var response = '';
-  bool _showMenuButton = true;
   bool _isDashboardView = false;
   final ScrollController _scrollCtrl = ScrollController();
   var historicalResponse = '';
@@ -87,6 +82,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
+        centerTitle: true,
         backgroundColor: ColorConstants.appBarBgColor,
         leading: BackButton(color: ColorConstants.appColor),
         title: Text(
@@ -96,17 +92,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
             color: ColorConstants.appBarTitleColor,
           ),
         ),
-        actions: [
-          // if (isFavourite)
-          // IconButton(
-          //   icon: const Icon(
-          //     Icons.edit_outlined,
-          //   ),
-          //   onPressed: () {
-          //     updateTitleDialog(site);
-          //   },
-          // ),
-        ],
+        actions: [],
       ),
       body: Container(
         color: ColorConstants.appBodyColor,
@@ -118,7 +104,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
             cardSection(measurement),
 
             // Pollutants
-            PollutantsSection(measurement),
+            PollutantsSection(measurement, 'Current Air Quality'),
 
             const SizedBox(
               height: 10,
@@ -164,6 +150,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
         padding: const EdgeInsets.all(8.0),
         child: Card(
             elevation: 10,
+            color: pm2_5ToColor(measurement.getPm2_5Value()),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
@@ -177,7 +164,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                         '${measurement.site.getUserLocation()}',
                         style: TextStyle(
                           fontSize: 20,
-                          color: ColorConstants.appColor,
+                          color: pm2_5TextColor(measurement.getPm2_5Value()),
                           fontWeight: FontWeight.bold,
                         ),
                         textAlign: TextAlign.center,
@@ -190,7 +177,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                           '${measurement.site.getName()}',
                           style: TextStyle(
                             fontSize: 16,
-                            color: ColorConstants.appColor,
+                            color: pm2_5TextColor(measurement.getPm2_5Value()),
                           ),
                           textAlign: TextAlign.center,
                         )),
@@ -202,7 +189,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                         '${measurement.site.getLocation()}',
                         style: TextStyle(
                           fontSize: 16,
-                          color: ColorConstants.appColor,
+                          color: pm2_5TextColor(measurement.getPm2_5Value()),
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -214,7 +201,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                       '${pmToString(measurement.getPm2_5Value())}',
                       style: TextStyle(
                         fontSize: 16,
-                        color: ColorConstants.appColor,
+                        color: pm2_5TextColor(measurement.getPm2_5Value()),
                         fontWeight: FontWeight.bold,
                       ),
                       textAlign: TextAlign.center,
@@ -226,7 +213,7 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                         'Last updated: ${dateToString(measurement.time, true)}',
                         style: TextStyle(
                           fontSize: 13,
-                          color: ColorConstants.appColor,
+                          color: pm2_5TextColor(measurement.getPm2_5Value()),
                           fontWeight: FontWeight.w500,
                         )),
                   ),
@@ -384,17 +371,6 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     }
   }
 
-  void handleScroll() async {
-    _scrollCtrl.addListener(() {
-      if (_scrollCtrl.position.userScrollDirection == ScrollDirection.reverse) {
-        hideMenuButton();
-      }
-      if (_scrollCtrl.position.userScrollDirection == ScrollDirection.forward) {
-        showMenuButton();
-      }
-    });
-  }
-
   Widget headerSection(String image, String body) {
     return Container(
       padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
@@ -426,51 +402,22 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
     );
   }
 
-  void hideMenuButton() {
-    if (mounted) {
-      setState(() {
-        _showMenuButton = false;
-      });
-    }
-  }
-
   Widget historicalDataSection(List<HistoricalMeasurement> measurements) {
     return MeasurementsBarChart(measurements, 'History');
   }
 
   Future<void> initialize() async {
     checkDashboardView();
-    // initializeNotifications();
     await dbFetch();
     getMeasurements();
     getForecastMeasurements();
     getHistoricalMeasurements();
   }
 
-  void initializeNotifications() async {
-    await SharedPreferences.getInstance().then((value) => {
-          if (mounted)
-            {
-              setState(() {
-                siteAlerts = value.getStringList(PrefConstant.siteAlerts) ?? [];
-                hazardousAlerts = siteAlerts.contains(
-                    measurement.site.getTopic(PollutantLevel.hazardous));
-                sensitiveAlerts = siteAlerts.contains(
-                    measurement.site.getTopic(PollutantLevel.sensitive));
-                unhealthyAlerts = siteAlerts.contains(
-                    measurement.site.getTopic(PollutantLevel.unhealthy));
-                veryUnhealthyAlerts = siteAlerts.contains(
-                    measurement.site.getTopic(PollutantLevel.veryUnhealthy));
-              })
-            }
-        });
-  }
-
   @override
   void initState() {
     super.initState();
     initialize();
-    handleScroll();
   }
 
   bool isChecked(PollutantLevel pollutantLevel) {
@@ -571,22 +518,6 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
               ),
               markers: _markers.values.toSet(),
             )));
-  }
-
-  void showMenuButton() {
-    if (mounted) {
-      setState(() {
-        _showMenuButton = true;
-      });
-    }
-  }
-
-  void updateAlerts(dynamic pollutantLevel) async {
-    await DBHelper()
-        .updateSiteAlerts(measurement.site, pollutantLevel)
-        .then((_) => {
-              initializeNotifications(),
-            });
   }
 
   Future<void> updateDashboardView(bool value) async {
@@ -726,13 +657,13 @@ class _PlaceDetailsPageState extends State<PlaceDetailsPage> {
                               color: ColorConstants.appColor),
                       title: isFavourite
                           ? Text(
-                              'Remove from MyPlaces',
+                              'Remove from My Places',
                               style: TextStyle(
                                   color: ColorConstants.appColor,
                                   fontWeight: FontWeight.w600),
                             )
                           : Text(
-                              'Add to MyPlaces',
+                              'Add to My Places',
                               style: TextStyle(
                                   color: ColorConstants.appColor,
                                   fontWeight: FontWeight.w600),

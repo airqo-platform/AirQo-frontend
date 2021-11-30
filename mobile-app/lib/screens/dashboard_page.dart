@@ -9,6 +9,7 @@ import 'package:app/services/rest_api.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/settings.dart';
 import 'package:app/widgets/current_location_readings.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -55,7 +56,7 @@ class _DashboardPageState extends State<DashboardPage> {
                               getGreetings(),
                               textAlign: TextAlign.start,
                               style: const TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold),
+                                  fontWeight: FontWeight.bold, fontSize: 17),
                             ),
                           ),
                           CurrentLocationCard(

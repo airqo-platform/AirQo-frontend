@@ -29,14 +29,28 @@ class PollutantCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
-                  name,
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: ColorConstants.appColor,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                RichText(
+                    text: TextSpan(
+                  style: DefaultTextStyle.of(context).style,
+                  children: <TextSpan>[
+                    TextSpan(
+                      text: 'PM',
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: ColorConstants.appColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    TextSpan(
+                      text: name,
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: ColorConstants.appColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )
+                  ],
+                )),
                 Padding(
                     padding: const EdgeInsets.all(1.0),
                     child: RichText(
@@ -79,9 +93,9 @@ class PollutantCard extends StatelessWidget {
 
   void openDialog(context) {
     if (type == PollutantConstant.pm2_5) {
-      infoDialog(context, PollutantBio.pm2_5);
+      pollutantDialog(context, PollutantBio.pm2_5);
     } else if (type == PollutantConstant.pm10) {
-      infoDialog(context, PollutantBio.pm10);
+      pollutantDialog(context, PollutantBio.pm10);
     } else {
       return;
     }

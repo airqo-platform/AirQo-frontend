@@ -1,29 +1,28 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:app/models/place_details.dart';
 import 'package:app/models/site.dart';
 import 'package:app/services/rest_api.dart';
-import 'package:app/widgets/readings_card.dart';
 import 'package:app/widgets/text_fields.dart';
-import 'package:app/widgets/tips.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class MonthlyView extends StatefulWidget {
-  Site site;
+import 'analytics_card.dart';
+import 'custom_shimmer.dart';
 
-  MonthlyView(this.site);
+class MonthlyView extends StatefulWidget {
+  final Site site;
+
+  const MonthlyView(this.site, {Key? key}) : super(key: key);
 
   @override
-  _MonthlyViewState createState() => _MonthlyViewState(this.site);
+  _MonthlyViewState createState() => _MonthlyViewState();
 }
 
 class _MonthlyViewState extends State<MonthlyView>
     with TickerProviderStateMixin {
-  late TabController _weeklyTabController;
-  Site site;
+  TabController? _weeklyTabController;
   int currentIndex = 0;
   List<Widget> placeHolders = [];
-
-  _MonthlyViewState(this.site);
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +73,7 @@ class _MonthlyViewState extends State<MonthlyView>
     }
     return Tab(
         child: tabLayout(
-            '${DateFormat('EEE').format(nextDate)}',
+            DateFormat('EEE').format(nextDate),
             day,
             currentIndex == index
                 ? ColorConstants.appColorBlue
@@ -87,7 +86,7 @@ class _MonthlyViewState extends State<MonthlyView>
   @override
   void dispose() {
     super.dispose();
-    _weeklyTabController.dispose();
+    _weeklyTabController!.dispose();
   }
 
   DateTime getDate(int day) {
@@ -103,7 +102,7 @@ class _MonthlyViewState extends State<MonthlyView>
   void getMeasurements() async {
     for (var dateIndex = 0; dateIndex < placeHolders.length; dateIndex++) {
       await AirqoApiClient(context)
-          .fetchSiteDayMeasurements(site, getDate(dateIndex))
+          .fetchSiteDayMeasurements(widget.site.id, getDate(dateIndex))
           .then((measurements) => {
                 if (measurements.isEmpty)
                   {
@@ -121,100 +120,15 @@ class _MonthlyViewState extends State<MonthlyView>
                   }
                 else
                   {
-                    setState(() {
-                      placeHolders[dateIndex] = ListView(
-                        shrinkWrap: true,
-                        children: [
-                          ReadingsCardV2(site, measurements),
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            'Wellness & Health tips',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
-                          SizedBox(
-                            height: 4,
-                          ),
-                          TipCard(),
-                          SizedBox(
-                            height: 8,
-                          ),
-                          TipCard(),
-                          SizedBox(
-                            height: 8,
-                          ),
-                          TipCard(),
-                          SizedBox(
-                            height: 8,
-                          ),
-                          TipCard(),
-                        ],
-                      );
-                    }),
+                    if (mounted)
+                      {
+                        setState(() {
+                          placeHolders[dateIndex] = AnalyticsCard(
+                              PlaceDetails.siteToPLace(widget.site), false);
+                        }),
+                      }
                   }
               });
-    }
-  }
-
-  void getMeasurementsv2() async {
-    for (var dateIndex = 0; dateIndex <= 6; dateIndex++) {
-      var measurements = await AirqoApiClient(context)
-          .fetchSiteDayMeasurements(site, getDate(dateIndex));
-      Widget data;
-      if (measurements.isEmpty) {
-        data = const Center(
-          child: Text(
-            'Not Available',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-            ),
-          ),
-        );
-      } else {
-        data = ListView(
-          shrinkWrap: true,
-          children: [
-            ReadingsCardV2(site, measurements),
-            SizedBox(
-              height: 16,
-            ),
-            Text(
-              'Wellness & Health tips',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
-            ),
-            SizedBox(
-              height: 4,
-            ),
-            TipCard(),
-            SizedBox(
-              height: 8,
-            ),
-            TipCard(),
-            SizedBox(
-              height: 8,
-            ),
-            TipCard(),
-            SizedBox(
-              height: 8,
-            ),
-            TipCard(),
-          ],
-        );
-      }
-
-      if (mounted) {
-        setState(() {
-          placeHolders[dateIndex] = data;
-        });
-      }
     }
   }
 
@@ -223,12 +137,9 @@ class _MonthlyViewState extends State<MonthlyView>
     var now = DateTime.now();
     var lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
     for (var dateIndex = 0; dateIndex <= lastDayOfMonth.day; dateIndex++) {
-      days.add(Center(
-          child: Container(
-        height: 50,
-        width: 50,
-        child: const CircularProgressIndicator(),
-      )));
+      days.add(
+        containerLoadingAnimation(253.0, 16.0),
+      );
     }
     return days;
   }

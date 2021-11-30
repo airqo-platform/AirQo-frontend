@@ -2,6 +2,7 @@ import 'package:app/config/env.dart';
 
 class AirQoUrls {
   final String _baseUrl = baseUrl;
+  final _stageBaseUrl = stageBaseUrl;
   final String _baseUrlV2 = baseUrlV2;
   final String _searchBaseUrl = placesSearchUrl;
 
@@ -9,15 +10,15 @@ class AirQoUrls {
 
   String get feedbackUrl => feedbackWebhook;
 
-  String get forecast => '${_baseUrl}predict/';
-
-  String get forecastV2 => '${_baseUrlV2}predict/';
+  String get forecast => '${_baseUrlV2}predict/';
 
   String get imageUploadUrl => airqoImageUploadUrl;
 
   String get measurements => '${_baseUrl}devices/events';
 
   String get placeSearchDetails => '${_searchBaseUrl}details/json';
+
+  String get requestEmailVerification => '${_baseUrl}users/emailLogin';
 
   String get searchSuggestions => '${_searchBaseUrl}autocomplete/json';
 
@@ -26,4 +27,6 @@ class AirQoUrls {
   String get sitesByGeoCoordinates => '${_baseUrl}devices/sites/nearest';
 
   String get stories => storiesLink;
+
+  String get welcomeMessage => '${_stageBaseUrl}notifications/welcomeMessage';
 }

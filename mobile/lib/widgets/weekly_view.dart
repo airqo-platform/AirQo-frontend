@@ -1,70 +1,34 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:app/models/place_details.dart';
 import 'package:app/models/site.dart';
 import 'package:app/services/rest_api.dart';
-import 'package:app/widgets/readings_card.dart';
 import 'package:app/widgets/text_fields.dart';
-import 'package:app/widgets/tips.dart';
 import 'package:flutter/material.dart';
 
-class WeeklyView extends StatefulWidget {
-  Site site;
+import 'analytics_card.dart';
+import 'custom_shimmer.dart';
 
-  WeeklyView(this.site);
+class WeeklyView extends StatefulWidget {
+  final Site site;
+
+  const WeeklyView(this.site, {Key? key}) : super(key: key);
 
   @override
-  _WeeklyViewState createState() => _WeeklyViewState(this.site);
+  _WeeklyViewState createState() => _WeeklyViewState();
 }
 
 class _WeeklyViewState extends State<WeeklyView> with TickerProviderStateMixin {
-  late TabController _weeklyTabController;
-  Site site;
+  TabController? _weeklyTabController;
   int currentIndex = 0;
   List<Widget> placeHolders = [
-    Center(
-        child: Container(
-      height: 50,
-      width: 50,
-      child: const CircularProgressIndicator(),
-    )),
-    Center(
-        child: Container(
-      height: 50,
-      width: 50,
-      child: const CircularProgressIndicator(),
-    )),
-    Center(
-        child: Container(
-      height: 50,
-      width: 50,
-      child: const CircularProgressIndicator(),
-    )),
-    Center(
-        child: Container(
-      height: 50,
-      width: 50,
-      child: const CircularProgressIndicator(),
-    )),
-    Center(
-        child: Container(
-      height: 50,
-      width: 50,
-      child: const CircularProgressIndicator(),
-    )),
-    Center(
-        child: Container(
-      height: 50,
-      width: 50,
-      child: const CircularProgressIndicator(),
-    )),
-    Center(
-        child: Container(
-      height: 50,
-      width: 50,
-      child: const CircularProgressIndicator(),
-    ))
+    containerLoadingAnimation(253.0, 16.0),
+    containerLoadingAnimation(253.0, 16.0),
+    containerLoadingAnimation(253.0, 16.0),
+    containerLoadingAnimation(253.0, 16.0),
+    containerLoadingAnimation(253.0, 16.0),
+    containerLoadingAnimation(253.0, 16.0),
+    containerLoadingAnimation(253.0, 16.0),
   ];
-
-  _WeeklyViewState(this.site);
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +50,7 @@ class _WeeklyViewState extends State<WeeklyView> with TickerProviderStateMixin {
               },
               isScrollable: true,
               tabs: <Widget>[
-                Container(
+                SizedBox(
                   width: 50.0,
                   child: Tab(
                       child: tabLayout(
@@ -179,7 +143,7 @@ class _WeeklyViewState extends State<WeeklyView> with TickerProviderStateMixin {
   @override
   void dispose() {
     super.dispose();
-    _weeklyTabController.dispose();
+    _weeklyTabController!.dispose();
   }
 
   DateTime getDate(int day) {
@@ -194,7 +158,7 @@ class _WeeklyViewState extends State<WeeklyView> with TickerProviderStateMixin {
 
   void getMeasurements(int today) async {
     await AirqoApiClient(context)
-        .fetchSiteDayMeasurements(site, getDate(today))
+        .fetchSiteDayMeasurements(widget.site.id, getDate(today))
         .then((measurements) => {
               if (measurements.isEmpty && mounted)
                 {
@@ -213,57 +177,28 @@ class _WeeklyViewState extends State<WeeklyView> with TickerProviderStateMixin {
             });
     for (var dateIndex = 0; dateIndex <= 6; dateIndex++) {
       var measurements = await AirqoApiClient(context)
-          .fetchSiteDayMeasurements(site, getDate(dateIndex));
-      Widget data;
+          .fetchSiteDayMeasurements(widget.site.id, getDate(dateIndex));
       if (measurements.isEmpty) {
-        data = const Center(
-          child: Text(
-            'Not Available',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-            ),
-          ),
-        );
-      } else {
-        data = ListView(
-          shrinkWrap: true,
-          children: [
-            ReadingsCardV2(site, measurements),
-            SizedBox(
-              height: 16,
-            ),
-            Text(
-              'Wellness & Health tips',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
+        if (mounted) {
+          setState(() {
+            placeHolders[dateIndex] = const Center(
+              child: Text(
+                'Not Available',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
               ),
-            ),
-            SizedBox(
-              height: 4,
-            ),
-            TipCard(),
-            SizedBox(
-              height: 8,
-            ),
-            TipCard(),
-            SizedBox(
-              height: 8,
-            ),
-            TipCard(),
-            SizedBox(
-              height: 8,
-            ),
-            TipCard(),
-          ],
-        );
-      }
-
-      if (mounted) {
-        setState(() {
-          placeHolders[dateIndex] = data;
-        });
+            );
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            placeHolders[dateIndex] =
+                AnalyticsCard(PlaceDetails.siteToPLace(widget.site), false);
+          });
+        }
       }
     }
   }

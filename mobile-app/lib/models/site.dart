@@ -1,4 +1,5 @@
 import 'package:app/constants/app_constants.dart';
+import 'package:app/utils/string_extension.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'site.g.dart';
@@ -38,33 +39,46 @@ class Site {
   factory Site.fromJson(Map<String, dynamic> json) => _$SiteFromJson(json);
 
   String getLocation() {
-    return '$district $country';
+    return '$district $country'.toTitleCase();
   }
 
   String getName() {
-    if (description == '' ||
-        description.trim().toLowerCase() == 'null' ||
-        description.trim().toLowerCase().contains('null')) {
-      if (name == '' ||
-          name.trim().toLowerCase() == 'null' ||
-          name.trim().toLowerCase().contains('null')) {
-        return getLocation();
-      }
-      return name;
+    try {
+      if (name != '' && name.trim().toLowerCase() != 'null' &&
+              !name.trim().toLowerCase().contains('null')) {
+            return name.toTitleCase();
+          }
+    } catch (e) {
+      print(e);
     }
-    return description;
+
+    try {
+      if (description != '' &&
+              description.trim().toLowerCase() != 'null' &&
+              !description.trim().toLowerCase().contains('null')) {
+            return description.toTitleCase();
+          }
+    } catch (e) {
+      print(e);
+    }
+
+    return  getLocation();
   }
 
   String getUserLocation() {
-    if (userLocation == null) {
-      return getName();
+    try {
+      if (userLocation == null) {
+            return getName();
+          }
+      if (userLocation == '' ||
+              userLocation.trim().toLowerCase() == 'null' ||
+              userLocation.trim().toLowerCase().contains('null')) {
+            return getName();
+          }
+    } catch (e) {
+      print(e);
     }
-    if (userLocation == '' ||
-        userLocation.trim().toLowerCase() == 'null' ||
-        userLocation.trim().toLowerCase().contains('null')) {
-      return getName();
-    }
-    return userLocation;
+    return userLocation.toTitleCase();
   }
 
   Map<String, dynamic> toJson() => _$SiteToJson(this);

@@ -148,58 +148,6 @@ class MapPageState extends State<MapPage> {
                       FutureBuilder(
                         future: searchApiClient.fetchSuggestions(query),
                         builder: (context, snapshot) {
-                          // if (query == '') {
-                          //   return FutureBuilder(
-                          //     future: DBHelper().getSearchHistory(),
-                          //     builder: (context, snapshot) {
-                          //       if (snapshot.hasData) {
-                          //         var results = snapshot.data
-                          //         as List<Suggestion>;
-                          //
-                          //         if (results.isEmpty) {
-                          //           return const Text('No data');
-                          //         }
-                          //
-                          //         return ListView.builder(
-                          //           itemBuilder: (context, index) =>
-                          //           ListTile(
-                          //             title: Text(
-                          //               (results[index]).description,
-                          //               style:
-                          //               const TextStyle
-                          //               (fontSize: 12, color:
-                          //               Colors.black54),
-                          //             ),
-                          //             leading: const Icon(
-                          //               Icons.history,
-                          //               color: ColorConstants.appColor,
-                          //             ),
-                          //             trailing: GestureDetector(
-                          //               onTap: () {
-                          //                 DBHelper()
-                          //                 .deleteSearchHistory(
-                          //                 results[index]);
-                          //                 query = '';
-                          //               },
-                          //               child: const Icon(
-                          //                 Icons.delete_outlined,
-                          //                 color: Colors.red,
-                          //               ),
-                          //             ),
-                          //             onTap: () {
-                          //               query = (results[index]).description;
-                          //               // close(context, results[index]);
-                          //             },
-                          //           ),
-                          //           itemCount: results.length,
-                          //         );
-                          //       }
-                          //
-                          //       return const Text('No data');
-                          //     },
-                          //   );
-                          // }
-
                           if (snapshot.hasError) {
                             return Padding(
                               padding: const EdgeInsets.all(16.0),
@@ -314,46 +262,10 @@ class MapPageState extends State<MapPage> {
                                       ColorConstants.appColor),
                                 )),
                           ),
-                          // Center(
-                          //     child: Text(
-                          //   'Loading',
-                          //   style: TextStyle(color: ColorConstants.appColor),
-                          // )),
                         ],
                       ),
                     )),
               ),
-            // Positioned(
-            //     bottom: 0,
-            //     left: 0,
-            //     right: 0,
-            //     child: Row(
-            //       mainAxisAlignment: MainAxisAlignment.center,
-            //       crossAxisAlignment: CrossAxisAlignment.center,
-            //       children: [
-            //         IconButton(
-            //           iconSize: 30.0,
-            //           icon: const Icon(Icons.refresh_outlined,
-            //           color: ColorConstants.appColor),
-            //           onPressed: _refreshMeasurements,
-            //         ),
-            //         IconButton(
-            //           iconSize: 30.0,
-            //           icon: const Icon(Icons.help_outline_outlined,
-            //               color: ColorConstants.appColor),
-            //           onPressed: () {
-            //             Navigator.push(
-            //               context,
-            //               MaterialPageRoute<void>(
-            //                 builder: (BuildContext context)
-            //                 => getHelpPage(''),
-            //                 fullscreenDialog: true,
-            //               ),
-            //             );
-            //           },
-            //         ),
-            //       ],
-            //     )),
           ],
         ));
   }

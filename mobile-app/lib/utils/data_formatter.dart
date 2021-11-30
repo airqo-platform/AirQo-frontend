@@ -72,31 +72,3 @@ List<charts.Series<TimeSeriesData, DateTime>> historicalChartData(
     )
   ];
 }
-
-List<charts.Series<TimeSeriesData, DateTime>> historicalChartDataV2(
-    List<HistoricalMeasurement> measurements) {
-  var data = <TimeSeriesData>[];
-
-  for (var measurement in measurements) {
-    try {
-      final dateTime = DateTime.parse(measurement.time);
-      data.add(TimeSeriesData(dateTime, measurement.getPm2_5Value()));
-    } catch (e) {
-      print(e);
-    }
-  }
-
-  return [
-    charts.Series<TimeSeriesData, DateTime>(
-      id: 'Historical',
-      colorFn: (TimeSeriesData series, _) =>
-          pmToChartColor(series.value.toDouble(), 'pm2.5'),
-      domainFn: (TimeSeriesData data, _) => data.time,
-      measureFn: (TimeSeriesData data, _) => data.value,
-      // measureLowerBoundFn: (TimeSeriesData data, _) => data.value - 5,
-      // measureUpperBoundFn: (TimeSeriesData data, _) => data.value + 5,
-      data: data,
-      // displayName: 'Forecast',
-    )
-  ];
-}

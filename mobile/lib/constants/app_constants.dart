@@ -1,11 +1,18 @@
 import 'dart:io';
 
 import 'package:app/config/env.dart';
-import 'package:app/models/site.dart';
 import 'package:flutter/material.dart';
 
 class AppConfig {
-  static final String _androidApiKey = googleKey;
+  static const String _androidApiKey = googleKey;
+
+  static const String sentryUrl = sentryDevDsn;
+
+  static const String sentryProdUrl = sentryProdDsn;
+
+  static const String imageUploadApiKey = imageApiKey;
+
+  static final String imageUploadPreset = uploadPreset;
 
   static final String _iOSApiKey = iosKey;
 
@@ -20,6 +27,8 @@ class AppConfig {
 
   static double get defaultLongitude => defaultLongitudeValue;
 
+  static String get iosStoreId => iosAppStoreId;
+
   static int get maxSearchRadius => searchRadius * 2;
 
   static String get name => applicationName;
@@ -31,6 +40,16 @@ class AppConfig {
 
 class CloudStorage {
   static String get alertsCollection => alertsDb;
+
+  static String get favPlacesCollection => favPlacesDb;
+
+  static String get kyaCollection => kyaDb;
+
+  static String get notificationCollection => notificationDb;
+
+  static String get usersCollection => usersDb;
+
+  static String get usersKyaCollection => usersKyaDb;
 }
 
 class ColorConstants {
@@ -44,37 +63,46 @@ class ColorConstants {
 
   static Color get appColor => Colors.black;
 
-  // static Color get appColor => const Color(0xff3067e2);
+  static Color get appColorBlack => const Color(0xff121723);
 
-  static Color get appColorBlue => const Color(0xff3067e2);
+  static Color get appColorBlue => const Color(0xff145DFF);
+
+  static Color get appColorDisabled => appColorBlue.withOpacity(0.5);
+
+  static Color get appColorPaleBlue => const Color(0xffCEDDFF);
 
   static Color get appPicColor => const Color(0xffFF79C1);
 
   static Color get appTipColor => const Color(0xffD5FFD4);
 
+  static Color get darkGreyColor => const Color(0xffADAFB6);
+
   static Color get facebookColor => const Color(0xff4267B2);
 
-  static Color get green => const Color(0xff3FFF33);
+  static Color get green => const Color(0xff3AFF38);
 
-  static Color get greyColor => const Color(0xff8D8D8D);
+  static Color get greyColor => const Color(0xffD1D3D9);
+
+  static Color get greyTextColor => const Color(0xffADAFB6);
 
   static Color get inactiveColor => appColor.withOpacity(0.5);
 
+  // pm colors
   static Color get linkedInColor => const Color(0xff2867B2);
 
-  static Color get maroon => const Color(0xff570B0B);
+  static Color get maroon => const Color(0xffA51F3F);
 
-  static Color get orange => const Color(0xffFF9633);
+  static Color get orange => const Color(0xffFE9E35);
 
-  static Color get purple => const Color(0xFF7B1FA2);
+  static Color get purple => const Color(0xFFDD38FF);
 
-  static Color get red => const Color(0xffF62E2E);
+  static Color get red => const Color(0xffFF4034);
 
   static Color get snackBarBgColor => appColor.withOpacity(0.8);
 
   static Color get twitterColor => const Color(0xff1DA1F2);
 
-  static Color get yellow => const Color(0xffFFF933);
+  static Color get yellow => const Color(0xffFFFF35);
 
   static Color get youtubeColor => const Color(0xffFF0000);
 }
@@ -94,6 +122,12 @@ class Links {
 
   static String get airqoFeedbackEmail => feedbackEmail;
 
+  static String get appAndroidWhatsappUrl => androidWhatsAppLink;
+
+  static String get appiOSWhatsappUrl => iosWhatsAppLink;
+
+  static String get appStoreUrl => iOSLink;
+
   static String get blogUrl => airqoBlog;
 
   static String get contactUsUrl => contactUs;
@@ -101,8 +135,6 @@ class Links {
   static String get facebookUrl => facebook;
 
   static String get faqsUrl => faqs;
-
-  static String get iOSUrl => iOSLink;
 
   static String get linkedinUrl => linkedin;
 
@@ -126,114 +158,6 @@ class NotificationConfig {
   static const int smartNotificationId = 4877231;
 }
 
-class PollutantConstant {
-  static String get humidity => 'humidity';
-
-  static String get pm10 => 'pm10';
-
-  static String get pm2_5 => 'pm2_5';
-
-  static String get temperature => 'temperature';
-}
-
-class PollutantDescription {
-  static String get humidity => 'Relative humidity is the amount of water '
-      'vapor actually in the air, expressed as a percentage of the maximum '
-      'amount of water vapor the air can hold at the same temperature. '
-      '\n\nThink of the air at a chilly -10 degrees Celsius '
-      '(14 degrees Fahrenheit). At that temperature, the air can hold,'
-      ' at most, 2.2 grams of water per cubic meter. So if there are 2.2'
-      ' grams of water per cubic meter when its -10 degrees Celsius outside, '
-      'we are at an uncomfortable 100 percent relative humidity. If there was'
-      ' 1.1 grams of water in the air at -10 degrees Celsius, '
-      'we are at 50 percent relative humidity.';
-
-  static String get pm10 => 'PM stands for particulate matter '
-      '(also called particle pollution): the term for a mixture of solid'
-      ' particles and liquid droplets found in the air. Some particles, '
-      'such as dust, dirt, soot, or smoke, are large or dark enough to be '
-      'seen with the naked eye. Others are so small they can only be detected '
-      'using an electron microscope.';
-
-  static String get pm2_5 => 'PM stands for particulate matter '
-      '(also called particle pollution): the term for a mixture of solid'
-      ' particles and liquid droplets found in the air. Some particles, '
-      'such as dust, dirt, soot, or smoke, are large or dark enough to be '
-      'seen with the naked eye. Others are so small they can only be detected '
-      'using an electron microscope.';
-
-  static String get temperature => 'Temperature is the degree of hotness or'
-      ' coldness of an object. When we talk about something feeling hot '
-      '(like the soup we drink when were sick) or cold (like the snow, '
-      'especially if youre not wearing gloves), '
-      'were talking about temperature.';
-}
-
-class PollutantEffect {
-  static String get pm10 => 'Particulate matter contains microscopic '
-      'solids or liquid droplets that are so small that they '
-      'can be inhaled and cause serious health problems. '
-      'Some particles less than 10 micrometers in diameter can get deep '
-      'into your lungs and some may even get into your bloodstream. '
-      'Of these, particles less than 10 micrometers in diameter, also known '
-      'as fine particles or PM10, pose the greatest risk to health.';
-
-  static String get pm2_5 => 'Particulate matter contains microscopic '
-      'solids or liquid droplets that are so small that they '
-      'can be inhaled and cause serious health problems. '
-      'Some particles less than 10 micrometers in diameter can get deep '
-      'into your lungs and some may even get into your bloodstream. '
-      'Of these, particles less than 2.5 micrometers in diameter, also known '
-      'as fine particles or PM2.5, pose the greatest risk to health.';
-}
-
-enum PollutantLevel {
-  good,
-  moderate,
-  sensitive,
-  unhealthy,
-  veryUnhealthy,
-  hazardous
-}
-
-class PollutantReduction {
-  static String get pm10 => 'Particulate matter contains microscopic '
-      'solids or liquid droplets that are so small that they '
-      'can be inhaled and cause serious health problems. '
-      'Some particles less than 10 micrometers in diameter can get deep '
-      'into your lungs and some may even get into your bloodstream. '
-      'Of these, particles less than 10 micrometers in diameter, also known '
-      'as fine particles or PM10, pose the greatest risk to health.';
-
-  static String get pm2_5 => 'Particulate matter contains microscopic '
-      'solids or liquid droplets that are so small that they '
-      'can be inhaled and cause serious health problems. '
-      'Some particles less than 10 micrometers in diameter can get deep '
-      'into your lungs and some may even get into your bloodstream. '
-      'Of these, particles less than 2.5 micrometers in diameter, also known '
-      'as fine particles or PM2.5, pose the greatest risk to health.';
-}
-
-class PollutantSource {
-  static String get pm10 => 'These particles come in many sizes and shapes'
-      ' and can be made up of hundreds of different chemicals.'
-      '\n\nSome are emitted directly from a source, such as construction '
-      'sites, unpaved roads, fields, smokestacks or fires.'
-      '\n\nMost particles form in the atmosphere as a result of complex '
-      'reactions of chemicals such as sulfur dioxide and nitrogen oxides, '
-      'which are pollutants emitted from power plants, '
-      'industries and automobiles.';
-
-  static String get pm2_5 => 'These particles come in many sizes and shapes'
-      ' and can be made up of hundreds of different chemicals. '
-      '\n\nSome are emitted directly from a source, such as construction '
-      'sites, unpaved roads, fields, smokestacks or fires. '
-      '\n\nMost particles form in the atmosphere as a result of complex '
-      'reactions of chemicals such as sulfur dioxide and nitrogen oxides, '
-      'which are pollutants emitted from power plants, '
-      'industries and automobiles.';
-}
-
 class PrefConstant {
   static String get appTheme => 'appTheme';
 
@@ -241,15 +165,21 @@ class PrefConstant {
 
   static String get favouritePlaces => 'favouriteSites';
 
-  static String get firstUse => 'firstUse';
+  static String get firstUse => 'isFirstUse';
+
+  static String get hasCompleteOnBoarding => 'hasCompleteOnBoarding';
+
+  static String get homePageTips => 'homePageTips';
 
   static String get initialDbLoad => 'initialDbLoad';
+
+  static String get insightsCardTips => 'insightsCardTips';
 
   static String get isSignedUp => 'isSignedUp';
 
   static String get lastKnownLocation => 'lastKnownLocation';
 
-  static String get reLoadDb => 'reloadDb';
+  static String get reLoadDb => 'recreateAllTables';
 
   static String get siteAlerts => 'siteAlerts';
 }
@@ -257,39 +187,3 @@ class PrefConstant {
 enum Status { none, running, stopped, paused }
 
 enum Themes { lightTheme, darkTheme }
-
-extension ParsePollutantLevel on PollutantLevel {
-  String getString() {
-    return toString().split('.').last;
-  }
-
-  String getTopic(Site site, PollutantLevel pollutantLevel) {
-    if (pollutantLevel == PollutantLevel.good) {
-      return '${site.id}-good';
-    } else if (pollutantLevel == PollutantLevel.moderate) {
-      return '${site.id}-moderate';
-    } else if (pollutantLevel == PollutantLevel.sensitive) {
-      return '${site.id}-sensitive';
-    } else if (pollutantLevel == PollutantLevel.unhealthy) {
-      return '${site.id}-unhealthy';
-    } else if (pollutantLevel == PollutantLevel.veryUnhealthy) {
-      return '${site.id}-very-unhealthy';
-    } else if (pollutantLevel == PollutantLevel.hazardous) {
-      return '${site.id}-hazardous';
-    }
-    return '';
-  }
-
-  List<PollutantLevel> getPollutantLevels() {
-    var pollutants = <PollutantLevel>[
-      PollutantLevel.good,
-      PollutantLevel.moderate,
-      PollutantLevel.sensitive,
-      PollutantLevel.unhealthy,
-      PollutantLevel.veryUnhealthy,
-      PollutantLevel.hazardous
-    ];
-
-    return pollutants;
-  }
-}
