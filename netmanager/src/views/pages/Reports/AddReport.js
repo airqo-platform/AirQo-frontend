@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useHistory, useParams } from "react-router-dom";
+import React, { useState} from "react";
+import { useHistory } from "react-router-dom";
 import { ArrowBackIosRounded, AddCircleOutline } from "@material-ui/icons";
 import { Button, Grid, Paper, TextField } from "@material-ui/core";
 import Tooltip from "@material-ui/core/Tooltip";
@@ -31,10 +31,13 @@ const useStyles = makeStyles((theme) => ({
 
 const ReportAttributeForm = ({
   attributeData,
-  changeData,
+  updateAttribute,
   deleteAttribute,
 }) => {
   const classes = useStyles();
+  const handleChange = (key) => (evt) => {
+    updateAttribute({ ...attributeData, [key]: evt.target.value });
+  };
   return (
     <div style={{ marginTop: "20px" }}>
       <Grid container spacing={1}>
@@ -67,15 +70,14 @@ const ReportAttributeForm = ({
             id="subtitle"
             label="Subtitle"
             variant="outlined"
-            // className={classes.root}
             InputProps={{
               className: classes.input,
             }}
             InputLabelProps={{
               shrink: true,
             }}
-            // value={siteInfo.name}
-            // onChange={handleSiteInfoChange}
+            value={attributeData.title}
+            onChange={handleChange("title")}
             // error={!!errors.name}
             // helperText={errors.name}
             fullWidth
@@ -93,8 +95,8 @@ const ReportAttributeForm = ({
             InputLabelProps={{
               shrink: true,
             }}
-            // value={siteInfo.name}
-            // onChange={handleSiteInfoChange}
+            value={attributeData.asset}
+            onChange={handleChange("asset")}
             // error={!!errors.name}
             // helperText={errors.name}
             fullWidth
@@ -111,8 +113,8 @@ const ReportAttributeForm = ({
             InputLabelProps={{
               shrink: true,
             }}
-            // value={siteInfo.name}
-            // onChange={handleSiteInfoChange}
+            value={attributeData.fields}
+            onChange={handleChange("fields")}
             // error={!!errors.name}
             // helperText={errors.name}
             fullWidth
@@ -129,8 +131,8 @@ const ReportAttributeForm = ({
             InputLabelProps={{
               shrink: true,
             }}
-            // value={siteInfo.name}
-            // onChange={handleSiteInfoChange}
+            value={attributeData.type}
+            onChange={handleChange("type")}
             // error={!!errors.name}
             // helperText={errors.name}
             fullWidth
@@ -138,41 +140,35 @@ const ReportAttributeForm = ({
           />
         </Grid>
 
-        <Grid items xs={12} sm={12} style={attributeStyle}>
-          <TextField
-            label="Filters"
-            variant="outlined"
-            InputProps={{
-              className: classes.input,
-            }}
-            InputLabelProps={{
-              shrink: true,
-            }}
-            // value={siteInfo.name}
-            // onChange={handleSiteInfoChange}
-            // error={!!errors.name}
-            // helperText={errors.name}
-            fullWidth
-          />
-        </Grid>
+        {/*<Grid items xs={12} sm={12} style={attributeStyle}>*/}
+        {/*  <TextField*/}
+        {/*    label="Filters"*/}
+        {/*    variant="outlined"*/}
+        {/*    InputProps={{*/}
+        {/*      className: classes.input,*/}
+        {/*    }}*/}
+        {/*    InputLabelProps={{*/}
+        {/*      shrink: true,*/}
+        {/*    }}*/}
+        {/*    value={attributeData.filters}*/}
+        {/*    fullWidth*/}
+        {/*  />*/}
+        {/*</Grid>*/}
 
-        <Grid items xs={12} sm={12} style={attributeStyle}>
-          <TextField
-            label="Group-by Field"
-            variant="outlined"
-            InputProps={{
-              className: classes.input,
-            }}
-            InputLabelProps={{
-              shrink: true,
-            }}
-            // value={siteInfo.name}
-            // onChange={handleSiteInfoChange}
-            // error={!!errors.name}
-            // helperText={errors.name}
-            fullWidth
-          />
-        </Grid>
+        {/*<Grid items xs={12} sm={12} style={attributeStyle}>*/}
+        {/*  <TextField*/}
+        {/*    label="Group-by Field"*/}
+        {/*    variant="outlined"*/}
+        {/*    InputProps={{*/}
+        {/*      className: classes.input,*/}
+        {/*    }}*/}
+        {/*    InputLabelProps={{*/}
+        {/*      shrink: true,*/}
+        {/*    }}*/}
+        {/*    value={attributeData.group_by}*/}
+        {/*    fullWidth*/}
+        {/*  />*/}
+        {/*</Grid>*/}
       </Grid>
     </div>
   );
@@ -218,6 +214,15 @@ const AddReport = () => {
     newAttr.splice(index, 1);
     setAttributes(newAttr);
   };
+
+  const updateAttribute = (index) => (attributeData) => {
+    const newAttr = attributes.map((attr, i) => {
+      if (index === i) return attributeData;
+      return attr;
+    });
+    setAttributes(newAttr);
+  };
+
   return (
     <div
       style={{
@@ -319,6 +324,7 @@ const AddReport = () => {
               {attributes.map((attribute, key) => (
                 <ReportAttributeForm
                   attributeData={attribute}
+                  updateAttribute={updateAttribute(key)}
                   deleteAttribute={deleteAttribute(key)}
                   key={key}
                 />
