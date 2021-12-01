@@ -14,7 +14,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # android test
-version: 2.0.0+20001
+version: 2.0.0+20003
 # ios testflight
 #version: 1.21.11+12115
 
@@ -35,8 +35,8 @@ dependencies:
   http: ^0.13.4
   sqflite: ^2.0.0+4
   cached_network_image: ^3.1.0
-  geolocator: ^7.7.1
-  flutter_local_notifications: ^8.1.1+2
+  geolocator: ^8.0.0
+  flutter_local_notifications: ^9.1.4
   url_launcher: ^6.0.12
   path_provider: ^2.0.6
   animations: ^2.0.2
@@ -66,7 +66,7 @@ dependencies:
   firebase_analytics: ^8.3.4
   lottie: ^1.2.1
   share_plus: ^3.0.4
-  flutter_secure_storage: ^4.2.1
+  flutter_secure_storage: ^5.0.2
   show_more_text_popup: ^0.3.0
   geocoding: ^2.0.1
   characters: ^1.1.0
@@ -81,9 +81,9 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  flutter_lints: ^1.0.0
-  build_runner: ^2.1.4
-  json_serializable: ^6.0.1
+  flutter_lints: ^1.0.4
+  build_runner: ^2.1.5
+  json_serializable: ^6.1.0
 
 flutter:
 

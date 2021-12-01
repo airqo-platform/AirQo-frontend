@@ -62,12 +62,13 @@ Widget shareCardImage(
         color: Colors.white,
         borderRadius: const BorderRadius.all(Radius.circular(16.0)),
         border: Border.all(color: Colors.transparent)),
-    child: Column(
+    child: ListView(
+      shrinkWrap: true,
       children: [
         Row(
           children: [
             analyticsAvatar(measurement, 104, 40, 12),
-            const SizedBox(width: 16.0),
+            const SizedBox(width: 10.0),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,7 +94,7 @@ Widget shareCardImage(
                     padding: const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
                     decoration: BoxDecoration(
                         borderRadius:
-                            const BorderRadius.all(Radius.circular(40.0)),
+                        const BorderRadius.all(Radius.circular(40.0)),
                         color: pm2_5ToColor(measurement.getPm2_5Value())
                             .withOpacity(0.4),
                         border: Border.all(color: Colors.transparent)),
@@ -111,25 +112,13 @@ Widget shareCardImage(
                   const SizedBox(
                     height: 8,
                   ),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                          constraints: BoxConstraints(
-                              maxWidth:
-                                  MediaQuery.of(context).size.width / 3.2),
-                          child: Text(
-                            dateToString(measurement.time),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                                fontSize: 8,
-                                color: Colors.black.withOpacity(0.3)),
-                          )),
-                      const SizedBox(
-                        width: 8.0,
-                      ),
-                    ],
+                  Text(
+                    dateToString(measurement.time),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        fontSize: 8,
+                        color: Colors.black.withOpacity(0.3)),
                   ),
                 ],
               ),
@@ -137,10 +126,11 @@ Widget shareCardImage(
           ],
         ),
         Text(
-          'AirQo App',
+          '© ${DateTime.now().year} AirQo',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.5)),
+          textAlign: TextAlign.right,
+          style: TextStyle(fontSize: 6, color: Colors.black.withOpacity(0.5)),
         ),
       ],
     ),

@@ -510,7 +510,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
           padding: const EdgeInsets.only(top: 12, bottom: 12),
           decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.all(const Radius.circular(16.0)),
+              borderRadius: const BorderRadius.all(Radius.circular(16.0)),
               border: Border.all(color: const Color(0xffC4C4C4))),
           child: Stack(
             children: [
