@@ -371,6 +371,7 @@ class AirqoApiClient {
     return false;
   }
 
+  @Deprecated('Functionality has been transferred to the backend')
   Future<void> sendWelcomeMessage(UserDetails userDetails) async {
     try {
       if (!userDetails.emailAddress.isValidEmail()) {

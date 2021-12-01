@@ -1,9 +1,12 @@
 import 'dart:io';
 
 import 'package:app/constants/app_constants.dart';
+import 'package:app/screens/phone_reauthenticate_screen.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/native_api.dart';
+import 'package:app/services/secure_storage.dart';
 import 'package:app/utils/web_view.dart';
+import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +14,7 @@ import 'package:in_app_review/in_app_review.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'about_page.dart';
+import 'email_reauthenticate_screen.dart';
 import 'feedback_page.dart';
 import 'home_page.dart';
 
@@ -28,6 +32,7 @@ class _SettingsPageState extends State<SettingsPage> {
   final InAppReview _inAppReview = InAppReview.instance;
   final LocationService _locationService = LocationService();
   final NotificationService _notificationService = NotificationService();
+  final SecureStorage _secureStorage = SecureStorage();
 
   @override
   Widget build(BuildContext context) {
@@ -75,11 +80,51 @@ class _SettingsPageState extends State<SettingsPage> {
         ));
   }
 
+  Future<void> deleteAccount() async {
+    var _customAuth = CustomAuth();
+    var user = _customAuth.getUser();
+    var dialogContext = context;
+    if (user == null) {
+      loadingScreen(dialogContext);
+      await _customAuth.logOut(context);
+      Navigator.pop(dialogContext);
+      await Navigator.pushAndRemoveUntil(context,
+          MaterialPageRoute(builder: (context) {
+        return const HomePage();
+      }), (r) => false);
+    } else {
+      var authResponse = false;
+      var userDetails = await _secureStorage.getUserDetails();
+      if (user.email != null) {
+        userDetails.emailAddress = user.email!;
+        authResponse =
+            await Navigator.push(context, MaterialPageRoute(builder: (context) {
+          return EmailReAuthenticateScreen(userDetails);
+        }));
+      } else if (user.phoneNumber != null) {
+        userDetails.phoneNumber = user.phoneNumber!;
+        authResponse =
+            await Navigator.push(context, MaterialPageRoute(builder: (context) {
+          return PhoneReAuthenticateScreen(userDetails);
+        }));
+      }
+
+      if (authResponse) {
+        loadingScreen(dialogContext);
+        await _customAuth.deleteAccount(context).then((value) => {
+              Navigator.pop(dialogContext),
+              Navigator.pushAndRemoveUntil(context,
+                  MaterialPageRoute(builder: (context) {
+                return const HomePage();
+              }), (r) => false)
+            });
+      }
+    }
+  }
+
   Widget deleteAccountSection() {
     return GestureDetector(
-      onTap: () {
-        showConfirmationDialog(context);
-      },
+      onTap: deleteAccount,
       child: Container(
           height: 56,
           decoration: const BoxDecoration(
@@ -255,15 +300,7 @@ class _SettingsPageState extends State<SettingsPage> {
   void showConfirmationDialog(BuildContext context) {
     Widget okButton = TextButton(
       child: const Text('Yes'),
-      onPressed: () {
-        var _customAuth = CustomAuth();
-        _customAuth.deleteAccount(context).then((value) => {
-              Navigator.pushAndRemoveUntil(context,
-                  MaterialPageRoute(builder: (context) {
-                return const HomePage();
-              }), (r) => false)
-            });
-      },
+      onPressed: deleteAccount,
     );
 
     Widget cancelButton = TextButton(

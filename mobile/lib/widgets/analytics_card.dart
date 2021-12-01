@@ -394,6 +394,8 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                           GestureDetector(
                             onTap: () {
                               var shareMeasurement = widget.measurement;
+                              shareMeasurement.site.searchName =
+                                  widget.placeDetails.getName();
                               shareMeasurement.site.name =
                                   widget.placeDetails.getName();
                               shareMeasurement.site.description =
@@ -655,6 +657,8 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                         GestureDetector(
                           onTap: () {
                             var shareMeasurement = widget.measurement;
+                            shareMeasurement.site.searchName =
+                                widget.placeDetails.getName();
                             shareMeasurement.site.name =
                                 widget.placeDetails.getName();
                             shareMeasurement.site.description =

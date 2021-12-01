@@ -79,8 +79,6 @@ class ColorConstants {
 
   static Color get darkGreyColor => const Color(0xffADAFB6);
 
-  static Color get facebookColor => const Color(0xff4267B2);
-
   static Color get green => const Color(0xff3AFF38);
 
   static Color get greyColor => const Color(0xffD1D3D9);
@@ -90,7 +88,6 @@ class ColorConstants {
   static Color get inactiveColor => appColorBlack.withOpacity(0.4);
 
   // pm colors
-  static Color get linkedInColor => const Color(0xff2867B2);
 
   static Color get maroon => const Color(0xffA51F3F);
 
@@ -100,13 +97,9 @@ class ColorConstants {
 
   static Color get red => const Color(0xffFF4034);
 
-  static Color get snackBarBgColor => appColor.withOpacity(0.8);
-
-  static Color get twitterColor => const Color(0xff1DA1F2);
+  static Color get snackBarBgColor => appColorBlack.withOpacity(0.8);
 
   static Color get yellow => const Color(0xffFFFF35);
-
-  static Color get youtubeColor => const Color(0xffFF0000);
 }
 
 class ErrorMessages {

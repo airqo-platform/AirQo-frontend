@@ -128,7 +128,7 @@ class Site {
   static String sitesDbName() => 'sites';
 
   static Map<String, dynamic> toDbMap(Site site) => {
-        dbSiteName(): site.name,
+        dbSiteName(): site.getName(),
         dbDescription(): site.description,
         dbRegion(): site.region,
         dbId(): site.id,

@@ -475,6 +475,7 @@ class CloudStore {
     }
   }
 
+  @Deprecated('Functionality has been transferred to the backend')
   Future<void> sendWelcomeNotification(String id) async {
     var hasConnection = await isConnected();
     if (!hasConnection) {
@@ -609,6 +610,12 @@ class CloudStore {
           .doc(id)
           .update(fields);
     } catch (exception, stackTrace) {
+      if (exception.toString().contains('not-found')) {
+        await _firebaseFirestore
+            .collection(CloudStorage.usersCollection)
+            .doc(id)
+            .set(fields);
+      }
       debugPrint(exception.toString());
       debugPrint(stackTrace.toString());
       await Sentry.captureException(
@@ -723,10 +730,7 @@ class CustomAuth {
         return true;
       }
       return false;
-    } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
-    }
+    } catch (_) {}
 
     return false;
   }
@@ -930,8 +934,6 @@ class CustomAuth {
       if (user == null) {
         return false;
       }
-      await createProfile();
-      await _cloudStore.sendWelcomeNotification(user.uid);
       return true;
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
@@ -944,30 +946,13 @@ class CustomAuth {
     return false;
   }
 
+  // TODO add error handling
   Future<void> signUpWithPhoneNumber(AuthCredential authCredential) async {
     var hasConnection = await isConnected();
     if (!hasConnection) {
       return;
     }
-
-    var userCredential =
-        await _firebaseAuth.signInWithCredential(authCredential);
-    if (userCredential.user != null) {
-      var user = userCredential.user;
-      try {
-        if (user != null) {
-          await createProfile();
-          await _cloudStore.sendWelcomeNotification(user.uid);
-        }
-      } catch (exception, stackTrace) {
-        debugPrint(exception.toString());
-        debugPrint(stackTrace.toString());
-        await Sentry.captureException(
-          exception,
-          stackTrace: stackTrace,
-        );
-      }
-    }
+    await _firebaseAuth.signInWithCredential(authCredential);
   }
 
   Future<void> updateCredentials(String? phone, String? email) async {
@@ -1029,6 +1014,12 @@ class CustomAuth {
 
   Future<void> updateLocalStorage(User user, BuildContext context) async {
     try {
+      var hasConnection = await isConnected();
+
+      if (!hasConnection) {
+        return;
+      }
+
       var device = await getDeviceToken();
       if (device != null) {
         await _cloudStore.updateProfileFields(user.uid, {'device': device});

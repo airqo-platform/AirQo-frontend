@@ -191,6 +191,10 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
     await _customAuth.verifyPhone(widget.userDetails.phoneNumber, context,
         verifyPhoneFn, autoVerifyPhoneFn);
 
+    if(!mounted){
+      return;
+    }
+
     Future.delayed(const Duration(seconds: 5), () {
       setState(() {
         _codeSent = true;

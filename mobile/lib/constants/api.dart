@@ -18,7 +18,7 @@ class AirQoUrls {
 
   String get placeSearchDetails => '${_searchBaseUrl}details/json';
 
-  String get requestEmailReAuthentication => '${_baseUrl}users/emailAuth';
+  String get requestEmailReAuthentication => '${_stageBaseUrl}users/emailAuth';
 
   String get requestEmailVerification => '${_baseUrl}users/emailLogin';
 

@@ -1,6 +1,9 @@
 extension StringCasingExtension on String {
   String toCapitalized() {
     try {
+      if (trim().toLowerCase() == 'ii' || trim().toLowerCase() == 'iv') {
+        return toUpperCase();
+      }
       return isNotEmpty
           ? '${this[0].toUpperCase()}${substring(1).toLowerCase()}'
           : '';

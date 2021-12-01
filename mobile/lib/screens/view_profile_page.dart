@@ -10,6 +10,7 @@ import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/services/secure_storage.dart';
 import 'package:app/utils/dialogs.dart';
+import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:camera/camera.dart';
@@ -20,6 +21,7 @@ import 'package:mime/mime.dart';
 
 import 'change_email_screen.dart';
 import 'change_phone_screen.dart';
+import 'home_page.dart';
 
 class ViewProfilePage extends StatefulWidget {
   final UserDetails userDetails;
@@ -478,15 +480,20 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
 
   Future<void> updateProfile() async {
     if (_formKey.currentState!.validate() && !updating) {
-      await showSnackBar(context, 'Updating profile');
+      var dialogContext = context;
+      loadingScreen(dialogContext);
+
       setState(() {
         updating = true;
       });
       await _customAuth.updateProfile(userDetails!).then((value) => {
             uploadPicture().then((_) => {
+                  Navigator.pop(dialogContext),
                   updating = false,
-                  showSnackBar(context, 'Profile updated'),
-                  Navigator.pop(context, true)
+                  Navigator.pushAndRemoveUntil(context,
+                      MaterialPageRoute(builder: (context) {
+                    return const HomePage();
+                  }), (r) => false)
                 })
           });
     }

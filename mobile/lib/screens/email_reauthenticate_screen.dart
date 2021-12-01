@@ -245,6 +245,10 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
     var emailVerificationResponse = await _airqoApiClient!
         .requestEmailVerificationCode(widget.userDetails.emailAddress, true);
 
+    if(!mounted){
+      return;
+    }
+
     if (emailVerificationResponse == null) {
       await showSnackBar(context, 'email verification failed');
       setState(() {

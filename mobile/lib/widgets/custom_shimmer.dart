@@ -34,6 +34,19 @@ Widget containerLoadingAnimation(double height, double radius) {
   );
 }
 
+void loadingScreen(BuildContext _context) async {
+  await showDialog(
+      context: _context,
+      barrierDismissible: false,
+      builder: (ctx) => Container(
+          decoration: BoxDecoration(
+              color: ColorConstants.appColorBlack.withOpacity(0.2)),
+          child: Center(
+              child: CircularProgressIndicator(
+            color: ColorConstants.appColorBlue,
+          ))));
+}
+
 Widget sizedContainerLoadingAnimation(
     double height, double width, double radius) {
   return SizedBox(
@@ -73,4 +86,48 @@ Widget textLoadingAnimation(double height, double width) {
               borderRadius: const BorderRadius.all(Radius.circular(2)))),
     ),
   );
+}
+
+class ExampleMainWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final overlay = LoadingOverlay.of(context);
+    return Scaffold(
+        body: Center(
+            child: TextButton(
+                child: const Text('Press me!'),
+                onPressed: () async {
+                  await overlay
+                      .during(Future.delayed(const Duration(seconds: 2)));
+                })));
+  }
+}
+
+class LoadingOverlay {
+  BuildContext _context;
+
+  factory LoadingOverlay.of(BuildContext context) {
+    return LoadingOverlay._create(context);
+  }
+
+  LoadingOverlay._create(this._context);
+
+  Future<T> during<T>(Future<T> future) {
+    show();
+    return future.whenComplete(() => hide());
+  }
+
+  void hide() {
+    Navigator.of(_context).pop();
+  }
+
+  void show() {
+    showDialog(
+        context: _context,
+        barrierDismissible: false,
+        builder: (ctx) => Container(
+            decoration:
+                const BoxDecoration(color: Color.fromRGBO(0, 0, 0, 0.5)),
+            child: const Center(child: CircularProgressIndicator())));
+  }
 }
