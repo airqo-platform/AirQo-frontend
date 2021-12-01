@@ -397,10 +397,10 @@ class _InsightsTabViewState extends State<InsightsTabView> {
                   const SizedBox(
                     height: 13.0,
                   ),
-                  Visibility(
-                    visible: widget.daily,
-                    child: _hourlyChart(),
-                  ),
+                  // Visibility(
+                  //   visible: widget.daily,
+                  //   child: _hourlyChart(),
+                  // ),
                   Visibility(
                     visible: widget.daily,
                     child: const SizedBox(
@@ -736,7 +736,7 @@ class _InsightsTabViewState extends State<InsightsTabView> {
             '${DateFormat('yyyy-MM-dd').format(relatedDate)}T$hour:00:00Z';
         measurements
           ..removeWhere((element) {
-            return relatedDate.weekday == DateTime.now().weekday;
+            return relatedDate.day == DateTime.parse(element.time).day;
           })
           ..add(siteTodayMeasurements.toHistorical());
       }
@@ -746,7 +746,7 @@ class _InsightsTabViewState extends State<InsightsTabView> {
       return;
     }
 
-    if (measurements.isEmpty) {
+    if (measurements.isEmpty && _hasMeasurements) {
       return;
     }
 
@@ -1045,9 +1045,9 @@ class _InsightsTabViewState extends State<InsightsTabView> {
         _hasMeasurements = true;
       });
 
-      if (widget.daily) {
-        await _fetchHourlyMeasurements();
-      }
+      // if (widget.daily) {
+      //   await _fetchHourlyMeasurements();
+      // }
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
       debugPrint(stackTrace.toString());
@@ -1084,9 +1084,9 @@ class _InsightsTabViewState extends State<InsightsTabView> {
         _recommendations = [];
       });
     }
-    if (widget.daily) {
-      _fetchHourlyMeasurements();
-    }
+    // if (widget.daily) {
+    //   _fetchHourlyMeasurements();
+    // }
   }
 
   void _updateUI(InsightsChartData insightsChartData) {

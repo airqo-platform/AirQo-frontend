@@ -69,6 +69,7 @@ dependencies:
   flutter_secure_storage: ^4.2.1
   show_more_text_popup: ^0.3.0
   geocoding: ^2.0.1
+  characters: ^1.1.0
 
 flutter_icons:
   android: "launcher_icon"

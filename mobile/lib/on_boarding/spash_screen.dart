@@ -52,7 +52,7 @@ class SplashScreenState extends State<SplashScreen> {
     Future.delayed(const Duration(seconds: 2), () async {
       _updateWidget();
     });
-    Future.delayed(const Duration(seconds: 5), () async {
+    Future.delayed(const Duration(seconds: 6), () async {
       await Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
         if (isLoggedIn) {

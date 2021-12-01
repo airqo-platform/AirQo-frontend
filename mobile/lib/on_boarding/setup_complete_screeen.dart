@@ -53,16 +53,13 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   }
 
   void initialize() {
-    _airqoApiClient = AirqoApiClient(context);
+    Future.delayed(const Duration(seconds: 4), () async {
+      await Navigator.pushAndRemoveUntil(context,
+          MaterialPageRoute(builder: (context) {
+        return const HomePage();
+      }), (r) => false);
+    });
     sendWelcomeEmail();
-    if (mounted) {
-      Future.delayed(const Duration(seconds: 4), () async {
-        await Navigator.pushAndRemoveUntil(context,
-            MaterialPageRoute(builder: (context) {
-          return const HomePage();
-        }), (r) => false);
-      });
-    }
   }
 
   @override
@@ -93,7 +90,12 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   }
 
   Future<void> sendWelcomeEmail() async {
-    var userDetails = await _cloudStore.getProfile(_customAuth.getId());
-    await _airqoApiClient!.sendWelcomeMessage(userDetails);
+    try {
+      var userDetails = await _cloudStore.getProfile(_customAuth.getId());
+      await _airqoApiClient!.sendWelcomeMessage(userDetails);
+    } catch (e, track) {
+      debugPrint(e.toString());
+      debugPrint(track.toString());
+    }
   }
 }

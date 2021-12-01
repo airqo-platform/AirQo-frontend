@@ -138,15 +138,23 @@ class HistoricalMeasurement {
     var measurements = <HistoricalMeasurement>[];
 
     var jsonArray = jsonBody['measurements'];
-    var offSet = DateTime.now().timeZoneOffset.inHours;
+    var offSet = DateTime.now().timeZoneOffset;
     for (var jsonElement in jsonArray) {
       try {
         var measurement = HistoricalMeasurement.fromJson(jsonElement);
         if (measurement.getPm2_5Value() != -0.1 &&
             measurement.getPm2_5Value() >= 0 &&
             measurement.getPm2_5Value() <= 500.4) {
-          var formattedDate =
-              DateTime.parse(measurement.time).add(Duration(hours: offSet));
+          DateTime formattedDate;
+
+          if (offSet.isNegative) {
+            formattedDate = DateTime.parse(measurement.time)
+                .subtract(Duration(hours: offSet.inHours));
+          } else {
+            formattedDate = DateTime.parse(measurement.time)
+                .add(Duration(hours: offSet.inHours));
+          }
+
           measurement.time =
               DateFormat('yyyy-MM-dd HH:mm:ss').format(formattedDate);
           measurements.add(measurement);

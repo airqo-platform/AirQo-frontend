@@ -196,13 +196,29 @@ class AirqoApiClient {
           ..putIfAbsent('startTime',
               () => '${DateFormat('yyyy-MM-dd').format(startTime)}T00:00:00Z');
       } else {
-        var startTime = DateFormat('yyyy-MM-dd').format(DateTime.now());
+        var offSet = DateTime.now().timeZoneOffset;
+        var startTime = '';
+        var time = DateTime.parse(
+            DateFormat('yyyy-MM-dd 00:00:00').format(DateTime.now()));
+
+        if (offSet.isNegative) {
+          time =
+              time.add(Duration(hours: DateTime.now().timeZoneOffset.inHours));
+          startTime =
+              '${DateFormat('yyyy-MM-dd').format(time)}T${time.hour}:00:00Z';
+        } else {
+          time = time
+              .subtract(Duration(hours: DateTime.now().timeZoneOffset.inHours));
+          startTime =
+              '${DateFormat('yyyy-MM-dd').format(time)}T${time.hour}:00:00Z';
+        }
+
         var endTime = DateFormat('yyyy-MM-dd')
             .format(DateTime.now().add(const Duration(hours: 24)));
 
         queryParams
           ..putIfAbsent('frequency', () => 'hourly')
-          ..putIfAbsent('startTime', () => '${startTime}T00:00:00Z')
+          ..putIfAbsent('startTime', () => startTime.replaceFirst(' ', 'T'))
           ..putIfAbsent('endTime', () => '${endTime}T00:00:00Z');
       }
 
@@ -215,6 +231,8 @@ class AirqoApiClient {
         return <HistoricalMeasurement>[];
       }
     } on Error catch (exception, stackTrace) {
+      debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,

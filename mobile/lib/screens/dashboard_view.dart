@@ -36,7 +36,11 @@ class _DashboardViewState extends State<DashboardView> {
   String _greetings = '';
   bool _showName = true;
   List<Widget> _favLocations = [];
-  List<Widget> _completeKyaWidgets = [];
+  List<Widget> _completeKyaWidgets = [
+    SvgPicture.asset(
+      'assets/icon/add_avator.svg',
+    )
+  ];
   List<Kya> _completeKya = [];
   AirqoApiClient? _airqoApiClient;
   Measurement? currentLocation;
@@ -45,7 +49,7 @@ class _DashboardViewState extends State<DashboardView> {
   SharedPreferences? _preferences;
 
   final String _kyaToolTipText = 'All your complete tasks will show up here';
-  final String _favToolTipText = 'Tap the \u2665 Favorite on any '
+  final String _favToolTipText = 'Tap the ❤️ Favorite on any '
       'location air quality to save them here for later';
   final GlobalKey _favToolTipKey = GlobalKey();
   final GlobalKey _kyaToolTipKey = GlobalKey();
@@ -746,9 +750,11 @@ class _DashboardViewState extends State<DashboardView> {
     _setGreetings();
     _getLocationMeasurements();
     _getDashboardLocations();
-    await _loadKya();
-    _getIncompleteKya();
-    _getCompleteKya();
+    if (_customAuth.isLoggedIn()) {
+      await _loadKya();
+      _getIncompleteKya();
+      _getCompleteKya();
+    }
     await _getLatestMeasurements();
     _showHelpTips();
   }

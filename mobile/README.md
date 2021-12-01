@@ -41,3 +41,9 @@ flutter build appbundle --no-sound-null-safety [--analyze-size]
 ```bash
 flutter build ipa --no-sound-null-safety
 ```
+
+```bash
+dart fix --dry-run
+dart fix --apply
+```
+

@@ -1074,7 +1074,6 @@ class CustomAuth {
           FirebaseAuth.instance.currentUser!.phoneNumber, null);
       return true;
     } on FirebaseAuthException catch (e) {
-      print(e.toString());
       if (e.code == 'credential-already-in-use') {
         await showSnackBar(context, 'Phone number already taken');
         return false;

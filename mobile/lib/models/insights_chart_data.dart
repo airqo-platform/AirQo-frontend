@@ -47,8 +47,12 @@ class InsightsChartData {
 
   static String dropTableStmt() => 'DROP TABLE IF EXISTS ${dbName()}';
 
-  static List<InsightsChartData> formatData(List<InsightsChartData> data) {
+  static List<InsightsChartData> formatData(
+      List<InsightsChartData> data, bool daily) {
     data.sort((x, y) {
+      if (daily) {
+        return x.time.weekday.compareTo(y.time.weekday);
+      }
       return x.time.compareTo(y.time);
     });
 
@@ -115,7 +119,7 @@ class InsightsChartData {
         lastInsight = insights.last;
       }
 
-      return formatData(insights);
+      return formatData(insights, true);
     }
 
     var lastInsight = insights.last;
@@ -136,7 +140,7 @@ class InsightsChartData {
       lastInsight = insights.last;
     }
 
-    return formatData(insights);
+    return formatData(insights, true);
   }
 
   static List<InsightsChartData> getHourlyInsightsData(
@@ -198,7 +202,7 @@ class InsightsChartData {
               false));
         }
       }
-      return formatData(insights);
+      return formatData(insights, false);
     }
 
     var referenceInsight = insights.first;
@@ -222,7 +226,7 @@ class InsightsChartData {
       }
     }
 
-    return formatData(insights);
+    return formatData(insights, false);
   }
 
   static InsightsChartData historicalDataToInsightsData(

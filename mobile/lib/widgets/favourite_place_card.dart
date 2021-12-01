@@ -186,7 +186,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
 
   void getMeasurement() {
     _dbHelper.getMeasurement(widget.placeDetails.siteId).then((value) => {
-          if (value != null)
+          if (value != null && mounted)
             {
               setState(() {
                 measurement = value;

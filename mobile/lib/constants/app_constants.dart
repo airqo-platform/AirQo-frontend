@@ -12,14 +12,14 @@ class AppConfig {
 
   static const String imageUploadApiKey = imageApiKey;
 
-  static final String imageUploadPreset = uploadPreset;
+  static const String imageUploadPreset = uploadPreset;
 
-  static final String _iOSApiKey = iosKey;
+  static const String _iOSApiKey = iosKey;
 
   static final String googleApiKey =
       Platform.isAndroid ? _androidApiKey : _iOSApiKey;
 
-  static final String airQoApiKey = airqoApiKey;
+  static const String airQoApiKey = airqoApiKey;
 
   static String get dbName => databaseName;
 
