@@ -19,9 +19,21 @@ const useStyles = makeStyles((theme) => ({
   input: {
     height: 40,
   },
+  addAttr: {
+    cursor: "pointer",
+    color: "#3f51b5",
+    opacity: 0.7,
+    "&:hover": {
+      opacity: 1,
+    },
+  },
 }));
 
-const ReportAttributeForm = () => {
+const ReportAttributeForm = ({
+  attributeData,
+  changeData,
+  deleteAttribute,
+}) => {
   const classes = useStyles();
   return (
     <div style={{ marginTop: "20px" }}>
@@ -33,6 +45,23 @@ const ReportAttributeForm = () => {
             marginBottom: "20px",
           }}
         />
+        {attributeData.deletable && (
+          <div
+            style={{
+              display: "flex",
+              width: "100%",
+              justifyContent: "flex-end",
+            }}
+          >
+            <span
+              style={{ color: "red", fontSize: "10px", cursor: "pointer" }}
+              onClick={deleteAttribute}
+            >
+              delete
+            </span>
+          </div>
+        )}
+
         <Grid items xs={12} sm={12} style={attributeStyle}>
           <TextField
             id="subtitle"
@@ -169,19 +198,26 @@ const periodOptions = transformArray(
 
 const AddReport = () => {
   const history = useHistory();
+  const classes = useStyles();
+  const attributeTemplate = {
+    title: "",
+    type: "",
+    asset: "",
+    filters: {},
+    fields: {},
+    group_by: "",
+  };
   const [title, setTitle] = useState("");
   const [period, setPeriod] = useState({});
-  const [attributes, setAttributes] = useState([
-    {
-      title: "",
-      type: "",
-      asset: "",
-      filters: {},
-      fields: {},
-      group_by: "",
-    },
-  ]);
+
+  const [attributes, setAttributes] = useState([attributeTemplate]);
   const [errors, setErrors] = useState({});
+
+  const deleteAttribute = (index) => () => {
+    const newAttr = Array.from(attributes);
+    newAttr.splice(index, 1);
+    setAttributes(newAttr);
+  };
   return (
     <div
       style={{
@@ -280,8 +316,13 @@ const AddReport = () => {
               Report Attributes
             </span>
             <div>
-              <ReportAttributeForm />
-              {/*<ReportAttributeForm />*/}
+              {attributes.map((attribute, key) => (
+                <ReportAttributeForm
+                  attributeData={attribute}
+                  deleteAttribute={deleteAttribute(key)}
+                  key={key}
+                />
+              ))}
               <div
                 style={{
                   display: "flex",
@@ -290,7 +331,15 @@ const AddReport = () => {
                 }}
               >
                 <Tooltip title={"Add Attribute"} placement={"top"}>
-                  <AddCircleOutline style={{ color: "#3f51b5" }} />
+                  <AddCircleOutline
+                    className={classes.addAttr}
+                    onClick={() =>
+                      setAttributes([
+                        ...attributes,
+                        { ...attributeTemplate, deletable: true },
+                      ])
+                    }
+                  />
                 </Tooltip>
               </div>
             </div>
