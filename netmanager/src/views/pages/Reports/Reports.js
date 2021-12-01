@@ -18,7 +18,7 @@ const useStyles = makeStyles((theme) => ({
 const reportsColumns = [
   {
     title: "Title",
-    field: "name",
+    field: "title",
     width: "80%",
   },
   {
