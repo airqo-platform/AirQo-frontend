@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { useHistory, useParams } from "react-router-dom";
 import { ArrowBackIosRounded, AddCircleOutline } from "@material-ui/icons";
 import { Button, Grid, Paper, TextField } from "@material-ui/core";
 import Tooltip from "@material-ui/core/Tooltip";
 import { makeStyles } from "@material-ui/styles";
+import { transformArray } from "redux/utils";
 
 const gridItemStyle = {
   padding: "5px",
@@ -148,8 +149,39 @@ const ReportAttributeForm = () => {
   );
 };
 
+const periodOptions = transformArray(
+  [
+    {
+      is_relative: true,
+      label: "Last 2 weeks",
+      value: 2,
+      unit: "week",
+    },
+    {
+      is_relative: true,
+      label: "Last 30 days",
+      value: 30,
+      unit: "day",
+    },
+  ],
+  "label"
+);
+
 const AddReport = () => {
   const history = useHistory();
+  const [title, setTitle] = useState("");
+  const [period, setPeriod] = useState({});
+  const [attributes, setAttributes] = useState([
+    {
+      title: "",
+      type: "",
+      asset: "",
+      filters: {},
+      fields: {},
+      group_by: "",
+    },
+  ]);
+  const [errors, setErrors] = useState({});
   return (
     <div
       style={{
@@ -191,29 +223,41 @@ const AddReport = () => {
         <Grid container spacing={1}>
           <Grid items xs={12} sm={12} style={gridItemStyle}>
             <TextField
-              id="title"
               label="Report Title"
               variant="outlined"
-              // value={siteInfo.name}
-              // onChange={handleSiteInfoChange}
-              // error={!!errors.name}
-              // helperText={errors.name}
+              value={title}
+              onChange={(evt) => setTitle(evt.target.value)}
+              error={!!errors.title}
+              helperText={errors.title}
               fullWidth
               required
             />
           </Grid>
           <Grid items xs={12} sm={12} style={gridItemStyle}>
             <TextField
-              id="period"
+              select
               label="Period"
               variant="outlined"
-              // value={siteInfo.name}
-              // onChange={handleSiteInfoChange}
-              // error={!!errors.name}
-              // helperText={errors.name}
+              value={period.label || ""}
+              onChange={(evt) => {
+                setPeriod(periodOptions[evt.target.value]);
+              }}
+              SelectProps={{
+                native: true,
+                style: { width: "100%", height: "50px" },
+              }}
+              error={!!errors.period}
+              helperText={errors.period}
               fullWidth
               required
-            />
+            >
+              <option aria-label="None" value="" />
+              {Object.values(periodOptions).map((period, key) => (
+                <option value={period.label} key={key}>
+                  {period.label}
+                </option>
+              ))}
+            </TextField>
           </Grid>
 
           <div
