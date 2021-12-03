@@ -28,3 +28,9 @@ export const flattenSiteOptions = (options) => {
   options.map((opt) => arr.push(opt.value));
   return arr;
 };
+
+export const siteOptionsToObject = (options) => {
+  const obj = {};
+  options.map((opt) => (obj[opt.value] = opt));
+  return obj;
+};
