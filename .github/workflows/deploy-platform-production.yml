@@ -77,14 +77,14 @@ jobs:
           method: kubeconfig
           kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
       
-      - name: NPM Build
+      - name: NPM Setup and Build
         uses: actions/setup-node@v2
         with:
           node-version: '12'
-        run: |
+      - run: |
           cd netmanager/
 
-          export REACT_APP_BASE_URL=${{ secrets.REACT_APP_BASE_URL_PROD }}
+          export REACT_APP_BASE_URL=${{ secrets.REACT_APP_BASE_URL_STAGE }}
           export REACT_APP_CLOUDINARY_NAME=${{ secrets.REACT_APP_CLOUDINARY_NAME }}
           export REACT_APP_CLOUDINARY_PRESET=${{ secrets.REACT_APP_CLOUDINARY_PRESET }}
           export REACT_APP_MAPBOX_TOKEN=${{ secrets.REACT_APP_MAPBOX_TOKEN }}
