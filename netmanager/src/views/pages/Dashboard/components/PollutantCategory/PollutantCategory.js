@@ -3,6 +3,7 @@ import clsx from "clsx";
 import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/styles";
 import { Card, CardContent, Grid, Typography, Avatar } from "@material-ui/core";
+import { isEmpty } from "underscore";
 
 // styles
 import "assets/css/pollutant-category.css";
@@ -43,7 +44,14 @@ const useStyles = makeStyles((theme) => ({
 
 const PollutantCategory = (props) => {
   const ref = useRef();
-  const { className, pm25level, pm25levelCount, iconClass, ...rest } = props;
+  const {
+    className,
+    pm25level,
+    pm25levelCount,
+    iconClass,
+    sites,
+    ...rest
+  } = props;
   const [show, setShow] = useState(false);
 
   const classes = useStyles();
@@ -51,6 +59,14 @@ const PollutantCategory = (props) => {
   const toggleShow = () => {
     setShow(!show);
   };
+
+  const compare = (a, b) => {
+    if (a.pm2_5 < b.pm2_5) return 1;
+    if (a.pm2_5 > b.pm2_5) return -1;
+    return 0;
+  };
+
+  (sites || []).sort(compare);
 
   useEffect(() => {
     const checkIfClickedOutside = (e) => {
@@ -91,24 +107,22 @@ const PollutantCategory = (props) => {
             <Grid item>
               <Avatar className={classes.avatar + " " + iconClass}>
                 {/* <PeopleIcon className={classes.icon} /> */}
-                {pm25levelCount}
+                {sites.length}
               </Avatar>
             </Grid>
           </Grid>
-          {/* <div className={classes.difference}>
-          <ArrowUpwardIcon className={classes.differenceIcon} />
-          <Typography
-            className={classes.differenceValue}
-            variant="body2"
-          ></Typography>
-          <Typography className={classes.caption} variant="caption">
-            Since last hour
-          </Typography>
-        </div> */}
         </CardContent>
       </Card>
       <ul className={`pc-dd-menu ${(!show && "dd-input") || ""}`}>
-        <li className="pc-empty">no sites</li>
+        {isEmpty(sites) && <li className="pc-empty">no sites</li>}
+        {(sites || []).map((site, key) => (
+          <li key={key}>
+            {site.label} -{" "}
+            <span className={`pc-${pm25level.replace(" ", "-")}`}>
+              {parseFloat(site.pm2_5).toFixed(2)}
+            </span>
+          </li>
+        ))}
       </ul>
     </label>
   );
