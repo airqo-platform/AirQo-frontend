@@ -21,8 +21,10 @@
   box-shadow: 0 0 6px 0 rgba(0,0,0,0.1);
   background-color: #ffffff;
   list-style-type: none;
-  width: 100%;
+  min-width: 100%;
   z-index: 2000;
+  max-height: 40vh;
+  overflow: scroll;
 }
 
 .dd-input + .pc-dd-menu {
@@ -34,15 +36,46 @@
 }
 
 .pc-dd-menu li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   padding: 10px 20px;
   cursor: pointer;
   white-space: nowrap;
+  text-transform: uppercase;
   color: #151515;
+  font-size: 0.8rem;
 }
 
-.pc-dd-menu li span {
-  color: green;
+.pc-label-common {
   font-size: 0.6rem;
+}
+.pc-Good {
+  color: #45e50e;
+}
+
+.pc-Moderate {
+  color: #cacd05;
+}
+
+.pc-dd-menu li .Moderatex {
+  color: #f8fd29;
+}
+
+.pc-UHFSG {
+  color: #ee8311;
+}
+
+.pc-Unhealthy {
+  color: #fa1001;
+}
+
+.pc-Very-Unhealthy {
+  color: #8639c0;
+}
+
+.pc-Hazardous {
+  color: #81202f;
 }
 
 .pc-dd-menu li:hover {
