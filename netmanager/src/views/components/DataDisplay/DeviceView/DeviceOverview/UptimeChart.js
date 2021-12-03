@@ -27,7 +27,7 @@ const DeviceUptimeChart = ({ deviceUptimeData }) => {
       series={deviceUptimeSeries}
       lastUpdated={deviceUptime.created_at}
       type="area"
-      blue
+      green
     />
   );
 };

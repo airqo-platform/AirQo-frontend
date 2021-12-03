@@ -22,7 +22,7 @@ import { useInitScrollTop } from "utils/customHooks";
 import ErrorBoundary from "views/ErrorBoundary/ErrorBoundary";
 import AirQloudDropDown from "../../containers/AirQloudDropDown";
 import { useCurrentAirQloudData } from "redux/AirQloud/selectors";
-import { flattenSiteOptions } from "utils/sites";
+import { flattenSiteOptions, siteOptionsToObject } from "utils/sites";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -70,17 +70,20 @@ const Dashboard = () => {
 
   useEffect(() => {
     const initialCount = {
-      Good: 0,
-      Moderate: 0,
-      UHFSG: 0,
-      Unhealthy: 0,
-      VeryUnhealthy: 0,
-      Hazardous: 0,
+      Good: [],
+      Moderate: [],
+      UHFSG: [],
+      Unhealthy: [],
+      VeryUnhealthy: [],
+      Hazardous: [],
     };
     const airqloudSites = flattenSiteOptions(currentAirQloud.siteOptions);
+    const airqloudSitesObj = siteOptionsToObject(currentAirQloud.siteOptions);
     recentEventsData.features &&
       recentEventsData.features.map((feature) => {
         if (airqloudSites.includes(feature.properties.site_id)) {
+          const site_id = feature.properties.site_id || "";
+          const site = airqloudSitesObj[site_id];
           const pm2_5 =
             feature.properties &&
             feature.properties.pm2_5 &&
@@ -90,7 +93,7 @@ const Dashboard = () => {
           Object.keys(PM_25_CATEGORY).map((key) => {
             const valid = PM_25_CATEGORY[key];
             if (pm2_5 > valid[0] && pm2_5 <= valid[1]) {
-              initialCount[key]++;
+              initialCount[key].push({ ...site, pm2_5 });
             }
           });
         }
@@ -137,21 +140,21 @@ const Dashboard = () => {
           <Grid item lg={2} sm={6} xl={2} xs={12}>
             <PollutantCategory
               pm25level="Good"
-              pm25levelCount={pm2_5SiteCount.Good}
+              sites={pm2_5SiteCount.Good}
               iconClass="pm25Good"
             />
           </Grid>
           <Grid item lg={2} sm={6} xl={2} xs={12}>
             <PollutantCategory
               pm25level="Moderate"
-              pm25levelCount={pm2_5SiteCount.Moderate}
+              sites={pm2_5SiteCount.Moderate}
               iconClass="pm25Moderate"
             />
           </Grid>
           <Grid item lg={2} sm={6} xl={2} xs={12}>
             <PollutantCategory
               pm25level="UHFSG"
-              pm25levelCount={pm2_5SiteCount.UHFSG}
+              sites={pm2_5SiteCount.UHFSG}
               iconClass="pm25UH4SG"
             />
           </Grid>
@@ -159,7 +162,7 @@ const Dashboard = () => {
           <Grid item lg={2} sm={6} xl={2} xs={12}>
             <PollutantCategory
               pm25level="Unhealthy"
-              pm25levelCount={pm2_5SiteCount.Unhealthy}
+              sites={pm2_5SiteCount.Unhealthy}
               iconClass="pm25UnHealthy"
             />
           </Grid>
@@ -167,14 +170,14 @@ const Dashboard = () => {
           <Grid item lg={2} sm={6} xl={2} xs={12}>
             <PollutantCategory
               pm25level="Very Unhealthy"
-              pm25levelCount={pm2_5SiteCount.VeryUnhealthy}
+              sites={pm2_5SiteCount.VeryUnhealthy}
               iconClass="pm25VeryUnHealthy"
             />
           </Grid>
           <Grid item lg={2} sm={6} xl={2} xs={12}>
             <PollutantCategory
               pm25level="Hazardous"
-              pm25levelCount={pm2_5SiteCount.Hazardous}
+              sites={pm2_5SiteCount.Hazardous}
               iconClass="pm25Harzadous"
             />
           </Grid>
