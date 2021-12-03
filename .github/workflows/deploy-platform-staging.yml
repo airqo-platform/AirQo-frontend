@@ -77,12 +77,12 @@ jobs:
         with:
           method: kubeconfig
           kubeconfig: ${{ secrets.K8S_CONFIG_STAGE }}
-      
-      - name: NPM Build
+
+      - name: NPM Setup and Build
         uses: actions/setup-node@v2
         with:
           node-version: '12'
-        run: |
+      - run: |
           cd netmanager/
 
           export REACT_APP_BASE_URL=${{ secrets.REACT_APP_BASE_URL_STAGE }}
@@ -96,7 +96,7 @@ jobs:
           npm install
     
           CI=false npm run build
-      
+
       - name: Build and Push Docker Image
         run: |
           cd netmanager/
