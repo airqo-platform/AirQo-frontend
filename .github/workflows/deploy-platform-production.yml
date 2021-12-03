@@ -78,6 +78,9 @@ jobs:
           kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
       
       - name: NPM Build
+        uses: actions/setup-node@v2
+        with:
+          node-version: '12'
         run: |
           cd netmanager/
 
