@@ -84,7 +84,7 @@ jobs:
       - run: |
           cd netmanager/
 
-          export REACT_APP_BASE_URL=${{ secrets.REACT_APP_BASE_URL_STAGE }}
+          export REACT_APP_BASE_URL=${{ secrets.REACT_APP_BASE_URL_PROD }}
           export REACT_APP_CLOUDINARY_NAME=${{ secrets.REACT_APP_CLOUDINARY_NAME }}
           export REACT_APP_CLOUDINARY_PRESET=${{ secrets.REACT_APP_CLOUDINARY_PRESET }}
           export REACT_APP_MAPBOX_TOKEN=${{ secrets.REACT_APP_MAPBOX_TOKEN }}
