@@ -53,6 +53,11 @@ jobs:
             if [[ $file == netmanager/* ]]; then
               echo "::set-output name=run_job::true"
             fi
+
+            if [[ $file == workflow-trigger.txt ]]; then
+              echo "::set-output name=run_job::true"
+            fi
+
           done < files.txt
 
   build:
