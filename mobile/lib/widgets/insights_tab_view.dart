@@ -1,4 +1,4 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/historical_measurement.dart';
 import 'package:app/models/insights_chart_data.dart';
 import 'package:app/models/place_details.dart';
@@ -70,10 +70,10 @@ class _InsightsTabViewState extends State<InsightsTabView> {
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-      color: ColorConstants.appColorBlue,
+      color: Config.appColorBlue,
       onRefresh: () async {},
       child: Container(
-          color: ColorConstants.appBodyColor,
+          color: Config.appBodyColor,
           child: ListView(
             // crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -169,7 +169,7 @@ class _InsightsTabViewState extends State<InsightsTabView> {
                               SvgPicture.asset(
                                 'assets/icon/share_icon.svg',
                                 semanticsLabel: 'Share',
-                                color: ColorConstants.greyColor,
+                                color: Config.greyColor,
                               ),
                               'Share'),
                         ),
@@ -472,7 +472,7 @@ class _InsightsTabViewState extends State<InsightsTabView> {
                                 const BorderRadius.all(Radius.circular(40.0)),
                             color: _selectedMeasurement!.time
                                     .isAfter(DateTime.now())
-                                ? ColorConstants.appColorPaleBlue
+                                ? Config.appColorPaleBlue
                                 : _pollutant == 'pm2.5'
                                     ? pm2_5ToColor(_selectedMeasurement!.value)
                                         .withOpacity(0.4)
@@ -490,7 +490,7 @@ class _InsightsTabViewState extends State<InsightsTabView> {
                             fontSize: 14,
                             color: _selectedMeasurement!.time
                                     .isAfter(DateTime.now())
-                                ? ColorConstants.appColorBlue
+                                ? Config.appColorBlue
                                 : _pollutant == 'pm2.5'
                                     ? pm2_5TextColor(
                                         _selectedMeasurement!.value)
@@ -508,7 +508,7 @@ class _InsightsTabViewState extends State<InsightsTabView> {
                       decoration: BoxDecoration(
                           borderRadius:
                               const BorderRadius.all(Radius.circular(40.0)),
-                          color: ColorConstants.greyColor.withOpacity(0.4),
+                          color: Config.greyColor.withOpacity(0.4),
                           border: Border.all(color: Colors.transparent)),
                       child: Text(
                         'Not Available',
@@ -517,7 +517,7 @@ class _InsightsTabViewState extends State<InsightsTabView> {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 14,
-                          color: ColorConstants.darkGreyColor,
+                          color: Config.darkGreyColor,
                         ),
                       ),
                     ),
@@ -550,8 +550,8 @@ class _InsightsTabViewState extends State<InsightsTabView> {
                               shape: BoxShape.circle,
                               color: _selectedMeasurement!.time
                                       .isAfter(DateTime.now())
-                                  ? ColorConstants.appColorBlue
-                                  : ColorConstants.appColorPaleBlue,
+                                  ? Config.appColorBlue
+                                  : Config.appColorPaleBlue,
                               border: Border.all(color: Colors.transparent))),
                       const SizedBox(
                         width: 8.0,
@@ -564,7 +564,7 @@ class _InsightsTabViewState extends State<InsightsTabView> {
                         child: Text(
                           'Forecast',
                           style: TextStyle(
-                              fontSize: 12, color: ColorConstants.appColorBlue),
+                              fontSize: 12, color: Config.appColorBlue),
                         ),
                       ),
                     ],
@@ -602,8 +602,7 @@ class _InsightsTabViewState extends State<InsightsTabView> {
       staticTicks.add(charts.TickSpec(day,
           label: day,
           style: charts.TextStyleSpec(
-              color:
-                  charts.ColorUtil.fromDartColor(ColorConstants.greyColor))));
+              color: charts.ColorUtil.fromDartColor(Config.greyColor))));
     }
 
     return SizedBox(
@@ -648,24 +647,19 @@ class _InsightsTabViewState extends State<InsightsTabView> {
             <charts.TickSpec<double>>[
               charts.TickSpec<double>(0,
                   style: charts.TextStyleSpec(
-                      color: charts.ColorUtil.fromDartColor(
-                          ColorConstants.greyColor))),
+                      color: charts.ColorUtil.fromDartColor(Config.greyColor))),
               charts.TickSpec<double>(125,
                   style: charts.TextStyleSpec(
-                      color: charts.ColorUtil.fromDartColor(
-                          ColorConstants.greyColor))),
+                      color: charts.ColorUtil.fromDartColor(Config.greyColor))),
               charts.TickSpec<double>(250,
                   style: charts.TextStyleSpec(
-                      color: charts.ColorUtil.fromDartColor(
-                          ColorConstants.greyColor))),
+                      color: charts.ColorUtil.fromDartColor(Config.greyColor))),
               charts.TickSpec<double>(375,
                   style: charts.TextStyleSpec(
-                      color: charts.ColorUtil.fromDartColor(
-                          ColorConstants.greyColor))),
+                      color: charts.ColorUtil.fromDartColor(Config.greyColor))),
               charts.TickSpec<double>(500,
                   style: charts.TextStyleSpec(
-                      color: charts.ColorUtil.fromDartColor(
-                          ColorConstants.greyColor))),
+                      color: charts.ColorUtil.fromDartColor(Config.greyColor))),
             ],
           ),
         ),
@@ -854,8 +848,7 @@ class _InsightsTabViewState extends State<InsightsTabView> {
         staticTicks.add(charts.TickSpec(i.toString().length == 1 ? '0$i' : '$i',
             label: i.toString().length == 1 ? '0$i' : '$i',
             style: charts.TextStyleSpec(
-                color:
-                    charts.ColorUtil.fromDartColor(ColorConstants.greyColor))));
+                color: charts.ColorUtil.fromDartColor(Config.greyColor))));
       } else {
         staticTicks.add(charts.TickSpec(i.toString().length == 1 ? '0$i' : '$i',
             label: i.toString().length == 1 ? '0$i' : '$i',
@@ -917,24 +910,19 @@ class _InsightsTabViewState extends State<InsightsTabView> {
             <charts.TickSpec<double>>[
               charts.TickSpec<double>(0,
                   style: charts.TextStyleSpec(
-                      color: charts.ColorUtil.fromDartColor(
-                          ColorConstants.greyColor))),
+                      color: charts.ColorUtil.fromDartColor(Config.greyColor))),
               charts.TickSpec<double>(125,
                   style: charts.TextStyleSpec(
-                      color: charts.ColorUtil.fromDartColor(
-                          ColorConstants.greyColor))),
+                      color: charts.ColorUtil.fromDartColor(Config.greyColor))),
               charts.TickSpec<double>(250,
                   style: charts.TextStyleSpec(
-                      color: charts.ColorUtil.fromDartColor(
-                          ColorConstants.greyColor))),
+                      color: charts.ColorUtil.fromDartColor(Config.greyColor))),
               charts.TickSpec<double>(375,
                   style: charts.TextStyleSpec(
-                      color: charts.ColorUtil.fromDartColor(
-                          ColorConstants.greyColor))),
+                      color: charts.ColorUtil.fromDartColor(Config.greyColor))),
               charts.TickSpec<double>(500,
                   style: charts.TextStyleSpec(
-                      color: charts.ColorUtil.fromDartColor(
-                          ColorConstants.greyColor))),
+                      color: charts.ColorUtil.fromDartColor(Config.greyColor))),
             ],
           ),
         ),

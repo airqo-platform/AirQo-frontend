@@ -1,4 +1,4 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/utils/pm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -41,7 +41,7 @@ void pmInfoDialog(context, double pm2_5) {
                       Text(
                         'Know Your Air',
                         style: TextStyle(
-                            color: ColorConstants.appColorBlue,
+                            color: Config.appColorBlue,
                             fontSize: 16,
                             fontWeight: FontWeight.bold),
                       ),
@@ -62,7 +62,7 @@ void pmInfoDialog(context, double pm2_5) {
                 ),
                 Divider(
                   height: 1,
-                  color: ColorConstants.appColorBlack.withOpacity(0.2),
+                  color: Config.appColorBlack.withOpacity(0.2),
                 ),
                 const SizedBox(
                   height: 8,
@@ -80,7 +80,7 @@ void pmInfoDialog(context, double pm2_5) {
                               text: 'PM',
                               style: TextStyle(
                                 fontSize: 17,
-                                color: ColorConstants.appColor,
+                                color: Config.appColor,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -89,7 +89,7 @@ void pmInfoDialog(context, double pm2_5) {
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
-                                color: ColorConstants.appColor,
+                                color: Config.appColor,
                               ),
                             )
                           ],
@@ -106,14 +106,13 @@ void pmInfoDialog(context, double pm2_5) {
                               style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w500,
-                                  color: ColorConstants.appColorBlack),
+                                  color: Config.appColorBlack),
                             ),
                             TextSpan(
                               text: 'is a complex mixture of extremely'
                                   ' small particles and liquid droplets.',
                               style: TextStyle(
-                                color: ColorConstants.appColorBlack
-                                    .withOpacity(0.7),
+                                color: Config.appColorBlack.withOpacity(0.7),
                                 fontSize: 10,
                               ),
                             )
@@ -130,8 +129,7 @@ void pmInfoDialog(context, double pm2_5) {
                               text: 'When measuring particles there are two '
                                   'size categories commonly used: ',
                               style: TextStyle(
-                                color: ColorConstants.appColorBlack
-                                    .withOpacity(0.7),
+                                color: Config.appColorBlack.withOpacity(0.7),
                                 fontSize: 10,
                               ),
                             ),
@@ -140,7 +138,7 @@ void pmInfoDialog(context, double pm2_5) {
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w500,
-                                color: ColorConstants.appColorBlack,
+                                color: Config.appColorBlack,
                               ),
                             ),
                             TextSpan(
@@ -148,15 +146,14 @@ void pmInfoDialog(context, double pm2_5) {
                               style: TextStyle(
                                 fontSize: 7,
                                 fontWeight: FontWeight.w800,
-                                color: ColorConstants.appColorBlack,
+                                color: Config.appColorBlack,
                               ),
                             ),
                             TextSpan(
                               text: ' and ',
                               style: TextStyle(
                                 fontSize: 10,
-                                color: ColorConstants.appColorBlack
-                                    .withOpacity(0.7),
+                                color: Config.appColorBlack.withOpacity(0.7),
                               ),
                             ),
                             TextSpan(
@@ -164,7 +161,7 @@ void pmInfoDialog(context, double pm2_5) {
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w500,
-                                color: ColorConstants.appColorBlack,
+                                color: Config.appColorBlack,
                               ),
                             ),
                             TextSpan(
@@ -172,7 +169,7 @@ void pmInfoDialog(context, double pm2_5) {
                               style: TextStyle(
                                 fontSize: 7,
                                 fontWeight: FontWeight.w800,
-                                color: ColorConstants.appColorBlack,
+                                color: Config.appColorBlack,
                               ),
                             ),
                           ],
@@ -209,13 +206,12 @@ void pmInfoDialog(context, double pm2_5) {
                               style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w500,
-                                  color: ColorConstants.appColorBlack),
+                                  color: Config.appColorBlack),
                             ),
                             TextSpan(
                               text: pmToInfoDialog(pm2_5),
                               style: TextStyle(
-                                color: ColorConstants.appColorBlack
-                                    .withOpacity(0.7),
+                                color: Config.appColorBlack.withOpacity(0.7),
                                 fontSize: 10,
                               ),
                             )
@@ -247,7 +243,7 @@ Future<void> showSnackBar(context, String message) async {
         color: Colors.white,
       ),
     ),
-    backgroundColor: ColorConstants.snackBarBgColor,
+    backgroundColor: Config.snackBarBgColor,
   );
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }

@@ -1,4 +1,4 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
@@ -26,7 +26,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
   String _countryCodePlaceHolder = '+256(0) ';
   String _countryCode = '+256';
   List<String> _phoneVerificationCode = <String>['', '', '', '', '', ''];
-  Color _nextBtnColor = ColorConstants.appColorDisabled;
+  Color _nextBtnColor = Config.appColorDisabled;
 
   final CustomAuth _customAuth = CustomAuth();
   final TextEditingController _phoneInputController = TextEditingController();
@@ -40,7 +40,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
       Navigator.pop(context, true);
     } else {
       setState(() {
-        _nextBtnColor = ColorConstants.appColorBlue;
+        _nextBtnColor = Config.appColorBlue;
         _isVerifying = false;
       });
       await showSnackBar(context, 'Failed to update email address');
@@ -173,7 +173,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
                     fontSize: 12,
                     color: _isResending
                         ? Colors.black.withOpacity(0.5)
-                        : ColorConstants.appColorBlue),
+                        : Config.appColorBlue),
               ),
             ),
           ),
@@ -221,7 +221,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
                 style: TextStyle(
                     fontSize: 12,
                     color: _resendCode
-                        ? ColorConstants.appColorBlue
+                        ? Config.appColorBlue
                         : Colors.black.withOpacity(0.5)),
               ),
             ),
@@ -261,7 +261,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
     setState(() {
       _phoneNumber = '';
       _phoneInputController.text = '';
-      _nextBtnColor = ColorConstants.appColorDisabled;
+      _nextBtnColor = Config.appColorDisabled;
     });
   }
 
@@ -285,7 +285,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
       _countryCodePlaceHolder = '+256(0) ';
       _countryCode = '+256';
       _phoneVerificationCode = <String>['', '', '', '', '', ''];
-      _nextBtnColor = ColorConstants.appColorDisabled;
+      _nextBtnColor = Config.appColorDisabled;
       _user = _customAuth.getUser();
     });
   }
@@ -303,14 +303,14 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
         padding: const EdgeInsets.only(left: 15),
         decoration: BoxDecoration(
             borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-            border: Border.all(color: ColorConstants.appColorBlue)),
+            border: Border.all(color: Config.appColorBlue)),
         child: Center(
             child: TextFormField(
           controller: _phoneInputController,
           autofocus: true,
           enableSuggestions: false,
           cursorWidth: 1,
-          cursorColor: ColorConstants.appColorBlue,
+          cursorColor: Config.appColorBlue,
           keyboardType: TextInputType.number,
           onChanged: phoneValueChange,
           validator: (value) {
@@ -342,11 +342,11 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
   void phoneValueChange(text) {
     if (text.toString().isEmpty) {
       setState(() {
-        _nextBtnColor = ColorConstants.appColorDisabled;
+        _nextBtnColor = Config.appColorDisabled;
       });
     } else {
       setState(() {
-        _nextBtnColor = ColorConstants.appColorBlue;
+        _nextBtnColor = Config.appColorBlue;
       });
     }
 
@@ -358,7 +358,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
   Future<void> requestVerification() async {
     var connected = await _customAuth.isConnected();
     if (!connected) {
-      await showSnackBar(context, ErrorMessages.timeoutException);
+      await showSnackBar(context, Config.connectionErrorMessage);
       return;
     }
     _phoneFormKey.currentState!.validate();
@@ -373,7 +373,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
     }
 
     setState(() {
-      _nextBtnColor = ColorConstants.appColorDisabled;
+      _nextBtnColor = Config.appColorDisabled;
       _isVerifying = true;
       _codeSent = false;
     });
@@ -392,7 +392,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
   Future<void> resendVerificationCode() async {
     var connected = await _customAuth.isConnected();
     if (!connected) {
-      await showSnackBar(context, ErrorMessages.timeoutException);
+      await showSnackBar(context, Config.connectionErrorMessage);
       return;
     }
 
@@ -426,11 +426,11 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
     var code = _phoneVerificationCode.join('');
     if (code.length == 6) {
       setState(() {
-        _nextBtnColor = ColorConstants.appColorBlue;
+        _nextBtnColor = Config.appColorBlue;
       });
     } else {
       setState(() {
-        _nextBtnColor = ColorConstants.appColorDisabled;
+        _nextBtnColor = Config.appColorDisabled;
       });
     }
   }
@@ -451,7 +451,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
   Future<void> verifySentCode() async {
     var connected = await _customAuth.isConnected();
     if (!connected) {
-      await showSnackBar(context, ErrorMessages.timeoutException);
+      await showSnackBar(context, Config.connectionErrorMessage);
       return;
     }
 
@@ -467,7 +467,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
     }
 
     setState(() {
-      _nextBtnColor = ColorConstants.appColorDisabled;
+      _nextBtnColor = Config.appColorDisabled;
       _isVerifying = true;
     });
 
@@ -481,7 +481,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
         Navigator.pop(context, true);
       } else {
         setState(() {
-          _nextBtnColor = ColorConstants.appColorBlue;
+          _nextBtnColor = Config.appColorBlue;
           _isVerifying = false;
         });
         await showSnackBar(context, 'Failed to update phone number');
@@ -490,7 +490,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
       if (e.code == 'invalid-verification-code') {
         await showSnackBar(context, 'Invalid Code');
         setState(() {
-          _nextBtnColor = ColorConstants.appColorBlue;
+          _nextBtnColor = Config.appColorBlue;
           _isVerifying = false;
         });
       }
@@ -503,14 +503,14 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
             'has timed out. we have sent your'
             ' another verification code');
         setState(() {
-          _nextBtnColor = ColorConstants.appColorBlue;
+          _nextBtnColor = Config.appColorBlue;
           _isVerifying = false;
         });
       }
     } catch (e) {
       await showSnackBar(context, 'Try again later');
       setState(() {
-        _nextBtnColor = ColorConstants.appColorBlue;
+        _nextBtnColor = Config.appColorBlue;
         _isVerifying = false;
       });
       debugPrint(e.toString());

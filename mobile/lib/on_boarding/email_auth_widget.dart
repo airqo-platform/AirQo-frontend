@@ -1,4 +1,4 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/on_boarding/profile_setup_screen.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/fb_notifications.dart';
@@ -36,7 +36,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
   bool _verifyCode = false;
   bool _codeSent = false;
   List<String> _emailVerificationCode = <String>['', '', '', '', '', ''];
-  Color _nextBtnColor = ColorConstants.appColorDisabled;
+  Color _nextBtnColor = Config.appColorDisabled;
 
   final _emailFormKey = GlobalKey<FormState>();
   final CustomAuth _customAuth = CustomAuth();
@@ -156,7 +156,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
                   fontSize: 12,
                   color: _isResending
                       ? Colors.black.withOpacity(0.5)
-                      : ColorConstants.appColorBlue),
+                      : Config.appColorBlue),
             ),
           ),
         ),
@@ -217,7 +217,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
               style: TextStyle(
                   fontSize: 12,
                   color: _codeSent
-                      ? ColorConstants.appColorBlue
+                      ? Config.appColorBlue
                       : Colors.black.withOpacity(0.5)),
             ),
           ),
@@ -266,7 +266,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
     setState(() {
       _emailAddress = '';
       _emailInputController.text = '';
-      _nextBtnColor = ColorConstants.appColorDisabled;
+      _nextBtnColor = Config.appColorDisabled;
     });
   }
 
@@ -277,14 +277,14 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
         padding: const EdgeInsets.only(left: 15),
         decoration: BoxDecoration(
             borderRadius: const BorderRadius.all(Radius.circular(8.0)),
-            border: Border.all(color: ColorConstants.appColorBlue)),
+            border: Border.all(color: Config.appColorBlue)),
         child: Center(
             child: TextFormField(
           controller: _emailInputController,
           autofocus: true,
           enableSuggestions: false,
           cursorWidth: 1,
-          cursorColor: ColorConstants.appColorBlue,
+          cursorColor: Config.appColorBlue,
           keyboardType: TextInputType.emailAddress,
           onChanged: emailValueChange,
           validator: (value) {
@@ -324,11 +324,11 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
   void emailValueChange(text) {
     if (text.toString().isEmpty || !_emailInputController.text.isValidEmail()) {
       setState(() {
-        _nextBtnColor = ColorConstants.appColorDisabled;
+        _nextBtnColor = Config.appColorDisabled;
       });
     } else {
       setState(() {
-        _nextBtnColor = ColorConstants.appColorBlue;
+        _nextBtnColor = Config.appColorBlue;
       });
     }
     setState(() {
@@ -347,7 +347,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
       _verifyCode = false;
       _codeSent = false;
       _emailVerificationCode = <String>['', '', '', '', '', ''];
-      _nextBtnColor = ColorConstants.appColorDisabled;
+      _nextBtnColor = Config.appColorDisabled;
     });
   }
 
@@ -361,7 +361,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
   Future<void> requestVerification() async {
     var connected = await _customAuth.isConnected();
     if (!connected) {
-      await showSnackBar(context, ErrorMessages.timeoutException);
+      await showSnackBar(context, Config.connectionErrorMessage);
       return;
     }
 
@@ -372,7 +372,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
     }
 
     setState(() {
-      _nextBtnColor = ColorConstants.appColorDisabled;
+      _nextBtnColor = Config.appColorDisabled;
       _isVerifying = true;
     });
 
@@ -381,7 +381,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
 
       if (emailExists) {
         setState(() {
-          _nextBtnColor = ColorConstants.appColorBlue;
+          _nextBtnColor = Config.appColorBlue;
           _isVerifying = false;
         });
         await showSnackBar(
@@ -398,7 +398,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
     if (emailSignupResponse == null) {
       await showSnackBar(context, 'email signup verification failed');
       setState(() {
-        _nextBtnColor = ColorConstants.appColorBlue;
+        _nextBtnColor = Config.appColorBlue;
         _isVerifying = false;
       });
       return;
@@ -422,7 +422,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
   Future<void> resendVerificationCode() async {
     var connected = await _customAuth.isConnected();
     if (!connected) {
-      await showSnackBar(context, ErrorMessages.timeoutException);
+      await showSnackBar(context, Config.connectionErrorMessage);
       return;
     }
 
@@ -455,11 +455,11 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
     var code = _emailVerificationCode.join('');
     if (code.length == 6) {
       setState(() {
-        _nextBtnColor = ColorConstants.appColorBlue;
+        _nextBtnColor = Config.appColorBlue;
       });
     } else {
       setState(() {
-        _nextBtnColor = ColorConstants.appColorDisabled;
+        _nextBtnColor = Config.appColorDisabled;
       });
     }
   }
@@ -467,7 +467,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
   Future<void> verifySentCode() async {
     var connected = await _customAuth.isConnected();
     if (!connected) {
-      await showSnackBar(context, ErrorMessages.timeoutException);
+      await showSnackBar(context, Config.connectionErrorMessage);
       return;
     }
 
@@ -483,14 +483,14 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
     }
 
     setState(() {
-      _nextBtnColor = ColorConstants.appColorDisabled;
+      _nextBtnColor = Config.appColorDisabled;
       _isVerifying = true;
     });
 
     if (code != _emailToken.toString()) {
       await showSnackBar(context, 'Invalid Code');
       setState(() {
-        _nextBtnColor = ColorConstants.appColorBlue;
+        _nextBtnColor = Config.appColorBlue;
         _isVerifying = false;
       });
       return;
@@ -519,7 +519,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
       }
     } else {
       setState(() {
-        _nextBtnColor = ColorConstants.appColorBlue;
+        _nextBtnColor = Config.appColorBlue;
         _isVerifying = false;
       });
       await showSnackBar(context, 'Try again later');

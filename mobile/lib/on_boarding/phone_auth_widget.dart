@@ -1,4 +1,4 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/on_boarding/profile_setup_screen.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/fb_notifications.dart';
@@ -34,7 +34,7 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
   String _countryCodePlaceHolder = '+256(0) ';
   String _countryCode = '+256';
   List<String> _phoneVerificationCode = <String>['', '', '', '', '', ''];
-  Color _nextBtnColor = ColorConstants.appColorDisabled;
+  Color _nextBtnColor = Config.appColorDisabled;
 
   final CustomAuth _customAuth = CustomAuth();
   final TextEditingController _phoneInputController = TextEditingController();
@@ -194,7 +194,7 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
                   fontSize: 12,
                   color: _isResending
                       ? Colors.black.withOpacity(0.5)
-                      : ColorConstants.appColorBlue),
+                      : Config.appColorBlue),
             ),
           ),
         ),
@@ -255,7 +255,7 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
               style: TextStyle(
                   fontSize: 12,
                   color: _resendCode
-                      ? ColorConstants.appColorBlue
+                      ? Config.appColorBlue
                       : Colors.black.withOpacity(0.5)),
             ),
           ),
@@ -304,7 +304,7 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
     setState(() {
       _phoneNumber = '';
       _phoneInputController.text = '';
-      _nextBtnColor = ColorConstants.appColorDisabled;
+      _nextBtnColor = Config.appColorDisabled;
     });
   }
 
@@ -328,7 +328,7 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
       _countryCodePlaceHolder = '+256(0) ';
       _countryCode = '+256';
       _phoneVerificationCode = <String>['', '', '', '', '', ''];
-      _nextBtnColor = ColorConstants.appColorDisabled;
+      _nextBtnColor = Config.appColorDisabled;
     });
   }
 
@@ -345,14 +345,14 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
         padding: const EdgeInsets.only(left: 15),
         decoration: BoxDecoration(
             borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-            border: Border.all(color: ColorConstants.appColorBlue)),
+            border: Border.all(color: Config.appColorBlue)),
         child: Center(
             child: TextFormField(
           controller: _phoneInputController,
           autofocus: true,
           enableSuggestions: false,
           cursorWidth: 1,
-          cursorColor: ColorConstants.appColorBlue,
+          cursorColor: Config.appColorBlue,
           keyboardType: TextInputType.number,
           onChanged: phoneValueChange,
           validator: (value) {
@@ -373,12 +373,12 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
             focusedBorder: InputBorder.none,
             enabledBorder: InputBorder.none,
             // focusedBorder: OutlineInputBorder(
-            //   borderSide: BorderSide(color: ColorConstants.appColorBlue,
+            //   borderSide: BorderSide(color: Config.appColorBlue,
             //   width: 1.0),
             //   borderRadius: BorderRadius.circular(10.0),
             // ),
             // enabledBorder: OutlineInputBorder(
-            //   borderSide: BorderSide(color: ColorConstants.appColorBlue,
+            //   borderSide: BorderSide(color: Config.appColorBlue,
             //   width: 1.0),
             //   borderRadius: BorderRadius.circular(10.0),
             // ),
@@ -394,11 +394,11 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
   void phoneValueChange(text) {
     if (text.toString().isEmpty) {
       setState(() {
-        _nextBtnColor = ColorConstants.appColorDisabled;
+        _nextBtnColor = Config.appColorDisabled;
       });
     } else {
       setState(() {
-        _nextBtnColor = ColorConstants.appColorBlue;
+        _nextBtnColor = Config.appColorBlue;
       });
     }
 
@@ -410,13 +410,13 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
   Future<void> requestVerification() async {
     var connected = await _customAuth.isConnected();
     if (!connected) {
-      await showSnackBar(context, ErrorMessages.timeoutException);
+      await showSnackBar(context, Config.connectionErrorMessage);
       return;
     }
     _phoneFormKey.currentState!.validate();
     if (_phoneFormValid) {
       setState(() {
-        _nextBtnColor = ColorConstants.appColorDisabled;
+        _nextBtnColor = Config.appColorDisabled;
         _isVerifying = true;
         _codeSent = false;
       });
@@ -431,7 +431,7 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
       //         'Phone number already taken. '
       //         'Try logging in');
       //     setState(() {
-      //       _nextBtnColor = ColorConstants.appColorBlue;
+      //       _nextBtnColor = Config.appColorBlue;
       //       _isVerifying = false;
       //       _codeSent = false;
       //     });
@@ -454,7 +454,7 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
   Future<void> resendVerificationCode() async {
     var connected = await _customAuth.isConnected();
     if (!connected) {
-      await showSnackBar(context, ErrorMessages.timeoutException);
+      await showSnackBar(context, Config.connectionErrorMessage);
       return;
     }
 
@@ -488,11 +488,11 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
     var code = _phoneVerificationCode.join('');
     if (code.length == 6) {
       setState(() {
-        _nextBtnColor = ColorConstants.appColorBlue;
+        _nextBtnColor = Config.appColorBlue;
       });
     } else {
       setState(() {
-        _nextBtnColor = ColorConstants.appColorDisabled;
+        _nextBtnColor = Config.appColorDisabled;
       });
     }
   }
@@ -513,7 +513,7 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
   Future<void> verifySentCode() async {
     var connected = await _customAuth.isConnected();
     if (!connected) {
-      await showSnackBar(context, ErrorMessages.timeoutException);
+      await showSnackBar(context, Config.connectionErrorMessage);
       return;
     }
 
@@ -529,7 +529,7 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
     }
 
     setState(() {
-      _nextBtnColor = ColorConstants.appColorDisabled;
+      _nextBtnColor = Config.appColorDisabled;
       _isVerifying = true;
     });
 
@@ -558,7 +558,7 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
       if (e.code == 'invalid-verification-code') {
         await showSnackBar(context, 'Invalid Code');
         setState(() {
-          _nextBtnColor = ColorConstants.appColorBlue;
+          _nextBtnColor = Config.appColorBlue;
           _isVerifying = false;
         });
       }
@@ -571,14 +571,14 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
             'has timed out. we have sent your'
             ' another verification code');
         setState(() {
-          _nextBtnColor = ColorConstants.appColorBlue;
+          _nextBtnColor = Config.appColorBlue;
           _isVerifying = false;
         });
       }
     } catch (e) {
       await showSnackBar(context, 'Try again later');
       setState(() {
-        _nextBtnColor = ColorConstants.appColorBlue;
+        _nextBtnColor = Config.appColorBlue;
         _isVerifying = false;
       });
       debugPrint(e.toString());

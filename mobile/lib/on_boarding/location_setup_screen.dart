@@ -1,4 +1,4 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/on_boarding/setup_complete_screeen.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/native_api.dart';
@@ -70,7 +70,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
                         }), (r) => false)
                       });
             },
-            child: nextButton('Yes, keep me safe', ColorConstants.appColorBlue),
+            child: nextButton('Yes, keep me safe', Config.appColorBlue),
           ),
         ),
         const SizedBox(
@@ -89,7 +89,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
             style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: ColorConstants.appColorBlue),
+                color: Config.appColorBlue),
           ),
         ),
         const SizedBox(

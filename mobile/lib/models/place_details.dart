@@ -1,6 +1,6 @@
 import 'dart:collection';
 
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/site.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/string_extension.dart';
@@ -43,7 +43,7 @@ class PlaceDetails {
 
   PlaceDetails initialize() {
     return PlaceDetails(
-        '', '', '', AppConfig.defaultLatitude, AppConfig.defaultLongitude);
+        '', '', '', Config.defaultLatitude, Config.defaultLongitude);
   }
 
   Map<String, dynamic> toJson() => _$PlaceDetailsToJson(this);

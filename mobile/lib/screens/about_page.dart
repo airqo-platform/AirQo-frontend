@@ -1,4 +1,4 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/utils/web_view.dart';
 import 'package:app/widgets/custom_widgets.dart';
@@ -22,7 +22,7 @@ class _AboutAirQoState extends State<AboutAirQo> {
     return Scaffold(
         appBar: appTopBar(context, 'About'),
         body: Container(
-            color: ColorConstants.appBodyColor,
+            color: Config.appBodyColor,
             child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -41,29 +41,28 @@ class _AboutAirQoState extends State<AboutAirQo> {
                     height: 21.32,
                   ),
                   Text(
-                    AppConfig.name,
+                    Config.appName,
                     style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: ColorConstants.appColorBlack),
+                        color: Config.appColorBlack),
                   ),
                   const SizedBox(
                     height: 12,
                   ),
                   Text(
-                    AppConfig.version,
-                    style: TextStyle(
-                        fontSize: 16, color: ColorConstants.appColorBlack),
+                    Config.version,
+                    style: TextStyle(fontSize: 16, color: Config.appColorBlack),
                   ),
                   const Spacer(),
                   GestureDetector(
                     onTap: () {
-                      openUrl(Links.termsUrl);
+                      openUrl(Config.termsUrl);
                     },
                     child: Text(
                       'Terms & Privacy Policy',
-                      style: TextStyle(
-                          fontSize: 16, color: ColorConstants.appColorBlue),
+                      style:
+                          TextStyle(fontSize: 16, color: Config.appColorBlue),
                     ),
                   ),
                   const SizedBox(

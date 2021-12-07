@@ -1,4 +1,4 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/suggestion.dart';
@@ -40,7 +40,7 @@ class _SearchPageState extends State<SearchPage> {
     return Scaffold(
       body: Container(
         padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 40),
-        color: ColorConstants.appBodyColor,
+        color: Config.appBodyColor,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -68,8 +68,7 @@ class _SearchPageState extends State<SearchPage> {
               child: Text(
                 'Locations near you',
                 textAlign: TextAlign.start,
-                style: TextStyle(
-                    color: ColorConstants.inactiveColor, fontSize: 12),
+                style: TextStyle(color: Config.inactiveColor, fontSize: 12),
               ),
             ),
             loadMainView(),
@@ -162,7 +161,7 @@ class _SearchPageState extends State<SearchPage> {
                 ),
                 Container(
                   decoration: BoxDecoration(
-                    color: ColorConstants.appColorBlue,
+                    color: Config.appColorBlue,
                     shape: BoxShape.circle,
                   ),
                   child: const Padding(
@@ -255,7 +254,7 @@ class _SearchPageState extends State<SearchPage> {
         Container(
             padding: const EdgeInsets.only(bottom: 8),
             decoration: BoxDecoration(
-                color: ColorConstants.appBodyColor,
+                color: Config.appBodyColor,
                 shape: BoxShape.rectangle,
                 borderRadius: const BorderRadius.all(Radius.circular(10.0))),
             child: MediaQuery.removePadding(
@@ -281,7 +280,7 @@ class _SearchPageState extends State<SearchPage> {
                   //   return Divider(
                   //     indent: 20,
                   //     endIndent: 20,
-                  //     color: ColorConstants.appColor,
+                  //     color: Config.appColor,
                   //   );
                   // }
                 ))),
@@ -314,7 +313,7 @@ class _SearchPageState extends State<SearchPage> {
                   ),
                   Container(
                     decoration: BoxDecoration(
-                      color: ColorConstants.appColorBlue,
+                      color: Config.appColorBlue,
                       shape: BoxShape.circle,
                     ),
                     child: const Padding(
@@ -371,7 +370,7 @@ class _SearchPageState extends State<SearchPage> {
                   ),
                   Container(
                     decoration: BoxDecoration(
-                      color: ColorConstants.appColorBlue,
+                      color: Config.appColorBlue,
                       shape: BoxShape.circle,
                     ),
                     child: const Padding(
@@ -415,7 +414,7 @@ class _SearchPageState extends State<SearchPage> {
                     constraints:
                         const BoxConstraints(minWidth: double.infinity),
                     decoration: BoxDecoration(
-                        color: ColorConstants.appColorBlue,
+                        color: Config.appColorBlue,
                         borderRadius:
                             const BorderRadius.all(Radius.circular(10.0))),
                     child: Padding(
@@ -503,7 +502,7 @@ class _SearchPageState extends State<SearchPage> {
               controller: _textEditingController,
               onChanged: searchChanged,
               cursorWidth: 1,
-              cursorColor: ColorConstants.appColorBlue,
+              cursorColor: Config.appColorBlue,
               autofocus: true,
               decoration: InputDecoration(
                 hintText: 'Search your village air quality',
@@ -569,7 +568,7 @@ class _SearchPageState extends State<SearchPage> {
                       ),
                       Container(
                         decoration: BoxDecoration(
-                          color: ColorConstants.appColorBlue,
+                          color: Config.appColorBlue,
                           shape: BoxShape.circle,
                         ),
                         child: const Padding(

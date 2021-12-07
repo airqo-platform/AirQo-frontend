@@ -1,4 +1,4 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/screens/insights_page.dart';
@@ -110,7 +110,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                         height: 16,
                         width: 16,
                         decoration: BoxDecoration(
-                            color: ColorConstants.appColorBlue,
+                            color: Config.appColorBlue,
                             borderRadius:
                                 const BorderRadius.all(Radius.circular(3.0)),
                             border: Border.all(color: Colors.transparent)),
@@ -123,22 +123,22 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                       const SizedBox(width: 8.0),
                       Text(
                         'View More Insights',
-                        style: TextStyle(
-                            fontSize: 12, color: ColorConstants.appColorBlue),
+                        style:
+                            TextStyle(fontSize: 12, color: Config.appColorBlue),
                       ),
                       const Spacer(),
                       Container(
                         height: 16,
                         width: 16,
                         decoration: BoxDecoration(
-                            color: ColorConstants.appColorPaleBlue,
+                            color: Config.appColorPaleBlue,
                             borderRadius:
                                 const BorderRadius.all(Radius.circular(3.0)),
                             border: Border.all(color: Colors.transparent)),
                         child: Icon(
                           Icons.arrow_forward_ios,
                           size: 12,
-                          color: ColorConstants.appColorBlue,
+                          color: Config.appColorBlue,
                         ),
                       ),
                     ],

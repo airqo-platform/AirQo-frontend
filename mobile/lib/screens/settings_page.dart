@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/screens/phone_reauthenticate_screen.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/native_api.dart';
@@ -39,10 +39,10 @@ class _SettingsPageState extends State<SettingsPage> {
     return Scaffold(
         appBar: appTopBar(context, 'Settings'),
         body: Container(
-            color: ColorConstants.appBodyColor,
+            color: Config.appBodyColor,
             child: RefreshIndicator(
                 onRefresh: initialize,
-                color: ColorConstants.appColorBlue,
+                color: Config.appColorBlue,
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
                   child: Column(
@@ -135,8 +135,7 @@ class _SettingsPageState extends State<SettingsPage> {
               'Delete your account',
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                  fontSize: 14,
-                  color: ColorConstants.appColorBlack.withOpacity(0.4)),
+                  fontSize: 14, color: Config.appColorBlack.withOpacity(0.4)),
             ),
           )),
     );
@@ -177,7 +176,7 @@ class _SettingsPageState extends State<SettingsPage> {
               style: TextStyle(fontSize: 16),
             ),
             trailing: CupertinoSwitch(
-              activeColor: ColorConstants.appColorBlue,
+              activeColor: Config.appColorBlue,
               onChanged: (bool value) {
                 if (value) {
                   _locationService.requestLocationAccess().then((response) => {
@@ -197,7 +196,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           Divider(
-            color: ColorConstants.appBodyColor,
+            color: Config.appBodyColor,
           ),
           ListTile(
             title: const Text(
@@ -206,7 +205,7 @@ class _SettingsPageState extends State<SettingsPage> {
               style: TextStyle(fontSize: 16),
             ),
             trailing: CupertinoSwitch(
-              activeColor: ColorConstants.appColorBlue,
+              activeColor: Config.appColorBlue,
               onChanged: (bool value) {
                 if (value) {
                   _notificationService.requestPermission().then((response) => {
@@ -226,11 +225,11 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           Divider(
-            color: ColorConstants.appBodyColor,
+            color: Config.appBodyColor,
           ),
           GestureDetector(
             onTap: () async {
-              openUrl(Links.faqsUrl);
+              openUrl(Config.faqsUrl);
               // await Navigator.push(context,
               //     MaterialPageRoute(builder: (context) {
               //   return FaqsPage();
@@ -239,7 +238,7 @@ class _SettingsPageState extends State<SettingsPage> {
             child: cardSection('FAQs'),
           ),
           Divider(
-            color: ColorConstants.appBodyColor,
+            color: Config.appBodyColor,
           ),
           GestureDetector(
             onTap: () async {
@@ -251,27 +250,27 @@ class _SettingsPageState extends State<SettingsPage> {
             child: cardSection('Send feedback'),
           ),
           Divider(
-            color: ColorConstants.appBodyColor,
+            color: Config.appBodyColor,
           ),
           GestureDetector(
             onTap: () async {
               if (await _inAppReview.isAvailable()) {
                 // await _inAppReview.requestReview();
                 await _inAppReview.openStoreListing(
-                  appStoreId: AppConfig.iosStoreId,
+                  appStoreId: Config.iosStoreId,
                 );
               } else {
                 if (Platform.isAndroid ||
                     Platform.isLinux ||
                     Platform.isWindows) {
                   try {
-                    await launch(Links.playStoreUrl);
+                    await launch(Config.playStoreUrl);
                   } catch (e) {
                     debugPrint(e.toString());
                   }
                 } else if (Platform.isIOS || Platform.isMacOS) {
                   try {
-                    await launch(Links.appStoreUrl);
+                    await launch(Config.appStoreUrl);
                   } catch (e) {
                     debugPrint(e.toString());
                   }
@@ -281,7 +280,7 @@ class _SettingsPageState extends State<SettingsPage> {
             child: cardSection('Rate the AirQo App'),
           ),
           Divider(
-            color: ColorConstants.appBodyColor,
+            color: Config.appBodyColor,
           ),
           GestureDetector(
             onTap: () async {

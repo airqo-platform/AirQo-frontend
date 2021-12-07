@@ -1,4 +1,4 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/rest_api.dart';
@@ -45,7 +45,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 48,
-                    color: ColorConstants.appColorBlue),
+                    color: Config.appColorBlue),
               ),
             ]),
       ),

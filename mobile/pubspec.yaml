@@ -15,8 +15,6 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # android test
 version: 2.0.0+20003
-# ios testflight
-#version: 1.21.11+12115
 
 environment:
   sdk: '>=2.12.0 <3.0.0'
@@ -70,6 +68,7 @@ dependencies:
   show_more_text_popup: ^0.3.0
   geocoding: ^2.0.1
   characters: ^1.1.0
+  flutter_dotenv: ^5.0.2
 
 flutter_icons:
   android: "launcher_icon"
@@ -165,6 +164,10 @@ flutter:
 
     # Language Translation files
     - assets/i18n/en.json
+
+    # Environment Variables
+    - .env.dev
+    - .env.prod
 
   fonts:
    - family: Inter

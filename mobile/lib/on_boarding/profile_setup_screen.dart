@@ -1,4 +1,4 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/user_details.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/fb_notifications.dart';
@@ -24,7 +24,7 @@ class ProfileSetupScreen extends StatefulWidget {
 class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   String _fullName = '';
   DateTime? _exitTime;
-  Color nextBtnColor = ColorConstants.appColorDisabled;
+  Color nextBtnColor = Config.appColorDisabled;
   bool _isSaving = false;
   bool _nameFormValid = false;
   bool _showDropDown = false;
@@ -116,7 +116,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: ColorConstants.appColorBlue),
+                            color: Config.appColorBlue),
                       ),
                     ),
                     const SizedBox(
@@ -141,14 +141,14 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
         padding: const EdgeInsets.only(left: 15),
         decoration: BoxDecoration(
             borderRadius: const BorderRadius.all(Radius.circular(8.0)),
-            border: Border.all(color: ColorConstants.appColorBlue)),
+            border: Border.all(color: Config.appColorBlue)),
         child: Center(
             child: TextFormField(
           controller: _controller,
           autofocus: true,
           enableSuggestions: false,
           cursorWidth: 1,
-          cursorColor: ColorConstants.appColorBlue,
+          cursorColor: Config.appColorBlue,
           keyboardType: TextInputType.name,
           onChanged: valueChange,
           validator: (value) {
@@ -210,7 +210,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
     try {
       if (_nameFormValid && !_isSaving) {
         setState(() {
-          nextBtnColor = ColorConstants.appColorDisabled;
+          nextBtnColor = Config.appColorDisabled;
           _isSaving = true;
         });
         var userDetails = UserDetails.initialize()
@@ -231,7 +231,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
       }
     } on FirebaseAuthException catch (e) {
       setState(() {
-        nextBtnColor = ColorConstants.appColorBlue;
+        nextBtnColor = Config.appColorBlue;
         _isSaving = false;
       });
       await showSnackBar(context, 'Failed to update profile. Try again later');
@@ -293,8 +293,8 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       style: TextStyle(
                           fontSize: 14,
                           color: _title == _titleOptions[index]
-                              ? ColorConstants.appColorBlack
-                              : ColorConstants.appColorBlack.withOpacity(0.32)),
+                              ? Config.appColorBlack
+                              : Config.appColorBlack.withOpacity(0.32)),
                     ),
                   ),
                 );
@@ -308,7 +308,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
         width: 70,
         padding: const EdgeInsets.only(left: 10, right: 10),
         decoration: BoxDecoration(
-            color: ColorConstants.greyColor.withOpacity(0.2),
+            color: Config.greyColor.withOpacity(0.2),
             borderRadius: BorderRadius.circular(10)),
         child: Center(
           child: DropdownButton<String>(
@@ -318,7 +318,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
               color: Colors.black,
             ),
             iconSize: 10,
-            dropdownColor: ColorConstants.greyColor.withOpacity(0.2),
+            dropdownColor: Config.greyColor.withOpacity(0.2),
             elevation: 0,
             underline: const Visibility(visible: false, child: SizedBox()),
             style: const TextStyle(color: Colors.black),
@@ -350,11 +350,11 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   void valueChange(text) {
     if (text.toString().isEmpty || text.toString() == '') {
       setState(() {
-        nextBtnColor = ColorConstants.appColorDisabled;
+        nextBtnColor = Config.appColorDisabled;
       });
     } else {
       setState(() {
-        nextBtnColor = ColorConstants.appColorBlue;
+        nextBtnColor = Config.appColorBlue;
       });
     }
     setState(() {

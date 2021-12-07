@@ -1,4 +1,4 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/cupertino.dart';
@@ -30,7 +30,7 @@ class _ForYouPageState extends State<ForYouPage>
       appBar: AppBar(
         centerTitle: true,
         elevation: 0,
-        backgroundColor: ColorConstants.appBodyColor,
+        backgroundColor: Config.appBodyColor,
         leading: Padding(
           padding: const EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
           child: backButton(context),
@@ -42,7 +42,7 @@ class _ForYouPageState extends State<ForYouPage>
       ),
       body: Container(
         padding: const EdgeInsets.only(right: 16, left: 16),
-        color: ColorConstants.appBodyColor,
+        color: Config.appBodyColor,
         child: Column(
           children: [
             Padding(
@@ -73,9 +73,8 @@ class _ForYouPageState extends State<ForYouPage>
                         constraints: const BoxConstraints(
                             minWidth: double.infinity, maxHeight: 32),
                         decoration: BoxDecoration(
-                            color: isWeekly
-                                ? ColorConstants.appColorBlue
-                                : Colors.white,
+                            color:
+                                isWeekly ? Config.appColorBlue : Colors.white,
                             borderRadius:
                                 const BorderRadius.all(Radius.circular(5.0))),
                         child: Tab(
@@ -90,9 +89,8 @@ class _ForYouPageState extends State<ForYouPage>
                         constraints: const BoxConstraints(
                             minWidth: double.infinity, maxHeight: 32),
                         decoration: BoxDecoration(
-                            color: isWeekly
-                                ? Colors.white
-                                : ColorConstants.appColorBlue,
+                            color:
+                                isWeekly ? Colors.white : Config.appColorBlue,
                             borderRadius:
                                 const BorderRadius.all(Radius.circular(5.0))),
                         child: Tab(
@@ -167,7 +165,7 @@ class _ForYouPageState extends State<ForYouPage>
       constraints:
           const BoxConstraints(minWidth: double.infinity, maxHeight: 32),
       decoration: BoxDecoration(
-          color: isWeekly ? ColorConstants.appColorBlue : Colors.white,
+          color: isWeekly ? Config.appColorBlue : Colors.white,
           borderRadius: const BorderRadius.all(Radius.circular(5.0))),
       child: Tab(
           child: Text(

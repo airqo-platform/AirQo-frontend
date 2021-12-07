@@ -1,4 +1,4 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:flutter/material.dart';
 
 const googleMapsDarkTheme = [
@@ -131,15 +131,15 @@ ThemeData darkTheme() {
   final base = ThemeData.dark();
 
   return base.copyWith(
-      primaryColor: ColorConstants.appColor,
+      primaryColor: Config.appColor,
       visualDensity: VisualDensity.adaptivePlatformDensity,
       textTheme: ThemeData.light().textTheme.apply(fontFamily: 'OpenSans'),
       canvasColor: Colors.transparent,
       primaryTextTheme: ThemeData.light().textTheme.apply(
             fontFamily: 'Inter',
-            bodyColor: ColorConstants.appColor,
+            bodyColor: Config.appColor,
             displayColor: Colors.white,
           ),
-      colorScheme: ColorScheme.fromSwatch()
-          .copyWith(secondary: ColorConstants.appColor));
+      colorScheme:
+          ColorScheme.fromSwatch().copyWith(secondary: Config.appColor));
 }

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/screens/insights_page.dart';
@@ -95,7 +95,7 @@ Widget mapMoreInsightsWidget(PlaceDetails placeDetails) {
           const SizedBox(width: 8.0),
           Text(
             'View More Insights',
-            style: TextStyle(fontSize: 12, color: ColorConstants.appColorBlue),
+            style: TextStyle(fontSize: 12, color: Config.appColorBlue),
           ),
           const Spacer(),
           SvgPicture.asset(
@@ -131,7 +131,7 @@ Widget moreInsightsWidget(PlaceDetails placeDetails, context) {
           const SizedBox(width: 8.0),
           Text(
             'View More Insights',
-            style: TextStyle(fontSize: 12, color: ColorConstants.appColorBlue),
+            style: TextStyle(fontSize: 12, color: Config.appColorBlue),
           ),
           const Spacer(),
           SvgPicture.asset(
@@ -348,7 +348,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                           //     width: 8.0,
                                           //     child: CircularProgressIndicator(
                                           //       strokeWidth: 1.2,
-                                          //       color: ColorConstants
+                                          //       color: Config
                                           //       .appColorBlue,
                                           //     ),
                                           //   ),
@@ -406,7 +406,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                 SvgPicture.asset(
                                   'assets/icon/share_icon.svg',
                                   semanticsLabel: 'Share',
-                                  color: ColorConstants.greyColor,
+                                  color: Config.greyColor,
                                 ),
                                 'Share'),
                           ),
@@ -668,7 +668,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                           child: iconTextButton(
                               SvgPicture.asset(
                                 'assets/icon/share_icon.svg',
-                                color: ColorConstants.greyColor,
+                                color: Config.greyColor,
                                 semanticsLabel: 'Share',
                               ),
                               'Share'),

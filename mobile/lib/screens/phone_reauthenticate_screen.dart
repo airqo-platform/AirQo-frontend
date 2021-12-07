@@ -1,4 +1,4 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/user_details.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/utils/dialogs.dart';
@@ -26,7 +26,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
 
   // bool _resendCode = false;
   List<String> _phoneVerificationCode = <String>['', '', '', '', '', ''];
-  Color _nextBtnColor = ColorConstants.appColorDisabled;
+  Color _nextBtnColor = Config.appColorDisabled;
 
   final CustomAuth _customAuth = CustomAuth();
 
@@ -37,7 +37,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
       Navigator.pop(context, true);
     } else {
       setState(() {
-        _nextBtnColor = ColorConstants.appColorBlue;
+        _nextBtnColor = Config.appColorBlue;
         _isVerifying = false;
       });
       await showSnackBar(
@@ -107,7 +107,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
                   fontSize: 12,
                   color: _isResending
                       ? Colors.black.withOpacity(0.5)
-                      : ColorConstants.appColorBlue),
+                      : Config.appColorBlue),
             ),
           ),
         ),
@@ -143,11 +143,11 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
     var code = _phoneVerificationCode.join('');
     if (code.length == 6) {
       setState(() {
-        _nextBtnColor = ColorConstants.appColorBlue;
+        _nextBtnColor = Config.appColorBlue;
       });
     } else {
       setState(() {
-        _nextBtnColor = ColorConstants.appColorDisabled;
+        _nextBtnColor = Config.appColorDisabled;
       });
     }
   }
@@ -172,18 +172,18 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
       _isResending = false;
       _isVerifying = false;
       _phoneVerificationCode = <String>['', '', '', '', '', ''];
-      _nextBtnColor = ColorConstants.appColorDisabled;
+      _nextBtnColor = Config.appColorDisabled;
     });
   }
 
   Future<void> _requestVerification() async {
     var connected = await _customAuth.isConnected();
     if (!connected) {
-      await showSnackBar(context, ErrorMessages.timeoutException);
+      await showSnackBar(context, Config.connectionErrorMessage);
       return;
     }
     setState(() {
-      _nextBtnColor = ColorConstants.appColorDisabled;
+      _nextBtnColor = Config.appColorDisabled;
       _isVerifying = true;
       _codeSent = false;
     });
@@ -191,7 +191,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
     await _customAuth.verifyPhone(widget.userDetails.phoneNumber, context,
         verifyPhoneFn, autoVerifyPhoneFn);
 
-    if(!mounted){
+    if (!mounted) {
       return;
     }
 
@@ -206,7 +206,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
   Future<void> _resendVerificationCode() async {
     var connected = await _customAuth.isConnected();
     if (!connected) {
-      await showSnackBar(context, ErrorMessages.timeoutException);
+      await showSnackBar(context, Config.connectionErrorMessage);
       return;
     }
 
@@ -236,7 +236,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
   Future<void> _verifySentCode() async {
     var connected = await _customAuth.isConnected();
     if (!connected) {
-      await showSnackBar(context, ErrorMessages.timeoutException);
+      await showSnackBar(context, Config.connectionErrorMessage);
       return;
     }
 
@@ -252,7 +252,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
     }
 
     setState(() {
-      _nextBtnColor = ColorConstants.appColorDisabled;
+      _nextBtnColor = Config.appColorDisabled;
       _isVerifying = true;
     });
 
@@ -266,7 +266,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
         Navigator.pop(context, true);
       } else {
         setState(() {
-          _nextBtnColor = ColorConstants.appColorBlue;
+          _nextBtnColor = Config.appColorBlue;
           _isVerifying = false;
         });
         await showSnackBar(
@@ -278,7 +278,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
       if (e.code == 'invalid-verification-code') {
         await showSnackBar(context, 'Invalid Code');
         setState(() {
-          _nextBtnColor = ColorConstants.appColorBlue;
+          _nextBtnColor = Config.appColorBlue;
           _isVerifying = false;
         });
       }
@@ -291,14 +291,14 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
             'has timed out. we have sent your'
             ' another verification code');
         setState(() {
-          _nextBtnColor = ColorConstants.appColorBlue;
+          _nextBtnColor = Config.appColorBlue;
           _isVerifying = false;
         });
       }
     } catch (e) {
       await showSnackBar(context, 'Try again later');
       setState(() {
-        _nextBtnColor = ColorConstants.appColorBlue;
+        _nextBtnColor = Config.appColorBlue;
         _isVerifying = false;
       });
       debugPrint(e.toString());

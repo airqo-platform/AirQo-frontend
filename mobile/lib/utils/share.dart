@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/utils/pm.dart';
@@ -94,7 +94,7 @@ Widget shareCardImage(
                     padding: const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
                     decoration: BoxDecoration(
                         borderRadius:
-                        const BorderRadius.all(Radius.circular(40.0)),
+                            const BorderRadius.all(Radius.circular(40.0)),
                         color: pm2_5ToColor(measurement.getPm2_5Value())
                             .withOpacity(0.4),
                         border: Border.all(color: Colors.transparent)),
@@ -117,8 +117,7 @@ Widget shareCardImage(
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                        fontSize: 8,
-                        color: Colors.black.withOpacity(0.3)),
+                        fontSize: 8, color: Colors.black.withOpacity(0.3)),
                   ),
                 ],
               ),
@@ -182,5 +181,5 @@ void shareMeasurementText(Measurement measurement) {
       'PM10 : ${measurement.getPm10Value().toStringAsFixed(2)} µg/m\u00B3 \n'
       '$recommendations\n\n'
       'Source: AiQo App',
-      subject: '${AppConfig.name}, ${measurement.site.getName()}!');
+      subject: '${Config.appName}, ${measurement.site.getName()}!');
 }

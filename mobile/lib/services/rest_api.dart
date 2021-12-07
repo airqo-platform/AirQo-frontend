@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:app/constants/api.dart';
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/email_auth_model.dart';
 import 'package:app/models/feedback.dart';
 import 'package:app/models/historical_measurement.dart';
@@ -119,7 +119,7 @@ class AirqoApiClient {
 
   Future<List<Story>> fetchLatestStories() async {
     try {
-      final responseBody = await _performGetRequest({}, _airQoUrls.stories);
+      final responseBody = await _performGetRequest({}, Config.storiesUrl);
 
       if (responseBody != null) {
         return compute(Story.parseStories, responseBody);
@@ -278,12 +278,12 @@ class AirqoApiClient {
     try {
       var body = {
         'file': uploadStr,
-        'upload_preset': AppConfig.imageUploadPreset,
+        'upload_preset': Config.imageUploadPreset,
       };
       // 'public_id': name,
-      // 'api_key': AppConfig.imageUploadApiKey
+      // 'api_key': Config.imageUploadApiKey
 
-      final response = await http.post(Uri.parse(_airQoUrls.imageUploadUrl),
+      final response = await http.post(Uri.parse(Config.imageUploadUrl),
           headers: {'Content-Type': 'application/json'},
           body: json.encode(body));
 
@@ -294,10 +294,10 @@ class AirqoApiClient {
         throw Exception('Error');
       }
     } on SocketException {
-      await showSnackBar(context, ErrorMessages.timeoutException);
+      await showSnackBar(context, Config.connectionErrorMessage);
       return '';
     } on TimeoutException {
-      await showSnackBar(context, ErrorMessages.timeoutException);
+      await showSnackBar(context, Config.connectionErrorMessage);
       return '';
     } on Error catch (exception, stackTrace) {
       debugPrint(exception.toString());
@@ -359,7 +359,7 @@ class AirqoApiClient {
       };
 
       final response = await _performPostRequest(
-          <String, dynamic>{}, _airQoUrls.feedbackUrl, jsonEncode(body));
+          <String, dynamic>{}, Config.feedbackWebhook, jsonEncode(body));
       return response;
     } on Error catch (exception, stackTrace) {
       await Sentry.captureException(
@@ -410,7 +410,7 @@ class AirqoApiClient {
       }
 
       Map<String, String> headers = HashMap()
-        ..putIfAbsent('Authorization', () => 'JWT ${AppConfig.airQoApiKey}');
+        ..putIfAbsent('Authorization', () => 'JWT ${Config.airqoApiToken}');
       final response = await http.get(Uri.parse(url), headers: headers);
 
       if (response.statusCode == 200) {
@@ -419,9 +419,9 @@ class AirqoApiClient {
         return null;
       }
     } on SocketException {
-      await showSnackBar(context, ErrorMessages.socketException);
+      await showSnackBar(context, Config.socketErrorMessage);
     } on TimeoutException {
-      await showSnackBar(context, ErrorMessages.timeoutException);
+      await showSnackBar(context, Config.connectionErrorMessage);
     } on Error catch (exception, stackTrace) {
       debugPrint(exception.toString());
       debugPrint(stackTrace.toString());
@@ -429,7 +429,7 @@ class AirqoApiClient {
         exception,
         stackTrace: stackTrace,
       );
-      await showSnackBar(context, ErrorMessages.appException);
+      await showSnackBar(context, Config.appErrorMessage);
     }
 
     return null;
@@ -450,14 +450,14 @@ class AirqoApiClient {
       }
 
       Map<String, String> headers = HashMap()
-        ..putIfAbsent('Authorization', () => 'JWT ${AppConfig.airQoApiKey}');
+        ..putIfAbsent('Authorization', () => 'JWT ${Config.airqoApiToken}');
 
       final response = await http.get(Uri.parse(url), headers: headers);
       return json.decode(response.body);
     } on SocketException {
-      await showSnackBar(context, ErrorMessages.socketException);
+      await showSnackBar(context, Config.socketErrorMessage);
     } on TimeoutException {
-      await showSnackBar(context, ErrorMessages.timeoutException);
+      await showSnackBar(context, Config.connectionErrorMessage);
     } on Error catch (exception, stackTrace) {
       debugPrint(exception.toString());
       debugPrint(stackTrace.toString());
@@ -465,7 +465,7 @@ class AirqoApiClient {
         exception,
         stackTrace: stackTrace,
       );
-      await showSnackBar(context, ErrorMessages.appException);
+      await showSnackBar(context, Config.appErrorMessage);
     }
 
     return null;
@@ -497,10 +497,10 @@ class AirqoApiClient {
         return false;
       }
     } on SocketException {
-      await showSnackBar(context, ErrorMessages.socketException);
+      await showSnackBar(context, Config.socketErrorMessage);
       return false;
     } on TimeoutException {
-      await showSnackBar(context, ErrorMessages.timeoutException);
+      await showSnackBar(context, Config.connectionErrorMessage);
       return false;
     } on Error catch (exception, stackTrace) {
       debugPrint(exception.toString());
@@ -509,7 +509,7 @@ class AirqoApiClient {
         exception,
         stackTrace: stackTrace,
       );
-      await showSnackBar(context, ErrorMessages.appException);
+      await showSnackBar(context, Config.appErrorMessage);
       return false;
     }
   }
@@ -517,7 +517,7 @@ class AirqoApiClient {
 
 class SearchApi {
   final String sessionToken;
-  final apiKey = AppConfig.googleApiKey;
+  final apiKey = Config.googleApiKey;
   final BuildContext context;
   final AirQoUrls _airQoUrls = AirQoUrls();
 
@@ -599,10 +599,10 @@ class SearchApi {
         return null;
       }
     } on SocketException {
-      await showSnackBar(context, ErrorMessages.timeoutException);
+      await showSnackBar(context, Config.connectionErrorMessage);
       return null;
     } on TimeoutException {
-      await showSnackBar(context, ErrorMessages.timeoutException);
+      await showSnackBar(context, Config.connectionErrorMessage);
       return null;
     } on Error catch (exception, stackTrace) {
       await Sentry.captureException(

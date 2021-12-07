@@ -1,4 +1,4 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/models/user_details.dart';
 import 'package:app/on_boarding/signup_screen.dart';
@@ -75,13 +75,13 @@ class _ProfileViewState extends State<ProfileView> {
           title: appNavBar(),
           elevation: 0,
           toolbarHeight: 68,
-          backgroundColor: ColorConstants.appBodyColor,
+          backgroundColor: Config.appBodyColor,
         ),
         body: Container(
-            color: ColorConstants.appBodyColor,
+            color: Config.appBodyColor,
             child: RefreshIndicator(
                 onRefresh: initialize,
-                color: ColorConstants.appColorBlue,
+                color: Config.appColorBlue,
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
                   child: Column(
@@ -108,7 +108,7 @@ class _ProfileViewState extends State<ProfileView> {
                                     'Edit profile',
                                     style: TextStyle(
                                         fontSize: 16,
-                                        color: ColorConstants.appColorBlue),
+                                        color: Config.appColorBlue),
                                   ),
                                 ),
                                 Padding(
@@ -124,7 +124,7 @@ class _ProfileViewState extends State<ProfileView> {
                         child: logoutSection(
                             'Logout',
                             'assets/icon/location.svg',
-                            ColorConstants.appColorBlue,
+                            Config.appColorBlue,
                             logOut),
                       ),
                       Visibility(
@@ -148,7 +148,7 @@ class _ProfileViewState extends State<ProfileView> {
                                   height: 16,
                                 ),
                                 cardSection('Settings', 'assets/icon/cog.svg',
-                                    ColorConstants.appColorBlue, settings),
+                                    Config.appColorBlue, settings),
                               ],
                             ),
                           )),
@@ -173,7 +173,7 @@ class _ProfileViewState extends State<ProfileView> {
               height: 40,
               width: 40,
               decoration: BoxDecoration(
-                  color: ColorConstants.appColorBlue.withOpacity(0.15),
+                  color: Config.appColorBlue.withOpacity(0.15),
                   shape: BoxShape.circle),
               child: Center(
                 child: SvgPicture.asset(icon, color: iconColor),
@@ -238,12 +238,12 @@ class _ProfileViewState extends State<ProfileView> {
         height: 48,
         padding: const EdgeInsets.only(top: 12, bottom: 12),
         decoration: BoxDecoration(
-            color: ColorConstants.appColorBlue.withOpacity(0.1),
+            color: Config.appColorBlue.withOpacity(0.1),
             borderRadius: const BorderRadius.all(Radius.circular(8.0))),
         child: Center(
           child: Text(
             'Log Out',
-            style: TextStyle(fontSize: 16, color: ColorConstants.appColorBlue),
+            style: TextStyle(fontSize: 16, color: Config.appColorBlue),
           ),
         ),
       ),
@@ -266,22 +266,22 @@ class _ProfileViewState extends State<ProfileView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          cardSection('Profile', 'assets/icon/profile.svg',
-              ColorConstants.appColorBlue, viewProfile),
+          cardSection('Profile', 'assets/icon/profile.svg', Config.appColorBlue,
+              viewProfile),
           Divider(
-            color: ColorConstants.appBodyColor,
+            color: Config.appBodyColor,
           ),
           cardSection('Favorites', 'assets/icon/heart.svg', null, favPlaces),
           Divider(
-            color: ColorConstants.appBodyColor,
+            color: Config.appBodyColor,
           ),
           cardSection('For you', 'assets/icon/sparkles.svg',
-              ColorConstants.appColorBlue, forYou),
+              Config.appColorBlue, forYou),
           Divider(
-            color: ColorConstants.appBodyColor,
+            color: Config.appBodyColor,
           ),
-          cardSection('Settings', 'assets/icon/cog.svg',
-              ColorConstants.appColorBlue, settings),
+          cardSection(
+              'Settings', 'assets/icon/cog.svg', Config.appColorBlue, settings),
         ],
       ),
     );
@@ -342,7 +342,7 @@ class _ProfileViewState extends State<ProfileView> {
               child: Container(
                 constraints: const BoxConstraints(minWidth: double.infinity),
                 decoration: BoxDecoration(
-                    color: ColorConstants.appColorBlue,
+                    color: Config.appColorBlue,
                     borderRadius: const BorderRadius.all(Radius.circular(8.0))),
                 child: const Tab(
                     child: Text(

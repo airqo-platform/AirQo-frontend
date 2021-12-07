@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/kya.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/models/place_details.dart';
@@ -16,7 +16,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'local_notifications.dart';
 import 'local_storage.dart';
@@ -55,7 +54,7 @@ class CloudStore {
       var placeId =
           placeDetails.getName().trim().toLowerCase().replaceAll(' ', '-');
       await _firebaseFirestore
-          .collection('${CloudStorage.favPlacesCollection}/$id/$id')
+          .collection('${Config.favPlacesCollection}/$id/$id')
           .doc(placeId)
           .set(placeDetails.toJson());
     } catch (exception, stackTrace) {
@@ -75,9 +74,8 @@ class CloudStore {
     }
 
     try {
-      var users = await _firebaseFirestore
-          .collection(CloudStorage.usersCollection)
-          .get();
+      var users =
+          await _firebaseFirestore.collection(Config.usersCollection).get();
       for (var doc in users.docs) {
         try {
           if (phoneNumber != null && doc.data()['phoneNumber'] == phoneNumber) {
@@ -118,7 +116,7 @@ class CloudStore {
     // TODO IMPLEMENT DELETE KYA
     try {
       await _firebaseFirestore
-          .collection(CloudStorage.usersCollection)
+          .collection(Config.usersCollection)
           .doc(id)
           .delete();
     } on Error catch (exception, stackTrace) {
@@ -172,7 +170,7 @@ class CloudStore {
 
     try {
       var placesJson = await _firebaseFirestore
-          .collection('${CloudStorage.favPlacesCollection}/$id/$id')
+          .collection('${Config.favPlacesCollection}/$id/$id')
           .get();
 
       var favPlaces = <PlaceDetails>[];
@@ -215,9 +213,8 @@ class CloudStore {
           userKya.where((element) => element.progress < 100.0).toList();
 
       if (incomplete.isEmpty) {
-        var allKyaJson = await _firebaseFirestore
-            .collection(CloudStorage.kyaCollection)
-            .get();
+        var allKyaJson =
+            await _firebaseFirestore.collection(Config.kyaCollection).get();
 
         var kyaDocs = allKyaJson.docs;
         for (var doc in kyaDocs) {
@@ -228,7 +225,7 @@ class CloudStore {
           var y = userKya.where((element) => element.id == kya.id);
           if (y.isEmpty) {
             await _firebaseFirestore
-                .collection('${CloudStorage.usersKyaCollection}/$id/$id')
+                .collection('${Config.usersKyaCollection}/$id/$id')
                 .doc(kya.id)
                 .set(kya.toJson());
             break;
@@ -262,7 +259,7 @@ class CloudStore {
 
     try {
       var kyasJson = await _firebaseFirestore
-          .collection('${CloudStorage.usersKyaCollection}/$id/$id')
+          .collection('${Config.usersKyaCollection}/$id/$id')
           .get();
 
       var kyas = <Kya>[];
@@ -300,7 +297,7 @@ class CloudStore {
 
     try {
       var notificationsJson = await _firebaseFirestore
-          .collection('${CloudStorage.notificationCollection}/$id/$id')
+          .collection('${Config.notificationCollection}/$id/$id')
           .get();
 
       var notifications = <UserNotification>[];
@@ -339,7 +336,7 @@ class CloudStore {
 
     try {
       var userJson = await _firebaseFirestore
-          .collection(CloudStorage.usersCollection)
+          .collection(Config.usersCollection)
           .doc(id)
           .get();
       return await compute(UserDetails.parseUserDetails, userJson.data());
@@ -379,7 +376,7 @@ class CloudStore {
     try {
       var updated = false;
       await _firebaseFirestore
-          .collection('${CloudStorage.notificationCollection}/$userId/$userId')
+          .collection('${Config.notificationCollection}/$userId/$userId')
           .doc(notificationId)
           .update({'isNew': false}).then((value) => {updated = true});
 
@@ -405,7 +402,7 @@ class CloudStore {
 
     try {
       _firebaseFirestore
-          .collection('${CloudStorage.notificationCollection}/$id/$id')
+          .collection('${Config.notificationCollection}/$id/$id')
           .where('isNew', isEqualTo: true)
           .snapshots()
           .listen((result) async {
@@ -437,7 +434,7 @@ class CloudStore {
 
     try {
       var data = await _firebaseFirestore
-          .collection(CloudStorage.usersCollection)
+          .collection(Config.usersCollection)
           .doc(id)
           .get();
       return data.exists;
@@ -462,7 +459,7 @@ class CloudStore {
       var placeId =
           placeDetails.getName().trim().toLowerCase().replaceAll(' ', '-');
       await _firebaseFirestore
-          .collection('${CloudStorage.favPlacesCollection}/$id/$id')
+          .collection('${Config.favPlacesCollection}/$id/$id')
           .doc(placeId)
           .delete();
     } catch (exception, stackTrace) {
@@ -491,7 +488,7 @@ class CloudStore {
           true,
           DateTime.now().toUtc().toString());
       await _firebaseFirestore
-          .collection('${CloudStorage.notificationCollection}/$id/$id')
+          .collection('${Config.notificationCollection}/$id/$id')
           .doc(notificationId)
           .set(notification.toJson());
     } catch (exception, stackTrace) {
@@ -516,7 +513,7 @@ class CloudStore {
 
     try {
       await _firebaseFirestore
-          .collection('${CloudStorage.usersKyaCollection}/$id/$id')
+          .collection('${Config.usersKyaCollection}/$id/$id')
           .doc(kya.id)
           .update({'progress': progress});
     } on Error catch (exception, stackTrace) {
@@ -539,7 +536,7 @@ class CloudStore {
 
     try {
       DocumentSnapshot userDoc = await _firebaseFirestore
-          .collection(CloudStorage.usersCollection)
+          .collection(Config.usersCollection)
           .doc(id)
           .get();
       var data = userDoc.data();
@@ -554,7 +551,7 @@ class CloudStore {
         var userJson = userDetails.toJson();
 
         await _firebaseFirestore
-            .collection(CloudStorage.usersCollection)
+            .collection(Config.usersCollection)
             .doc(id)
             .update(userJson);
       }
@@ -578,12 +575,12 @@ class CloudStore {
       var _userJson = userDetails.toJson();
       try {
         await _firebaseFirestore
-            .collection(CloudStorage.usersCollection)
+            .collection(Config.usersCollection)
             .doc(id)
             .update(_userJson);
       } catch (exception) {
         await _firebaseFirestore
-            .collection(CloudStorage.usersCollection)
+            .collection(Config.usersCollection)
             .doc(id)
             .set(_userJson);
       }
@@ -606,13 +603,13 @@ class CloudStore {
 
     try {
       await _firebaseFirestore
-          .collection(CloudStorage.usersCollection)
+          .collection(Config.usersCollection)
           .doc(id)
           .update(fields);
     } catch (exception, stackTrace) {
       if (exception.toString().contains('not-found')) {
         await _firebaseFirestore
-            .collection(CloudStorage.usersCollection)
+            .collection(Config.usersCollection)
             .doc(id)
             .set(fields);
       }
@@ -733,15 +730,6 @@ class CustomAuth {
     } catch (_) {}
 
     return false;
-  }
-
-  Future<bool> isFirstUse() async {
-    var _preferences = await SharedPreferences.getInstance();
-    var firstUse = _preferences.getBool(PrefConstant.firstUse) ?? true;
-    if (firstUse) {
-      await _preferences.setBool(PrefConstant.firstUse, false);
-    }
-    return firstUse;
   }
 
   bool isLoggedIn() {
@@ -1171,7 +1159,7 @@ class CustomAuth {
       phoneNumber, context, callBackFn, autoVerificationFn) async {
     var hasConnection = await isConnected();
     if (!hasConnection) {
-      await showSnackBar(context, ErrorMessages.timeoutException);
+      await showSnackBar(context, Config.connectionErrorMessage);
     }
 
     try {

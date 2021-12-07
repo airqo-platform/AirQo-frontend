@@ -1,4 +1,3 @@
-import 'package:app/constants/app_constants.dart';
 import 'package:app/providers/theme_provider.dart';
 import 'package:flutter/material.dart';
 
@@ -69,3 +68,5 @@ class ChangeThemeDialogState extends State<ChangeThemeDialog> {
     _theme = widget.initialValue;
   }
 }
+
+enum Themes { lightTheme, darkTheme }

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/user_details.dart';
 import 'package:app/screens/email_reauthenticate_screen.dart';
 import 'package:app/screens/phone_reauthenticate_screen.dart';
@@ -51,7 +51,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
     return Scaffold(
         body: Container(
       padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 40),
-      color: ColorConstants.appBodyColor,
+      color: Config.appBodyColor,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,7 +73,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                         width: 40,
                         child: Text(
                           'Save',
-                          style: TextStyle(color: ColorConstants.inactiveColor),
+                          style: TextStyle(color: Config.inactiveColor),
                         ),
                       ),
                     )
@@ -85,8 +85,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                 ),
                 Text(
                   'First Name',
-                  style: TextStyle(
-                      fontSize: 12, color: ColorConstants.inactiveColor),
+                  style: TextStyle(fontSize: 12, color: Config.inactiveColor),
                 ),
                 const SizedBox(
                   height: 4,
@@ -96,7 +95,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                   autofocus: true,
                   enableSuggestions: false,
                   cursorWidth: 1,
-                  cursorColor: ColorConstants.appColorBlue,
+                  cursorColor: Config.appColorBlue,
                   keyboardType: TextInputType.name,
                   decoration: profileFormFieldDecoration(),
                   onChanged: (text) {
@@ -114,8 +113,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                 ),
                 Text(
                   'Last Name',
-                  style: TextStyle(
-                      fontSize: 12, color: ColorConstants.inactiveColor),
+                  style: TextStyle(fontSize: 12, color: Config.inactiveColor),
                 ),
                 const SizedBox(
                   height: 4,
@@ -125,7 +123,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                   autofocus: true,
                   enableSuggestions: false,
                   cursorWidth: 1,
-                  cursorColor: ColorConstants.appColorBlue,
+                  cursorColor: Config.appColorBlue,
                   keyboardType: TextInputType.name,
                   decoration: profileFormFieldDecoration(),
                   onChanged: (text) {
@@ -144,7 +142,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                 // Text(
                 //   'Phone Number',
                 //   style: TextStyle(
-                //       fontSize: 12, color: ColorConstants.inactiveColor),
+                //       fontSize: 12, color: Config.inactiveColor),
                 // ),
                 // const SizedBox(
                 //   height: 4,
@@ -160,8 +158,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                   visible: _phoneEditor.text.isNotEmpty,
                   child: Text(
                     'Phone Number',
-                    style: TextStyle(
-                        fontSize: 12, color: ColorConstants.inactiveColor),
+                    style: TextStyle(fontSize: 12, color: Config.inactiveColor),
                   ),
                 ),
                 Visibility(
@@ -181,8 +178,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                             controller: _phoneEditor,
                             enableSuggestions: false,
                             readOnly: true,
-                            style:
-                                TextStyle(color: ColorConstants.inactiveColor),
+                            style: TextStyle(color: Config.inactiveColor),
                             decoration: profileFormInactiveFieldDecoration(),
                           ),
                         ),
@@ -224,8 +220,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                   visible: _emailEditor.text.isNotEmpty,
                   child: Text(
                     'Email',
-                    style: TextStyle(
-                        fontSize: 12, color: ColorConstants.inactiveColor),
+                    style: TextStyle(fontSize: 12, color: Config.inactiveColor),
                   ),
                 ),
                 Visibility(
@@ -245,8 +240,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                             controller: _emailEditor,
                             enableSuggestions: false,
                             readOnly: true,
-                            style:
-                                TextStyle(color: ColorConstants.inactiveColor),
+                            style: TextStyle(color: Config.inactiveColor),
                             decoration: profileFormInactiveFieldDecoration(),
                           ),
                         ),
@@ -385,7 +379,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                     child: Container(
                       padding: const EdgeInsets.all(2.0),
                       decoration: BoxDecoration(
-                          color: ColorConstants.appPicColor,
+                          color: Config.appPicColor,
                           shape: BoxShape.rectangle,
                           borderRadius:
                               const BorderRadius.all(Radius.circular(35.0))),
@@ -399,16 +393,16 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                 : userDetails!.photoUrl.startsWith('http')
                     ? CircleAvatar(
                         radius: 44,
-                        backgroundColor: ColorConstants.appPicColor,
-                        foregroundColor: ColorConstants.appPicColor,
+                        backgroundColor: Config.appPicColor,
+                        foregroundColor: Config.appPicColor,
                         backgroundImage: CachedNetworkImageProvider(
                           userDetails!.photoUrl,
                         ),
                       )
                     : CircleAvatar(
                         radius: 44,
-                        backgroundColor: ColorConstants.appPicColor,
-                        foregroundColor: ColorConstants.appPicColor,
+                        backgroundColor: Config.appPicColor,
+                        foregroundColor: Config.appPicColor,
                         backgroundImage: FileImage(File(userDetails!.photoUrl)),
                       ),
             if (userDetails!.photoUrl == '')
@@ -428,7 +422,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
                     padding: const EdgeInsets.all(2.0),
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.white),
-                      color: ColorConstants.appColorBlue,
+                      color: Config.appColorBlue,
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(

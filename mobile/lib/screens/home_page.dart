@@ -1,5 +1,5 @@
 import 'package:animations/animations.dart';
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/screens/profile_view.dart';
@@ -38,7 +38,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ColorConstants.appBodyColor,
+      backgroundColor: Config.appBodyColor,
       body: WillPopScope(
         onWillPop: onWillPop,
         child: PageTransitionSwitcher(
@@ -64,10 +64,11 @@ class _HomePageState extends State<HomePage> {
       ),
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
-            canvasColor: ColorConstants.appBodyColor,
-            primaryColor: ColorConstants.appColorBlack,
-            textTheme: Theme.of(context).textTheme.copyWith(
-                caption: TextStyle(color: ColorConstants.appColorBlack))),
+            canvasColor: Config.appBodyColor,
+            primaryColor: Config.appColorBlack,
+            textTheme: Theme.of(context)
+                .textTheme
+                .copyWith(caption: TextStyle(color: Config.appColorBlack))),
         child: BottomNavigationBar(
           items: <BottomNavigationBarItem>[
             BottomNavigationBarItem(
@@ -75,8 +76,8 @@ class _HomePageState extends State<HomePage> {
                 'assets/icon/home_icon.svg',
                 semanticsLabel: 'Home',
                 color: _selectedIndex == 0
-                    ? ColorConstants.appColorBlue
-                    : ColorConstants.appColorBlack.withOpacity(0.4),
+                    ? Config.appColorBlue
+                    : Config.appColorBlack.withOpacity(0.4),
               ),
               label: 'Home',
             ),
@@ -84,8 +85,8 @@ class _HomePageState extends State<HomePage> {
               icon: SvgPicture.asset(
                 'assets/icon/location.svg',
                 color: _selectedIndex == 1
-                    ? ColorConstants.appColorBlue
-                    : ColorConstants.appColorBlack.withOpacity(0.4),
+                    ? Config.appColorBlue
+                    : Config.appColorBlack.withOpacity(0.4),
                 semanticsLabel: 'AirQo Map',
               ),
               label: 'AirQo Map',
@@ -96,8 +97,8 @@ class _HomePageState extends State<HomePage> {
                   SvgPicture.asset(
                     'assets/icon/profile.svg',
                     color: _selectedIndex == 2
-                        ? ColorConstants.appColorBlue
-                        : ColorConstants.appColorBlack.withOpacity(0.4),
+                        ? Config.appColorBlue
+                        : Config.appColorBlack.withOpacity(0.4),
                     semanticsLabel: 'Search',
                   ),
                   Positioned(
@@ -109,8 +110,7 @@ class _HomePageState extends State<HomePage> {
                             height: 4,
                             width: 4,
                             decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: ColorConstants.red),
+                                shape: BoxShape.circle, color: Config.red),
                           );
                         }
                         return Container(
@@ -129,10 +129,10 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
           currentIndex: _selectedIndex,
-          selectedItemColor: ColorConstants.appColorBlue,
-          unselectedItemColor: ColorConstants.inactiveColor,
+          selectedItemColor: Config.appColorBlue,
+          unselectedItemColor: Config.inactiveColor,
           elevation: 0.0,
-          backgroundColor: ColorConstants.appBodyColor,
+          backgroundColor: Config.appBodyColor,
           onTap: _onItemTapped,
           showSelectedLabels: true,
           showUnselectedLabels: true,

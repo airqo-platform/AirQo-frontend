@@ -1,12 +1,12 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 void openUrl(url) {
   final browser = Browser();
   var options = InAppBrowserClassOptions(
-      crossPlatform: InAppBrowserOptions(
-          toolbarTopBackgroundColor: ColorConstants.appBodyColor),
+      crossPlatform:
+          InAppBrowserOptions(toolbarTopBackgroundColor: Config.appBodyColor),
       inAppWebViewGroupOptions: InAppWebViewGroupOptions(
           crossPlatform: InAppWebViewOptions(
               transparentBackground: false, javaScriptEnabled: true)));

@@ -1,4 +1,4 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/on_boarding/signup_screen.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
@@ -34,7 +34,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
             style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 32,
-                color: ColorConstants.appColorBlue),
+                color: Config.appColorBlue),
           ),
           const SizedBox(
             height: 21,
@@ -66,7 +66,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
                 return const SignupScreen(false);
               }), (r) => false);
             },
-            child: nextButton('Let’s go', ColorConstants.appColorBlue),
+            child: nextButton('Let’s go', Config.appColorBlue),
           ),
         ]),
       ),

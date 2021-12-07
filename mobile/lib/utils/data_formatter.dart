@@ -1,4 +1,4 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/historical_measurement.dart';
 import 'package:app/models/insights_chart_data.dart';
 import 'package:app/models/place_details.dart';
@@ -9,18 +9,18 @@ import 'package:intl/intl.dart';
 
 charts.Color getChartBarColor(HistoricalMeasurement series, pollutant) {
   if (series.formattedTime.isAfter(DateTime.now())) {
-    return charts.ColorUtil.fromDartColor(ColorConstants.appColorPaleBlue);
+    return charts.ColorUtil.fromDartColor(Config.appColorPaleBlue);
   }
   return pmToChartColor(series.getPm2_5Value(), pollutant);
 }
 
 charts.Color getInsightsChartBarColor(InsightsChartData series) {
   if (!series.available) {
-    return charts.ColorUtil.fromDartColor(ColorConstants.greyColor);
+    return charts.ColorUtil.fromDartColor(Config.greyColor);
   }
 
   if (series.isForecast) {
-    return charts.ColorUtil.fromDartColor(ColorConstants.appColorPaleBlue);
+    return charts.ColorUtil.fromDartColor(Config.appColorPaleBlue);
   }
 
   return pmToChartColor(series.value, series.pollutant);

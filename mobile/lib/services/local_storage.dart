@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/historical_measurement.dart';
 import 'package:app/models/insights_chart_data.dart';
 import 'package:app/models/kya.dart';
@@ -54,7 +54,7 @@ class DBHelper {
 
   Future<void> createDefaultTables(Database db) async {
     var prefs = await SharedPreferences.getInstance();
-    var initialLoading = prefs.getBool(PrefConstant.reLoadDb) ?? true;
+    var initialLoading = prefs.getBool(Config.prefReLoadDb) ?? true;
 
     if (initialLoading) {
       await db.execute(Measurement.dropTableStmt());
@@ -66,7 +66,7 @@ class DBHelper {
       await db.execute(UserNotification.dropTableStmt());
       await db.execute(InsightsChartData.dropTableStmt());
       await db.execute(Kya.dropTableStmt());
-      await prefs.setBool(PrefConstant.reLoadDb, false);
+      await prefs.setBool(Config.prefReLoadDb, false);
     }
 
     await db.execute(Measurement.createTableStmt());
@@ -95,42 +95,6 @@ class DBHelper {
       debugPrint(e.toString());
 
       return <PlaceDetails>[];
-    }
-  }
-
-  Future<List<Measurement>> getFavouritePlacesV1() async {
-    try {
-      final db = await database;
-
-      var prefs = await SharedPreferences.getInstance();
-      var favouritePlaces =
-          prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
-
-      if (favouritePlaces.isEmpty) {
-        return [];
-      }
-
-      var placesRes = <Map<String, Object?>>[];
-
-      for (var fav in favouritePlaces) {
-        var res = await db.query(Measurement.latestMeasurementsDb(),
-            where: '${Site.dbId()} = ?', whereArgs: [fav]);
-
-        placesRes.addAll(res);
-      }
-      if (placesRes.isEmpty) {
-        return [];
-      }
-
-      return placesRes.isNotEmpty
-          ? List.generate(placesRes.length, (i) {
-              return Measurement.fromJson(Measurement.mapFromDb(placesRes[i]));
-            })
-          : <Measurement>[];
-    } catch (e) {
-      debugPrint(e.toString());
-
-      return <Measurement>[];
     }
   }
 
@@ -272,7 +236,7 @@ class DBHelper {
                     measurement.site.longitude,
                     latitude,
                     longitude)),
-                if (distanceInMeters < AppConfig.maxSearchRadius.toDouble())
+                if (distanceInMeters < Config.maxSearchRadius.toDouble())
                   {
                     // print('$distanceInMeters : '
                     //     '${AppConfig.maxSearchRadius.toDouble()} : '
@@ -410,7 +374,7 @@ class DBHelper {
 
   Future<Database> initDB() async {
     return await openDatabase(
-      join(await getDatabasesPath(), AppConfig.dbName),
+      join(await getDatabasesPath(), Config.dbName),
       version: 1,
       onCreate: (db, version) {
         createDefaultTables(db);
@@ -764,41 +728,6 @@ class DBHelper {
                 .reloadFavouritePlaces()
           });
     }
-  }
-
-  Future<bool> updateFavouritePlacesV1(String siteId, context) async {
-    var prefs = await SharedPreferences.getInstance();
-    var favouritePlaces =
-        prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
-
-    var id = siteId.trim().toLowerCase();
-    if (favouritePlaces.contains(id)) {
-      var updatedList = <String>[];
-
-      for (var fav in favouritePlaces) {
-        if (id != fav.trim().toLowerCase()) {
-          updatedList.add(fav.trim().toLowerCase());
-        }
-      }
-      favouritePlaces = updatedList;
-    } else {
-      favouritePlaces.add(id);
-    }
-
-    await prefs.setStringList(PrefConstant.favouritePlaces, favouritePlaces);
-
-    await Provider.of<PlaceDetailsModel>(context, listen: false)
-        .reloadFavouritePlaces();
-
-    // if (favouritePlaces.contains(id)) {
-    //   await showSnackBar(
-    //       context, '${site.getName()} has been added to your places');
-    // } else {
-    //   await showSnackBar(
-    //       context, '${site.getName()} has been removed from your places');
-    // }
-
-    return favouritePlaces.contains(id);
   }
 }
 

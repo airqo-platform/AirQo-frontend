@@ -1,4 +1,4 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/utils/dialogs.dart';
@@ -61,8 +61,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
                       }), (r) => false)
                     });
               },
-              child: nextButton(
-                  'Yes, keep me updated', ColorConstants.appColorBlue),
+              child: nextButton('Yes, keep me updated', Config.appColorBlue),
             ),
           ),
           const SizedBox(
@@ -81,7 +80,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
               style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: ColorConstants.appColorBlue),
+                  color: Config.appColorBlue),
             ),
           ),
           const SizedBox(

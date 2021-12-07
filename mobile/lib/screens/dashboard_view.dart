@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/kya.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
@@ -113,11 +113,11 @@ class _DashboardViewState extends State<DashboardView> {
         title: appNavBar(),
         elevation: 0,
         toolbarHeight: 65,
-        backgroundColor: ColorConstants.appBodyColor,
+        backgroundColor: Config.appBodyColor,
       ),
       body: Container(
           padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 24),
-          color: ColorConstants.appBodyColor,
+          color: Config.appBodyColor,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -144,7 +144,7 @@ class _DashboardViewState extends State<DashboardView> {
               Expanded(
                   child: RefreshIndicator(
                 onRefresh: _getLatestMeasurements,
-                color: ColorConstants.appColorBlue,
+                color: Config.appColorBlue,
                 child: _dashboardItems(),
               )),
             ],
@@ -166,8 +166,8 @@ class _DashboardViewState extends State<DashboardView> {
           width: 32.0,
           padding: const EdgeInsets.all(2.0),
           decoration: BoxDecoration(
-            border: Border.all(color: ColorConstants.appBodyColor, width: 2),
-            color: ColorConstants.greyColor,
+            border: Border.all(color: Config.appBodyColor, width: 2),
+            color: Config.greyColor,
             shape: BoxShape.circle,
           ),
         ));
@@ -181,7 +181,7 @@ class _DashboardViewState extends State<DashboardView> {
           width: 32.0,
           padding: const EdgeInsets.all(2.0),
           decoration: BoxDecoration(
-            border: Border.all(color: ColorConstants.appBodyColor, width: 2),
+            border: Border.all(color: Config.appBodyColor, width: 2),
             color: pm2_5ToColor(measurement.getPm2_5Value()),
             shape: BoxShape.circle,
           ),
@@ -296,8 +296,8 @@ class _DashboardViewState extends State<DashboardView> {
           width: 32.0,
           padding: const EdgeInsets.all(2.0),
           decoration: BoxDecoration(
-            border: Border.all(color: ColorConstants.appBodyColor, width: 2),
-            color: ColorConstants.greyColor,
+            border: Border.all(color: Config.appBodyColor, width: 2),
+            color: Config.greyColor,
             shape: BoxShape.circle,
             image: DecorationImage(
               fit: BoxFit.cover,
@@ -351,7 +351,7 @@ class _DashboardViewState extends State<DashboardView> {
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 12,
-                              color: ColorConstants.appColorBlue,
+                              color: Config.appColorBlue,
                             )),
                       if (_kya!.progress > 0.0 && _kya!.progress < 89.0)
                         Text('Continue',
@@ -360,7 +360,7 @@ class _DashboardViewState extends State<DashboardView> {
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 12,
-                              color: ColorConstants.appColorBlue,
+                              color: Config.appColorBlue,
                             )),
                       if (_kya!.progress >= 89.0)
                         const Text('Complete! Move to ',
@@ -377,7 +377,7 @@ class _DashboardViewState extends State<DashboardView> {
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 12,
-                              color: ColorConstants.appColorBlue,
+                              color: Config.appColorBlue,
                             )),
                       const SizedBox(
                         width: 6,
@@ -385,7 +385,7 @@ class _DashboardViewState extends State<DashboardView> {
                       Icon(
                         Icons.arrow_forward_ios_sharp,
                         size: 10,
-                        color: ColorConstants.appColorBlue,
+                        color: Config.appColorBlue,
                       )
                     ],
                   ),
@@ -401,10 +401,10 @@ class _DashboardViewState extends State<DashboardView> {
                         borderRadius: BorderRadius.all(Radius.circular(8.0)),
                       ),
                       child: LinearProgressIndicator(
-                        color: ColorConstants.appColorBlue,
+                        color: Config.appColorBlue,
                         value: _kya!.progress / 100,
                         backgroundColor:
-                            ColorConstants.appColorDisabled.withOpacity(0.2),
+                            Config.appColorDisabled.withOpacity(0.2),
                       )),
                 ),
               ],
@@ -431,7 +431,7 @@ class _DashboardViewState extends State<DashboardView> {
                 imageUrl: _kya!.imageUrl,
                 errorWidget: (context, url, error) => Icon(
                   Icons.error_outline,
-                  color: ColorConstants.red,
+                  color: Config.red,
                 ),
               ),
             ),
@@ -491,7 +491,7 @@ class _DashboardViewState extends State<DashboardView> {
                     Text(
                       'Favorites',
                       style: TextStyle(
-                          color: ColorConstants.appColorBlue,
+                          color: Config.appColorBlue,
                           fontWeight: FontWeight.w500,
                           fontSize: 14),
                     )
@@ -538,7 +538,7 @@ class _DashboardViewState extends State<DashboardView> {
                     Text(
                       'For You',
                       style: TextStyle(
-                          color: ColorConstants.appColorBlue,
+                          color: Config.appColorBlue,
                           fontWeight: FontWeight.w500,
                           fontSize: 14),
                     )
@@ -825,15 +825,14 @@ class _DashboardViewState extends State<DashboardView> {
       return;
     }
     try {
-      var showHelpTips =
-          _preferences!.getBool(PrefConstant.homePageTips) ?? true;
+      var showHelpTips = _preferences!.getBool(Config.prefHomePageTips) ?? true;
       if (showHelpTips) {
         showTipText(_favToolTipText, _favToolTipKey, context, () {
           showTipText(_kyaToolTipText, _kyaToolTipKey, context, () {
             setState(() {
               _showAnalyticsCardTips = true;
             });
-            _preferences!.setBool(PrefConstant.homePageTips, false);
+            _preferences!.setBool(Config.prefHomePageTips, false);
           }, true);
         }, false);
       }

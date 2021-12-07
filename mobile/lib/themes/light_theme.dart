@@ -1,4 +1,4 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:flutter/material.dart';
 
 const googleMapsLightTheme = [
@@ -55,24 +55,23 @@ ThemeData lightTheme() {
   final base = ThemeData.light();
 
   return base.copyWith(
-    // primaryColor: Colors.white,
     primaryColor: Colors.white,
-    // accentColor: ColorConstants.appColor,
+    // accentColor: Config.appColor,
     // backgroundColor: Colors.white,
     visualDensity: VisualDensity.adaptivePlatformDensity,
     textTheme: ThemeData.light().textTheme.apply(
           fontFamily: 'Inter',
-          bodyColor: ColorConstants.appColor,
-          displayColor: ColorConstants.appColor,
+          bodyColor: Config.appColor,
+          displayColor: Config.appColor,
         ),
     // canvasColor: Colors.transparent,
     primaryTextTheme: ThemeData.light().textTheme.apply(
           fontFamily: 'Inter',
-          bodyColor: ColorConstants.appColor,
-          displayColor: ColorConstants.appColor,
+          bodyColor: Config.appColor,
+          displayColor: Config.appColor,
         ),
     iconTheme: IconThemeData(
-      color: ColorConstants.appColor,
+      color: Config.appColor,
     ),
     appBarTheme: const AppBarTheme(elevation: 0.0),
   );

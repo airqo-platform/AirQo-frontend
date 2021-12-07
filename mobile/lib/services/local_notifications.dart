@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/notification.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -131,28 +131,23 @@ class LocalNotifications {
   }
 
   Future<void> showOngoingNotification() async {
-    const androidNotificationDetails = AndroidNotificationDetails(
-        '${NotificationConfig.persistentNotificationId}',
-        'Channel Name',
-
+    var androidNotificationDetails = AndroidNotificationDetails(
+        '${Config.persistentNotificationId}', 'Channel Name',
         importance: Importance.max,
         icon: 'launcher_icon',
         priority: Priority.high,
         ongoing: true,
         autoCancel: false);
-    const notificationDetails =
+    var notificationDetails =
         NotificationDetails(android: androidNotificationDetails, iOS: null);
-    await flutterLocalNotificationsPlugin.show(
-        NotificationConfig.persistentNotificationId,
-        'AirQo',
-        'Ongoing Notification',
-        notificationDetails,
+    await flutterLocalNotificationsPlugin.show(Config.persistentNotificationId,
+        'AirQo', 'Ongoing Notification', notificationDetails,
         payload: 'Destination Screen(Ongoing Notification)');
   }
 
   Future<void> showPeriodicNotification() async {
-    const androidNotificationDetails = AndroidNotificationDetails(
-        'channel_id', 'Channel Name');
+    const androidNotificationDetails =
+        AndroidNotificationDetails('channel_id', 'Channel Name');
     var notificationDetails = const NotificationDetails(
         android: androidNotificationDetails, iOS: null);
     await flutterLocalNotificationsPlugin.periodicallyShow(
@@ -180,7 +175,7 @@ class LocalNotifications {
         final notificationDetails =
             NotificationDetails(android: androidNotificationDetails, iOS: null);
         await flutterLocalNotificationsPlugin.show(
-            NotificationConfig.progressNotificationId,
+            Config.progressNotificationId,
             'AirQo',
             'Progress Notification',
             notificationDetails,
@@ -238,8 +233,7 @@ class LocalNotifications {
   }
 
   Future<void> showSimpleNotification(NotificationModel notification) async {
-    var androidDetails = const AndroidNotificationDetails(
-        'id', 'channel ',
+    var androidDetails = const AndroidNotificationDetails('id', 'channel ',
         priority: Priority.high, importance: Importance.max);
     var iOSDetails = const IOSNotificationDetails();
     var platformDetails =

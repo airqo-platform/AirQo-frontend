@@ -8,12 +8,13 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'constants/app_constants.dart';
+import 'constants/config.dart';
 import 'languages/custom_localizations.dart';
 import 'languages/lg_intl.dart';
 import 'models/place_details.dart';
@@ -24,20 +25,19 @@ import 'themes/light_theme.dart';
 
 Future<void> main() async {
   HttpOverrides.global = AppHttpOverrides();
+  await dotenv.load(fileName: Config.environmentFile);
 
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
-    // statusBarColor: ColorConstants.appBodyColor,
+    // statusBarColor: Config.appBodyColor,
     statusBarIconBrightness: Brightness.dark,
-    systemNavigationBarDividerColor: ColorConstants.appBodyColor,
+    systemNavigationBarDividerColor: Config.appBodyColor,
     // systemNavigationBarColor: Colors.transparent,
-    systemNavigationBarColor: ColorConstants.appBodyColor,
+    systemNavigationBarColor: Config.appBodyColor,
     // statusBarBrightness: Brightness.light,
     systemNavigationBarIconBrightness: Brightness.dark,
   ));
-
   WidgetsFlutterBinding.ensureInitialized();
-
   await Firebase.initializeApp();
 
   // await Firebase.initializeApp().then((value) => {
@@ -56,7 +56,7 @@ Future<void> main() async {
   if (kReleaseMode) {
     await SentryFlutter.init(
       (options) {
-        options.dsn = AppConfig.sentryProdUrl;
+        options.dsn = Config.sentryUrl;
       },
       appRunner: () => runApp(AirQoApp(themeController: themeController)),
     );
@@ -101,7 +101,7 @@ class AirQoApp extends StatelessWidget {
                 ],
                 supportedLocales: const [Locale('en'), Locale('lg')],
                 locale: provider.locale,
-                title: AppConfig.name,
+                title: Config.appName,
                 theme: _buildCurrentTheme(),
                 home: const SplashScreen(),
               );

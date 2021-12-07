@@ -1,4 +1,4 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/site.dart';
 import 'package:app/services/rest_api.dart';
@@ -28,13 +28,13 @@ class _MonthlyViewState extends State<MonthlyView>
   Widget build(BuildContext context) {
     // double screenHeight = MediaQuery.of(context).size.height;
     return Container(
-        color: ColorConstants.appBodyColor,
+        color: Config.appBodyColor,
         child: Column(
           children: <Widget>[
             TabBar(
               controller: _weeklyTabController,
               indicatorColor: Colors.transparent,
-              labelColor: ColorConstants.appColorBlue,
+              labelColor: Config.appColorBlue,
               unselectedLabelColor: Colors.black54,
               labelPadding: const EdgeInsets.symmetric(horizontal: 8.0),
               onTap: (index) {
@@ -75,12 +75,8 @@ class _MonthlyViewState extends State<MonthlyView>
         child: tabLayout(
             DateFormat('EEE').format(nextDate),
             day,
-            currentIndex == index
-                ? ColorConstants.appColorBlue
-                : Colors.transparent,
-            currentIndex == index
-                ? Colors.white
-                : ColorConstants.inactiveColor));
+            currentIndex == index ? Config.appColorBlue : Colors.transparent,
+            currentIndex == index ? Colors.white : Config.inactiveColor));
   }
 
   @override

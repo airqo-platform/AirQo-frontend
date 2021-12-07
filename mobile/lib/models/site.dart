@@ -1,8 +1,6 @@
-import 'package:app/constants/app_constants.dart';
 import 'package:app/utils/string_extension.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 part 'site.g.dart';
 
@@ -150,13 +148,4 @@ class Sites {
   factory Sites.fromJson(Map<String, dynamic> json) => _$SitesFromJson(json);
 
   Map<String, dynamic> toJson() => _$SitesToJson(this);
-}
-
-extension ParseSite on Site {
-  Future<bool> isFav() async {
-    var prefs = await SharedPreferences.getInstance();
-    var favouritePlaces =
-        prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
-    return favouritePlaces.contains(id.trim().toLowerCase());
-  }
 }

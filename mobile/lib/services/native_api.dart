@@ -1,4 +1,4 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/site.dart';
 import 'package:app/services/local_storage.dart';
@@ -42,7 +42,7 @@ class LocationService {
 
   Future<Measurement?> defaultLocationPlace() async {
     var measurement = await _dbHelper.getNearestMeasurement(
-        AppConfig.defaultLatitude, AppConfig.defaultLongitude);
+        Config.defaultLatitude, Config.defaultLongitude);
 
     if (measurement == null) {
       return null;
@@ -102,7 +102,7 @@ class LocationService {
               measurement.site.longitude,
               location.latitude!,
               location.longitude!));
-          if (distanceInMeters < AppConfig.maxSearchRadius.toDouble()) {
+          if (distanceInMeters < Config.maxSearchRadius.toDouble()) {
             measurement.site.distance = distanceInMeters;
             try {
               // if (!address.thoroughfare.isNull()) {
@@ -199,7 +199,7 @@ class LocationService {
                           measurement.site.longitude,
                           location.latitude!,
                           location.longitude!)),
-                  if (distanceInMeters < AppConfig.maxSearchRadius.toDouble())
+                  if (distanceInMeters < Config.maxSearchRadius.toDouble())
                     {
                       measurement.site.distance = distanceInMeters,
                       nearestMeasurements.add(measurement)
@@ -229,7 +229,7 @@ class LocationService {
                                     location.latitude!,
                                     location.longitude!)),
                             if (distanceInMeters <
-                                AppConfig.maxSearchRadius.toDouble())
+                                Config.maxSearchRadius.toDouble())
                               {
                                 measurement.site.distance = distanceInMeters,
                                 nearestMeasurements.add(measurement)
@@ -317,7 +317,7 @@ class LocationService {
           measurement.site.longitude,
           latitude,
           longitude));
-      if (distanceInMeters < AppConfig.maxSearchRadius.toDouble()) {
+      if (distanceInMeters < Config.maxSearchRadius.toDouble()) {
         measurement.site.distance = distanceInMeters;
         nearestSites.add(measurement);
       }
@@ -379,7 +379,7 @@ class LocationService {
         measurement.site.distance = distanceInMeters;
         nearestSites.add(measurement);
       } else {
-        if (distanceInMeters < AppConfig.maxSearchRadius.toDouble()) {
+        if (distanceInMeters < Config.maxSearchRadius.toDouble()) {
           measurement.site.distance = distanceInMeters;
           nearestSites.add(measurement);
         }

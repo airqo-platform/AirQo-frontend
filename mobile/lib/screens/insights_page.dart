@@ -1,4 +1,4 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/widgets/insights_tab_view.dart';
@@ -29,7 +29,7 @@ class _InsightsPageState extends State<InsightsPage>
       appBar: AppBar(
         centerTitle: true,
         elevation: 0,
-        backgroundColor: ColorConstants.appBodyColor,
+        backgroundColor: Config.appBodyColor,
         leading: Padding(
           padding: const EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
           child: backButton(context),
@@ -41,7 +41,7 @@ class _InsightsPageState extends State<InsightsPage>
       ),
       body: Container(
         padding: const EdgeInsets.only(right: 0, left: 0),
-        color: ColorConstants.appBodyColor,
+        color: Config.appBodyColor,
         child: Column(
           children: [
             Padding(
@@ -72,9 +72,8 @@ class _InsightsPageState extends State<InsightsPage>
                         constraints: const BoxConstraints(
                             minWidth: double.infinity, maxHeight: 32),
                         decoration: BoxDecoration(
-                            color: _isWeekly
-                                ? ColorConstants.appColorBlue
-                                : Colors.white,
+                            color:
+                                _isWeekly ? Config.appColorBlue : Colors.white,
                             borderRadius:
                                 const BorderRadius.all(Radius.circular(5.0))),
                         child: Tab(
@@ -89,9 +88,8 @@ class _InsightsPageState extends State<InsightsPage>
                         constraints: const BoxConstraints(
                             minWidth: double.infinity, maxHeight: 32),
                         decoration: BoxDecoration(
-                            color: _isWeekly
-                                ? Colors.white
-                                : ColorConstants.appColorBlue,
+                            color:
+                                _isWeekly ? Colors.white : Config.appColorBlue,
                             borderRadius:
                                 const BorderRadius.all(Radius.circular(5.0))),
                         child: Tab(

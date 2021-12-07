@@ -1,4 +1,4 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/site.dart';
 import 'package:app/services/rest_api.dart';
@@ -34,13 +34,13 @@ class _WeeklyViewState extends State<WeeklyView> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     // double screenHeight = MediaQuery.of(context).size.height;
     return Container(
-        color: ColorConstants.appBodyColor,
+        color: Config.appBodyColor,
         child: Column(
           children: <Widget>[
             TabBar(
               controller: _weeklyTabController,
               indicatorColor: Colors.transparent,
-              labelColor: ColorConstants.appColorBlue,
+              labelColor: Config.appColorBlue,
               unselectedLabelColor: Colors.black54,
               labelPadding: const EdgeInsets.symmetric(horizontal: 8.0),
               onTap: (index) {
@@ -57,72 +57,72 @@ class _WeeklyViewState extends State<WeeklyView> with TickerProviderStateMixin {
                           'SUN',
                           '${getDate(0).day}',
                           currentIndex == 0
-                              ? ColorConstants.appColorBlue
+                              ? Config.appColorBlue
                               : Colors.transparent,
                           currentIndex == 0
                               ? Colors.white
-                              : ColorConstants.inactiveColor)),
+                              : Config.inactiveColor)),
                 ),
                 Tab(
                     child: tabLayout(
                         'MON',
                         '${getDate(1).day}',
                         currentIndex == 1
-                            ? ColorConstants.appColorBlue
+                            ? Config.appColorBlue
                             : Colors.transparent,
                         currentIndex == 1
                             ? Colors.white
-                            : ColorConstants.inactiveColor)),
+                            : Config.inactiveColor)),
                 Tab(
                     child: tabLayout(
                         'TUE',
                         '${getDate(2).day}',
                         currentIndex == 2
-                            ? ColorConstants.appColorBlue
+                            ? Config.appColorBlue
                             : Colors.transparent,
                         currentIndex == 2
                             ? Colors.white
-                            : ColorConstants.inactiveColor)),
+                            : Config.inactiveColor)),
                 Tab(
                     child: tabLayout(
                         'WED',
                         '${getDate(3).day}',
                         currentIndex == 3
-                            ? ColorConstants.appColorBlue
+                            ? Config.appColorBlue
                             : Colors.transparent,
                         currentIndex == 3
                             ? Colors.white
-                            : ColorConstants.inactiveColor)),
+                            : Config.inactiveColor)),
                 Tab(
                     child: tabLayout(
                         'THUR',
                         '${getDate(4).day}',
                         currentIndex == 4
-                            ? ColorConstants.appColorBlue
+                            ? Config.appColorBlue
                             : Colors.transparent,
                         currentIndex == 4
                             ? Colors.white
-                            : ColorConstants.inactiveColor)),
+                            : Config.inactiveColor)),
                 Tab(
                     child: tabLayout(
                         'FRI',
                         '${getDate(5).day}',
                         currentIndex == 5
-                            ? ColorConstants.appColorBlue
+                            ? Config.appColorBlue
                             : Colors.transparent,
                         currentIndex == 5
                             ? Colors.white
-                            : ColorConstants.inactiveColor)),
+                            : Config.inactiveColor)),
                 Tab(
                     child: tabLayout(
                         'SAT',
                         '${getDate(6).day}',
                         currentIndex == 6
-                            ? ColorConstants.appColorBlue
+                            ? Config.appColorBlue
                             : Colors.transparent,
                         currentIndex == 6
                             ? Colors.white
-                            : ColorConstants.inactiveColor)),
+                            : Config.inactiveColor)),
               ],
             ),
             Expanded(

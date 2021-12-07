@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/suggestion.dart';
@@ -134,8 +134,7 @@ class _MapViewState extends State<MapView> {
       height: 30,
       width: 30,
       decoration: BoxDecoration(
-          color: ColorConstants.appBodyColor,
-          borderRadius: BorderRadius.circular(8)),
+          color: Config.appBodyColor, borderRadius: BorderRadius.circular(8)),
       child: const Icon(
         Icons.clear,
         size: 20,
@@ -187,7 +186,7 @@ class _MapViewState extends State<MapView> {
                     height: 32,
                     width: 32,
                     decoration: BoxDecoration(
-                        color: ColorConstants.appBodyColor,
+                        color: Config.appBodyColor,
                         borderRadius:
                             const BorderRadius.all(Radius.circular(8.0))),
                     child: Center(
@@ -195,7 +194,7 @@ class _MapViewState extends State<MapView> {
                         iconSize: 10,
                         icon: Icon(
                           Icons.clear,
-                          color: ColorConstants.appBarTitleColor,
+                          color: Config.appBarTitleColor,
                         ),
                         onPressed: showRegions,
                       ),
@@ -335,11 +334,11 @@ class _MapViewState extends State<MapView> {
         height: 40,
         width: 40,
         decoration: BoxDecoration(
-            color: ColorConstants.appColorBlue.withOpacity(0.15),
+            color: Config.appColorBlue.withOpacity(0.15),
             shape: BoxShape.circle),
         child: Center(
           child: SvgPicture.asset('assets/icon/location.svg',
-              color: ColorConstants.appColorBlue),
+              color: Config.appColorBlue),
         ));
   }
 
@@ -386,7 +385,7 @@ class _MapViewState extends State<MapView> {
       trailing: Icon(
         Icons.arrow_forward_ios_sharp,
         size: 10,
-        color: ColorConstants.appColorBlue,
+        color: Config.appColorBlue,
       ),
     );
   }
@@ -441,7 +440,7 @@ class _MapViewState extends State<MapView> {
           child: Container(
             height: 32,
             decoration: BoxDecoration(
-                color: ColorConstants.appBodyColor,
+                color: Config.appBodyColor,
                 borderRadius: BorderRadius.circular(8)),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -472,14 +471,14 @@ class _MapViewState extends State<MapView> {
               height: 32,
               width: 32,
               decoration: BoxDecoration(
-                  color: ColorConstants.appBodyColor,
+                  color: Config.appBodyColor,
                   borderRadius: const BorderRadius.all(Radius.circular(8.0))),
               child: Center(
                 child: IconButton(
                   iconSize: 10,
                   icon: Icon(
                     Icons.clear,
-                    color: ColorConstants.appBarTitleColor,
+                    color: Config.appBarTitleColor,
                   ),
                   onPressed: showRegions,
                 ),
@@ -501,7 +500,7 @@ class _MapViewState extends State<MapView> {
         onChanged: searchChanged,
         cursorWidth: 1,
         maxLines: 1,
-        cursorColor: ColorConstants.appColorBlue,
+        cursorColor: Config.appColorBlue,
         autofocus: false,
         decoration: const InputDecoration(
           contentPadding: EdgeInsets.only(right: 8, left: 8, bottom: 15),
@@ -536,7 +535,7 @@ class _MapViewState extends State<MapView> {
                       ),
                       Container(
                         decoration: BoxDecoration(
-                          color: ColorConstants.appColorBlue,
+                          color: Config.appColorBlue,
                           shape: BoxShape.circle,
                         ),
                         child: const Padding(
@@ -626,7 +625,7 @@ class _MapViewState extends State<MapView> {
       trailing: Icon(
         Icons.arrow_forward_ios_sharp,
         size: 10,
-        color: ColorConstants.appColorBlue,
+        color: Config.appColorBlue,
       ),
     );
   }
@@ -925,7 +924,7 @@ class _MapViewState extends State<MapView> {
 
   Future<void> _loadTheme() async {
     var prefs = await SharedPreferences.getInstance();
-    var theme = prefs.getString(PrefConstant.appTheme) ?? 'light';
+    var theme = prefs.getString(Config.prefAppTheme) ?? 'light';
 
     switch (theme) {
       case 'light':

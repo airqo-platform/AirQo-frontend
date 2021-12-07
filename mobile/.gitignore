@@ -47,9 +47,9 @@ app.*.map.json
 
 *env*
 key.properties
-app.properties
 local.properties
 env.dart
 google-services.json
 
 *.zip
+*.env

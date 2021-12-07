@@ -1,4 +1,4 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/on_boarding/login_screen.dart';
 import 'package:app/on_boarding/signup_screen.dart';
 import 'package:app/screens/home_page.dart';
@@ -17,7 +17,7 @@ Widget cancelOption(BuildContext context) {
       style: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.bold,
-          color: ColorConstants.appColorBlue),
+          color: Config.appColorBlue),
     ),
   );
 }
@@ -37,7 +37,7 @@ Widget containerBackButton(String text, Color buttonColor) {
         Text(
           text,
           textAlign: TextAlign.center,
-          style: TextStyle(color: ColorConstants.appColorBlue, fontSize: 14),
+          style: TextStyle(color: Config.appColorBlue, fontSize: 14),
         ),
       ],
     ),
@@ -103,7 +103,7 @@ Widget loginOptions(context) {
               style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: ColorConstants.appColorBlue),
+                  color: Config.appColorBlue),
             ),
           )
         ],
@@ -136,7 +136,7 @@ Widget loginOptions(context) {
               style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: ColorConstants.appColorBlue),
+                  color: Config.appColorBlue),
             ),
           )
         ],
@@ -223,7 +223,7 @@ Widget signButton(String text) {
     child: Text(
       text,
       textAlign: TextAlign.center,
-      style: TextStyle(color: ColorConstants.appColorBlue, fontSize: 12),
+      style: TextStyle(color: Config.appColorBlue, fontSize: 12),
     ),
   );
 }
@@ -256,7 +256,7 @@ Widget signUpOptions(BuildContext context) {
               style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: ColorConstants.appColorBlue),
+                  color: Config.appColorBlue),
             ),
           )
         ],
@@ -289,7 +289,7 @@ Widget signUpOptions(BuildContext context) {
               style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: ColorConstants.appColorBlue),
+                  color: Config.appColorBlue),
             ),
           )
         ],
