@@ -10,6 +10,8 @@ export const DAILY_MEAN_AVERAGES_URI = `${BASE_ANALYTICS_URL}/analytics/dashboar
 
 export const DOWNLOAD_CUSTOMISED_DATA_URI = `${BASE_ANALYTICS_URL}/analytics/data/download`;
 
+export const D3_CHART_DATA_URI = `${BASE_ANALYTICS_URL}/analytics/dashboard/chart/d3/data`;
+
 export const EXCEEDANCES_URI = `${BASE_ANALYTICS_URL}/analytics/dashboard/exceedances`;
 
 export const GET_SITES = `${BASE_ANALYTICS_URL}/analytics/dashboard/sites`;
