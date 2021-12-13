@@ -4,15 +4,15 @@ import d3 from "d3";
 // css styles
 import "assets/css/d3/brushed-timeseries.css";
 
-const BrushedTimeSeries = ({ data, xFunc, yFunc, symbolFunc }) => {
+const BrushedTimeSeries = ({ data, xFunc, yFunc, symbolFunc, yLabel }) => {
   const ref = useRef();
-  const margin = { top: 20, right: 20, bottom: 100, left: 30 };
+  const margin = { top: 20, right: 20, bottom: 100, left: 35 };
   const winWidth = 600;
   const winHeight = 370;
   const width = winWidth - margin.left - margin.right;
   const height = winHeight - margin.top - margin.bottom;
 
-  const margin_context = { top: 320, right: 20, bottom: 20, left: 30 };
+  const margin_context = { top: 320, right: 20, bottom: 20, left: 35 };
   const height_context = winHeight - margin_context.top - margin_context.bottom;
 
   const dataXrange = d3.extent(data, xFunc);
@@ -98,6 +98,44 @@ const BrushedTimeSeries = ({ data, xFunc, yFunc, symbolFunc }) => {
       .attr("id", `${id}-context`)
       .attr("d", lineContext(d.values));
   });
+
+  const brush = d3.brushX().extent([
+    [0, -5],
+    [width, height_context],
+  ]);
+
+  const brushg = context
+    .append("g")
+    .attr("class", "x brush")
+    .call(brush)
+    // .call(brush.move, [15, 100]);
+    .call(brush.move, dataXrange.map(x2));
+
+  /* === y axis title === */
+
+  vis
+    .append("text")
+    .attr("class", "y axis title")
+    .text(yLabel)
+    .attr("x", -(height / 2))
+    .attr("y", 0)
+    .attr("dy", "1em")
+    .attr("transform", "rotate(-90)")
+    .style("text-anchor", "middle");
+
+  const brushed({selection}) {
+    if (selection) {
+      console.log("selection", selection)
+      svg.property("value", selection.map(x.invert, x).map(d3.utcDay.round));
+      svg.dispatch("input");
+    }
+  }
+
+  function brushended({selection}) {
+    if (!selection) {
+      // gb.call(brush.move, defaultSelection);
+    }
+  }
 
   return (
     <div className="brushed-TS" style={{ border: "1px solid red" }}>
