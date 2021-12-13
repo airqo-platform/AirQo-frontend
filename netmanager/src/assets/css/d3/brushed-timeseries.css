@@ -1,102 +1,102 @@
-#metric-modal .metric-chart text {
+.brushed-TS .metric-chart text {
 	fill: #565656;
 	font-size: 9px;
 	font-family: Helvetica, Arial, "sans serif";
 }
 
-#metric-modal .metric-chart text.no-data {
+.brushed-TS .metric-chart text.no-data {
 	font-size: 16px;
 	font-weight: 100;
 	fill:#d0d0d0;
 }
 
-#metric-modal .metric-chart rect.no-data {
+.brushed-TS .metric-chart rect.no-data {
 	fill: #f5f5f5;
 }
 
-#metric-modal .metric-chart rect.plot-background{
+.brushed-TS .metric-chart rect.plot-background{
 	fill: white;
 }
 
-#metric-modal .metric-chart path.line {
+.brushed-TS .metric-chart path.line {
 	fill: none;
 	stroke: #00AA8D; /* default, changed in each theme */
 	stroke-width: 1.5px;
 	clip-path: url(#clip);
 }
 
-#metric-modal .metric-chart path.area {
+.brushed-TS .metric-chart path.area {
 	fill: #00AA8D; /* CB default, changed in each theme */
 	opacity: 0.6;
 	clip-path: url(#clip);
 }
 
-#metric-modal .metric-chart .axis {
+.brushed-TS .metric-chart .axis {
 	shape-rendering: crispEdges;
 }
 
-#metric-modal .metric-chart .x.axis .domain{
+.brushed-TS .metric-chart .x.axis .domain{
 	display:none;
 }
 
-#metric-modal .metric-chart .x.axis line {
+.brushed-TS .metric-chart .x.axis line {
 	stroke: white;
 	opacity: 0.4;
 }
 
-#metric-modal .metric-chart .context .x.axis line {
+.brushed-TS .metric-chart .context .x.axis line {
 	display: none;
 }
 
-#metric-modal .metric-chart .y.axis .domain{
+.brushed-TS .metric-chart .y.axis .domain{
 	display: none;
 }
 
-#metric-modal .metric-chart .y.axis.title{
+.brushed-TS .metric-chart .y.axis.title{
 	font-size: 13px;
 	font-weight: 100;
 }
 
-#metric-modal .metric-chart .y.axis line {
+.brushed-TS .metric-chart .y.axis line {
 	stroke: #565656;
 	stroke-dasharray: 2,2;
 	stroke-opacity: 0.3;
 }
 
-#metric-modal .metric-chart .brush .extent {
+.brushed-TS .metric-chart .brush .extent {
   fill-opacity: .07;
   shape-rendering: crispEdges;
   clip-path: url(#clip);
 }
 
-#metric-modal .metric-chart rect.pane {
+.brushed-TS .metric-chart rect.pane {
 	cursor: move;
 	fill: none;
 	pointer-events: all;
 }
 /* brush handles  */
-#metric-modal .metric-chart .resize .handle {
+.brushed-TS .metric-chart .resize .handle {
 	fill: #555;
 }
 
-#metric-modal .metric-chart .resize .handle-mini {
+.brushed-TS .metric-chart .resize .handle-mini {
 	fill: white;
     stroke-width: 1px;
     stroke: #555;
 }
 
-#metric-modal .metric-chart .scale_button {
+.brushed-TS .metric-chart .scale_button {
 	cursor: pointer;
 }
 
-#metric-modal .metric-chart .scale_button rect {
+.brushed-TS .metric-chart .scale_button rect {
 	fill: #eaeaea;
 }
-#metric-modal .metric-chart .scale_button:hover text {
+.brushed-TS .metric-chart .scale_button:hover text {
 	fill: #417DD6;
 	transition: all 0.1s cubic-bezier(.25,.8,.25,1);
 }
 
-#metric-modal .metric-chart text#displayDates  {
+.brushed-TS .metric-chart text#displayDates  {
 	font-weight: bold;
 }
