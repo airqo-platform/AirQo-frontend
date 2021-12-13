@@ -4,7 +4,7 @@ import d3 from "d3";
 // css styles
 import "assets/css/d3/brushed-timeseries.css";
 
-const BrushedTimeSeries = ({ data }) => {
+const BrushedTimeSeries = ({ data, xFunc, yFunc, symbolFunc }) => {
   const ref = useRef();
   const margin = { top: 20, right: 20, bottom: 100, left: 30 };
   const winWidth = 600;
@@ -15,15 +15,8 @@ const BrushedTimeSeries = ({ data }) => {
   const margin_context = { top: 320, right: 20, bottom: 20, left: 30 };
   const height_context = winHeight - margin_context.top - margin_context.bottom;
 
-  const dataXrange = d3.extent(data, function (d) {
-    return new Date(d.time);
-  });
-  const dataYrange = [
-    0,
-    d3.max(data, function (d) {
-      return d.value;
-    }),
-  ];
+  const dataXrange = d3.extent(data, xFunc);
+  const dataYrange = [0, d3.max(data, yFunc)];
 
   /* Scales */
   const x = d3.scaleTime().range([0, width]).domain(dataXrange);
@@ -38,14 +31,10 @@ const BrushedTimeSeries = ({ data }) => {
 
   /* Axes */
   const xAxis = d3.axisBottom().scale(x).tickSize(-height);
-  // .ticks(customTickFunction)
-  // .tickFormat(dynamicDateFormat);
 
   const yAxis = d3.axisLeft().scale(y).ticks(4).tickSize(-width);
 
   const xAxisContext = d3.axisBottom().scale(x2);
-  // .ticks(customTickFunction)
-  // .tickFormat(dynamicDateFormat);
 
   const vis = d3.select(ref.current).attr("class", "metric-chart");
 
@@ -67,42 +56,51 @@ const BrushedTimeSeries = ({ data }) => {
   focus
     .append("g")
     .attr("class", "x axis")
-    .attr("transform", "translate(0," + height + ")")
+    .attr("transform", `translate(0, ${height})`)
     .call(xAxis);
 
   context
     .append("g")
     .attr("class", "x axis")
-    .attr("transform", "translate(0," + height_context + ")")
+    .attr("transform", `translate(0, ${height_context})`)
     .call(xAxisContext);
 
   const line = d3
     .line()
-    .x(function (d) {
-      return x(new Date(d.time));
-    })
-    .y(function (d) {
-      return y(d.value);
-    });
+    .x((d) => x(xFunc(d)))
+    .y((d) => y(yFunc(d)));
 
   const lineContext = d3
     .line()
-    .x(function (d) {
-      return x2(new Date(d.time));
-    })
-    .y(function (d) {
-      return y2(d.value);
-    });
+    .x((d) => x2(xFunc(d)))
+    .y((d) => y2(yFunc(d)));
 
-  focus.append("path").datum(data).attr("class", "line").attr("d", line);
+  const dataNest = d3.nest().key(symbolFunc).entries(data);
 
-  context.append("path")
-    .datum(data)
-    .attr("class", "line")
-    .attr("d", lineContext);
+  const color = d3.scaleOrdinal().range(d3.schemeCategory10);
+
+  dataNest.forEach((d, i) => {
+    const id = `tag-${d.key
+      .replace(/\s+/g, "")
+      .replace(",", "")}-${Math.random().toString(16).slice(2)}-${i}`;
+
+    focus
+      .append("path")
+      .attr("class", "line")
+      .style("stroke", () => (d.color = color(d.key)))
+      .attr("id", id)
+      .attr("d", line(d.values));
+
+    context
+      .append("path")
+      .attr("class", "line")
+      .style("stroke", () => (d.color = color(d.key)))
+      .attr("id", `${id}-context`)
+      .attr("d", lineContext(d.values));
+  });
 
   return (
-    <div id="metric-modal" style={{ border: "1px solid red" }}>
+    <div className="brushed-TS" style={{ border: "1px solid red" }}>
       <svg viewBox={`0 0 ${winWidth} ${winHeight}`} ref={ref} />
     </div>
   );
