@@ -1,20 +1,24 @@
 .timeseries-path {
     stroke: steelblue;
-    stroke-width: 1.5;
+    stroke-width: 2;
     stroke-linejoin: round;
     stroke-linecap: round;
     fill: none;
 }
 
 .axis {
-    font: 12px Arial;
-    /*color: grey*/
+    font: 10px system-ui;
+    /*font-size: 9px;*/
+    color: grey;
+    /*color: #263238;*/
+    font-weight: lighter;
+    /*color: #263238;*/
 }
 
 .axis path,
 .axis line {
     fill: none;
-    stroke: grey;
+    stroke: lightgray;
     stroke-width: 0.5;
     /*shape-rendering: crispEdges;*/
 }
