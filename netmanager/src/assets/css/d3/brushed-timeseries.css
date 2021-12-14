@@ -14,6 +14,10 @@
 	fill: #f5f5f5;
 }
 
+.brushed-TS {
+	padding: 5px;
+}
+
 .brushed-TS .metric-chart rect.plot-background{
 	fill: white;
 }
@@ -65,6 +69,7 @@
 
 .brushed-TS .metric-chart .brush .extent {
   fill-opacity: .07;
+	fill: #eaeaea;
   shape-rendering: crispEdges;
   clip-path: url(#clip);
 }
