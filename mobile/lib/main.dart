@@ -6,7 +6,6 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_analytics/observer.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
-// import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -28,11 +27,13 @@ Future<void> main() async {
 
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
+    // statusBarColor: ColorConstants.appBodyColor,
     statusBarIconBrightness: Brightness.dark,
     systemNavigationBarDividerColor: ColorConstants.appBodyColor,
+    // systemNavigationBarColor: Colors.transparent,
     systemNavigationBarColor: ColorConstants.appBodyColor,
     // statusBarBrightness: Brightness.light,
-    // systemNavigationBarIconBrightness: Brightness.dark,
+    systemNavigationBarIconBrightness: Brightness.dark,
   ));
 
   WidgetsFlutterBinding.ensureInitialized();

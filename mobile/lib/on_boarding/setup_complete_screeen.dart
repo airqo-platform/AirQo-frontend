@@ -52,17 +52,14 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
     ));
   }
 
-  void initialize() {
-    _airqoApiClient = AirqoApiClient(context);
-    sendWelcomeEmail();
-    if (mounted) {
-      Future.delayed(const Duration(seconds: 4), () async {
-        await Navigator.pushAndRemoveUntil(context,
-            MaterialPageRoute(builder: (context) {
-          return const HomePage();
-        }), (r) => false);
-      });
-    }
+  Future<void> initialize() async {
+    Future.delayed(const Duration(seconds: 4), () async {
+      await Navigator.pushAndRemoveUntil(context,
+          MaterialPageRoute(builder: (context) {
+        return const HomePage();
+      }), (r) => false);
+    });
+    loadProfile();
   }
 
   @override
@@ -70,6 +67,13 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
     _airqoApiClient = AirqoApiClient(context);
     initialize();
     super.initState();
+  }
+
+  void loadProfile() async {
+    var user = _customAuth.getUser();
+    if (user != null) {
+      await _customAuth.updateLocalStorage(user, context);
+    }
   }
 
   Future<bool> onWillPop() {
@@ -92,8 +96,14 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
     return Future.value(true);
   }
 
+  @Deprecated('Functionality has been transferred to the backend')
   Future<void> sendWelcomeEmail() async {
-    var userDetails = await _cloudStore.getProfile(_customAuth.getId());
-    await _airqoApiClient!.sendWelcomeMessage(userDetails);
+    try {
+      var userDetails = await _cloudStore.getProfile(_customAuth.getId());
+      await _airqoApiClient!.sendWelcomeMessage(userDetails);
+    } catch (e, track) {
+      debugPrint(e.toString());
+      debugPrint(track.toString());
+    }
   }
 }

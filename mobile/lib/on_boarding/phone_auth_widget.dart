@@ -69,7 +69,7 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
         // Start Common widgets
 
         const SizedBox(
-          height: 42,
+          height: 56,
         ),
 
         Visibility(
@@ -77,6 +77,8 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
           child: const Text(
             'Verify your phone number!',
             textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
                 fontWeight: FontWeight.bold, fontSize: 24, color: Colors.black),
           ),
@@ -88,6 +90,8 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
                 ? 'Sign up with your email\nor mobile number'
                 : 'Login with your email\nor mobile number',
             textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
                 fontWeight: FontWeight.bold, fontSize: 24, color: Colors.black),
           ),
@@ -107,6 +111,8 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
               'Enter the 6 digits code sent to your\n'
               'number $_countryCode$_phoneNumber',
               textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style:
                   TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.6)),
             ),
@@ -116,6 +122,8 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
             child: Text(
               'We’ll send you a verification code',
               textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style:
                   TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.6)),
             )),
@@ -159,7 +167,7 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
         ),
 
         const SizedBox(
-          height: 24,
+          height: 32,
         ),
 
         Visibility(
@@ -180,6 +188,8 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
             child: Text(
               'Resend code',
               textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                   fontSize: 12,
                   color: _isResending
@@ -273,7 +283,7 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
           ),
         ),
         const SizedBox(
-          height: 20,
+          height: 16,
         ),
         Visibility(
           visible: widget.action == 'signup',

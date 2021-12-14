@@ -22,11 +22,8 @@ class WelcomeScreenState extends State<WelcomeScreen> {
         body: WillPopScope(
       onWillPop: onWillPop,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 48, 24.0, 0),
+        padding: const EdgeInsets.fromLTRB(24, 56, 24.0, 96),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const SizedBox(
-            height: 45,
-          ),
           const Text(
             'Welcome to',
             style: TextStyle(
@@ -47,14 +44,14 @@ class WelcomeScreenState extends State<WelcomeScreen> {
               'Keep track of air quality in locations that matter to you',
               'assets/icon/onboarding_fav.svg'),
           const SizedBox(
-            height: 22,
+            height: 24,
           ),
           welcomeSection(
               'New experiences for You',
               'Access analytics and content curated just for you',
               'assets/icon/onboarding_hash_tag.svg'),
           const SizedBox(
-            height: 22,
+            height: 24,
           ),
           welcomeSection(
               'Know your air on the go',
@@ -62,17 +59,14 @@ class WelcomeScreenState extends State<WelcomeScreen> {
                   ' excessive exposure to bad air quality ',
               'assets/icon/onboarding_profile_icon.svg'),
           const Spacer(),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 96.0),
-            child: GestureDetector(
-              onTap: () {
-                Navigator.pushAndRemoveUntil(context,
-                    MaterialPageRoute(builder: (context) {
-                  return const SignupScreen(false);
-                }), (r) => false);
-              },
-              child: nextButton('Let’s go', ColorConstants.appColorBlue),
-            ),
+          GestureDetector(
+            onTap: () {
+              Navigator.pushAndRemoveUntil(context,
+                  MaterialPageRoute(builder: (context) {
+                return const SignupScreen(false);
+              }), (r) => false);
+            },
+            child: nextButton('Let’s go', ColorConstants.appColorBlue),
           ),
         ]),
       ),
@@ -98,11 +92,14 @@ class WelcomeScreenState extends State<WelcomeScreen> {
     String svg,
   ) {
     return ListTile(
-        contentPadding: const EdgeInsets.only(left: 0.0, right: 40),
-        leading: SvgPicture.asset(
-          svg,
+        contentPadding: const EdgeInsets.only(left: 0.0, right: 20),
+        horizontalTitleGap: 16,
+        leading: SizedBox(
           height: 40,
           width: 40,
+          child: SvgPicture.asset(
+            svg,
+          ),
         ),
         title: Text(
           header,

@@ -53,8 +53,12 @@ class _HomePageState extends State<HomePage> {
               secondaryAnimation: secondaryAnimation,
             );
           },
-          child: Center(
-            child: _widgetOptions.elementAt(_selectedIndex),
+          // child: Center(
+          //   child: _widgetOptions.elementAt(_selectedIndex),
+          // ),
+          child: IndexedStack(
+            index: _selectedIndex,
+            children: _widgetOptions,
           ),
         ),
       ),
@@ -132,6 +136,9 @@ class _HomePageState extends State<HomePage> {
           onTap: _onItemTapped,
           showSelectedLabels: true,
           showUnselectedLabels: true,
+          type: BottomNavigationBarType.fixed,
+          selectedFontSize: 10,
+          unselectedFontSize: 10,
         ),
       ),
     );

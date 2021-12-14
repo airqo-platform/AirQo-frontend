@@ -29,80 +29,80 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(0.0, 8.0, 0.0, 8.0),
-      child: Container(
-          decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: const BorderRadius.all(Radius.circular(16.0)),
-              border: Border.all(color: Colors.transparent)),
-          child: Column(
-            children: [
-              const SizedBox(
-                height: 12,
-              ),
-              Container(
-                padding: const EdgeInsets.only(left: 32, right: 32),
-                child: Row(
-                  children: [
-                    if (measurement != null)
-                      analyticsAvatar(measurement!, 40, 15, 5),
-                    if (measurement == null) circularLoadingAnimation(40),
-                    const SizedBox(
-                      width: 12,
-                    ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.placeDetails.getName(),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 16),
-                          ),
-                          Text(
-                            widget.placeDetails.getLocation(),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.black.withOpacity(0.3)),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 12,
-                    ),
-                    Consumer<PlaceDetailsModel>(
-                      builder: (context, placeDetailsModel, child) {
-                        return GestureDetector(
-                            onTap: () async {
-                              updateFavPlace();
-                            },
-                            child: getHeartIcon());
-                      },
-                    )
-                  ],
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(context, MaterialPageRoute(builder: (context) {
+          return InsightsPage(widget.placeDetails);
+        }));
+      },
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(0.0, 8.0, 0.0, 8.0),
+        child: Container(
+            decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: const BorderRadius.all(Radius.circular(16.0)),
+                border: Border.all(color: Colors.transparent)),
+            child: Column(
+              children: [
+                const SizedBox(
+                  height: 12,
                 ),
-              ),
-              const SizedBox(
-                height: 12,
-              ),
-              const Divider(color: Color(0xffC4C4C4)),
-              const SizedBox(
-                height: 12,
-              ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) {
-                    return InsightsPage(widget.placeDetails);
-                  }));
-                },
-                child: Container(
+                Container(
+                  padding: const EdgeInsets.only(left: 32, right: 32),
+                  child: Row(
+                    children: [
+                      if (measurement != null)
+                        analyticsAvatar(measurement!, 40, 15, 5),
+                      if (measurement == null) circularLoadingAnimation(40),
+                      const SizedBox(
+                        width: 12,
+                      ),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.placeDetails.getName(),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                            Text(
+                              widget.placeDetails.getLocation(),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.black.withOpacity(0.3)),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 12,
+                      ),
+                      Consumer<PlaceDetailsModel>(
+                        builder: (context, placeDetailsModel, child) {
+                          return GestureDetector(
+                              onTap: () async {
+                                updateFavPlace();
+                              },
+                              child: getHeartIcon());
+                        },
+                      )
+                    ],
+                  ),
+                ),
+                const SizedBox(
+                  height: 12,
+                ),
+                const Divider(color: Color(0xffC4C4C4)),
+                const SizedBox(
+                  height: 12,
+                ),
+                Container(
                   padding: const EdgeInsets.only(left: 32, right: 32),
                   child: Row(
                     children: [
@@ -144,12 +144,12 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                     ],
                   ),
                 ),
-              ),
-              const SizedBox(
-                height: 12,
-              ),
-            ],
-          )),
+                const SizedBox(
+                  height: 12,
+                ),
+              ],
+            )),
+      ),
     );
   }
 
@@ -186,7 +186,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
 
   void getMeasurement() {
     _dbHelper.getMeasurement(widget.placeDetails.siteId).then((value) => {
-          if (value != null)
+          if (value != null && mounted)
             {
               setState(() {
                 measurement = value;

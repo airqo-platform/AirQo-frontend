@@ -112,6 +112,7 @@ class LocationService {
 
               if (!address.isNull()) {
                 measurement.site.name = address;
+                measurement.site.searchName = address;
                 measurement.site.description = address;
               }
             } catch (e) {

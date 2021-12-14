@@ -2,10 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-part 'email_signup_model.g.dart';
+part 'email_auth_model.g.dart';
 
 @JsonSerializable()
-class EmailSignupModel {
+class EmailAuthModel {
   final bool success;
   final int token;
   final String email;
@@ -14,17 +14,20 @@ class EmailSignupModel {
   @JsonKey(name: 'login_link')
   final String loginLink;
 
-  EmailSignupModel(
-      this.success, this.message, this.loginLink, this.token, this.email);
+  @JsonKey(name: 'auth_link', required: false, defaultValue: '')
+  final String authLink;
 
-  factory EmailSignupModel.fromJson(Map<String, dynamic> json) =>
-      _$EmailSignupModelFromJson(json);
+  EmailAuthModel(this.success, this.token, this.email, this.message,
+      this.loginLink, this.authLink);
 
-  Map<String, dynamic> toJson() => _$EmailSignupModelToJson(this);
+  factory EmailAuthModel.fromJson(Map<String, dynamic> json) =>
+      _$EmailAuthModelFromJson(json);
 
-  static EmailSignupModel? parseEmailSignupModel(dynamic jsonBody) {
+  Map<String, dynamic> toJson() => _$EmailAuthModelToJson(this);
+
+  static EmailAuthModel? parseEmailAuthModel(dynamic jsonBody) {
     try {
-      var emailSignupModel = EmailSignupModel.fromJson(jsonBody);
+      var emailSignupModel = EmailAuthModel.fromJson(jsonBody);
       return emailSignupModel;
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());

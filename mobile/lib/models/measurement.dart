@@ -1,3 +1,4 @@
+import 'package:app/models/historical_measurement.dart';
 import 'package:app/models/site.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -60,6 +61,11 @@ class Measurement {
       return double.parse(pm2_5.value.toStringAsFixed(2));
     }
     return double.parse(pm2_5.calibratedValue.toStringAsFixed(2));
+  }
+
+  HistoricalMeasurement toHistorical() {
+    return HistoricalMeasurement(time, pm2_5, pm10, altitude, speed,
+        temperature, humidity, site.id, deviceNumber);
   }
 
   Map<String, dynamic> toJson() => _$MeasurementToJson(this);

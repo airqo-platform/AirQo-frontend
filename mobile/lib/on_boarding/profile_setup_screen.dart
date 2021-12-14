@@ -4,6 +4,7 @@ import 'package:app/screens/home_page.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
+import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -217,9 +218,11 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
           ..firstName = UserDetails.getNames(_fullName).first
           ..lastName = UserDetails.getNames(_fullName).last;
 
-        await showSnackBar(context, 'Updating your profile');
+        var dialogContext = context;
+        loadingScreen(dialogContext);
 
         await _customAuth.updateProfile(userDetails).then((value) => {
+              Navigator.pop(dialogContext),
               Navigator.pushAndRemoveUntil(context,
                   MaterialPageRoute(builder: (context) {
                 return NotificationsSetupScreen(widget.enableBackButton);

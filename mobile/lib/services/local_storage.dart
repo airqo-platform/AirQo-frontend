@@ -330,6 +330,26 @@ class DBHelper {
     }
   }
 
+  Future<Measurement?> getSiteLatestMeasurements(String id) async {
+    try {
+      final db = await database;
+
+      var res = await db.query(Measurement.latestMeasurementsDb(),
+          where: '${Site.dbId()} = ?', whereArgs: [id]);
+
+      if (res.isEmpty) {
+        return null;
+      }
+      var measurements = List.generate(res.length, (i) {
+        return Measurement.fromJson(Measurement.mapFromDb(res[i]));
+      });
+      return measurements.first;
+    } catch (e) {
+      debugPrint(e.toString());
+      return null;
+    }
+  }
+
   Future<List<Site>> getSites() async {
     try {
       final db = await database;

@@ -95,17 +95,16 @@ class Predict {
   static List<Predict> parsePredictions(dynamic jsonBody) {
     var predictions = <Predict>[];
     final formatter = DateFormat('EEE, d MMM yyyy HH:mm:ss');
-    var offSet = DateTime.now().timeZoneOffset.inHours;
+    var offSet = DateTime.now().timeZoneOffset;
     for (var element in jsonBody) {
       try {
         var predict = Predict.fromJson(element);
         var time = formatter.parse(predict.time);
         time = time.subtract(const Duration(hours: 3));
-        time = time.add(Duration(hours: offSet));
         if (offSet.isNegative) {
-          time = time.subtract(Duration(hours: offSet));
+          time = time.subtract(Duration(hours: offSet.inHours));
         } else {
-          time = time.add(Duration(hours: offSet));
+          time = time.add(Duration(hours: offSet.inHours));
         }
         predict.time = DateFormat('yyyy-MM-dd HH:mm:ss').format(time);
         predictions.add(predict);

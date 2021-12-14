@@ -155,7 +155,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
     });
 
     var emailVerificationResponse = await _airqoApiClient!
-        .requestEmailVerificationCode(widget.userDetails.emailAddress);
+        .requestEmailVerificationCode(widget.userDetails.emailAddress, true);
 
     if (emailVerificationResponse == null) {
       await showSnackBar(context, 'Email verification failed');
@@ -164,7 +164,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
     setState(() {
       _isResending = false;
       _emailToken = emailVerificationResponse.token;
-      _emailVerificationLink = emailVerificationResponse.loginLink;
+      _emailVerificationLink = emailVerificationResponse.authLink;
     });
   }
 
@@ -243,7 +243,11 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
     });
 
     var emailVerificationResponse = await _airqoApiClient!
-        .requestEmailVerificationCode(widget.userDetails.emailAddress);
+        .requestEmailVerificationCode(widget.userDetails.emailAddress, true);
+
+    if(!mounted){
+      return;
+    }
 
     if (emailVerificationResponse == null) {
       await showSnackBar(context, 'email verification failed');
@@ -256,7 +260,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
 
     setState(() {
       _emailToken = emailVerificationResponse.token;
-      _emailVerificationLink = emailVerificationResponse.loginLink;
+      _emailVerificationLink = emailVerificationResponse.authLink;
       _isVerifying = false;
       _showResendCode = false;
     });

@@ -56,7 +56,6 @@ class LocalNotifications {
     var androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'push_messages: 0',
       'push_messages: push_messages',
-      'push_messages: AirQo',
       styleInformation: bigTextStyleInformation,
       importance: Importance.max,
       priority: Priority.high,
@@ -87,7 +86,7 @@ class LocalNotifications {
       summaryText: 'Big Picture Notification Summary Text',
     );
     var androidDetails = AndroidNotificationDetails(
-        'channel_id', 'Channel Name', 'Channel Description',
+        'channel_id', 'Channel Name',
         styleInformation: bigPictureStyleInformation);
     var platformDetails =
         NotificationDetails(android: androidDetails, iOS: null);
@@ -107,7 +106,7 @@ class LocalNotifications {
       htmlFormatSummaryText: true,
     );
     const androidNotificationDetails = AndroidNotificationDetails(
-        'channel_id', 'Channel Name', 'Channel Description',
+        'channel_id', 'Channel Name',
         styleInformation: bigTextStyleInformation);
     const notificationDetails =
         NotificationDetails(android: androidNotificationDetails, iOS: null);
@@ -119,7 +118,7 @@ class LocalNotifications {
   Future<void> showInsistentNotification() async {
     const insistentFlag = 4;
     final androidPlatformChannelSpecifics = AndroidNotificationDetails(
-        'channel_id', 'Channel Name', 'Channel Description',
+        'channel_id', 'Channel Name',
         importance: Importance.max,
         priority: Priority.high,
         ticker: 'ticker',
@@ -135,7 +134,7 @@ class LocalNotifications {
     const androidNotificationDetails = AndroidNotificationDetails(
         '${NotificationConfig.persistentNotificationId}',
         'Channel Name',
-        'Channel Description',
+
         importance: Importance.max,
         icon: 'launcher_icon',
         priority: Priority.high,
@@ -153,7 +152,7 @@ class LocalNotifications {
 
   Future<void> showPeriodicNotification() async {
     const androidNotificationDetails = AndroidNotificationDetails(
-        'channel_id', 'Channel Name', 'Channel Description');
+        'channel_id', 'Channel Name');
     var notificationDetails = const NotificationDetails(
         android: androidNotificationDetails, iOS: null);
     await flutterLocalNotificationsPlugin.periodicallyShow(
@@ -170,7 +169,7 @@ class LocalNotifications {
     for (var i = 0; i <= maxProgress; i++) {
       await Future<void>.delayed(const Duration(seconds: 1), () async {
         final androidNotificationDetails = AndroidNotificationDetails(
-            'channel_id', 'Channel Name', 'Channel Description',
+            'channel_id', 'Channel Name',
             channelShowBadge: false,
             importance: Importance.max,
             priority: Priority.high,
@@ -204,7 +203,6 @@ class LocalNotifications {
     const androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'push_messages: 0',
       'push_messages: push_messages',
-      'push_messages: AirQo',
       styleInformation: bigTextStyleInformation,
       importance: Importance.max,
       priority: Priority.high,
@@ -224,7 +222,6 @@ class LocalNotifications {
     var androidDetails = const AndroidNotificationDetails(
       'channel_id',
       'Channel Name',
-      'Channel Description',
       icon: 'launcher_icon',
       largeIcon: DrawableResourceAndroidBitmap('launcher_icon'),
     );
@@ -242,7 +239,7 @@ class LocalNotifications {
 
   Future<void> showSimpleNotification(NotificationModel notification) async {
     var androidDetails = const AndroidNotificationDetails(
-        'id', 'channel ', 'description',
+        'id', 'channel ',
         priority: Priority.high, importance: Importance.max);
     var iOSDetails = const IOSNotificationDetails();
     var platformDetails =
@@ -266,7 +263,6 @@ class LocalNotifications {
     const androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'smart_messages: 0',
       'smart_messages: smart_messages',
-      'smart_messages: AirQo',
       styleInformation: bigTextStyleInformation,
       importance: Importance.max,
       priority: Priority.high,

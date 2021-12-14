@@ -8,11 +8,11 @@ Widget circularLoadingAnimation(double size) {
       height: size,
       width: size,
       child: Shimmer.fromColors(
-        baseColor: ColorConstants.appColorBlue.withOpacity(0.1),
-        highlightColor: ColorConstants.appColorBlue.withOpacity(0.2),
+        baseColor: ColorConstants.appLoadingColor,
+        highlightColor: Colors.white,
         child: Container(
           decoration: BoxDecoration(
-            color: ColorConstants.appColorBlue,
+            color: ColorConstants.appLoadingColor,
             shape: BoxShape.circle,
           ),
         ),
@@ -23,15 +23,28 @@ Widget containerLoadingAnimation(double height, double radius) {
   return SizedBox(
     height: height,
     child: Shimmer.fromColors(
-      baseColor: ColorConstants.appColorBlue.withOpacity(0.1),
-      highlightColor: ColorConstants.appColorBlue.withOpacity(0.2),
+      baseColor: ColorConstants.appLoadingColor,
+      highlightColor: Colors.white,
       child: Container(
           constraints: BoxConstraints(minHeight: height, maxHeight: height),
           decoration: BoxDecoration(
-              color: ColorConstants.appColorBlue,
+              color: ColorConstants.appLoadingColor,
               borderRadius: BorderRadius.all(Radius.circular(radius)))),
     ),
   );
+}
+
+void loadingScreen(BuildContext _context) async {
+  await showDialog(
+      context: _context,
+      barrierDismissible: false,
+      builder: (ctx) => Container(
+          decoration: BoxDecoration(
+              color: ColorConstants.appColorBlack.withOpacity(0.2)),
+          child: Center(
+              child: CircularProgressIndicator(
+            color: ColorConstants.appColorBlue,
+          ))));
 }
 
 Widget sizedContainerLoadingAnimation(
@@ -40,8 +53,8 @@ Widget sizedContainerLoadingAnimation(
     height: height,
     width: width,
     child: Shimmer.fromColors(
-      baseColor: ColorConstants.appColorBlue.withOpacity(0.1),
-      highlightColor: ColorConstants.appColorBlue.withOpacity(0.2),
+      baseColor: ColorConstants.appLoadingColor,
+      highlightColor: Colors.white,
       child: Container(
           constraints: BoxConstraints(
               minWidth: width,
@@ -49,7 +62,7 @@ Widget sizedContainerLoadingAnimation(
               maxWidth: width,
               maxHeight: height),
           decoration: BoxDecoration(
-              color: ColorConstants.appColorBlue,
+              color: ColorConstants.appLoadingColor,
               borderRadius: BorderRadius.all(Radius.circular(radius)))),
     ),
   );
@@ -60,8 +73,8 @@ Widget textLoadingAnimation(double height, double width) {
     height: height,
     width: width,
     child: Shimmer.fromColors(
-      baseColor: ColorConstants.appColorBlue.withOpacity(0.1),
-      highlightColor: ColorConstants.appColorBlue.withOpacity(0.2),
+      baseColor: ColorConstants.appLoadingColor,
+      highlightColor: Colors.white,
       child: Container(
           constraints: BoxConstraints(
               minWidth: width,
@@ -69,8 +82,52 @@ Widget textLoadingAnimation(double height, double width) {
               maxWidth: width,
               maxHeight: height),
           decoration: BoxDecoration(
-              color: ColorConstants.appColorBlue,
+              color: ColorConstants.appLoadingColor,
               borderRadius: const BorderRadius.all(Radius.circular(2)))),
     ),
   );
+}
+
+class ExampleMainWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final overlay = LoadingOverlay.of(context);
+    return Scaffold(
+        body: Center(
+            child: TextButton(
+                child: const Text('Press me!'),
+                onPressed: () async {
+                  await overlay
+                      .during(Future.delayed(const Duration(seconds: 2)));
+                })));
+  }
+}
+
+class LoadingOverlay {
+  BuildContext _context;
+
+  factory LoadingOverlay.of(BuildContext context) {
+    return LoadingOverlay._create(context);
+  }
+
+  LoadingOverlay._create(this._context);
+
+  Future<T> during<T>(Future<T> future) {
+    show();
+    return future.whenComplete(() => hide());
+  }
+
+  void hide() {
+    Navigator.of(_context).pop();
+  }
+
+  void show() {
+    showDialog(
+        context: _context,
+        barrierDismissible: false,
+        builder: (ctx) => Container(
+            decoration:
+                const BoxDecoration(color: Color.fromRGBO(0, 0, 0, 0.5)),
+            child: const Center(child: CircularProgressIndicator())));
+  }
 }

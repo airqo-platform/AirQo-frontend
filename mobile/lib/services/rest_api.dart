@@ -5,7 +5,7 @@ import 'dart:io';
 
 import 'package:app/constants/api.dart';
 import 'package:app/constants/app_constants.dart';
-import 'package:app/models/email_signup_model.dart';
+import 'package:app/models/email_auth_model.dart';
 import 'package:app/models/feedback.dart';
 import 'package:app/models/historical_measurement.dart';
 import 'package:app/models/json_parsers.dart';
@@ -196,13 +196,29 @@ class AirqoApiClient {
           ..putIfAbsent('startTime',
               () => '${DateFormat('yyyy-MM-dd').format(startTime)}T00:00:00Z');
       } else {
-        var startTime = DateFormat('yyyy-MM-dd').format(DateTime.now());
+        var offSet = DateTime.now().timeZoneOffset;
+        var startTime = '';
+        var time = DateTime.parse(
+            DateFormat('yyyy-MM-dd 00:00:00').format(DateTime.now()));
+
+        if (offSet.isNegative) {
+          time =
+              time.add(Duration(hours: DateTime.now().timeZoneOffset.inHours));
+          startTime =
+              '${DateFormat('yyyy-MM-dd').format(time)}T${time.hour}:00:00Z';
+        } else {
+          time = time
+              .subtract(Duration(hours: DateTime.now().timeZoneOffset.inHours));
+          startTime =
+              '${DateFormat('yyyy-MM-dd').format(time)}T${time.hour}:00:00Z';
+        }
+
         var endTime = DateFormat('yyyy-MM-dd')
             .format(DateTime.now().add(const Duration(hours: 24)));
 
         queryParams
           ..putIfAbsent('frequency', () => 'hourly')
-          ..putIfAbsent('startTime', () => '${startTime}T00:00:00Z')
+          ..putIfAbsent('startTime', () => startTime.replaceFirst(' ', 'T'))
           ..putIfAbsent('endTime', () => '${endTime}T00:00:00Z');
       }
 
@@ -215,6 +231,8 @@ class AirqoApiClient {
         return <HistoricalMeasurement>[];
       }
     } on Error catch (exception, stackTrace) {
+      debugPrint(exception.toString());
+      debugPrint(stackTrace.toString());
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -292,21 +310,23 @@ class AirqoApiClient {
     }
   }
 
-  Future<EmailSignupModel?> requestEmailVerificationCode(
-      String emailAddress) async {
+  Future<EmailAuthModel?> requestEmailVerificationCode(
+      String emailAddress, bool reAuthenticate) async {
     try {
       Map<String, String> headers = HashMap()
         ..putIfAbsent('Content-Type', () => 'application/json');
 
       var body = {'email': emailAddress};
 
-      final response = await http.post(
-          Uri.parse(_airQoUrls.requestEmailVerification),
-          headers: headers,
-          body: jsonEncode(body));
+      var uri = reAuthenticate
+          ? _airQoUrls.requestEmailReAuthentication
+          : _airQoUrls.requestEmailVerification;
+
+      final response = await http.post(Uri.parse(uri),
+          headers: headers, body: jsonEncode(body));
 
       return compute(
-          EmailSignupModel.parseEmailSignupModel, json.decode(response.body));
+          EmailAuthModel.parseEmailAuthModel, json.decode(response.body));
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
       debugPrint(stackTrace.toString());
@@ -351,6 +371,7 @@ class AirqoApiClient {
     return false;
   }
 
+  @Deprecated('Functionality has been transferred to the backend')
   Future<void> sendWelcomeMessage(UserDetails userDetails) async {
     try {
       if (!userDetails.emailAddress.isValidEmail()) {

@@ -18,6 +18,8 @@ class AirQoUrls {
 
   String get placeSearchDetails => '${_searchBaseUrl}details/json';
 
+  String get requestEmailReAuthentication => '${_stageBaseUrl}users/emailAuth';
+
   String get requestEmailVerification => '${_baseUrl}users/emailLogin';
 
   String get searchSuggestions => '${_searchBaseUrl}autocomplete/json';
@@ -28,5 +30,5 @@ class AirQoUrls {
 
   String get stories => storiesLink;
 
-  String get welcomeMessage => '${_stageBaseUrl}notifications/welcomeMessage';
+  String get welcomeMessage => '${_baseUrl}notifications/welcomeMessage';
 }

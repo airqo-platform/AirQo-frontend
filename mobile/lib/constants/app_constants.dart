@@ -12,14 +12,14 @@ class AppConfig {
 
   static const String imageUploadApiKey = imageApiKey;
 
-  static final String imageUploadPreset = uploadPreset;
+  static const String imageUploadPreset = uploadPreset;
 
-  static final String _iOSApiKey = iosKey;
+  static const String _iOSApiKey = iosKey;
 
   static final String googleApiKey =
       Platform.isAndroid ? _androidApiKey : _iOSApiKey;
 
-  static final String airQoApiKey = airqoApiKey;
+  static const String airQoApiKey = airqoApiKey;
 
   static String get dbName => databaseName;
 
@@ -71,13 +71,13 @@ class ColorConstants {
 
   static Color get appColorPaleBlue => const Color(0xffCEDDFF);
 
+  static Color get appLoadingColor => const Color(0xffEBEAEF);
+
   static Color get appPicColor => const Color(0xffFF79C1);
 
   static Color get appTipColor => const Color(0xffD5FFD4);
 
   static Color get darkGreyColor => const Color(0xffADAFB6);
-
-  static Color get facebookColor => const Color(0xff4267B2);
 
   static Color get green => const Color(0xff3AFF38);
 
@@ -85,10 +85,9 @@ class ColorConstants {
 
   static Color get greyTextColor => const Color(0xffADAFB6);
 
-  static Color get inactiveColor => appColor.withOpacity(0.5);
+  static Color get inactiveColor => appColorBlack.withOpacity(0.4);
 
   // pm colors
-  static Color get linkedInColor => const Color(0xff2867B2);
 
   static Color get maroon => const Color(0xffA51F3F);
 
@@ -98,13 +97,9 @@ class ColorConstants {
 
   static Color get red => const Color(0xffFF4034);
 
-  static Color get snackBarBgColor => appColor.withOpacity(0.8);
-
-  static Color get twitterColor => const Color(0xff1DA1F2);
+  static Color get snackBarBgColor => appColorBlack.withOpacity(0.8);
 
   static Color get yellow => const Color(0xffFFFF35);
-
-  static Color get youtubeColor => const Color(0xffFF0000);
 }
 
 class ErrorMessages {

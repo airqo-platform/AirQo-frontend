@@ -26,6 +26,9 @@ class Site {
   @JsonKey(required: true)
   String name;
 
+  @JsonKey(required: false, name: 'search_name', defaultValue: '')
+  String searchName;
+
   @JsonKey(required: false, defaultValue: '')
   String description;
 
@@ -36,7 +39,7 @@ class Site {
   double distance;
 
   Site(this.id, this.latitude, this.longitude, this.district, this.country,
-      this.name, this.description, this.region, this.distance);
+      this.name, this.searchName, this.description, this.region, this.distance);
 
   factory Site.fromJson(Map<String, dynamic> json) => _$SiteFromJson(json);
 
@@ -45,13 +48,18 @@ class Site {
   }
 
   String getName() {
-    if (name.isNull()) {
-      if (description.isNull()) {
-        return getLocation();
-      }
+    if (!searchName.isNull()) {
+      return searchName.toTitleCase();
+    }
+
+    if (!name.isNull()) {
+      return name.toTitleCase();
+    }
+
+    if (!description.isNull()) {
       return description.toTitleCase();
     }
-    return name.toTitleCase();
+    return getLocation();
   }
 
   Map<String, dynamic> toJson() => _$SiteToJson(this);
@@ -120,7 +128,7 @@ class Site {
   static String sitesDbName() => 'sites';
 
   static Map<String, dynamic> toDbMap(Site site) => {
-        dbSiteName(): site.name,
+        dbSiteName(): site.getName(),
         dbDescription(): site.description,
         dbRegion(): site.region,
         dbId(): site.id,

@@ -475,6 +475,7 @@ class CloudStore {
     }
   }
 
+  @Deprecated('Functionality has been transferred to the backend')
   Future<void> sendWelcomeNotification(String id) async {
     var hasConnection = await isConnected();
     if (!hasConnection) {
@@ -609,6 +610,12 @@ class CloudStore {
           .doc(id)
           .update(fields);
     } catch (exception, stackTrace) {
+      if (exception.toString().contains('not-found')) {
+        await _firebaseFirestore
+            .collection(CloudStorage.usersCollection)
+            .doc(id)
+            .set(fields);
+      }
       debugPrint(exception.toString());
       debugPrint(stackTrace.toString());
       await Sentry.captureException(
@@ -723,10 +730,7 @@ class CustomAuth {
         return true;
       }
       return false;
-    } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
-    }
+    } catch (_) {}
 
     return false;
   }
@@ -885,9 +889,12 @@ class CustomAuth {
     }
 
     try {
-      var userCredential =
-          await _firebaseAuth.signInWithCredential(authCredential);
-      return userCredential.user != null;
+      var userCredentials = await _firebaseAuth.currentUser!
+          .reauthenticateWithCredential(authCredential);
+
+      // var userCredential =
+      //     await _firebaseAuth.signInWithCredential(authCredential);
+      return userCredentials.user != null;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'invalid-verification-code') {
         await showSnackBar(context, 'Invalid Code');
@@ -915,9 +922,8 @@ class CustomAuth {
     if (!hasConnection) {
       return false;
     }
-
-    var userCredential = await FirebaseAuth.instance
-        .signInWithEmailLink(emailLink: link, email: emailAddress);
+    var userCredential = await _firebaseAuth.signInWithEmailLink(
+        emailLink: link, email: emailAddress);
 
     if (userCredential.user == null) {
       return false;
@@ -928,8 +934,6 @@ class CustomAuth {
       if (user == null) {
         return false;
       }
-      await createProfile();
-      await _cloudStore.sendWelcomeNotification(user.uid);
       return true;
     } catch (exception, stackTrace) {
       debugPrint(exception.toString());
@@ -942,30 +946,13 @@ class CustomAuth {
     return false;
   }
 
+  // TODO add error handling
   Future<void> signUpWithPhoneNumber(AuthCredential authCredential) async {
     var hasConnection = await isConnected();
     if (!hasConnection) {
       return;
     }
-
-    var userCredential =
-        await _firebaseAuth.signInWithCredential(authCredential);
-    if (userCredential.user != null) {
-      var user = userCredential.user;
-      try {
-        if (user != null) {
-          await createProfile();
-          await _cloudStore.sendWelcomeNotification(user.uid);
-        }
-      } catch (exception, stackTrace) {
-        debugPrint(exception.toString());
-        debugPrint(stackTrace.toString());
-        await Sentry.captureException(
-          exception,
-          stackTrace: stackTrace,
-        );
-      }
-    }
+    await _firebaseAuth.signInWithCredential(authCredential);
   }
 
   Future<void> updateCredentials(String? phone, String? email) async {
@@ -1027,6 +1014,12 @@ class CustomAuth {
 
   Future<void> updateLocalStorage(User user, BuildContext context) async {
     try {
+      var hasConnection = await isConnected();
+
+      if (!hasConnection) {
+        return;
+      }
+
       var device = await getDeviceToken();
       if (device != null) {
         await _cloudStore.updateProfileFields(user.uid, {'device': device});
@@ -1072,7 +1065,6 @@ class CustomAuth {
           FirebaseAuth.instance.currentUser!.phoneNumber, null);
       return true;
     } on FirebaseAuthException catch (e) {
-      print(e.toString());
       if (e.code == 'credential-already-in-use') {
         await showSnackBar(context, 'Phone number already taken');
         return false;
