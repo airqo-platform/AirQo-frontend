@@ -10,12 +10,14 @@ import * as d3time from "d3-time";
 import * as d3timeFormat from "d3-time-format";
 import * as d3transition from "d3-transition";
 import * as d3zoom from "d3-zoom";
+import * as d3format from "d3-format";
 
 export default {
   ...d3array,
   ...d3axis,
   ...d3brush,
   ...d3collection,
+  ...d3format,
   ...d3selection,
   ...d3scale,
   ...d3scaleChromatic,
