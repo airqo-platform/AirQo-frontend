@@ -25,9 +25,9 @@ const BrushChart = ({
   xFunc,
   yFunc,
   symbolFunc,
+  tooltipRef,
 }) => {
   const ref = useRef();
-  // console.log("test data", data);
 
   useEffect(() => {
     const dataYrange = [0, d3.max(data, yFunc)];
@@ -37,7 +37,6 @@ const BrushChart = ({
       .scaleTime()
       .range([0, width])
       .domain(selection || dataXrange);
-    // .domain(dataXrange);
     const y = d3.scaleLinear().range([height, 0]).domain(dataYrange);
 
     const xAxis = d3.axisBottom().scale(x).tickSize(-height);
@@ -45,12 +44,19 @@ const BrushChart = ({
 
     const focus = d3
       .select(ref.current)
-      // .append("g")
       .attr("class", "focus")
       .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
     // Clear chart
     focus.html("");
+
+    const tooltip = d3
+      .select(tooltipRef.current)
+      .style("position", "absolute")
+      .style("background-color", "#D3D3D3")
+      .style("padding", 6)
+      .style("display", "none");
+    const tooltipLine = focus.append("line");
 
     focus.append("g").attr("class", "y axis").call(yAxis);
 
@@ -81,6 +87,57 @@ const BrushChart = ({
         .attr("id", id)
         .attr("d", line(d.values));
     });
+
+    const tipBox = focus
+      .append("rect")
+      .attr("width", width)
+      .attr("height", height)
+      .attr("opacity", 0)
+      .on("mousemove", drawTooltip)
+      .on("mouseout", removeTooltip);
+
+    function removeTooltip() {
+      if (tooltip) tooltip.style("display", "none");
+      if (tooltipLine) tooltipLine.attr("stroke", "none");
+    }
+
+    function drawTooltip(event) {
+      const date = x.invert(d3.pointer(event)[0]);
+      const bisect = d3.bisector(function (d) {
+        return new Date(d.time);
+      }).left;
+
+      const sortingObj = [];
+      dataNest.map((d) => {
+        const idx = bisect(d.values, date);
+        d.values[idx] && sortingObj.push(d.values[idx]);
+      });
+
+      const lineDate = new Date(sortingObj[0].time);
+
+      const formatTime = d3.timeFormat("%d-%m-%Y %I:%M%p");
+
+      tooltipLine
+        .attr("stroke", "black")
+        .attr("x1", x(lineDate))
+        .attr("x2", x(lineDate))
+        .attr("y1", 0)
+        .attr("y2", height);
+
+      let h = `<div style="font-size: 0.9rem;margin-bottom: 10px;display: flex">${formatTime(
+        lineDate
+      )}</div>`;
+      sortingObj.map((d) => {
+        h += `<div style="font-size: 0.8rem"><span style="color: ${color(
+          d.name
+        )}">${d.name}</span> - ${d.value}</div>`;
+      });
+      tooltip
+        .html(h)
+        .style("display", "block")
+        .style("left", `${event.pageX + 20}`)
+        .style("top", event.pageY - 20);
+    }
   }, [data, selection]);
 
   return <g ref={ref} />;
@@ -88,6 +145,7 @@ const BrushChart = ({
 
 const BrushedTimeSeries = ({ data, xFunc, yFunc, symbolFunc, yLabel }) => {
   const ref = useRef();
+  const tooltipRef = useRef();
   const margin = { top: 20, right: 20, bottom: 100, left: 35 };
   const winWidth = 650;
   const winHeight = 370;
@@ -163,17 +221,12 @@ const BrushedTimeSeries = ({ data, xFunc, yFunc, symbolFunc, yLabel }) => {
       ])
       // .on("brush", brushed(x2))
       .on("end", ({ selection }) => {
-        console.log("selection end", selection);
-        console.log("selection bool", !!selection);
         if (!selection || selection.includes(NaN)) {
           setSelection(dataXrange);
           return;
         }
         setSelection(selection.map(x2.invert));
       });
-    console.log("s", selection);
-    console.log("range x", dataXrange);
-    console.log("range x in verted", dataXrange.map(x2));
     if (previousSelection === selection) {
       const brushg = context
         .append("g")
@@ -197,26 +250,28 @@ const BrushedTimeSeries = ({ data, xFunc, yFunc, symbolFunc, yLabel }) => {
   }, [data, selection, previousSelection]);
 
   const brushed = (s) => ({ selection }) => {
-    console.log("ended");
     if (selection) {
       const indexSelection = selection.map(s.invert);
       setSelection(indexSelection);
-      console.log("selection", indexSelection);
-      // svg.property("value", selection.map(x.invert, x).map(d3.utcDay.round));
-      // svg.dispatch("input");
     }
   };
 
   function brushended({ selection }) {
-    console.log(selection);
     if (!selection) {
       // gb.call(brush.move, defaultSelection);
     }
   }
 
   return (
-    // <div className="brushed-TS" style={{ border: "1px solid red" }}>
-    <div className="brushed-TS" style={{ border: "1px solid red" }}>
+    <div className="brushed-TS" style={{ position: "relative" }}>
+      <div
+        ref={tooltipRef}
+        style={{
+          position: "absolute",
+          backgroundColor: "lightgray",
+          padding: "5px",
+        }}
+      />
       <svg viewBox={`0 0 ${winWidth} ${winHeight}`} ref={ref}>
         <BrushChart
           data={data}
@@ -227,6 +282,7 @@ const BrushedTimeSeries = ({ data, xFunc, yFunc, symbolFunc, yLabel }) => {
           xFunc={xFunc}
           yFunc={yFunc}
           symbolFunc={symbolFunc}
+          tooltipRef={tooltipRef}
         />
       </svg>
     </div>
