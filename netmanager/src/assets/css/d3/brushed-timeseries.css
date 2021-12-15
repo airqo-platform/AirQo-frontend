@@ -16,6 +16,7 @@
 
 .brushed-TS {
 	padding: 5px;
+	position: relative;
 }
 
 .brushed-TS .metric-chart rect.plot-background{
@@ -81,13 +82,14 @@
 }
 /* brush handles  */
 .brushed-TS .metric-chart .resize .handle {
-	fill: #555;
+	/*fill: #555;*/
 }
 
 .brushed-TS .metric-chart .resize .handle-mini {
 	fill: white;
     stroke-width: 1px;
-    stroke: #555;
+    /*stroke: #555;*/
+    stroke: #eaeaea;
 }
 
 .brushed-TS .metric-chart .scale_button {
@@ -105,3 +107,4 @@
 .brushed-TS .metric-chart text#displayDates  {
 	font-weight: bold;
 }
+
