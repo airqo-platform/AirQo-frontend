@@ -113,7 +113,7 @@ const BrushChart = ({
         d.values[idx] && sortingObj.push(d.values[idx]);
       });
 
-      const lineDate = new Date(sortingObj[0].time);
+      const lineDate = sortingObj.length > 0 && new Date(sortingObj[0].time);
 
       const formatTime = d3.timeFormat("%d-%m-%Y %I:%M%p");
 
