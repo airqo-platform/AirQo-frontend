@@ -247,7 +247,7 @@ const BrushedTimeSeries = ({ data, xFunc, yFunc, symbolFunc, yLabel }) => {
       .attr("dy", "1em")
       .attr("transform", "rotate(-90)")
       .style("text-anchor", "middle");
-  }, [data, selection, previousSelection]);
+  }, [data, yLabel, selection, previousSelection]);
 
   const brushed = (s) => ({ selection }) => {
     if (selection) {

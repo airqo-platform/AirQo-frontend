@@ -23,6 +23,7 @@ import ErrorBoundary from "views/ErrorBoundary/ErrorBoundary";
 import AirQloudDropDown from "../../containers/AirQloudDropDown";
 import { useCurrentAirQloudData } from "redux/AirQloud/selectors";
 import { flattenSiteOptions, siteOptionsToObject } from "utils/sites";
+import D3CustomisableChart from "../../components/d3/CustomisableChart";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -198,12 +199,14 @@ const Dashboard = () => {
           {userDefaultGraphs &&
             userDefaultGraphs.map((filter, key) => {
               return (
-                <CustomisableChart
-                  className={clsx(classes.customChartCard)}
-                  defaultFilter={filter}
-                  idSuffix={`custom-${key + 1}`}
-                  key={key}
-                />
+                <Grid item lg={6} md={6} sm={12} xl={6} xs={12} key={key}>
+                  <D3CustomisableChart
+                    className={clsx(classes.customChartCard)}
+                    defaultFilter={filter}
+                    idSuffix={`custom-${key + 1}`}
+                    key={key}
+                  />
+                </Grid>
               );
             })}
 
