@@ -291,6 +291,7 @@ const CustomisableChart = (props) => {
     { value: "hourly", label: "Hourly" },
     { value: "daily", label: "Daily" },
     { value: "monthly", label: "Monthly" },
+    { value: "diurnal", label: "Diurnal" },
   ];
 
   const [selectedFrequency, setSelectedFrequency] = useState(
