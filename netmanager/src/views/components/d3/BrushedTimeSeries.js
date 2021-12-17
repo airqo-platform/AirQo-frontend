@@ -75,6 +75,8 @@ const BrushChart = ({
 
     const color = d3.scaleOrdinal().range(d3.schemeCategory10);
 
+    const legendSpace = width / dataNest.length;
+
     dataNest.forEach((d, i) => {
       const id = `tag-${d.key
         .replace(/\s+/g, "")
@@ -86,6 +88,34 @@ const BrushChart = ({
         .style("stroke", () => (d.color = color(d.key)))
         .attr("id", id)
         .attr("d", line(d.values));
+
+      // Add the Legend
+      focus
+        .append("text")
+        .attr("x", legendSpace / 2 + i * legendSpace) // space legend
+        .attr("y", -margin.top / 2)
+        .attr("class", "legend") // style the legend
+        .style("fill", () => {
+          // mark path as active
+          d.active = true;
+          // Add the colours dynamically
+          return (d.color = color(d.key));
+        })
+        .style("cursor", "pointer")
+        .on("click", function () {
+          // Determine if current line is visible
+          const active = !!d.active;
+          const newOpacity = active ? 0 : 1;
+
+          d3.select(`#${id}`)
+            .transition()
+            .duration(100)
+            .style("opacity", newOpacity);
+
+          // Update whether or not the elements are active
+          d.active = !active;
+        })
+        .text(d.key);
     });
 
     const tipBox = focus

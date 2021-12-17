@@ -108,3 +108,9 @@
 	font-weight: bold;
 }
 
+.legend {
+    font-size: 10px;
+    font-weight: bold;
+    text-anchor: middle;
+}
+
