@@ -1,3 +1,4 @@
+import 'package:app/models/measurement_value.dart';
 import 'package:flutter/foundation.dart';
 
 import 'measurement.dart';
@@ -8,6 +9,13 @@ bool boolFromJson(dynamic json) {
 
 String boolToJson(bool boolValue) {
   return boolValue ? 'true' : 'false';
+}
+
+MeasurementValue measurementValueFromJson(dynamic json) {
+  if (json == null) {
+    return MeasurementValue(value: -0.1, calibratedValue: -0.1);
+  }
+  return MeasurementValue.fromJson(json);
 }
 
 Measurement parseMeasurement(dynamic jsonBody) {

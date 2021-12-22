@@ -2,6 +2,7 @@ import 'package:app/models/historical_measurement.dart';
 import 'package:app/models/site.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import 'json_parsers.dart';
 import 'measurement_value.dart';
 
 part 'measurement.g.dart';
@@ -17,16 +18,22 @@ class Measurement {
   @JsonKey(required: true, name: 'average_pm10')
   final MeasurementValue pm10;
 
-  @JsonKey(required: false)
+  @JsonKey(required: false, fromJson: measurementValueFromJson)
   final MeasurementValue altitude;
 
-  @JsonKey(required: false)
+  @JsonKey(required: false, fromJson: measurementValueFromJson)
   final MeasurementValue speed;
 
-  @JsonKey(required: false, name: 'externalTemperature')
+  @JsonKey(
+      required: false,
+      name: 'externalTemperature',
+      fromJson: measurementValueFromJson)
   final MeasurementValue temperature;
 
-  @JsonKey(required: false, name: 'externalHumidity')
+  @JsonKey(
+      required: false,
+      name: 'externalHumidity',
+      fromJson: measurementValueFromJson)
   final MeasurementValue humidity;
 
   @JsonKey(required: true, name: 'siteDetails')

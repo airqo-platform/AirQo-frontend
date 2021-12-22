@@ -91,6 +91,9 @@ class LocationService {
       double distanceInMeters;
 
       var location = await getLocation();
+      if (location == null) {
+        return null;
+      }
       if (location.longitude != null && location.latitude != null) {
         var address = await getAddress(location.latitude!, location.longitude!);
         Measurement? nearestMeasurement;
@@ -145,7 +148,7 @@ class LocationService {
   //   return localAddresses;
   // }
 
-  Future<locate_api.LocationData> getLocation() async {
+  Future<locate_api.LocationData?> getLocation() async {
     bool _serviceEnabled;
     locate_api.PermissionStatus _permissionGranted;
 
@@ -153,7 +156,7 @@ class LocationService {
     if (!_serviceEnabled) {
       _serviceEnabled = await _location.requestService();
       if (!_serviceEnabled) {
-        throw Exception('Please enable location');
+        return null;
       }
     }
 
@@ -161,8 +164,7 @@ class LocationService {
     if (_permissionGranted == locate_api.PermissionStatus.denied) {
       _permissionGranted = await _location.requestPermission();
       if (_permissionGranted != locate_api.PermissionStatus.granted) {
-        throw Exception('Please enable'
-            ' permission to access your location');
+        return null;
       }
     }
 
@@ -174,87 +176,6 @@ class LocationService {
 
     var _locationData = await _location.getLocation();
     return _locationData;
-  }
-
-  Future<Measurement?> getLocationMeasurement() async {
-    try {
-      Measurement? nearestMeasurement;
-      var nearestMeasurements = <Measurement>[];
-
-      double distanceInMeters;
-
-      var location = await getLocation();
-      if (location.longitude != null && location.latitude != null) {
-        // var latitude = location.latitude;
-        // var longitude = location.longitude;
-        // var addresses = await getAddressGoogle(latitude!, longitude!);
-        // var userAddress = addresses.first;
-
-        await _dbHelper.getLatestMeasurements().then((measurements) => {
-              for (var measurement in measurements)
-                {
-                  distanceInMeters = metersToKmDouble(
-                      Geolocator.distanceBetween(
-                          measurement.site.latitude,
-                          measurement.site.longitude,
-                          location.latitude!,
-                          location.longitude!)),
-                  if (distanceInMeters < Config.maxSearchRadius.toDouble())
-                    {
-                      measurement.site.distance = distanceInMeters,
-                      nearestMeasurements.add(measurement)
-                    }
-                },
-              if (nearestMeasurements.isNotEmpty)
-                {
-                  nearestMeasurement = nearestMeasurements.first,
-                  for (var m in nearestMeasurements)
-                    {
-                      if (nearestMeasurement!.site.distance > m.site.distance)
-                        {nearestMeasurement = m}
-                    }
-                }
-            });
-
-        await getLocation().then((value) => {
-              _dbHelper.getLatestMeasurements().then((measurements) => {
-                    if (location.longitude != null && location.latitude != null)
-                      {
-                        for (var measurement in measurements)
-                          {
-                            distanceInMeters = metersToKmDouble(
-                                Geolocator.distanceBetween(
-                                    measurement.site.latitude,
-                                    measurement.site.longitude,
-                                    location.latitude!,
-                                    location.longitude!)),
-                            if (distanceInMeters <
-                                Config.maxSearchRadius.toDouble())
-                              {
-                                measurement.site.distance = distanceInMeters,
-                                nearestMeasurements.add(measurement)
-                              }
-                          },
-                        if (nearestMeasurements.isNotEmpty)
-                          {
-                            nearestMeasurement = nearestMeasurements.first,
-                            for (var m in nearestMeasurements)
-                              {
-                                if (nearestMeasurement!.site.distance >
-                                    m.site.distance)
-                                  {nearestMeasurement = m}
-                              }
-                          }
-                      }
-                  })
-            });
-      }
-
-      return nearestMeasurement;
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      return null;
-    }
   }
 
   Future<Position> getLocationUsingGeoLocator() async {

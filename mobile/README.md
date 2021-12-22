@@ -9,7 +9,7 @@
 [Installing Flutter on macOS](https://flutter.dev/docs/get-started/install/macos)
 
 ```bash
-cd AirQo-frontend/mobile-app
+cd AirQo-frontend/mobile
 ```
 
 ### Set the secret keys
@@ -24,7 +24,7 @@ For IOS, add the [GOOGLE MAPS API Key](https://docs.google.com/document/d/1QawFn
 ### Run the app
 
 ```bash
-flutter run --no-sound-null-safety
+flutter run
 ```
 
 ### Some useful commands
@@ -37,7 +37,7 @@ flutter build appbundle --no-sound-null-safety [--analyze-size]
 ```
 
 ```bash
-flutter build ipa --no-sound-null-safety
+flutter build ipa
 ```
 
 ```bash

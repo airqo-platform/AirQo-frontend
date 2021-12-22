@@ -92,6 +92,10 @@ class _SearchPageState extends State<SearchPage> {
   Future<void> getUserLocation() async {
     try {
       var location = await _locationService.getLocation();
+      if (location == null) {
+        await showSnackBar(context, Config.locationErrorMessage);
+        return;
+      }
       var latitude = location.latitude;
       var longitude = location.longitude;
       if (longitude != null && latitude != null) {

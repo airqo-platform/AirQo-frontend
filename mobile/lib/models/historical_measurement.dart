@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
+import 'json_parsers.dart';
 import 'measurement_value.dart';
 
 part 'historical_measurement.g.dart';
@@ -20,17 +21,26 @@ class HistoricalMeasurement {
   @JsonKey(required: true, name: 'average_pm10')
   final MeasurementValue pm10;
 
-  @JsonKey(required: false)
-  final MeasurementValue altitude;
+  @JsonKey(required: false, fromJson: measurementValueFromJson)
+  MeasurementValue altitude =
+      MeasurementValue(value: 0.0, calibratedValue: 0.0);
 
-  @JsonKey(required: false)
-  final MeasurementValue speed;
+  @JsonKey(required: false, fromJson: measurementValueFromJson)
+  MeasurementValue speed = MeasurementValue(value: 0.0, calibratedValue: 0.0);
 
-  @JsonKey(required: false, name: 'externalTemperature')
-  final MeasurementValue temperature;
+  @JsonKey(
+      required: false,
+      name: 'externalTemperature',
+      fromJson: measurementValueFromJson)
+  MeasurementValue temperature =
+      MeasurementValue(value: 0.0, calibratedValue: 0.0);
 
-  @JsonKey(required: false, name: 'externalHumidity')
-  final MeasurementValue humidity;
+  @JsonKey(
+      required: false,
+      name: 'externalHumidity',
+      fromJson: measurementValueFromJson)
+  MeasurementValue humidity =
+      MeasurementValue(value: 0.0, calibratedValue: 0.0);
 
   @JsonKey(required: true, name: 'site_id')
   final String siteId;

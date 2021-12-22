@@ -97,6 +97,9 @@ class Config {
 
   static String get kyaCollection => dotenv.env['KYA_COLLECTION'] ?? '';
 
+  static String get locationErrorMessage =>
+      'PLease turn on and allow location permissions';
+
   static Color get maroon => const Color(0xffA51F3F);
 
   static int get maxSearchRadius => searchRadius * 2;

@@ -68,8 +68,8 @@ class SplashScreenState extends State<SplashScreen> {
       var user = _customAuth.getUser();
       if (user != null) {
         Sentry.configureScope(
-          (scope) => scope.user =
-              SentryUser(id: user.uid ?? '', email: user.email ?? ''),
+          (scope) =>
+              scope.user = SentryUser(id: user.uid, email: user.email ?? ''),
         );
       }
       _loadKya();

@@ -22,11 +22,10 @@ HistoricalMeasurement _$HistoricalMeasurementFromJson(
     json['time'] as String,
     MeasurementValue.fromJson(json['average_pm2_5'] as Map<String, dynamic>),
     MeasurementValue.fromJson(json['average_pm10'] as Map<String, dynamic>),
-    MeasurementValue.fromJson(json['altitude'] as Map<String, dynamic>),
-    MeasurementValue.fromJson(json['speed'] as Map<String, dynamic>),
-    MeasurementValue.fromJson(
-        json['externalTemperature'] as Map<String, dynamic>),
-    MeasurementValue.fromJson(json['externalHumidity'] as Map<String, dynamic>),
+    measurementValueFromJson(json['altitude']),
+    measurementValueFromJson(json['speed']),
+    measurementValueFromJson(json['externalTemperature']),
+    measurementValueFromJson(json['externalHumidity']),
     json['site_id'] as String,
     json['device_number'] as int,
   );
