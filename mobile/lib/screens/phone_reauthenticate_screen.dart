@@ -9,9 +9,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 class PhoneReAuthenticateScreen extends StatefulWidget {
-  UserDetails userDetails;
+  final UserDetails userDetails;
 
-  PhoneReAuthenticateScreen(this.userDetails, {Key? key}) : super(key: key);
+  const PhoneReAuthenticateScreen(this.userDetails, {Key? key})
+      : super(key: key);
 
   @override
   PhoneReAuthenticateScreenState createState() =>
@@ -274,15 +275,16 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
             'Failed to verify phone number.'
             ' Try again later');
       }
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'invalid-verification-code') {
+    } on FirebaseAuthException catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+      if (exception.code == 'invalid-verification-code') {
         await showSnackBar(context, 'Invalid Code');
         setState(() {
           _nextBtnColor = Config.appColorBlue;
           _isVerifying = false;
         });
       }
-      if (e.code == 'session-expired') {
+      if (exception.code == 'session-expired') {
         await _customAuth.verifyPhone(widget.userDetails.phoneNumber, context,
             verifyPhoneFn, autoVerifyPhoneFn);
         await showSnackBar(
@@ -295,13 +297,13 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
           _isVerifying = false;
         });
       }
-    } catch (e) {
+    } catch (exception, stackTrace) {
       await showSnackBar(context, 'Try again later');
       setState(() {
         _nextBtnColor = Config.appColorBlue;
         _isVerifying = false;
       });
-      debugPrint(e.toString());
+      debugPrint('$exception\n$stackTrace');
     }
   }
 }

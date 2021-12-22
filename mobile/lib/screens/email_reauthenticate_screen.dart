@@ -9,9 +9,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 class EmailReAuthenticateScreen extends StatefulWidget {
-  UserDetails userDetails;
+  final UserDetails userDetails;
 
-  EmailReAuthenticateScreen(
+  const EmailReAuthenticateScreen(
     this.userDetails, {
     Key? key,
   }) : super(key: key);

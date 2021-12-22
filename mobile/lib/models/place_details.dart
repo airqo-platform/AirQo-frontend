@@ -92,8 +92,8 @@ class PlaceDetails {
       try {
         var placeDetail = PlaceDetails.fromJson(jsonElement);
         placeDetails.add(placeDetail);
-      } catch (e) {
-        debugPrint(e.toString());
+      } catch (exception, stackTrace) {
+        debugPrint('$exception\n$stackTrace');
       }
     }
     return placeDetails;
@@ -102,8 +102,8 @@ class PlaceDetails {
   static PlaceDetails? parsePlaceDetails(dynamic jsonBody) {
     try {
       return PlaceDetails.fromJson(jsonBody);
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
     return null;
   }
@@ -130,8 +130,7 @@ class PlaceDetailsModel extends ChangeNotifier {
       await _dbHelper.clearFavouritePlaces();
       notifyListeners();
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -147,8 +146,7 @@ class PlaceDetailsModel extends ChangeNotifier {
             reloadFavouritePlaces(),
           });
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -168,8 +166,7 @@ class PlaceDetailsModel extends ChangeNotifier {
       //   await _cloudStore.updateFavouritePlaces(id, favPlaces);
       // }
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,

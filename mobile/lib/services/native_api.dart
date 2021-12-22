@@ -23,8 +23,8 @@ class LocationService {
       if (status == locate_api.PermissionStatus.granted) {
         return true;
       }
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
     return false;
   }
@@ -115,8 +115,8 @@ class LocationService {
                 measurement.site.searchName = address;
                 measurement.site.description = address;
               }
-            } catch (e) {
-              debugPrint(e.toString());
+            } catch (exception, stackTrace) {
+              debugPrint('$exception\n$stackTrace');
             }
             nearestMeasurements.add(measurement);
           }
@@ -132,8 +132,8 @@ class LocationService {
         }
         return nearestMeasurement;
       }
-    } catch (e) {
-      debugPrint('error $e');
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
       return null;
     }
   }
@@ -251,8 +251,8 @@ class LocationService {
       }
 
       return nearestMeasurement;
-    } catch (e) {
-      debugPrint('error $e');
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
       return null;
     }
   }
@@ -298,8 +298,8 @@ class LocationService {
       }
 
       return nearestSite.site;
-    } catch (e) {
-      debugPrint('error $e');
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
       return null;
     }
   }
@@ -335,8 +335,8 @@ class LocationService {
   //           id, 'location', status == PermissionStatus.granted, 'bool');
   //     }
   //     return status == PermissionStatus.granted;
-  //   } catch (e) {
-  //     debugPrint(e.toString());
+  //   } catch (exception, stackTrace) {
+  //     debugPrint('$exception\n$stackTrace');
   //   }
   //   return false;
   // }
@@ -345,8 +345,8 @@ class LocationService {
     try {
       var status = await Geolocator.requestPermission();
       return !(status == LocationPermission.denied);
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
     return false;
   }

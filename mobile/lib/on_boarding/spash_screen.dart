@@ -9,6 +9,7 @@ import 'package:app/services/rest_api.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -64,6 +65,13 @@ class SplashScreenState extends State<SplashScreen> {
     });
     _getLatestMeasurements();
     if (isLoggedIn) {
+      var user = _customAuth.getUser();
+      if (user != null) {
+        Sentry.configureScope(
+          (scope) => scope.user =
+              SentryUser(id: user.uid ?? '', email: user.email ?? ''),
+        );
+      }
       _loadKya();
       _loadNotifiers();
     }
@@ -125,8 +133,8 @@ class SplashScreenState extends State<SplashScreen> {
       _airqoApiClient!.fetchLatestMeasurements().then((value) => {
             if (value.isNotEmpty) {_dbHelper.insertLatestMeasurements(value)}
           });
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
   }
 

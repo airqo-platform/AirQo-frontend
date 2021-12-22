@@ -265,14 +265,16 @@ class _SettingsPageState extends State<SettingsPage> {
                     Platform.isWindows) {
                   try {
                     await launch(Config.playStoreUrl);
-                  } catch (e) {
-                    debugPrint(e.toString());
+                  } catch (exception, stackTrace) {
+                    debugPrint(
+                        '${exception.toString()}\n${stackTrace.toString()}');
                   }
                 } else if (Platform.isIOS || Platform.isMacOS) {
                   try {
                     await launch(Config.appStoreUrl);
-                  } catch (e) {
-                    debugPrint(e.toString());
+                  } catch (exception, stackTrace) {
+                    debugPrint(
+                        '${exception.toString()}\n${stackTrace.toString()}');
                   }
                 }
               }

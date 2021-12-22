@@ -3,6 +3,9 @@ import 'config.dart';
 class AirQoUrls {
   String get forecast => '${Config.airqoApiUrlV2}predict/';
 
+  String get insights =>
+      '${Config.stageAirqoApiUrl}views/measurements/insights';
+
   String get measurements => '${Config.airqoApiUrl}devices/events';
 
   String get placeSearchDetails => '${Config.placesSearchUrl}details/json';

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:app/constants/config.dart';
 import 'package:app/models/historical_measurement.dart';
+import 'package:app/models/insights.dart';
 import 'package:app/models/insights_chart_data.dart';
 import 'package:app/models/kya.dart';
 import 'package:app/models/measurement.dart';
@@ -38,8 +39,8 @@ class DBHelper {
       final db = await database;
       await db.delete(Kya.dbName());
       await db.delete(UserNotification.dbName());
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
   }
 
@@ -47,8 +48,8 @@ class DBHelper {
     try {
       final db = await database;
       await db.delete(PlaceDetails.dbName());
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
   }
 
@@ -64,7 +65,7 @@ class DBHelper {
       await db.execute(Story.dropTableStmt());
       await db.execute(PlaceDetails.dropTableStmt());
       await db.execute(UserNotification.dropTableStmt());
-      await db.execute(InsightsChartData.dropTableStmt());
+      await db.execute(Insights.dropTableStmt());
       await db.execute(Kya.dropTableStmt());
       await prefs.setBool(Config.prefReLoadDb, false);
     }
@@ -76,7 +77,7 @@ class DBHelper {
     await db.execute(Story.createTableStmt());
     await db.execute(PlaceDetails.createTableStmt());
     await db.execute(UserNotification.createTableStmt());
-    await db.execute(InsightsChartData.createTableStmt());
+    await db.execute(Insights.createTableStmt());
     await db.execute(Kya.createTableStmt());
   }
 
@@ -91,8 +92,8 @@ class DBHelper {
               return PlaceDetails.fromJson(res[i]);
             })
           : <PlaceDetails>[];
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
 
       return <PlaceDetails>[];
     }
@@ -110,8 +111,8 @@ class DBHelper {
               return Predict.fromJson(Predict.mapFromDb(res[i]));
             })
           : <Predict>[];
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
       return <Predict>[];
     }
   }
@@ -130,9 +131,28 @@ class DBHelper {
                   HistoricalMeasurement.mapFromDb(res[i]));
             })
           : <HistoricalMeasurement>[];
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
       return <HistoricalMeasurement>[];
+    }
+  }
+
+  Future<List<Insights>> getInsights(String siteId, String frequency) async {
+    try {
+      final db = await database;
+
+      var res = await db.query(Insights.dbName(),
+          where: 'siteId = ? and frequency = ?',
+          whereArgs: [siteId, frequency]);
+
+      return res.isNotEmpty
+          ? List.generate(res.length, (i) {
+              return Insights.fromJson(res[i]);
+            })
+          : <Insights>[];
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+      return <Insights>[];
     }
   }
 
@@ -148,8 +168,8 @@ class DBHelper {
               return InsightsChartData.fromJson(res[i]);
             })
           : <InsightsChartData>[];
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
       return <InsightsChartData>[];
     }
   }
@@ -176,8 +196,7 @@ class DBHelper {
       }
       return kyaList;
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       return <Kya>[];
     }
   }
@@ -197,8 +216,8 @@ class DBHelper {
             .getName()
             .toLowerCase()
             .compareTo(siteB.site.getName().toLowerCase()));
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
       return <Measurement>[];
     }
   }
@@ -214,8 +233,8 @@ class DBHelper {
         return null;
       }
       return Measurement.fromJson(Measurement.mapFromDb(res.first));
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
       return null;
     }
   }
@@ -257,8 +276,8 @@ class DBHelper {
           });
 
       return nearestMeasurement;
-    } catch (e) {
-      debugPrint('error $e');
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
       return null;
     }
   }
@@ -275,8 +294,8 @@ class DBHelper {
               return Measurement.fromJson(Measurement.mapFromDb(res[i]));
             })
           : <Measurement>[];
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
       return <Measurement>[];
     }
   }
@@ -288,8 +307,8 @@ class DBHelper {
           where: '${Site.dbId()} = ?', whereArgs: [siteId]);
 
       return Site.fromJson(Site.fromDbMap(res.first));
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
       return null;
     }
   }
@@ -308,8 +327,8 @@ class DBHelper {
         return Measurement.fromJson(Measurement.mapFromDb(res[i]));
       });
       return measurements.first;
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
       return null;
     }
   }
@@ -330,8 +349,8 @@ class DBHelper {
             .compareTo(siteB.getName().toLowerCase()));
 
       return sites;
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
       return <Site>[];
     }
   }
@@ -347,8 +366,8 @@ class DBHelper {
               return Story.fromJson(res[i]);
             })
           : <Story>[];
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
       return <Story>[];
     }
   }
@@ -366,8 +385,8 @@ class DBHelper {
           : <UserNotification>[]
         ..sort(
             (x, y) => DateTime.parse(x.time).compareTo(DateTime.parse(y.time)));
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
       return <UserNotification>[];
     }
   }
@@ -397,11 +416,11 @@ class DBHelper {
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
         await _cloudStore.addFavPlace(id, placeDetails);
-      } catch (e) {
-        debugPrint(e.toString());
+      } catch (exception, stackTrace) {
+        debugPrint('$exception\n$stackTrace');
       }
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
   }
 
@@ -422,13 +441,13 @@ class DBHelper {
               jsonData,
               conflictAlgorithm: ConflictAlgorithm.replace,
             );
-          } catch (e) {
-            debugPrint(e.toString());
+          } catch (exception, stackTrace) {
+            debugPrint('$exception\n$stackTrace');
           }
         }
       }
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
   }
 
@@ -448,13 +467,44 @@ class DBHelper {
               jsonData,
               conflictAlgorithm: ConflictAlgorithm.replace,
             );
-          } catch (e) {
-            debugPrint(e.toString());
+          } catch (exception, stackTrace) {
+            debugPrint('$exception\n$stackTrace');
           }
         }
       }
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+    }
+  }
+
+  Future<void> insertInsights(
+      List<Insights> insights, String siteId, String frequency) async {
+    try {
+      final db = await database;
+
+      if (insights.isEmpty) {
+        return;
+      }
+
+      await db.delete(Insights.dbName(),
+          where: 'siteId = ? and frequency = ?',
+          whereArgs: [siteId, frequency]);
+
+      for (var row in insights) {
+        try {
+          var jsonData = row.toJson();
+          await db.insert(
+            Insights.dbName(),
+            jsonData,
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+        } catch (exception, stackTrace) {
+          debugPrint(exception.toString());
+          debugPrint(stackTrace.toString());
+        }
+      }
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
   }
 
@@ -489,8 +539,7 @@ class DBHelper {
         }
       }
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
     }
   }
 
@@ -509,8 +558,7 @@ class DBHelper {
           whereArgs: [kya.id],
         );
       } catch (exception, stackTrace) {
-        debugPrint(exception.toString());
-        debugPrint(stackTrace.toString());
+        debugPrint('$exception\n$stackTrace');
         await db.execute(Kya.dropTableStmt());
         await db.execute(Kya.createTableStmt());
       }
@@ -527,8 +575,7 @@ class DBHelper {
           );
         }
       } catch (exception, stackTrace) {
-        debugPrint(exception.toString());
-        debugPrint(stackTrace.toString());
+        debugPrint('$exception\n$stackTrace');
         await db.execute(Kya.dropTableStmt());
         await db.execute(Kya.createTableStmt());
       }
@@ -550,13 +597,13 @@ class DBHelper {
               jsonData,
               conflictAlgorithm: ConflictAlgorithm.replace,
             );
-          } catch (e) {
-            debugPrint(e.toString());
+          } catch (exception, stackTrace) {
+            debugPrint('$exception\n$stackTrace');
           }
         }
       }
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
   }
 
@@ -584,8 +631,7 @@ class DBHelper {
         }
       }
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
     }
   }
 
@@ -606,13 +652,13 @@ class DBHelper {
               jsonData,
               conflictAlgorithm: ConflictAlgorithm.replace,
             );
-          } catch (e) {
-            debugPrint(e.toString());
+          } catch (exception, stackTrace) {
+            debugPrint('$exception\n$stackTrace');
           }
         }
       }
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
   }
 
@@ -630,13 +676,13 @@ class DBHelper {
               jsonData,
               conflictAlgorithm: ConflictAlgorithm.replace,
             );
-          } catch (e) {
-            debugPrint(e.toString());
+          } catch (exception, stackTrace) {
+            debugPrint('$exception\n$stackTrace');
           }
         }
       }
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
   }
 
@@ -661,8 +707,8 @@ class DBHelper {
       }
       Provider.of<NotificationModel>(context, listen: false)
           .addAll(notifications);
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
   }
 
@@ -677,11 +723,11 @@ class DBHelper {
           whereArgs: [placeDetails.siteId],
         );
         await _cloudStore.removeFavPlace(id, placeDetails);
-      } catch (e) {
-        debugPrint(e.toString());
+      } catch (exception, stackTrace) {
+        debugPrint('$exception\n$stackTrace');
       }
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
   }
 
@@ -700,13 +746,13 @@ class DBHelper {
               jsonData,
               conflictAlgorithm: ConflictAlgorithm.replace,
             );
-          } catch (e) {
-            debugPrint(e.toString());
+          } catch (exception, stackTrace) {
+            debugPrint('$exception\n$stackTrace');
           }
         }
       }
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
   }
 

@@ -30,8 +30,8 @@ List<Measurement> parseMeasurements(dynamic jsonBody) {
         measurement.time = formattedDate.toString();
         measurements.add(measurement);
       }
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
   }
   measurements.sort((siteA, siteB) => siteA.site
@@ -40,6 +40,14 @@ List<Measurement> parseMeasurements(dynamic jsonBody) {
       .compareTo(siteB.site.getName().toLowerCase()));
 
   return measurements;
+}
+
+String siteIdFromJson(dynamic _) {
+  return 'siteId';
+}
+
+String siteIdToJson(String _) {
+  return 'site_id';
 }
 
 DateTime timeFromJson(dynamic json) {

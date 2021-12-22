@@ -115,8 +115,8 @@ class _NotificationPageState extends State<NotificationPage> {
     try {
       notificationDate =
           DateTime.parse(notification.time).notificationDisplayDate();
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
 
     return Container(

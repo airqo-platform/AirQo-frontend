@@ -56,7 +56,9 @@ Future<void> main() async {
   if (kReleaseMode) {
     await SentryFlutter.init(
       (options) {
-        options.dsn = Config.sentryUrl;
+        options
+          ..dsn = Config.sentryUrl
+          ..tracesSampleRate = 1.0;
       },
       appRunner: () => runApp(AirQoApp(themeController: themeController)),
     );
@@ -91,6 +93,7 @@ class AirQoApp extends StatelessWidget {
                 debugShowCheckedModeBanner: false,
                 navigatorObservers: [
                   FirebaseAnalyticsObserver(analytics: analytics),
+                  SentryNavigatorObserver(),
                 ],
                 localizationsDelegates: const [
                   CustomLocalizations.delegate,

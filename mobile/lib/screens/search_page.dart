@@ -119,8 +119,9 @@ class _SearchPageState extends State<SearchPage> {
       } else {
         throw Exception('Failed to get your location');
       }
-    } catch (e) {
-      var error = e.toString().replaceAll('Exception :', '');
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+      var error = exception.toString().replaceAll('Exception :', '');
       error = error.replaceAll('Exception', '');
       error = error.replaceAll(':', '');
       await showSnackBar(context, error);

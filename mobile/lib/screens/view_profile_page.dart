@@ -467,8 +467,8 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
       setState(() {
         userDetails!.photoUrl = image.path;
       });
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
   }
 
@@ -528,8 +528,8 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
       userDetails!.photoUrl = imageUrl;
 
       await _customAuth.updateProfile(userDetails!);
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
   }
 

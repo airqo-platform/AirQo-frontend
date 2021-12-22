@@ -73,8 +73,8 @@ class Story {
       try {
         var story = Story.fromJson(jsonElement);
         stories.add(story);
-      } catch (e) {
-        debugPrint('Error parsing stories : $e');
+      } catch (exception, stackTrace) {
+        debugPrint('$exception\n$stackTrace');
       }
     }
 
@@ -89,8 +89,8 @@ extension ParseSite on Story {
     try {
       var date = pubDate.split(' ').first;
       return date;
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
     return pubDate;
   }

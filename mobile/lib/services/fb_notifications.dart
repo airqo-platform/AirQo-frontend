@@ -58,8 +58,7 @@ class CloudStore {
           .doc(placeId)
           .set(placeDetails.toJson());
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -96,8 +95,7 @@ class CloudStore {
       }
       return false;
     } on Error catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -120,8 +118,7 @@ class CloudStore {
           .doc(id)
           .delete();
     } on Error catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -148,8 +145,7 @@ class CloudStore {
 
       return complete;
     } on Error catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -184,8 +180,7 @@ class CloudStore {
       }
       return favPlaces;
     } on Error catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -237,8 +232,7 @@ class CloudStore {
 
       return incomplete.first;
     } on Error catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -274,8 +268,7 @@ class CloudStore {
 
       return kyas;
     } on Error catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -313,8 +306,7 @@ class CloudStore {
 
       return notifications;
     } on Error catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -341,8 +333,7 @@ class CloudStore {
           .get();
       return await compute(UserDetails.parseUserDetails, userJson.data());
     } on Error catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -382,8 +373,7 @@ class CloudStore {
 
       return updated;
     } on Error catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -416,8 +406,7 @@ class CloudStore {
         }
       });
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -439,8 +428,7 @@ class CloudStore {
           .get();
       return data.exists;
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -463,8 +451,7 @@ class CloudStore {
           .doc(placeId)
           .delete();
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -492,8 +479,7 @@ class CloudStore {
           .doc(notificationId)
           .set(notification.toJson());
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -517,8 +503,7 @@ class CloudStore {
           .doc(kya.id)
           .update({'progress': progress});
     } on Error catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -556,8 +541,7 @@ class CloudStore {
             .update(userJson);
       }
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -585,8 +569,7 @@ class CloudStore {
             .set(_userJson);
       }
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -613,8 +596,7 @@ class CloudStore {
             .doc(id)
             .set(fields);
       }
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -661,8 +643,7 @@ class CustomAuth {
         await _preferencesHelper.updatePreferences(userDetails.preferences);
       }
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -688,8 +669,7 @@ class CustomAuth {
       await _dbHelper.clearAccount();
       await currentUser.delete();
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -746,8 +726,7 @@ class CustomAuth {
       }
       return false;
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -780,8 +759,7 @@ class CustomAuth {
 
       return true;
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -811,8 +789,7 @@ class CustomAuth {
       }
       await updateLocalStorage(user, context);
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -837,8 +814,7 @@ class CustomAuth {
       await _firebaseAuth.signOut();
       await _dbHelper.clearAccount();
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -859,8 +835,7 @@ class CustomAuth {
 
       return userCredential.user != null;
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -883,11 +858,11 @@ class CustomAuth {
       // var userCredential =
       //     await _firebaseAuth.signInWithCredential(authCredential);
       return userCredentials.user != null;
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'invalid-verification-code') {
+    } on FirebaseAuthException catch (exception) {
+      if (exception.code == 'invalid-verification-code') {
         await showSnackBar(context, 'Invalid Code');
       }
-      if (e.code == 'session-expired') {
+      if (exception.code == 'session-expired') {
         await showSnackBar(
             context,
             'Your verification '
@@ -895,8 +870,7 @@ class CustomAuth {
             ' another verification code');
       }
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -924,8 +898,7 @@ class CustomAuth {
       }
       return true;
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -960,8 +933,7 @@ class CustomAuth {
         await _secureStorage.updateUserDetailsField('emailAddress', email);
       }
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -979,18 +951,17 @@ class CustomAuth {
       await FirebaseAuth.instance.currentUser!.updateEmail(emailAddress);
       await updateCredentials(null, emailAddress);
       return true;
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'email-already-in-use') {
+    } on FirebaseAuthException catch (exception) {
+      if (exception.code == 'email-already-in-use') {
         await showSnackBar(context, 'Email Address already taken');
         return false;
       }
-      if (e.code == 'invalid-email') {
+      if (exception.code == 'invalid-email') {
         await showSnackBar(context, 'Invalid email address');
         return false;
       }
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -1034,8 +1005,8 @@ class CustomAuth {
                     .addAll(value),
               }
           });
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
   }
 
@@ -1052,21 +1023,20 @@ class CustomAuth {
       await updateCredentials(
           FirebaseAuth.instance.currentUser!.phoneNumber, null);
       return true;
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'credential-already-in-use') {
+    } on FirebaseAuthException catch (exception, stackTrace) {
+      if (exception.code == 'credential-already-in-use') {
         await showSnackBar(context, 'Phone number already taken');
         return false;
-      } else if (e.code == 'invalid-verification-id') {
+      } else if (exception.code == 'invalid-verification-id') {
         await showSnackBar(
             context, 'Failed to change phone number. Try again later');
         return false;
-      } else if (e.code == 'session-expired') {
+      } else if (exception.code == 'session-expired') {
         await showSnackBar(context, 'Your code has expired. Try again later');
         return false;
       }
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -1118,8 +1088,7 @@ class CustomAuth {
         await _cloudStore.updateProfileFields(firebaseUser.uid, fields);
       }
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -1145,8 +1114,7 @@ class CustomAuth {
 
       return false;
     } on Error catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -1168,15 +1136,15 @@ class CustomAuth {
           verificationCompleted: (PhoneAuthCredential credential) {
             autoVerificationFn(credential);
           },
-          verificationFailed: (FirebaseAuthException e) async {
-            if (e.code == 'invalid-phone-number') {
+          verificationFailed: (FirebaseAuthException exception) async {
+            if (exception.code == 'invalid-phone-number') {
               await showSnackBar(context, 'Invalid phone number.');
             } else {
               await showSnackBar(
                   context,
                   'Cannot process your request.'
                   ' Try again later');
-              debugPrint(e.toString());
+              debugPrint(exception.toString());
             }
           },
           codeSent: (String verificationId, int? resendToken) async {
@@ -1188,8 +1156,7 @@ class CustomAuth {
           },
           timeout: const Duration(minutes: 2));
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -1210,8 +1177,8 @@ class NotificationService {
       if (settings.authorizationStatus == AuthorizationStatus.authorized) {
         return true;
       }
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
 
     return false;
@@ -1222,8 +1189,7 @@ class NotificationService {
       var token = await _firebaseMessaging.getToken();
       return token;
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -1255,8 +1221,7 @@ class NotificationService {
       }
       return status;
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -1284,8 +1249,8 @@ class NotificationService {
       if (notificationMessage != null) {
         await LocalNotifications().showAlertNotification(notificationMessage);
       }
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
   }
 
@@ -1295,8 +1260,8 @@ class NotificationService {
       if (notificationMessage != null) {
         await LocalNotifications().showAlertNotification(notificationMessage);
       }
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
   }
 }

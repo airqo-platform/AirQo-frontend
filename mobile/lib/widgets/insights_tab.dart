@@ -1,8 +1,6 @@
 import 'package:app/constants/config.dart';
-import 'package:app/models/historical_measurement.dart';
-import 'package:app/models/insights_chart_data.dart';
+import 'package:app/models/insights.dart';
 import 'package:app/models/place_details.dart';
-import 'package:app/models/predict.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
@@ -15,26 +13,24 @@ import 'package:app/widgets/recomendation.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'custom_shimmer.dart';
 import 'custom_widgets.dart';
 
-class InsightsTabView extends StatefulWidget {
+class InsightsTab extends StatefulWidget {
   final PlaceDetails placeDetails;
   final bool daily;
 
-  const InsightsTabView(this.placeDetails, this.daily, {Key? key})
+  const InsightsTab(this.placeDetails, this.daily, {Key? key})
       : super(key: key);
 
   @override
-  _InsightsTabViewState createState() => _InsightsTabViewState();
+  _InsightsTabState createState() => _InsightsTabState();
 }
 
-class _InsightsTabViewState extends State<InsightsTabView> {
+class _InsightsTabState extends State<InsightsTab> {
   String _viewDay = 'today';
   String _pollutant = 'pm2.5';
   bool _showHeartAnimation = false;
@@ -45,19 +41,21 @@ class _InsightsTabViewState extends State<InsightsTabView> {
   final String _toggleToolTipText = 'Customize your air quality analytics '
       'with a single click ';
   final GlobalKey _toggleToolTipKey = GlobalKey();
+  ScrollController _controller = ScrollController();
 
-  InsightsChartData? _selectedMeasurement;
+  Insights? _selectedMeasurement;
   String _lastUpdated = '';
   bool _hasMeasurements = false;
 
-  List<charts.Series<InsightsChartData, String>> _dailyPm2_5ChartData = [];
-  List<charts.Series<InsightsChartData, String>> _hourlyPm2_5ChartData = [];
+  List<List<charts.Series<Insights, String>>> _dailyPm2_5ChartData = [];
+  List<List<charts.Series<Insights, String>>> _hourlyPm2_5ChartData = [];
 
-  List<charts.Series<InsightsChartData, String>> _dailyPm10ChartData = [];
-  List<charts.Series<InsightsChartData, String>> _hourlyPm10ChartData = [];
+  List<List<charts.Series<Insights, String>>> _dailyPm10ChartData = [];
+  List<List<charts.Series<Insights, String>>> _hourlyPm10ChartData = [];
 
   AirqoApiClient? _airqoApiClient;
   List<charts.TickSpec<String>> _hourlyStaticTicks = [];
+  List<charts.TickSpec<String>> _dailyStaticTicks = [];
 
   final String _forecastToolTipText = 'This icon turns blue when the selected '
       'bar on the graph is forecast.';
@@ -129,12 +127,16 @@ class _InsightsTabViewState extends State<InsightsTabView> {
               const SizedBox(
                 height: 20,
               ),
+              // Padding(
+              //   padding: const EdgeInsets.only(right: 16, left: 16),
+              //   child: RepaintBoundary(
+              //     key: _globalKey,
+              //     child: insightsGraph(),
+              //   ),
+              // ),
               Padding(
                 padding: const EdgeInsets.only(right: 16, left: 16),
-                child: RepaintBoundary(
-                  key: _globalKey,
-                  child: insightsGraph(),
-                ),
+                child: insightsGraph(),
               ),
               const SizedBox(
                 height: 16,
@@ -388,12 +390,41 @@ class _InsightsTabViewState extends State<InsightsTabView> {
                           showTipText(_infoToolTipText, _infoToolTipKey,
                               context, () {}, false);
                         },
-                        child: insightsAvatar(
+                        child: insightsTabAvatar(
                             context, _selectedMeasurement!, 64, _pollutant),
                       )
                     ],
                   ),
-                  widget.daily ? _dailyChart() : _hourlyChart(),
+                  widget.daily
+                      ? SizedBox(
+                          height: 160,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            controller: _controller,
+                            itemBuilder: (context, index) {
+                              return _dailyChart(_dailyPm2_5ChartData[index],
+                                  _dailyPm10ChartData[index]);
+                            },
+                            itemCount: _dailyPm2_5ChartData.toList().length,
+                          ),
+                        )
+                      : SizedBox(
+                          height: 160,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            controller: _controller,
+                            itemBuilder: (context, index) {
+                              return _hourlyChart(
+                                  _hourlyPm2_5ChartData.toList()[index],
+                                  _hourlyPm10ChartData.toList()[index]);
+                            },
+                            itemCount: _hourlyPm2_5ChartData.toList().length,
+                          ),
+                        ),
+
+                  // widget.daily ?
+                  // _dailyChart(_dailyPm2_5ChartData, _dailyPm10ChartData) :
+                  // _hourlyChart(),
                   const SizedBox(
                     height: 13.0,
                   ),
@@ -461,7 +492,7 @@ class _InsightsTabViewState extends State<InsightsTabView> {
                           () {}, false);
                     },
                     child: Visibility(
-                      visible: _selectedMeasurement!.available,
+                      visible: !_selectedMeasurement!.isEmpty,
                       child: Container(
                         padding:
                             const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
@@ -470,39 +501,41 @@ class _InsightsTabViewState extends State<InsightsTabView> {
                         decoration: BoxDecoration(
                             borderRadius:
                                 const BorderRadius.all(Radius.circular(40.0)),
-                            color: _selectedMeasurement!.time
-                                    .isAfter(DateTime.now())
+                            color: _selectedMeasurement!.isForecast
                                 ? Config.appColorPaleBlue
                                 : _pollutant == 'pm2.5'
-                                    ? pm2_5ToColor(_selectedMeasurement!.value)
+                                    ? pm2_5ToColor(_selectedMeasurement!
+                                            .getChartValue(_pollutant))
                                         .withOpacity(0.4)
-                                    : pm10ToColor(_selectedMeasurement!.value)
+                                    : pm10ToColor(_selectedMeasurement!
+                                            .getChartValue(_pollutant))
                                         .withOpacity(0.4),
                             border: Border.all(color: Colors.transparent)),
                         child: Text(
                           _pollutant == 'pm2.5'
-                              ? pm2_5ToString(_selectedMeasurement!.value)
-                              : pm10ToString(_selectedMeasurement!.value),
+                              ? pm2_5ToString(_selectedMeasurement!
+                                  .getChartValue(_pollutant))
+                              : pm10ToString(_selectedMeasurement!
+                                  .getChartValue(_pollutant)),
                           maxLines: 1,
                           textAlign: TextAlign.start,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: 14,
-                            color: _selectedMeasurement!.time
-                                    .isAfter(DateTime.now())
+                            color: _selectedMeasurement!.isForecast
                                 ? Config.appColorBlue
                                 : _pollutant == 'pm2.5'
-                                    ? pm2_5TextColor(
-                                        _selectedMeasurement!.value)
-                                    : pm10TextColor(
-                                        _selectedMeasurement!.value),
+                                    ? pm2_5TextColor(_selectedMeasurement!
+                                        .getChartValue(_pollutant))
+                                    : pm10TextColor(_selectedMeasurement!
+                                        .getChartValue(_pollutant)),
                           ),
                         ),
                       ),
                     ),
                   ),
                   Visibility(
-                    visible: !_selectedMeasurement!.available,
+                    visible: _selectedMeasurement!.isEmpty,
                     child: Container(
                       padding: const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
                       decoration: BoxDecoration(
@@ -526,10 +559,11 @@ class _InsightsTabViewState extends State<InsightsTabView> {
                     width: 8,
                   ),
                   Visibility(
-                      visible: _selectedMeasurement!.available,
+                      visible: !_selectedMeasurement!.isEmpty,
                       child: GestureDetector(
                         onTap: () {
-                          pmInfoDialog(context, _selectedMeasurement!.value);
+                          pmInfoDialog(context,
+                              _selectedMeasurement!.getChartValue(_pollutant));
                         },
                         child: SvgPicture.asset(
                           'assets/icon/info_icon.svg',
@@ -548,8 +582,7 @@ class _InsightsTabViewState extends State<InsightsTabView> {
                           key: _forecastToolTipKey,
                           decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: _selectedMeasurement!.time
-                                      .isAfter(DateTime.now())
+                              color: _selectedMeasurement!.isForecast
                                   ? Config.appColorBlue
                                   : Config.appColorPaleBlue,
                               border: Border.all(color: Colors.transparent))),
@@ -595,462 +628,383 @@ class _InsightsTabViewState extends State<InsightsTabView> {
         widget.placeDetails, context, _customAuth.getId());
   }
 
-  Widget _dailyChart() {
-    var staticTicks = <charts.TickSpec<String>>[];
-    var daysList = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    for (var day in daysList) {
-      staticTicks.add(charts.TickSpec(day,
-          label: day,
-          style: charts.TextStyleSpec(
-              color: charts.ColorUtil.fromDartColor(Config.greyColor))));
-    }
-
-    return SizedBox(
-      width: MediaQuery.of(context).size.width,
-      height: 150,
-      child: charts.BarChart(
-        _pollutant == 'pm2.5' ? _dailyPm2_5ChartData : _dailyPm10ChartData,
-        animate: true,
-        defaultRenderer: charts.BarRendererConfig<String>(
-            strokeWidthPx: 0, stackedBarPaddingPx: 0),
-        defaultInteractions: true,
-        behaviors: [
-          charts.LinePointHighlighter(
-              showHorizontalFollowLine:
-                  charts.LinePointHighlighterFollowLineType.none,
-              showVerticalFollowLine:
-                  charts.LinePointHighlighterFollowLineType.nearest),
-          charts.DomainHighlighter(),
-          charts.SelectNearest(
-              eventTrigger: charts.SelectionTrigger.tapAndDrag),
-        ],
-        selectionModels: [
-          charts.SelectionModelConfig(
-              changedListener: (charts.SelectionModel model) {
-            if (model.hasDatumSelection) {
-              try {
-                var value = model.selectedDatum[0].index;
-                if (value != null) {
-                  _updateUI(model.selectedSeries[0].data[value]);
-                }
-              } on Error catch (exception, stackTrace) {
-                debugPrint('$exception\n$stackTrace');
-              }
-            }
-          })
-        ],
-        domainAxis: charts.OrdinalAxisSpec(
-            tickProviderSpec:
-                charts.StaticOrdinalTickProviderSpec(staticTicks)),
-        primaryMeasureAxis: charts.NumericAxisSpec(
-          tickProviderSpec: charts.StaticNumericTickProviderSpec(
-            <charts.TickSpec<double>>[
-              charts.TickSpec<double>(0,
-                  style: charts.TextStyleSpec(
-                      color: charts.ColorUtil.fromDartColor(Config.greyColor))),
-              charts.TickSpec<double>(125,
-                  style: charts.TextStyleSpec(
-                      color: charts.ColorUtil.fromDartColor(Config.greyColor))),
-              charts.TickSpec<double>(250,
-                  style: charts.TextStyleSpec(
-                      color: charts.ColorUtil.fromDartColor(Config.greyColor))),
-              charts.TickSpec<double>(375,
-                  style: charts.TextStyleSpec(
-                      color: charts.ColorUtil.fromDartColor(Config.greyColor))),
-              charts.TickSpec<double>(500,
-                  style: charts.TextStyleSpec(
-                      color: charts.ColorUtil.fromDartColor(Config.greyColor))),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _fetchHourlyMeasurements() async {
-    var dbMeasurements =
-        await _dbHelper.getInsightsChartData(widget.placeDetails.getName());
-    if (dbMeasurements.isNotEmpty) {
-      var hourlyMeasurements = dbMeasurements
-          .where((element) => element.frequency == 'hourly')
-          .toList();
-      var pm25Data = hourlyMeasurements
-          .where((element) => element.pollutant == 'pm2.5')
-          .toList();
-      var pm10Data = hourlyMeasurements
-          .where((element) => element.pollutant == 'pm10')
-          .toList();
-      setState(() {
-        _hourlyPm2_5ChartData = insightsHourlyChartData(
-            [], 'pm2.5', widget.placeDetails, pm25Data, []);
-        _hourlyPm10ChartData = insightsHourlyChartData(
-            [], 'pm10', widget.placeDetails, pm10Data, []);
-      });
-    } else {
-      setState(() {
-        _hourlyPm2_5ChartData =
-            insightsHourlyChartData([], 'pm2.5', widget.placeDetails, [], []);
-        _hourlyPm10ChartData =
-            insightsHourlyChartData([], 'pm10', widget.placeDetails, [], []);
-      });
-    }
-
-    var measurements = await _airqoApiClient!.fetchSiteHistoricalMeasurements(
-        widget.placeDetails.siteId, widget.daily);
-
-    if (!mounted) {
-      return;
-    }
-
-    if (measurements.isEmpty) {
-      return;
-    }
-
-    setState(() {
-      _hourlyPm10ChartData = insightsHourlyChartData(
-          measurements, 'pm10', widget.placeDetails, [], measurements);
-      _hourlyPm2_5ChartData = insightsHourlyChartData(
-          measurements, 'pm2.5', widget.placeDetails, [], measurements);
-    });
-  }
-
-  Future<void> _fetchMeasurements() async {
-    var measurements = await _airqoApiClient!.fetchSiteHistoricalMeasurements(
-        widget.placeDetails.siteId, widget.daily);
-
-    if (widget.daily) {
-      var siteTodayMeasurements =
-          await _dbHelper.getSiteLatestMeasurements(widget.placeDetails.siteId);
-      if (siteTodayMeasurements != null) {
-        var relatedDate = DateTime.parse(siteTodayMeasurements.time);
-        var hour = relatedDate.hour.toString().length >= 2
-            ? relatedDate.hour.toString()
-            : '0${relatedDate.hour}';
-        siteTodayMeasurements.time =
-            '${DateFormat('yyyy-MM-dd').format(relatedDate)}T$hour:00:00Z';
-        measurements
-          ..removeWhere((element) {
-            return relatedDate.day == DateTime.parse(element.time).day;
-          })
-          ..add(siteTodayMeasurements.toHistorical());
-      }
-    }
-
-    if (!mounted) {
-      return;
-    }
-
-    if (measurements.isEmpty && _hasMeasurements) {
-      return;
-    }
-
-    if (widget.daily) {
-      setState(() {
-        _dailyPm2_5ChartData = insightsDailyChartData(
-            measurements, 'pm2.5', widget.placeDetails, [], measurements);
-        _dailyPm10ChartData = insightsDailyChartData(
-            measurements, 'pm10', widget.placeDetails, [], measurements);
-      });
-
-      if (_pollutant == 'pm2.5') {
-        await _setSelectedMeasurement(_dailyPm2_5ChartData);
-      } else {
-        await _setSelectedMeasurement(_dailyPm10ChartData);
-      }
-
-      await _saveMeasurements(_dailyPm2_5ChartData.first.data);
-      await _saveMeasurements(_dailyPm2_5ChartData.first.data);
-    } else {
-      setState(() {
-        _hourlyPm10ChartData = insightsHourlyChartData(
-            measurements, 'pm10', widget.placeDetails, [], measurements);
-      });
-      if (measurements.isNotEmpty) {
-        await _getForecast(measurements.first.deviceNumber, measurements);
-      } else {
-        setState(() {
-          _hourlyPm2_5ChartData = insightsHourlyChartData(
-              measurements, 'pm2.5', widget.placeDetails, [], measurements);
-        });
-        if (_pollutant == 'pm2.5') {
-          await _setSelectedMeasurement(_hourlyPm2_5ChartData);
-        } else {
-          await _setSelectedMeasurement(_hourlyPm10ChartData);
-        }
-      }
-    }
-  }
-
-  Future<void> _getDBMeasurements() async {
-    var measurements =
-        await _dbHelper.getInsightsChartData(widget.placeDetails.getName());
-    if (measurements.isEmpty) {
-      return;
-    }
-    await _setMeasurements(measurements);
-  }
-
-  Future<void> _getForecast(
-      int deviceNumber, List<HistoricalMeasurement> measurements) async {
-    var predictions = await _airqoApiClient!.fetchForecast(deviceNumber);
-
-    if (!mounted) {
-      return;
-    }
-
-    if (predictions.isEmpty) {
-      setState(() {
-        _hourlyPm2_5ChartData = insightsHourlyChartData(
-            measurements, 'pm2.5', widget.placeDetails, [], measurements);
-      });
-    } else {
-      var combinedMeasurements = <HistoricalMeasurement>[...measurements];
-      var predictedValues = Predict.getMeasurements(
-          predictions, widget.placeDetails.siteId, deviceNumber);
-
-      for (var measurement in measurements) {
-        predictedValues.removeWhere((predict) =>
-            (DateTime.parse(predict.time).hour <=
-                DateTime.parse(measurement.time).hour) ||
-            (DateTime.parse(predict.time).day !=
-                DateTime.parse(measurement.time).day));
-      }
-      combinedMeasurements.addAll(predictedValues);
-
-      if (mounted) {
-        setState(() {
-          _hourlyPm2_5ChartData = insightsHourlyChartData(combinedMeasurements,
-              'pm2.5', widget.placeDetails, [], measurements);
-          _hasMeasurements = true;
-        });
-      }
-    }
-
-    if (mounted) {
-      if (_pollutant == 'pm2.5') {
-        await _setSelectedMeasurement(_hourlyPm2_5ChartData);
-      } else {
-        await _setSelectedMeasurement(_hourlyPm10ChartData);
-      }
-
-      await _saveMeasurements(_hourlyPm2_5ChartData.first.data);
-      await _saveMeasurements(_hourlyPm10ChartData.first.data);
-    }
-  }
-
-  void _getHourlyTicks() {
+  void _createChartTicks() {
     setState(() {
       _hourlyStaticTicks = [];
+      _dailyStaticTicks = [];
     });
-    var staticTicks = <charts.TickSpec<String>>[];
+
+    var hourlyTicks = <charts.TickSpec<String>>[];
+    var labels = <int>[0, 6, 12, 18];
+
     for (var i = 0; i <= 24; i++) {
-      if ((i == 0) || (i == 6) || (i == 12) || (i == 18)) {
-        staticTicks.add(charts.TickSpec(i.toString().length == 1 ? '0$i' : '$i',
+      if (labels.contains(i)) {
+        hourlyTicks.add(charts.TickSpec(i.toString().length == 1 ? '0$i' : '$i',
             label: i.toString().length == 1 ? '0$i' : '$i',
             style: charts.TextStyleSpec(
                 color: charts.ColorUtil.fromDartColor(Config.greyColor))));
       } else {
-        staticTicks.add(charts.TickSpec(i.toString().length == 1 ? '0$i' : '$i',
+        hourlyTicks.add(charts.TickSpec(i.toString().length == 1 ? '0$i' : '$i',
             label: i.toString().length == 1 ? '0$i' : '$i',
             style: charts.TextStyleSpec(
                 color: charts.ColorUtil.fromDartColor(Colors.transparent))));
       }
     }
     setState(() {
-      _hourlyStaticTicks = staticTicks;
+      _hourlyStaticTicks = hourlyTicks;
+    });
+
+    var dailyTicks = <charts.TickSpec<String>>[];
+    var daysList = <String>['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    for (var day in daysList) {
+      dailyTicks.add(charts.TickSpec(day,
+          label: day,
+          style: charts.TextStyleSpec(
+              color: charts.ColorUtil.fromDartColor(Config.greyColor))));
+    }
+    setState(() {
+      _dailyStaticTicks = dailyTicks;
     });
   }
 
-  Widget _hourlyChart() {
-    _getHourlyTicks();
-    return SizedBox(
-      width: MediaQuery.of(context).size.width,
-      height: 150,
-      child: charts.BarChart(
-        _pollutant == 'pm2.5' ? _hourlyPm2_5ChartData : _hourlyPm10ChartData,
-        animate: true,
-        defaultRenderer: charts.BarRendererConfig<String>(
-            strokeWidthPx: 0, stackedBarPaddingPx: 0),
-        defaultInteractions: true,
-        behaviors: [
-          charts.LinePointHighlighter(
-              showHorizontalFollowLine:
-                  charts.LinePointHighlighterFollowLineType.none,
-              showVerticalFollowLine:
-                  charts.LinePointHighlighterFollowLineType.nearest),
-          charts.DomainHighlighter(),
-          charts.SelectNearest(
-              eventTrigger: charts.SelectionTrigger.tapAndDrag),
-        ],
-        selectionModels: [
-          charts.SelectionModelConfig(
-              changedListener: (charts.SelectionModel model) {
-            if (model.hasDatumSelection) {
-              try {
-                var value = model.selectedDatum[0].index;
-                if (value != null) {
-                  _updateUI(model.selectedSeries[0].data[value]);
+  Widget _dailyChart(List<charts.Series<Insights, String>> pm2_5ChartData,
+      List<charts.Series<Insights, String>> pm10ChartData) {
+    return LayoutBuilder(
+        builder: (BuildContext buildContext, BoxConstraints constraints) {
+      return SizedBox(
+        width: MediaQuery.of(buildContext).size.width - 50,
+        height: 150,
+        child: charts.BarChart(
+          _pollutant == 'pm2.5' ? pm2_5ChartData : pm10ChartData,
+          animate: true,
+          defaultRenderer: charts.BarRendererConfig<String>(
+              strokeWidthPx: 0, stackedBarPaddingPx: 0),
+          defaultInteractions: true,
+          behaviors: [
+            charts.LinePointHighlighter(
+                showHorizontalFollowLine:
+                    charts.LinePointHighlighterFollowLineType.none,
+                showVerticalFollowLine:
+                    charts.LinePointHighlighterFollowLineType.nearest),
+            charts.DomainHighlighter(),
+            charts.SelectNearest(
+                eventTrigger: charts.SelectionTrigger.tapAndDrag),
+          ],
+          selectionModels: [
+            charts.SelectionModelConfig(
+                changedListener: (charts.SelectionModel model) {
+              if (model.hasDatumSelection) {
+                try {
+                  var value = model.selectedDatum[0].index;
+                  if (value != null) {
+                    _updateUI(model.selectedSeries[0].data[value]);
+                  }
+                } on Error catch (exception, stackTrace) {
+                  debugPrint(
+                      '${exception.toString()}\n${stackTrace.toString()}');
                 }
-              } on Error catch (exception, stackTrace) {
-                debugPrint('$exception\n$stackTrace');
               }
-            }
-          })
-        ],
-        // domainAxis: const charts.OrdinalAxisSpec(
-        //     showAxisLine: true,
-        //     renderSpec: charts.NoneRenderSpec()
-        // ),
-        domainAxis: charts.OrdinalAxisSpec(
-            tickProviderSpec:
-                charts.StaticOrdinalTickProviderSpec(_hourlyStaticTicks)),
-
-        primaryMeasureAxis: charts.NumericAxisSpec(
-          tickProviderSpec: charts.StaticNumericTickProviderSpec(
-            <charts.TickSpec<double>>[
-              charts.TickSpec<double>(0,
-                  style: charts.TextStyleSpec(
-                      color: charts.ColorUtil.fromDartColor(Config.greyColor))),
-              charts.TickSpec<double>(125,
-                  style: charts.TextStyleSpec(
-                      color: charts.ColorUtil.fromDartColor(Config.greyColor))),
-              charts.TickSpec<double>(250,
-                  style: charts.TextStyleSpec(
-                      color: charts.ColorUtil.fromDartColor(Config.greyColor))),
-              charts.TickSpec<double>(375,
-                  style: charts.TextStyleSpec(
-                      color: charts.ColorUtil.fromDartColor(Config.greyColor))),
-              charts.TickSpec<double>(500,
-                  style: charts.TextStyleSpec(
-                      color: charts.ColorUtil.fromDartColor(Config.greyColor))),
-            ],
+            })
+          ],
+          domainAxis: charts.OrdinalAxisSpec(
+              tickProviderSpec:
+                  charts.StaticOrdinalTickProviderSpec(_dailyStaticTicks)),
+          primaryMeasureAxis: charts.NumericAxisSpec(
+            tickProviderSpec: charts.StaticNumericTickProviderSpec(
+              <charts.TickSpec<double>>[
+                charts.TickSpec<double>(0,
+                    style: charts.TextStyleSpec(
+                        color:
+                            charts.ColorUtil.fromDartColor(Config.greyColor))),
+                charts.TickSpec<double>(125,
+                    style: charts.TextStyleSpec(
+                        color:
+                            charts.ColorUtil.fromDartColor(Config.greyColor))),
+                charts.TickSpec<double>(250,
+                    style: charts.TextStyleSpec(
+                        color:
+                            charts.ColorUtil.fromDartColor(Config.greyColor))),
+                charts.TickSpec<double>(375,
+                    style: charts.TextStyleSpec(
+                        color:
+                            charts.ColorUtil.fromDartColor(Config.greyColor))),
+                charts.TickSpec<double>(500,
+                    style: charts.TextStyleSpec(
+                        color:
+                            charts.ColorUtil.fromDartColor(Config.greyColor))),
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
+    });
+  }
+
+  Future<void> _fetchDBInsights() async {
+    var frequency = widget.daily ? 'daily' : 'hourly';
+    var insights =
+        await _dbHelper.getInsights(widget.placeDetails.siteId, frequency);
+    if (insights.isEmpty) {
+      return;
+    }
+    await _setInsights(insights);
+  }
+
+  Future<void> _fetchInsights() async {
+    var insights = await _airqoApiClient!
+        .fetchSiteInsights(widget.placeDetails.siteId, widget.daily);
+
+    if (insights.isEmpty || !mounted) {
+      return;
+    }
+
+    await _setInsights(insights);
+    await _saveInsights(insights, widget.daily);
+
+    var frequencyInsights = await _airqoApiClient!
+        .fetchSiteInsights(widget.placeDetails.siteId, !widget.daily);
+    await _saveInsights(frequencyInsights, !widget.daily);
+  }
+
+  Widget _hourlyChart(List<charts.Series<Insights, String>> pm2_5ChartData,
+      List<charts.Series<Insights, String>> pm10ChartData) {
+    return LayoutBuilder(
+        builder: (BuildContext buildContext, BoxConstraints constraints) {
+      return SizedBox(
+        width: MediaQuery.of(buildContext).size.width - 50,
+        height: 150,
+        child: charts.BarChart(
+          _pollutant == 'pm2.5' ? pm2_5ChartData : pm10ChartData,
+          animate: true,
+          defaultRenderer: charts.BarRendererConfig<String>(
+              strokeWidthPx: 0, stackedBarPaddingPx: 0),
+          defaultInteractions: true,
+          behaviors: [
+            charts.LinePointHighlighter(
+                showHorizontalFollowLine:
+                    charts.LinePointHighlighterFollowLineType.none,
+                showVerticalFollowLine:
+                    charts.LinePointHighlighterFollowLineType.nearest),
+            charts.DomainHighlighter(),
+            charts.SelectNearest(
+                eventTrigger: charts.SelectionTrigger.tapAndDrag),
+          ],
+          selectionModels: [
+            charts.SelectionModelConfig(
+                changedListener: (charts.SelectionModel model) {
+              if (model.hasDatumSelection) {
+                try {
+                  var value = model.selectedDatum[0].index;
+                  if (value != null) {
+                    _updateUI(model.selectedSeries[0].data[value]);
+                  }
+                } on Error catch (exception, stackTrace) {
+                  debugPrint(
+                      '${exception.toString()}\n${stackTrace.toString()}');
+                }
+              }
+            })
+          ],
+          // domainAxis: const charts.OrdinalAxisSpec(
+          //     showAxisLine: true,
+          //     renderSpec: charts.NoneRenderSpec()
+          // ),
+          domainAxis: charts.OrdinalAxisSpec(
+              tickProviderSpec:
+                  charts.StaticOrdinalTickProviderSpec(_hourlyStaticTicks)),
+
+          primaryMeasureAxis: charts.NumericAxisSpec(
+            tickProviderSpec: charts.StaticNumericTickProviderSpec(
+              <charts.TickSpec<double>>[
+                charts.TickSpec<double>(0,
+                    style: charts.TextStyleSpec(
+                        color:
+                            charts.ColorUtil.fromDartColor(Config.greyColor))),
+                charts.TickSpec<double>(125,
+                    style: charts.TextStyleSpec(
+                        color:
+                            charts.ColorUtil.fromDartColor(Config.greyColor))),
+                charts.TickSpec<double>(250,
+                    style: charts.TextStyleSpec(
+                        color:
+                            charts.ColorUtil.fromDartColor(Config.greyColor))),
+                charts.TickSpec<double>(375,
+                    style: charts.TextStyleSpec(
+                        color:
+                            charts.ColorUtil.fromDartColor(Config.greyColor))),
+                charts.TickSpec<double>(500,
+                    style: charts.TextStyleSpec(
+                        color:
+                            charts.ColorUtil.fromDartColor(Config.greyColor))),
+              ],
+            ),
+          ),
+        ),
+      );
+    });
   }
 
   Future<void> _initialize() async {
     _airqoApiClient = AirqoApiClient(context);
-    await _getDBMeasurements();
-    await _fetchMeasurements();
+    _createChartTicks();
+    await _fetchDBInsights();
+    await _fetchInsights();
   }
 
-  Future<void> _saveMeasurements(
-      List<InsightsChartData> insightsChartData) async {
-    await _dbHelper.insertInsightsChartData(insightsChartData);
+  Future<void> _saveInsights(List<Insights> insights, bool daily) async {
+    var frequency = daily ? 'daily' : 'hourly';
+    await _dbHelper.insertInsights(
+        insights, widget.placeDetails.siteId, frequency);
   }
 
-  Future<void> _setMeasurements(
-      List<InsightsChartData> insightsChartData) async {
-    if (insightsChartData.isEmpty || !mounted) {
+  Future<void> _setInsights(List<Insights> insights) async {
+    if (insights.isEmpty || !mounted) {
       return;
     }
 
-    try {
-      if (widget.daily) {
-        var dailyMeasurements = insightsChartData
-            .where((element) => element.frequency == 'daily')
-            .toList();
-        var pm25Data = dailyMeasurements
-            .where((element) => element.pollutant == 'pm2.5')
-            .toList();
-        var pm10Data = dailyMeasurements
-            .where((element) => element.pollutant == 'pm10')
-            .toList();
-        setState(() {
-          _dailyPm2_5ChartData = insightsDailyChartData(
-              [], 'pm2.5', widget.placeDetails, pm25Data, []);
-          _dailyPm10ChartData = insightsDailyChartData(
-              [], 'pm10', widget.placeDetails, pm10Data, []);
-        });
+    if (widget.daily) {
+      var data = insights.where((element) => element.frequency == 'daily');
+      setState(() {
+        _dailyPm2_5ChartData =
+            insightsChartData(List.from(data), 'pm2.5', 'daily');
+        _dailyPm10ChartData =
+            insightsChartData(List.from(data), 'pm10', 'daily');
+        _selectedMeasurement = _dailyPm2_5ChartData.first.first.data.first;
+        _hasMeasurements = true;
+      });
 
-        if (_pollutant == 'pm2.5') {
-          await _setSelectedMeasurement(_dailyPm2_5ChartData);
-        } else {
-          await _setSelectedMeasurement(_dailyPm10ChartData);
-        }
-      } else {
-        var hourlyMeasurements = insightsChartData
-            .where((element) => element.frequency == 'hourly')
-            .toList();
-        var pm25Data = hourlyMeasurements
-            .where((element) => element.pollutant == 'pm2.5')
-            .toList();
-        var pm10Data = hourlyMeasurements
-            .where((element) => element.pollutant == 'pm10')
-            .toList();
-        setState(() {
-          _hourlyPm2_5ChartData = insightsHourlyChartData(
-              [], 'pm2.5', widget.placeDetails, pm25Data, []);
-          _hourlyPm10ChartData = insightsHourlyChartData(
-              [], 'pm10', widget.placeDetails, pm10Data, []);
-        });
-        if (_pollutant == 'pm2.5') {
-          await _setSelectedMeasurement(_hourlyPm2_5ChartData);
-        } else {
-          await _setSelectedMeasurement(_hourlyPm10ChartData);
+      for (var element in _dailyPm2_5ChartData) {
+        if (element.first.data.first.time == DateTime.now()) {
+          _selectedMeasurement = element.first.data.last;
+          setState(() {
+            _controller = ScrollController(
+                initialScrollOffset:
+                    double.parse('${_dailyPm2_5ChartData.indexOf(element)}'));
+          });
+          break;
         }
       }
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      return;
-    }
 
-    _updateSelectedMeasurement(_selectedMeasurement!);
-    if (_lastUpdated == '') {
-      setState(() {
-        _lastUpdated = dateToString(_selectedMeasurement!.time.toString());
+      if (_pollutant == 'pm2.5') {
+        await _setSelectedMeasurement(_dailyPm2_5ChartData);
+      } else {
+        await _setSelectedMeasurement(_dailyPm10ChartData);
+      }
+    } else {
+      var firstDay = DateTime.now().getFirstDateOfMonth();
+      var lastDay = DateTime.now().getLastDateOfMonth();
+      var data = insights.where((element) {
+        var date = element.time;
+        if (element.frequency == 'hourly' &&
+            (date == firstDay ||
+                date == lastDay ||
+                date.isAfter(firstDay) ||
+                date.isBefore(lastDay))) {
+          return true;
+        }
+        return false;
       });
+      setState(() {
+        _hourlyPm2_5ChartData =
+            insightsChartData(List.from(data), 'pm2.5', 'hourly');
+        _hourlyPm10ChartData =
+            insightsChartData(List.from(data), 'pm10', 'hourly');
+        _selectedMeasurement = _hourlyPm2_5ChartData.first.first.data.first;
+        _hasMeasurements = true;
+      });
+
+      Future.delayed(const Duration(seconds: 3), () {
+        for (var element in _hourlyPm2_5ChartData) {
+          if (element.first.data.first.time == DateTime.now()) {
+            _selectedMeasurement = element.first.data.last;
+            _controller.animateTo(
+                double.parse('${_hourlyPm2_5ChartData.indexOf(element)}'),
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.elasticOut);
+            // setState(() {
+            //   _controller = ScrollController(initialScrollOffset:
+            //   double.parse('${_hourlyPm2_5ChartData.indexOf(element)}'));
+            // });
+            break;
+          }
+        }
+      });
+      // for(var element in _hourlyPm2_5ChartData){
+      //   if(element.first.data.first.time == DateTime.now()){
+      //     _selectedMeasurement = element.first.data.last;
+      //     await _controller.animateTo(
+      //         double.parse('${_hourlyPm2_5ChartData.indexOf(element)}'),
+      //         duration: const Duration(milliseconds: 300),
+      //         curve: Curves.elasticOut);
+      //     // setState(() {
+      //     //   _controller = ScrollController(initialScrollOffset:
+      //     //   double.parse('${_hourlyPm2_5ChartData.indexOf(element)}'));
+      //     // });
+      //     break;
+      //   }
+      // }
+
+      // var todayInsights = _hourlyPm2_5ChartData.toList().where((element) =>
+      // element.first.data.first.time == DateTime.now());
+      // print(todayInsights.toList().first.first.data.first.time);
+
+      if (_pollutant == 'pm2.5') {
+        await _setSelectedMeasurement(_hourlyPm2_5ChartData);
+      } else {
+        await _setSelectedMeasurement(_hourlyPm10ChartData);
+      }
     }
   }
 
   Future<void> _setSelectedMeasurement(
-      List<charts.Series<InsightsChartData, String>> chartData) async {
-    try {
-      if (chartData.isEmpty) {
-        throw Exception('Chart data is empty');
-      }
-
-      var lastAvailable = chartData.first.data
-          .where((element) => element.available && !element.isForecast);
-      if (lastAvailable.isEmpty) {
-        lastAvailable = chartData.first.data;
-      }
-      setState(() {
-        _selectedMeasurement = lastAvailable.last;
-      });
-
-      _updateSelectedMeasurement(_selectedMeasurement!);
-
-      if (_lastUpdated == '') {
-        setState(() {
-          _lastUpdated = dateToString(_selectedMeasurement!.time.toString());
-        });
-      }
-
-      setState(() {
-        _hasMeasurements = true;
-      });
-
-      // if (widget.daily) {
-      //   await _fetchHourlyMeasurements();
-      // }
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-    }
+      List<List<charts.Series<Insights, String>>> chartData) async {
+    // try {
+    //   if (chartData.isEmpty) {
+    //     throw Exception('Chart data is empty');
+    //   }
+    //
+    //   var lastAvailable = chartData.first.data
+    //       .where((element) => !element.isEmpty && !element.isForecast);
+    //   if (lastAvailable.isEmpty) {
+    //     lastAvailable = chartData.first.data;
+    //   }
+    //   setState(() {
+    //     _selectedMeasurement = lastAvailable.last;
+    //   });
+    //
+    //   _updateSelectedMeasurement(_selectedMeasurement!);
+    //
+    //   if (_lastUpdated == '') {
+    //     setState(() {
+    //       _lastUpdated = dateToString(_selectedMeasurement!.time.toString());
+    //     });
+    //   }
+    //
+    //   setState(() {
+    //     _hasMeasurements = true;
+    //   });
+    //
+    //   // if (widget.daily) {
+    //   //   await _fetchHourlyMeasurements();
+    //   // }
+    // } catch (exception, stackTrace) {
+    //   debugPrint(exception.toString());
+    //   debugPrint(stackTrace.toString());
+    //   await Sentry.captureException(
+    //     exception,
+    //     stackTrace: stackTrace,
+    //   );
+    // }
   }
 
-  void _updateSelectedMeasurement(InsightsChartData insightsChartData) {
+  void _updateSelectedMeasurement(Insights insightsChartData) {
     var time = insightsChartData.time;
     var tomorrow = DateTime.now().add(const Duration(days: 1));
-    if (insightsChartData.available) {
+    if (!insightsChartData.isEmpty) {
       setState(() {
-        _recommendations = getHealthRecommendations(insightsChartData.value);
+        _recommendations = getHealthRecommendations(
+            insightsChartData.getChartValue(_pollutant));
       });
       if (time.day == DateTime.now().day) {
         setState(() {
@@ -1076,10 +1030,10 @@ class _InsightsTabViewState extends State<InsightsTabView> {
     // }
   }
 
-  void _updateUI(InsightsChartData insightsChartData) {
-    _updateSelectedMeasurement(insightsChartData);
+  void _updateUI(Insights insights) {
+    _updateSelectedMeasurement(insights);
     setState(() {
-      _selectedMeasurement = insightsChartData;
+      _selectedMeasurement = insights;
     });
     if (_lastUpdated == '') {
       setState(() {
@@ -1089,7 +1043,7 @@ class _InsightsTabViewState extends State<InsightsTabView> {
                 : 'Updated today';
       });
     }
-    var time = insightsChartData.time;
+    var time = insights.time;
 
     if (time.day == DateTime.now().day) {
       setState(() {

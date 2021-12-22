@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 extension StringCasingExtension on String {
   String toCapitalized() {
     try {
@@ -7,7 +9,8 @@ extension StringCasingExtension on String {
       return isNotEmpty
           ? '${this[0].toUpperCase()}${substring(1).toLowerCase()}'
           : '';
-    } catch (e) {
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
       return this;
     }
   }

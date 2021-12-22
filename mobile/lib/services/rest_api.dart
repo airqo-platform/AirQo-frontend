@@ -8,6 +8,7 @@ import 'package:app/constants/config.dart';
 import 'package:app/models/email_auth_model.dart';
 import 'package:app/models/feedback.dart';
 import 'package:app/models/historical_measurement.dart';
+import 'package:app/models/insights.dart';
 import 'package:app/models/json_parsers.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place.dart';
@@ -16,6 +17,7 @@ import 'package:app/models/site.dart';
 import 'package:app/models/story.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:app/models/user_details.dart';
+import 'package:app/utils/date.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/string_extension.dart';
 import 'package:flutter/foundation.dart';
@@ -27,6 +29,16 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 class AirqoApiClient {
   final BuildContext context;
   final AirQoUrls _airQoUrls = AirQoUrls();
+  final httpClient = SentryHttpClient(
+      client: http.Client(),
+      failedRequestStatusCodes: [
+        SentryStatusCode.range(400, 404),
+        SentryStatusCode(500),
+      ],
+      captureFailedRequests: true,
+      networkTracing: true);
+  final Map<String, String> headers = HashMap()
+    ..putIfAbsent('Authorization', () => 'JWT ${Config.airqoApiToken}');
 
   AirqoApiClient(this.context);
 
@@ -231,8 +243,7 @@ class AirqoApiClient {
         return <HistoricalMeasurement>[];
       }
     } on Error catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -240,6 +251,52 @@ class AirqoApiClient {
     }
 
     return <HistoricalMeasurement>[];
+  }
+
+  Future<List<Insights>> fetchSiteInsights(String siteId, bool daily) async {
+    try {
+      var queryParams = <String, dynamic>{}
+        ..putIfAbsent('siteId', () => siteId)
+        ..putIfAbsent(
+            'startTime',
+            () =>
+                '${DateFormat('yyyy-MM-dd').format(DateTime.now().firstDateOfCalendarMonth())}T00:00:00Z')
+        ..putIfAbsent(
+            'endTime',
+            () =>
+                '${DateFormat('yyyy-MM-dd').format(DateTime.now().lastDateOfCalendarMonth())}T00:00:00Z');
+
+      if (daily) {
+        queryParams.putIfAbsent('frequency', () => 'daily');
+        // ..putIfAbsent('startTime', () => '${DateFormat('yyyy-MM-dd').format(
+        //     DateTime.now().firstDateOfCalendarMonth())}T00:00:00Z')
+        // ..putIfAbsent('endTime', () => '${DateFormat('yyyy-MM-dd').format(
+        //     DateTime.now().lastDateOfCalendarMonth())}T00:00:00Z');
+      } else {
+        queryParams.putIfAbsent('frequency', () => 'hourly');
+        // ..putIfAbsent('startTime', () => '${DateFormat('yyyy-MM-dd').format(
+        //     DateTime.now().getFirstDateOfMonth())}T00:00:00Z')
+        // ..putIfAbsent('endTime', () => '${DateFormat('yyyy-MM-dd').format(
+        //     DateTime.now().getLastDateOfMonth())}T00:00:00Z');
+      }
+
+      final responseBody =
+          await _performGetRequest(queryParams, _airQoUrls.insights);
+
+      if (responseBody != null) {
+        return compute(Insights.parseInsights, responseBody);
+      } else {
+        return <Insights>[];
+      }
+    } on Error catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return <Insights>[];
   }
 
   Future<Measurement> fetchSiteMeasurements(Site site) async {
@@ -261,8 +318,7 @@ class AirqoApiClient {
         throw Exception('site does not exist');
       }
     } on Error catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -300,8 +356,7 @@ class AirqoApiClient {
       await showSnackBar(context, Config.connectionErrorMessage);
       return '';
     } on Error catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -327,9 +382,12 @@ class AirqoApiClient {
 
       return compute(
           EmailAuthModel.parseEmailAuthModel, json.decode(response.body));
-    } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+    } on SocketException {
+      await showSnackBar(context, Config.socketErrorMessage);
+    } on TimeoutException {
+      await showSnackBar(context, Config.connectionErrorMessage);
+    } on Error catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -362,6 +420,7 @@ class AirqoApiClient {
           <String, dynamic>{}, Config.feedbackWebhook, jsonEncode(body));
       return response;
     } on Error catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -387,6 +446,10 @@ class AirqoApiClient {
 
       await _performPostRequest(
           <String, dynamic>{}, _airQoUrls.welcomeMessage, jsonEncode(body));
+    } on SocketException {
+      await showSnackBar(context, Config.socketErrorMessage);
+    } on TimeoutException {
+      await showSnackBar(context, Config.connectionErrorMessage);
     } on Error catch (exception, stackTrace) {
       await Sentry.captureException(
         exception,
@@ -409,10 +472,8 @@ class AirqoApiClient {
         });
       }
 
-      Map<String, String> headers = HashMap()
-        ..putIfAbsent('Authorization', () => 'JWT ${Config.airqoApiToken}');
-      final response = await http.get(Uri.parse(url), headers: headers);
-
+      // final response = await http.get(Uri.parse(url), headers: headers);
+      final response = await httpClient.get(Uri.parse(url), headers: headers);
       if (response.statusCode == 200) {
         return json.decode(response.body);
       } else {
@@ -423,8 +484,7 @@ class AirqoApiClient {
     } on TimeoutException {
       await showSnackBar(context, Config.connectionErrorMessage);
     } on Error catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -459,8 +519,7 @@ class AirqoApiClient {
     } on TimeoutException {
       await showSnackBar(context, Config.connectionErrorMessage);
     } on Error catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -503,8 +562,7 @@ class AirqoApiClient {
       await showSnackBar(context, Config.connectionErrorMessage);
       return false;
     } on Error catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -540,10 +598,8 @@ class SearchApi {
       if (responseBody['status'] == 'OK') {
         return compute(Suggestion.parseSuggestions, responseBody);
       }
-      if (responseBody['status'] == 'ZERO_RESULTS') {
-        return [];
-      }
     } on Error catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -568,6 +624,7 @@ class SearchApi {
 
       return place;
     } on Error catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -605,6 +662,7 @@ class SearchApi {
       await showSnackBar(context, Config.connectionErrorMessage);
       return null;
     } on Error catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,

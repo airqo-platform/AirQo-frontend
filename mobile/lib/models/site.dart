@@ -47,7 +47,7 @@ class Site {
 
   String getName() {
     if (!searchName.isNull()) {
-      return searchName.toTitleCase();
+      return searchName;
     }
 
     if (!name.isNull()) {
@@ -111,8 +111,8 @@ class Site {
       try {
         var site = Site.fromJson(jsonElement);
         sites.add(site);
-      } catch (e) {
-        debugPrint(e.toString());
+      } catch (exception, stackTrace) {
+        debugPrint('$exception\n$stackTrace');
       }
     }
 

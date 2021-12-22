@@ -471,8 +471,8 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
       Future.delayed(const Duration(seconds: 2), () {
         try {
           showTipText(_infoToolTipText, _infoToolTipKey, context, () {}, false);
-        } catch (e) {
-          debugPrint(e.toString());
+        } catch (exception, stackTrace) {
+          debugPrint('$exception\n$stackTrace');
         }
       });
     }

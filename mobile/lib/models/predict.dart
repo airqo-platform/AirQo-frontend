@@ -108,8 +108,8 @@ class Predict {
         }
         predict.time = DateFormat('yyyy-MM-dd HH:mm:ss').format(time);
         predictions.add(predict);
-      } on Error catch (e) {
-        debugPrint(e.toString());
+      } on Error catch (exception, stackTrace) {
+        debugPrint('$exception\n$stackTrace');
       }
     }
 

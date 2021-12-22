@@ -535,8 +535,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
         }
       }
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -549,8 +548,8 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
       setState(() {
         _tipsProgress = _tipsProgress + _interval!;
       });
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
   }
 

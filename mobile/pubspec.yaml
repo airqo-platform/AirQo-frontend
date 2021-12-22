@@ -60,7 +60,7 @@ dependencies:
   google_fonts: ^2.1.0
   flutter_inappwebview: ^5.3.2
   in_app_review: ^2.0.3
-  sentry_flutter: ^6.0.1
+  sentry_flutter: ^6.2.0
   firebase_analytics: ^8.3.4
   lottie: ^1.2.1
   share_plus: ^3.0.4

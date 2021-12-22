@@ -250,8 +250,8 @@ class _DashboardViewState extends State<DashboardView> {
           widgets.add(emptyAvatar(14));
         }
       } else {}
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
 
     if (mounted) {
@@ -784,8 +784,7 @@ class _DashboardViewState extends State<DashboardView> {
             ..add(kyaAvatar(14, completeKya[2]));
         } else {}
       } on Error catch (exception, stackTrace) {
-        debugPrint(exception.toString());
-        debugPrint(stackTrace.toString());
+        debugPrint('$exception\n$stackTrace');
         await Sentry.captureException(
           exception,
           stackTrace: stackTrace,
@@ -836,8 +835,8 @@ class _DashboardViewState extends State<DashboardView> {
           }, true);
         }, false);
       }
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
   }
 }

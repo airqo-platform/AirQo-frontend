@@ -39,8 +39,7 @@ class Kya {
       kya.kyaItems = kyaItems;
       return kya;
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
     }
 
     return Kya('', '', '', [], 0.0);
@@ -66,8 +65,7 @@ class Kya {
       }
       return kyaJsonList;
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -91,8 +89,7 @@ class Kya {
     try {
       return Kya.fromJson(jsonBody);
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       Sentry.captureException(
         exception,
         stackTrace: stackTrace,

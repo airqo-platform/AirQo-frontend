@@ -101,9 +101,8 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
     try {
       var userDetails = await _cloudStore.getProfile(_customAuth.getId());
       await _airqoApiClient!.sendWelcomeMessage(userDetails);
-    } catch (e, track) {
-      debugPrint(e.toString());
-      debugPrint(track.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
   }
 }

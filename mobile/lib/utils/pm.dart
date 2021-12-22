@@ -189,7 +189,7 @@ Color pm10TextColor(double pm10) {
     return const Color(0xff8E00AC);
   } else if (pm10 >= 431.00) {
     // hazardous
-    return const Color(0xffA51F3F);
+    return const Color(0xffDBA5B2);
   } else {
     return Config.appColor;
   }
@@ -261,7 +261,7 @@ Color pm2_5TextColor(double pm2_5) {
     return const Color(0xff8E00AC);
   } else if (pm2_5 >= 250.5) {
     // hazardous
-    return const Color(0xffA51F3F);
+    return const Color(0xffDBA5B2);
   } else {
     return Config.appColor;
   }

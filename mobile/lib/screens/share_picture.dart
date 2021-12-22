@@ -80,8 +80,8 @@ class TakePictureState extends State<TakePicture> {
                 ),
               ),
             );
-          } catch (e) {
-            debugPrint(e.toString());
+          } catch (exception, stackTrace) {
+            debugPrint('$exception\n$stackTrace');
           }
         },
         child: const Icon(Icons.camera_alt_outlined),

@@ -229,13 +229,13 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
               }), (r) => false)
             });
       }
-    } on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException catch (exception, stackTrace) {
       setState(() {
         nextBtnColor = Config.appColorBlue;
         _isSaving = false;
       });
       await showSnackBar(context, 'Failed to update profile. Try again later');
-      debugPrint(e.toString());
+      debugPrint('$exception\n$stackTrace');
     }
   }
 

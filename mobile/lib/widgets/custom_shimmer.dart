@@ -89,6 +89,8 @@ Widget textLoadingAnimation(double height, double width) {
 }
 
 class ExampleMainWidget extends StatelessWidget {
+  const ExampleMainWidget({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     final overlay = LoadingOverlay.of(context);

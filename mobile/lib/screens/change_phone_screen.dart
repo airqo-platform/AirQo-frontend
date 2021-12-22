@@ -486,15 +486,16 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
         });
         await showSnackBar(context, 'Failed to update phone number');
       }
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'invalid-verification-code') {
+    } on FirebaseAuthException catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+      if (exception.code == 'invalid-verification-code') {
         await showSnackBar(context, 'Invalid Code');
         setState(() {
           _nextBtnColor = Config.appColorBlue;
           _isVerifying = false;
         });
       }
-      if (e.code == 'session-expired') {
+      if (exception.code == 'session-expired') {
         await _customAuth.verifyPhone('$_countryCode$_phoneNumber', context,
             verifyPhoneFn, autoVerifyPhoneFn);
         await showSnackBar(
@@ -507,13 +508,13 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
           _isVerifying = false;
         });
       }
-    } catch (e) {
+    } catch (exception, stackTrace) {
       await showSnackBar(context, 'Try again later');
       setState(() {
         _nextBtnColor = Config.appColorBlue;
         _isVerifying = false;
       });
-      debugPrint(e.toString());
+      debugPrint('$exception\n$stackTrace');
     }
   }
 }
