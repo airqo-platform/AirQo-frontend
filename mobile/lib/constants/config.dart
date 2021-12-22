@@ -117,6 +117,9 @@ class Config {
 
   static String get prefAppTheme => dotenv.env['PREF_APP_THEME'] ?? '';
 
+  static String get prefDashboardRegion =>
+      dotenv.env['PREF_DASHBOARD_REGION'] ?? '';
+
   static String get prefHomePageTips => dotenv.env['PREF_HOME_PAGE_TIPS'] ?? '';
 
   static String get prefInsightsCardTips =>

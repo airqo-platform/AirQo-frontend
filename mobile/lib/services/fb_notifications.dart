@@ -17,16 +17,28 @@ import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-import 'local_notifications.dart';
 import 'local_storage.dart';
+
+enum AnalyticsEvent {
+  browserAsAppGuest,
+  createUserProfile,
+  rateApp,
+  shareAirQualityInformation,
+  allowLocation,
+  allowNotification,
+  uploadProfilePic,
+  completeKyaLesson,
+  saveFavoritePlace
+}
 
 class CloudAnalytics {
   final FirebaseAnalytics analytics = FirebaseAnalytics();
 
-  Future<void> logEvent(String name) async {
-    // await analytics.logEvent(
-    //   name: name,
-    // );
+  Future<void> logEvent(AnalyticsEvent analyticsEvent) async {
+    print('analytics logging => ${analyticsEvent.getString()}');
+    await analytics.logEvent(
+      name: analyticsEvent.getString(),
+    );
   }
 
   void logScreenTransition(String screen) {
@@ -532,6 +544,8 @@ class CloudStore {
           userDetails.preferences.notifications = value as bool;
         } else if (field == 'location') {
           userDetails.preferences.location = value as bool;
+        } else if (field == 'aqShares') {
+          userDetails.preferences.aqShares = value as int;
         }
         var userJson = userDetails.toJson();
 
@@ -1165,103 +1179,33 @@ class CustomAuth {
   }
 }
 
-class NotificationService {
-  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
-  final CustomAuth _customAuth = CustomAuth();
-  final CloudStore _cloudStore = CloudStore();
-
-  Future<bool> checkPermission() async {
-    try {
-      var settings = await _firebaseMessaging.getNotificationSettings();
-
-      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-        return true;
-      }
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
+extension AnalyticsEventExtension on AnalyticsEvent {
+  String getString() {
+    var prefix = '';
+    if (!kReleaseMode) {
+      prefix = 'stage_';
     }
-
-    return false;
-  }
-
-  Future<String?> getToken() async {
-    try {
-      var token = await _firebaseMessaging.getToken();
-      return token;
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-    }
-
-    return null;
-  }
-
-  Future<bool> requestPermission() async {
-    try {
-      var settings = await _firebaseMessaging.requestPermission(
-        alert: true,
-        announcement: false,
-        badge: true,
-        carPlay: false,
-        criticalAlert: false,
-        provisional: false,
-        sound: true,
-      );
-      var status =
-          settings.authorizationStatus == AuthorizationStatus.authorized;
-
-      var id = _customAuth.getId();
-
-      if (id != '') {
-        await _cloudStore.updatePreferenceFields(
-            id, 'notifications', status, 'bool');
-      }
-      return status;
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-    }
-
-    return false;
-  }
-
-  Future<bool> revokePermission() async {
-    // TODO: implement revoke permission
-    var id = _customAuth.getId();
-
-    if (id != '') {
-      await _cloudStore.updatePreferenceFields(
-          id, 'notifications', false, 'bool');
-    }
-    return false;
-  }
-
-  static Future<void> backgroundNotificationHandler(
-      RemoteMessage message) async {
-    try {
-      var notificationMessage = UserNotification.composeNotification(message);
-      if (notificationMessage != null) {
-        await LocalNotifications().showAlertNotification(notificationMessage);
-      }
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-  }
-
-  static Future<void> foregroundMessageHandler(RemoteMessage message) async {
-    try {
-      var notificationMessage = UserNotification.composeNotification(message);
-      if (notificationMessage != null) {
-        await LocalNotifications().showAlertNotification(notificationMessage);
-      }
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
+    switch (this) {
+      case AnalyticsEvent.browserAsAppGuest:
+        return '${prefix}browser_as_guest';
+      case AnalyticsEvent.createUserProfile:
+        return '${prefix}created_a_profile';
+      case AnalyticsEvent.rateApp:
+        return '${prefix}rate_app';
+      case AnalyticsEvent.shareAirQualityInformation:
+        return '${prefix}share_air_quality_information';
+      case AnalyticsEvent.allowLocation:
+        return '${prefix}allow_location';
+      case AnalyticsEvent.allowNotification:
+        return '${prefix}allow_notification';
+      case AnalyticsEvent.uploadProfilePic:
+        return '${prefix}upload_profile_pic';
+      case AnalyticsEvent.completeKyaLesson:
+        return '${prefix}complete_kya_lesson';
+      case AnalyticsEvent.saveFavoritePlace:
+        return '${prefix}save_favorite_place';
+      default:
+        return '';
     }
   }
 }

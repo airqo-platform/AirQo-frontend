@@ -31,14 +31,14 @@ class PlaceDetails {
     if (location.isNull()) {
       return '';
     }
-    return location.toTitleCase();
+    return location;
   }
 
   String getName() {
     if (name.isNull()) {
       return getLocation();
     }
-    return name.toTitleCase();
+    return name;
   }
 
   PlaceDetails initialize() {

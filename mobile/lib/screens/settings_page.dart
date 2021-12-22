@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:app/constants/config.dart';
 import 'package:app/screens/phone_reauthenticate_screen.dart';
 import 'package:app/services/fb_notifications.dart';
@@ -10,8 +8,6 @@ import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:in_app_review/in_app_review.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'about_page.dart';
 import 'email_reauthenticate_screen.dart';
@@ -29,7 +25,7 @@ class _SettingsPageState extends State<SettingsPage> {
   final CustomAuth _customAuth = CustomAuth();
   bool _allowNotification = false;
   bool _allowLocation = false;
-  final InAppReview _inAppReview = InAppReview.instance;
+  final RateService _rateService = RateService();
   final LocationService _locationService = LocationService();
   final NotificationService _notificationService = NotificationService();
   final SecureStorage _secureStorage = SecureStorage();
@@ -179,7 +175,7 @@ class _SettingsPageState extends State<SettingsPage> {
               activeColor: Config.appColorBlue,
               onChanged: (bool value) {
                 if (value) {
-                  _locationService.requestLocationAccess().then((response) => {
+                  _locationService.allowLocationAccess().then((response) => {
                         setState(() {
                           _allowLocation = response;
                         })
@@ -208,7 +204,7 @@ class _SettingsPageState extends State<SettingsPage> {
               activeColor: Config.appColorBlue,
               onChanged: (bool value) {
                 if (value) {
-                  _notificationService.requestPermission().then((response) => {
+                  _notificationService.allowNotifications().then((response) => {
                         setState(() {
                           _allowNotification = response;
                         })
@@ -254,30 +250,7 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           GestureDetector(
             onTap: () async {
-              if (await _inAppReview.isAvailable()) {
-                // await _inAppReview.requestReview();
-                await _inAppReview.openStoreListing(
-                  appStoreId: Config.iosStoreId,
-                );
-              } else {
-                if (Platform.isAndroid ||
-                    Platform.isLinux ||
-                    Platform.isWindows) {
-                  try {
-                    await launch(Config.playStoreUrl);
-                  } catch (exception, stackTrace) {
-                    debugPrint(
-                        '${exception.toString()}\n${stackTrace.toString()}');
-                  }
-                } else if (Platform.isIOS || Platform.isMacOS) {
-                  try {
-                    await launch(Config.appStoreUrl);
-                  } catch (exception, stackTrace) {
-                    debugPrint(
-                        '${exception.toString()}\n${stackTrace.toString()}');
-                  }
-                }
-              }
+              await _rateService.rateApp();
             },
             child: cardSection('Rate the AirQo App'),
           ),

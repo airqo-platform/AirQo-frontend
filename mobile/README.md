@@ -43,5 +43,7 @@ flutter build ipa
 ```bash
 dart fix --dry-run
 dart fix --apply
+flutter pub run dart_code_metrics:metrics analyze lib
+flutter pub run dart_code_metrics:metrics check-unused-files lib
 ```
 

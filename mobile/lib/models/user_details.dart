@@ -12,7 +12,7 @@ class UserDetails {
   String phoneNumber = '';
   String device = '';
   String photoUrl = '';
-  UserPreferences preferences = UserPreferences(false, false, false);
+  UserPreferences preferences = UserPreferences(false, false, false, 0);
 
   UserDetails(
       this.title,
@@ -54,8 +54,8 @@ class UserDetails {
   }
 
   static UserDetails initialize() {
-    return UserDetails(
-        '', '', '', '', '', '', '', '', UserPreferences(false, false, false));
+    return UserDetails('', '', '', '', '', '', '', '',
+        UserPreferences(false, false, false, 0));
   }
 
   static UserDetails parseUserDetails(dynamic jsonBody) {
@@ -74,7 +74,11 @@ class UserPreferences {
   @JsonKey(defaultValue: false)
   bool alerts;
 
-  UserPreferences(this.notifications, this.location, this.alerts);
+  @JsonKey(defaultValue: 0)
+  int aqShares;
+
+  UserPreferences(
+      this.notifications, this.location, this.alerts, this.aqShares);
 
   factory UserPreferences.fromJson(Map<String, dynamic> json) =>
       _$UserPreferencesFromJson(json);

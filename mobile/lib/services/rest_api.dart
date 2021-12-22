@@ -573,6 +573,137 @@ class AirqoApiClient {
   }
 }
 
+class AirqoPlainApiClient {
+  final AirQoUrls _airQoUrls = AirQoUrls();
+  final httpClient = SentryHttpClient(
+      client: http.Client(),
+      failedRequestStatusCodes: [
+        SentryStatusCode.range(400, 404),
+        SentryStatusCode(500),
+      ],
+      captureFailedRequests: true,
+      networkTracing: true);
+  final Map<String, String> headers = HashMap()
+    ..putIfAbsent('Authorization', () => 'JWT ${Config.airqoApiToken}');
+
+  Future<List<HistoricalMeasurement>> fetchHistoricalMeasurements() async {
+    try {
+      var startTimeUtc = DateTime.now().toUtc().add(const Duration(hours: -24));
+      var date = DateFormat('yyyy-MM-dd').format(startTimeUtc);
+      var time = '${startTimeUtc.hour}';
+
+      if (time.length == 1) {
+        time = '0$time';
+      }
+      var startTime = '${date}T$time:00:00Z';
+
+      var queryParams = <String, dynamic>{}
+        ..putIfAbsent('startTime', () => startTime)
+        ..putIfAbsent('frequency', () => 'hourly')
+        ..putIfAbsent('recent', () => 'no')
+        ..putIfAbsent('external', () => 'no')
+        ..putIfAbsent('metadata', () => 'site_id')
+        ..putIfAbsent('tenant', () => 'airqo');
+
+      final responseBody =
+          await _performGetRequest(queryParams, _airQoUrls.measurements);
+
+      if (responseBody != null) {
+        return compute(HistoricalMeasurement.parseMeasurements, responseBody);
+      } else {
+        return <HistoricalMeasurement>[];
+      }
+    } on Error catch (exception, stackTrace) {
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return <HistoricalMeasurement>[];
+  }
+
+  Future<List<Measurement>> fetchLatestMeasurements() async {
+    try {
+      var queryParams = <String, dynamic>{}
+        ..putIfAbsent('recent', () => 'yes')
+        ..putIfAbsent('metadata', () => 'site_id')
+        ..putIfAbsent('external', () => 'no')
+        ..putIfAbsent('frequency', () => 'hourly')
+        ..putIfAbsent('tenant', () => 'airqo');
+
+      final responseBody =
+          await _performGetRequest(queryParams, _airQoUrls.measurements);
+      if (responseBody != null) {
+        return await compute(parseMeasurements, responseBody);
+      } else {
+        return <Measurement>[];
+      }
+    } on Error catch (exception, stackTrace) {
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return <Measurement>[];
+  }
+
+  Future<List<Story>> fetchLatestStories() async {
+    try {
+      final responseBody = await _performGetRequest({}, Config.storiesUrl);
+
+      if (responseBody != null) {
+        return compute(Story.parseStories, responseBody);
+      } else {
+        return <Story>[];
+      }
+    } on Error catch (exception, stackTrace) {
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return <Story>[];
+  }
+
+  Future<dynamic> _performGetRequest(
+      Map<String, dynamic> queryParams, String url) async {
+    try {
+      if (queryParams.isNotEmpty) {
+        url = '$url?';
+        queryParams.forEach((key, value) {
+          if (queryParams.keys.elementAt(0).compareTo(key) == 0) {
+            url = '$url$key=$value';
+          } else {
+            url = '$url&$key=$value';
+          }
+        });
+      }
+
+      final response = await httpClient.get(Uri.parse(url), headers: headers);
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        return null;
+      }
+    } on SocketException catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+    } on TimeoutException catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+    } on Error catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return null;
+  }
+}
+
 class SearchApi {
   final String sessionToken;
   final apiKey = Config.googleApiKey;

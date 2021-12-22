@@ -1,8 +1,8 @@
 import 'package:app/constants/config.dart';
 import 'package:app/models/kya.dart';
 import 'package:app/services/fb_notifications.dart';
+import 'package:app/services/native_api.dart';
 import 'package:app/utils/dialogs.dart';
-import 'package:app/utils/share.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -38,6 +38,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
   final CloudStore _cloudStore = CloudStore();
   final CustomAuth _customAuth = CustomAuth();
   final GlobalKey _globalKey = GlobalKey();
+  final ShareService _shareService = ShareService();
 
   @override
   Widget build(BuildContext context) {
@@ -418,7 +419,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
                 ),
                 GestureDetector(
                   onTap: () {
-                    shareKya(context, _globalKey);
+                    _shareService.shareKya(context, _globalKey);
                   },
                   child: SvgPicture.asset(
                     'assets/icon/share_icon.svg',

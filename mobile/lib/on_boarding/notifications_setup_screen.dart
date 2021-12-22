@@ -1,6 +1,6 @@
 import 'package:app/constants/config.dart';
 import 'package:app/screens/home_page.dart';
-import 'package:app/services/fb_notifications.dart';
+import 'package:app/services/native_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:flutter/material.dart';
@@ -54,7 +54,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
             padding: const EdgeInsets.only(left: 24, right: 24),
             child: GestureDetector(
               onTap: () {
-                _notificationService.requestPermission().then((value) => {
+                _notificationService.allowNotifications().then((value) => {
                       Navigator.pushAndRemoveUntil(context,
                           MaterialPageRoute(builder: (context) {
                         return LocationSetupScreen(widget.enableBackButton);

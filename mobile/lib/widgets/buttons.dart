@@ -2,6 +2,7 @@ import 'package:app/constants/config.dart';
 import 'package:app/on_boarding/login_screen.dart';
 import 'package:app/on_boarding/signup_screen.dart';
 import 'package:app/screens/home_page.dart';
+import 'package:app/services/fb_notifications.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -76,6 +77,7 @@ Widget containerNextButton(String text, Color buttonColor) {
 }
 
 Widget loginOptions(context) {
+  var cloudAnalytics = CloudAnalytics();
   return Column(
     children: [
       Row(
@@ -125,6 +127,7 @@ Widget loginOptions(context) {
           ),
           GestureDetector(
             onTap: () {
+              cloudAnalytics.logEvent(AnalyticsEvent.browserAsAppGuest);
               Navigator.pushAndRemoveUntil(context,
                   MaterialPageRoute(builder: (context) {
                 return const HomePage();
@@ -229,6 +232,7 @@ Widget signButton(String text) {
 }
 
 Widget signUpOptions(BuildContext context) {
+  var cloudAnalytics = CloudAnalytics();
   return Column(
     children: [
       Row(
@@ -278,6 +282,7 @@ Widget signUpOptions(BuildContext context) {
           ),
           GestureDetector(
             onTap: () {
+              cloudAnalytics.logEvent(AnalyticsEvent.browserAsAppGuest);
               Navigator.pushAndRemoveUntil(context,
                   MaterialPageRoute(builder: (context) {
                 return const HomePage();

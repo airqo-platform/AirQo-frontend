@@ -15,6 +15,13 @@ extension StringCasingExtension on String {
     }
   }
 
+  bool equalsIgnoreCase(String value) {
+    if (toLowerCase() == value.toLowerCase()) {
+      return true;
+    }
+    return false;
+  }
+
   bool isValidEmail() {
     if (isNull()) {
       return false;

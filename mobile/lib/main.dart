@@ -27,6 +27,8 @@ Future<void> main() async {
   HttpOverrides.global = AppHttpOverrides();
   await dotenv.load(fileName: Config.environmentFile);
 
+  WidgetsFlutterBinding.ensureInitialized();
+
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     // statusBarColor: Config.appBodyColor,
@@ -37,7 +39,10 @@ Future<void> main() async {
     // statusBarBrightness: Brightness.light,
     systemNavigationBarIconBrightness: Brightness.dark,
   ));
-  WidgetsFlutterBinding.ensureInitialized();
+
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+      overlays: [SystemUiOverlay.bottom, SystemUiOverlay.top]);
+
   await Firebase.initializeApp();
 
   // await Firebase.initializeApp().then((value) => {

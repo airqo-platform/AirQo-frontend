@@ -5,12 +5,12 @@ import 'package:app/models/place_details.dart';
 import 'package:app/models/predict.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
+import 'package:app/services/native_api.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/data_formatter.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/pm.dart';
-import 'package:app/utils/share.dart';
 import 'package:app/widgets/recomendation.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
@@ -66,6 +66,7 @@ class _InsightsTabViewState extends State<InsightsTabView> {
 
   final GlobalKey _forecastToolTipKey = GlobalKey();
   final GlobalKey _infoToolTipKey = GlobalKey();
+  final ShareService _shareSvc = ShareService();
 
   @override
   Widget build(BuildContext context) {
@@ -162,7 +163,7 @@ class _InsightsTabViewState extends State<InsightsTabView> {
                       children: [
                         GestureDetector(
                           onTap: () {
-                            shareGraph(
+                            _shareSvc.shareGraph(
                                 context, _globalKey, widget.placeDetails);
                           },
                           child: iconTextButton(

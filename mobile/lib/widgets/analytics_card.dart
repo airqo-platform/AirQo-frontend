@@ -6,10 +6,10 @@ import 'package:app/models/place_details.dart';
 import 'package:app/screens/insights_page.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
+import 'package:app/services/native_api.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/pm.dart';
-import 'package:app/utils/share.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/svg.dart';
@@ -183,6 +183,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
       ' to understand what air quality analytics mean';
   final GlobalKey _infoToolTipKey = GlobalKey();
   final CustomAuth _customAuth = CustomAuth();
+  final ShareService _shareSvc = ShareService();
 
   @override
   Widget build(BuildContext context) {
@@ -206,7 +207,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
             children: [
               RepaintBoundary(
                   key: _globalKey,
-                  child: shareCardImage(
+                  child: _shareSvc.shareCardImage(
                       widget.measurement, widget.placeDetails, context)),
               Container(
                 color: Colors.white,
@@ -400,7 +401,8 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                   widget.placeDetails.getName();
                               shareMeasurement.site.description =
                                   widget.placeDetails.getName();
-                              shareCard(context, _globalKey, shareMeasurement);
+                              _shareSvc.shareCard(
+                                  context, _globalKey, shareMeasurement);
                             },
                             child: iconTextButton(
                                 SvgPicture.asset(
@@ -497,6 +499,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
   bool _showHeartAnimation = false;
   final GlobalKey _globalKey = GlobalKey();
   final CustomAuth _customAuth = CustomAuth();
+  final ShareService _shareSvc = ShareService();
 
   @override
   Widget build(BuildContext context) {
@@ -516,7 +519,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
             children: [
               RepaintBoundary(
                   key: _globalKey,
-                  child: shareCardImage(
+                  child: _shareSvc.shareCardImage(
                       widget.measurement, widget.placeDetails, context)),
               Container(
                 color: Colors.white,
@@ -663,7 +666,8 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                 widget.placeDetails.getName();
                             shareMeasurement.site.description =
                                 widget.placeDetails.getName();
-                            shareCard(context, _globalKey, shareMeasurement);
+                            _shareSvc.shareCard(
+                                context, _globalKey, shareMeasurement);
                           },
                           child: iconTextButton(
                               SvgPicture.asset(

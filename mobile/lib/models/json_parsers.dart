@@ -50,6 +50,24 @@ List<Measurement> parseMeasurements(dynamic jsonBody) {
   return measurements;
 }
 
+String regionFromJson(dynamic json) {
+  if (json == null) {
+    return 'Central Region';
+  }
+  var regionJson = json as String;
+  if (regionJson.toLowerCase().contains('central')) {
+    return 'Central Region';
+  } else if (regionJson.toLowerCase().contains('east')) {
+    return 'Eastern Region';
+  } else if (regionJson.toLowerCase().contains('west')) {
+    return 'Western Region';
+  } else if (regionJson.toLowerCase().contains('north')) {
+    return 'Northern Region';
+  } else {
+    return 'Central Region';
+  }
+}
+
 String siteIdFromJson(dynamic _) {
   return 'siteId';
 }

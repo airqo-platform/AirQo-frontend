@@ -9,6 +9,7 @@ import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/services/rest_api.dart';
+import 'package:app/utils/dashboard.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/widgets/analytics_card.dart';
@@ -61,6 +62,8 @@ class _DashboardViewState extends State<DashboardView> {
   final DBHelper _dbHelper = DBHelper();
   final ScrollController _scrollController = ScrollController();
   final List<Widget> _dashBoardPlaces = [
+    analyticsCardLoading(),
+    analyticsCardLoading(),
     analyticsCardLoading(),
     analyticsCardLoading(),
     analyticsCardLoading(),
@@ -194,6 +197,53 @@ class _DashboardViewState extends State<DashboardView> {
             ),
           ),
         ));
+  }
+
+  void getDashboardLocations() async {
+    var measurements = await _dbHelper.getLatestMeasurements();
+
+    if (measurements.isNotEmpty) {
+      setState(_dashBoardPlaces.clear);
+
+      var regions = [
+        'cent',
+        'west',
+        'east',
+      ];
+
+      for (var i = 0; i < regions.length; i++) {
+        var regionMeasurements = measurements
+            .where((element) =>
+                element.site.region.toLowerCase().contains(regions[i]))
+            .toList();
+
+        if (regionMeasurements.isNotEmpty) {
+          var random = Random().nextInt(regionMeasurements.length);
+
+          if (mounted) {
+            setState(() {
+              _dashBoardPlaces.add(AnalyticsCard(
+                  PlaceDetails.measurementToPLace(regionMeasurements[random]),
+                  regionMeasurements[random],
+                  _isRefreshing,
+                  false));
+            });
+          }
+        } else {
+          var random = Random().nextInt(measurements.length);
+
+          if (mounted) {
+            setState(() {
+              _dashBoardPlaces.add(AnalyticsCard(
+                  PlaceDetails.measurementToPLace(measurements[random]),
+                  measurements[random],
+                  _isRefreshing,
+                  false));
+            });
+          }
+        }
+      }
+    }
   }
 
   void getFavourites(List<PlaceDetails> favouritePlaces) async {
@@ -557,6 +607,7 @@ class _DashboardViewState extends State<DashboardView> {
         child: ListView(
             controller: _scrollController,
             shrinkWrap: true,
+            physics: const AlwaysScrollableScrollPhysics(),
             children: [
               Text(
                 getDateTime(),
@@ -577,23 +628,50 @@ class _DashboardViewState extends State<DashboardView> {
               if (currentLocation != null)
                 AnalyticsCard(PlaceDetails.measurementToPLace(currentLocation!),
                     currentLocation!, _isRefreshing, _showAnalyticsCardTips),
-              if (currentLocation == null) analyticsCardLoading(),
+              // if (currentLocation == null) analyticsCardLoading(),
+              if (_dashBoardPlaces.isNotEmpty && currentLocation == null)
+                _dashBoardPlaces[0],
+              if (_dashBoardPlaces.isEmpty && currentLocation == null)
+                analyticsCardLoading(),
               const SizedBox(
                 height: 16,
               ),
               if (_kya != null && _customAuth.isLoggedIn()) kyaSection(),
-              if (_dashBoardPlaces.isNotEmpty) _dashBoardPlaces[0],
-              const SizedBox(
-                height: 16,
-              ),
+              if (_kya != null && _customAuth.isLoggedIn())
+                const SizedBox(
+                  height: 16,
+                ),
+              if (_dashBoardPlaces.isNotEmpty && currentLocation != null)
+                _dashBoardPlaces[0],
+              if (_dashBoardPlaces.isNotEmpty && currentLocation != null)
+                const SizedBox(
+                  height: 16,
+                ),
               if (_dashBoardPlaces.length >= 2) _dashBoardPlaces[1],
-              const SizedBox(
-                height: 16,
-              ),
+              if (_dashBoardPlaces.length >= 2)
+                const SizedBox(
+                  height: 16,
+                ),
               if (_dashBoardPlaces.length >= 3) _dashBoardPlaces[2],
-              const SizedBox(
-                height: 16,
-              ),
+              if (_dashBoardPlaces.length >= 3)
+                const SizedBox(
+                  height: 16,
+                ),
+              if (_dashBoardPlaces.length >= 4) _dashBoardPlaces[3],
+              if (_dashBoardPlaces.length >= 4)
+                const SizedBox(
+                  height: 16,
+                ),
+              if (_dashBoardPlaces.length >= 5) _dashBoardPlaces[4],
+              if (_dashBoardPlaces.length >= 5)
+                const SizedBox(
+                  height: 16,
+                ),
+              if (_dashBoardPlaces.length >= 6) _dashBoardPlaces[5],
+              if (_dashBoardPlaces.length >= 6)
+                const SizedBox(
+                  height: 16,
+                ),
             ]));
   }
 
@@ -629,48 +707,28 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   void _getDashboardLocations() async {
-    var measurements = await _dbHelper.getLatestMeasurements();
+    var region = getNextDashboardRegion(_preferences!);
+    var measurements = await _dbHelper.getRegionSites(region);
 
     if (measurements.isNotEmpty) {
       setState(_dashBoardPlaces.clear);
 
-      var regions = [
-        'cent',
-        'west',
-        'east',
-      ];
-
-      for (var i = 0; i < regions.length; i++) {
-        var regionMeasurements = measurements
-            .where((element) =>
-                element.site.region.toLowerCase().contains(regions[i]))
-            .toList();
-
-        if (regionMeasurements.isNotEmpty) {
-          var random = Random().nextInt(regionMeasurements.length);
-
-          if (mounted) {
-            setState(() {
-              _dashBoardPlaces.add(AnalyticsCard(
-                  PlaceDetails.measurementToPLace(regionMeasurements[random]),
-                  regionMeasurements[random],
-                  _isRefreshing,
-                  false));
-            });
-          }
-        } else {
-          var random = Random().nextInt(measurements.length);
-
-          if (mounted) {
-            setState(() {
-              _dashBoardPlaces.add(AnalyticsCard(
-                  PlaceDetails.measurementToPLace(measurements[random]),
-                  measurements[random],
-                  _isRefreshing,
-                  false));
-            });
-          }
+      for (var i = 0; i <= 5; i++) {
+        if (measurements.isEmpty) {
+          break;
         }
+        var random = Random().nextInt(measurements.length);
+
+        if (mounted) {
+          setState(() {
+            _dashBoardPlaces.add(AnalyticsCard(
+                PlaceDetails.measurementToPLace(measurements[random]),
+                measurements[random],
+                _isRefreshing,
+                false));
+          });
+        }
+        measurements.removeAt(random);
       }
     }
   }
@@ -709,13 +767,6 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   void _getLocationMeasurements() async {
-    var defaultMeasurement = await _locationService.defaultLocationPlace();
-    if (defaultMeasurement != null && mounted) {
-      setState(() {
-        currentLocation = defaultMeasurement;
-      });
-    }
-
     var measurement = await _locationService.getCurrentLocationReadings();
     if (measurement != null && mounted) {
       setState(() {

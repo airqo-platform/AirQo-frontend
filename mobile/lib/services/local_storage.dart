@@ -802,8 +802,9 @@ class SharedPreferencesHelper {
     var notifications = _sharedPreferences!.getBool('notifications') ?? false;
     var location = _sharedPreferences!.getBool('location') ?? false;
     var alerts = _sharedPreferences!.getBool('alerts') ?? false;
+    var aqShares = _sharedPreferences!.getInt('aqShares') ?? 0;
 
-    return UserPreferences(notifications, location, alerts);
+    return UserPreferences(notifications, location, alerts, aqShares);
   }
 
   Future<void> initialize() async {
@@ -816,8 +817,10 @@ class SharedPreferencesHelper {
     }
     if (type == 'bool') {
       await _sharedPreferences!.setBool(key, value);
-    } else {
+    } else if (type == 'double') {
       await _sharedPreferences!.setDouble(key, value);
+    } else {
+      await _sharedPreferences!.setString(key, value);
     }
   }
 
@@ -829,5 +832,6 @@ class SharedPreferencesHelper {
         .setBool('notifications', userPreferences.notifications);
     await _sharedPreferences!.setBool('location', userPreferences.location);
     await _sharedPreferences!.setBool('alerts', userPreferences.alerts);
+    await _sharedPreferences!.setInt('aqShares', userPreferences.aqShares);
   }
 }

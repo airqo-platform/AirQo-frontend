@@ -36,6 +36,7 @@ UserPreferences _$UserPreferencesFromJson(Map<String, dynamic> json) =>
       json['notifications'] as bool? ?? false,
       json['location'] as bool? ?? false,
       json['alerts'] as bool? ?? false,
+      json['aqShares'] as int? ?? 0,
     );
 
 Map<String, dynamic> _$UserPreferencesToJson(UserPreferences instance) =>
@@ -43,4 +44,5 @@ Map<String, dynamic> _$UserPreferencesToJson(UserPreferences instance) =>
       'notifications': instance.notifications,
       'location': instance.location,
       'alerts': instance.alerts,
+      'aqShares': instance.aqShares,
     };

@@ -56,7 +56,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
           child: GestureDetector(
             onTap: () {
               _locationService
-                  .requestLocationAccess()
+                  .allowLocationAccess()
                   .then((value) => {
                         Navigator.pushAndRemoveUntil(context,
                             MaterialPageRoute(builder: (context) {

@@ -92,10 +92,10 @@ class SplashScreenState extends State<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SvgPicture.asset(
-              'assets/icon/airqo_home.svg',
+              'assets/icon/splash_image.svg',
               semanticsLabel: 'Share',
-              height: 118,
-              width: 81,
+              // height: 118,
+              // width: 81,
             ),
           ],
         ),

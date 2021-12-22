@@ -2,6 +2,8 @@ import 'package:app/utils/string_extension.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import 'json_parsers.dart';
+
 part 'site.g.dart';
 
 @JsonSerializable()
@@ -30,7 +32,7 @@ class Site {
   @JsonKey(required: false, defaultValue: '')
   String description;
 
-  @JsonKey(required: true, defaultValue: '')
+  @JsonKey(required: true, defaultValue: '', fromJson: regionFromJson)
   final String region;
 
   @JsonKey(required: false, defaultValue: 0.0)
@@ -51,11 +53,11 @@ class Site {
     }
 
     if (!name.isNull()) {
-      return name.toTitleCase();
+      return name;
     }
 
     if (!description.isNull()) {
-      return description.toTitleCase();
+      return description;
     }
     return getLocation();
   }
