@@ -190,9 +190,9 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
   void initState() {
     _cloudAnalytics.logScreenTransition('Air Pollution ways');
     _interval =
-        double.parse((1 / widget.kya.kyaItems.length).toStringAsFixed(3));
+        double.parse((1 / widget.kya.lessons.length).toStringAsFixed(3));
     _tipsProgress = _interval!;
-    _maxProgress = _tipsProgress * widget.kya.kyaItems.length;
+    _maxProgress = _tipsProgress * widget.kya.lessons.length;
     super.initState();
   }
 
@@ -300,7 +300,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
     });
   }
 
-  Widget slideCard(KyaItem kyaItem, int index) {
+  Widget slideCard(KyaLesson kyaItem, int index) {
     return Card(
       shadowColor: Colors.transparent,
       shape: RoundedRectangleBorder(
@@ -445,9 +445,9 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
                     });
                   },
                   itemBuilder: (BuildContext context, int index) {
-                    return slideCard(widget.kya.kyaItems[index], index);
+                    return slideCard(widget.kya.lessons[index], index);
                   },
-                  itemCount: widget.kya.kyaItems.length,
+                  itemCount: widget.kya.lessons.length,
                 ),
               ),
             ),
@@ -478,7 +478,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
                       if (_tipsProgress >= _maxProgress) {
                         showLastPage();
                       } else {
-                        if (_currentPage < (widget.kya.kyaItems.length - 1)) {
+                        if (_currentPage < (widget.kya.lessons.length - 1)) {
                           await _controller.animateToPage(_currentPage + 1,
                               duration: const Duration(milliseconds: 200),
                               curve: Curves.bounceIn);
@@ -527,7 +527,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
       if (widget.trackProgress) {
         var page = _controller.page;
         if (page != null) {
-          var progress = (page / widget.kya.kyaItems.length) * 99;
+          var progress = (page / widget.kya.lessons.length) * 99;
           if (_showLastPage) {
             progress = 99;
           }

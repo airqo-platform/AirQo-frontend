@@ -3,7 +3,7 @@ import 'package:app/models/historical_measurement.dart';
 import 'package:app/models/insights_chart_data.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/predict.dart';
-import 'package:app/services/fb_notifications.dart';
+import 'package:app/services/app_service.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/services/rest_api.dart';
@@ -41,7 +41,6 @@ class _InsightsTabViewState extends State<InsightsTabView> {
   List<Recommendation> _recommendations = [];
   final DBHelper _dbHelper = DBHelper();
   final GlobalKey _globalKey = GlobalKey();
-  final CustomAuth _customAuth = CustomAuth();
   final String _toggleToolTipText = 'Customize your air quality analytics '
       'with a single click ';
   final GlobalKey _toggleToolTipKey = GlobalKey();
@@ -58,6 +57,7 @@ class _InsightsTabViewState extends State<InsightsTabView> {
 
   AirqoApiClient? _airqoApiClient;
   List<charts.TickSpec<String>> _hourlyStaticTicks = [];
+  AppService? _appService;
 
   final String _forecastToolTipText = 'This icon turns blue when the selected '
       'bar on the graph is forecast.';
@@ -592,8 +592,7 @@ class _InsightsTabViewState extends State<InsightsTabView> {
         _showHeartAnimation = false;
       });
     });
-    await _dbHelper.updateFavouritePlaces(
-        widget.placeDetails, context, _customAuth.getId());
+    await _appService!.updateFavouritePlace(widget.placeDetails);
   }
 
   Widget _dailyChart() {
@@ -933,6 +932,7 @@ class _InsightsTabViewState extends State<InsightsTabView> {
 
   Future<void> _initialize() async {
     _airqoApiClient = AirqoApiClient(context);
+    _appService = AppService(context);
     await _getDBMeasurements();
     await _fetchMeasurements();
   }

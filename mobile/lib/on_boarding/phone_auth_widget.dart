@@ -1,6 +1,7 @@
 import 'package:app/constants/config.dart';
 import 'package:app/on_boarding/profile_setup_screen.dart';
 import 'package:app/screens/home_page.dart';
+import 'package:app/services/app_service.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
@@ -38,8 +39,8 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
 
   final CustomAuth _customAuth = CustomAuth();
   final TextEditingController _phoneInputController = TextEditingController();
-  final CloudStore _cloudStore = CloudStore();
   final _phoneFormKey = GlobalKey<FormState>();
+  AppService? _appService;
 
   void autoVerifyPhoneFn(PhoneAuthCredential credential) {
     if (widget.action == 'signup') {
@@ -50,7 +51,7 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
             }), (r) => false)
           });
     } else {
-      _customAuth.logInWithPhoneNumber(credential, context).then((value) => {
+      _appService!.login(credential, '', '', authMethod.phone).then((value) => {
             Navigator.pushAndRemoveUntil(context,
                 MaterialPageRoute(builder: (context) {
               return const HomePage();
@@ -334,6 +335,7 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
 
   @override
   void initState() {
+    _appService = AppService(context);
     initialize();
     super.initState();
   }
@@ -545,8 +547,8 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
               }), (r) => false)
             });
       } else {
-        await _customAuth
-            .logInWithPhoneNumber(credential, context)
+        await _appService!
+            .login(credential, '', '', authMethod.phone)
             .then((value) => {
                   Navigator.pushAndRemoveUntil(context,
                       MaterialPageRoute(builder: (context) {
@@ -554,7 +556,7 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
                   }), (r) => false)
                 });
       }
-    } on FirebaseAuthException catch (exception, stackTrace) {
+    } on FirebaseAuthException catch (exception) {
       if (exception.code == 'invalid-verification-code') {
         await showSnackBar(context, 'Invalid Code');
         setState(() {

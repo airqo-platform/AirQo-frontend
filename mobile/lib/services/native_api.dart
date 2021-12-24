@@ -13,6 +13,7 @@ import 'package:app/utils/distance.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/utils/string_extension.dart';
 import 'package:app/widgets/custom_widgets.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -530,49 +531,7 @@ class ShareService {
   final SharedPreferencesHelper _preferencesHelper = SharedPreferencesHelper();
   final CloudAnalytics _cloudAnalytics = CloudAnalytics();
 
-  Future<void> shareCard(BuildContext buildContext, GlobalKey globalKey,
-      Measurement measurement) async {
-    var dialogResponse = await showDialog<String>(
-      context: buildContext,
-      builder: (BuildContext context) => AlertDialog(
-        title: const Text('Share Options'),
-        content: const Text('Share via'),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(context, 'image'),
-            child: const Text('Image'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, 'text'),
-            child: const Text('Text'),
-          ),
-        ],
-      ),
-    );
-
-    if (dialogResponse == 'image') {
-      var boundary =
-          globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-      var image = await boundary.toImage(pixelRatio: 10.0);
-      var byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-      var pngBytes = byteData!.buffer.asUint8List();
-
-      final directory = (await getApplicationDocumentsDirectory()).path;
-      var imgFile = File('$directory/analytics_card.png');
-      await imgFile.writeAsBytes(pngBytes);
-
-      var message = '${measurement.site.getName()}, Current Air Quality. \n\n'
-          'Source: AiQo App';
-      await Share.shareFiles([imgFile.path], text: message)
-          .then((value) => {_updateUserShares()});
-    } else if (dialogResponse == 'text') {
-      shareMeasurementText(measurement);
-    } else {
-      return;
-    }
-  }
-
-  Widget shareCardImage(Measurement measurement, PlaceDetails placeDetails,
+  Widget analyticsCardImage(Measurement measurement, PlaceDetails placeDetails,
       BuildContext context) {
     return Container(
       padding: const EdgeInsets.only(top: 12, bottom: 12, left: 10, right: 10),
@@ -591,17 +550,15 @@ class ShareService {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    AutoSizeText(
                       placeDetails.getName(),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
                       style: const TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 17),
                     ),
-                    Text(
+                    AutoSizeText(
                       placeDetails.getLocation(),
                       maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                           fontSize: 12, color: Colors.black.withOpacity(0.3)),
                     ),
@@ -616,11 +573,10 @@ class ShareService {
                           color: pm2_5ToColor(measurement.getPm2_5Value())
                               .withOpacity(0.4),
                           border: Border.all(color: Colors.transparent)),
-                      child: Text(
+                      child: AutoSizeText(
                         pm2_5ToString(measurement.getPm2_5Value()),
                         maxLines: 1,
                         textAlign: TextAlign.start,
-                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 12,
                           color: pm2_5TextColor(measurement.getPm2_5Value()),
@@ -631,7 +587,7 @@ class ShareService {
                       height: 8,
                     ),
                     Text(
-                      dateToString(measurement.time),
+                      dateToShareString(measurement.time),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -654,6 +610,48 @@ class ShareService {
     );
   }
 
+  Future<void> shareCard(BuildContext buildContext, GlobalKey globalKey,
+      Measurement measurement) async {
+    var dialogResponse = await showDialog<String>(
+      context: buildContext,
+      builder: (BuildContext context) => AlertDialog(
+        title: const Text('Sharing Options'),
+        content: const Text('Share via'),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'image'),
+            child: const Text('Image'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'text'),
+            child: const Text('Text'),
+          ),
+        ],
+      ),
+    );
+
+    if (dialogResponse == 'image') {
+      var boundary =
+          globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      var image = await boundary.toImage(pixelRatio: 10.0);
+      var byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      var pngBytes = byteData!.buffer.asUint8List();
+
+      final directory = (await getApplicationDocumentsDirectory()).path;
+      var imgFile = File('$directory/airqo_analytics_card.png');
+      await imgFile.writeAsBytes(pngBytes);
+
+      var message = '${measurement.site.getName()}, Current Air Quality. \n\n'
+          'Source: AiQo App';
+      await Share.shareFiles([imgFile.path], text: message)
+          .then((value) => {_updateUserShares()});
+    } else if (dialogResponse == 'text') {
+      shareMeasurementText(measurement);
+    } else {
+      return;
+    }
+  }
+
   Future<void> shareGraph(BuildContext buildContext, GlobalKey globalKey,
       PlaceDetails placeDetails) async {
     var boundary =
@@ -663,7 +661,7 @@ class ShareService {
     var pngBytes = byteData!.buffer.asUint8List();
 
     final directory = (await getApplicationDocumentsDirectory()).path;
-    var imgFile = File('$directory/analytics_graph.png');
+    var imgFile = File('$directory/airqo_analytics_graph.png');
     await imgFile.writeAsBytes(pngBytes);
 
     var message = '${placeDetails.getName()}, Current Air Quality. \n\n'

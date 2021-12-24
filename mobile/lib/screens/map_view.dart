@@ -816,6 +816,7 @@ class _MapViewState extends State<MapView> {
           suggestion.suggestionDetails.getMainText(),
           suggestion.suggestionDetails.getSecondaryText(),
           nearestSite.id,
+          suggestion.placeId,
           place.geometry.location.lat,
           place.geometry.location.lng);
 

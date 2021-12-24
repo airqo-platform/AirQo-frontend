@@ -37,6 +37,17 @@ String chartDateToString(String formattedString, bool format) {
   }
 }
 
+String dateToShareString(String formattedString) {
+  try {
+    var formattedDate = DateTime.parse(formattedString);
+    var dateFormatter = DateFormat('EEE, d MMM yyyy hh:mm a');
+    return dateFormatter.format(formattedDate);
+  } on Error catch (exception, stackTrace) {
+    debugPrint('$exception\n$stackTrace');
+    return dateToString(formattedString);
+  }
+}
+
 String dateToString(String formattedString) {
   try {
     var now = DateTime.now();

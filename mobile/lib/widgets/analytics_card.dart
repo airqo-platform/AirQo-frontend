@@ -4,8 +4,7 @@ import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/screens/insights_page.dart';
-import 'package:app/services/fb_notifications.dart';
-import 'package:app/services/local_storage.dart';
+import 'package:app/services/app_service.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/dialogs.dart';
@@ -176,13 +175,12 @@ class MapAnalyticsCard extends StatefulWidget {
 }
 
 class _AnalyticsCardState extends State<AnalyticsCard> {
-  final DBHelper _dbHelper = DBHelper();
+  AppService? _appService;
   bool _showHeartAnimation = false;
   final GlobalKey _globalKey = GlobalKey();
   final String _infoToolTipText = 'Tap this icon'
       ' to understand what air quality analytics mean';
   final GlobalKey _infoToolTipKey = GlobalKey();
-  final CustomAuth _customAuth = CustomAuth();
   final ShareService _shareSvc = ShareService();
 
   @override
@@ -207,7 +205,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
             children: [
               RepaintBoundary(
                   key: _globalKey,
-                  child: _shareSvc.shareCardImage(
+                  child: _shareSvc.analyticsCardImage(
                       widget.measurement, widget.placeDetails, context)),
               Container(
                 color: Colors.white,
@@ -463,6 +461,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
 
   @override
   void initState() {
+    _appService = AppService(context);
     showTips();
     super.initState();
   }
@@ -489,17 +488,15 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
         _showHeartAnimation = false;
       });
     });
-    await _dbHelper.updateFavouritePlaces(
-        widget.placeDetails, context, _customAuth.getId());
+    await _appService!.updateFavouritePlace(widget.placeDetails);
   }
 }
 
 class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
-  final DBHelper _dbHelper = DBHelper();
   bool _showHeartAnimation = false;
   final GlobalKey _globalKey = GlobalKey();
-  final CustomAuth _customAuth = CustomAuth();
   final ShareService _shareSvc = ShareService();
+  AppService? _appService;
 
   @override
   Widget build(BuildContext context) {
@@ -519,7 +516,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
             children: [
               RepaintBoundary(
                   key: _globalKey,
-                  child: _shareSvc.shareCardImage(
+                  child: _shareSvc.analyticsCardImage(
                       widget.measurement, widget.placeDetails, context)),
               Container(
                 color: Colors.white,
@@ -727,6 +724,12 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
     );
   }
 
+  @override
+  void initState() {
+    _appService = AppService(context);
+    super.initState();
+  }
+
   void updateFavPlace() async {
     setState(() {
       _showHeartAnimation = true;
@@ -736,7 +739,6 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
         _showHeartAnimation = false;
       });
     });
-    await _dbHelper.updateFavouritePlaces(
-        widget.placeDetails, context, _customAuth.getId());
+    await _appService!.updateFavouritePlace(widget.placeDetails);
   }
 }

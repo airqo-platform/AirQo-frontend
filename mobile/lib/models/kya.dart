@@ -11,9 +11,9 @@ class Kya {
   String title;
   String imageUrl;
   String id;
-  List<KyaItem> kyaItems = [];
+  List<KyaLesson> lessons = [];
 
-  Kya(this.title, this.imageUrl, this.id, this.kyaItems, this.progress);
+  Kya(this.title, this.imageUrl, this.id, this.lessons, this.progress);
 
   factory Kya.fromDbJson(List<Map<String, Object?>>? json) {
     if (json == null) {
@@ -29,14 +29,14 @@ class Kya {
           [],
           singleKya['progress'] as double);
 
-      var kyaItems = <KyaItem>[];
+      var kyaLessons = <KyaLesson>[];
       for (var item in json) {
-        var kyaItem = KyaItem(item['item_title'] as String,
-            item['item_imageUrl'] as String, item['item_body'] as String);
-        kyaItems.add(kyaItem);
+        var kyaItem = KyaLesson(item['lesson_title'] as String,
+            item['lesson_imageUrl'] as String, item['lesson_body'] as String);
+        kyaLessons.add(kyaItem);
       }
 
-      kya.kyaItems = kyaItems;
+      kya.lessons = kyaLessons;
       return kya;
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
@@ -49,18 +49,18 @@ class Kya {
 
   List<Map<String, dynamic>> parseKyaToDb() {
     try {
-      var kyaItems = this.kyaItems;
-      var kyaJson = toJson()..remove('kyaItems');
+      var kyaLessons = lessons;
+      var kyaJson = toJson()..remove('lessons');
       var kyaJsonList = <Map<String, dynamic>>[];
 
-      for (var item in kyaItems) {
-        var itemJson = <String, dynamic>{
-          'item_title': item.title,
-          'item_imageUrl': item.imageUrl,
-          'item_body': item.body,
+      for (var lesson in kyaLessons) {
+        var lessonJson = <String, dynamic>{
+          'lesson_title': lesson.title,
+          'lesson_imageUrl': lesson.imageUrl,
+          'lesson_body': lesson.body,
         };
-        kyaJson.addAll(itemJson);
-        var jsonBody = itemJson..addAll(kyaJson);
+        kyaJson.addAll(lessonJson);
+        var jsonBody = lessonJson..addAll(kyaJson);
         kyaJsonList.add(jsonBody);
       }
       return kyaJsonList;
@@ -79,7 +79,7 @@ class Kya {
   static String createTableStmt() => 'CREATE TABLE IF NOT EXISTS ${dbName()}('
       'auto_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, id TEXT, '
       'progress REAL, title TEXT, imageUrl TEXT,'
-      'item_title TEXT, item_imageUrl TEXT, item_body TEXT)';
+      'lesson_title TEXT, lesson_imageUrl TEXT, lesson_body TEXT)';
 
   static String dbName() => 'kya_db';
 
@@ -100,15 +100,29 @@ class Kya {
 }
 
 @JsonSerializable(explicitToJson: true)
-class KyaItem {
+class KyaLesson {
   String title;
   String imageUrl;
   String body;
 
-  KyaItem(this.title, this.imageUrl, this.body);
+  KyaLesson(this.title, this.imageUrl, this.body);
 
-  factory KyaItem.fromJson(Map<String, dynamic> json) =>
-      _$KyaItemFromJson(json);
+  factory KyaLesson.fromJson(Map<String, dynamic> json) =>
+      _$KyaLessonFromJson(json);
 
-  Map<String, dynamic> toJson() => _$KyaItemToJson(this);
+  Map<String, dynamic> toJson() => _$KyaLessonToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class UserKya {
+  @JsonKey(defaultValue: 0.0)
+  double progress;
+  String id;
+
+  UserKya(this.id, this.progress);
+
+  factory UserKya.fromJson(Map<String, dynamic> json) =>
+      _$UserKyaFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserKyaToJson(this);
 }

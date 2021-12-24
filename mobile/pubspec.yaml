@@ -69,6 +69,7 @@ dependencies:
   geocoding: ^2.0.1
   flutter_dotenv: ^5.0.2
   flutter_native_splash: ^1.3.2
+  auto_size_text: ^3.0.0
   
 flutter_native_splash:
   # flutter pub run flutter_native_splash:create

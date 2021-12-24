@@ -1,6 +1,7 @@
 import 'package:app/constants/config.dart';
 import 'package:app/on_boarding/profile_setup_screen.dart';
 import 'package:app/screens/home_page.dart';
+import 'package:app/services/app_service.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dialogs.dart';
@@ -42,7 +43,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
   final CustomAuth _customAuth = CustomAuth();
   final TextEditingController _emailInputController = TextEditingController();
   AirqoApiClient? _airqoApiClient;
-  final CloudStore _cloudStore = CloudStore();
+  AppService? _appService;
 
   @override
   Widget build(BuildContext context) {
@@ -337,6 +338,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
   }
 
   void initialize() {
+    _appService = AppService(context);
     setState(() {
       _emailFormValid = false;
       _emailAddress = '';
@@ -501,8 +503,8 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
       success = await _customAuth.signUpWithEmailAddress(
           _emailAddress, _emailVerificationLink);
     } else {
-      success = await _customAuth.logInWithEmailAddress(
-          _emailAddress, _emailVerificationLink, context);
+      success = await _appService!
+          .login(null, _emailAddress, _emailVerificationLink, authMethod.email);
     }
 
     if (success) {

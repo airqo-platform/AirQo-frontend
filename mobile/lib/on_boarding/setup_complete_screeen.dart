@@ -1,5 +1,6 @@
 import 'package:app/constants/config.dart';
 import 'package:app/screens/home_page.dart';
+import 'package:app/services/app_service.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dialogs.dart';
@@ -20,6 +21,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   AirqoApiClient? _airqoApiClient;
   final CustomAuth _customAuth = CustomAuth();
   final CloudStore _cloudStore = CloudStore();
+  AppService? _appService;
 
   @override
   Widget build(BuildContext context) {
@@ -65,15 +67,13 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   @override
   void initState() {
     _airqoApiClient = AirqoApiClient(context);
+    _appService = AppService(context);
     initialize();
     super.initState();
   }
 
   void loadProfile() async {
-    var user = _customAuth.getUser();
-    if (user != null) {
-      await _customAuth.updateLocalStorage(user, context);
-    }
+    await _appService!.postLoginActions();
   }
 
   Future<bool> onWillPop() {
@@ -100,6 +100,9 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   Future<void> sendWelcomeEmail() async {
     try {
       var userDetails = await _cloudStore.getProfile(_customAuth.getId());
+      if (userDetails == null) {
+        return;
+      }
       await _airqoApiClient!.sendWelcomeMessage(userDetails);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');

@@ -1,6 +1,7 @@
 import 'package:app/constants/config.dart';
 import 'package:app/models/insights.dart';
 import 'package:app/models/place_details.dart';
+import 'package:app/services/app_service.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/native_api.dart';
@@ -42,6 +43,7 @@ class _InsightsTabState extends State<InsightsTab> {
       'with a single click ';
   final GlobalKey _toggleToolTipKey = GlobalKey();
   ScrollController _controller = ScrollController();
+  AppService? _appService;
 
   Insights? _selectedMeasurement;
   String _lastUpdated = '';
@@ -128,16 +130,12 @@ class _InsightsTabState extends State<InsightsTab> {
               const SizedBox(
                 height: 20,
               ),
-              // Padding(
-              //   padding: const EdgeInsets.only(right: 16, left: 16),
-              //   child: RepaintBoundary(
-              //     key: _globalKey,
-              //     child: insightsGraph(),
-              //   ),
-              // ),
               Padding(
                 padding: const EdgeInsets.only(right: 16, left: 16),
-                child: insightsGraph(),
+                child: RepaintBoundary(
+                  key: _globalKey,
+                  child: insightsGraph(),
+                ),
               ),
               const SizedBox(
                 height: 16,
@@ -625,8 +623,7 @@ class _InsightsTabState extends State<InsightsTab> {
         _showHeartAnimation = false;
       });
     });
-    await _dbHelper.updateFavouritePlaces(
-        widget.placeDetails, context, _customAuth.getId());
+    await _appService!.updateFavouritePlace(widget.placeDetails);
   }
 
   void _createChartTicks() {
@@ -848,6 +845,7 @@ class _InsightsTabState extends State<InsightsTab> {
 
   Future<void> _initialize() async {
     _airqoApiClient = AirqoApiClient(context);
+    _appService = AppService(context);
     _createChartTicks();
     await _fetchDBInsights();
     await _fetchInsights();

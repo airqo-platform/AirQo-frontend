@@ -3,13 +3,11 @@ import 'package:app/models/notification.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/on_boarding/welcome_screen.dart';
 import 'package:app/screens/home_page.dart';
+import 'package:app/services/app_service.dart';
 import 'package:app/services/fb_notifications.dart';
-import 'package:app/services/local_storage.dart';
-import 'package:app/services/rest_api.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -22,9 +20,7 @@ class SplashScreenState extends State<SplashScreen> {
   int _widgetId = 0;
   final CustomAuth _customAuth = CustomAuth();
   bool _visible = false;
-  final DBHelper _dbHelper = DBHelper();
-  AirqoApiClient? _airqoApiClient;
-  final CloudStore _cloudStore = CloudStore();
+  AppService? _appService;
 
   @override
   Widget build(BuildContext context) {
@@ -63,23 +59,13 @@ class SplashScreenState extends State<SplashScreen> {
         }
       }), (r) => false);
     });
-    _getLatestMeasurements();
-    if (isLoggedIn) {
-      var user = _customAuth.getUser();
-      if (user != null) {
-        Sentry.configureScope(
-          (scope) =>
-              scope.user = SentryUser(id: user.uid, email: user.email ?? ''),
-        );
-      }
-      _loadKya();
-      _loadNotifiers();
-    }
+    _appService!.fetchData();
+    _loadNotifiers();
   }
 
   @override
   void initState() {
-    _airqoApiClient = AirqoApiClient(context);
+    _appService = AppService(context);
     initialize();
     super.initState();
   }
@@ -126,21 +112,6 @@ class SplashScreenState extends State<SplashScreen> {
         ]),
       ),
     );
-  }
-
-  void _getLatestMeasurements() {
-    try {
-      _airqoApiClient!.fetchLatestMeasurements().then((value) => {
-            if (value.isNotEmpty) {_dbHelper.insertLatestMeasurements(value)}
-          });
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-  }
-
-  void _loadKya() async {
-    var kyas = await _cloudStore.getKya(_customAuth.getId());
-    await _dbHelper.insertKyas(kyas);
   }
 
   void _loadNotifiers() {

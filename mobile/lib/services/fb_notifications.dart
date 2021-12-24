@@ -35,7 +35,7 @@ class CloudAnalytics {
   final FirebaseAnalytics analytics = FirebaseAnalytics();
 
   Future<void> logEvent(AnalyticsEvent analyticsEvent) async {
-    print('analytics logging => ${analyticsEvent.getString()}');
+    debugPrint('analytics logging => ${analyticsEvent.getString()}');
     await analytics.logEvent(
       name: analyticsEvent.getString(),
     );
@@ -56,18 +56,18 @@ class CloudStore {
   final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
   final SharedPreferencesHelper _preferencesHelper = SharedPreferencesHelper();
 
-  Future<void> addFavPlace(String id, PlaceDetails placeDetails) async {
+  Future<void> addFavPlace(String userId, PlaceDetails placeDetails) async {
     var hasConnection = await isConnected();
-    if (!hasConnection || id.trim().isEmpty) {
+    if (!hasConnection || userId.trim().isEmpty) {
       return;
     }
 
     try {
-      var placeId =
-          placeDetails.getName().trim().toLowerCase().replaceAll(' ', '-');
       await _firebaseFirestore
-          .collection('${Config.favPlacesCollection}/$id/$id')
-          .doc(placeId)
+          .collection(Config.favPlacesCollection)
+          .doc(userId)
+          .collection(userId)
+          .doc(placeDetails.placeId)
           .set(placeDetails.toJson());
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
@@ -138,34 +138,6 @@ class CloudStore {
     }
   }
 
-  Future<List<Kya>> getCompleteKya(String id) async {
-    if (id == '') {
-      return [];
-    }
-
-    var hasConnection = await isConnected();
-    if (!hasConnection) {
-      // TODO Implement no internet access
-      return [];
-    }
-
-    try {
-      var userKya = await getKya(id);
-
-      var complete =
-          userKya.where((element) => element.progress >= 100.0).toList();
-
-      return complete;
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-    }
-    return [];
-  }
-
   Future<List<PlaceDetails>> getFavPlaces(String id) async {
     if (id == '') {
       return [];
@@ -202,79 +174,67 @@ class CloudStore {
     return [];
   }
 
-  Future<Kya?> getIncompleteKya(String id) async {
-    if (id == '') {
-      return null;
-    }
-
+  Future<List<Kya>> getKya(String userId) async {
     var hasConnection = await isConnected();
     if (!hasConnection) {
-      // TODO Implement no internet access
-      return null;
+      return [];
     }
 
-    try {
-      var userKya = await getKya(id);
-
-      var incomplete =
-          userKya.where((element) => element.progress < 100.0).toList();
-
-      if (incomplete.isEmpty) {
-        var allKyaJson =
-            await _firebaseFirestore.collection(Config.kyaCollection).get();
-
-        var kyaDocs = allKyaJson.docs;
-        for (var doc in kyaDocs) {
-          var kya = await compute(Kya.parseKya, doc.data());
-          if (kya == null) {
+    if (userId.isEmpty || userId.trim() == '') {
+      var kyasJson =
+          await _firebaseFirestore.collection(Config.kyaCollection).get();
+      var kyaDocs = kyasJson.docs;
+      var kyas = <Kya>[];
+      for (var kyaDoc in kyaDocs) {
+        try {
+          var kyaData = kyaDoc.data();
+          if (kyaData.isEmpty) {
             continue;
           }
-          var y = userKya.where((element) => element.id == kya.id);
-          if (y.isEmpty) {
-            await _firebaseFirestore
-                .collection('${Config.usersKyaCollection}/$id/$id')
-                .doc(kya.id)
-                .set(kya.toJson());
-            break;
-          }
+
+          var kya = Kya.fromJson(kyaData);
+          kyas.add(kya);
+        } catch (exception, stackTrace) {
+          debugPrint('$exception\n$stackTrace');
         }
-
-        return null;
       }
-
-      return incomplete.first;
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-    }
-    return null;
-  }
-
-  Future<List<Kya>> getKya(String id) async {
-    if (id == '') {
-      return [];
-    }
-
-    var hasConnection = await isConnected();
-    if (!hasConnection) {
-      return [];
+      return kyas;
     }
 
     try {
-      var kyasJson = await _firebaseFirestore
-          .collection('${Config.usersKyaCollection}/$id/$id')
+      var userKyaJson = await _firebaseFirestore
+          .collection(Config.usersKyaCollection)
+          .doc(userId)
+          .collection(userId)
           .get();
+
+      if (userKyaJson.docs.isEmpty) {
+        await reloadKya(userId);
+      }
 
       var kyas = <Kya>[];
 
-      var kyaDocs = kyasJson.docs;
-      for (var doc in kyaDocs) {
-        var notification = await compute(Kya.parseKya, doc.data());
-        if (notification != null) {
-          kyas.add(notification);
+      var userKyaDocs = userKyaJson.docs;
+      for (var userKyaDoc in userKyaDocs) {
+        try {
+          var userKyaData = userKyaDoc.data();
+          if (userKyaData.isEmpty) {
+            continue;
+          }
+
+          var userKya = UserKya.fromJson(userKyaData);
+          var kyaJson = await _firebaseFirestore
+              .collection(Config.kyaCollection)
+              .doc(userKya.id)
+              .get();
+
+          var kyaData = kyaJson.data();
+          if (kyaData != null) {
+            var kya = Kya.fromJson(kyaData)..progress = userKya.progress;
+            kyas.add(kya);
+          }
+        } catch (exception, stackTrace) {
+          debugPrint('$exception\n$stackTrace');
         }
       }
 
@@ -328,9 +288,9 @@ class CloudStore {
     return [];
   }
 
-  Future<UserDetails> getProfile(String id) async {
+  Future<UserDetails?> getProfile(String id) async {
     if (id == '') {
-      return UserDetails.initialize();
+      return null;
     }
 
     var hasConnection = await isConnected();
@@ -352,7 +312,7 @@ class CloudStore {
       );
     }
 
-    return UserDetails.initialize();
+    return null;
   }
 
   Future<bool> isConnected() async {
@@ -450,17 +410,69 @@ class CloudStore {
     return false;
   }
 
-  Future<void> removeFavPlace(String id, PlaceDetails placeDetails) async {
+  Future<void> reloadKya(String userId) async {
+    if (userId.isEmpty || userId.trim() == '') {
+      return;
+    }
+
     var hasConnection = await isConnected();
-    if (!hasConnection || id.trim().isEmpty) {
+    if (!hasConnection) {
+      return;
+    }
+
+    try {
+      var kyasJson =
+          await _firebaseFirestore.collection(Config.kyaCollection).get();
+
+      var kyaDocs = kyasJson.docs;
+      for (var kyaDoc in kyaDocs) {
+        try {
+          var kyaData = kyaDoc.data();
+          if (kyaData.isEmpty) {
+            continue;
+          }
+
+          var kya = Kya.fromJson(kyaData);
+          var userKyaJson = await _firebaseFirestore
+              .collection(Config.usersKyaCollection)
+              .doc(userId)
+              .collection(userId)
+              .doc(kya.id)
+              .get();
+
+          if (!userKyaJson.exists) {
+            var userKya = UserKya(kya.id, 0.0);
+            await _firebaseFirestore
+                .collection(Config.usersKyaCollection)
+                .doc(userId)
+                .collection(userId)
+                .doc(kya.id)
+                .set(userKya.toJson());
+          }
+        } catch (exception, stackTrace) {
+          debugPrint('$exception\n$stackTrace');
+        }
+      }
+    } on Error catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  Future<void> removeFavPlace(String userId, PlaceDetails placeDetails) async {
+    var hasConnection = await isConnected();
+    if (!hasConnection || userId.trim().isEmpty) {
       return;
     }
     try {
-      var placeId =
-          placeDetails.getName().trim().toLowerCase().replaceAll(' ', '-');
       await _firebaseFirestore
-          .collection('${Config.favPlacesCollection}/$id/$id')
-          .doc(placeId)
+          .collection(Config.favPlacesCollection)
+          .doc(userId)
+          .collection(userId)
+          .doc(placeDetails.placeId)
           .delete();
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
@@ -499,8 +511,9 @@ class CloudStore {
     }
   }
 
-  Future<void> updateKyaProgress(String id, Kya kya, double progress) async {
-    if (id == '') {
+  Future<void> updateKyaProgress(
+      String userId, Kya kya, double progress) async {
+    if (userId.isEmpty || userId.trim() == '') {
       return;
     }
 
@@ -511,7 +524,9 @@ class CloudStore {
 
     try {
       await _firebaseFirestore
-          .collection('${Config.usersKyaCollection}/$id/$id')
+          .collection(Config.usersKyaCollection)
+          .doc(userId)
+          .collection(userId)
           .doc(kya.id)
           .update({'progress': progress});
     } on Error catch (exception, stackTrace) {
@@ -627,10 +642,10 @@ class CustomAuth {
   final SharedPreferencesHelper _preferencesHelper = SharedPreferencesHelper();
   final DBHelper _dbHelper = DBHelper();
 
-  Future<void> createProfile() async {
+  Future<UserDetails?> createProfile() async {
     var hasConnection = await isConnected();
     if (!hasConnection) {
-      return;
+      return null;
     }
 
     try {
@@ -652,9 +667,8 @@ class CustomAuth {
         if (firebaseUser.email != null) {
           userDetails.emailAddress = firebaseUser.email!;
         }
-        await _cloudStore.updateProfile(userDetails, firebaseUser.uid);
-        await _secureStorage.updateUserDetails(userDetails);
-        await _preferencesHelper.updatePreferences(userDetails.preferences);
+
+        return userDetails;
       }
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
@@ -663,6 +677,7 @@ class CustomAuth {
         stackTrace: stackTrace,
       );
     }
+    return null;
   }
 
   Future<void> deleteAccount(context) async {
@@ -749,29 +764,10 @@ class CustomAuth {
     return false;
   }
 
-  Future<bool> logInWithEmailAddress(
-      String emailAddress, String link, BuildContext context) async {
-    var hasConnection = await isConnected();
-    if (!hasConnection) {
-      return false;
-    }
-
-    var userCredential = await FirebaseAuth.instance
-        .signInWithEmailLink(emailLink: link, email: emailAddress);
-
-    if (userCredential.user == null) {
-      return false;
-    }
-
-    var user = userCredential.user;
+  void logInWithEmailAddress(String emailAddress, String link) async {
     try {
-      if (user == null) {
-        return false;
-      }
-
-      await updateLocalStorage(user, context);
-
-      return true;
+      await _firebaseAuth.signInWithEmailLink(
+          emailLink: link, email: emailAddress);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
@@ -779,29 +775,11 @@ class CustomAuth {
         stackTrace: stackTrace,
       );
     }
-    return false;
   }
 
-  Future<void> logInWithPhoneNumber(
-      AuthCredential authCredential, BuildContext context) async {
-    var hasConnection = await isConnected();
-    if (!hasConnection) {
-      return;
-    }
-
+  void logInWithPhoneNumber(AuthCredential authCredential) async {
     try {
-      var userCredential =
-          await _firebaseAuth.signInWithCredential(authCredential);
-      if (userCredential.user == null) {
-        return;
-      }
-
-      var user = userCredential.user;
-
-      if (user == null) {
-        return;
-      }
-      await updateLocalStorage(user, context);
+      await _firebaseAuth.signInWithCredential(authCredential);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
@@ -985,45 +963,6 @@ class CustomAuth {
     return false;
   }
 
-  Future<void> updateLocalStorage(User user, BuildContext context) async {
-    try {
-      var hasConnection = await isConnected();
-
-      if (!hasConnection) {
-        return;
-      }
-
-      var device = await getDeviceToken();
-      if (device != null) {
-        await _cloudStore.updateProfileFields(user.uid, {'device': device});
-      }
-      var userDetails = await _cloudStore.getProfile(user.uid);
-      if (userDetails.userId.isEmpty) {
-        await createProfile();
-        userDetails = await _cloudStore.getProfile(user.uid);
-      }
-
-      await _secureStorage.updateUserDetails(userDetails);
-      await _preferencesHelper.updatePreferences(userDetails.preferences);
-      await _cloudStore.getFavPlaces(user.uid).then((value) => {
-            if (value.isNotEmpty)
-              {
-                Provider.of<PlaceDetailsModel>(context, listen: false)
-                    .loadFavouritePlaces(value),
-              }
-          });
-      await _cloudStore.getNotifications(user.uid).then((value) => {
-            if (value.isNotEmpty)
-              {
-                Provider.of<NotificationModel>(context, listen: false)
-                    .addAll(value),
-              }
-          });
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-  }
-
   Future<bool> updatePhoneNumber(
       PhoneAuthCredential authCredential, BuildContext context) async {
     var hasConnection = await isConnected();
@@ -1037,7 +976,7 @@ class CustomAuth {
       await updateCredentials(
           FirebaseAuth.instance.currentUser!.phoneNumber, null);
       return true;
-    } on FirebaseAuthException catch (exception, stackTrace) {
+    } on FirebaseAuthException catch (exception) {
       if (exception.code == 'credential-already-in-use') {
         await showSnackBar(context, 'Phone number already taken');
         return false;

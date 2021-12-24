@@ -14,6 +14,7 @@ import 'package:app/models/story.dart';
 import 'package:app/models/user_details.dart';
 import 'package:app/utils/distance.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:path/path.dart';
@@ -21,11 +22,8 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
-import 'fb_notifications.dart';
-
 class DBHelper {
   Database? _database;
-  final CloudStore _cloudStore = CloudStore();
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -55,9 +53,9 @@ class DBHelper {
 
   Future<void> createDefaultTables(Database db) async {
     var prefs = await SharedPreferences.getInstance();
-    var initialLoading = prefs.getBool(Config.prefReLoadDb) ?? true;
+    var createDatabases = prefs.getBool(Config.prefReLoadDb) ?? true;
 
-    if (initialLoading) {
+    if (createDatabases) {
       await db.execute(Measurement.dropTableStmt());
       await db.execute(HistoricalMeasurement.dropTableStmt());
       await db.execute(Predict.dropTableStmt());
@@ -404,7 +402,7 @@ class DBHelper {
     );
   }
 
-  Future<void> insertFavPlace(PlaceDetails placeDetails, String id) async {
+  Future<void> insertFavPlace(PlaceDetails placeDetails) async {
     try {
       final db = await database;
 
@@ -415,7 +413,6 @@ class DBHelper {
           jsonData,
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
-        await _cloudStore.addFavPlace(id, placeDetails);
       } catch (exception, stackTrace) {
         debugPrint('$exception\n$stackTrace');
       }
@@ -712,17 +709,16 @@ class DBHelper {
     }
   }
 
-  Future<void> removeFavPlace(PlaceDetails placeDetails, String id) async {
+  Future<void> removeFavPlace(PlaceDetails placeDetails) async {
     try {
       final db = await database;
 
       try {
         await db.delete(
           PlaceDetails.dbName(),
-          where: 'siteId = ?',
-          whereArgs: [placeDetails.siteId],
+          where: 'placeId = ?',
+          whereArgs: [placeDetails.placeId],
         );
-        await _cloudStore.removeFavPlace(id, placeDetails);
       } catch (exception, stackTrace) {
         debugPrint('$exception\n$stackTrace');
       }
@@ -756,23 +752,18 @@ class DBHelper {
     }
   }
 
-  Future<void> updateFavouritePlaces(
-      PlaceDetails placeDetails, BuildContext context, String id) async {
+  Future<bool> updateFavouritePlace(PlaceDetails placeDetails) async {
     final db = await database;
 
     var res = await db.query(PlaceDetails.dbName(),
-        where: 'siteId = ?', whereArgs: [placeDetails.siteId]);
+        where: 'placeId = ?', whereArgs: [placeDetails.placeId]);
 
     if (res.isEmpty) {
-      await insertFavPlace(placeDetails, id).then((value) => {
-            Provider.of<PlaceDetailsModel>(context, listen: false)
-                .reloadFavouritePlaces()
-          });
+      await insertFavPlace(placeDetails);
+      return true;
     } else {
-      await removeFavPlace(placeDetails, id).then((value) => {
-            Provider.of<PlaceDetailsModel>(context, listen: false)
-                .reloadFavouritePlaces()
-          });
+      await removeFavPlace(placeDetails);
+      return false;
     }
   }
 }
@@ -812,15 +803,21 @@ class SharedPreferencesHelper {
   }
 
   Future<void> updatePreference(String key, dynamic value, String type) async {
-    if (_sharedPreferences == null) {
-      await initialize();
-    }
-    if (type == 'bool') {
-      await _sharedPreferences!.setBool(key, value);
-    } else if (type == 'double') {
-      await _sharedPreferences!.setDouble(key, value);
-    } else {
-      await _sharedPreferences!.setString(key, value);
+    try {
+      if (_sharedPreferences == null) {
+        await initialize();
+      }
+      if (type == 'bool') {
+        await _sharedPreferences!.setBool(key, value);
+      } else if (type == 'double') {
+        await _sharedPreferences!.setDouble(key, value);
+      } else if (type == 'int') {
+        await _sharedPreferences!.setInt(key, value);
+      } else {
+        await _sharedPreferences!.setString(key, value);
+      }
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
   }
 

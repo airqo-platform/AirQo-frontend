@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:uuid/uuid.dart';
 
 import 'measurement.dart';
 
@@ -18,11 +19,12 @@ class PlaceDetails {
   String name;
   String location;
   String siteId;
+  String placeId = const Uuid().toString();
   double latitude;
   double longitude;
 
-  PlaceDetails(
-      this.name, this.location, this.siteId, this.latitude, this.longitude);
+  PlaceDetails(this.name, this.location, this.siteId, this.placeId,
+      this.latitude, this.longitude);
 
   factory PlaceDetails.fromJson(Map<String, dynamic> json) =>
       _$PlaceDetailsFromJson(json);
@@ -43,15 +45,14 @@ class PlaceDetails {
 
   PlaceDetails initialize() {
     return PlaceDetails(
-        '', '', '', Config.defaultLatitude, Config.defaultLongitude);
+        '', '', '', '', Config.defaultLatitude, Config.defaultLongitude);
   }
 
   Map<String, dynamic> toJson() => _$PlaceDetailsToJson(this);
 
   static String createTableStmt() => 'CREATE TABLE IF NOT EXISTS ${dbName()}('
-      'siteId TEXT PRIMARY KEY, latitude REAL, '
-      'location TEXT, longitude REAL, '
-      'name TEXT)';
+      'placeId TEXT PRIMARY KEY, latitude REAL, '
+      'location TEXT, longitude REAL, siteId TEXT, name TEXT)';
 
   static String dbName() => 'fav_places';
 
@@ -81,6 +82,7 @@ class PlaceDetails {
         measurement.site.getName(),
         measurement.site.getLocation(),
         measurement.site.id,
+        measurement.site.id,
         measurement.site.latitude,
         measurement.site.longitude);
   }
@@ -109,7 +111,7 @@ class PlaceDetails {
   }
 
   static PlaceDetails siteToPLace(Site site) {
-    return PlaceDetails(site.getName(), site.getLocation(), site.id,
+    return PlaceDetails(site.getName(), site.getLocation(), site.id, site.id,
         site.latitude, site.longitude);
   }
 }
