@@ -152,6 +152,8 @@ class Config {
 
   static String get termsUrl => dotenv.env['TERMS_URL'] ?? '';
 
+  static Color get toolTipGreyColor => Colors.white.withOpacity(0.32);
+
   static String get usersCollection => dotenv.env['USERS_COLLECTION'] ?? '';
 
   static String get usersKyaCollection =>

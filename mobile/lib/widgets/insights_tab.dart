@@ -2,7 +2,6 @@ import 'package:app/constants/config.dart';
 import 'package:app/models/insights.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/services/app_service.dart';
-import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/services/rest_api.dart';
@@ -11,6 +10,7 @@ import 'package:app/utils/date.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/widgets/recomendation.dart';
+import 'package:app/widgets/tooltip.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -38,10 +38,9 @@ class _InsightsTabState extends State<InsightsTab> {
   List<Recommendation> _recommendations = [];
   final DBHelper _dbHelper = DBHelper();
   final GlobalKey _globalKey = GlobalKey();
-  final CustomAuth _customAuth = CustomAuth();
   final String _toggleToolTipText = 'Customize your air quality analytics '
       'with a single click ';
-  final GlobalKey _toggleToolTipKey = GlobalKey();
+
   ScrollController _controller = ScrollController();
   AppService? _appService;
 
@@ -59,13 +58,9 @@ class _InsightsTabState extends State<InsightsTab> {
   List<charts.TickSpec<String>> _hourlyStaticTicks = [];
   List<charts.TickSpec<String>> _dailyStaticTicks = [];
 
-  final String _forecastToolTipText = 'This icon turns blue when the selected '
-      'bar on the graph is forecast.';
-  final String _infoToolTipText = 'Tap this icon to understand what air '
-      'quality analytics mean';
-
   final GlobalKey _forecastToolTipKey = GlobalKey();
   final GlobalKey _infoToolTipKey = GlobalKey();
+  final GlobalKey _toggleToolTipKey = GlobalKey();
   final ShareService _shareSvc = ShareService();
 
   @override
@@ -386,8 +381,9 @@ class _InsightsTabState extends State<InsightsTab> {
                       const SizedBox(width: 8),
                       GestureDetector(
                         onTap: () {
-                          showTipText(_infoToolTipText, _infoToolTipKey,
-                              context, () {}, false);
+                          ToolTip(context, toolTipType.info).show(
+                            widgetKey: _infoToolTipKey,
+                          );
                         },
                         child: insightsTabAvatar(
                             context, _selectedMeasurement!, 64, _pollutant),
@@ -487,8 +483,9 @@ class _InsightsTabState extends State<InsightsTab> {
                 children: [
                   GestureDetector(
                     onTap: () {
-                      showTipText(_infoToolTipText, _infoToolTipKey, context,
-                          () {}, false);
+                      ToolTip(context, toolTipType.info).show(
+                        widgetKey: _infoToolTipKey,
+                      );
                     },
                     child: Visibility(
                       visible: !_selectedMeasurement!.isEmpty,
@@ -590,8 +587,9 @@ class _InsightsTabState extends State<InsightsTab> {
                       ),
                       GestureDetector(
                         onTap: () {
-                          showTipText(_forecastToolTipText, _forecastToolTipKey,
-                              context, () {}, false);
+                          ToolTip(context, toolTipType.forecast).show(
+                            widgetKey: _forecastToolTipKey,
+                          );
                         },
                         child: Text(
                           'Forecast',

@@ -9,6 +9,7 @@ import 'package:app/services/native_api.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/pm.dart';
+import 'package:app/widgets/tooltip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/svg.dart';
@@ -178,8 +179,6 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
   AppService? _appService;
   bool _showHeartAnimation = false;
   final GlobalKey _globalKey = GlobalKey();
-  final String _infoToolTipText = 'Tap this icon'
-      ' to understand what air quality analytics mean';
   final GlobalKey _infoToolTipKey = GlobalKey();
   final ShareService _shareSvc = ShareService();
 
@@ -248,8 +247,9 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                   child: analyticsAvatar(
                                       widget.measurement, 104, 40, 12),
                                   onTap: () {
-                                    showTipText(_infoToolTipText,
-                                        _infoToolTipKey, context, () {}, false);
+                                    ToolTip(context, toolTipType.info).show(
+                                      widgetKey: _infoToolTipKey,
+                                    );
                                   },
                                 ),
                                 const SizedBox(width: 16.0),
@@ -307,12 +307,10 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                           ),
                                         ),
                                         onTap: () {
-                                          showTipText(
-                                              _infoToolTipText,
-                                              _infoToolTipKey,
-                                              context,
-                                              () {},
-                                              false);
+                                          ToolTip(context, toolTipType.info)
+                                              .show(
+                                            widgetKey: _infoToolTipKey,
+                                          );
                                         },
                                       ),
                                       const SizedBox(
@@ -462,21 +460,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
   @override
   void initState() {
     _appService = AppService(context);
-    showTips();
     super.initState();
-  }
-
-  void showTips() {
-    return;
-    if (widget.showHelpTip) {
-      Future.delayed(const Duration(seconds: 2), () {
-        try {
-          showTipText(_infoToolTipText, _infoToolTipKey, context, () {}, false);
-        } catch (exception, stackTrace) {
-          debugPrint('$exception\n$stackTrace');
-        }
-      });
-    }
   }
 
   void updateFavPlace() async {

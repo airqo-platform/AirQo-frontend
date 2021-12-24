@@ -13,7 +13,7 @@ import 'package:app/utils/dashboard.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/widgets/analytics_card.dart';
-import 'package:app/widgets/custom_widgets.dart';
+import 'package:app/widgets/tooltip.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -46,12 +46,8 @@ class _DashboardViewState extends State<DashboardView> {
   AirqoApiClient? _airqoApiClient;
   Measurement? currentLocation;
   Kya? _kya;
-  bool _showAnalyticsCardTips = false;
   SharedPreferences? _preferences;
 
-  final String _kyaToolTipText = 'All your complete tasks will show up here';
-  final String _favToolTipText = 'Tap the ❤️ Favorite on any '
-      'location air quality to save them here for later';
   final GlobalKey _favToolTipKey = GlobalKey();
   final GlobalKey _kyaToolTipKey = GlobalKey();
   final bool _isRefreshing = false;
@@ -500,8 +496,9 @@ class _DashboardViewState extends State<DashboardView> {
             child: GestureDetector(
               onTap: () async {
                 if (_favLocations.isEmpty) {
-                  showTipText(
-                      _favToolTipText, _favToolTipKey, context, () {}, false);
+                  ToolTip(context, toolTipType.favouritePlaces).show(
+                    widgetKey: _favToolTipKey,
+                  );
                   return;
                 }
                 await Navigator.push(context,
@@ -557,8 +554,9 @@ class _DashboardViewState extends State<DashboardView> {
             child: GestureDetector(
               onTap: () async {
                 if (_completeKya.isEmpty) {
-                  showTipText(
-                      _kyaToolTipText, _kyaToolTipKey, context, () {}, true);
+                  ToolTip(context, toolTipType.forYou).show(
+                    widgetKey: _kyaToolTipKey,
+                  );
                   return;
                 }
                 await Navigator.push(context,
@@ -627,8 +625,7 @@ class _DashboardViewState extends State<DashboardView> {
               ),
               if (currentLocation != null)
                 AnalyticsCard(PlaceDetails.measurementToPLace(currentLocation!),
-                    currentLocation!, _isRefreshing, _showAnalyticsCardTips),
-              // if (currentLocation == null) analyticsCardLoading(),
+                    currentLocation!, _isRefreshing, false),
               if (_dashBoardPlaces.isNotEmpty && currentLocation == null)
                 _dashBoardPlaces[0],
               if (_dashBoardPlaces.isEmpty && currentLocation == null)
@@ -807,7 +804,6 @@ class _DashboardViewState extends State<DashboardView> {
       _getCompleteKya();
     }
     await _getLatestMeasurements();
-    _showHelpTips();
   }
 
   void _loadCompleteKya(List<Kya> completeKya) async {
@@ -866,28 +862,6 @@ class _DashboardViewState extends State<DashboardView> {
       setState(() {
         _greetings = getGreetings(_customAuth.getDisplayName());
       });
-    }
-  }
-
-  void _showHelpTips() {
-    return;
-    if (!mounted) {
-      return;
-    }
-    try {
-      var showHelpTips = _preferences!.getBool(Config.prefHomePageTips) ?? true;
-      if (showHelpTips) {
-        showTipText(_favToolTipText, _favToolTipKey, context, () {
-          showTipText(_kyaToolTipText, _kyaToolTipKey, context, () {
-            setState(() {
-              _showAnalyticsCardTips = true;
-            });
-            _preferences!.setBool(Config.prefHomePageTips, false);
-          }, true);
-        }, false);
-      }
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
     }
   }
 }

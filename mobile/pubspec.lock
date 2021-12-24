@@ -1185,13 +1185,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.0"
-  show_more_text_popup:
-    dependency: "direct main"
-    description:
-      name: show_more_text_popup
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.3.0"
   sky_engine:
     dependency: transitive
     description: flutter

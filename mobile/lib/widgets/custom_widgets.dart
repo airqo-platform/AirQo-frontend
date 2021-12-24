@@ -7,7 +7,6 @@ import 'package:app/utils/pm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:show_more_text_popup/show_more_text_popup.dart';
 
 Widget analyticsAvatar(
     Measurement measurement, double size, double fontSize, double iconHeight) {
@@ -390,22 +389,5 @@ Widget searchPlaceTile(Suggestion searchSuggestion) {
               child: SvgPicture.asset('assets/icon/location.svg',
                   color: Config.appColorBlue),
             ))),
-  );
-}
-
-void showTipText(String text, GlobalKey tootTipKey, BuildContext context,
-    VoidCallback dismissFn, bool small) {
-  ShowMoreTextPopup(
-    context,
-    text: text,
-    onDismiss: dismissFn,
-    textStyle: const TextStyle(color: Colors.white, fontSize: 10),
-    height: small ? 60.0 : 64.0,
-    width: small ? 200.0 : 261.0,
-    backgroundColor: Config.appColorBlack,
-    padding: const EdgeInsets.fromLTRB(16.0, 18, 16, 18),
-    borderRadius: BorderRadius.circular(8.0),
-  ).show(
-    widgetKey: tootTipKey,
   );
 }

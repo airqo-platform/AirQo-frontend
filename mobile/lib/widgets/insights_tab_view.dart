@@ -59,11 +59,6 @@ class _InsightsTabViewState extends State<InsightsTabView> {
   List<charts.TickSpec<String>> _hourlyStaticTicks = [];
   AppService? _appService;
 
-  final String _forecastToolTipText = 'This icon turns blue when the selected '
-      'bar on the graph is forecast.';
-  final String _infoToolTipText = 'Tap this icon to understand what air '
-      'quality analytics mean';
-
   final GlobalKey _forecastToolTipKey = GlobalKey();
   final GlobalKey _infoToolTipKey = GlobalKey();
   final ShareService _shareSvc = ShareService();
@@ -386,8 +381,8 @@ class _InsightsTabViewState extends State<InsightsTabView> {
                       const SizedBox(width: 8),
                       GestureDetector(
                         onTap: () {
-                          showTipText(_infoToolTipText, _infoToolTipKey,
-                              context, () {}, false);
+                          // showTipText(_infoToolTipText, _infoToolTipKey,
+                          //     context, () {}, false);
                         },
                         child: insightsAvatar(
                             context, _selectedMeasurement!, 64, _pollutant),
@@ -458,8 +453,8 @@ class _InsightsTabViewState extends State<InsightsTabView> {
                 children: [
                   GestureDetector(
                     onTap: () {
-                      showTipText(_infoToolTipText, _infoToolTipKey, context,
-                          () {}, false);
+                      // showTipText(_infoToolTipText, _infoToolTipKey, context,
+                      //     () {}, false);
                     },
                     child: Visibility(
                       visible: _selectedMeasurement!.available,
@@ -559,8 +554,8 @@ class _InsightsTabViewState extends State<InsightsTabView> {
                       ),
                       GestureDetector(
                         onTap: () {
-                          showTipText(_forecastToolTipText, _forecastToolTipKey,
-                              context, () {}, false);
+                          // showTipText(_forecastToolTipText, _forecastToolTipKey,
+                          //     context, () {}, false);
                         },
                         child: Text(
                           'Forecast',
