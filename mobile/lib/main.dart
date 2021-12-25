@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:app/models/notification.dart';
 import 'package:app/providers/locale_provider.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:firebase_analytics/observer.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +14,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'constants/config.dart';
+import 'firebase_options.dart';
 import 'languages/custom_localizations.dart';
 import 'languages/lg_intl.dart';
 import 'models/place_details.dart';
@@ -43,7 +43,9 @@ Future<void> main() async {
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
       overlays: [SystemUiOverlay.bottom, SystemUiOverlay.top]);
 
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   // await Firebase.initializeApp().then((value) => {
   //       FirebaseMessaging.onBackgroundMessage(
@@ -74,7 +76,7 @@ Future<void> main() async {
 
 class AirQoApp extends StatelessWidget {
   final ThemeController themeController;
-  final FirebaseAnalytics analytics = FirebaseAnalytics();
+  final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
 
   AirQoApp({Key? key, required this.themeController}) : super(key: key);
 
