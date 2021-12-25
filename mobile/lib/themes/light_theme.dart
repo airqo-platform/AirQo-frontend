@@ -5,48 +5,153 @@ const googleMapsLightTheme = [
   {
     'elementType': 'geometry.fill',
     'stylers': [
-      {'color': '#d7e4fe'},
-      {'visibility': 'on'}
+      {
+        'color': '#d7e4fe'
+      },
+      {
+        'visibility': 'on'
+      }
     ]
   },
   {
     'elementType': 'geometry.stroke',
     'stylers': [
-      {'color': '#ffffff'}
+      {
+        'color': '#578afa'
+      },
+      {
+        'weight': 1.5
+      }
     ]
   },
   {
     'elementType': 'labels.icon',
     'stylers': [
-      {'visibility': 'off'}
+      {
+        'visibility': 'off'
+      }
     ]
   },
   {
     'elementType': 'labels.text.fill',
     'stylers': [
-      {'color': '#1d62f7'}
+      {
+        'color': '#1d62f7'
+      }
+    ]
+  },
+  {
+    'featureType': 'administrative.country',
+    'elementType': 'geometry.fill',
+    'stylers': [
+      {
+        'color': '#5c8df8'
+      },
+      {
+        'weight': 1
+      }
+    ]
+  },
+  {
+    'featureType': 'administrative.country',
+    'elementType': 'geometry.stroke',
+    'stylers': [
+      {
+        'color': '#5c8df8'
+      },
+      {
+        'weight': 1
+      }
+    ]
+  },
+  {
+    'featureType': 'administrative.locality',
+    'elementType': 'geometry.fill',
+    'stylers': [
+      {
+        'color': '#5c8df8'
+      },
+      {
+        'weight': 0.5
+      }
+    ]
+  },
+  {
+    'featureType': 'administrative.province',
+    'elementType': 'geometry.fill',
+    'stylers': [
+      {
+        'weight': 0.5
+      }
+    ]
+  },
+  {
+    'featureType': 'administrative.province',
+    'elementType': 'geometry.stroke',
+    'stylers': [
+      {
+        'color': '#5c8df8'
+      },
+      {
+        'weight': 0.5
+      }
     ]
   },
   {
     'featureType': 'landscape.man_made',
     'elementType': 'geometry.stroke',
     'stylers': [
-      {'color': '#5c8df8'},
-      {'visibility': 'on'}
+      {
+        'color': '#5c8df8'
+      },
+      {
+        'visibility': 'on'
+      },
+      {
+        'weight': 1.5
+      }
+    ]
+  },
+  {
+    'featureType': 'poi.park',
+    'elementType': 'geometry.fill',
+    'stylers': [
+      {
+        'color': '#6afb91'
+      },
+      {
+        'weight': 0.5
+      }
     ]
   },
   {
     'featureType': 'road',
     'elementType': 'geometry.fill',
     'stylers': [
-      {'color': '#ffffff'}
+      {
+        'color': '#ffffff'
+      },
+      {
+        'weight': 0.5
+      }
+    ]
+  },
+  {
+    'featureType': 'road',
+    'elementType': 'geometry.stroke',
+    'stylers': [
+      {
+        'weight': 0.5
+      }
     ]
   },
   {
     'featureType': 'water',
     'elementType': 'geometry.fill',
     'stylers': [
-      {'color': '#aac3f7'}
+      {
+        'color': '#AAC3f7'
+      }
     ]
   }
 ];
