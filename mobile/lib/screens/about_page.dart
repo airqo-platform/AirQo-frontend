@@ -2,9 +2,7 @@ import 'package:app/constants/config.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/utils/web_view.dart';
 import 'package:app/widgets/custom_widgets.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
 import 'package:flutter_svg/svg.dart';
 
 class AboutAirQo extends StatefulWidget {

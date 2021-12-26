@@ -1,9 +1,7 @@
 import 'package:app/constants/config.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:country_list_pick/country_list_pick.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'custom_widgets.dart';
 

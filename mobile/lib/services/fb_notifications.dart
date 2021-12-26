@@ -12,6 +12,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
@@ -55,6 +56,8 @@ class CloudAnalytics {
 class CloudStore {
   final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
   final SharedPreferencesHelper _preferencesHelper = SharedPreferencesHelper();
+  final firebase_storage.FirebaseStorage storage =
+      firebase_storage.FirebaseStorage.instance;
 
   Future<void> addFavPlace(String userId, PlaceDetails placeDetails) async {
     var hasConnection = await isConnected();
@@ -483,34 +486,6 @@ class CloudStore {
     }
   }
 
-  @Deprecated('Functionality has been transferred to the backend')
-  Future<void> sendWelcomeNotification(String id) async {
-    var hasConnection = await isConnected();
-    if (!hasConnection) {
-      return;
-    }
-
-    try {
-      var notificationId = DateTime.now().millisecondsSinceEpoch.toString();
-      var notification = UserNotification(
-          notificationId,
-          'Welcome to AirQo!',
-          'Begin your journey to Knowing Your Air and Breathe Clean... ',
-          true,
-          DateTime.now().toUtc().toString());
-      await _firebaseFirestore
-          .collection('${Config.notificationCollection}/$id/$id')
-          .doc(notificationId)
-          .set(notification.toJson());
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-    }
-  }
-
   Future<void> updateKyaProgress(
       String userId, Kya kya, double progress) async {
     if (userId.isEmpty || userId.trim() == '') {
@@ -631,6 +606,31 @@ class CloudStore {
         stackTrace: stackTrace,
       );
     }
+  }
+
+  Future<String?> uploadProfilePicture(
+      String filePath, String userId, String imageType) async {
+    var docRef =
+        '${Config.usersProfilePictureCollection}$userId/avatar.$imageType';
+
+    try {
+      var file = File(filePath);
+      var task = await firebase_storage.FirebaseStorage.instance
+          .ref(docRef)
+          .putFile(file);
+
+      var downloadURL = await task.storage.ref(docRef).getDownloadURL();
+
+      return downloadURL;
+    } on Exception catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return null;
   }
 }
 

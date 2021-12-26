@@ -3,7 +3,6 @@ import 'dart:ui';
 
 import 'package:app/constants/config.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
 
 class ToolTip {
@@ -110,6 +109,7 @@ class ToolTip {
     dismissCallback?.call();
   }
 
+  // TODO: change forecast wording
   RichText getToolTipText() {
     switch (_tipType) {
       case toolTipType.favouritePlaces:
@@ -280,7 +280,7 @@ class TrianglePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(CustomPainter customPainter) {
+  bool shouldRepaint(CustomPainter oldDelegate) {
     return true;
   }
 }

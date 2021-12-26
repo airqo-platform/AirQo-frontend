@@ -159,6 +159,9 @@ class Config {
   static String get usersKyaCollection =>
       dotenv.env['USER_KYA_COLLECTION'] ?? '';
 
+  static String get usersProfilePictureCollection =>
+      dotenv.env['USERS_PROFILE_PICTURE_COLLECTION'] ?? '';
+
   static String get version => dotenv.env['VERSION'] ?? '';
 
   static Color get yellow => const Color(0xffFFFF35);

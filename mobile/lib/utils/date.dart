@@ -182,6 +182,48 @@ String insightsChartDateTimeToString(DateTime dateTime, bool daily) {
   }
 }
 
+// TODO: verify yesterday and tomorrow. Explore unit tests
+String insightsChartTitleDateTimeToString(DateTime dateTime, bool daily) {
+  try {
+    if (daily) {
+      return '${dateTime.getDateOfFirstDayOfWeek().getShortDate()}'
+          ' - '
+          '${dateTime.getDateOfLastDayOfWeek().getShortDate()}';
+    } else {
+      var prefix = '';
+
+      if (dateTime.isToday()) {
+        prefix = 'Today';
+      } else if (dateTime.day == yesterday().day &&
+          dateTime.month == yesterday().month) {
+        prefix = 'Yesterday';
+      } else if (dateTime.day == tomorrow().day &&
+          dateTime.month == tomorrow().month) {
+        prefix = 'Tomorrow';
+      } else {
+        prefix = '';
+      }
+
+      if (prefix == '') {
+        return dateTime.getShortDate();
+      }
+
+      return '$prefix, ${dateTime.getShortDate()}';
+    }
+  } on Error catch (exception, stackTrace) {
+    debugPrint('$exception\n$stackTrace');
+    return dateTime.toString();
+  }
+}
+
+DateTime tomorrow() {
+  return DateTime.now().add(const Duration(days: 1));
+}
+
+DateTime yesterday() {
+  return DateTime.now().subtract(const Duration(days: 1));
+}
+
 extension DateTimeExtension on DateTime {
   String getShortDate() {
     if (day.toString().endsWith('1')) {
@@ -193,6 +235,34 @@ extension DateTimeExtension on DateTime {
     } else {
       return '${day}th ${getShortMonthString()}';
     }
+  }
+
+  DateTime tomorrow() {
+    return DateTime.now().add(const Duration(days: 1));
+  }
+
+  bool isToday() {
+    if (day == DateTime.now().day &&
+        month == DateTime.now().month &&
+        year == DateTime.now().year) {
+      return true;
+    }
+
+    return false;
+  }
+
+  bool isTomorrow() {
+    if (day == tomorrow().day &&
+        month == tomorrow().month &&
+        year == tomorrow().year) {
+      return true;
+    }
+
+    return false;
+  }
+
+  static DateTime yesterday() {
+    return DateTime.now().subtract(const Duration(days: 1));
   }
 
   String notificationDisplayDate() {

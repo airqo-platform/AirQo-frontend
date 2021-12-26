@@ -2,7 +2,6 @@ import 'package:app/constants/config.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/widgets/insights_tab.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class InsightsPage extends StatefulWidget {

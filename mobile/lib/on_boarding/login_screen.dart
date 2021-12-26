@@ -3,7 +3,6 @@ import 'package:app/on_boarding/phone_auth_widget.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);

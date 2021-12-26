@@ -11,11 +11,15 @@ import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/widgets/recomendation.dart';
 import 'package:app/widgets/tooltip.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 import 'custom_shimmer.dart';
 import 'custom_widgets.dart';
@@ -32,7 +36,7 @@ class InsightsTab extends StatefulWidget {
 }
 
 class _InsightsTabState extends State<InsightsTab> {
-  String _viewDay = 'today';
+  bool _isTodayHealthTips = true;
   String _pollutant = 'pm2.5';
   bool _showHeartAnimation = false;
   List<Recommendation> _recommendations = [];
@@ -40,6 +44,7 @@ class _InsightsTabState extends State<InsightsTab> {
   final GlobalKey _globalKey = GlobalKey();
   final String _toggleToolTipText = 'Customize your air quality analytics '
       'with a single click ';
+  int _currentItem = 0;
 
   ScrollController _controller = ScrollController();
   AppService? _appService;
@@ -57,11 +62,14 @@ class _InsightsTabState extends State<InsightsTab> {
   AirqoApiClient? _airqoApiClient;
   List<charts.TickSpec<String>> _hourlyStaticTicks = [];
   List<charts.TickSpec<String>> _dailyStaticTicks = [];
+  bool scrolling = false;
 
   final GlobalKey _forecastToolTipKey = GlobalKey();
   final GlobalKey _infoToolTipKey = GlobalKey();
   final GlobalKey _toggleToolTipKey = GlobalKey();
   final ShareService _shareSvc = ShareService();
+  final ItemScrollController itemScrollController = ItemScrollController();
+  String _titleDateTime = '';
 
   @override
   Widget build(BuildContext context) {
@@ -191,37 +199,24 @@ class _InsightsTabState extends State<InsightsTab> {
                 height: 36,
               ),
               Visibility(
-                visible: (_viewDay == 'today' || _viewDay == 'tomorrow') &&
-                    _recommendations.isEmpty,
+                visible: _recommendations.isNotEmpty,
                 child: Padding(
-                    padding: const EdgeInsets.only(right: 16, left: 16),
-                    child: Row(
-                      children: [
-                        textLoadingAnimation(20, 185),
-                      ],
-                    )),
-              ),
-              if (_viewDay == 'today' || _viewDay == 'tomorrow')
-                Visibility(
-                  visible: _recommendations.isNotEmpty,
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 16, left: 16),
-                    child: Text(
-                      _viewDay == 'today'
-                          ? 'Today’s health tips'
-                          : 'Tomorrow’s health tips',
-                      textAlign: TextAlign.left,
-                      style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
+                  padding: const EdgeInsets.only(right: 16, left: 16),
+                  child: Text(
+                    _isTodayHealthTips
+                        ? 'Today’s health tips'
+                        : 'Tomorrow’s health tips',
+                    textAlign: TextAlign.left,
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                 ),
+              ),
               const SizedBox(
                 height: 11,
               ),
               Visibility(
-                visible: (_viewDay == 'today' || _viewDay == 'tomorrow') &&
-                    _recommendations.isNotEmpty,
+                visible: _recommendations.isNotEmpty,
                 child: SizedBox(
                   height: 128,
                   child: ListView.builder(
@@ -250,37 +245,6 @@ class _InsightsTabState extends State<InsightsTab> {
                       }
                     },
                     itemCount: _recommendations.length,
-                  ),
-                ),
-              ),
-              Visibility(
-                visible: (_viewDay == 'today' || _viewDay == 'tomorrow') &&
-                    _recommendations.isEmpty,
-                child: SizedBox(
-                  height: 128,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: [
-                      const SizedBox(
-                        width: 16,
-                      ),
-                      sizedContainerLoadingAnimation(128.0, 304, 16.0),
-                      const SizedBox(
-                        width: 16,
-                      ),
-                      sizedContainerLoadingAnimation(128.0, 304, 16.0),
-                      const SizedBox(
-                        width: 16,
-                      ),
-                      sizedContainerLoadingAnimation(128.0, 304, 16.0),
-                      const SizedBox(
-                        width: 16,
-                      ),
-                      sizedContainerLoadingAnimation(128.0, 304, 16.0),
-                      const SizedBox(
-                        width: 16,
-                      ),
-                    ],
                   ),
                 ),
               ),
@@ -352,8 +316,7 @@ class _InsightsTabState extends State<InsightsTab> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              insightsChartDateTimeToString(
-                                  _selectedMeasurement!.time, widget.daily),
+                              _titleDateTime,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -405,36 +368,42 @@ class _InsightsTabState extends State<InsightsTab> {
                         )
                       : SizedBox(
                           height: 160,
-                          child: ListView.builder(
+                          child: ScrollablePositionedList.builder(
                             scrollDirection: Axis.horizontal,
-                            controller: _controller,
+                            itemCount: _hourlyPm2_5ChartData.length,
                             itemBuilder: (context, index) {
-                              return _hourlyChart(
-                                  _hourlyPm2_5ChartData.toList()[index],
-                                  _hourlyPm10ChartData.toList()[index]);
+                              return VisibilityDetector(
+                                  key: Key(index.toString()),
+                                  onVisibilityChanged:
+                                      (VisibilityInfo visibilityInfo) {
+                                    if ((visibilityInfo.visibleFraction >
+                                            0.3) &&
+                                        (_currentItem != index)) {
+                                      setState(() {
+                                        _currentItem = index;
+                                      });
+                                      scrollToItem(
+                                          itemScrollController,
+                                          _currentItem,
+                                          _hourlyPm2_5ChartData,
+                                          null);
+                                    }
+                                  },
+                                  child: _hourlyChart(
+                                      _hourlyPm2_5ChartData[index],
+                                      _hourlyPm10ChartData[index]));
                             },
-                            itemCount: _hourlyPm2_5ChartData.toList().length,
+                            itemScrollController: itemScrollController,
                           ),
                         ),
-
-                  // widget.daily ?
-                  // _dailyChart(_dailyPm2_5ChartData, _dailyPm10ChartData) :
-                  // _hourlyChart(),
-                  const SizedBox(
-                    height: 13.0,
-                  ),
-                  // Visibility(
-                  //   visible: widget.daily,
-                  //   child: _hourlyChart(),
-                  // ),
                   Visibility(
-                    visible: widget.daily,
+                    visible: !widget.daily && _lastUpdated.isNotEmpty,
                     child: const SizedBox(
                       height: 13.0,
                     ),
                   ),
                   Visibility(
-                    visible: !widget.daily,
+                    visible: !widget.daily && _lastUpdated.isNotEmpty,
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -507,13 +476,14 @@ class _InsightsTabState extends State<InsightsTab> {
                                             .getChartValue(_pollutant))
                                         .withOpacity(0.4),
                             border: Border.all(color: Colors.transparent)),
-                        child: Text(
+                        child: AutoSizeText(
                           _pollutant == 'pm2.5'
                               ? pm2_5ToString(_selectedMeasurement!
                                   .getChartValue(_pollutant))
                               : pm10ToString(_selectedMeasurement!
                                   .getChartValue(_pollutant)),
                           maxLines: 1,
+                          maxFontSize: 14,
                           textAlign: TextAlign.start,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -606,6 +576,31 @@ class _InsightsTabState extends State<InsightsTab> {
         ));
   }
 
+  Future<void> scrollToItem(
+      ItemScrollController controller,
+      int index,
+      List<List<charts.Series<Insights, String>>> data,
+      Duration? duration) async {
+    if (controller.isAttached) {
+      updateTitleDateTime(data[index]);
+      await controller.scrollTo(
+          index: index,
+          duration: duration ?? const Duration(seconds: 1),
+          curve: Curves.easeInOutCubic);
+    } else {
+      Future.delayed(const Duration(milliseconds: 10), () {
+        if (!controller.isAttached) {
+          return;
+        }
+        updateTitleDateTime(data[index]);
+        controller.scrollTo(
+            index: index,
+            duration: duration ?? const Duration(seconds: 1),
+            curve: Curves.easeInOutCubic);
+      });
+    }
+  }
+
   void togglePollutant() {
     setState(() {
       _pollutant = _pollutant == 'pm2.5' ? 'pm10' : 'pm2.5';
@@ -622,6 +617,58 @@ class _InsightsTabState extends State<InsightsTab> {
       });
     });
     await _appService!.updateFavouritePlace(widget.placeDetails);
+  }
+
+  void updateTitleDateTime(List<charts.Series<Insights, String>> data) {
+    var dateTime = data.first.data.first.time;
+
+    setState(() {
+      _titleDateTime =
+          insightsChartTitleDateTimeToString(dateTime, widget.daily);
+    });
+
+    var insights = data.first.data
+        .where((element) => !element.isEmpty && !element.isForecast)
+        .toList();
+
+    /// Recommendations
+    if (insights.isEmpty) {
+      setState(() {
+        _recommendations = [];
+        _selectedMeasurement = data.first.data.first;
+      });
+      return;
+    }
+
+    var lastAvailableInsight = insights.reduce((value, element) {
+      if (value.time.isAfter(element.time)) {
+        return value;
+      }
+      return element;
+    });
+
+    if (dateTime.isToday()) {
+      setState(() {
+        _isTodayHealthTips = true;
+        _recommendations =
+            getHealthRecommendations(lastAvailableInsight.pm2_5, _pollutant);
+      });
+    } else if (dateTime.isTomorrow()) {
+      setState(() {
+        _isTodayHealthTips = false;
+        _recommendations =
+            getHealthRecommendations(lastAvailableInsight.pm2_5, _pollutant);
+      });
+    } else {
+      setState(() {
+        _recommendations = [];
+      });
+    }
+
+    /// Auto select measurement
+    setState(() {
+      _selectedMeasurement = lastAvailableInsight;
+    });
   }
 
   void _createChartTicks() {
@@ -861,7 +908,9 @@ class _InsightsTabState extends State<InsightsTab> {
     }
 
     if (widget.daily) {
-      var data = insights.where((element) => element.frequency == 'daily');
+      var data =
+          insights.where((element) => element.frequency == 'daily').toList();
+
       setState(() {
         _dailyPm2_5ChartData =
             insightsChartData(List.from(data), 'pm2.5', 'daily');
@@ -901,50 +950,29 @@ class _InsightsTabState extends State<InsightsTab> {
           return true;
         }
         return false;
-      });
+      }).toList();
+
       setState(() {
         _hourlyPm2_5ChartData =
-            insightsChartData(List.from(data), 'pm2.5', 'hourly');
+            insightsChartData(insights, 'pm2.5', 'hourly').toList();
         _hourlyPm10ChartData =
-            insightsChartData(List.from(data), 'pm10', 'hourly');
+            insightsChartData(insights, 'pm10', 'hourly').toList();
         _selectedMeasurement = _hourlyPm2_5ChartData.first.first.data.first;
         _hasMeasurements = true;
       });
 
-      Future.delayed(const Duration(seconds: 3), () {
-        for (var element in _hourlyPm2_5ChartData) {
-          if (element.first.data.first.time == DateTime.now()) {
-            _selectedMeasurement = element.first.data.last;
-            _controller.animateTo(
-                double.parse('${_hourlyPm2_5ChartData.indexOf(element)}'),
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.elasticOut);
-            // setState(() {
-            //   _controller = ScrollController(initialScrollOffset:
-            //   double.parse('${_hourlyPm2_5ChartData.indexOf(element)}'));
-            // });
-            break;
-          }
+      for (var element in _hourlyPm2_5ChartData) {
+        if (element.first.data.first.time.day == DateTime.now().day &&
+            element.first.data.first.time.month == DateTime.now().month) {
+          _selectedMeasurement = element.first.data.last;
+          await scrollToItem(
+              itemScrollController,
+              _hourlyPm2_5ChartData.indexOf(element),
+              _hourlyPm2_5ChartData,
+              const Duration(seconds: 1));
+          break;
         }
-      });
-      // for(var element in _hourlyPm2_5ChartData){
-      //   if(element.first.data.first.time == DateTime.now()){
-      //     _selectedMeasurement = element.first.data.last;
-      //     await _controller.animateTo(
-      //         double.parse('${_hourlyPm2_5ChartData.indexOf(element)}'),
-      //         duration: const Duration(milliseconds: 300),
-      //         curve: Curves.elasticOut);
-      //     // setState(() {
-      //     //   _controller = ScrollController(initialScrollOffset:
-      //     //   double.parse('${_hourlyPm2_5ChartData.indexOf(element)}'));
-      //     // });
-      //     break;
-      //   }
-      // }
-
-      // var todayInsights = _hourlyPm2_5ChartData.toList().where((element) =>
-      // element.first.data.first.time == DateTime.now());
-      // print(todayInsights.toList().first.first.data.first.time);
+      }
 
       if (_pollutant == 'pm2.5') {
         await _setSelectedMeasurement(_hourlyPm2_5ChartData);
@@ -995,62 +1023,13 @@ class _InsightsTabState extends State<InsightsTab> {
     // }
   }
 
-  void _updateSelectedMeasurement(Insights insightsChartData) {
-    var time = insightsChartData.time;
-    var tomorrow = DateTime.now().add(const Duration(days: 1));
-    if (!insightsChartData.isEmpty) {
-      setState(() {
-        _recommendations = getHealthRecommendations(
-            insightsChartData.getChartValue(_pollutant));
-      });
-      if (time.day == DateTime.now().day) {
-        setState(() {
-          _viewDay = 'today';
-        });
-      } else if (time.day == tomorrow.day) {
-        setState(() {
-          _viewDay = 'tomorrow';
-        });
-      } else {
-        setState(() {
-          _viewDay = '';
-        });
-      }
-    } else {
-      setState(() {
-        _viewDay = '';
-        _recommendations = [];
-      });
-    }
-    // if (widget.daily) {
-    //   _fetchHourlyMeasurements();
-    // }
-  }
-
   void _updateUI(Insights insights) {
-    _updateSelectedMeasurement(insights);
     setState(() {
       _selectedMeasurement = insights;
+      _lastUpdated = insights.isEmpty
+          ? ''
+          : 'Updated '
+              '${DateFormat('hh:mm a').format(_selectedMeasurement!.time)}';
     });
-    if (_lastUpdated == '') {
-      setState(() {
-        _lastUpdated =
-            _selectedMeasurement!.time.weekday == DateTime.now().weekday
-                ? dateToString(_selectedMeasurement!.time.toString())
-                : 'Updated today';
-      });
-    }
-    var time = insights.time;
-
-    if (time.day == DateTime.now().day) {
-      setState(() {
-        _viewDay = 'today';
-      });
-    } else if ((time.month == DateTime.now().month) &&
-        (time.day + 1) == DateTime.now().day) {
-      setState(() {
-        _viewDay = 'tomorrow';
-      });
-    }
   }
 }

@@ -1,5 +1,6 @@
 import 'package:app/constants/config.dart';
 import 'package:app/utils/pm.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -184,9 +185,11 @@ void pmInfoDialog(context, double pm2_5) {
                             color: pm2_5ToColor(pm2_5).withOpacity(0.4),
                             borderRadius:
                                 const BorderRadius.all(Radius.circular(537.0))),
-                        child: Text(
+                        child: AutoSizeText(
                           pm2_5ToString(pm2_5),
                           maxLines: 2,
+                          minFontSize: 10,
+                          maxFontSize: 10,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                               fontSize: 10,

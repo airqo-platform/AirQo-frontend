@@ -2,7 +2,6 @@ import 'package:app/constants/config.dart';
 import 'package:app/models/site.dart';
 import 'package:app/widgets/monthly_view.dart';
 import 'package:app/widgets/weekly_view.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class PlaceView extends StatefulWidget {

@@ -14,7 +14,6 @@ import 'package:app/models/story.dart';
 import 'package:app/models/user_details.dart';
 import 'package:app/utils/distance.dart';
 import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:path/path.dart';

@@ -10,8 +10,8 @@ import 'package:app/utils/date.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/widgets/tooltip.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
@@ -292,14 +292,14 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                                   .withOpacity(0.4),
                                               border: Border.all(
                                                   color: Colors.transparent)),
-                                          child: Text(
+                                          child: AutoSizeText(
                                             pm2_5ToString(widget.measurement
                                                 .getPm2_5Value()),
+                                            maxFontSize: 14,
                                             maxLines: 1,
                                             textAlign: TextAlign.start,
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
-                                              fontSize: 14,
                                               color: pm2_5TextColor(widget
                                                   .measurement
                                                   .getPm2_5Value()),
@@ -568,10 +568,11 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                               .withOpacity(0.4),
                                           border: Border.all(
                                               color: Colors.transparent)),
-                                      child: Text(
+                                      child: AutoSizeText(
                                         pm2_5ToString(
                                             widget.measurement.getPm2_5Value()),
                                         maxLines: 1,
+                                        maxFontSize: 14,
                                         textAlign: TextAlign.start,
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(

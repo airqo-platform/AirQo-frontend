@@ -687,7 +687,7 @@ class ShareService {
 
   void shareMeasurementText(Measurement measurement) {
     var recommendationList =
-        getHealthRecommendations(measurement.getPm2_5Value());
+        getHealthRecommendations(measurement.getPm2_5Value(), 'pm2.5');
     var recommendations = '';
     for (var value in recommendationList) {
       recommendations = '$recommendations\n- ${value.body}';

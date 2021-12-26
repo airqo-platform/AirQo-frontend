@@ -15,6 +15,29 @@ import 'package:flutter/foundation.dart'
 /// );
 /// ```
 class DefaultFirebaseOptions {
+  static const FirebaseOptions android = FirebaseOptions(
+    apiKey: 'AIzaSyAnndi5DpiTdNiTPoOBHdG7L4XBHBde_lk',
+    appId: '1:702081712633:android:f5cff1cf6238701b993d28',
+    messagingSenderId: '702081712633',
+    projectId: 'airqo-250220',
+    databaseURL: 'https://airqo-250220.firebaseio.com',
+    storageBucket: 'airqo-250220.appspot.com',
+  );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyB07U6kGkhTgUh8J-or_mYoRir2oTVvj7c',
+    appId: '1:702081712633:ios:8ff0fdc991729ee0993d28',
+    messagingSenderId: '702081712633',
+    projectId: 'airqo-250220',
+    databaseURL: 'https://airqo-250220.firebaseio.com',
+    storageBucket: 'airqo-250220.appspot.com',
+    androidClientId:
+        '702081712633-2m55tnj0njsgt4hnekmavgpf8js67a3r.apps.googleusercontent.com',
+    iosClientId:
+        '702081712633-3tgp25ii9bktfrtjbcm1ubn5s43dmu9t.apps.googleusercontent.com',
+    iosBundleId: 'com.airqo.net',
+  );
+
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
       throw UnsupportedError(
@@ -39,25 +62,4 @@ class DefaultFirebaseOptions {
       'DefaultFirebaseOptions are not supported for this platform.',
     );
   }
-
-  static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAnndi5DpiTdNiTPoOBHdG7L4XBHBde_lk',
-    appId: '1:702081712633:android:f5cff1cf6238701b993d28',
-    messagingSenderId: '702081712633',
-    projectId: 'airqo-250220',
-    databaseURL: 'https://airqo-250220.firebaseio.com',
-    storageBucket: 'airqo-250220.appspot.com',
-  );
-
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyB07U6kGkhTgUh8J-or_mYoRir2oTVvj7c',
-    appId: '1:702081712633:ios:8ff0fdc991729ee0993d28',
-    messagingSenderId: '702081712633',
-    projectId: 'airqo-250220',
-    databaseURL: 'https://airqo-250220.firebaseio.com',
-    storageBucket: 'airqo-250220.appspot.com',
-    androidClientId: '702081712633-2m55tnj0njsgt4hnekmavgpf8js67a3r.apps.googleusercontent.com',
-    iosClientId: '702081712633-3tgp25ii9bktfrtjbcm1ubn5s43dmu9t.apps.googleusercontent.com',
-    iosBundleId: 'com.airqo.net',
-  );
 }

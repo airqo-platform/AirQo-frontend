@@ -5,7 +5,6 @@ import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 class ChangePhoneScreen extends StatefulWidget {
   const ChangePhoneScreen({Key? key}) : super(key: key);

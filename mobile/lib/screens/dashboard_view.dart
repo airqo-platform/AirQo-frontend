@@ -142,7 +142,7 @@ class _DashboardViewState extends State<DashboardView> {
               ),
               Expanded(
                   child: RefreshIndicator(
-                onRefresh: _getLatestMeasurements,
+                onRefresh: _refresh,
                 color: Config.appColorBlue,
                 child: _dashboardItems(),
               )),
@@ -752,14 +752,10 @@ class _DashboardViewState extends State<DashboardView> {
     }
   }
 
-  Future<void> _getLatestMeasurements() async {
+  void _getLatestMeasurements() async {
     var measurements = await _airqoApiClient!.fetchLatestMeasurements();
     if (measurements.isNotEmpty) {
       await _dbHelper.insertLatestMeasurements(measurements);
-      if (mounted) {
-        _getLocationMeasurements();
-        _getDashboardLocations();
-      }
     }
   }
 
@@ -803,7 +799,7 @@ class _DashboardViewState extends State<DashboardView> {
       _getIncompleteKya();
       _getCompleteKya();
     }
-    await _getLatestMeasurements();
+    _getLatestMeasurements();
   }
 
   void _loadCompleteKya(List<Kya> completeKya) async {
@@ -855,6 +851,12 @@ class _DashboardViewState extends State<DashboardView> {
   Future<void> _loadKya() async {
     var kyas = await _cloudStore.getKya(_customAuth.getId());
     await _dbHelper.insertKyas(kyas);
+  }
+
+  Future<void> _refresh() async {
+    _getLocationMeasurements();
+    _getDashboardLocations();
+    _getLatestMeasurements();
   }
 
   void _setGreetings() {

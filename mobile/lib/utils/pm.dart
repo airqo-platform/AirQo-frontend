@@ -6,7 +6,8 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-List<Recommendation> getHealthRecommendations(double pm2_5) {
+List<Recommendation> getHealthRecommendations(double pm2_5, String pollutant) {
+  // TODO add recommendations for pm10
   var recommendations = <Recommendation>[];
   if (pm2_5 <= 12.09) {
     //good

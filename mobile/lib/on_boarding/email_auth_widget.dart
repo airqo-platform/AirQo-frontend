@@ -9,7 +9,6 @@ import 'package:app/utils/string_extension.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 class EmailAuthWidget extends StatefulWidget {
   final ValueSetter<String> changeOption;

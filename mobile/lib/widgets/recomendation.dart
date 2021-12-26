@@ -1,7 +1,6 @@
 import 'package:app/constants/config.dart';
 import 'package:app/utils/pm.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 Widget recommendationContainer(Recommendation recommendation, context) {
   return Container(

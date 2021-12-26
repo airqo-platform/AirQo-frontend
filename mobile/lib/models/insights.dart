@@ -63,9 +63,8 @@ class Insights {
   static List<Insights> parseInsights(dynamic jsonBody) {
     var insights = <Insights>[];
 
-    var jsonArray = jsonBody['data'];
     var offSet = DateTime.now().timeZoneOffset;
-    for (var jsonElement in jsonArray) {
+    for (var jsonElement in jsonBody) {
       try {
         DateTime formattedDate;
         var insight = Insights.fromJson(jsonElement);

@@ -41,20 +41,7 @@ charts.Color insightsChartBarColor(Insights series, String pollutant) {
 
 List<List<charts.Series<Insights, String>>> insightsChartData(
     List<Insights> insights, String pollutant, String frequency) {
-  var data = <Insights>[];
-
-  if (pollutant == 'pm10') {
-    var forecast = insights.where((element) => element.isForecast);
-    var nonForecast = insights.where((element) => !element.isForecast);
-
-    forecast.map((e) => e.isEmpty = true);
-
-    data
-      ..addAll(nonForecast)
-      ..addAll(forecast);
-  } else {
-    data = insights;
-  }
+  var data = <Insights>[...insights];
 
   var insightsGraphs = <List<charts.Series<Insights, String>>>[];
 
