@@ -15,7 +15,7 @@ Insights _$InsightsFromJson(Map<String, dynamic> json) => Insights(
       json['name'] as String,
       json['siteId'] as String,
       json['location'] as String,
-      json['frequency'] as String,
+      frequencyFromJson(json['frequency'] as String),
     );
 
 Map<String, dynamic> _$InsightsToJson(Insights instance) => <String, dynamic>{

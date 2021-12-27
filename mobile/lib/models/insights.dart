@@ -19,6 +19,7 @@ class Insights {
   String name;
   String siteId;
   String location;
+  @JsonKey(fromJson: frequencyFromJson)
   String frequency;
 
   Insights(this.time, this.pm2_5, this.pm10, this.isEmpty, this.isForecast,

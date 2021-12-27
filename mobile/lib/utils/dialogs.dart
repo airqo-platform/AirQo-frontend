@@ -25,6 +25,11 @@ void pmInfoDialog(context, double pm2_5) {
             borderRadius: BorderRadius.all(Radius.circular(8.0))),
         contentPadding: const EdgeInsets.all(0),
         content: Container(
+            width: 200.0,
+            height: 240.0,
+            constraints: const BoxConstraints(
+              maxHeight: 260,
+            ),
             decoration: const BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.all(Radius.circular(8.0))),
@@ -69,8 +74,7 @@ void pmInfoDialog(context, double pm2_5) {
                   height: 8,
                 ),
                 Padding(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+                  padding: const EdgeInsets.only(left: 16, right: 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -202,7 +206,7 @@ void pmInfoDialog(context, double pm2_5) {
                       ),
                       RichText(
                         text: TextSpan(
-                          children: <TextSpan>[
+                          children: [
                             TextSpan(
                               text: '${pmToLongString(pm2_5)}'
                                   ' means; ',
@@ -223,6 +227,9 @@ void pmInfoDialog(context, double pm2_5) {
                       ),
                     ],
                   ),
+                ),
+                const SizedBox(
+                  height: 10,
                 ),
               ],
             )),

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:app/constants/config.dart';
 import 'package:app/models/historical_measurement.dart';
 import 'package:app/models/insights.dart';
-import 'package:app/models/insights_chart_data.dart';
 import 'package:app/models/kya.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/notification.dart';
@@ -150,24 +149,6 @@ class DBHelper {
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
       return <Insights>[];
-    }
-  }
-
-  Future<List<InsightsChartData>> getInsightsChartData(String name) async {
-    try {
-      final db = await database;
-
-      var res = await db.query(InsightsChartData.dbName(),
-          where: 'name = ?', whereArgs: [name]);
-
-      return res.isNotEmpty
-          ? List.generate(res.length, (i) {
-              return InsightsChartData.fromJson(res[i]);
-            })
-          : <InsightsChartData>[];
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      return <InsightsChartData>[];
     }
   }
 
@@ -491,41 +472,6 @@ class DBHelper {
           var jsonData = row.toJson();
           await db.insert(
             Insights.dbName(),
-            jsonData,
-            conflictAlgorithm: ConflictAlgorithm.replace,
-          );
-        } catch (exception, stackTrace) {
-          debugPrint(exception.toString());
-          debugPrint(stackTrace.toString());
-        }
-      }
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-  }
-
-  Future<void> insertInsightsChartData(
-      List<InsightsChartData> insightsChartData) async {
-    try {
-      final db = await database;
-
-      if (insightsChartData.isEmpty) {
-        return;
-      }
-
-      var name = insightsChartData.first.name;
-      var frequency = insightsChartData.first.frequency;
-      var pollutant = insightsChartData.first.pollutant;
-
-      await db.delete(InsightsChartData.dbName(),
-          where: 'name = ? and frequency = ? and pollutant = ?',
-          whereArgs: [name, frequency, pollutant]);
-
-      for (var row in insightsChartData) {
-        try {
-          var jsonData = row.toJson();
-          await db.insert(
-            InsightsChartData.dbName(),
             jsonData,
             conflictAlgorithm: ConflictAlgorithm.replace,
           );

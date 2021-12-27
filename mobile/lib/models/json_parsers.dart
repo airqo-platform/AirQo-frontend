@@ -11,6 +11,10 @@ String boolToJson(bool boolValue) {
   return boolValue ? 'true' : 'false';
 }
 
+String frequencyFromJson(String frequency) {
+  return frequency.toLowerCase();
+}
+
 MeasurementValue measurementValueFromJson(dynamic json) {
   if (json == null) {
     return MeasurementValue(value: -0.1, calibratedValue: -0.1);

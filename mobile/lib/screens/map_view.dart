@@ -396,7 +396,8 @@ class _MapViewState extends State<MapView> {
   //       elevation: 12.0,
   //       shape: const RoundedRectangleBorder(
   //           borderRadius: BorderRadius.only(
-  //               topLeft: Radius.circular(16), topRight: Radius.circular(16))),
+  //               topLeft: Radius.circular(16),
+  //               topRight: Radius.circular(16))),
   //       child: _showLocationDetails
   //           ? Container(
   //               padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 16.0),

@@ -36,7 +36,6 @@ class CloudAnalytics {
   final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
 
   Future<void> logEvent(AnalyticsEvent analyticsEvent) async {
-    debugPrint('analytics logging => ${analyticsEvent.getString()}');
     await analytics.logEvent(
       name: analyticsEvent.getString(),
     );

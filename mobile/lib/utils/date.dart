@@ -83,6 +83,30 @@ String dateToString(String formattedString) {
   }
 }
 
+DateTime getDateOfFirstDayOfWeek(DateTime datetime) {
+  var firstDate = datetime;
+  var weekday = firstDate.weekday;
+
+  if (weekday != 1) {
+    var offset = weekday - 1;
+    firstDate = firstDate.subtract(Duration(days: offset));
+  }
+
+  return firstDate;
+}
+
+DateTime getDateOfLastDayOfWeek(DateTime datetime) {
+  var lastDate = datetime;
+  var weekday = lastDate.weekday;
+
+  if (weekday != 7) {
+    var offset = 7 - weekday;
+    lastDate = lastDate.add(Duration(days: offset));
+  }
+
+  return lastDate;
+}
+
 String getDateTime() {
   var now = DateTime.now();
   return '${getWeekday()} ${DateFormat('d').format(now)}'
@@ -111,6 +135,7 @@ String getGreetings(String name) {
   return 'Hello $name';
 }
 
+// TODO: verify yesterday and tomorrow. Explore unit tests
 String getTime(int hour) {
   if (hour > 0 && hour < 12) {
     return '$hour AM';
@@ -166,29 +191,12 @@ String getWeekday() {
   }
 }
 
-String insightsChartDateTimeToString(DateTime dateTime, bool daily) {
-  try {
-    if (daily) {
-      return '${DateTime.now().getDateOfFirstDayOfWeek().getShortDate()}'
-          ' - '
-          '${DateTime.now().getDateOfLastDayOfWeek().getShortDate()}';
-    } else {
-      return 'Today, ${DateTime.now().day} '
-          '${DateTime.now().getLongMonthString()}';
-    }
-  } on Error catch (exception, stackTrace) {
-    debugPrint('$exception\n$stackTrace');
-    return dateTime.toString();
-  }
-}
-
-// TODO: verify yesterday and tomorrow. Explore unit tests
 String insightsChartTitleDateTimeToString(DateTime dateTime, bool daily) {
   try {
     if (daily) {
-      return '${dateTime.getDateOfFirstDayOfWeek().getShortDate()}'
+      return '${getDateOfFirstDayOfWeek(dateTime).getShortDate()}'
           ' - '
-          '${dateTime.getDateOfLastDayOfWeek().getShortDate()}';
+          '${getDateOfLastDayOfWeek(dateTime).getShortDate()}';
     } else {
       var prefix = '';
 

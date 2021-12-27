@@ -9,6 +9,7 @@ import 'package:app/utils/data_formatter.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/pm.dart';
+import 'package:app/utils/string_extension.dart';
 import 'package:app/widgets/recomendation.dart';
 import 'package:app/widgets/tooltip.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -46,7 +47,6 @@ class _InsightsTabState extends State<InsightsTab> {
       'with a single click ';
   int _currentItem = 0;
 
-  ScrollController _controller = ScrollController();
   AppService? _appService;
 
   Insights? _selectedMeasurement;
@@ -68,8 +68,11 @@ class _InsightsTabState extends State<InsightsTab> {
   final GlobalKey _infoToolTipKey = GlobalKey();
   final GlobalKey _toggleToolTipKey = GlobalKey();
   final ShareService _shareSvc = ShareService();
-  final ItemScrollController itemScrollController = ItemScrollController();
+  final ItemScrollController _itemScrollController = ItemScrollController();
   String _titleDateTime = '';
+
+  Map<String, Widget> miniChartsMap = {};
+  String selectedMiniChart = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
   @override
   Widget build(BuildContext context) {
@@ -315,24 +318,30 @@ class _InsightsTabState extends State<InsightsTab> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
+                            AutoSizeText(
                               _titleDateTime,
                               maxLines: 1,
+                              maxFontSize: 14,
+                              minFontSize: 12,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                   fontSize: 14,
                                   color: Colors.black.withOpacity(0.3)),
                             ),
-                            Text(
+                            AutoSizeText(
                               widget.placeDetails.getName(),
                               maxLines: 1,
+                              maxFontSize: 16,
+                              minFontSize: 14,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 16),
                             ),
-                            Text(
+                            AutoSizeText(
                               widget.placeDetails.getLocation(),
                               maxLines: 1,
+                              maxFontSize: 12,
+                              minFontSize: 10,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                   fontSize: 12,
@@ -356,14 +365,32 @@ class _InsightsTabState extends State<InsightsTab> {
                   widget.daily
                       ? SizedBox(
                           height: 160,
-                          child: ListView.builder(
+                          child: ScrollablePositionedList.builder(
                             scrollDirection: Axis.horizontal,
-                            controller: _controller,
+                            itemCount: _dailyPm2_5ChartData.length,
                             itemBuilder: (context, index) {
-                              return _dailyChart(_dailyPm2_5ChartData[index],
-                                  _dailyPm10ChartData[index]);
+                              return VisibilityDetector(
+                                  key: Key(index.toString()),
+                                  onVisibilityChanged:
+                                      (VisibilityInfo visibilityInfo) {
+                                    if ((visibilityInfo.visibleFraction >
+                                            0.3) &&
+                                        (_currentItem != index)) {
+                                      setState(() {
+                                        _currentItem = index;
+                                      });
+                                      scrollToItem(
+                                          _itemScrollController,
+                                          _currentItem,
+                                          _dailyPm2_5ChartData,
+                                          null);
+                                    }
+                                  },
+                                  child: _insightsChart(
+                                      _dailyPm2_5ChartData[index],
+                                      _dailyPm10ChartData[index]));
                             },
-                            itemCount: _dailyPm2_5ChartData.toList().length,
+                            itemScrollController: _itemScrollController,
                           ),
                         )
                       : SizedBox(
@@ -383,27 +410,31 @@ class _InsightsTabState extends State<InsightsTab> {
                                         _currentItem = index;
                                       });
                                       scrollToItem(
-                                          itemScrollController,
+                                          _itemScrollController,
                                           _currentItem,
                                           _hourlyPm2_5ChartData,
                                           null);
                                     }
                                   },
-                                  child: _hourlyChart(
+                                  child: _insightsChart(
                                       _hourlyPm2_5ChartData[index],
                                       _hourlyPm10ChartData[index]));
                             },
-                            itemScrollController: itemScrollController,
+                            itemScrollController: _itemScrollController,
                           ),
                         ),
+                  if (widget.daily)
+                    miniChartsMap[selectedMiniChart] == null
+                        ? const SizedBox()
+                        : miniChartsMap[selectedMiniChart] as Widget,
                   Visibility(
-                    visible: !widget.daily && _lastUpdated.isNotEmpty,
+                    visible: _lastUpdated.isNotEmpty,
                     child: const SizedBox(
                       height: 13.0,
                     ),
                   ),
                   Visibility(
-                    visible: !widget.daily && _lastUpdated.isNotEmpty,
+                    visible: _lastUpdated.isNotEmpty,
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -487,7 +518,6 @@ class _InsightsTabState extends State<InsightsTab> {
                           textAlign: TextAlign.start,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontSize: 14,
                             color: _selectedMeasurement!.isForecast
                                 ? Config.appColorBlue
                                 : _pollutant == 'pm2.5'
@@ -574,6 +604,39 @@ class _InsightsTabState extends State<InsightsTab> {
             ),
           ],
         ));
+  }
+
+  Future<void> loadMiniCharts(DateTime defaultSelection) async {
+    var hourlyInsights =
+        await _dbHelper.getInsights(widget.placeDetails.siteId, 'hourly');
+
+    if (hourlyInsights.isNotEmpty) {
+      while (hourlyInsights.isNotEmpty) {
+        var randomValue = hourlyInsights.first;
+
+        var relatedDates = hourlyInsights.where((element) {
+          return element.time.day == randomValue.time.day &&
+              element.time.month == randomValue.time.month;
+        }).toList();
+
+        var pm2_5ChartData =
+            insightsChartData(relatedDates, 'pm2.5', 'hourly').toList().first;
+
+        var pm10ChartData =
+            insightsChartData(relatedDates, 'pm10', 'hourly').toList().first;
+
+        miniChartsMap[DateFormat('yyyy-MM-dd').format(randomValue.time)] =
+            _miniInsightsChart(pm2_5ChartData, pm10ChartData);
+
+        hourlyInsights.removeWhere((element) =>
+            element.time.day == randomValue.time.day &&
+            element.time.month == randomValue.time.month);
+      }
+
+      setState(() {
+        selectedMiniChart = DateFormat('yyyy-MM-dd').format(defaultSelection);
+      });
+    }
   }
 
   Future<void> scrollToItem(
@@ -711,79 +774,6 @@ class _InsightsTabState extends State<InsightsTab> {
     });
   }
 
-  Widget _dailyChart(List<charts.Series<Insights, String>> pm2_5ChartData,
-      List<charts.Series<Insights, String>> pm10ChartData) {
-    return LayoutBuilder(
-        builder: (BuildContext buildContext, BoxConstraints constraints) {
-      return SizedBox(
-        width: MediaQuery.of(buildContext).size.width - 50,
-        height: 150,
-        child: charts.BarChart(
-          _pollutant == 'pm2.5' ? pm2_5ChartData : pm10ChartData,
-          animate: true,
-          defaultRenderer: charts.BarRendererConfig<String>(
-              strokeWidthPx: 0, stackedBarPaddingPx: 0),
-          defaultInteractions: true,
-          behaviors: [
-            charts.LinePointHighlighter(
-                showHorizontalFollowLine:
-                    charts.LinePointHighlighterFollowLineType.none,
-                showVerticalFollowLine:
-                    charts.LinePointHighlighterFollowLineType.nearest),
-            charts.DomainHighlighter(),
-            charts.SelectNearest(
-                eventTrigger: charts.SelectionTrigger.tapAndDrag),
-          ],
-          selectionModels: [
-            charts.SelectionModelConfig(
-                changedListener: (charts.SelectionModel model) {
-              if (model.hasDatumSelection) {
-                try {
-                  var value = model.selectedDatum[0].index;
-                  if (value != null) {
-                    _updateUI(model.selectedSeries[0].data[value]);
-                  }
-                } on Error catch (exception, stackTrace) {
-                  debugPrint(
-                      '${exception.toString()}\n${stackTrace.toString()}');
-                }
-              }
-            })
-          ],
-          domainAxis: charts.OrdinalAxisSpec(
-              tickProviderSpec:
-                  charts.StaticOrdinalTickProviderSpec(_dailyStaticTicks)),
-          primaryMeasureAxis: charts.NumericAxisSpec(
-            tickProviderSpec: charts.StaticNumericTickProviderSpec(
-              <charts.TickSpec<double>>[
-                charts.TickSpec<double>(0,
-                    style: charts.TextStyleSpec(
-                        color:
-                            charts.ColorUtil.fromDartColor(Config.greyColor))),
-                charts.TickSpec<double>(125,
-                    style: charts.TextStyleSpec(
-                        color:
-                            charts.ColorUtil.fromDartColor(Config.greyColor))),
-                charts.TickSpec<double>(250,
-                    style: charts.TextStyleSpec(
-                        color:
-                            charts.ColorUtil.fromDartColor(Config.greyColor))),
-                charts.TickSpec<double>(375,
-                    style: charts.TextStyleSpec(
-                        color:
-                            charts.ColorUtil.fromDartColor(Config.greyColor))),
-                charts.TickSpec<double>(500,
-                    style: charts.TextStyleSpec(
-                        color:
-                            charts.ColorUtil.fromDartColor(Config.greyColor))),
-              ],
-            ),
-          ),
-        ),
-      );
-    });
-  }
-
   Future<void> _fetchDBInsights() async {
     var frequency = widget.daily ? 'daily' : 'hourly';
     var insights =
@@ -802,7 +792,10 @@ class _InsightsTabState extends State<InsightsTab> {
       return;
     }
 
-    await _setInsights(insights);
+    if (!_hasMeasurements) {
+      await _setInsights(insights);
+    }
+
     await _saveInsights(insights, widget.daily);
 
     var frequencyInsights = await _airqoApiClient!
@@ -810,7 +803,15 @@ class _InsightsTabState extends State<InsightsTab> {
     await _saveInsights(frequencyInsights, !widget.daily);
   }
 
-  Widget _hourlyChart(List<charts.Series<Insights, String>> pm2_5ChartData,
+  Future<void> _initialize() async {
+    _airqoApiClient = AirqoApiClient(context);
+    _appService = AppService(context);
+    _createChartTicks();
+    await _fetchDBInsights();
+    await _fetchInsights();
+  }
+
+  Widget _insightsChart(List<charts.Series<Insights, String>> pm2_5ChartData,
       List<charts.Series<Insights, String>> pm10ChartData) {
     return LayoutBuilder(
         builder: (BuildContext buildContext, BoxConstraints constraints) {
@@ -821,7 +822,10 @@ class _InsightsTabState extends State<InsightsTab> {
           _pollutant == 'pm2.5' ? pm2_5ChartData : pm10ChartData,
           animate: true,
           defaultRenderer: charts.BarRendererConfig<String>(
-              strokeWidthPx: 0, stackedBarPaddingPx: 0),
+            strokeWidthPx: 20,
+            stackedBarPaddingPx: 0,
+            cornerStrategy: const charts.ConstCornerStrategy(10),
+          ),
           defaultInteractions: true,
           behaviors: [
             charts.LinePointHighlighter(
@@ -849,51 +853,48 @@ class _InsightsTabState extends State<InsightsTab> {
               }
             })
           ],
-          // domainAxis: const charts.OrdinalAxisSpec(
-          //     showAxisLine: true,
-          //     renderSpec: charts.NoneRenderSpec()
-          // ),
-          domainAxis: charts.OrdinalAxisSpec(
-              tickProviderSpec:
-                  charts.StaticOrdinalTickProviderSpec(_hourlyStaticTicks)),
-
-          primaryMeasureAxis: charts.NumericAxisSpec(
-            tickProviderSpec: charts.StaticNumericTickProviderSpec(
-              <charts.TickSpec<double>>[
-                charts.TickSpec<double>(0,
-                    style: charts.TextStyleSpec(
-                        color:
-                            charts.ColorUtil.fromDartColor(Config.greyColor))),
-                charts.TickSpec<double>(125,
-                    style: charts.TextStyleSpec(
-                        color:
-                            charts.ColorUtil.fromDartColor(Config.greyColor))),
-                charts.TickSpec<double>(250,
-                    style: charts.TextStyleSpec(
-                        color:
-                            charts.ColorUtil.fromDartColor(Config.greyColor))),
-                charts.TickSpec<double>(375,
-                    style: charts.TextStyleSpec(
-                        color:
-                            charts.ColorUtil.fromDartColor(Config.greyColor))),
-                charts.TickSpec<double>(500,
-                    style: charts.TextStyleSpec(
-                        color:
-                            charts.ColorUtil.fromDartColor(Config.greyColor))),
-              ],
-            ),
-          ),
+          domainAxis: _yAxisScale(
+              widget.daily ? _dailyStaticTicks : _hourlyStaticTicks),
+          primaryMeasureAxis: _xAxisScale(),
         ),
       );
     });
   }
 
-  Future<void> _initialize() async {
-    _airqoApiClient = AirqoApiClient(context);
-    _appService = AppService(context);
-    _createChartTicks();
-    await _fetchDBInsights();
-    await _fetchInsights();
+  Widget _miniInsightsChart(List<charts.Series<Insights, String>> pm2_5Data,
+      List<charts.Series<Insights, String>> pm10Data) {
+    return LayoutBuilder(
+        builder: (BuildContext buildContext, BoxConstraints constraints) {
+      return SizedBox(
+        width: MediaQuery.of(buildContext).size.width - 50,
+        height: 150,
+        child: charts.BarChart(
+          _pollutant == 'pm2.5' ? pm2_5Data : pm10Data,
+          animate: true,
+          defaultRenderer: charts.BarRendererConfig<String>(
+              strokeWidthPx: 0,
+              stackedBarPaddingPx: 0,
+              cornerStrategy: const charts.ConstCornerStrategy(10)),
+          defaultInteractions: true,
+          behaviors: [
+            charts.LinePointHighlighter(
+                showHorizontalFollowLine:
+                    charts.LinePointHighlighterFollowLineType.none,
+                showVerticalFollowLine:
+                    charts.LinePointHighlighterFollowLineType.nearest),
+            charts.DomainHighlighter(),
+            charts.SelectNearest(
+                eventTrigger: charts.SelectionTrigger.tapAndDrag),
+          ],
+          selectionModels: [
+            charts.SelectionModelConfig(
+                changedListener: (charts.SelectionModel model) {})
+          ],
+          domainAxis: _yAxisScale(_hourlyStaticTicks),
+          primaryMeasureAxis: _xAxisScale(),
+        ),
+      );
+    });
   }
 
   Future<void> _saveInsights(List<Insights> insights, bool daily) async {
@@ -902,14 +903,28 @@ class _InsightsTabState extends State<InsightsTab> {
         insights, widget.placeDetails.siteId, frequency);
   }
 
-  Future<void> _setInsights(List<Insights> insights) async {
-    if (insights.isEmpty || !mounted) {
+  Future<void> _setInsights(List<Insights> insightsData) async {
+    if (insightsData.isEmpty || !mounted) {
       return;
     }
 
+    var firstDay = DateTime.now().getFirstDateOfMonth();
+    var lastDay = DateTime.now().getLastDateOfMonth();
+    var insights = insightsData.where((element) {
+      var date = element.time;
+      if (date == firstDay ||
+          date == lastDay ||
+          date.isAfter(firstDay) ||
+          date.isBefore(lastDay)) {
+        return true;
+      }
+      return false;
+    }).toList();
+
     if (widget.daily) {
-      var data =
-          insights.where((element) => element.frequency == 'daily').toList();
+      var data = insights
+          .where((element) => element.frequency.equalsIgnoreCase('daily'))
+          .toList();
 
       setState(() {
         _dailyPm2_5ChartData =
@@ -921,42 +936,29 @@ class _InsightsTabState extends State<InsightsTab> {
       });
 
       for (var element in _dailyPm2_5ChartData) {
-        if (element.first.data.first.time == DateTime.now()) {
+        if (element.first.data.first.time.day == DateTime.now().day &&
+            element.first.data.first.time.month == DateTime.now().month) {
           _selectedMeasurement = element.first.data.last;
-          setState(() {
-            _controller = ScrollController(
-                initialScrollOffset:
-                    double.parse('${_dailyPm2_5ChartData.indexOf(element)}'));
-          });
+          await scrollToItem(
+              _itemScrollController,
+              _dailyPm2_5ChartData.indexOf(element),
+              _dailyPm2_5ChartData,
+              const Duration(microseconds: 1));
           break;
         }
       }
 
-      if (_pollutant == 'pm2.5') {
-        await _setSelectedMeasurement(_dailyPm2_5ChartData);
-      } else {
-        await _setSelectedMeasurement(_dailyPm10ChartData);
-      }
+      await loadMiniCharts(DateTime.now());
     } else {
-      var firstDay = DateTime.now().getFirstDateOfMonth();
-      var lastDay = DateTime.now().getLastDateOfMonth();
-      var data = insights.where((element) {
-        var date = element.time;
-        if (element.frequency == 'hourly' &&
-            (date == firstDay ||
-                date == lastDay ||
-                date.isAfter(firstDay) ||
-                date.isBefore(lastDay))) {
-          return true;
-        }
-        return false;
-      }).toList();
+      var data = insights
+          .where((element) => element.frequency.equalsIgnoreCase('hourly'))
+          .toList();
 
       setState(() {
         _hourlyPm2_5ChartData =
-            insightsChartData(insights, 'pm2.5', 'hourly').toList();
+            insightsChartData(data, 'pm2.5', 'hourly').toList();
         _hourlyPm10ChartData =
-            insightsChartData(insights, 'pm10', 'hourly').toList();
+            insightsChartData(data, 'pm10', 'hourly').toList();
         _selectedMeasurement = _hourlyPm2_5ChartData.first.first.data.first;
         _hasMeasurements = true;
       });
@@ -966,70 +968,76 @@ class _InsightsTabState extends State<InsightsTab> {
             element.first.data.first.time.month == DateTime.now().month) {
           _selectedMeasurement = element.first.data.last;
           await scrollToItem(
-              itemScrollController,
+              _itemScrollController,
               _hourlyPm2_5ChartData.indexOf(element),
               _hourlyPm2_5ChartData,
-              const Duration(seconds: 1));
+              const Duration(microseconds: 1));
           break;
         }
-      }
-
-      if (_pollutant == 'pm2.5') {
-        await _setSelectedMeasurement(_hourlyPm2_5ChartData);
-      } else {
-        await _setSelectedMeasurement(_hourlyPm10ChartData);
       }
     }
   }
 
-  Future<void> _setSelectedMeasurement(
-      List<List<charts.Series<Insights, String>>> chartData) async {
-    // try {
-    //   if (chartData.isEmpty) {
-    //     throw Exception('Chart data is empty');
-    //   }
-    //
-    //   var lastAvailable = chartData.first.data
-    //       .where((element) => !element.isEmpty && !element.isForecast);
-    //   if (lastAvailable.isEmpty) {
-    //     lastAvailable = chartData.first.data;
-    //   }
-    //   setState(() {
-    //     _selectedMeasurement = lastAvailable.last;
-    //   });
-    //
-    //   _updateSelectedMeasurement(_selectedMeasurement!);
-    //
-    //   if (_lastUpdated == '') {
-    //     setState(() {
-    //       _lastUpdated = dateToString(_selectedMeasurement!.time.toString());
-    //     });
-    //   }
-    //
-    //   setState(() {
-    //     _hasMeasurements = true;
-    //   });
-    //
-    //   // if (widget.daily) {
-    //   //   await _fetchHourlyMeasurements();
-    //   // }
-    // } catch (exception, stackTrace) {
-    //   debugPrint(exception.toString());
-    //   debugPrint(stackTrace.toString());
-    //   await Sentry.captureException(
-    //     exception,
-    //     stackTrace: stackTrace,
-    //   );
-    // }
+  Future<void> _updateMiniChart(Insights insight) async {
+    setState(() {
+      selectedMiniChart = DateFormat('yyyy-MM-dd').format(insight.time);
+    });
+
+    if (miniChartsMap[selectedMiniChart] == null) {
+      await loadMiniCharts(insight.time);
+    }
   }
 
-  void _updateUI(Insights insights) {
+  void _updateUI(Insights insight) {
     setState(() {
-      _selectedMeasurement = insights;
-      _lastUpdated = insights.isEmpty
-          ? ''
-          : 'Updated '
-              '${DateFormat('hh:mm a').format(_selectedMeasurement!.time)}';
+      _selectedMeasurement = insight;
     });
+
+    if (widget.daily) {
+      setState(() {
+        _lastUpdated = insight.isEmpty
+            ? 'Not available'
+            : insight.time.isToday()
+                ? 'Updated Today'
+                : 'Updated ${DateFormat('EEEE, d MMM').format(insight.time)}';
+      });
+
+      _updateMiniChart(insight);
+    } else {
+      setState(() {
+        _lastUpdated = insight.isEmpty
+            ? 'Not available'
+            : 'Updated ${DateFormat('hh:mm a').format(insight.time)}';
+      });
+    }
+  }
+
+  charts.NumericAxisSpec _xAxisScale() {
+    return charts.NumericAxisSpec(
+      tickProviderSpec: charts.StaticNumericTickProviderSpec(
+        <charts.TickSpec<double>>[
+          charts.TickSpec<double>(0,
+              style: charts.TextStyleSpec(
+                  color: charts.ColorUtil.fromDartColor(Config.greyColor))),
+          charts.TickSpec<double>(125,
+              style: charts.TextStyleSpec(
+                  color: charts.ColorUtil.fromDartColor(Config.greyColor))),
+          charts.TickSpec<double>(250,
+              style: charts.TextStyleSpec(
+                  color: charts.ColorUtil.fromDartColor(Config.greyColor))),
+          charts.TickSpec<double>(375,
+              style: charts.TextStyleSpec(
+                  color: charts.ColorUtil.fromDartColor(Config.greyColor))),
+          charts.TickSpec<double>(500,
+              style: charts.TextStyleSpec(
+                  color: charts.ColorUtil.fromDartColor(Config.greyColor))),
+        ],
+      ),
+    );
+  }
+
+  charts.OrdinalAxisSpec _yAxisScale(List<charts.TickSpec<String>> ticks) {
+    return charts.OrdinalAxisSpec(
+        tickProviderSpec: charts.StaticOrdinalTickProviderSpec(ticks));
   }
 }

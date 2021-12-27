@@ -1,6 +1,5 @@
 import 'package:app/constants/config.dart';
 import 'package:app/models/insights.dart';
-import 'package:app/models/insights_chart_data.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:app/utils/pm.dart';
@@ -92,110 +91,6 @@ Widget iconTextButton(Widget icon, text) {
         style: const TextStyle(fontSize: 14, color: Colors.black),
       )
     ],
-  );
-}
-
-Widget insightsAvatar(
-    context, InsightsChartData measurement, double size, String pollutant) {
-  if (!measurement.available) {
-    return Container(
-      height: size,
-      width: size,
-      decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Config.greyColor,
-          border: Border.all(color: Colors.transparent)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const Spacer(),
-          SvgPicture.asset(
-            pollutant.trim().toLowerCase() == 'pm2.5'
-                ? 'assets/icon/PM2.5.svg'
-                : 'assets/icon/PM10.svg',
-            semanticsLabel: 'Pm2.5',
-            height: 6,
-            width: 32.45,
-            color: Config.darkGreyColor,
-          ),
-          Text(
-            '--',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.robotoMono(
-              fontStyle: FontStyle.normal,
-              fontSize: 32,
-              color: Config.darkGreyColor,
-            ),
-          ),
-          SvgPicture.asset(
-            'assets/icon/unit.svg',
-            semanticsLabel: 'UNit',
-            height: 6,
-            width: 32,
-            color: Config.darkGreyColor,
-          ),
-          const Spacer(),
-        ],
-      ),
-    );
-  }
-  return Container(
-    height: size,
-    width: size,
-    decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: measurement.time.isAfter(DateTime.now())
-            ? Config.appColorPaleBlue
-            : pollutant == 'pm2.5'
-                ? pm2_5ToColor(measurement.value)
-                : pm10ToColor(measurement.value),
-        border: Border.all(color: Colors.transparent)),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        const Spacer(),
-        SvgPicture.asset(
-          pollutant.trim().toLowerCase() == 'pm2.5'
-              ? 'assets/icon/PM2.5.svg'
-              : 'assets/icon/PM10.svg',
-          semanticsLabel: 'Pm2.5',
-          height: 6,
-          width: 32.45,
-          color: measurement.time.isAfter(DateTime.now())
-              ? Config.appColorBlue
-              : pollutant == 'pm2.5'
-                  ? pm2_5TextColor(measurement.value)
-                  : pm10TextColor(measurement.value),
-        ),
-        Text(
-          measurement.value.toStringAsFixed(0),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.robotoMono(
-            fontStyle: FontStyle.normal,
-            fontSize: 32,
-            color: measurement.time.isAfter(DateTime.now())
-                ? Config.appColorBlue
-                : pollutant == 'pm2.5'
-                    ? pm2_5TextColor(measurement.value)
-                    : pm10TextColor(measurement.value),
-          ),
-        ),
-        SvgPicture.asset(
-          'assets/icon/unit.svg',
-          semanticsLabel: 'UNit',
-          height: 6,
-          width: 32,
-          color: measurement.time.isAfter(DateTime.now())
-              ? Config.appColorBlue
-              : pollutant == 'pm2.5'
-                  ? pm2_5TextColor(measurement.value)
-                  : pm10TextColor(measurement.value),
-        ),
-        const Spacer(),
-      ],
-    ),
   );
 }
 
