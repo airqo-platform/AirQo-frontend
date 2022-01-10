@@ -86,7 +86,7 @@ Widget loginOptions(context) {
             'Don\'t have an account',
             textAlign: TextAlign.center,
             style:
-                TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.6)),
+                TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.6)),
           ),
           const SizedBox(
             width: 2,
@@ -102,7 +102,7 @@ Widget loginOptions(context) {
               'Sign up',
               textAlign: TextAlign.center,
               style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: Config.appColorBlue),
             ),
@@ -110,7 +110,7 @@ Widget loginOptions(context) {
         ],
       ),
       const SizedBox(
-        height: 4,
+        height: 8,
       ),
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -119,7 +119,7 @@ Widget loginOptions(context) {
             'Proceed as',
             textAlign: TextAlign.center,
             style:
-                TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.6)),
+                TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.6)),
           ),
           const SizedBox(
             width: 2,
@@ -136,7 +136,7 @@ Widget loginOptions(context) {
               'Guest',
               textAlign: TextAlign.center,
               style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: Config.appColorBlue),
             ),
@@ -241,7 +241,7 @@ Widget signUpOptions(BuildContext context) {
             'Already have an account',
             textAlign: TextAlign.center,
             style:
-                TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.6)),
+                TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.6)),
           ),
           const SizedBox(
             width: 2,
@@ -257,7 +257,7 @@ Widget signUpOptions(BuildContext context) {
               'Log in',
               textAlign: TextAlign.center,
               style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: Config.appColorBlue),
             ),
@@ -265,7 +265,7 @@ Widget signUpOptions(BuildContext context) {
         ],
       ),
       const SizedBox(
-        height: 4,
+        height: 8,
       ),
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -274,7 +274,7 @@ Widget signUpOptions(BuildContext context) {
             'Proceed as',
             textAlign: TextAlign.center,
             style:
-                TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.6)),
+                TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.6)),
           ),
           const SizedBox(
             width: 2,
@@ -291,7 +291,7 @@ Widget signUpOptions(BuildContext context) {
               'Guest',
               textAlign: TextAlign.center,
               style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: Config.appColorBlue),
             ),

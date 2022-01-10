@@ -13,7 +13,6 @@ import 'package:app/models/json_parsers.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place.dart';
 import 'package:app/models/predict.dart';
-import 'package:app/models/site.dart';
 import 'package:app/models/story.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:app/models/user_details.dart';
@@ -299,34 +298,6 @@ class AirqoApiClient {
     return <Insights>[];
   }
 
-  Future<Measurement> fetchSiteMeasurements(Site site) async {
-    try {
-      var queryParams = <String, dynamic>{}
-        ..putIfAbsent('recent', () => 'yes')
-        ..putIfAbsent('site_id', () => site.id)
-        ..putIfAbsent('frequency', () => 'hourly')
-        ..putIfAbsent('external', () => 'no')
-        ..putIfAbsent('metadata', () => 'site_id')
-        ..putIfAbsent('tenant', () => 'airqo');
-
-      final responseBody =
-          await _performGetRequest(queryParams, _airQoUrls.measurements);
-
-      if (responseBody != null) {
-        return await compute(parseMeasurement, responseBody);
-      } else {
-        throw Exception('site does not exist');
-      }
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-      throw Exception('site does not exist');
-    }
-  }
-
   Future<String> imageUpload(String file, String? type, String name) async {
     type ??= 'jpeg';
 
@@ -471,6 +442,8 @@ class AirqoApiClient {
           }
         });
       }
+
+      print(url);
 
       final response = await httpClient.get(Uri.parse(url), headers: headers);
       if (response.statusCode == 200) {

@@ -13,17 +13,15 @@ class Insights {
   double pm2_5;
   double pm10;
   @JsonKey(fromJson: boolFromJson, toJson: boolToJson)
-  bool isEmpty = false;
+  bool empty = false;
   @JsonKey(fromJson: boolFromJson, toJson: boolToJson)
-  bool isForecast = false;
-  String name;
+  bool forecast = false;
   String siteId;
-  String location;
   @JsonKey(fromJson: frequencyFromJson)
   String frequency;
 
-  Insights(this.time, this.pm2_5, this.pm10, this.isEmpty, this.isForecast,
-      this.name, this.siteId, this.location, this.frequency);
+  Insights(this.time, this.pm2_5, this.pm10, this.empty, this.forecast,
+      this.siteId, this.frequency);
 
   factory Insights.fromJson(Map<String, dynamic> json) =>
       _$InsightsFromJson(json);
@@ -43,8 +41,8 @@ class Insights {
 
   static String createTableStmt() => 'CREATE TABLE IF NOT EXISTS ${dbName()}('
       'id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, frequency TEXT, '
-      'time TEXT, isEmpty TEXT, isForecast TEXT, hasPm10 TEXT, '
-      'name TEXT, siteId TEXT, location TEXT, pm2_5 REAL, pm10 REAL)';
+      'time TEXT, empty TEXT, forecast TEXT, '
+      'siteId TEXT, pm2_5 REAL, pm10 REAL)';
 
   static String dbName() => 'insights_collection';
 

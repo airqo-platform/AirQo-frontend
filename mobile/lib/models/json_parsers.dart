@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'measurement.dart';
 
 bool boolFromJson(dynamic json) {
-  return '$json' == 'true' ? true : false;
+  return '$json'.toLowerCase() == 'true' ? true : false;
 }
 
 String boolToJson(bool boolValue) {
@@ -72,11 +72,11 @@ String regionFromJson(dynamic json) {
   }
 }
 
-String siteIdFromJson(dynamic _) {
+String temperatureFromJson(dynamic _) {
   return 'siteId';
 }
 
-String siteIdToJson(String _) {
+String temperatureToJson(String _) {
   return 'site_id';
 }
 

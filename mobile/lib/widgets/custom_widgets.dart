@@ -96,7 +96,7 @@ Widget iconTextButton(Widget icon, text) {
 
 Widget insightsTabAvatar(
     context, Insights measurement, double size, String pollutant) {
-  if (measurement.isEmpty) {
+  if (measurement.empty) {
     return Container(
       height: size,
       width: size,
@@ -144,7 +144,7 @@ Widget insightsTabAvatar(
     width: size,
     decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: measurement.isForecast
+        color: measurement.forecast
             ? Config.appColorPaleBlue
             : pollutant == 'pm2.5'
                 ? pm2_5ToColor(measurement.getChartValue(pollutant))
@@ -161,7 +161,7 @@ Widget insightsTabAvatar(
           semanticsLabel: 'Pm2.5',
           height: 6,
           width: 32.45,
-          color: measurement.isForecast
+          color: measurement.forecast
               ? Config.appColorBlue
               : pollutant == 'pm2.5'
                   ? pm2_5TextColor(measurement.getChartValue(pollutant))
@@ -174,7 +174,7 @@ Widget insightsTabAvatar(
           style: GoogleFonts.robotoMono(
             fontStyle: FontStyle.normal,
             fontSize: 32,
-            color: measurement.isForecast
+            color: measurement.forecast
                 ? Config.appColorBlue
                 : pollutant == 'pm2.5'
                     ? pm2_5TextColor(measurement.getChartValue(pollutant))
@@ -186,7 +186,7 @@ Widget insightsTabAvatar(
           semanticsLabel: 'UNit',
           height: 6,
           width: 32,
-          color: measurement.isForecast
+          color: measurement.forecast
               ? Config.appColorBlue
               : pollutant == 'pm2.5'
                   ? pm2_5TextColor(measurement.getChartValue(pollutant))

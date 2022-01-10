@@ -67,8 +67,8 @@ class DBHelper {
     }
 
     await db.execute(Measurement.createTableStmt());
-    await db.execute(HistoricalMeasurement.createTableStmt());
-    await db.execute(Predict.createTableStmt());
+    // await db.execute(HistoricalMeasurement.createTableStmt());
+    // await db.execute(Predict.createTableStmt());
     await db.execute(Site.createTableStmt());
     await db.execute(Story.createTableStmt());
     await db.execute(PlaceDetails.createTableStmt());
@@ -92,44 +92,6 @@ class DBHelper {
       debugPrint('$exception\n$stackTrace');
 
       return <PlaceDetails>[];
-    }
-  }
-
-  Future<List<Predict>> getForecastMeasurements(String siteId) async {
-    try {
-      final db = await database;
-
-      var res = await db.query(Predict.forecastDb(),
-          where: '${Site.dbId()} = ?', whereArgs: [siteId]);
-
-      return res.isNotEmpty
-          ? List.generate(res.length, (i) {
-              return Predict.fromJson(Predict.mapFromDb(res[i]));
-            })
-          : <Predict>[];
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      return <Predict>[];
-    }
-  }
-
-  Future<List<HistoricalMeasurement>> getHistoricalMeasurements(
-      String siteId) async {
-    try {
-      final db = await database;
-
-      var res = await db.query(HistoricalMeasurement.historicalMeasurementsDb(),
-          where: '${Site.dbId()} = ?', whereArgs: [siteId]);
-
-      return res.isNotEmpty
-          ? List.generate(res.length, (i) {
-              return HistoricalMeasurement.fromJson(
-                  HistoricalMeasurement.mapFromDb(res[i]));
-            })
-          : <HistoricalMeasurement>[];
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      return <HistoricalMeasurement>[];
     }
   }
 
@@ -278,39 +240,6 @@ class DBHelper {
     }
   }
 
-  Future<Site?> getSite(String siteId) async {
-    try {
-      final db = await database;
-      var res = await db.query(Site.sitesDbName(),
-          where: '${Site.dbId()} = ?', whereArgs: [siteId]);
-
-      return Site.fromJson(Site.fromDbMap(res.first));
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      return null;
-    }
-  }
-
-  Future<Measurement?> getSiteLatestMeasurements(String id) async {
-    try {
-      final db = await database;
-
-      var res = await db.query(Measurement.latestMeasurementsDb(),
-          where: '${Site.dbId()} = ?', whereArgs: [id]);
-
-      if (res.isEmpty) {
-        return null;
-      }
-      var measurements = List.generate(res.length, (i) {
-        return Measurement.fromJson(Measurement.mapFromDb(res[i]));
-      });
-      return measurements.first;
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      return null;
-    }
-  }
-
   Future<List<Site>> getSites() async {
     try {
       final db = await database;
@@ -330,23 +259,6 @@ class DBHelper {
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
       return <Site>[];
-    }
-  }
-
-  Future<List<Story>> getStories() async {
-    try {
-      final db = await database;
-
-      var res = await db.query(Story.storyDbName());
-
-      return res.isNotEmpty
-          ? List.generate(res.length, (i) {
-              return Story.fromJson(res[i]);
-            })
-          : <Story>[];
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      return <Story>[];
     }
   }
 
@@ -395,59 +307,6 @@ class DBHelper {
         );
       } catch (exception, stackTrace) {
         debugPrint('$exception\n$stackTrace');
-      }
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-  }
-
-  Future<void> insertForecastMeasurements(
-      List<Predict> measurements, String siteId) async {
-    try {
-      final db = await database;
-
-      if (measurements.isNotEmpty) {
-        await db.delete(Predict.forecastDb(),
-            where: '${Site.dbId()} = ?', whereArgs: [siteId]);
-
-        for (var measurement in measurements) {
-          try {
-            var jsonData = Predict.mapToDb(measurement, siteId);
-            await db.insert(
-              Predict.forecastDb(),
-              jsonData,
-              conflictAlgorithm: ConflictAlgorithm.replace,
-            );
-          } catch (exception, stackTrace) {
-            debugPrint('$exception\n$stackTrace');
-          }
-        }
-      }
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-  }
-
-  Future<void> insertHistoricalMeasurements(
-      List<HistoricalMeasurement> measurements) async {
-    try {
-      final db = await database;
-
-      if (measurements.isNotEmpty) {
-        await db.delete(HistoricalMeasurement.historicalMeasurementsDb());
-
-        for (var measurement in measurements) {
-          try {
-            var jsonData = HistoricalMeasurement.mapToDb(measurement);
-            await db.insert(
-              HistoricalMeasurement.historicalMeasurementsDb(),
-              jsonData,
-              conflictAlgorithm: ConflictAlgorithm.replace,
-            );
-          } catch (exception, stackTrace) {
-            debugPrint('$exception\n$stackTrace');
-          }
-        }
       }
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
@@ -536,85 +395,6 @@ class DBHelper {
             var jsonData = Measurement.mapToDb(measurement);
             await db.insert(
               Measurement.latestMeasurementsDb(),
-              jsonData,
-              conflictAlgorithm: ConflictAlgorithm.replace,
-            );
-          } catch (exception, stackTrace) {
-            debugPrint('$exception\n$stackTrace');
-          }
-        }
-      }
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-  }
-
-  Future<void> insertLatestStories(List<Story> stories) async {
-    try {
-      final db = await database;
-
-      if (stories.isNotEmpty) {
-        // await db.delete(Story.storyDbName());
-
-        for (var story in stories) {
-          try {
-            var jsonData = story.toJson();
-            await db.insert(
-              Story.storyDbName(),
-              jsonData,
-              conflictAlgorithm: ConflictAlgorithm.replace,
-            );
-          } catch (exception, stackTrace) {
-            await db.execute(Story.dropTableStmt());
-            await db.execute(Story.createTableStmt());
-            debugPrint(exception.toString());
-            debugPrint(stackTrace.toString());
-          }
-        }
-      }
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-  }
-
-  Future<void> insertSiteHistoricalMeasurements(
-      List<HistoricalMeasurement> measurements, String siteId) async {
-    try {
-      final db = await database;
-
-      if (measurements.isNotEmpty) {
-        await db.delete(HistoricalMeasurement.historicalMeasurementsDb(),
-            where: '${Site.dbId()} = ?', whereArgs: [siteId]);
-
-        for (var measurement in measurements) {
-          try {
-            var jsonData = HistoricalMeasurement.mapToDb(measurement);
-            await db.insert(
-              HistoricalMeasurement.historicalMeasurementsDb(),
-              jsonData,
-              conflictAlgorithm: ConflictAlgorithm.replace,
-            );
-          } catch (exception, stackTrace) {
-            debugPrint('$exception\n$stackTrace');
-          }
-        }
-      }
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-  }
-
-  Future<void> insertSites(List<Site> sites) async {
-    try {
-      final db = await database;
-
-      if (sites.isNotEmpty) {
-        await db.delete(Site.sitesDbName());
-        for (var site in sites) {
-          try {
-            var jsonData = Site.toDbMap(site);
-            await db.insert(
-              Site.sitesDbName(),
               jsonData,
               conflictAlgorithm: ConflictAlgorithm.replace,
             );

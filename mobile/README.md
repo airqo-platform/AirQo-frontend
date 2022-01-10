@@ -28,22 +28,13 @@ flutter run
 ```
 
 ### Some useful commands
+
 ```bash
 flutter pub run build_runner build --delete-conflicting-outputs
-```
-
-```bash
-flutter build appbundle --no-sound-null-safety [--analyze-size]
-```
-
-```bash
+flutter build appbundle [--analyze-size]
 flutter build ipa
-```
-
-```bash
 dart fix --dry-run
 dart fix --apply
 flutter pub run dart_code_metrics:metrics analyze lib
 flutter pub run dart_code_metrics:metrics check-unused-files lib
 ```
-

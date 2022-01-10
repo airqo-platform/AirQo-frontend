@@ -14,11 +14,11 @@ charts.Color getChartBarColor(HistoricalMeasurement series, pollutant) {
 }
 
 charts.Color insightsChartBarColor(Insights series, String pollutant) {
-  if (series.isEmpty) {
+  if (series.empty) {
     return charts.ColorUtil.fromDartColor(Config.greyColor);
   }
 
-  if (series.isForecast) {
+  if (series.forecast) {
     return charts.ColorUtil.fromDartColor(Config.appColorPaleBlue);
   }
 

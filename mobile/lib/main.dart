@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:app/models/notification.dart';
 import 'package:app/providers/locale_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
@@ -29,6 +30,13 @@ Future<void> main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  FirebaseFirestore.instance.settings =
+      const Settings(persistenceEnabled: true);
+
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     // statusBarColor: Config.appBodyColor,
@@ -42,10 +50,6 @@ Future<void> main() async {
 
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
       overlays: [SystemUiOverlay.bottom, SystemUiOverlay.top]);
-
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
 
   // await Firebase.initializeApp().then((value) => {
   //       FirebaseMessaging.onBackgroundMessage(

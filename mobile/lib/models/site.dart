@@ -44,7 +44,7 @@ class Site {
   factory Site.fromJson(Map<String, dynamic> json) => _$SiteFromJson(json);
 
   String getLocation() {
-    return '$district $country'.toTitleCase();
+    return '$district, $country'.toTitleCase();
   }
 
   String getName() {

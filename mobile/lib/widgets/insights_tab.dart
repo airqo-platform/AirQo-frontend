@@ -207,8 +207,8 @@ class _InsightsTabState extends State<InsightsTab> {
                   padding: const EdgeInsets.only(right: 16, left: 16),
                   child: Text(
                     _isTodayHealthTips
-                        ? 'Today’s health tips'
-                        : 'Tomorrow’s health tips',
+                        ? 'Today\'s health tips'
+                        : 'Tomorrow\'s health tips',
                     textAlign: TextAlign.left,
                     style: const TextStyle(
                         fontSize: 20, fontWeight: FontWeight.bold),
@@ -488,7 +488,7 @@ class _InsightsTabState extends State<InsightsTab> {
                       );
                     },
                     child: Visibility(
-                      visible: !_selectedMeasurement!.isEmpty,
+                      visible: !_selectedMeasurement!.empty,
                       child: Container(
                         padding:
                             const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
@@ -497,7 +497,7 @@ class _InsightsTabState extends State<InsightsTab> {
                         decoration: BoxDecoration(
                             borderRadius:
                                 const BorderRadius.all(Radius.circular(40.0)),
-                            color: _selectedMeasurement!.isForecast
+                            color: _selectedMeasurement!.forecast
                                 ? Config.appColorPaleBlue
                                 : _pollutant == 'pm2.5'
                                     ? pm2_5ToColor(_selectedMeasurement!
@@ -518,7 +518,7 @@ class _InsightsTabState extends State<InsightsTab> {
                           textAlign: TextAlign.start,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: _selectedMeasurement!.isForecast
+                            color: _selectedMeasurement!.forecast
                                 ? Config.appColorBlue
                                 : _pollutant == 'pm2.5'
                                     ? pm2_5TextColor(_selectedMeasurement!
@@ -531,7 +531,7 @@ class _InsightsTabState extends State<InsightsTab> {
                     ),
                   ),
                   Visibility(
-                    visible: _selectedMeasurement!.isEmpty,
+                    visible: _selectedMeasurement!.empty,
                     child: Container(
                       padding: const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
                       decoration: BoxDecoration(
@@ -555,7 +555,7 @@ class _InsightsTabState extends State<InsightsTab> {
                     width: 8,
                   ),
                   Visibility(
-                      visible: !_selectedMeasurement!.isEmpty,
+                      visible: !_selectedMeasurement!.empty,
                       child: GestureDetector(
                         onTap: () {
                           pmInfoDialog(context,
@@ -578,7 +578,7 @@ class _InsightsTabState extends State<InsightsTab> {
                           key: _forecastToolTipKey,
                           decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: _selectedMeasurement!.isForecast
+                              color: _selectedMeasurement!.forecast
                                   ? Config.appColorBlue
                                   : Config.appColorPaleBlue,
                               border: Border.all(color: Colors.transparent))),
@@ -691,7 +691,7 @@ class _InsightsTabState extends State<InsightsTab> {
     });
 
     var insights = data.first.data
-        .where((element) => !element.isEmpty && !element.isForecast)
+        .where((element) => !element.empty && !element.forecast)
         .toList();
 
     /// Recommendations
@@ -995,7 +995,7 @@ class _InsightsTabState extends State<InsightsTab> {
 
     if (widget.daily) {
       setState(() {
-        _lastUpdated = insight.isEmpty
+        _lastUpdated = insight.empty
             ? 'Not available'
             : insight.time.isToday()
                 ? 'Updated Today'
@@ -1005,7 +1005,7 @@ class _InsightsTabState extends State<InsightsTab> {
       _updateMiniChart(insight);
     } else {
       setState(() {
-        _lastUpdated = insight.isEmpty
+        _lastUpdated = insight.empty
             ? 'Not available'
             : 'Updated ${DateFormat('hh:mm a').format(insight.time)}';
       });
