@@ -37,15 +37,14 @@ Future<void> main() async {
   FirebaseFirestore.instance.settings =
       const Settings(persistenceEnabled: true);
 
-  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
-    // statusBarColor: Config.appBodyColor,
     statusBarIconBrightness: Brightness.dark,
-    systemNavigationBarDividerColor: Config.appBodyColor,
+    // systemNavigationBarDividerColor: Config.appBodyColor,
     // systemNavigationBarColor: Colors.transparent,
-    systemNavigationBarColor: Config.appBodyColor,
+    // systemNavigationBarColor: Config.appBodyColor,
     // statusBarBrightness: Brightness.light,
-    systemNavigationBarIconBrightness: Brightness.dark,
+    // systemNavigationBarIconBrightness: Brightness.dark,
   ));
 
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
@@ -58,8 +57,6 @@ Future<void> main() async {
   //       FirebaseMessaging.onMessage
   //           .listen(FbNotifications().foregroundMessageHandler)
   //     });
-
-  // await FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
 
   final prefs = await SharedPreferences.getInstance();
   final themeController = ThemeController(prefs);

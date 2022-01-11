@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:app/constants/config.dart';
@@ -7,39 +6,35 @@ import 'package:app/models/user_details.dart';
 import 'package:app/screens/email_reauthenticate_screen.dart';
 import 'package:app/screens/phone_reauthenticate_screen.dart';
 import 'package:app/services/fb_notifications.dart';
-import 'package:app/services/rest_api.dart';
 import 'package:app/services/secure_storage.dart';
-import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:mime/mime.dart';
 
 import 'change_email_screen.dart';
 import 'change_phone_screen.dart';
 import 'home_page.dart';
 
-class ViewProfilePage extends StatefulWidget {
+class ProfileEditPage extends StatefulWidget {
   final UserDetails userDetails;
 
-  const ViewProfilePage(this.userDetails, {Key? key}) : super(key: key);
+  const ProfileEditPage(this.userDetails, {Key? key}) : super(key: key);
 
   @override
-  _ViewProfilePageState createState() => _ViewProfilePageState();
+  _ProfileEditPageState createState() => _ProfileEditPageState();
 }
 
-class _ViewProfilePageState extends State<ViewProfilePage> {
+class _ProfileEditPageState extends State<ProfileEditPage> {
   final _formKey = GlobalKey<FormState>();
   bool updating = false;
   final CustomAuth _customAuth = CustomAuth();
+  final CloudStore _cloudStore = CloudStore();
   final ImagePicker _imagePicker = ImagePicker();
-  AirqoApiClient? _airqoApiClient;
 
-  // String _profilePic = '';
+  String _profilePic = '';
   final TextEditingController _phoneEditor = TextEditingController();
   final TextEditingController _emailEditor = TextEditingController();
   bool changeImage = false;
@@ -310,6 +305,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
           setState(() {
             _phoneEditor.text = value.phoneNumber;
             _emailEditor.text = value.emailAddress;
+            _profilePic = value.photoUrl;
           })
         });
   }
@@ -321,7 +317,6 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
       _phoneEditor.text = widget.userDetails.phoneNumber;
       _emailEditor.text = widget.userDetails.emailAddress;
     });
-    _airqoApiClient = AirqoApiClient(context);
     super.initState();
   }
 
@@ -443,35 +438,6 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
     );
   }
 
-  Future<void> takePhoto() async {
-    // Obtain a list of the available cameras on the phone.
-    final cameras = await availableCameras();
-
-    // Get a specific camera from the list of available cameras.
-    if (cameras.isEmpty) {
-      await showSnackBar(context, 'Could not open camera');
-      return;
-    }
-
-    var camera = cameras.first;
-    var _controller = CameraController(
-      camera,
-      ResolutionPreset.high,
-    );
-
-    try {
-      await _controller.initialize();
-
-      final image = await _controller.takePicture();
-
-      setState(() {
-        userDetails!.photoUrl = image.path;
-      });
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-  }
-
   Future<void> updateProfile() async {
     if (_formKey.currentState!.validate() && !updating) {
       var dialogContext = context;
@@ -493,54 +459,28 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
     }
   }
 
-  Future<void> uploadCompeteHandler(value) async {
-    setState(() {
-      updating = false;
-    });
-
-    await showSnackBar(context, 'complete');
-  }
-
-  FutureOr<String> uploadFailureHandler(var error) async {
-    setState(() {
-      updating = false;
-    });
-    await showSnackBar(context, 'Profile Picture update failed, try again');
-    await showSnackBar(context, 'failed');
-    return '';
-  }
-
   Future<void> uploadPicture() async {
     if (!changeImage) {
       return;
     }
 
     try {
-      var mimeType = lookupMimeType(userDetails!.photoUrl);
+      // var imageBytes = await File(userDetails!.photoUrl).readAsBytes();
+      //
+      // var imageUrl = await _airqoApiClient!
+      //     .imageUpload(base64Encode(imageBytes),
+      //     mimeType, userDetails!.userId);
 
-      mimeType ??= 'jpeg';
+      var imageUrl = await _cloudStore.uploadProfilePicture(
+          _profilePic, _customAuth.getId());
 
-      var imageBytes = await File(userDetails!.photoUrl).readAsBytes();
-
-      var imageUrl = await _airqoApiClient!
-          .imageUpload(base64Encode(imageBytes), mimeType, userDetails!.userId);
-
-      userDetails!.photoUrl = imageUrl;
-
-      await _customAuth.updateProfile(userDetails!);
+      if (imageUrl != null) {
+        userDetails!.photoUrl = imageUrl;
+        await _customAuth.updateProfile(userDetails!);
+      }
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
-  }
-
-  Future<void> uploadSuccessHandler(var value) async {
-    setState(() {
-      updating = false;
-    });
-
-    userDetails!.photoUrl = value;
-    await _customAuth.updateProfile(userDetails!);
-    await showSnackBar(context, 'success');
   }
 
   void _getFromGallery() async {
@@ -552,6 +492,7 @@ class _ViewProfilePageState extends State<ViewProfilePage> {
     if (pickedFile != null) {
       setState(() {
         userDetails!.photoUrl = pickedFile.path;
+        _profilePic = pickedFile.path;
         changeImage = true;
       });
     }

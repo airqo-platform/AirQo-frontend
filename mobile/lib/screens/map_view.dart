@@ -51,13 +51,19 @@ class _MapViewState extends State<MapView> {
   Map<String, Marker> _markers = {};
   final CloudAnalytics _cloudAnalytics = CloudAnalytics();
   AirqoApiClient? _airqoApiClient;
+  double bottomPadding = 0.15;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: <Widget>[
-          mapWidget(),
+          Padding(
+            padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).size.height * bottomPadding),
+            child: mapWidget(),
+          ),
+
           // Visibility(
           //   visible: false,
           //   child: DraggableScrollableSheet(
@@ -687,6 +693,10 @@ class _MapViewState extends State<MapView> {
       final controller = _mapController;
 
       if (useSingleZoom) {
+        if (markers.length == 1) {
+          print('its one');
+        }
+
         var latLng = LatLng(measurements.first.site.latitude,
             measurements.first.site.longitude);
 
@@ -716,6 +726,12 @@ class _MapViewState extends State<MapView> {
 
     if (!_showLocationDetails) {
       showRegions();
+    }
+
+    if (_showLocationDetails) {
+      setState(() {
+        bottomPadding = 0.5;
+      });
     }
   }
 
@@ -771,7 +787,12 @@ class _MapViewState extends State<MapView> {
       _showLocationDetails = false;
       _displayRegions = true;
     });
-    setMarkers(_latestMeasurements, false, 6.6);
+    if (_latestMeasurements.isEmpty) {
+      _getLatestMeasurements()
+          .then((value) => {setMarkers(_latestMeasurements, false, 6.6)});
+    } else {
+      setMarkers(_latestMeasurements, false, 6.6);
+    }
   }
 
   Future<void> showRegionSites(String region) async {

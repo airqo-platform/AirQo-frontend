@@ -443,8 +443,6 @@ class AirqoApiClient {
         });
       }
 
-      print(url);
-
       final response = await httpClient.get(Uri.parse(url), headers: headers);
       if (response.statusCode == 200) {
         return json.decode(response.body);

@@ -607,13 +607,13 @@ class CloudStore {
     }
   }
 
-  Future<String?> uploadProfilePicture(
-      String filePath, String userId, String imageType) async {
-    var docRef =
-        '${Config.usersProfilePictureCollection}$userId/avatar.$imageType';
-
+  Future<String?> uploadProfilePicture(String filePath, String userId) async {
     try {
       var file = File(filePath);
+
+      var docRef = '${Config.usersProfilePictureCollection}/'
+          '$userId/avatar${file.getExtension()}';
+
       var task = await firebase_storage.FirebaseStorage.instance
           .ref(docRef)
           .putFile(file);

@@ -1,4 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+
+extension FileExtenion on File {
+  String getExtension() {
+    return path.substring(path.lastIndexOf('.'));
+  }
+}
 
 extension StringCasingExtension on String {
   String toCapitalized() {

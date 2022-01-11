@@ -2,8 +2,8 @@ import 'package:app/constants/config.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/models/user_details.dart';
 import 'package:app/on_boarding/signup_screen.dart';
+import 'package:app/screens/profile_edit_page.dart';
 import 'package:app/screens/settings_page.dart';
-import 'package:app/screens/view_profile_page.dart';
 import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/secure_storage.dart';
 import 'package:app/widgets/text_fields.dart';
@@ -361,7 +361,7 @@ class _ProfileViewState extends State<ProfileView> {
 
   Future<void> viewProfile() async {
     await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return ViewProfilePage(_userProfile);
+      return ProfileEditPage(_userProfile);
     })).whenComplete(() => {initialize()});
   }
 }
