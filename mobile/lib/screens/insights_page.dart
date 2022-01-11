@@ -1,5 +1,7 @@
 import 'package:app/constants/config.dart';
 import 'package:app/models/place_details.dart';
+import 'package:app/services/local_storage.dart';
+import 'package:app/services/rest_api.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/widgets/insights_tab.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +19,8 @@ class _InsightsPageState extends State<InsightsPage>
     with AutomaticKeepAliveClientMixin, TickerProviderStateMixin {
   TabController? _tabController;
   bool _isWeekly = true;
+  AirqoApiClient? _airqoApiClient;
+  final DBHelper _dbHelper = DBHelper();
 
   @override
   bool get wantKeepAlive => true;
@@ -107,8 +111,6 @@ class _InsightsPageState extends State<InsightsPage>
               controller: _tabController,
               physics: const NeverScrollableScrollPhysics(),
               children: <Widget>[
-                // InsightsTabView(widget.placeDetails, false),
-                // InsightsTabView(widget.placeDetails, true),
                 InsightsTab(widget.placeDetails, false),
                 InsightsTab(widget.placeDetails, true),
                 // MonthlyView(site),
@@ -129,6 +131,29 @@ class _InsightsPageState extends State<InsightsPage>
   @override
   void initState() {
     _tabController = TabController(length: 2, vsync: this);
+    _airqoApiClient = AirqoApiClient(context);
+    _fetchHourlyInsights();
+    _fetchDailyInsights();
     super.initState();
+  }
+
+  void _fetchDailyInsights() async {
+    var dailyInsights = await _airqoApiClient!
+        .fetchSiteInsights(widget.placeDetails.siteId, true);
+
+    if (dailyInsights.isNotEmpty) {
+      await _dbHelper.insertInsights(
+          dailyInsights, widget.placeDetails.siteId, 'daily');
+    }
+  }
+
+  void _fetchHourlyInsights() async {
+    var hourlyInsights = await _airqoApiClient!
+        .fetchSiteInsights(widget.placeDetails.siteId, false);
+
+    if (hourlyInsights.isNotEmpty) {
+      await _dbHelper.insertInsights(
+          hourlyInsights, widget.placeDetails.siteId, 'hourly');
+    }
   }
 }

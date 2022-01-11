@@ -6,12 +6,11 @@ import 'package:app/models/measurement.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/site.dart';
-import 'package:app/services/fb_notifications.dart';
+import 'package:app/services/firebase_service.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/distance.dart';
 import 'package:app/utils/pm.dart';
-import 'package:app/utils/string_extension.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -26,7 +25,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'fb_notifications.dart';
+import 'firebase_service.dart';
 import 'local_notifications.dart';
 
 class LocationService {
@@ -112,6 +111,21 @@ class LocationService {
     return name;
   }
 
+  Future<List<String>> getAddresses(double lat, double lng) async {
+    var placeMarks = await placemarkFromCoordinates(lat, lng);
+    var addresses = <String>[];
+    for (var place in placeMarks) {
+      var name = place.thoroughfare ?? place.name;
+      name = name ?? place.subLocality;
+      name = name ?? place.locality;
+      name = name ?? '';
+      if (name != '') {
+        addresses.add(name);
+      }
+    }
+    return addresses;
+  }
+
   // Future<List<Address>> getLocalAddress(double lat, double lang) async {
   //   final coordinates = Coordinates(lat, lang);
   //   List<Address> localAddresses =
@@ -119,17 +133,19 @@ class LocationService {
   //   return localAddresses;
   // }
 
-  Future<Measurement?> getCurrentLocationReadings() async {
+  Future<List<Measurement>> getCurrentLocationReadings() async {
     try {
       var nearestMeasurements = <Measurement>[];
       double distanceInMeters;
 
       var location = await getLocation();
       if (location == null) {
-        return null;
+        return [];
       }
+
       if (location.longitude != null && location.latitude != null) {
-        var address = await getAddress(location.latitude!, location.longitude!);
+        var addresses =
+            await getAddresses(location.latitude!, location.longitude!);
         Measurement? nearestMeasurement;
         var latestMeasurements = await _dbHelper.getLatestMeasurements();
 
@@ -141,20 +157,6 @@ class LocationService {
               location.longitude!));
           if (distanceInMeters < Config.maxSearchRadius.toDouble()) {
             measurement.site.distance = distanceInMeters;
-            try {
-              // if (!address.thoroughfare.isNull()) {
-              //   measurement.site.name = address.thoroughfare;
-              //   measurement.site.description = address.thoroughfare;
-              // }
-
-              if (!address.isNull()) {
-                measurement.site.name = address;
-                measurement.site.searchName = address;
-                measurement.site.description = address;
-              }
-            } catch (exception, stackTrace) {
-              debugPrint('$exception\n$stackTrace');
-            }
             nearestMeasurements.add(measurement);
           }
         }
@@ -167,12 +169,20 @@ class LocationService {
             }
           }
         }
-        return nearestMeasurement;
+        var measurements = <Measurement>[];
+        for (var address in addresses) {
+          nearestMeasurement?.site.name = address;
+          nearestMeasurement?.site.searchName = address;
+          nearestMeasurement?.site.description = address;
+          measurements.add(nearestMeasurement!);
+        }
+        return measurements;
       }
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
-      return null;
+      return [];
     }
+    return [];
   }
 
   Future<locate_api.LocationData?> getLocation() async {

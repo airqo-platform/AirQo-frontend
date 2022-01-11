@@ -1,6 +1,6 @@
 import 'package:app/constants/config.dart';
 import 'package:app/screens/phone_reauthenticate_screen.dart';
-import 'package:app/services/fb_notifications.dart';
+import 'package:app/services/firebase_service.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/services/secure_storage.dart';
 import 'package:app/utils/web_view.dart';

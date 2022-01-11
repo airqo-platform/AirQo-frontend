@@ -1,5 +1,4 @@
 import 'package:app/constants/config.dart';
-import 'package:app/services/fb_notifications.dart';
 import 'package:app/utils/web_view.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
@@ -13,8 +12,6 @@ class AboutAirQo extends StatefulWidget {
 }
 
 class _AboutAirQoState extends State<AboutAirQo> {
-  final CloudAnalytics _cloudAnalytics = CloudAnalytics();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,11 +66,5 @@ class _AboutAirQoState extends State<AboutAirQo> {
                 ],
               ),
             )));
-  }
-
-  @override
-  void initState() {
-    _cloudAnalytics.logScreenTransition('About');
-    super.initState();
   }
 }

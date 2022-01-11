@@ -1,5 +1,4 @@
 import 'package:app/constants/config.dart';
-import 'package:app/services/fb_notifications.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +17,6 @@ class _ForYouPageState extends State<ForYouPage>
     with SingleTickerProviderStateMixin {
   TabController? _tabController;
   bool isWeekly = true;
-  final CloudAnalytics _cloudAnalytics = CloudAnalytics();
 
   int segmentedControlValue = 0;
 
@@ -127,7 +125,6 @@ class _ForYouPageState extends State<ForYouPage>
 
   @override
   void initState() {
-    _cloudAnalytics.logScreenTransition('For You Page');
     _tabController = TabController(length: 2, vsync: this);
     super.initState();
   }

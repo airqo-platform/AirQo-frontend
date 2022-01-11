@@ -134,7 +134,7 @@ List<Recommendation> getHealthRecommendations(double pm2_5, String pollutant) {
           'Reduce the intensity of your outdoor activities',
           'assets/images/old_man.png'));
   } else {}
-
+  recommendations.shuffle();
   return recommendations;
 }
 

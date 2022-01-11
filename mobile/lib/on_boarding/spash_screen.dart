@@ -4,7 +4,7 @@ import 'package:app/models/place_details.dart';
 import 'package:app/on_boarding/welcome_screen.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/app_service.dart';
-import 'package:app/services/fb_notifications.dart';
+import 'package:app/services/firebase_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';

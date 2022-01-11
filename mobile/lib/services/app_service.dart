@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:app/constants/config.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/models/place_details.dart';
-import 'package:app/services/fb_notifications.dart';
+import 'package:app/services/firebase_service.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/services/secure_storage.dart';
@@ -13,18 +13,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-
-Future<bool> isConnected() async {
-  try {
-    final result = await InternetAddress.lookup('firebase.google.com');
-    if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-      return true;
-    }
-    return false;
-  } catch (_) {}
-
-  return false;
-}
 
 class AppService {
   final DBHelper _dbHelper = DBHelper();
@@ -45,6 +33,18 @@ class AppService {
     _fetchKya();
     _fetchNotifications();
     _fetchFavPlaces();
+  }
+
+  Future<bool> isConnected() async {
+    try {
+      final result = await InternetAddress.lookup('firebase.google.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        return true;
+      }
+      return false;
+    } catch (_) {}
+
+    return false;
   }
 
   Future<bool> login(AuthCredential? authCredential, String emailAddress,

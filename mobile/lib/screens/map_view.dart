@@ -5,7 +5,6 @@ import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/suggestion.dart';
-import 'package:app/services/fb_notifications.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/services/rest_api.dart';
@@ -49,7 +48,6 @@ class _MapViewState extends State<MapView> {
       const CameraPosition(target: LatLng(1.6183002, 32.504365), zoom: 6.6);
   late GoogleMapController _mapController;
   Map<String, Marker> _markers = {};
-  final CloudAnalytics _cloudAnalytics = CloudAnalytics();
   AirqoApiClient? _airqoApiClient;
   double bottomPadding = 0.15;
 
@@ -279,7 +277,6 @@ class _MapViewState extends State<MapView> {
   void initState() {
     _airqoApiClient = AirqoApiClient(context);
     _searchApiClient = SearchApi(sessionToken, context);
-    _cloudAnalytics.logScreenTransition('Map Tab');
     super.initState();
   }
 

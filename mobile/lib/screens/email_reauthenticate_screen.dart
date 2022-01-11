@@ -1,6 +1,6 @@
 import 'package:app/constants/config.dart';
 import 'package:app/models/user_details.dart';
-import 'package:app/services/fb_notifications.dart';
+import 'package:app/services/firebase_service.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';

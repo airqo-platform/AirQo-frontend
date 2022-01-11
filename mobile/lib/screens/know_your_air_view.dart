@@ -1,6 +1,6 @@
 import 'package:app/constants/config.dart';
 import 'package:app/models/kya.dart';
-import 'package:app/services/fb_notifications.dart';
+import 'package:app/services/firebase_service.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:cached_network_image/cached_network_image.dart';

@@ -797,10 +797,7 @@ class _InsightsTabState extends State<InsightsTab> {
     }
 
     await _saveInsights(insights, widget.daily);
-
-    var frequencyInsights = await _airqoApiClient!
-        .fetchSiteInsights(widget.placeDetails.siteId, !widget.daily);
-    await _saveInsights(frequencyInsights, !widget.daily);
+    
   }
 
   Future<void> _initialize() async {

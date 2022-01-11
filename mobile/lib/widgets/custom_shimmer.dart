@@ -87,23 +87,6 @@ Widget textLoadingAnimation(double height, double width) {
   );
 }
 
-class ExampleMainWidget extends StatelessWidget {
-  const ExampleMainWidget({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final overlay = LoadingOverlay.of(context);
-    return Scaffold(
-        body: Center(
-            child: TextButton(
-                child: const Text('Press me!'),
-                onPressed: () async {
-                  await overlay
-                      .during(Future.delayed(const Duration(seconds: 2)));
-                })));
-  }
-}
-
 class LoadingOverlay {
   BuildContext _context;
 

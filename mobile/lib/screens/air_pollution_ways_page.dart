@@ -1,6 +1,6 @@
 import 'package:app/constants/config.dart';
 import 'package:app/models/kya.dart';
-import 'package:app/services/fb_notifications.dart';
+import 'package:app/services/firebase_service.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
@@ -33,7 +33,6 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
   double _maxProgress = 1.0;
 
   final PageController _controller = PageController();
-  final CloudAnalytics _cloudAnalytics = CloudAnalytics();
   final CloudStore _cloudStore = CloudStore();
   final CustomAuth _customAuth = CustomAuth();
   final GlobalKey _globalKey = GlobalKey();
@@ -187,7 +186,6 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
 
   @override
   void initState() {
-    _cloudAnalytics.logScreenTransition('Air Pollution ways');
     _interval =
         double.parse((1 / widget.kya.lessons.length).toStringAsFixed(3));
     _tipsProgress = _interval!;

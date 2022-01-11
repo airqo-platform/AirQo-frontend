@@ -40,16 +40,6 @@ class CloudAnalytics {
       name: analyticsEvent.getString(),
     );
   }
-
-  void logScreenTransition(String screen) {
-    // analytics
-    //   ..setCurrentScreen(
-    //     screenName: screen,
-    //   )
-    //   ..logEvent(
-    //     name: 'Navigated to $screen'.replaceAll(' ', '_'),
-    //   );
-  }
 }
 
 class CloudStore {

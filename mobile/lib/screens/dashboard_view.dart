@@ -5,7 +5,7 @@ import 'package:app/models/kya.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/screens/search_page.dart';
-import 'package:app/services/fb_notifications.dart';
+import 'package:app/services/firebase_service.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/services/rest_api.dart';
@@ -13,6 +13,7 @@ import 'package:app/utils/dashboard.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/widgets/analytics_card.dart';
+import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/tooltip.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -44,7 +45,7 @@ class _DashboardViewState extends State<DashboardView> {
   ];
   List<Kya> _completeKya = [];
   AirqoApiClient? _airqoApiClient;
-  Measurement? currentLocation;
+  List<Measurement> currentLocation = [];
   Kya? _kya;
   SharedPreferences? _preferences;
 
@@ -54,10 +55,9 @@ class _DashboardViewState extends State<DashboardView> {
   final CustomAuth _customAuth = CustomAuth();
   final CloudStore _cloudStore = CloudStore();
   final LocationService _locationService = LocationService();
-  final CloudAnalytics _cloudAnalytics = CloudAnalytics();
   final DBHelper _dbHelper = DBHelper();
   final ScrollController _scrollController = ScrollController();
-  final List<Widget> _dashBoardPlaces = [
+  List<Widget> _dashBoardPlaces = [
     analyticsCardLoading(),
     analyticsCardLoading(),
     analyticsCardLoading(),
@@ -193,53 +193,6 @@ class _DashboardViewState extends State<DashboardView> {
             ),
           ),
         ));
-  }
-
-  void getDashboardLocations() async {
-    var measurements = await _dbHelper.getLatestMeasurements();
-
-    if (measurements.isNotEmpty) {
-      setState(_dashBoardPlaces.clear);
-
-      var regions = [
-        'cent',
-        'west',
-        'east',
-      ];
-
-      for (var i = 0; i < regions.length; i++) {
-        var regionMeasurements = measurements
-            .where((element) =>
-                element.site.region.toLowerCase().contains(regions[i]))
-            .toList();
-
-        if (regionMeasurements.isNotEmpty) {
-          var random = Random().nextInt(regionMeasurements.length);
-
-          if (mounted) {
-            setState(() {
-              _dashBoardPlaces.add(AnalyticsCard(
-                  PlaceDetails.measurementToPLace(regionMeasurements[random]),
-                  regionMeasurements[random],
-                  _isRefreshing,
-                  false));
-            });
-          }
-        } else {
-          var random = Random().nextInt(measurements.length);
-
-          if (mounted) {
-            setState(() {
-              _dashBoardPlaces.add(AnalyticsCard(
-                  PlaceDetails.measurementToPLace(measurements[random]),
-                  measurements[random],
-                  _isRefreshing,
-                  false));
-            });
-          }
-        }
-      }
-    }
   }
 
   void getFavourites(List<PlaceDetails> favouritePlaces) async {
@@ -472,7 +425,7 @@ class _DashboardViewState extends State<DashboardView> {
                 placeholder: (context, url) => SizedBox(
                   width: 104,
                   height: 104,
-                  child: analyticsCardLoading(),
+                  child: containerLoadingAnimation(104, 104),
                 ),
                 imageUrl: _kya!.imageUrl,
                 errorWidget: (context, url, error) => Icon(
@@ -623,27 +576,16 @@ class _DashboardViewState extends State<DashboardView> {
               const SizedBox(
                 height: 12,
               ),
-              if (currentLocation != null)
-                AnalyticsCard(PlaceDetails.measurementToPLace(currentLocation!),
-                    currentLocation!, _isRefreshing, false),
-              if (_dashBoardPlaces.isNotEmpty && currentLocation == null)
-                _dashBoardPlaces[0],
-              if (_dashBoardPlaces.isEmpty && currentLocation == null)
-                analyticsCardLoading(),
-              const SizedBox(
-                height: 16,
-              ),
-              if (_kya != null && _customAuth.isLoggedIn()) kyaSection(),
-              if (_kya != null && _customAuth.isLoggedIn())
+              if (_dashBoardPlaces.isNotEmpty) _dashBoardPlaces[0],
+              if (_dashBoardPlaces.isNotEmpty)
                 const SizedBox(
                   height: 16,
                 ),
-              if (_dashBoardPlaces.isNotEmpty && currentLocation != null)
-                _dashBoardPlaces[0],
-              if (_dashBoardPlaces.isNotEmpty && currentLocation != null)
-                const SizedBox(
-                  height: 16,
-                ),
+              // if (_kya != null && _customAuth.isLoggedIn()) kyaSection(),
+              // if (_kya != null && _customAuth.isLoggedIn())
+              //   const SizedBox(
+              //     height: 16,
+              //   ),
               if (_dashBoardPlaces.length >= 2) _dashBoardPlaces[1],
               if (_dashBoardPlaces.length >= 2)
                 const SizedBox(
@@ -666,6 +608,16 @@ class _DashboardViewState extends State<DashboardView> {
                 ),
               if (_dashBoardPlaces.length >= 6) _dashBoardPlaces[5],
               if (_dashBoardPlaces.length >= 6)
+                const SizedBox(
+                  height: 16,
+                ),
+              if (_dashBoardPlaces.length >= 7) _dashBoardPlaces[6],
+              if (_dashBoardPlaces.length >= 7)
+                const SizedBox(
+                  height: 16,
+                ),
+              if (_dashBoardPlaces.length >= 8) _dashBoardPlaces[7],
+              if (_dashBoardPlaces.length >= 8)
                 const SizedBox(
                   height: 16,
                 ),
@@ -710,6 +662,7 @@ class _DashboardViewState extends State<DashboardView> {
     if (measurements.isNotEmpty) {
       setState(_dashBoardPlaces.clear);
 
+      var dashboardCards = <AnalyticsCard>[];
       for (var i = 0; i <= 5; i++) {
         if (measurements.isEmpty) {
           break;
@@ -717,6 +670,11 @@ class _DashboardViewState extends State<DashboardView> {
         var random = Random().nextInt(measurements.length);
 
         if (mounted) {
+          dashboardCards.add(AnalyticsCard(
+              PlaceDetails.measurementToPLace(measurements[random]),
+              measurements[random],
+              _isRefreshing,
+              false));
           setState(() {
             _dashBoardPlaces.add(AnalyticsCard(
                 PlaceDetails.measurementToPLace(measurements[random]),
@@ -726,6 +684,21 @@ class _DashboardViewState extends State<DashboardView> {
           });
         }
         measurements.removeAt(random);
+      }
+
+      for (var location in currentLocation) {
+        dashboardCards.add(AnalyticsCard(
+            PlaceDetails.measurementToPLace(location),
+            location,
+            _isRefreshing,
+            false));
+      }
+
+      if (dashboardCards.isNotEmpty) {
+        dashboardCards.shuffle();
+        setState(() {
+          _dashBoardPlaces = dashboardCards;
+        });
       }
     }
   }
@@ -760,10 +733,10 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   void _getLocationMeasurements() async {
-    var measurement = await _locationService.getCurrentLocationReadings();
-    if (measurement != null && mounted) {
+    var measurements = await _locationService.getCurrentLocationReadings();
+    if (mounted) {
       setState(() {
-        currentLocation = measurement;
+        currentLocation = measurements;
       });
     }
   }
@@ -788,7 +761,6 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   Future<void> _initialize() async {
-    _cloudAnalytics.logScreenTransition('Home Page');
     _airqoApiClient = AirqoApiClient(context);
     _preferences = await SharedPreferences.getInstance();
     _setGreetings();

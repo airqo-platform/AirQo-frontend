@@ -4,7 +4,7 @@ import 'package:app/models/user_details.dart';
 import 'package:app/on_boarding/signup_screen.dart';
 import 'package:app/screens/profile_edit_page.dart';
 import 'package:app/screens/settings_page.dart';
-import 'package:app/services/fb_notifications.dart';
+import 'package:app/services/firebase_service.dart';
 import 'package:app/services/secure_storage.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +26,6 @@ class _ProfileViewState extends State<ProfileView> {
   UserDetails _userProfile = UserDetails.initialize();
   final CustomAuth _customAuth = CustomAuth();
   bool _isLoggedIn = false;
-  final CloudAnalytics _cloudAnalytics = CloudAnalytics();
   final SecureStorage _secureStorage = SecureStorage();
 
   Widget appNavBar() {
@@ -203,7 +202,6 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   Future<void> initialize() async {
-    _cloudAnalytics.logScreenTransition('Profile Page');
     setState(() {
       _isLoggedIn = _customAuth.isLoggedIn();
     });

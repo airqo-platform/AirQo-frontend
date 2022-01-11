@@ -5,7 +5,7 @@ import 'package:app/constants/config.dart';
 import 'package:app/models/user_details.dart';
 import 'package:app/screens/email_reauthenticate_screen.dart';
 import 'package:app/screens/phone_reauthenticate_screen.dart';
-import 'package:app/services/fb_notifications.dart';
+import 'package:app/services/firebase_service.dart';
 import 'package:app/services/secure_storage.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/custom_widgets.dart';
