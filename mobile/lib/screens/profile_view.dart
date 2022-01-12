@@ -4,9 +4,9 @@ import 'package:app/models/user_details.dart';
 import 'package:app/on_boarding/signup_screen.dart';
 import 'package:app/screens/profile_edit_page.dart';
 import 'package:app/screens/settings_page.dart';
-import 'package:app/services/firebase_service.dart';
-import 'package:app/services/secure_storage.dart';
+import 'package:app/services/app_service.dart';
 import 'package:app/widgets/text_fields.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
@@ -24,9 +24,8 @@ class ProfileView extends StatefulWidget {
 
 class _ProfileViewState extends State<ProfileView> {
   UserDetails _userProfile = UserDetails.initialize();
-  final CustomAuth _customAuth = CustomAuth();
   bool _isLoggedIn = false;
-  final SecureStorage _secureStorage = SecureStorage();
+  late AppService _appService;
 
   Widget appNavBar() {
     return Row(
@@ -93,8 +92,9 @@ class _ProfileViewState extends State<ProfileView> {
                             child: ListView(
                               shrinkWrap: true,
                               children: <Widget>[
-                                Text(
+                                AutoSizeText(
                                   _userProfile.getFullName(),
+                                  maxLines: 2,
                                   style: const TextStyle(
                                       fontSize: 24,
                                       fontWeight: FontWeight.bold),
@@ -203,11 +203,11 @@ class _ProfileViewState extends State<ProfileView> {
 
   Future<void> initialize() async {
     setState(() {
-      _isLoggedIn = _customAuth.isLoggedIn();
+      _isLoggedIn = _appService.customAuth.isLoggedIn();
     });
 
     if (_isLoggedIn) {
-      var userDetails = await _secureStorage.getUserDetails();
+      var userDetails = await _appService.secureStorage.getUserDetails();
       if (mounted) {
         setState(() {
           _userProfile = userDetails;
@@ -218,6 +218,7 @@ class _ProfileViewState extends State<ProfileView> {
 
   @override
   void initState() {
+    _appService = AppService(context);
     initialize();
     super.initState();
   }
@@ -226,7 +227,7 @@ class _ProfileViewState extends State<ProfileView> {
     setState(() {
       _userProfile = UserDetails.initialize();
     });
-    _customAuth.logOut(context).then((value) => {initialize()});
+    _appService.logOut(context).then((value) => {initialize()});
   }
 
   Widget logoutSection(text, icon, iconColor, callBackFn) {

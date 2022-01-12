@@ -35,6 +35,7 @@ class DBHelper {
       final db = await database;
       await db.delete(Kya.dbName());
       await db.delete(UserNotification.dbName());
+      await db.delete(PlaceDetails.dbName());
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
@@ -503,12 +504,25 @@ class SharedPreferencesHelper {
     if (_sharedPreferences!.containsKey('notifications')) {
       await _sharedPreferences!.remove('notifications');
     }
+    if (_sharedPreferences!.containsKey('aqShares')) {
+      await _sharedPreferences!.remove('aqShares');
+    }
     if (_sharedPreferences!.containsKey('location')) {
       await _sharedPreferences!.remove('location');
     }
     if (_sharedPreferences!.containsKey('alerts')) {
       await _sharedPreferences!.remove('alerts');
     }
+  }
+
+  Future<String> getOnBoardingPage() async {
+    if (_sharedPreferences == null) {
+      await initialize();
+    }
+    var page =
+        _sharedPreferences!.getString(Config.prefOnBoardingPage) ?? 'welcome';
+
+    return page;
   }
 
   Future<UserPreferences> getPreferences() async {
@@ -525,6 +539,14 @@ class SharedPreferencesHelper {
 
   Future<void> initialize() async {
     _sharedPreferences = await SharedPreferences.getInstance();
+  }
+
+  Future<void> updateOnBoardingPage(String currentPage) async {
+    if (_sharedPreferences == null) {
+      await initialize();
+    }
+    await _sharedPreferences!
+        .setString(Config.prefOnBoardingPage, currentPage.toLowerCase());
   }
 
   Future<void> updatePreference(String key, dynamic value, String type) async {

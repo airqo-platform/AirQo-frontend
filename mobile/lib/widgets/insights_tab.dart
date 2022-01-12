@@ -8,8 +8,8 @@ import 'package:app/services/rest_api.dart';
 import 'package:app/utils/data_formatter.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/dialogs.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:app/utils/pm.dart';
-import 'package:app/utils/string_extension.dart';
 import 'package:app/widgets/recomendation.dart';
 import 'package:app/widgets/tooltip.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -797,7 +797,6 @@ class _InsightsTabState extends State<InsightsTab> {
     }
 
     await _saveInsights(insights, widget.daily);
-    
   }
 
   Future<void> _initialize() async {

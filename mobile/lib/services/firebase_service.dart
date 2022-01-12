@@ -7,7 +7,7 @@ import 'package:app/models/place_details.dart';
 import 'package:app/models/user_details.dart';
 import 'package:app/services/secure_storage.dart';
 import 'package:app/utils/dialogs.dart';
-import 'package:app/utils/string_extension.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -130,8 +130,8 @@ class CloudStore {
     }
   }
 
-  Future<List<PlaceDetails>> getFavPlaces(String id) async {
-    if (id == '') {
+  Future<List<PlaceDetails>> getFavPlaces(String userId) async {
+    if (userId == '') {
       return [];
     }
 
@@ -142,7 +142,7 @@ class CloudStore {
 
     try {
       var placesJson = await _firebaseFirestore
-          .collection('${Config.favPlacesCollection}/$id/$id')
+          .collection('${Config.favPlacesCollection}/$userId/$userId')
           .get();
 
       var favPlaces = <PlaceDetails>[];
@@ -151,6 +151,7 @@ class CloudStore {
       for (var doc in placesDocs) {
         var place = await compute(PlaceDetails.parsePlaceDetails, doc.data());
         if (place != null) {
+          place.placeId = doc.id;
           favPlaces.add(place);
         }
       }
@@ -475,6 +476,31 @@ class CloudStore {
     }
   }
 
+  Future<void> updateFavPlaces(
+      String userId, List<PlaceDetails> favPlaces) async {
+    var hasConnection = await isConnected();
+    if (!hasConnection || userId.trim().isEmpty) {
+      return;
+    }
+
+    for (var place in favPlaces) {
+      try {
+        await _firebaseFirestore
+            .collection(Config.favPlacesCollection)
+            .doc(userId)
+            .collection(userId)
+            .doc(place.placeId)
+            .set(place.toJson());
+      } catch (exception, stackTrace) {
+        debugPrint('$exception\n$stackTrace');
+        await Sentry.captureException(
+          exception,
+          stackTrace: stackTrace,
+        );
+      }
+    }
+  }
+
   Future<void> updateKyaProgress(
       String userId, Kya kya, double progress) async {
     if (userId.isEmpty || userId.trim() == '') {
@@ -707,15 +733,15 @@ class CustomAuth {
     return _firebaseAuth.currentUser!.displayName ?? 'Guest';
   }
 
-  String getId() {
+  User? getUser() {
+    return _firebaseAuth.currentUser;
+  }
+
+  String getUserId() {
     if (!isLoggedIn()) {
       return '';
     }
     return _firebaseAuth.currentUser!.uid;
-  }
-
-  User? getUser() {
-    return _firebaseAuth.currentUser;
   }
 
   Future<bool> isConnected() async {
@@ -779,21 +805,8 @@ class CustomAuth {
   }
 
   Future<void> logOut(context) async {
-    var hasConnection = await isConnected();
-    if (!hasConnection) {
-      return;
-    }
-
     try {
-      var userId = getId();
-      await _cloudStore.updateProfileFields(userId, {'device': ''});
-      await Provider.of<PlaceDetailsModel>(context, listen: false)
-          .clearFavouritePlaces();
-      Provider.of<NotificationModel>(context, listen: false).removeAll();
-      await _secureStorage.clearUserDetails();
-      await _preferencesHelper.clearPreferences();
       await _firebaseAuth.signOut();
-      await _dbHelper.clearAccount();
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
@@ -904,7 +917,7 @@ class CustomAuth {
     }
 
     try {
-      var id = getId();
+      var id = getUserId();
       if (phone != null) {
         await _cloudStore.updateProfileFields(id, {'phoneNumber': phone});
         await _secureStorage.updateUserDetailsField('phoneNumber', phone);
@@ -1028,6 +1041,33 @@ class CustomAuth {
         };
 
         await _cloudStore.updateProfileFields(firebaseUser.uid, fields);
+      }
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  Future<void> updateUserProfile(UserDetails userDetails) async {
+    var hasConnection = await isConnected();
+    if (!hasConnection) {
+      return;
+    }
+
+    try {
+      var firebaseUser = _firebaseAuth.currentUser;
+      if (firebaseUser == null) {
+        throw Exception('You are not signed in');
+      } else {
+        if (!userDetails.photoUrl.isValidUri()) {
+          userDetails.photoUrl = '';
+        }
+
+        await firebaseUser.updateDisplayName(userDetails.firstName);
+        await firebaseUser.updatePhotoURL(userDetails.photoUrl);
       }
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');

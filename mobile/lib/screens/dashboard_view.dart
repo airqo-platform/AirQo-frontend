@@ -15,6 +15,7 @@ import 'package:app/utils/pm.dart';
 import 'package:app/widgets/analytics_card.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/tooltip.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -122,9 +123,9 @@ class _DashboardViewState extends State<DashboardView> {
             children: <Widget>[
               Visibility(
                 visible: _showName,
-                child: Text(
+                child: AutoSizeText(
                   _greetings,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                       fontSize: 24, fontWeight: FontWeight.bold),
@@ -268,7 +269,7 @@ class _DashboardViewState extends State<DashboardView> {
         _kya = null;
       });
       await _cloudStore
-          .updateKyaProgress(_customAuth.getId(), completeKya!, 100)
+          .updateKyaProgress(_customAuth.getUserId(), completeKya!, 100)
           .then((value) => {
                 _getCompleteKya(),
                 _getIncompleteKya(),
@@ -645,7 +646,7 @@ class _DashboardViewState extends State<DashboardView> {
         dbKya.where((element) => element.progress >= 100).toList();
     _loadCompleteKya(completeKya);
 
-    var kyaCards = await _cloudStore.getKya(_customAuth.getId());
+    var kyaCards = await _cloudStore.getKya(_customAuth.getUserId());
     var completeKyaCards =
         kyaCards.where((element) => element.progress >= 100.0).toList();
 
@@ -708,7 +709,7 @@ class _DashboardViewState extends State<DashboardView> {
       return;
     }
 
-    var kyas = await _cloudStore.getKya(_customAuth.getId());
+    var kyas = await _cloudStore.getKya(_customAuth.getUserId());
     var inCompleteKya =
         kyas.where((element) => element.progress < 100).toList();
 
@@ -821,7 +822,7 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   Future<void> _loadKya() async {
-    var kyas = await _cloudStore.getKya(_customAuth.getId());
+    var kyas = await _cloudStore.getKya(_customAuth.getUserId());
     await _dbHelper.insertKyas(kyas);
   }
 

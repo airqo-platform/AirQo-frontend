@@ -170,7 +170,7 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
       return;
     }
 
-    var kyaCards = await _cloudStore.getKya(_customAuth.getId());
+    var kyaCards = await _cloudStore.getKya(_customAuth.getUserId());
     var completeKyaCards =
         kyaCards.where((element) => element.progress >= 100.0).toList();
 

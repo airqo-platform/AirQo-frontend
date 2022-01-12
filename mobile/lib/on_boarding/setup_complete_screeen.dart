@@ -21,7 +21,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   AirqoApiClient? _airqoApiClient;
   final CustomAuth _customAuth = CustomAuth();
   final CloudStore _cloudStore = CloudStore();
-  AppService? _appService;
+  late AppService _appService;
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +58,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
     Future.delayed(const Duration(seconds: 4), () async {
       await Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
+        updateOnBoardingPage('home');
         return const HomePage();
       }), (r) => false);
     });
@@ -68,12 +69,13 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   void initState() {
     _airqoApiClient = AirqoApiClient(context);
     _appService = AppService(context);
+    updateOnBoardingPage('complete');
     initialize();
     super.initState();
   }
 
   void loadProfile() async {
-    await _appService!.postLoginActions();
+    _appService.postLoginActions();
   }
 
   Future<bool> onWillPop() {
@@ -99,7 +101,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   @Deprecated('Functionality has been transferred to the backend')
   Future<void> sendWelcomeEmail() async {
     try {
-      var userDetails = await _cloudStore.getProfile(_customAuth.getId());
+      var userDetails = await _cloudStore.getProfile(_customAuth.getUserId());
       if (userDetails == null) {
         return;
       }
@@ -107,5 +109,9 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
+  }
+
+  void updateOnBoardingPage(String page) async {
+    await _appService.preferencesHelper.updateOnBoardingPage(page);
   }
 }

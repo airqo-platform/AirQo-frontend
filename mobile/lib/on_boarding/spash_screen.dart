@@ -1,13 +1,14 @@
 import 'package:animations/animations.dart';
-import 'package:app/models/notification.dart';
-import 'package:app/models/place_details.dart';
+import 'package:app/on_boarding/location_setup_screen.dart';
+import 'package:app/on_boarding/notifications_setup_screen.dart';
+import 'package:app/on_boarding/profile_setup_screen.dart';
+import 'package:app/on_boarding/setup_complete_screeen.dart';
+import 'package:app/on_boarding/signup_screen.dart';
 import 'package:app/on_boarding/welcome_screen.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/app_service.dart';
-import 'package:app/services/firebase_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:provider/provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -18,9 +19,8 @@ class SplashScreen extends StatefulWidget {
 
 class SplashScreenState extends State<SplashScreen> {
   int _widgetId = 0;
-  final CustomAuth _customAuth = CustomAuth();
   bool _visible = false;
-  AppService? _appService;
+  late AppService _appService;
 
   @override
   Widget build(BuildContext context) {
@@ -45,22 +45,41 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> initialize() async {
-    var isLoggedIn = _customAuth.isLoggedIn();
+    var isLoggedIn = _appService.isLoggedIn();
+
+    var nextPage =
+        (await _appService.preferencesHelper.getOnBoardingPage()).toLowerCase();
+
     Future.delayed(const Duration(seconds: 2), () async {
       _updateWidget();
     });
+
     Future.delayed(const Duration(seconds: 6), () async {
       await Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
-        if (isLoggedIn) {
-          return const HomePage();
-        } else {
+        if (!isLoggedIn) {
           return const WelcomeScreen();
+        } else {
+          switch (nextPage) {
+            case 'signup':
+              return const SignupScreen(false);
+            case 'profile':
+              return const ProfileSetupScreen(false);
+            case 'notification':
+              return const NotificationsSetupScreen(false);
+            case 'location':
+              return const LocationSetupScreen(false);
+            case 'complete':
+              return const SetUpCompleteScreen(false);
+            case 'home':
+              return const HomePage();
+            default:
+              return const WelcomeScreen();
+          }
         }
       }), (r) => false);
     });
-    _appService!.fetchData();
-    _loadNotifiers();
+    _appService.fetchData();
   }
 
   @override
@@ -112,12 +131,6 @@ class SplashScreenState extends State<SplashScreen> {
         ]),
       ),
     );
-  }
-
-  void _loadNotifiers() {
-    Provider.of<PlaceDetailsModel>(context, listen: false)
-        .reloadFavouritePlaces();
-    Provider.of<NotificationModel>(context, listen: false).loadNotifications();
   }
 
   Widget _renderWidget() {

@@ -125,6 +125,9 @@ class Config {
   static String get prefInsightsCardTips =>
       dotenv.env['PREF_INSIGHTS_PAGE_TIPS'] ?? '';
 
+  static String get prefOnBoardingPage =>
+      dotenv.env['PREF_ON_BOARDING_PAGE'] ?? '';
+
   static String get prefReLoadDb => dotenv.env['PREF_RELOAD_DB'] ?? '';
 
   static int get progressNotificationId => 482842;

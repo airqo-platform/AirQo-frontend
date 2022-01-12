@@ -1,6 +1,7 @@
 import 'package:app/constants/config.dart';
 import 'package:app/on_boarding/setup_complete_screeen.dart';
 import 'package:app/screens/home_page.dart';
+import 'package:app/services/app_service.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
@@ -19,6 +20,7 @@ class LocationSetupScreen extends StatefulWidget {
 class LocationSetupScreenState extends State<LocationSetupScreen> {
   DateTime? exitTime;
   final LocationService _locationService = LocationService();
+  late AppService _appService;
 
   @override
   Widget build(BuildContext context) {
@@ -97,6 +99,13 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
     ));
   }
 
+  @override
+  void initState() {
+    _appService = AppService(context);
+    updateOnBoardingPage();
+    super.initState();
+  }
+
   Future<bool> onWillPop() {
     var now = DateTime.now();
 
@@ -115,5 +124,9 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
     }
 
     return Future.value(true);
+  }
+
+  void updateOnBoardingPage() async {
+    await _appService.preferencesHelper.updateOnBoardingPage('location');
   }
 }

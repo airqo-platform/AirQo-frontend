@@ -3,7 +3,7 @@ import 'package:app/models/notification.dart';
 import 'package:app/services/firebase_service.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/date.dart';
-import 'package:app/utils/string_extension.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
@@ -301,7 +301,7 @@ class _NotificationPageState extends State<NotificationPage> {
   Future<void> updateNotification(UserNotification notification) async {
     Provider.of<NotificationModel>(context, listen: false).removeAll();
     await _cloudStore.markNotificationAsRead(
-        _customAuth.getId(), notification.id);
+        _customAuth.getUserId(), notification.id);
     await _getNotifications(false);
   }
 
@@ -320,7 +320,7 @@ class _NotificationPageState extends State<NotificationPage> {
       });
     }
 
-    var notifies = await _cloudStore.getNotifications(_customAuth.getId());
+    var notifies = await _cloudStore.getNotifications(_customAuth.getUserId());
     if (notifies.isEmpty) {
       if (mounted) {
         setState(() {

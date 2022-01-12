@@ -2,7 +2,6 @@ import 'package:app/constants/config.dart';
 import 'package:app/on_boarding/profile_setup_screen.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/app_service.dart';
-import 'package:app/services/firebase_service.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/text_fields.dart';
@@ -36,21 +35,23 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
   List<String> _phoneVerificationCode = <String>['', '', '', '', '', ''];
   Color _nextBtnColor = Config.appColorDisabled;
 
-  final CustomAuth _customAuth = CustomAuth();
   final TextEditingController _phoneInputController = TextEditingController();
   final _phoneFormKey = GlobalKey<FormState>();
-  AppService? _appService;
+  late AppService _appService;
 
   void autoVerifyPhoneFn(PhoneAuthCredential credential) {
     if (widget.action == 'signup') {
-      _customAuth.signUpWithPhoneNumber(credential).then((value) => {
-            Navigator.pushAndRemoveUntil(context,
-                MaterialPageRoute(builder: (context) {
-              return ProfileSetupScreen(widget.enableBackButton);
-            }), (r) => false)
+      _appService.signup(credential, '', '', authMethod.phone).then((value) => {
+            if (value)
+              {
+                Navigator.pushAndRemoveUntil(context,
+                    MaterialPageRoute(builder: (context) {
+                  return ProfileSetupScreen(widget.enableBackButton);
+                }), (r) => false)
+              }
           });
     } else {
-      _appService!.login(credential, '', '', authMethod.phone).then((value) => {
+      _appService.login(credential, '', '', authMethod.phone).then((value) => {
             Navigator.pushAndRemoveUntil(context,
                 MaterialPageRoute(builder: (context) {
               return const HomePage();
@@ -409,7 +410,7 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
   }
 
   Future<void> requestVerification() async {
-    var connected = await _customAuth.isConnected();
+    var connected = await _appService.isConnected();
     if (!connected) {
       await showSnackBar(context, Config.connectionErrorMessage);
       return;
@@ -440,8 +441,8 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
       //   }
       // }
 
-      await _customAuth.verifyPhone('$_countryCode$_phoneNumber', context,
-          verifyPhoneFn, autoVerifyPhoneFn);
+      await _appService.customAuth.verifyPhone('$_countryCode$_phoneNumber',
+          context, verifyPhoneFn, autoVerifyPhoneFn);
 
       Future.delayed(const Duration(seconds: 5), () {
         setState(() {
@@ -453,7 +454,7 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
   }
 
   Future<void> resendVerificationCode() async {
-    var connected = await _customAuth.isConnected();
+    var connected = await _appService.isConnected();
     if (!connected) {
       await showSnackBar(context, Config.connectionErrorMessage);
       return;
@@ -467,7 +468,7 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
       _isResending = true;
     });
 
-    await _customAuth
+    await _appService.customAuth
         .verifyPhone('$_countryCode$_phoneNumber', context, verifyPhoneFn,
             autoVerifyPhoneFn)
         .then((value) => {
@@ -512,7 +513,7 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
   }
 
   Future<void> verifySentCode() async {
-    var connected = await _customAuth.isConnected();
+    var connected = await _appService.isConnected();
     if (!connected) {
       await showSnackBar(context, Config.connectionErrorMessage);
       return;
@@ -539,14 +540,19 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
         smsCode: _phoneVerificationCode.join(''));
     try {
       if (widget.action == 'signup') {
-        await _customAuth.signUpWithPhoneNumber(credential).then((value) => {
-              Navigator.pushAndRemoveUntil(context,
-                  MaterialPageRoute(builder: (context) {
-                return ProfileSetupScreen(widget.enableBackButton);
-              }), (r) => false)
-            });
+        await _appService
+            .signup(credential, '', '', authMethod.phone)
+            .then((value) => {
+                  if (value)
+                    {
+                      Navigator.pushAndRemoveUntil(context,
+                          MaterialPageRoute(builder: (context) {
+                        return ProfileSetupScreen(widget.enableBackButton);
+                      }), (r) => false)
+                    }
+                });
       } else {
-        await _appService!
+        await _appService
             .login(credential, '', '', authMethod.phone)
             .then((value) => {
                   Navigator.pushAndRemoveUntil(context,
@@ -564,8 +570,8 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
         });
       }
       if (exception.code == 'session-expired') {
-        await _customAuth.verifyPhone('$_countryCode$_phoneNumber', context,
-            verifyPhoneFn, autoVerifyPhoneFn);
+        await _appService.customAuth.verifyPhone('$_countryCode$_phoneNumber',
+            context, verifyPhoneFn, autoVerifyPhoneFn);
         await showSnackBar(
             context,
             'Your verification '

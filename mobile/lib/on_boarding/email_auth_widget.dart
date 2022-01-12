@@ -2,10 +2,8 @@ import 'package:app/constants/config.dart';
 import 'package:app/on_boarding/profile_setup_screen.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/app_service.dart';
-import 'package:app/services/firebase_service.dart';
-import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dialogs.dart';
-import 'package:app/utils/string_extension.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:flutter/material.dart';
@@ -39,10 +37,8 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
   Color _nextBtnColor = Config.appColorDisabled;
 
   final _emailFormKey = GlobalKey<FormState>();
-  final CustomAuth _customAuth = CustomAuth();
   final TextEditingController _emailInputController = TextEditingController();
-  AirqoApiClient? _airqoApiClient;
-  AppService? _appService;
+  late AppService _appService;
 
   @override
   Widget build(BuildContext context) {
@@ -337,7 +333,6 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
   }
 
   void initialize() {
-    _appService = AppService(context);
     setState(() {
       _emailFormValid = false;
       _emailAddress = '';
@@ -354,13 +349,13 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
 
   @override
   void initState() {
-    _airqoApiClient = AirqoApiClient(context);
+    _appService = AppService(context);
     initialize();
     super.initState();
   }
 
   Future<void> requestVerification() async {
-    var connected = await _customAuth.isConnected();
+    var connected = await _appService.isConnected();
     if (!connected) {
       await showSnackBar(context, Config.connectionErrorMessage);
       return;
@@ -378,7 +373,8 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
     });
 
     if (widget.action == 'signup') {
-      var emailExists = await _customAuth.userExists(null, _emailAddress);
+      var emailExists =
+          await _appService.customAuth.userExists(null, _emailAddress);
 
       if (emailExists) {
         setState(() {
@@ -393,7 +389,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
       }
     }
 
-    var emailSignupResponse = await _airqoApiClient!
+    var emailSignupResponse = await _appService.apiClient
         .requestEmailVerificationCode(_emailAddress, false);
 
     if (emailSignupResponse == null) {
@@ -421,7 +417,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
   }
 
   Future<void> resendVerificationCode() async {
-    var connected = await _customAuth.isConnected();
+    var connected = await _appService.isConnected();
     if (!connected) {
       await showSnackBar(context, Config.connectionErrorMessage);
       return;
@@ -435,7 +431,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
       _isResending = true;
     });
 
-    var emailSignupResponse = await _airqoApiClient!
+    var emailSignupResponse = await _appService.apiClient
         .requestEmailVerificationCode(_emailAddress, false);
 
     if (emailSignupResponse == null) {
@@ -466,7 +462,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
   }
 
   Future<void> verifySentCode() async {
-    var connected = await _customAuth.isConnected();
+    var connected = await _appService.isConnected();
     if (!connected) {
       await showSnackBar(context, Config.connectionErrorMessage);
       return;
@@ -499,11 +495,11 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
 
     var success = false;
     if (widget.action == 'signup') {
-      success = await _customAuth.signUpWithEmailAddress(
-          _emailAddress, _emailVerificationLink);
+      success = await _appService.signup(
+          null, _emailAddress, _emailVerificationLink, authMethod.email);
     } else {
-      success = await _appService!
-          .login(null, _emailAddress, _emailVerificationLink, authMethod.email);
+      success = await _appService.login(
+          null, _emailAddress, _emailVerificationLink, authMethod.email);
     }
 
     if (success) {

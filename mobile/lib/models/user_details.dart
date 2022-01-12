@@ -54,7 +54,7 @@ class UserDetails {
   }
 
   static UserDetails initialize() {
-    return UserDetails('', '', '', '', '', '', '', '',
+    return UserDetails('Ms.', '', '', '', '', '', '', '',
         UserPreferences(false, false, false, 0));
   }
 

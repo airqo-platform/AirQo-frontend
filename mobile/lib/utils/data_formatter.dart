@@ -1,8 +1,8 @@
 import 'package:app/constants/config.dart';
 import 'package:app/models/historical_measurement.dart';
 import 'package:app/models/insights.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:app/utils/pm.dart';
-import 'package:app/utils/string_extension.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:intl/intl.dart';
 

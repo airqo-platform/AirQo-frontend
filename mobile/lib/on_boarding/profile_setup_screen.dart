@@ -1,7 +1,7 @@
 import 'package:app/constants/config.dart';
 import 'package:app/models/user_details.dart';
 import 'package:app/screens/home_page.dart';
-import 'package:app/services/firebase_service.dart';
+import 'package:app/services/app_service.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/custom_shimmer.dart';
@@ -27,10 +27,10 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   bool _isSaving = false;
   bool _nameFormValid = false;
   bool _showDropDown = false;
-  String _title = 'Ms.';
+  late UserDetails _userDetails = UserDetails.initialize();
 
   final _formKey = GlobalKey<FormState>();
-  final CustomAuth _customAuth = CustomAuth();
+  late AppService _appService;
   final TextEditingController _controller = TextEditingController();
   final List<String> _titleOptions = ['Ms.', 'Mr.', 'Rather Not Say'];
 
@@ -134,6 +134,18 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
     });
   }
 
+  void initialize() async {
+    _userDetails = await _appService.secureStorage.getUserDetails();
+  }
+
+  @override
+  void initState() {
+    _appService = AppService(context);
+    initialize();
+    updateOnBoardingPage();
+    super.initState();
+  }
+
   Widget nameInputField() {
     return Container(
         alignment: Alignment.center,
@@ -212,15 +224,15 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
           nextBtnColor = Config.appColorDisabled;
           _isSaving = true;
         });
-        var userDetails = UserDetails.initialize()
-          ..title = _title
-          ..firstName = UserDetails.getNames(_fullName).first
-          ..lastName = UserDetails.getNames(_fullName).last;
+        setState(() {
+          _userDetails
+            ..firstName = UserDetails.getNames(_fullName).first
+            ..lastName = UserDetails.getNames(_fullName).last;
+        });
 
         var dialogContext = context;
         loadingScreen(dialogContext);
-
-        await _customAuth.updateProfile(userDetails).then((value) => {
+        await _appService.updateProfile(_userDetails).then((value) => {
               Navigator.pop(dialogContext),
               Navigator.pushAndRemoveUntil(context,
                   MaterialPageRoute(builder: (context) {
@@ -257,7 +269,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('${_title.substring(0, 2)}.'),
+                Text('${_userDetails.title.substring(0, 2)}.'),
                 const Icon(
                   Icons.keyboard_arrow_down_sharp,
                   color: Colors.black,
@@ -291,7 +303,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       _titleOptions[index],
                       style: TextStyle(
                           fontSize: 14,
-                          color: _title == _titleOptions[index]
+                          color: _userDetails.title == _titleOptions[index]
                               ? Config.appColorBlack
                               : Config.appColorBlack.withOpacity(0.32)),
                     ),
@@ -339,9 +351,13 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
         ));
   }
 
+  void updateOnBoardingPage() async {
+    await _appService.preferencesHelper.updateOnBoardingPage('profile');
+  }
+
   void updateTitle(String text) {
     setState(() {
-      _title = text;
+      _userDetails.title = text;
       _showDropDown = false;
     });
   }

@@ -1,8 +1,7 @@
 import 'package:app/constants/config.dart';
 import 'package:app/screens/phone_reauthenticate_screen.dart';
-import 'package:app/services/firebase_service.dart';
+import 'package:app/services/app_service.dart';
 import 'package:app/services/native_api.dart';
-import 'package:app/services/secure_storage.dart';
 import 'package:app/utils/web_view.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/custom_widgets.dart';
@@ -22,13 +21,12 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  final CustomAuth _customAuth = CustomAuth();
   bool _allowNotification = false;
   bool _allowLocation = false;
   final RateService _rateService = RateService();
   final LocationService _locationService = LocationService();
   final NotificationService _notificationService = NotificationService();
-  final SecureStorage _secureStorage = SecureStorage();
+  late AppService _appService;
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +48,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       settingsSection(),
                       const Spacer(),
                       Visibility(
-                        visible: _customAuth.isLoggedIn(),
+                        visible: _appService.isLoggedIn(),
                         child: deleteAccountSection(),
                       ),
                       const SizedBox(
@@ -77,12 +75,11 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> deleteAccount() async {
-    var _customAuth = CustomAuth();
-    var user = _customAuth.getUser();
+    var user = _appService.customAuth.getUser();
     var dialogContext = context;
     if (user == null) {
       loadingScreen(dialogContext);
-      await _customAuth.logOut(context);
+      await _appService.logOut(context);
       Navigator.pop(dialogContext);
       await Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
@@ -90,7 +87,7 @@ class _SettingsPageState extends State<SettingsPage> {
       }), (r) => false);
     } else {
       var authResponse = false;
-      var userDetails = await _secureStorage.getUserDetails();
+      var userDetails = await _appService.getUserDetails();
       if (user.email != null) {
         userDetails.emailAddress = user.email!;
         authResponse =
@@ -107,7 +104,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
       if (authResponse) {
         loadingScreen(dialogContext);
-        await _customAuth.deleteAccount(context).then((value) => {
+
+        await _appService.deleteAccount().then((value) => {
               Navigator.pop(dialogContext),
               Navigator.pushAndRemoveUntil(context,
                   MaterialPageRoute(builder: (context) {
@@ -153,6 +151,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   void initState() {
+    _appService = AppService(context);
     initialize();
     super.initState();
   }

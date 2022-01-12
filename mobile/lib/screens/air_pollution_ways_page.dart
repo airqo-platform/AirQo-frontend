@@ -529,7 +529,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
             progress = 99;
           }
           await _cloudStore.updateKyaProgress(
-              _customAuth.getId(), widget.kya, progress);
+              _customAuth.getUserId(), widget.kya, progress);
         }
       }
     } catch (exception, stackTrace) {

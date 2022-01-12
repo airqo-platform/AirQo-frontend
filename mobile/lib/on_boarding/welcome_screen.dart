@@ -1,5 +1,6 @@
 import 'package:app/constants/config.dart';
 import 'package:app/on_boarding/signup_screen.dart';
+import 'package:app/services/app_service.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +15,7 @@ class WelcomeScreen extends StatefulWidget {
 
 class WelcomeScreenState extends State<WelcomeScreen> {
   DateTime? _exitTime;
+  late AppService _appService;
 
   @override
   Widget build(BuildContext context) {
@@ -72,6 +74,13 @@ class WelcomeScreenState extends State<WelcomeScreen> {
     ));
   }
 
+  @override
+  void initState() {
+    _appService = AppService(context);
+    updateOnBoardingPage();
+    super.initState();
+  }
+
   Future<bool> onWillPop() {
     var now = DateTime.now();
 
@@ -83,6 +92,10 @@ class WelcomeScreenState extends State<WelcomeScreen> {
       return Future.value(false);
     }
     return Future.value(true);
+  }
+
+  void updateOnBoardingPage() async {
+    await _appService.preferencesHelper.updateOnBoardingPage('welcome');
   }
 
   Widget welcomeSection(

@@ -3,7 +3,7 @@ import 'dart:collection';
 import 'package:app/constants/config.dart';
 import 'package:app/models/site.dart';
 import 'package:app/services/local_storage.dart';
-import 'package:app/utils/string_extension.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -120,9 +120,6 @@ class PlaceDetailsModel extends ChangeNotifier {
   final List<PlaceDetails> _favouritePlaces = [];
   final DBHelper _dbHelper = DBHelper();
 
-  // final CloudStore _cloudStore = CloudStore();
-  // final CustomAuth _customAuth = CustomAuth();
-
   UnmodifiableListView<PlaceDetails> get favouritePlaces =>
       UnmodifiableListView(_favouritePlaces);
 
@@ -140,13 +137,12 @@ class PlaceDetailsModel extends ChangeNotifier {
     }
   }
 
-  Future<void> loadFavouritePlaces(List<PlaceDetails> places) async {
+  Future<void> reloadFavouritePlaces() async {
     try {
-      // _favouritePlaces.addAll(places);
-      // notifyListeners();
-      await _dbHelper.setFavouritePlaces(places).then((value) => {
-            reloadFavouritePlaces(),
-          });
+      _favouritePlaces.clear();
+      var favPlaces = await _dbHelper.getFavouritePlaces();
+      _favouritePlaces.addAll(favPlaces);
+      notifyListeners();
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
@@ -156,23 +152,35 @@ class PlaceDetailsModel extends ChangeNotifier {
     }
   }
 
-  Future<void> reloadFavouritePlaces() async {
-    try {
-      _favouritePlaces.clear();
+// Future<void> loadFavouritePlaces(List<PlaceDetails> places) async {
+//   try {
+//     await _dbHelper.setFavouritePlaces(places).then((value) => {
+//           reloadFavouritePlaces(),
+//         });
+//   } catch (exception, stackTrace) {
+//     debugPrint('$exception\n$stackTrace');
+//     await Sentry.captureException(
+//       exception,
+//       stackTrace: stackTrace,
+//     );
+//   }
+// }
 
-      var favPlaces = await _dbHelper.getFavouritePlaces();
-      _favouritePlaces.addAll(favPlaces);
-      notifyListeners();
-      // var id = _customAuth.getId();
-      // if (_customAuth.isLoggedIn() && id != '') {
-      //   await _cloudStore.updateFavouritePlaces(id, favPlaces);
-      // }
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+}
+
+extension PlaceDetailsExtension on List<PlaceDetails> {
+  List<Map<String, dynamic>> toJson() {
+    var jsonObject = <Map<String, dynamic>>[];
+    for (var place in this) {
+      jsonObject.add(place.toJson());
     }
+    return jsonObject;
+  }
+
+  List<PlaceDetails> removeDuplicates() {
+    /// TODO
+    /// implement remove duplicates and update loadFavPlaces()
+    /// method in AppService
+    return [];
   }
 }

@@ -181,7 +181,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _getCloudStore() async {
     if (_customAuth.isLoggedIn()) {
-      await _cloudStore.monitorNotifications(context, _customAuth.getId());
+      await _cloudStore.monitorNotifications(context, _customAuth.getUserId());
     }
   }
 

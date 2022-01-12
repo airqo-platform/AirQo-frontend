@@ -1,5 +1,5 @@
 import 'package:app/constants/config.dart';
-import 'package:app/utils/string_extension.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 String getNextDashboardRegion(SharedPreferences sharedPreferences) {

@@ -1,6 +1,7 @@
 import 'package:app/on_boarding/email_auth_widget.dart';
 import 'package:app/on_boarding/phone_auth_widget.dart';
 import 'package:app/screens/home_page.dart';
+import 'package:app/services/app_service.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:flutter/material.dart';
 
@@ -16,6 +17,7 @@ class SignupScreen extends StatefulWidget {
 class SignupScreenState extends State<SignupScreen> {
   String _signUpOption = 'phone';
   DateTime? _exitTime;
+  late AppService _appService;
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +35,13 @@ class SignupScreenState extends State<SignupScreen> {
     setState(() {
       _signUpOption = value;
     });
+  }
+
+  @override
+  void initState() {
+    _appService = AppService(context);
+    updateOnBoardingPage();
+    super.initState();
   }
 
   Future<bool> onWillPop() {
@@ -54,5 +63,9 @@ class SignupScreenState extends State<SignupScreen> {
     }
 
     return Future.value(true);
+  }
+
+  void updateOnBoardingPage() async {
+    await _appService.preferencesHelper.updateOnBoardingPage('signup');
   }
 }

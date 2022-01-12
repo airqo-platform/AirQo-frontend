@@ -312,7 +312,7 @@ class LocationService {
   Future<bool> revokePermission() async {
     // TODO: implement revoke permission
 
-    var id = _customAuth.getId();
+    var id = _customAuth.getUserId();
 
     if (id != '') {
       await _cloudStore.updatePreferenceFields(id, 'location', false, 'bool');
@@ -448,7 +448,7 @@ class NotificationService {
       var status =
           settings.authorizationStatus == AuthorizationStatus.authorized;
 
-      var id = _customAuth.getId();
+      var id = _customAuth.getUserId();
 
       if (id != '') {
         await _cloudStore.updatePreferenceFields(
@@ -468,7 +468,7 @@ class NotificationService {
 
   Future<bool> revokePermission() async {
     // TODO: implement revoke permission
-    var id = _customAuth.getId();
+    var id = _customAuth.getUserId();
 
     if (id != '') {
       await _cloudStore.updatePreferenceFields(
@@ -717,7 +717,7 @@ class ShareService {
     var value = preferences.aqShares + 1;
     if (_customAuth.isLoggedIn()) {
       await _cloudStore.updatePreferenceFields(
-          _customAuth.getId(), 'aqShares', value, 'int');
+          _customAuth.getUserId(), 'aqShares', value, 'int');
     } else {
       await _preferencesHelper.updatePreference('aqShares', value, 'int');
     }

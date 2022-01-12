@@ -3,7 +3,6 @@ import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/screens/insights_page.dart';
 import 'package:app/services/app_service.dart';
-import 'package:app/services/local_storage.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -24,8 +23,8 @@ class MiniAnalyticsCard extends StatefulWidget {
 class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
   Measurement? measurement;
   bool showHeartAnimation = false;
-  final DBHelper _dbHelper = DBHelper();
-  AppService? _appService;
+
+  late AppService _appService;
 
   @override
   Widget build(BuildContext context) {
@@ -185,14 +184,16 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
   }
 
   void getMeasurement() {
-    _dbHelper.getMeasurement(widget.placeDetails.siteId).then((value) => {
-          if (value != null && mounted)
-            {
-              setState(() {
-                measurement = value;
-              })
-            }
-        });
+    _appService.dbHelper
+        .getMeasurement(widget.placeDetails.siteId)
+        .then((value) => {
+              if (value != null && mounted)
+                {
+                  setState(() {
+                    measurement = value;
+                  })
+                }
+            });
   }
 
   @override
@@ -212,6 +213,6 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
       });
     });
 
-    await _appService!.updateFavouritePlace(widget.placeDetails);
+    await _appService.updateFavouritePlace(widget.placeDetails);
   }
 }

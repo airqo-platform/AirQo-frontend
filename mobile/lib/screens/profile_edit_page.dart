@@ -472,7 +472,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       //     mimeType, userDetails!.userId);
 
       var imageUrl = await _cloudStore.uploadProfilePicture(
-          _profilePic, _customAuth.getId());
+          _profilePic, _customAuth.getUserId());
 
       if (imageUrl != null) {
         userDetails!.photoUrl = imageUrl;
