@@ -80,17 +80,17 @@
 	fill: none;
 	pointer-events: all;
 }
-/* brush handles  */
-.brushed-TS .metric-chart .resize .handle {
-	/*fill: #555;*/
+
+.handle {
+	fill: #555;
 }
 
-.brushed-TS .metric-chart .resize .handle-mini {
+.handle-mini {
 	fill: white;
-    stroke-width: 1px;
-    /*stroke: #555;*/
-    stroke: #eaeaea;
+    stroke-width: 5px;
+    stroke: #555;
 }
+
 
 .brushed-TS .metric-chart .scale_button {
 	cursor: pointer;

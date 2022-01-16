@@ -185,13 +185,13 @@ const BrushedTimeSeries = ({ data, xFunc, yFunc, symbolFunc, yLabel }) => {
   const margin_context = { top: 320, right: 20, bottom: 20, left: 35 };
   const height_context = winHeight - margin_context.top - margin_context.bottom;
   const [selection, setSelection] = useState(null);
-  const previousSelection = usePrevious(selection);
 
   useEffect(() => {
     const dataXrange = d3.extent(data, xFunc);
     const dataYrange = [0, d3.max(data, yFunc)];
 
     const x2 = d3.scaleTime().range([0, width]).domain(dataXrange);
+    console.log("range", dataXrange.map(x2));
 
     const y2 = d3.scaleLinear().range([height_context, 0]).domain(dataYrange);
 
@@ -246,8 +246,8 @@ const BrushedTimeSeries = ({ data, xFunc, yFunc, symbolFunc, yLabel }) => {
     const brush = d3
       .brushX()
       .extent([
-        [0, -5],
-        [width, height_context],
+        [0, -8],
+        [width, height_context + 5],
       ])
       // .on("brush", brushed(x2))
       .on("end", ({ selection }) => {
@@ -257,17 +257,21 @@ const BrushedTimeSeries = ({ data, xFunc, yFunc, symbolFunc, yLabel }) => {
         }
         setSelection(selection.map(x2.invert));
       });
-    if (previousSelection === selection) {
-      const brushg = context
-        .append("g")
-        .attr("class", "x brush")
-        .call(brush)
-        .call(
-          brush.move,
-          (selection && selection.map(x2)) || dataXrange.map(x2)
-        );
-      /* === y axis title === */
+    const brushg = context.append("g").attr("class", "x brush").call(brush);
+
+    if (dataXrange[0] !== undefined && dataXrange[1] !== undefined) {
+      brushg.call(brush.move, dataXrange.map(x2));
     }
+
+    brushg
+      .selectAll(".extent")
+      .attr("y", -6)
+      .attr("height", height_context + 8);
+
+    const brushHandle = brushg.selectAll(".handle");
+
+    brushHandle.style("width", "3px");
+
     vis
       .append("text")
       .attr("class", "y axis title")
@@ -277,20 +281,7 @@ const BrushedTimeSeries = ({ data, xFunc, yFunc, symbolFunc, yLabel }) => {
       .attr("dy", "1em")
       .attr("transform", "rotate(-90)")
       .style("text-anchor", "middle");
-  }, [data, yLabel, selection, previousSelection]);
-
-  const brushed = (s) => ({ selection }) => {
-    if (selection) {
-      const indexSelection = selection.map(s.invert);
-      setSelection(indexSelection);
-    }
-  };
-
-  function brushended({ selection }) {
-    if (!selection) {
-      // gb.call(brush.move, defaultSelection);
-    }
-  }
+  }, [data, yLabel]);
 
   return (
     <div className="brushed-TS" style={{ position: "relative" }}>
