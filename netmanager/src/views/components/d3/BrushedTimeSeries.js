@@ -178,11 +178,15 @@ const BrushChart = ({
         )}">${d.name}</span> - ${d.value}</div>`;
       });
 
-      tooltip
-        .html(h)
-        .style("left", `${event.pageX + 30}px`)
-        .style("top", `${event.pageY + 30}px`)
-        .style("display", "block");
+      if (lineDate) {
+        tooltip
+          .html(h)
+          .style("left", `${event.pageX + 30}px`)
+          .style("top", `${event.pageY + 30}px`)
+          .style("display", "block");
+      } else {
+        tooltip.style("display", "none");
+      }
     }
   }, [data, selection]);
 
