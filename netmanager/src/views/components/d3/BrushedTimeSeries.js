@@ -45,7 +45,7 @@ const BrushChart = ({
       .domain(selection || dataXrange);
     const y = d3.scaleLinear().range([height, 0]).domain(dataYrange);
 
-    const xAxis = d3.axisBottom().scale(x).tickSize(-height);
+    const xAxis = d3.axisBottom().scale(x).ticks(5).tickSize(-height);
     const yAxis = d3.axisLeft().scale(y).ticks(4).tickSize(-width);
 
     const focus = d3
@@ -201,7 +201,7 @@ const BrushedTimeSeries = ({ data, xFunc, yFunc, symbolFunc, yLabel }) => {
 
     const y2 = d3.scaleLinear().range([height_context, 0]).domain(dataYrange);
 
-    const xAxisContext = d3.axisBottom().scale(x2);
+    const xAxisContext = d3.axisBottom().scale(x2).ticks(5);
 
     const vis = d3.select(ref.current).attr("class", "metric-chart");
 
