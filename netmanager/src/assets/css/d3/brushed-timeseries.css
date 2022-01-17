@@ -114,3 +114,12 @@
     text-anchor: middle;
 }
 
+.d3-tooltip {
+	position: absolute;
+	z-index: 2000000000000000;
+	background-color: #FFFFFF;
+	color: #263238;
+	border: 0.5px solid #bec4c8;
+	border-radius: 5px;
+	padding: 5px;
+}

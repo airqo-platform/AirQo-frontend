@@ -25,7 +25,6 @@ const BrushChart = ({
   xFunc,
   yFunc,
   symbolFunc,
-  tooltipRef,
 }) => {
   const ref = useRef();
 
@@ -50,12 +49,8 @@ const BrushChart = ({
     // Clear chart
     focus.html("");
 
-    const tooltip = d3
-      .select(tooltipRef.current)
-      .style("position", "absolute")
-      .style("background-color", "#D3D3D3")
-      .style("padding", 6)
-      .style("display", "none");
+    const tooltip = d3.select("body").append("div").attr("class", "d3-tooltip");
+
     const tooltipLine = focus.append("line");
 
     focus.append("g").attr("class", "y axis").call(yAxis);
@@ -162,11 +157,12 @@ const BrushChart = ({
           d.name
         )}">${d.name}</span> - ${d.value}</div>`;
       });
+
       tooltip
         .html(h)
-        .style("display", "block")
-        .style("left", `${event.pageX + 20}`)
-        .style("top", event.pageY - 20);
+        .style("left", `${event.pageX + 30}px`)
+        .style("top", `${event.pageY + 30}px`)
+        .style("display", "block");
     }
   }, [data, selection]);
 
@@ -175,7 +171,6 @@ const BrushChart = ({
 
 const BrushedTimeSeries = ({ data, xFunc, yFunc, symbolFunc, yLabel }) => {
   const ref = useRef();
-  const tooltipRef = useRef();
   const margin = { top: 20, right: 20, bottom: 100, left: 35 };
   const winWidth = 650;
   const winHeight = 370;
@@ -191,7 +186,6 @@ const BrushedTimeSeries = ({ data, xFunc, yFunc, symbolFunc, yLabel }) => {
     const dataYrange = [0, d3.max(data, yFunc)];
 
     const x2 = d3.scaleTime().range([0, width]).domain(dataXrange);
-    console.log("range", dataXrange.map(x2));
 
     const y2 = d3.scaleLinear().range([height_context, 0]).domain(dataYrange);
 
@@ -284,15 +278,7 @@ const BrushedTimeSeries = ({ data, xFunc, yFunc, symbolFunc, yLabel }) => {
   }, [data, yLabel]);
 
   return (
-    <div className="brushed-TS" style={{ position: "relative" }}>
-      <div
-        ref={tooltipRef}
-        style={{
-          position: "absolute",
-          backgroundColor: "lightgray",
-          padding: "5px",
-        }}
-      />
+    <div className="brushed-TS">
       <svg viewBox={`0 0 ${winWidth} ${winHeight}`} ref={ref}>
         <BrushChart
           data={data}
@@ -303,7 +289,6 @@ const BrushedTimeSeries = ({ data, xFunc, yFunc, symbolFunc, yLabel }) => {
           xFunc={xFunc}
           yFunc={yFunc}
           symbolFunc={symbolFunc}
-          tooltipRef={tooltipRef}
         />
       </svg>
     </div>
