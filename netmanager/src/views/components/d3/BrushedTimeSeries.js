@@ -143,7 +143,8 @@ const BrushChart = ({
       const formatTime = d3.timeFormat("%d-%m-%Y %I:%M%p");
 
       tooltipLine
-        .attr("stroke", "black")
+        .attr("stroke", "#bec4c8")
+        .attr("stroke-dasharray", "4")
         .attr("x1", x(lineDate))
         .attr("x2", x(lineDate))
         .attr("y1", 0)
