@@ -15,6 +15,13 @@ function usePrevious(value) {
   });
   return ref.current;
 }
+const ONE_HOUR = 1000 * 60 * 60;
+const SIX_HOURS = 6 * ONE_HOUR;
+const ONE_DAY = 24 * ONE_HOUR;
+
+function checkIfDateClose(maxDiff, date1, date2) {
+  return Math.abs(date1 - date2) <= maxDiff;
+}
 
 const BrushChart = ({
   data,
@@ -133,9 +140,13 @@ const BrushChart = ({
       }).left;
 
       const sortingObj = [];
+
       dataNest.map((d) => {
         const idx = bisect(d.values, date);
-        d.values[idx] && sortingObj.push(d.values[idx]);
+        d.active &&
+          d.values[idx] &&
+          checkIfDateClose(ONE_DAY, date, new Date(d.values[idx].time)) &&
+          sortingObj.push(d.values[idx]);
       });
 
       const lineDate = sortingObj.length > 0 && new Date(sortingObj[0].time);
