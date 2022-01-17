@@ -97,6 +97,7 @@ const BrushChart = ({
         .attr("x", legendSpace / 2 + i * legendSpace) // space legend
         .attr("y", -margin.top / 2)
         .attr("class", "legend") // style the legend
+        .attr("id", `${id}-legend`)
         .style("fill", () => {
           // mark path as active
           d.active = true;
@@ -109,10 +110,17 @@ const BrushChart = ({
           const active = !!d.active;
           const newOpacity = active ? 0 : 1;
 
+          const legendOpacity = active ? 0.45 : 1;
+
           d3.select(`#${id}`)
             .transition()
             .duration(100)
             .style("opacity", newOpacity);
+
+          d3.select(`#${id}-legend`)
+            .transition()
+            .duration(100)
+            .style("opacity", legendOpacity);
 
           // Update whether or not the elements are active
           d.active = !active;
