@@ -46,6 +46,7 @@ import { useCurrentAirQloudData } from "redux/AirQloud/selectors";
 import ChartContainer from "./ChartContainer";
 
 import BrushedTimeSeries from "./BrushedTimeSeries";
+import BrushedBarChart from "./BrushedBarChart"
 import { loadD3ChartDataApi } from "views/apis/analytics";
 
 const useStyles = makeStyles((theme) => ({
@@ -636,13 +637,21 @@ const CustomisableChart = (props) => {
           </Grid>
         )}
       >
-        <BrushedTimeSeries
+        <BrushedBarChart
           data={customGraphData}
           xFunc={(d) => new Date(d.time)}
           yFunc={(d) => d.value}
           symbolFunc={(d) => d.name}
           yLabel={labelMapper[selectedPollutant.value]}
+          freq={selectedFrequency.value}
         />
+        {/*<BrushedTimeSeries*/}
+        {/*  data={customGraphData}*/}
+        {/*  xFunc={(d) => new Date(d.time)}*/}
+        {/*  yFunc={(d) => d.value}*/}
+        {/*  symbolFunc={(d) => d.name}*/}
+        {/*  yLabel={labelMapper[selectedPollutant.value]}*/}
+        {/*/>*/}
       </ChartContainer>
       <Grid item lg={12} sm={12} xl={12} xs={12}>
         <Dialog

@@ -210,6 +210,7 @@ const BrushChart = ({
 
 const BrushedBarChart = ({ data, xFunc, yFunc, symbolFunc, yLabel, freq }) => {
   const ref = useRef();
+  const contextRef = useRef();
   const margin = { top: 20, right: 20, bottom: 100, left: 35 };
   const winWidth = 650;
   const winHeight = 370;
@@ -244,13 +245,17 @@ const BrushedBarChart = ({ data, xFunc, yFunc, symbolFunc, yLabel, freq }) => {
       .attr("width", width)
       .attr("height", height);
 
-    const context = vis
-      .append("g")
+    // const context = vis
+    const context = d3.select(contextRef.current)
+      // .append("g")
       .attr("class", "context")
       .attr(
         "transform",
         `translate(${margin_context.left}, ${margin_context.top})`
       );
+
+    // Clear chart
+    context.html("");
 
     context
       .append("g")
@@ -327,6 +332,7 @@ const BrushedBarChart = ({ data, xFunc, yFunc, symbolFunc, yLabel, freq }) => {
           symbolFunc={symbolFunc}
           freq={freq}
         />
+        <g ref={contextRef} />
       </svg>
     </div>
   );
