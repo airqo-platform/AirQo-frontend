@@ -33,6 +33,7 @@ const BrushChart = ({
   xFunc,
   yFunc,
   symbolFunc,
+  freq,
 }) => {
   const ref = useRef();
 
@@ -44,7 +45,12 @@ const BrushChart = ({
       .scaleTime()
       .range([0, width])
       .domain(selection || dataXrange);
+
     const y = d3.scaleLinear().range([height, 0]).domain(dataYrange);
+
+    const xBand = d3.scaleBand().range([0, width]).padding(0.1);
+
+    if (dataXrange.length > 1) xBand.domain(createDomain(freq, x.domain()));
 
     const xAxis = d3.axisBottom().scale(x).ticks(5).tickSize(-height);
     const yAxis = d3.axisLeft().scale(y).ticks(4).tickSize(-width);
@@ -69,11 +75,6 @@ const BrushChart = ({
       .attr("transform", `translate(0, ${height})`)
       .call(xAxis);
 
-    const line = d3
-      .line()
-      .x((d) => x(xFunc(d)))
-      .y((d) => y(yFunc(d)));
-
     const dataNest = d3.nest().key(symbolFunc).entries(data);
 
     const color = d3.scaleOrdinal().range(d3.schemeCategory10);
@@ -84,13 +85,26 @@ const BrushChart = ({
       const id = `tag-${d.key
         .replace(/\s+/g, "")
         .replace(",", "")}-${Math.random().toString(16).slice(2)}-${i}`;
-
       focus
-        .append("path")
-        .attr("class", "line")
-        .style("stroke", () => (d.color = color(d.key)))
-        .attr("id", id)
-        .attr("d", line(d.values));
+        .selectAll("rect")
+        .data(
+          d.values.filter(
+            (d) =>
+              xFunc(d) >= (selection || dataXrange)[0] &&
+              xFunc(d) <= (selection || dataXrange)[1]
+          )
+        )
+
+        .enter()
+        .append("rect")
+        .attr("class", id)
+        .attr("width", xBand.bandwidth())
+        .attr("x", (d) => xBand(xFunc(d)))
+        .style("fill", function () {
+          return color(d.key);
+        })
+        .attr("y", (d) => y(yFunc(d)))
+        .attr("height", (d) => y(0) - y(yFunc(d)));
 
       // Add the Legend
       focus
@@ -113,7 +127,7 @@ const BrushChart = ({
 
           const legendOpacity = active ? 0.45 : 1;
 
-          d3.select(`#${id}`)
+          d3.selectAll(`.${id}`)
             .transition()
             .duration(100)
             .style("opacity", newOpacity);
@@ -311,6 +325,7 @@ const BrushedBarChart = ({ data, xFunc, yFunc, symbolFunc, yLabel, freq }) => {
           xFunc={xFunc}
           yFunc={yFunc}
           symbolFunc={symbolFunc}
+          freq={freq}
         />
       </svg>
     </div>
