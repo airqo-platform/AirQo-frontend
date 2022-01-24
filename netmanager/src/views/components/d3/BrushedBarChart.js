@@ -34,6 +34,7 @@ const BrushChart = ({
   yFunc,
   symbolFunc,
   freq,
+  color,
 }) => {
   const ref = useRef();
 
@@ -80,8 +81,6 @@ const BrushChart = ({
       .call(xAxis);
 
     const dataNest = d3.nest().key(symbolFunc).entries(data);
-
-    const color = d3.scaleOrdinal().range(d3.schemeCategory10);
 
     const legendSpace = width / dataNest.length;
 
@@ -223,21 +222,28 @@ const BrushedBarChart = ({ data, xFunc, yFunc, symbolFunc, yLabel, freq }) => {
 
   const margin_context = { top: 320, right: 20, bottom: 20, left: 35 };
   const height_context = winHeight - margin_context.top - margin_context.bottom;
+
+  const color = d3.scaleOrdinal().range(d3.schemeCategory10);
+
   const [selection, setSelection] = useState(null);
 
   useEffect(() => {
     const dataXrange = d3.extent(data, xFunc);
     const dataYrange = [0, d3.max(data, yFunc)];
 
-    const x2 = d3.scaleTime().range([0, width]).domain(dataXrange);
+    const xContext = d3.scaleTime().range([0, width]).domain(dataXrange);
 
-    const y2 = d3.scaleLinear().range([height_context, 0]).domain(dataYrange);
+    const yContext = d3
+      .scaleLinear()
+      .range([height_context, 0])
+      .domain(dataYrange);
 
-    const x2Band = d3.scaleBand().range([0, width]).padding(0.1);
+    const xContextBand = d3.scaleBand().range([0, width]).padding(0.1);
 
-    if (dataXrange.length > 1) x2Band.domain(createDomain(freq, x2.domain()));
+    if (dataXrange.length > 1)
+      xContextBand.domain(createDomain(freq, xContext.domain()));
 
-    const xAxisContext = d3.axisBottom().scale(x2).ticks(5);
+    const xAxisContext = d3.axisBottom().scale(xContext).ticks(5);
 
     const vis = d3.select(ref.current).attr("class", "metric-chart");
 
@@ -250,7 +256,8 @@ const BrushedBarChart = ({ data, xFunc, yFunc, symbolFunc, yLabel, freq }) => {
       .attr("height", height);
 
     // const context = vis
-    const context = d3.select(contextRef.current)
+    const context = d3
+      .select(contextRef.current)
       // .append("g")
       .attr("class", "context")
       .attr(
@@ -267,20 +274,22 @@ const BrushedBarChart = ({ data, xFunc, yFunc, symbolFunc, yLabel, freq }) => {
       .attr("transform", `translate(0, ${height_context})`)
       .call(xAxisContext);
 
-    const color = d3.scaleOrdinal().range(d3.schemeCategory10);
+    const dataNest = d3.nest().key(symbolFunc).entries(data);
 
-    context
-      .selectAll("rect")
-      .data(data)
-      .enter()
-      .append("rect")
-      .attr("width", x2Band.bandwidth())
-      .attr("x", (d) => x2Band(xFunc(d)))
-      .style("fill", function (d) {
-        return color(symbolFunc(d));
-      })
-      .attr("y", (d) => y2(yFunc(d)))
-      .attr("height", (d) => y2(0) - y2(yFunc(d)));
+    dataNest.forEach((d) => {
+      context
+        .selectAll("rect")
+        .data(d.values)
+        .enter()
+        .append("rect")
+        .attr("width", xContextBand.bandwidth())
+        .attr("x", (d) => xContextBand(xFunc(d)))
+        .style("fill", function () {
+          return color(d.key);
+        })
+        .attr("y", (d) => yContext(yFunc(d)))
+        .attr("height", (d) => yContext(0) - yContext(yFunc(d)));
+    });
 
     const brush = d3
       .brushX()
@@ -294,12 +303,12 @@ const BrushedBarChart = ({ data, xFunc, yFunc, symbolFunc, yLabel, freq }) => {
           setSelection(dataXrange);
           return;
         }
-        setSelection(selection.map(x2.invert));
+        setSelection(selection.map(xContext.invert));
       });
     const brushg = context.append("g").attr("class", "x brush").call(brush);
 
     if (dataXrange[0] !== undefined && dataXrange[1] !== undefined) {
-      brushg.call(brush.move, dataXrange.map(x2));
+      brushg.call(brush.move, dataXrange.map(xContext));
     }
 
     brushg
@@ -335,6 +344,7 @@ const BrushedBarChart = ({ data, xFunc, yFunc, symbolFunc, yLabel, freq }) => {
           yFunc={yFunc}
           symbolFunc={symbolFunc}
           freq={freq}
+          color={color}
         />
         <g ref={contextRef} />
       </svg>
