@@ -63,7 +63,11 @@ const BrushChart = ({
     // Clear chart
     focus.html("");
 
-    const tooltip = d3.select("body").append("div").attr("class", "d3-tooltip");
+    let tooltip = d3.select("#d3-tooltip");
+
+    if (tooltip.empty()) {
+      tooltip = d3.select("body").append("div").attr("id", "d3-tooltip");
+    }
 
     const tooltipLine = focus.append("line");
 

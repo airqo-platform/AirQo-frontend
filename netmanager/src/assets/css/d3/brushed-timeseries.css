@@ -114,7 +114,7 @@
     text-anchor: middle;
 }
 
-.d3-tooltip {
+#d3-tooltip {
 	position: absolute;
 	z-index: 2000000000000000;
 	background-color: #FFFFFF;
