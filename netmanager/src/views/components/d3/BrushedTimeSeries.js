@@ -32,6 +32,7 @@ const BrushChart = ({
   xFunc,
   yFunc,
   symbolFunc,
+  color,
 }) => {
   const ref = useRef();
 
@@ -56,7 +57,11 @@ const BrushChart = ({
     // Clear chart
     focus.html("");
 
-    const tooltip = d3.select("body").append("div").attr("class", "d3-tooltip");
+    let tooltip = d3.select("#d3-tooltip");
+
+    if (tooltip.empty()) {
+      tooltip = d3.select("body").append("div").attr("id", "d3-tooltip");
+    }
 
     const tooltipLine = focus.append("line");
 
@@ -74,8 +79,6 @@ const BrushChart = ({
       .y((d) => y(yFunc(d)));
 
     const dataNest = d3.nest().key(symbolFunc).entries(data);
-
-    const color = d3.scaleOrdinal().range(d3.schemeCategory10);
 
     const legendSpace = width / dataNest.length;
 
@@ -195,11 +198,14 @@ const BrushChart = ({
 
 const BrushedTimeSeries = ({ data, xFunc, yFunc, symbolFunc, yLabel }) => {
   const ref = useRef();
+  const contextRef = useRef();
   const margin = { top: 20, right: 20, bottom: 100, left: 35 };
   const winWidth = 650;
   const winHeight = 370;
   const width = winWidth - margin.left - margin.right;
   const height = winHeight - margin.top - margin.bottom;
+
+  const color = d3.scaleOrdinal().range(d3.schemeCategory10);
 
   const margin_context = { top: 320, right: 20, bottom: 20, left: 35 };
   const height_context = winHeight - margin_context.top - margin_context.bottom;
@@ -209,11 +215,11 @@ const BrushedTimeSeries = ({ data, xFunc, yFunc, symbolFunc, yLabel }) => {
     const dataXrange = d3.extent(data, xFunc);
     const dataYrange = [0, d3.max(data, yFunc)];
 
-    const x2 = d3.scaleTime().range([0, width]).domain(dataXrange);
+    const xContent = d3.scaleTime().range([0, width]).domain(dataXrange);
 
-    const y2 = d3.scaleLinear().range([height_context, 0]).domain(dataYrange);
+    const yContext = d3.scaleLinear().range([height_context, 0]).domain(dataYrange);
 
-    const xAxisContext = d3.axisBottom().scale(x2).ticks(5);
+    const xAxisContext = d3.axisBottom().scale(xContent).ticks(5);
 
     const vis = d3.select(ref.current).attr("class", "metric-chart");
 
@@ -225,13 +231,16 @@ const BrushedTimeSeries = ({ data, xFunc, yFunc, symbolFunc, yLabel }) => {
       .attr("width", width)
       .attr("height", height);
 
-    const context = vis
-      .append("g")
+    const context = d3
+      .select(contextRef.current)
       .attr("class", "context")
       .attr(
         "transform",
         `translate(${margin_context.left}, ${margin_context.top})`
       );
+
+    // Clear chart
+    context.html("");
 
     context
       .append("g")
@@ -241,12 +250,10 @@ const BrushedTimeSeries = ({ data, xFunc, yFunc, symbolFunc, yLabel }) => {
 
     const lineContext = d3
       .line()
-      .x((d) => x2(xFunc(d)))
-      .y((d) => y2(yFunc(d)));
+      .x((d) => xContent(xFunc(d)))
+      .y((d) => yContext(yFunc(d)));
 
     const dataNest = d3.nest().key(symbolFunc).entries(data);
-
-    const color = d3.scaleOrdinal().range(d3.schemeCategory10);
 
     dataNest.forEach((d, i) => {
       const id = `tag-${d.key
@@ -273,12 +280,12 @@ const BrushedTimeSeries = ({ data, xFunc, yFunc, symbolFunc, yLabel }) => {
           setSelection(dataXrange);
           return;
         }
-        setSelection(selection.map(x2.invert));
+        setSelection(selection.map(xContent.invert));
       });
     const brushg = context.append("g").attr("class", "x brush").call(brush);
 
     if (dataXrange[0] !== undefined && dataXrange[1] !== undefined) {
-      brushg.call(brush.move, dataXrange.map(x2));
+      brushg.call(brush.move, dataXrange.map(xContent));
     }
 
     brushg
@@ -313,7 +320,9 @@ const BrushedTimeSeries = ({ data, xFunc, yFunc, symbolFunc, yLabel }) => {
           xFunc={xFunc}
           yFunc={yFunc}
           symbolFunc={symbolFunc}
+          color={color}
         />
+        <g ref={contextRef} />
       </svg>
     </div>
   );
