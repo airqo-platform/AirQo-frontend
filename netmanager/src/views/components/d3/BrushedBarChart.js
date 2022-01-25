@@ -258,7 +258,6 @@ const BrushedBarChart = ({ data, xFunc, yFunc, symbolFunc, yLabel, freq }) => {
     // const context = vis
     const context = d3
       .select(contextRef.current)
-      // .append("g")
       .attr("class", "context")
       .attr(
         "transform",
