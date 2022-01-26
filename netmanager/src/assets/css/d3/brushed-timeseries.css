@@ -114,6 +114,12 @@
     text-anchor: middle;
 }
 
+.legend-pie {
+    font-size: 10px;
+    font-weight: bold;
+    text-anchor: left;
+}
+
 #d3-tooltip {
 	position: absolute;
 	z-index: 2000000000000000;
