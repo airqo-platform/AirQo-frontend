@@ -1,10 +1,12 @@
 import 'package:app/constants/config.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/models/user_details.dart';
+import 'package:app/on_boarding/login_screen.dart';
 import 'package:app/on_boarding/signup_screen.dart';
 import 'package:app/screens/profile_edit_page.dart';
 import 'package:app/screens/settings_page.dart';
 import 'package:app/services/app_service.dart';
+import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
@@ -223,11 +225,20 @@ class _ProfileViewState extends State<ProfileView> {
     super.initState();
   }
 
-  void logOut() {
+  Future<void> logOut() async {
     setState(() {
       _userProfile = UserDetails.initialize();
     });
-    _appService.logOut(context).then((value) => {initialize()});
+
+    var successful = await _appService.logOut(context);
+    if (successful) {
+      await Navigator.pushAndRemoveUntil(context,
+          MaterialPageRoute(builder: (context) {
+        return const LoginScreen();
+      }), (r) => false);
+    } else {
+      await showSnackBar(context, 'failed to logout. Try again later');
+    }
   }
 
   Widget logoutSection(text, icon, iconColor, callBackFn) {

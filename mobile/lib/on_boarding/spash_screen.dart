@@ -54,6 +54,7 @@ class SplashScreenState extends State<SplashScreen> {
       _updateWidget();
     });
 
+    /// TODO add loading indicator to all onboarding pages
     Future.delayed(const Duration(seconds: 6), () async {
       await Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {

@@ -721,6 +721,33 @@ class CustomAuth {
     }
   }
 
+  Future<bool> emailAuthentication(
+      String emailAddress, String link, BuildContext context) async {
+    try {
+      var userCredential = await _firebaseAuth.signInWithEmailLink(
+          emailLink: link, email: emailAddress);
+      return userCredential.user != null;
+    } on FirebaseAuthException catch (exception, stackTrace) {
+      if (exception.code == 'invalid-email') {
+        await showSnackBar(context, 'Invalid Email. Try again');
+      } else if (exception.code == 'expired-action-code') {
+        await showSnackBar(
+            context, 'Your verification has timed out. Try again later');
+      } else if (exception.code == 'user-disabled') {
+        await showSnackBar(
+            context, 'Account has been disabled. PLease contact support');
+      } else {
+        await showSnackBar(context, Config.appErrorMessage);
+      }
+      debugPrint('$exception\n$stackTrace');
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+      return false;
+    }
+  }
+
   Future<String?> getDeviceToken() async {
     var token = await _firebaseMessaging.getToken();
     return token;
@@ -779,31 +806,6 @@ class CustomAuth {
     return false;
   }
 
-  void logInWithEmailAddress(String emailAddress, String link) async {
-    try {
-      await _firebaseAuth.signInWithEmailLink(
-          emailLink: link, email: emailAddress);
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-    }
-  }
-
-  void logInWithPhoneNumber(AuthCredential authCredential) async {
-    try {
-      await _firebaseAuth.signInWithCredential(authCredential);
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-    }
-  }
-
   Future<void> logOut(context) async {
     try {
       await _firebaseAuth.signOut();
@@ -813,6 +815,37 @@ class CustomAuth {
         exception,
         stackTrace: stackTrace,
       );
+    }
+  }
+
+  Future<bool> phoneNumberAuthentication(
+      AuthCredential authCredential, BuildContext context) async {
+    try {
+      var userCredential =
+          await _firebaseAuth.signInWithCredential(authCredential);
+      return userCredential.user != null;
+    } on FirebaseAuthException catch (exception, stackTrace) {
+      if (exception.code == 'invalid-verification-code') {
+        await showSnackBar(context, 'Invalid Code. Try again');
+      } else if (exception.code == 'session-expired') {
+        await showSnackBar(
+            context, 'Your verification has timed out. Try again later');
+      } else if (exception.code == 'account-exists-with-different-credential') {
+        await showSnackBar(context,
+            'Phone number is already linked to an email. Try again later');
+      } else if (exception.code == 'user-disabled') {
+        await showSnackBar(
+            context, 'Account has been disabled. PLease contact support');
+      } else {
+        await showSnackBar(context, Config.appErrorMessage);
+      }
+
+      debugPrint('$exception\n$stackTrace');
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+      return false;
     }
   }
 
@@ -901,7 +934,7 @@ class CustomAuth {
     return false;
   }
 
-  // TODO add error handling
+  @Deprecated('Implementation not needed')
   Future<void> signUpWithPhoneNumber(AuthCredential authCredential) async {
     var hasConnection = await isConnected();
     if (!hasConnection) {
@@ -1105,6 +1138,7 @@ class CustomAuth {
     return false;
   }
 
+  @Deprecated('To be replaced with functionality in the app service')
   Future<void> verifyPhone(
       phoneNumber, context, callBackFn, autoVerificationFn) async {
     var hasConnection = await isConnected();

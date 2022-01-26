@@ -78,7 +78,7 @@ class _InsightsTabState extends State<InsightsTab> {
   Widget build(BuildContext context) {
     return RefreshIndicator(
       color: Config.appColorBlue,
-      onRefresh: () async {},
+      onRefresh: _fetchInsights,
       child: Container(
           color: Config.appBodyColor,
           child: ListView(
@@ -637,6 +637,21 @@ class _InsightsTabState extends State<InsightsTab> {
         selectedMiniChart = DateFormat('yyyy-MM-dd').format(defaultSelection);
       });
     }
+  }
+
+  Future<void> refreshPage() async {
+    var insights = await _airqoApiClient!
+        .fetchSiteInsights(widget.placeDetails.siteId, widget.daily);
+
+    if (insights.isEmpty) {
+      return;
+    }
+
+    if (mounted) {
+      await _setInsights(insights);
+    }
+
+    await _saveInsights(insights, widget.daily);
   }
 
   Future<void> scrollToItem(

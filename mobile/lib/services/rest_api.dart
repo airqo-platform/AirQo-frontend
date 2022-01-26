@@ -255,24 +255,42 @@ class AirqoApiClient {
   Future<List<Insights>> fetchSiteInsights(String siteId, bool daily) async {
     try {
       var queryParams = <String, dynamic>{}
-        ..putIfAbsent('siteId', () => siteId)
-        ..putIfAbsent(
-            'startTime',
-            () =>
-                '${DateFormat('yyyy-MM-dd').format(DateTime.now().firstDateOfCalendarMonth())}T00:00:00Z')
-        ..putIfAbsent(
-            'endTime',
-            () =>
-                '${DateFormat('yyyy-MM-dd').format(DateTime.now().lastDateOfCalendarMonth())}T00:00:00Z');
+        ..putIfAbsent('siteId', () => siteId);
+      // ..putIfAbsent(
+      //     'startTime',
+      //     () =>
+      //         '${DateFormat('yyyy-MM-dd').format(DateTime.now().firstDateOfCalendarMonth())}T00:00:00Z')
+      // ..putIfAbsent(
+      //     'endTime',
+      //     () =>
+      //         '${DateFormat('yyyy-MM-dd').format(DateTime.now().lastDateOfCalendarMonth())}T00:00:00Z');
 
       if (daily) {
-        queryParams.putIfAbsent('frequency', () => 'daily');
+        queryParams
+          ..putIfAbsent('frequency', () => 'daily')
+          ..putIfAbsent(
+              'startTime',
+              () =>
+                  '${DateFormat('yyyy-MM-dd').format(DateTime.now().firstDateOfCalendarMonth())}T00:00:00Z')
+          ..putIfAbsent(
+              'endTime',
+              () =>
+                  '${DateFormat('yyyy-MM-dd').format(DateTime.now().lastDateOfCalendarMonth())}T23:30:00Z');
         // ..putIfAbsent('startTime', () => '${DateFormat('yyyy-MM-dd').format(
         //     DateTime.now().firstDateOfCalendarMonth())}T00:00:00Z')
         // ..putIfAbsent('endTime', () => '${DateFormat('yyyy-MM-dd').format(
         //     DateTime.now().lastDateOfCalendarMonth())}T00:00:00Z');
       } else {
-        queryParams.putIfAbsent('frequency', () => 'hourly');
+        queryParams
+          ..putIfAbsent('frequency', () => 'hourly')
+          ..putIfAbsent(
+              'startTime',
+              () =>
+                  '${DateFormat('yyyy-MM-dd').format(DateTime.now().getDateOfFirstDayOfWeek())}T00:00:00Z')
+          ..putIfAbsent(
+              'endTime',
+              () =>
+                  '${DateFormat('yyyy-MM-dd').format(DateTime.now().getDateOfLastDayOfWeek())}T23:30:00Z');
         // ..putIfAbsent('startTime', () => '${DateFormat('yyyy-MM-dd').format(
         //     DateTime.now().getFirstDateOfMonth())}T00:00:00Z')
         // ..putIfAbsent('endTime', () => '${DateFormat('yyyy-MM-dd').format(

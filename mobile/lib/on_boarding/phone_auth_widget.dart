@@ -39,25 +39,44 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
   final _phoneFormKey = GlobalKey<FormState>();
   late AppService _appService;
 
-  void autoVerifyPhoneFn(PhoneAuthCredential credential) {
+  Future<void> authenticatePhoneNumber(AuthCredential authCredential) async {
     if (widget.action == 'signup') {
-      _appService.signup(credential, '', '', authMethod.phone).then((value) => {
-            if (value)
-              {
-                Navigator.pushAndRemoveUntil(context,
-                    MaterialPageRoute(builder: (context) {
-                  return ProfileSetupScreen(widget.enableBackButton);
-                }), (r) => false)
-              }
-          });
+      var signUpSuccessful = await _appService.authenticateUser(
+          authCredential, '', '', authMethod.phone, authProcedure.signup);
+      if (signUpSuccessful) {
+        await Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (context) {
+          return ProfileSetupScreen(widget.enableBackButton);
+        }), (r) => false);
+      } else {
+        await showSnackBar(context, 'Signup failed.');
+        setState(() {
+          _codeSent = true;
+          _isVerifying = false;
+          _nextBtnColor = Config.appColorBlue;
+        });
+      }
     } else {
-      _appService.login(credential, '', '', authMethod.phone).then((value) => {
-            Navigator.pushAndRemoveUntil(context,
-                MaterialPageRoute(builder: (context) {
-              return const HomePage();
-            }), (r) => false)
-          });
+      var loginSuccessful = await _appService.authenticateUser(
+          authCredential, '', '', authMethod.phone, authProcedure.login);
+      if (loginSuccessful) {
+        await Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (context) {
+          return const HomePage();
+        }), (r) => false);
+      } else {
+        await showSnackBar(context, 'Login failed.');
+        setState(() {
+          _codeSent = true;
+          _isVerifying = false;
+          _nextBtnColor = Config.appColorBlue;
+        });
+      }
     }
+  }
+
+  void autoVerifyPhoneFn(PhoneAuthCredential credential) {
+    authenticatePhoneNumber(credential);
   }
 
   @override
@@ -535,60 +554,11 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
       _isVerifying = true;
     });
 
-    var credential = PhoneAuthProvider.credential(
+    var phoneCredential = PhoneAuthProvider.credential(
         verificationId: _verificationId,
         smsCode: _phoneVerificationCode.join(''));
-    try {
-      if (widget.action == 'signup') {
-        await _appService
-            .signup(credential, '', '', authMethod.phone)
-            .then((value) => {
-                  if (value)
-                    {
-                      Navigator.pushAndRemoveUntil(context,
-                          MaterialPageRoute(builder: (context) {
-                        return ProfileSetupScreen(widget.enableBackButton);
-                      }), (r) => false)
-                    }
-                });
-      } else {
-        await _appService
-            .login(credential, '', '', authMethod.phone)
-            .then((value) => {
-                  Navigator.pushAndRemoveUntil(context,
-                      MaterialPageRoute(builder: (context) {
-                    return const HomePage();
-                  }), (r) => false)
-                });
-      }
-    } on FirebaseAuthException catch (exception) {
-      if (exception.code == 'invalid-verification-code') {
-        await showSnackBar(context, 'Invalid Code');
-        setState(() {
-          _nextBtnColor = Config.appColorBlue;
-          _isVerifying = false;
-        });
-      }
-      if (exception.code == 'session-expired') {
-        await _appService.customAuth.verifyPhone('$_countryCode$_phoneNumber',
-            context, verifyPhoneFn, autoVerifyPhoneFn);
-        await showSnackBar(
-            context,
-            'Your verification '
-            'has timed out. we have sent your'
-            ' another verification code');
-        setState(() {
-          _nextBtnColor = Config.appColorBlue;
-          _isVerifying = false;
-        });
-      }
-    } catch (exception, stackTrace) {
-      await showSnackBar(context, 'Try again later');
-      setState(() {
-        _nextBtnColor = Config.appColorBlue;
-        _isVerifying = false;
-      });
-      debugPrint('$exception\n$stackTrace');
-    }
+
+    await authenticatePhoneNumber(phoneCredential);
+
   }
 }

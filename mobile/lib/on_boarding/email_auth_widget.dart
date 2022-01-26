@@ -495,11 +495,11 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
 
     var success = false;
     if (widget.action == 'signup') {
-      success = await _appService.signup(
-          null, _emailAddress, _emailVerificationLink, authMethod.email);
+      success = await _appService.authenticateUser(null, _emailAddress,
+          _emailVerificationLink, authMethod.email, authProcedure.signup);
     } else {
-      success = await _appService.login(
-          null, _emailAddress, _emailVerificationLink, authMethod.email);
+      success = await _appService.authenticateUser(null, _emailAddress,
+          _emailVerificationLink, authMethod.email, authProcedure.login);
     }
 
     if (success) {
@@ -518,8 +518,9 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
       setState(() {
         _nextBtnColor = Config.appColorBlue;
         _isVerifying = false;
+        _codeSent = true;
       });
-      await showSnackBar(context, 'Try again later');
+      await showSnackBar(context, 'Authentication failed');
     }
   }
 }

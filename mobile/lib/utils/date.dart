@@ -83,6 +83,7 @@ String dateToString(String formattedString) {
   }
 }
 
+@Deprecated('use the function in the datetime library')
 DateTime getDateOfFirstDayOfWeek(DateTime datetime) {
   var firstDate = datetime;
   var weekday = firstDate.weekday;
@@ -95,6 +96,7 @@ DateTime getDateOfFirstDayOfWeek(DateTime datetime) {
   return firstDate;
 }
 
+@Deprecated('use the function in the datetime library')
 DateTime getDateOfLastDayOfWeek(DateTime datetime) {
   var lastDate = datetime;
   var weekday = lastDate.weekday;
@@ -194,9 +196,9 @@ String getWeekday() {
 String insightsChartTitleDateTimeToString(DateTime dateTime, bool daily) {
   try {
     if (daily) {
-      return '${getDateOfFirstDayOfWeek(dateTime).getShortDate()}'
+      return '${dateTime.getDateOfFirstDayOfWeek().getShortDate()}'
           ' - '
-          '${getDateOfLastDayOfWeek(dateTime).getShortDate()}';
+          '${dateTime.getDateOfLastDayOfWeek().getShortDate()}';
     } else {
       var prefix = '';
 
@@ -230,203 +232,4 @@ DateTime tomorrow() {
 
 DateTime yesterday() {
   return DateTime.now().subtract(const Duration(days: 1));
-}
-
-extension DateTimeExtension on DateTime {
-  String getShortDate() {
-    if (day.toString().endsWith('1')) {
-      return '${day}st ${getShortMonthString()}';
-    } else if (day.toString().endsWith('2')) {
-      return '${day}st ${getShortMonthString()}';
-    } else if (day.toString().endsWith('3')) {
-      return '${day}st ${getShortMonthString()}';
-    } else {
-      return '${day}th ${getShortMonthString()}';
-    }
-  }
-
-  DateTime tomorrow() {
-    return DateTime.now().add(const Duration(days: 1));
-  }
-
-  bool isToday() {
-    if (day == DateTime.now().day &&
-        month == DateTime.now().month &&
-        year == DateTime.now().year) {
-      return true;
-    }
-
-    return false;
-  }
-
-  bool isTomorrow() {
-    if (day == tomorrow().day &&
-        month == tomorrow().month &&
-        year == tomorrow().year) {
-      return true;
-    }
-
-    return false;
-  }
-
-  static DateTime yesterday() {
-    return DateTime.now().subtract(const Duration(days: 1));
-  }
-
-  String notificationDisplayDate() {
-    if (day == DateTime.now().day) {
-      var hours = hour.toString();
-      if (hours.length <= 1) {
-        hours = '0$hour';
-      }
-
-      var minutes = minute.toString();
-      if (minutes.length <= 1) {
-        minutes = '0$minutes';
-      }
-      return '$hours:$minutes';
-    } else {
-      return '$day ${getShortMonthString()}';
-    }
-  }
-
-  String getMonth(DateTime? datetime) {
-    var referenceMonth = datetime != null ? datetime.month : month;
-    if (referenceMonth.toString().length > 1) {
-      return referenceMonth.toString();
-    }
-    return '0$referenceMonth';
-  }
-
-  String getDay(DateTime? datetime) {
-    var referenceDay = datetime != null ? datetime.day : day;
-    if (referenceDay.toString().length > 1) {
-      return referenceDay.toString();
-    }
-    return '0$referenceDay';
-  }
-
-  DateTime firstDateOfCalendarMonth() {
-    var firstDate = DateTime.parse('$year-${getMonth(null)}-01T00:00:00Z');
-
-    while (firstDate.weekday != 1) {
-      firstDate = firstDate.subtract(const Duration(days: 1));
-    }
-
-    return firstDate;
-  }
-
-  DateTime lastDateOfCalendarMonth() {
-    var lastDate = DateTime.parse('$year-${getMonth(null)}'
-        '-${getDay(getLastDateOfMonth())}T00:00:00Z');
-
-    while (lastDate.weekday != 7) {
-      lastDate = lastDate.add(const Duration(days: 1));
-    }
-
-    return lastDate;
-  }
-
-  DateTime getFirstDateOfMonth() {
-    var firstDate = DateTime.parse('$year-${getMonth(null)}-01T00:00:00Z');
-    return firstDate;
-  }
-
-  DateTime getLastDateOfMonth() {
-    var lastDate = DateTime.parse('$year-${getMonth(null)}-26T00:00:00Z');
-    var referenceMonth = month;
-
-    while (lastDate.month == referenceMonth) {
-      lastDate = lastDate.add(const Duration(days: 1));
-    }
-    lastDate = lastDate.subtract(const Duration(days: 1));
-
-    return lastDate;
-  }
-
-  DateTime getDateOfFirstDayOfWeek() {
-    var firstDate = DateTime.now();
-    var weekday = firstDate.weekday;
-
-    if (weekday != 1) {
-      var offset = weekday - 1;
-      firstDate = firstDate.subtract(Duration(days: offset));
-    }
-
-    return firstDate;
-  }
-
-  DateTime getDateOfLastDayOfWeek() {
-    var lastDate = DateTime.now();
-    var weekday = lastDate.weekday;
-
-    if (weekday != 7) {
-      var offset = 7 - weekday;
-      lastDate = lastDate.add(Duration(days: offset));
-    }
-
-    return lastDate;
-  }
-
-  String getShortMonthString() {
-    switch (month) {
-      case 1:
-        return 'Jan';
-      case 2:
-        return 'Feb';
-      case 3:
-        return 'Mar';
-      case 4:
-        return 'Apr';
-      case 5:
-        return 'May';
-      case 6:
-        return 'Jun';
-      case 7:
-        return 'Jul';
-      case 8:
-        return 'Aug';
-      case 9:
-        return 'Sept';
-      case 10:
-        return 'Oct';
-      case 11:
-        return 'Nov';
-      case 12:
-        return 'Dec';
-      default:
-        return '';
-    }
-  }
-
-  String getLongMonthString() {
-    switch (month) {
-      case 1:
-        return 'January';
-      case 2:
-        return 'February';
-      case 3:
-        return 'March';
-      case 4:
-        return 'April';
-      case 5:
-        return 'May';
-      case 6:
-        return 'June';
-      case 7:
-        return 'July';
-      case 8:
-        return 'August';
-      case 9:
-        return 'September';
-      case 10:
-        return 'October';
-      case 11:
-        return 'November';
-      case 12:
-        return 'December';
-      default:
-        return '';
-    }
-  }
 }

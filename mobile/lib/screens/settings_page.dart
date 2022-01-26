@@ -1,7 +1,9 @@
 import 'package:app/constants/config.dart';
+import 'package:app/on_boarding/signup_screen.dart';
 import 'package:app/screens/phone_reauthenticate_screen.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/services/native_api.dart';
+import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/web_view.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/custom_widgets.dart';
@@ -11,7 +13,6 @@ import 'package:flutter/material.dart';
 import 'about_page.dart';
 import 'email_reauthenticate_screen.dart';
 import 'feedback_page.dart';
-import 'home_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({Key? key}) : super(key: key);
@@ -77,43 +78,113 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> deleteAccount() async {
     var user = _appService.customAuth.getUser();
     var dialogContext = context;
+
     if (user == null) {
-      loadingScreen(dialogContext);
-      await _appService.logOut(context);
-      Navigator.pop(dialogContext);
-      await Navigator.pushAndRemoveUntil(context,
-          MaterialPageRoute(builder: (context) {
-        return const HomePage();
-      }), (r) => false);
-    } else {
-      var authResponse = false;
-      var userDetails = await _appService.getUserDetails();
-      if (user.email != null) {
-        userDetails.emailAddress = user.email!;
-        authResponse =
-            await Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return EmailReAuthenticateScreen(userDetails);
-        }));
-      } else if (user.phoneNumber != null) {
-        userDetails.phoneNumber = user.phoneNumber!;
-        authResponse =
-            await Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return PhoneReAuthenticateScreen(userDetails);
-        }));
-      }
+      await showSnackBar(context, Config.appErrorMessage);
+      // loadingScreen(dialogContext);
 
-      if (authResponse) {
-        loadingScreen(dialogContext);
-
-        await _appService.deleteAccount().then((value) => {
-              Navigator.pop(dialogContext),
-              Navigator.pushAndRemoveUntil(context,
-                  MaterialPageRoute(builder: (context) {
-                return const HomePage();
-              }), (r) => false)
-            });
-      }
+      //   var successful = await _appService.logOut(context);
+      //   if(!successful){
+      //     await showSnackBar(context, 'failed to delete account. '
+      //         'Try again later');
+      //     Navigator.pop(dialogContext);
+      //   }
+      // Navigator.pop(dialogContext);
+      // await _appService.logOut(context);
+      // await Navigator.pushAndRemoveUntil(context,
+      //     MaterialPageRoute(builder: (context) {
+      //       return const SignupScreen(false);
+      //     }), (r) => false);
+      return;
     }
+
+    bool authResponse;
+    var userDetails = await _appService.getUserDetails();
+    if (user.email != null) {
+      userDetails.emailAddress = user.email!;
+      authResponse =
+          await Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return EmailReAuthenticateScreen(userDetails);
+      }));
+    } else if (user.phoneNumber != null) {
+      userDetails.phoneNumber = user.phoneNumber!;
+      authResponse =
+          await Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return PhoneReAuthenticateScreen(userDetails);
+      }));
+    } else {
+      authResponse = false;
+    }
+
+    if (authResponse) {
+      loadingScreen(dialogContext);
+
+      var success = await _appService.deleteAccount();
+      if (success) {
+        Navigator.pop(dialogContext);
+        await Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (context) {
+          return const SignupScreen(false);
+        }), (r) => false);
+      } else {
+        await showSnackBar(
+            context,
+            'Failed to delete account. '
+            'Try again later');
+      }
+    } else {
+      await showSnackBar(
+          context,
+          'Authentication failed '
+          'Try again later');
+    }
+
+    // if (user == null) {
+    //   loadingScreen(dialogContext);
+    //
+    //   var successful = await _appService.logOut(context);
+    //   if(!successful){
+    //     await showSnackBar(context, 'failed to delete account. Try again later');
+    //     Navigator.pop(dialogContext);
+    //   }
+    //   Navigator.pop(dialogContext);
+    //   await Navigator.pushAndRemoveUntil(context,
+    //       MaterialPageRoute(builder: (context) {
+    //     return const HomePage();
+    //   }), (r) => false);
+    // }
+    // else {
+    //   bool authResponse;
+    //   var userDetails = await _appService.getUserDetails();
+    //   if (user.email != null) {
+    //     userDetails.emailAddress = user.email!;
+    //     authResponse =
+    //         await Navigator.push(context, MaterialPageRoute(builder: (context) {
+    //       return EmailReAuthenticateScreen(userDetails);
+    //     }));
+    //   } else if (user.phoneNumber != null) {
+    //     userDetails.phoneNumber = user.phoneNumber!;
+    //     authResponse =
+    //         await Navigator.push(context, MaterialPageRoute(builder: (context) {
+    //       return PhoneReAuthenticateScreen(userDetails);
+    //     }));
+    //   }
+    //   else{
+    //     authResponse = false;
+    //   }
+    //
+    //   if (authResponse) {
+    //     loadingScreen(dialogContext);
+    //
+    //     await _appService.deleteAccount().then((value) => {
+    //           Navigator.pop(dialogContext),
+    //           Navigator.pushAndRemoveUntil(context,
+    //               MaterialPageRoute(builder: (context) {
+    //             return const HomePage();
+    //           }), (r) => false)
+    //         });
+    //   }
+    // }
   }
 
   Widget deleteAccountSection() {

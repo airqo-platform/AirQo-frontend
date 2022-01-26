@@ -1,11 +1,8 @@
 import 'package:animations/animations.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/notification.dart';
-import 'package:app/models/place_details.dart';
 import 'package:app/screens/profile_view.dart';
-import 'package:app/services/firebase_service.dart';
-import 'package:app/services/local_storage.dart';
-import 'package:app/services/rest_api.dart';
+import 'package:app/services/app_service.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -23,17 +20,14 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   DateTime? _exitTime;
-  AirqoApiClient? _airqoApiClient;
   int _selectedIndex = 0;
 
-  final CustomAuth _customAuth = CustomAuth();
-  final DBHelper _dbHelper = DBHelper();
-  final CloudStore _cloudStore = CloudStore();
   final List<Widget> _widgetOptions = <Widget>[
     const DashboardView(),
     const MapView(),
     const ProfileView(),
   ];
+  late AppService _appService;
 
   @override
   Widget build(BuildContext context) {
@@ -145,15 +139,15 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> initialize() async {
-    _airqoApiClient = AirqoApiClient(context);
-    _getLatestMeasurements();
-    _getFavPlaces();
+    _appService.fetchData();
     await _getCloudStore();
   }
 
   @override
   void initState() {
+    _appService = AppService(context);
     initialize();
+    updateOnBoardingPage();
     super.initState();
   }
 
@@ -179,20 +173,15 @@ class _HomePageState extends State<HomePage> {
     return Future.value(true);
   }
 
+  void updateOnBoardingPage() async {
+    await _appService.preferencesHelper.updateOnBoardingPage('home');
+  }
+
   Future<void> _getCloudStore() async {
-    if (_customAuth.isLoggedIn()) {
-      await _cloudStore.monitorNotifications(context, _customAuth.getUserId());
+    if (_appService.customAuth.isLoggedIn()) {
+      await _appService.cloudStore
+          .monitorNotifications(context, _appService.customAuth.getUserId());
     }
-  }
-
-  void _getFavPlaces() {
-    Provider.of<PlaceDetailsModel>(context, listen: false)
-        .reloadFavouritePlaces();
-  }
-
-  void _getLatestMeasurements() {
-    _airqoApiClient!.fetchLatestMeasurements().then((value) =>
-        {if (value.isNotEmpty) _dbHelper.insertLatestMeasurements(value)});
   }
 
   void _onItemTapped(int index) {

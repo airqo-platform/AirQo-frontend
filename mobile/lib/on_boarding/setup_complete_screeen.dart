@@ -74,8 +74,9 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
     super.initState();
   }
 
+  /// TODO check the relevance of this funcionality
   void loadProfile() async {
-    _appService.postLoginActions();
+    await _appService.postLoginActions();
   }
 
   Future<bool> onWillPop() {

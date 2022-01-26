@@ -149,8 +149,6 @@ class Config {
   static String get socketErrorMessage =>
       'Your internet connection in unstable.';
 
-  static String get stageAirqoApiUrl => dotenv.env['STAGE_AIRQO_API_URL'] ?? '';
-
   static String get storiesUrl => dotenv.env['STORIES_URL'] ?? '';
 
   static String get termsUrl => dotenv.env['TERMS_URL'] ?? '';
