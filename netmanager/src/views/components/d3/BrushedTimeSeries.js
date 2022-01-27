@@ -33,6 +33,7 @@ const BrushChart = ({
   yFunc,
   symbolFunc,
   color,
+  loading,
 }) => {
   const ref = useRef();
 
@@ -56,6 +57,28 @@ const BrushChart = ({
 
     // Clear chart
     focus.html("");
+
+    if (loading) {
+      focus
+        .append("text")
+        .attr("x", width / 2)
+        .attr("y", height / 2)
+        .style("font-size", "1.2rem")
+        .attr("text-anchor", "middle")
+        .text("loading...");
+      return;
+    }
+
+    if (data.length <= 0) {
+      focus
+        .append("text")
+        .attr("x", width / 2)
+        .attr("y", height / 2)
+        .style("font-size", "1.2rem")
+        .attr("text-anchor", "middle")
+        .text("No data");
+      return;
+    }
 
     let tooltip = d3.select("#d3-tooltip");
 
@@ -196,7 +219,14 @@ const BrushChart = ({
   return <g ref={ref} />;
 };
 
-const BrushedTimeSeries = ({ data, xFunc, yFunc, symbolFunc, yLabel }) => {
+const BrushedTimeSeries = ({
+  data,
+  xFunc,
+  yFunc,
+  symbolFunc,
+  yLabel,
+  loading,
+}) => {
   const ref = useRef();
   const contextRef = useRef();
   const margin = { top: 20, right: 20, bottom: 100, left: 35 };
@@ -217,7 +247,10 @@ const BrushedTimeSeries = ({ data, xFunc, yFunc, symbolFunc, yLabel }) => {
 
     const xContent = d3.scaleTime().range([0, width]).domain(dataXrange);
 
-    const yContext = d3.scaleLinear().range([height_context, 0]).domain(dataYrange);
+    const yContext = d3
+      .scaleLinear()
+      .range([height_context, 0])
+      .domain(dataYrange);
 
     const xAxisContext = d3.axisBottom().scale(xContent).ticks(5);
 
@@ -241,6 +274,26 @@ const BrushedTimeSeries = ({ data, xFunc, yFunc, symbolFunc, yLabel }) => {
 
     // Clear chart
     context.html("");
+
+    if (loading) {
+      context
+        .append("text")
+        .attr("x", width / 2)
+        .attr("y", height_context / 2)
+        .attr("text-anchor", "middle")
+        .text("loading...");
+      return;
+    }
+
+    if (data.length <= 0) {
+      context
+        .append("text")
+        .attr("x", width / 2)
+        .attr("y", height_context / 2)
+        .attr("text-anchor", "middle")
+        .text("No data");
+      return;
+    }
 
     context
       .append("g")
@@ -321,6 +374,7 @@ const BrushedTimeSeries = ({ data, xFunc, yFunc, symbolFunc, yLabel }) => {
           yFunc={yFunc}
           symbolFunc={symbolFunc}
           color={color}
+          loading={loading}
         />
         <g ref={contextRef} />
       </svg>
