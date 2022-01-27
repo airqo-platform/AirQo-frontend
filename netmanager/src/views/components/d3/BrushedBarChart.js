@@ -35,6 +35,7 @@ const BrushChart = ({
   symbolFunc,
   freq,
   color,
+  loading,
 }) => {
   const ref = useRef();
 
@@ -63,6 +64,28 @@ const BrushChart = ({
 
     // Clear chart
     focus.html("");
+
+    if (loading) {
+      focus
+        .append("text")
+        .attr("x", width / 2)
+        .attr("y", height / 2)
+        .style("font-size", "1.2rem")
+        .attr("text-anchor", "middle")
+        .text("loading...");
+      return;
+    }
+
+    if (data.length <= 0) {
+      focus
+        .append("text")
+        .attr("x", width / 2)
+        .attr("y", height / 2)
+        .style("font-size", "1.2rem")
+        .attr("text-anchor", "middle")
+        .text("No data");
+      return;
+    }
 
     let tooltip = d3.select("#d3-tooltip");
 
@@ -211,7 +234,15 @@ const BrushChart = ({
   return <g ref={ref} />;
 };
 
-const BrushedBarChart = ({ data, xFunc, yFunc, symbolFunc, yLabel, freq }) => {
+const BrushedBarChart = ({
+  data,
+  xFunc,
+  yFunc,
+  symbolFunc,
+  yLabel,
+  freq,
+  loading,
+}) => {
   const ref = useRef();
   const contextRef = useRef();
   const margin = { top: 20, right: 20, bottom: 100, left: 35 };
@@ -267,6 +298,26 @@ const BrushedBarChart = ({ data, xFunc, yFunc, symbolFunc, yLabel, freq }) => {
     // Clear chart
     context.html("");
 
+    if (loading) {
+      context
+        .append("text")
+        .attr("x", width / 2)
+        .attr("y", height_context / 2)
+        .attr("text-anchor", "middle")
+        .text("loading...");
+      return;
+    }
+
+    if (data.length <= 0) {
+      context
+        .append("text")
+        .attr("x", width / 2)
+        .attr("y", height_context / 2)
+        .attr("text-anchor", "middle")
+        .text("No data");
+      return;
+    }
+
     context
       .append("g")
       .attr("class", "x axis")
@@ -319,16 +370,20 @@ const BrushedBarChart = ({ data, xFunc, yFunc, symbolFunc, yLabel, freq }) => {
 
     brushHandle.style("width", "3px");
 
-    vis
-      .append("text")
-      .attr("class", "y axis title")
-      .text(yLabel)
-      .attr("x", -(height / 2))
-      .attr("y", 0)
-      .attr("dy", "1em")
-      .attr("transform", "rotate(-90)")
-      .style("text-anchor", "middle");
-  }, [data, yLabel]);
+    let label = vis.select(".title");
+
+    if (label.empty()) {
+      label = vis
+        .append("text")
+        .attr("class", "y axis title")
+        .attr("x", -(height / 2))
+        .attr("y", 0)
+        .attr("dy", "1em")
+        .attr("transform", "rotate(-90)")
+        .style("text-anchor", "middle");
+    }
+    label.text(yLabel);
+  }, [data, yLabel, loading]);
 
   return (
     <div className="brushed-TS">
@@ -344,6 +399,7 @@ const BrushedBarChart = ({ data, xFunc, yFunc, symbolFunc, yLabel, freq }) => {
           symbolFunc={symbolFunc}
           freq={freq}
           color={color}
+          loading={loading}
         />
         <g ref={contextRef} />
       </svg>
