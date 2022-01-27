@@ -3,9 +3,6 @@ import { useDispatch } from "react-redux";
 import PropTypes from "prop-types";
 import { makeStyles, withStyles } from "@material-ui/styles";
 import {
-  Card,
-  CardContent,
-  CardHeader,
   Divider,
   Grid,
   Button,
@@ -45,7 +42,7 @@ import { useCurrentAirQloudData } from "redux/AirQloud/selectors";
 
 import ChartContainer from "./ChartContainer";
 
-import BrushedTimeSeries from "./BrushedTimeSeries";
+import CustomDisplayChart from "./CustomDisplayChart";
 import { loadD3ChartDataApi } from "views/apis/analytics";
 
 const useStyles = makeStyles((theme) => ({
@@ -636,12 +633,16 @@ const CustomisableChart = (props) => {
           </Grid>
         )}
       >
-        <BrushedTimeSeries
+        <CustomDisplayChart
+          chartType={selectedChart.value}
+          loading={loading}
           data={customGraphData}
           xFunc={(d) => new Date(d.time)}
           yFunc={(d) => d.value}
           symbolFunc={(d) => d.name}
           yLabel={labelMapper[selectedPollutant.value]}
+          freq={selectedFrequency.value}
+          pieChartValueExtractor={(d) => d.value}
         />
       </ChartContainer>
       <Grid item lg={12} sm={12} xl={12} xs={12}>

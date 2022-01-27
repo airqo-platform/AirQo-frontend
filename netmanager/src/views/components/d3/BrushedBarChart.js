@@ -4,17 +4,6 @@ import d3 from "d3";
 // css styles
 import "assets/css/d3/brushed-timeseries.css";
 
-/**
- * Hook, that returns the last used value.
- */
-
-function usePrevious(value) {
-  const ref = useRef();
-  useEffect(() => {
-    ref.current = value;
-  });
-  return ref.current;
-}
 const ONE_HOUR = 1000 * 60 * 60;
 const SIX_HOURS = 6 * ONE_HOUR;
 const ONE_DAY = 24 * ONE_HOUR;
@@ -22,6 +11,18 @@ const ONE_DAY = 24 * ONE_HOUR;
 function checkIfDateClose(maxDiff, date1, date2) {
   return Math.abs(date1 - date2) <= maxDiff;
 }
+
+const timeMapper = {
+  hourly: d3.timeHour,
+  daily: d3.timeDay,
+  monthly: d3.timeMonth,
+};
+
+const createDomain = (freq, domain) => {
+  const timeFunc = timeMapper[freq] || d3.timeHour;
+  const modifiedDomain = [domain[0], timeFunc.offset(domain[1], 1)];
+  return timeFunc.range(...modifiedDomain);
+};
 
 const BrushChart = ({
   data,
@@ -32,6 +33,7 @@ const BrushChart = ({
   xFunc,
   yFunc,
   symbolFunc,
+  freq,
   color,
   loading,
 }) => {
@@ -45,7 +47,12 @@ const BrushChart = ({
       .scaleTime()
       .range([0, width])
       .domain(selection || dataXrange);
+
     const y = d3.scaleLinear().range([height, 0]).domain(dataYrange);
+
+    const xBand = d3.scaleBand().range([0, width]).padding(0.1);
+
+    if (dataXrange.length > 1) xBand.domain(createDomain(freq, x.domain()));
 
     const xAxis = d3.axisBottom().scale(x).ticks(5).tickSize(-height);
     const yAxis = d3.axisLeft().scale(y).ticks(4).tickSize(-width);
@@ -96,11 +103,6 @@ const BrushChart = ({
       .attr("transform", `translate(0, ${height})`)
       .call(xAxis);
 
-    const line = d3
-      .line()
-      .x((d) => x(xFunc(d)))
-      .y((d) => y(yFunc(d)));
-
     const dataNest = d3.nest().key(symbolFunc).entries(data);
 
     const legendSpace = width / dataNest.length;
@@ -109,13 +111,26 @@ const BrushChart = ({
       const id = `tag-${d.key
         .replace(/\s+/g, "")
         .replace(",", "")}-${Math.random().toString(16).slice(2)}-${i}`;
-
       focus
-        .append("path")
-        .attr("class", "line")
-        .style("stroke", () => (d.color = color(d.key)))
-        .attr("id", id)
-        .attr("d", line(d.values));
+        .selectAll("rect")
+        .data(
+          d.values.filter(
+            (d) =>
+              xFunc(d) >= (selection || dataXrange)[0] &&
+              xFunc(d) <= (selection || dataXrange)[1]
+          )
+        )
+
+        .enter()
+        .append("rect")
+        .attr("class", id)
+        .attr("width", xBand.bandwidth())
+        .attr("x", (d) => xBand(xFunc(d)))
+        .style("fill", function () {
+          return color(d.key);
+        })
+        .attr("y", (d) => y(yFunc(d)))
+        .attr("height", (d) => y(0) - y(yFunc(d)));
 
       // Add the Legend
       focus
@@ -138,7 +153,7 @@ const BrushChart = ({
 
           const legendOpacity = active ? 0.45 : 1;
 
-          d3.select(`#${id}`)
+          d3.selectAll(`.${id}`)
             .transition()
             .duration(100)
             .style("opacity", newOpacity);
@@ -219,12 +234,13 @@ const BrushChart = ({
   return <g ref={ref} />;
 };
 
-const BrushedTimeSeries = ({
+const BrushedBarChart = ({
   data,
   xFunc,
   yFunc,
   symbolFunc,
   yLabel,
+  freq,
   loading,
 }) => {
   const ref = useRef();
@@ -235,24 +251,30 @@ const BrushedTimeSeries = ({
   const width = winWidth - margin.left - margin.right;
   const height = winHeight - margin.top - margin.bottom;
 
-  const color = d3.scaleOrdinal().range(d3.schemeCategory10);
-
   const margin_context = { top: 320, right: 20, bottom: 20, left: 35 };
   const height_context = winHeight - margin_context.top - margin_context.bottom;
+
+  const color = d3.scaleOrdinal().range(d3.schemeCategory10);
+
   const [selection, setSelection] = useState(null);
 
   useEffect(() => {
     const dataXrange = d3.extent(data, xFunc);
     const dataYrange = [0, d3.max(data, yFunc)];
 
-    const xContent = d3.scaleTime().range([0, width]).domain(dataXrange);
+    const xContext = d3.scaleTime().range([0, width]).domain(dataXrange);
 
     const yContext = d3
       .scaleLinear()
       .range([height_context, 0])
       .domain(dataYrange);
 
-    const xAxisContext = d3.axisBottom().scale(xContent).ticks(5);
+    const xContextBand = d3.scaleBand().range([0, width]).padding(0.1);
+
+    if (dataXrange.length > 1)
+      xContextBand.domain(createDomain(freq, xContext.domain()));
+
+    const xAxisContext = d3.axisBottom().scale(xContext).ticks(5);
 
     const vis = d3.select(ref.current).attr("class", "metric-chart");
 
@@ -264,6 +286,7 @@ const BrushedTimeSeries = ({
       .attr("width", width)
       .attr("height", height);
 
+    // const context = vis
     const context = d3
       .select(contextRef.current)
       .attr("class", "context")
@@ -301,24 +324,21 @@ const BrushedTimeSeries = ({
       .attr("transform", `translate(0, ${height_context})`)
       .call(xAxisContext);
 
-    const lineContext = d3
-      .line()
-      .x((d) => xContent(xFunc(d)))
-      .y((d) => yContext(yFunc(d)));
-
     const dataNest = d3.nest().key(symbolFunc).entries(data);
 
-    dataNest.forEach((d, i) => {
-      const id = `tag-${d.key
-        .replace(/\s+/g, "")
-        .replace(",", "")}-${Math.random().toString(16).slice(2)}-${i}`;
-
+    dataNest.forEach((d) => {
       context
-        .append("path")
-        .attr("class", "line")
-        .style("stroke", () => (d.color = color(d.key)))
-        .attr("id", `${id}-context`)
-        .attr("d", lineContext(d.values));
+        .selectAll("rect")
+        .data(d.values)
+        .enter()
+        .append("rect")
+        .attr("width", xContextBand.bandwidth())
+        .attr("x", (d) => xContextBand(xFunc(d)))
+        .style("fill", function () {
+          return color(d.key);
+        })
+        .attr("y", (d) => yContext(yFunc(d)))
+        .attr("height", (d) => yContext(0) - yContext(yFunc(d)));
     });
 
     const brush = d3
@@ -333,12 +353,12 @@ const BrushedTimeSeries = ({
           setSelection(dataXrange);
           return;
         }
-        setSelection(selection.map(xContent.invert));
+        setSelection(selection.map(xContext.invert));
       });
     const brushg = context.append("g").attr("class", "x brush").call(brush);
 
     if (dataXrange[0] !== undefined && dataXrange[1] !== undefined) {
-      brushg.call(brush.move, dataXrange.map(xContent));
+      brushg.call(brush.move, dataXrange.map(xContext));
     }
 
     brushg
@@ -377,6 +397,7 @@ const BrushedTimeSeries = ({
           xFunc={xFunc}
           yFunc={yFunc}
           symbolFunc={symbolFunc}
+          freq={freq}
           color={color}
           loading={loading}
         />
@@ -386,4 +407,4 @@ const BrushedTimeSeries = ({
   );
 };
 
-export default BrushedTimeSeries;
+export default BrushedBarChart;

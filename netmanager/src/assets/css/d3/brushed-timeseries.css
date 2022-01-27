@@ -80,17 +80,17 @@
 	fill: none;
 	pointer-events: all;
 }
-/* brush handles  */
-.brushed-TS .metric-chart .resize .handle {
-	/*fill: #555;*/
+
+.handle {
+	fill: #555;
 }
 
-.brushed-TS .metric-chart .resize .handle-mini {
+.handle-mini {
 	fill: white;
-    stroke-width: 1px;
-    /*stroke: #555;*/
-    stroke: #eaeaea;
+    stroke-width: 5px;
+    stroke: #555;
 }
+
 
 .brushed-TS .metric-chart .scale_button {
 	cursor: pointer;
@@ -114,3 +114,28 @@
     text-anchor: middle;
 }
 
+.legend-pie {
+    font-size: 10px;
+    font-weight: bold;
+    text-anchor: left;
+}
+
+#d3-tooltip {
+	position: absolute;
+	z-index: 2000000000000000;
+	background-color: #FFFFFF;
+	color: #263238;
+	border: 0.5px solid #bec4c8;
+	border-radius: 5px;
+	padding: 5px;
+}
+
+div#d3-tooltip:before {
+  	content: ' ';
+	position: absolute;
+  	height: 0;
+	width: 0;
+	left: -13px;
+	border: 6px solid transparent;
+	border-right-color: #bec4c8;
+}
