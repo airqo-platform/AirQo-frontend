@@ -36,10 +36,40 @@ const MultiLevelPieChart = ({
 
   const stepRadius = maxRadius / ((data || []).length > 0 ? data.length : 1);
 
+  let tooltip = d3.select("#d3-tooltip");
+
+  if (tooltip.empty()) {
+    tooltip = d3.select("body").append("div").attr("id", "d3-tooltip");
+  }
+
   const pie = d3
     .pie()
     .sort(null)
     .value((data) => data.value);
+
+  const removeTooltip = () => {
+    if (tooltip) tooltip.style("display", "none");
+  };
+
+  const drawTooltip = (event) => {
+    const d = event.target.__data__;
+
+    // Rounded to 2 decimal places
+    const percentage =
+      Math.round((((d.endAngle - d.startAngle) * 50) / Math.PI) * 100) / 100;
+
+    let h =
+      `<div style="font-size: 0.9rem;margin-bottom: 10px;display: flex">${d.data.name}</div>` +
+      `<div style="font-size: 0.8rem"><span style="font-weight: bold; text-transform: uppercase">AQI:</span> <div style="display: inline-block; width: 10px; height: 10px; background-color: ${d.data.color}; margin-right: 5px"></div><span>${d.data.category}</span></div>` +
+      `<div style="font-size: 0.8rem"><span style="font-weight: bold; text-transform: uppercase">count:</span> <span>${d.data.value}</span></div>` +
+      `<div style="font-size: 0.8rem"><span style="font-weight: bold; text-transform: uppercase">percentage:</span> <span>${percentage}%</span></div>`;
+
+    tooltip
+      .html(h)
+      .style("left", `${event.pageX + 20}px`)
+      .style("top", `${event.pageY}px`)
+      .style("display", "block");
+  };
 
   const drawPieChart = (index, svg, data) => {
     const angles = pie(data);
@@ -65,7 +95,9 @@ const MultiLevelPieChart = ({
       .attr("stroke", "#ffffff")
       .attr("stroke-width", 2)
       .attr("fill", (d) => d.data.color)
-      .attr("d", arcPath);
+      .attr("d", arcPath)
+      .on("mousemove", drawTooltip)
+      .on("mouseout", removeTooltip);
   };
 
   useEffect(() => {
