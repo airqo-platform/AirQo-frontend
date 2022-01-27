@@ -14,7 +14,7 @@ const PM_COLOR_CATEGORY = [
   { label: "Others", color: "#808080" },
 ];
 
-const MultiLevelPieChart = ({ data, valueExtractor }) => {
+const MultiLevelPieChart = ({ data, valueExtractor, loading }) => {
   const ref = useRef();
   const focusRef = useRef();
   const margin = { top: 10, right: 20, bottom: 10, left: 20 };
@@ -99,6 +99,28 @@ const MultiLevelPieChart = ({ data, valueExtractor }) => {
     // Clear chart
     focus.html("");
 
+    if (loading) {
+      focus
+        .append("text")
+        .attr("x", width / 2)
+        .attr("y", height / 2)
+        .style("font-size", "1.2rem")
+        .attr("text-anchor", "middle")
+        .text("loading...");
+      return;
+    }
+
+    if (data.length <= 0) {
+      focus
+        .append("text")
+        .attr("x", width / 2)
+        .attr("y", height / 2)
+        .style("font-size", "1.2rem")
+        .attr("text-anchor", "middle")
+        .text("No data");
+      return;
+    }
+
     const legendSpace = height / 2 / PM_COLOR_CATEGORY.length;
 
     PM_COLOR_CATEGORY.map((d, i) => {
@@ -123,7 +145,7 @@ const MultiLevelPieChart = ({ data, valueExtractor }) => {
     data.map((d, index) => {
       drawPieChart(index, focus, d);
     });
-  }, [data]);
+  }, [data, loading]);
 
   return (
     <div className="brushed-TS">

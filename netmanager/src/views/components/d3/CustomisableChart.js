@@ -635,7 +635,7 @@ const CustomisableChart = (props) => {
       >
         <CustomDisplayChart
           chartType={selectedChart.value}
-          // loading={""}
+          loading={loading}
           data={customGraphData}
           xFunc={(d) => new Date(d.time)}
           yFunc={(d) => d.value}
