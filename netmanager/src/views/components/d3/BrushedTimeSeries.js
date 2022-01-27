@@ -350,16 +350,20 @@ const BrushedTimeSeries = ({
 
     brushHandle.style("width", "3px");
 
-    vis
-      .append("text")
-      .attr("class", "y axis title")
-      .text(yLabel)
-      .attr("x", -(height / 2))
-      .attr("y", 0)
-      .attr("dy", "1em")
-      .attr("transform", "rotate(-90)")
-      .style("text-anchor", "middle");
-  }, [data, yLabel]);
+    let label = vis.select(".title");
+
+    if (label.empty()) {
+      label = vis
+        .append("text")
+        .attr("class", "y axis title")
+        .attr("x", -(height / 2))
+        .attr("y", 0)
+        .attr("dy", "1em")
+        .attr("transform", "rotate(-90)")
+        .style("text-anchor", "middle");
+    }
+    label.text(yLabel);
+  }, [data, yLabel, loading]);
 
   return (
     <div className="brushed-TS">
