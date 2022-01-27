@@ -129,3 +129,13 @@
 	border-radius: 5px;
 	padding: 5px;
 }
+
+div#d3-tooltip:before {
+  	content: ' ';
+	position: absolute;
+  	height: 0;
+	width: 0;
+	left: -13px;
+	border: 6px solid transparent;
+	border-right-color: #bec4c8;
+}
