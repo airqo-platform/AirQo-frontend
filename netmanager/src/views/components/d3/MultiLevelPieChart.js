@@ -14,14 +14,7 @@ const PM_COLOR_CATEGORY = [
   { label: "Others", color: "#808080" },
 ];
 
-const MultiLevelPieChart = ({
-  data,
-  xFunc,
-  yFunc,
-  symbolFunc,
-  yLabel,
-  freq,
-}) => {
+const MultiLevelPieChart = ({ data, valueExtractor }) => {
   const ref = useRef();
   const focusRef = useRef();
   const margin = { top: 10, right: 20, bottom: 10, left: 20 };
@@ -42,10 +35,7 @@ const MultiLevelPieChart = ({
     tooltip = d3.select("body").append("div").attr("id", "d3-tooltip");
   }
 
-  const pie = d3
-    .pie()
-    .sort(null)
-    .value((data) => data.value);
+  const pie = d3.pie().sort(null).value(valueExtractor);
 
   const removeTooltip = () => {
     if (tooltip) tooltip.style("display", "none");
@@ -133,7 +123,7 @@ const MultiLevelPieChart = ({
     data.map((d, index) => {
       drawPieChart(index, focus, d);
     });
-  }, [data, yLabel]);
+  }, [data]);
 
   return (
     <div className="brushed-TS">

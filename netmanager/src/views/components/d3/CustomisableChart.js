@@ -642,6 +642,7 @@ const CustomisableChart = (props) => {
           symbolFunc={(d) => d.name}
           yLabel={labelMapper[selectedPollutant.value]}
           freq={selectedFrequency.value}
+          pieChartValueExtractor={(d) => d.value}
         />
       </ChartContainer>
       <Grid item lg={12} sm={12} xl={12} xs={12}>

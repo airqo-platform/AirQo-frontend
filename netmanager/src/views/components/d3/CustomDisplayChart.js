@@ -12,6 +12,7 @@ const CustomDisplayChart = ({
   symbolFunc,
   yLabel,
   freq,
+  pieChartValueExtractor,
 }) => {
   switch (chartType) {
     case "line":
@@ -22,6 +23,7 @@ const CustomDisplayChart = ({
           yFunc={yFunc}
           symbolFunc={symbolFunc}
           yLabel={yLabel}
+          loading={loading}
         />
       );
     case "bar":
@@ -33,17 +35,15 @@ const CustomDisplayChart = ({
           symbolFunc={symbolFunc}
           yLabel={yLabel}
           freq={freq}
+          loading={loading}
         />
       );
     case "pie":
       return (
         <MultiLevelPieChart
           data={data}
-          xFunc={xFunc}
-          yFunc={yFunc}
-          symbolFunc={symbolFunc}
-          yLabel={yLabel}
-          freq={freq}
+          valueExtractor={pieChartValueExtractor}
+          loading={loading}
         />
       );
     default:
@@ -54,6 +54,7 @@ const CustomDisplayChart = ({
           yFunc={yFunc}
           symbolFunc={symbolFunc}
           yLabel={yLabel}
+          loading={loading}
         />
       );
   }
