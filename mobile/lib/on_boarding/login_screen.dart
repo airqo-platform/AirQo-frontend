@@ -2,6 +2,7 @@ import 'package:app/on_boarding/email_auth_widget.dart';
 import 'package:app/on_boarding/phone_auth_widget.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/utils/dialogs.dart';
+import 'package:app/widgets/custom_shimmer.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -14,6 +15,8 @@ class LoginScreen extends StatefulWidget {
 class LoginScreenState extends State<LoginScreen> {
   String _loginOption = 'phone';
   DateTime? _exitTime;
+  bool appLoading = false;
+  late BuildContext dialogContext;
 
   @override
   Widget build(BuildContext context) {
@@ -21,37 +24,20 @@ class LoginScreenState extends State<LoginScreen> {
         body: WillPopScope(
             onWillPop: onWillPop,
             child: _loginOption == 'phone'
-                ? PhoneAuthWidget(false, changeOption, 'login')
-                : EmailAuthWidget(false, changeOption, 'login')));
-  }
-
-  Widget buildV1(BuildContext context) {
-    return Scaffold(
-        body: WillPopScope(
-            onWillPop: onWillPop,
-            child: Container(
-                color: Colors.white,
-                padding: const EdgeInsets.only(left: 24, right: 24),
-                child: Center(
-                  child: Column(
-                    children: [
-                      Visibility(
-                        visible: _loginOption == 'phone',
-                        child: PhoneAuthWidget(false, changeOption, 'login'),
-                      ),
-                      Visibility(
-                        visible: _loginOption == 'email',
-                        child: EmailAuthWidget(false, changeOption, 'login'),
-                      ),
-                    ],
-                  ),
-                ))));
+                ? PhoneAuthWidget(false, changeOption, 'login', showLoading)
+                : EmailAuthWidget(false, changeOption, 'login', showLoading)));
   }
 
   void changeOption(String value) {
     setState(() {
       _loginOption = value;
     });
+  }
+
+  @override
+  void initState() {
+    dialogContext = context;
+    super.initState();
   }
 
   Future<bool> onWillPop() {
@@ -65,10 +51,30 @@ class LoginScreenState extends State<LoginScreen> {
       return Future.value(false);
     }
 
+    if (appLoading) {
+      Navigator.pop(dialogContext);
+    }
+
     Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) {
       return const HomePage();
     }), (r) => false);
 
     return Future.value(true);
+  }
+
+  void showLoading(bool loading) {
+    if (loading) {
+      loadingScreen(dialogContext);
+      setState(() {
+        appLoading = loading;
+      });
+    } else if (!loading && appLoading) {
+      Navigator.pop(dialogContext);
+      setState(() {
+        appLoading = loading;
+      });
+    } else {
+      debugPrint('Error in loading dialog of login screen');
+    }
   }
 }

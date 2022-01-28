@@ -12,10 +12,10 @@ class Measurement {
   @JsonKey(required: true)
   String time;
 
-  @JsonKey(required: true, name: 'average_pm2_5')
+  @JsonKey(required: true)
   final MeasurementValue pm2_5;
 
-  @JsonKey(required: true, name: 'average_pm10')
+  @JsonKey(required: true)
   final MeasurementValue pm10;
 
   @JsonKey(required: false, fromJson: measurementValueFromJson)
@@ -120,8 +120,8 @@ class Measurement {
     return {
       'siteDetails': siteDetails,
       'time': json[dbTime()] as String,
-      'average_pm2_5': {'value': json[dbPm25()] as double},
-      'average_pm10': {'value': json[dbPm10()] as double},
+      'pm2_5': {'value': json[dbPm25()] as double},
+      'pm10': {'value': json[dbPm10()] as double},
       'externalTemperature': {'value': json[dbTemperature()] as double},
       'externalHumidity': {'value': json[dbHumidity()] as double},
       'speed': {'value': json[dbSpeed()] as double},

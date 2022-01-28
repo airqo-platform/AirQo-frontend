@@ -16,7 +16,6 @@ import 'package:app/models/predict.dart';
 import 'package:app/models/story.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:app/models/user_details.dart';
-import 'package:app/utils/date.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:flutter/foundation.dart';
@@ -108,6 +107,10 @@ class AirqoApiClient {
         ..putIfAbsent('recent', () => 'yes')
         ..putIfAbsent('metadata', () => 'site_id')
         ..putIfAbsent('external', () => 'no')
+        ..putIfAbsent(
+            'startTime',
+            () =>
+                '${DateFormat('yyyy-MM-dd').format(DateTime.now().toUtc().subtract(const Duration(days: 1)))}T00:00:00Z')
         ..putIfAbsent('frequency', () => 'hourly')
         ..putIfAbsent('tenant', () => 'airqo');
 
@@ -252,18 +255,23 @@ class AirqoApiClient {
     return <HistoricalMeasurement>[];
   }
 
-  Future<List<Insights>> fetchSiteInsights(String siteId, bool daily) async {
+  Future<List<Insights>> fetchSiteInsights(
+      String siteId, bool daily, bool allHourlyData) async {
     try {
       var queryParams = <String, dynamic>{}
         ..putIfAbsent('siteId', () => siteId);
       // ..putIfAbsent(
       //     'startTime',
       //     () =>
-      //         '${DateFormat('yyyy-MM-dd').format(DateTime.now().firstDateOfCalendarMonth())}T00:00:00Z')
+      //         '${DateFormat('yyyy-MM-dd')
+      //         .format(DateTime.now()
+      //         .firstDateOfCalendarMonth())}T00:00:00Z')
       // ..putIfAbsent(
       //     'endTime',
       //     () =>
-      //         '${DateFormat('yyyy-MM-dd').format(DateTime.now().lastDateOfCalendarMonth())}T00:00:00Z');
+      //         '${DateFormat('yyyy-MM-dd')
+      //         .format(DateTime.now()
+      //         .lastDateOfCalendarMonth())}T00:00:00Z');
 
       if (daily) {
         queryParams
@@ -271,11 +279,11 @@ class AirqoApiClient {
           ..putIfAbsent(
               'startTime',
               () =>
-                  '${DateFormat('yyyy-MM-dd').format(DateTime.now().firstDateOfCalendarMonth())}T00:00:00Z')
+                  '${DateFormat('yyyy-MM-dd').format(DateTime.now().getFirstDateOfCalendarMonth())}T00:00:00Z')
           ..putIfAbsent(
               'endTime',
               () =>
-                  '${DateFormat('yyyy-MM-dd').format(DateTime.now().lastDateOfCalendarMonth())}T23:30:00Z');
+                  '${DateFormat('yyyy-MM-dd').format(DateTime.now().getLastDateOfCalendarMonth())}T23:30:00Z');
         // ..putIfAbsent('startTime', () => '${DateFormat('yyyy-MM-dd').format(
         //     DateTime.now().firstDateOfCalendarMonth())}T00:00:00Z')
         // ..putIfAbsent('endTime', () => '${DateFormat('yyyy-MM-dd').format(
@@ -291,6 +299,12 @@ class AirqoApiClient {
               'endTime',
               () =>
                   '${DateFormat('yyyy-MM-dd').format(DateTime.now().getDateOfLastDayOfWeek())}T23:30:00Z');
+        if (allHourlyData) {
+          queryParams['startTime'] =
+              '${DateFormat('yyyy-MM-dd').format(DateTime.now().getFirstDateOfCalendarMonth())}T00:00:00Z';
+          queryParams['endTime'] =
+              '${DateFormat('yyyy-MM-dd').format(DateTime.now().getLastDateOfCalendarMonth())}T23:30:00Z';
+        }
         // ..putIfAbsent('startTime', () => '${DateFormat('yyyy-MM-dd').format(
         //     DateTime.now().getFirstDateOfMonth())}T00:00:00Z')
         // ..putIfAbsent('endTime', () => '${DateFormat('yyyy-MM-dd').format(

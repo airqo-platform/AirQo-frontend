@@ -114,8 +114,8 @@ class CloudStore {
       return;
     }
 
-    // TODO IMPLEMENT DELETE NOTIFICATIONS
-    // TODO IMPLEMENT DELETE KYA
+    /// TODO IMPLEMENT DELETE NOTIFICATIONS
+    /// TODO IMPLEMENT DELETE KYA
     try {
       await _firebaseFirestore
           .collection(Config.usersCollection)
@@ -149,9 +149,12 @@ class CloudStore {
 
       var placesDocs = placesJson.docs;
       for (var doc in placesDocs) {
-        var place = await compute(PlaceDetails.parsePlaceDetails, doc.data());
+        var data = doc.data();
+        if (!data.keys.contains('placeId')) {
+          data['placeId'] = doc.id;
+        }
+        var place = await compute(PlaceDetails.parsePlaceDetails, data);
         if (place != null) {
-          place.placeId = doc.id;
           favPlaces.add(place);
         }
       }
@@ -654,8 +657,6 @@ class CustomAuth {
   final CloudStore _cloudStore = CloudStore();
   final SecureStorage _secureStorage = SecureStorage();
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
-  final SharedPreferencesHelper _preferencesHelper = SharedPreferencesHelper();
-  final DBHelper _dbHelper = DBHelper();
 
   Future<UserDetails?> createProfile() async {
     var hasConnection = await isConnected();
@@ -693,32 +694,6 @@ class CustomAuth {
       );
     }
     return null;
-  }
-
-  Future<void> deleteAccount(context) async {
-    var currentUser = _firebaseAuth.currentUser;
-    var hasConnection = await isConnected();
-    if (currentUser == null || !hasConnection) {
-      return;
-    }
-
-    try {
-      var id = currentUser.uid;
-      await Provider.of<PlaceDetailsModel>(context, listen: false)
-          .clearFavouritePlaces();
-      Provider.of<NotificationModel>(context, listen: false).removeAll();
-      await _secureStorage.clearUserDetails();
-      await _preferencesHelper.clearPreferences();
-      await _cloudStore.deleteAccount(id);
-      await _dbHelper.clearAccount();
-      await currentUser.delete();
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-    }
   }
 
   Future<bool> emailAuthentication(
@@ -826,13 +801,13 @@ class CustomAuth {
       return userCredential.user != null;
     } on FirebaseAuthException catch (exception, stackTrace) {
       if (exception.code == 'invalid-verification-code') {
-        await showSnackBar(context, 'Invalid Code. Try again');
+        await showSnackBar(context, 'Invalid Code');
       } else if (exception.code == 'session-expired') {
         await showSnackBar(
             context, 'Your verification has timed out. Try again later');
       } else if (exception.code == 'account-exists-with-different-credential') {
-        await showSnackBar(context,
-            'Phone number is already linked to an email. Try again later');
+        await showSnackBar(
+            context, 'Phone number is already linked to an email.');
       } else if (exception.code == 'user-disabled') {
         await showSnackBar(
             context, 'Account has been disabled. PLease contact support');
@@ -906,23 +881,40 @@ class CustomAuth {
     return false;
   }
 
-  Future<bool> signUpWithEmailAddress(String emailAddress, String link) async {
+  @Deprecated('To be replaced with functionality in the app service')
+  Future<bool> requestPhoneVerification(
+      phoneNumber, context, callBackFn, autoVerificationFn) async {
     var hasConnection = await isConnected();
     if (!hasConnection) {
-      return false;
-    }
-    var userCredential = await _firebaseAuth.signInWithEmailLink(
-        emailLink: link, email: emailAddress);
-
-    if (userCredential.user == null) {
+      await showSnackBar(context, Config.connectionErrorMessage);
       return false;
     }
 
-    var user = userCredential.user;
     try {
-      if (user == null) {
-        return false;
-      }
+      await _firebaseAuth.verifyPhoneNumber(
+          phoneNumber: phoneNumber,
+          verificationCompleted: (PhoneAuthCredential credential) {
+            autoVerificationFn(credential);
+          },
+          verificationFailed: (FirebaseAuthException exception) async {
+            if (exception.code == 'invalid-phone-number') {
+              await showSnackBar(context, 'Invalid phone number.');
+            } else {
+              await showSnackBar(
+                  context,
+                  'Cannot process your request.'
+                  ' Try again later');
+              debugPrint(exception.toString());
+            }
+          },
+          codeSent: (String verificationId, int? resendToken) async {
+            callBackFn(verificationId);
+          },
+          codeAutoRetrievalTimeout: (String verificationId) async {
+            // TODO Implement auto code retrieval timeout
+            // await showSnackBar(context, 'codeAutoRetrievalTimeout');
+          },
+          timeout: const Duration(minutes: 2));
       return true;
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
@@ -930,17 +922,8 @@ class CustomAuth {
         exception,
         stackTrace: stackTrace,
       );
+      return false;
     }
-    return false;
-  }
-
-  @Deprecated('Implementation not needed')
-  Future<void> signUpWithPhoneNumber(AuthCredential authCredential) async {
-    var hasConnection = await isConnected();
-    if (!hasConnection) {
-      return;
-    }
-    await _firebaseAuth.signInWithCredential(authCredential);
   }
 
   Future<void> updateCredentials(String? phone, String? email) async {
@@ -1136,48 +1119,6 @@ class CustomAuth {
       );
     }
     return false;
-  }
-
-  @Deprecated('To be replaced with functionality in the app service')
-  Future<void> verifyPhone(
-      phoneNumber, context, callBackFn, autoVerificationFn) async {
-    var hasConnection = await isConnected();
-    if (!hasConnection) {
-      await showSnackBar(context, Config.connectionErrorMessage);
-    }
-
-    try {
-      await _firebaseAuth.verifyPhoneNumber(
-          phoneNumber: phoneNumber,
-          verificationCompleted: (PhoneAuthCredential credential) {
-            autoVerificationFn(credential);
-          },
-          verificationFailed: (FirebaseAuthException exception) async {
-            if (exception.code == 'invalid-phone-number') {
-              await showSnackBar(context, 'Invalid phone number.');
-            } else {
-              await showSnackBar(
-                  context,
-                  'Cannot process your request.'
-                  ' Try again later');
-              debugPrint(exception.toString());
-            }
-          },
-          codeSent: (String verificationId, int? resendToken) async {
-            callBackFn(verificationId);
-          },
-          codeAutoRetrievalTimeout: (String verificationId) async {
-            // TODO Implement auto code retrieval timeout
-            // await showSnackBar(context, 'codeAutoRetrievalTimeout');
-          },
-          timeout: const Duration(minutes: 2));
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-    }
   }
 }
 

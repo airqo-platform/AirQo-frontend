@@ -5,10 +5,8 @@ import 'package:app/models/kya.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/screens/search_page.dart';
-import 'package:app/services/firebase_service.dart';
-import 'package:app/services/local_storage.dart';
+import 'package:app/services/app_service.dart';
 import 'package:app/services/native_api.dart';
-import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dashboard.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/pm.dart';
@@ -45,18 +43,18 @@ class _DashboardViewState extends State<DashboardView> {
     )
   ];
   List<Kya> _completeKya = [];
-  AirqoApiClient? _airqoApiClient;
+
+  late AppService _appService;
   List<Measurement> currentLocation = [];
   Kya? _kya;
-  SharedPreferences? _preferences;
+  late SharedPreferences _preferences;
 
   final GlobalKey _favToolTipKey = GlobalKey();
   final GlobalKey _kyaToolTipKey = GlobalKey();
   final bool _isRefreshing = false;
-  final CustomAuth _customAuth = CustomAuth();
-  final CloudStore _cloudStore = CloudStore();
+
   final LocationService _locationService = LocationService();
-  final DBHelper _dbHelper = DBHelper();
+
   final ScrollController _scrollController = ScrollController();
   List<Widget> _dashBoardPlaces = [
     analyticsCardLoading(),
@@ -201,23 +199,24 @@ class _DashboardViewState extends State<DashboardView> {
 
     try {
       if (favouritePlaces.length == 1) {
-        var measurement =
-            await _dbHelper.getMeasurement(favouritePlaces[0].siteId);
+        var measurement = await _appService.dbHelper
+            .getMeasurement(favouritePlaces[0].siteId);
         if (measurement != null) {
           widgets.add(favPlaceAvatar(7, measurement));
         } else {
           widgets.add(emptyAvatar(0));
         }
       } else if (favouritePlaces.length == 2) {
-        var measurement =
-            await _dbHelper.getMeasurement(favouritePlaces[0].siteId);
+        var measurement = await _appService.dbHelper
+            .getMeasurement(favouritePlaces[0].siteId);
         if (measurement != null) {
           widgets.add(favPlaceAvatar(0, measurement));
         } else {
           widgets.add(emptyAvatar(0));
         }
 
-        measurement = await _dbHelper.getMeasurement(favouritePlaces[1].siteId);
+        measurement = await _appService.dbHelper
+            .getMeasurement(favouritePlaces[1].siteId);
         if (measurement != null) {
           widgets.add(favPlaceAvatar(7, measurement));
         } else {
@@ -228,22 +227,24 @@ class _DashboardViewState extends State<DashboardView> {
         //   ..add(favPlaceAvatar(0, favouritePlaces[0]))
         //   ..add(favPlaceAvatar(7, favouritePlaces[1]));
       } else if (favouritePlaces.length >= 3) {
-        var measurement =
-            await _dbHelper.getMeasurement(favouritePlaces[0].siteId);
+        var measurement = await _appService.dbHelper
+            .getMeasurement(favouritePlaces[0].siteId);
         if (measurement != null) {
           widgets.add(favPlaceAvatar(0, measurement));
         } else {
           widgets.add(emptyAvatar(0));
         }
 
-        measurement = await _dbHelper.getMeasurement(favouritePlaces[1].siteId);
+        measurement = await _appService.dbHelper
+            .getMeasurement(favouritePlaces[1].siteId);
         if (measurement != null) {
           widgets.add(favPlaceAvatar(7, measurement));
         } else {
           widgets.add(emptyAvatar(7));
         }
 
-        measurement = await _dbHelper.getMeasurement(favouritePlaces[2].siteId);
+        measurement = await _appService.dbHelper
+            .getMeasurement(favouritePlaces[2].siteId);
         if (measurement != null) {
           widgets.add(favPlaceAvatar(14, measurement));
         } else {
@@ -268,8 +269,9 @@ class _DashboardViewState extends State<DashboardView> {
       setState(() {
         _kya = null;
       });
-      await _cloudStore
-          .updateKyaProgress(_customAuth.getUserId(), completeKya!, 100)
+      await _appService.cloudStore
+          .updateKyaProgress(
+              _appService.customAuth.getUserId(), completeKya!, 100)
           .then((value) => {
                 _getCompleteKya(),
                 _getIncompleteKya(),
@@ -628,7 +630,7 @@ class _DashboardViewState extends State<DashboardView> {
   void _getCompleteKya() async {
     var widgets = <Widget>[];
 
-    if (!_customAuth.isLoggedIn()) {
+    if (_appService.isLoggedIn()) {
       widgets.add(SvgPicture.asset(
         'assets/icon/add_avator.svg',
       ));
@@ -641,24 +643,25 @@ class _DashboardViewState extends State<DashboardView> {
       return;
     }
 
-    var dbKya = await _dbHelper.getKyas();
+    var dbKya = await _appService.dbHelper.getKyas();
     var completeKya =
         dbKya.where((element) => element.progress >= 100).toList();
     _loadCompleteKya(completeKya);
 
-    var kyaCards = await _cloudStore.getKya(_customAuth.getUserId());
+    var kyaCards =
+        await _appService.cloudStore.getKya(_appService.customAuth.getUserId());
     var completeKyaCards =
         kyaCards.where((element) => element.progress >= 100.0).toList();
 
     if (completeKyaCards.isNotEmpty) {
       _loadCompleteKya(completeKyaCards);
-      await _dbHelper.insertKyas(kyaCards);
+      await _appService.dbHelper.insertKyas(kyaCards);
     }
   }
 
   void _getDashboardLocations() async {
-    var region = getNextDashboardRegion(_preferences!);
-    var measurements = await _dbHelper.getRegionSites(region);
+    var region = getNextDashboardRegion(_preferences);
+    var measurements = await _appService.dbHelper.getRegionSites(region);
 
     if (measurements.isNotEmpty) {
       setState(_dashBoardPlaces.clear);
@@ -705,16 +708,17 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   void _getIncompleteKya() async {
-    if (!_customAuth.isLoggedIn()) {
+    if (_appService.isLoggedIn()) {
       return;
     }
 
-    var kyas = await _cloudStore.getKya(_customAuth.getUserId());
+    var kyas =
+        await _appService.cloudStore.getKya(_appService.customAuth.getUserId());
     var inCompleteKya =
         kyas.where((element) => element.progress < 100).toList();
 
     if (kyas.isNotEmpty) {
-      await _dbHelper.insertKyas(kyas);
+      await _appService.dbHelper.insertKyas(kyas);
     }
 
     if (inCompleteKya.isNotEmpty) {
@@ -723,13 +727,6 @@ class _DashboardViewState extends State<DashboardView> {
           _kya = inCompleteKya.first;
         });
       }
-    }
-  }
-
-  void _getLatestMeasurements() async {
-    var measurements = await _airqoApiClient!.fetchLatestMeasurements();
-    if (measurements.isNotEmpty) {
-      await _dbHelper.insertLatestMeasurements(measurements);
     }
   }
 
@@ -762,17 +759,17 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   Future<void> _initialize() async {
-    _airqoApiClient = AirqoApiClient(context);
+    _appService = AppService(context);
     _preferences = await SharedPreferences.getInstance();
     _setGreetings();
     _getLocationMeasurements();
     _getDashboardLocations();
-    if (_customAuth.isLoggedIn()) {
+    if (_appService.isLoggedIn()) {
       await _loadKya();
       _getIncompleteKya();
       _getCompleteKya();
     }
-    _getLatestMeasurements();
+    _reloadData();
   }
 
   void _loadCompleteKya(List<Kya> completeKya) async {
@@ -822,20 +819,25 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   Future<void> _loadKya() async {
-    var kyas = await _cloudStore.getKya(_customAuth.getUserId());
-    await _dbHelper.insertKyas(kyas);
+    var kyas =
+        await _appService.cloudStore.getKya(_appService.customAuth.getUserId());
+    await _appService.dbHelper.insertKyas(kyas);
   }
 
   Future<void> _refresh() async {
     _getLocationMeasurements();
     _getDashboardLocations();
-    _getLatestMeasurements();
+    _reloadData();
+  }
+
+  void _reloadData() async {
+    _appService.reloadData();
   }
 
   void _setGreetings() {
     if (mounted) {
       setState(() {
-        _greetings = getGreetings(_customAuth.getDisplayName());
+        _greetings = getGreetings(_appService.customAuth.getDisplayName());
       });
     }
   }

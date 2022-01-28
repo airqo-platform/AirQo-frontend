@@ -47,6 +47,9 @@ Future<void> main() async {
     // systemNavigationBarIconBrightness: Brightness.dark,
   ));
 
+  await SystemChrome.setPreferredOrientations(
+      [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
       overlays: [SystemUiOverlay.bottom, SystemUiOverlay.top]);
 

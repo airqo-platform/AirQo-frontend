@@ -7,6 +7,7 @@ import 'package:app/screens/profile_edit_page.dart';
 import 'package:app/screens/settings_page.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/utils/dialogs.dart';
+import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
@@ -226,17 +227,22 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   Future<void> logOut() async {
+    var loadingContext = context;
+    loadingScreen(loadingContext);
+
     setState(() {
       _userProfile = UserDetails.initialize();
     });
 
     var successful = await _appService.logOut(context);
     if (successful) {
+      Navigator.pop(loadingContext);
       await Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
         return const LoginScreen();
       }), (r) => false);
     } else {
+      Navigator.pop(loadingContext);
       await showSnackBar(context, 'failed to logout. Try again later');
     }
   }
@@ -339,13 +345,10 @@ class _ProfileViewState extends State<ProfileView> {
           ),
           GestureDetector(
             onTap: () async {
-              var saved = await Navigator.push(context,
+              await Navigator.pushAndRemoveUntil(context,
                   MaterialPageRoute(builder: (context) {
-                return const SignupScreen(true);
-              }));
-              if (saved != null && saved) {
-                await initialize();
-              }
+                return const SignupScreen(false);
+              }), (r) => false);
             },
             child: Padding(
               padding: const EdgeInsets.only(left: 24, right: 24, bottom: 38),

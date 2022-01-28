@@ -1,6 +1,5 @@
 import 'dart:collection';
 
-import 'package:app/constants/config.dart';
 import 'package:app/models/site.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/extensions.dart';
@@ -19,7 +18,7 @@ class PlaceDetails {
   String name;
   String location;
   String siteId;
-  String placeId = const Uuid().toString();
+  String placeId = const Uuid().v4();
   double latitude;
   double longitude;
 
@@ -41,11 +40,6 @@ class PlaceDetails {
       return getLocation();
     }
     return name;
-  }
-
-  PlaceDetails initialize() {
-    return PlaceDetails(
-        '', '', '', '', Config.defaultLatitude, Config.defaultLongitude);
   }
 
   Map<String, dynamic> toJson() => _$PlaceDetailsToJson(this);
@@ -82,7 +76,7 @@ class PlaceDetails {
         measurement.site.getName(),
         measurement.site.getLocation(),
         measurement.site.id,
-        measurement.site.id,
+        const Uuid().v4(),
         measurement.site.latitude,
         measurement.site.longitude);
   }
@@ -111,8 +105,8 @@ class PlaceDetails {
   }
 
   static PlaceDetails siteToPLace(Site site) {
-    return PlaceDetails(site.getName(), site.getLocation(), site.id, site.id,
-        site.latitude, site.longitude);
+    return PlaceDetails(site.getName(), site.getLocation(), site.id,
+        const Uuid().v4(), site.latitude, site.longitude);
   }
 }
 

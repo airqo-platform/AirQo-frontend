@@ -1,7 +1,6 @@
 import 'package:app/constants/config.dart';
 import 'package:app/models/historical_measurement.dart';
 import 'package:app/models/insights.dart';
-import 'package:app/utils/date.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/utils/pm.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
@@ -33,14 +32,21 @@ List<List<charts.Series<Insights, String>>> insightsChartData(
   var insightsGraphs = <List<charts.Series<Insights, String>>>[];
 
   if (frequency == 'hourly') {
-    if (data.length <= 167) {
-      data = patchMissingData(data, frequency, true);
-    }
+    // if (data.length <= 167) {
+    //   data = patchMissingData(data, frequency, true);
+    // }
 
     while (data.isNotEmpty) {
-      var randomDate = data.first.time;
-      var filteredDates =
-          data.where((element) => element.time.day == randomDate.day).toList();
+      var earliestDate = data.reduce((value, element) {
+        if (value.time.isBefore(element.time)) {
+          return value;
+        }
+        return element;
+      }).time;
+
+      var filteredDates = data
+          .where((element) => element.time.day == earliestDate.day)
+          .toList();
 
       if (filteredDates.length != 24) {
         filteredDates = patchMissingData(filteredDates, frequency, false);
@@ -59,12 +65,12 @@ List<List<charts.Series<Insights, String>>> insightsChartData(
           data: Insights.formatData(filteredDates, frequency),
         )
       ]);
-      data.removeWhere((element) => element.time.day == randomDate.day);
+      data.removeWhere((element) => element.time.day == earliestDate.day);
     }
   } else {
-    if (data.length <= 41) {
-      data = patchMissingData(data, frequency, true);
-    }
+    // if (data.length <= 41) {
+    //   data = patchMissingData(data, frequency, true);
+    // }
 
     while (data.isNotEmpty) {
       var earliestDate = data.reduce((value, element) {
@@ -113,8 +119,8 @@ List<Insights> patchMissingData(
   if (frequency == 'daily' && full) {
     var referenceInsight = data.first;
 
-    var startDate = DateTime.now().firstDateOfCalendarMonth();
-    var lastDayOfCalendar = DateTime.now().lastDateOfCalendarMonth();
+    var startDate = DateTime.now().getFirstDateOfCalendarMonth();
+    var lastDayOfCalendar = DateTime.now().getLastDateOfCalendarMonth();
 
     while (startDate.isBefore(lastDayOfCalendar)) {
       var checkDate = insights
@@ -221,5 +227,5 @@ List<Insights> patchMissingData(
     return insights;
   }
 
-  return insights;
+  return Insights.formatData(insights, frequency);
 }

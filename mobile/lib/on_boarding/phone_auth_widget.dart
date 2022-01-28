@@ -11,9 +11,11 @@ import 'package:flutter/material.dart';
 class PhoneAuthWidget extends StatefulWidget {
   final bool enableBackButton;
   final ValueSetter<String> changeOption;
+  final ValueSetter<bool> appLoading;
   final String action;
 
-  const PhoneAuthWidget(this.enableBackButton, this.changeOption, this.action,
+  const PhoneAuthWidget(
+      this.enableBackButton, this.changeOption, this.action, this.appLoading,
       {Key? key})
       : super(key: key);
 
@@ -44,33 +46,41 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
       var signUpSuccessful = await _appService.authenticateUser(
           authCredential, '', '', authMethod.phone, authProcedure.signup);
       if (signUpSuccessful) {
+        setState(() {
+          widget.appLoading(false);
+        });
         await Navigator.pushAndRemoveUntil(context,
             MaterialPageRoute(builder: (context) {
           return ProfileSetupScreen(widget.enableBackButton);
         }), (r) => false);
       } else {
-        await showSnackBar(context, 'Signup failed.');
         setState(() {
+          widget.appLoading(false);
           _codeSent = true;
           _isVerifying = false;
           _nextBtnColor = Config.appColorBlue;
         });
+        await showSnackBar(context, 'Signup failed.');
       }
     } else {
       var loginSuccessful = await _appService.authenticateUser(
           authCredential, '', '', authMethod.phone, authProcedure.login);
       if (loginSuccessful) {
+        setState(() {
+          widget.appLoading(false);
+        });
         await Navigator.pushAndRemoveUntil(context,
             MaterialPageRoute(builder: (context) {
           return const HomePage();
         }), (r) => false);
       } else {
-        await showSnackBar(context, 'Login failed.');
         setState(() {
+          widget.appLoading(false);
           _codeSent = true;
           _isVerifying = false;
           _nextBtnColor = Config.appColorBlue;
         });
+        await showSnackBar(context, 'Login failed.');
       }
     }
   }
@@ -440,6 +450,7 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
         _nextBtnColor = Config.appColorDisabled;
         _isVerifying = true;
         _codeSent = false;
+        widget.appLoading(true);
       });
 
       // TODO implement phone number checking
@@ -460,15 +471,32 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
       //   }
       // }
 
-      await _appService.customAuth.verifyPhone('$_countryCode$_phoneNumber',
-          context, verifyPhoneFn, autoVerifyPhoneFn);
+      var success = await _appService.customAuth.requestPhoneVerification(
+          '$_countryCode$_phoneNumber',
+          context,
+          verifyPhoneFn,
+          autoVerifyPhoneFn);
 
-      Future.delayed(const Duration(seconds: 5), () {
+      if (success) {
         setState(() {
           _codeSent = true;
           _isVerifying = false;
+          widget.appLoading(false);
         });
-      });
+      } else {
+        setState(() {
+          _codeSent = false;
+          _isVerifying = false;
+          widget.appLoading(false);
+        });
+      }
+
+      // Future.delayed(const Duration(seconds: 5), () {
+      //   setState(() {
+      //     _codeSent = true;
+      //     _isVerifying = false;
+      //   });
+      // });
     }
   }
 
@@ -488,8 +516,8 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
     });
 
     await _appService.customAuth
-        .verifyPhone('$_countryCode$_phoneNumber', context, verifyPhoneFn,
-            autoVerifyPhoneFn)
+        .requestPhoneVerification('$_countryCode$_phoneNumber', context,
+            verifyPhoneFn, autoVerifyPhoneFn)
         .then((value) => {
               setState(() {
                 _isResending = false;
@@ -552,6 +580,7 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
     setState(() {
       _nextBtnColor = Config.appColorDisabled;
       _isVerifying = true;
+      widget.appLoading(true);
     });
 
     var phoneCredential = PhoneAuthProvider.credential(
@@ -559,6 +588,5 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
         smsCode: _phoneVerificationCode.join(''));
 
     await authenticatePhoneNumber(phoneCredential);
-
   }
 }

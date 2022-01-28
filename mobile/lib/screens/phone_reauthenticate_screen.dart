@@ -188,8 +188,8 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
       _codeSent = false;
     });
 
-    await _customAuth.verifyPhone(widget.userDetails.phoneNumber, context,
-        verifyPhoneFn, autoVerifyPhoneFn);
+    await _customAuth.requestPhoneVerification(widget.userDetails.phoneNumber,
+        context, verifyPhoneFn, autoVerifyPhoneFn);
 
     if (!mounted) {
       return;
@@ -219,8 +219,8 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
     });
 
     await _customAuth
-        .verifyPhone(widget.userDetails.phoneNumber, context, verifyPhoneFn,
-            autoVerifyPhoneFn)
+        .requestPhoneVerification(widget.userDetails.phoneNumber, context,
+            verifyPhoneFn, autoVerifyPhoneFn)
         .then((value) => {
               setState(() {
                 _isResending = false;
@@ -284,8 +284,11 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
         });
       }
       if (exception.code == 'session-expired') {
-        await _customAuth.verifyPhone(widget.userDetails.phoneNumber, context,
-            verifyPhoneFn, autoVerifyPhoneFn);
+        await _customAuth.requestPhoneVerification(
+            widget.userDetails.phoneNumber,
+            context,
+            verifyPhoneFn,
+            autoVerifyPhoneFn);
         await showSnackBar(
             context,
             'Your verification '

@@ -3,6 +3,7 @@ import 'package:app/on_boarding/phone_auth_widget.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/utils/dialogs.dart';
+import 'package:app/widgets/custom_shimmer.dart';
 import 'package:flutter/material.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -18,6 +19,8 @@ class SignupScreenState extends State<SignupScreen> {
   String _signUpOption = 'phone';
   DateTime? _exitTime;
   late AppService _appService;
+  bool appLoading = false;
+  late BuildContext dialogContext;
 
   @override
   Widget build(BuildContext context) {
@@ -25,10 +28,10 @@ class SignupScreenState extends State<SignupScreen> {
         body: WillPopScope(
             onWillPop: onWillPop,
             child: _signUpOption == 'phone'
-                ? PhoneAuthWidget(
-                    widget.enableBackButton, changeOption, 'signup')
-                : EmailAuthWidget(
-                    widget.enableBackButton, changeOption, 'signup')));
+                ? PhoneAuthWidget(widget.enableBackButton, changeOption,
+                    'signup', showLoading)
+                : EmailAuthWidget(widget.enableBackButton, changeOption,
+                    'signup', showLoading)));
   }
 
   void changeOption(String value) {
@@ -40,6 +43,7 @@ class SignupScreenState extends State<SignupScreen> {
   @override
   void initState() {
     _appService = AppService(context);
+    dialogContext = context;
     updateOnBoardingPage();
     super.initState();
   }
@@ -55,6 +59,10 @@ class SignupScreenState extends State<SignupScreen> {
       return Future.value(false);
     }
 
+    if (appLoading) {
+      Navigator.pop(dialogContext);
+    }
+
     if (widget.enableBackButton) {
       Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
@@ -63,6 +71,18 @@ class SignupScreenState extends State<SignupScreen> {
     }
 
     return Future.value(true);
+  }
+
+  void showLoading(bool loading) {
+    if (loading) {
+      loadingScreen(dialogContext);
+    } else {
+      Navigator.pop(dialogContext);
+    }
+
+    setState(() {
+      appLoading = loading;
+    });
   }
 
   void updateOnBoardingPage() async {

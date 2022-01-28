@@ -641,7 +641,7 @@ class _InsightsTabState extends State<InsightsTab> {
 
   Future<void> refreshPage() async {
     var insights = await _airqoApiClient!
-        .fetchSiteInsights(widget.placeDetails.siteId, widget.daily);
+        .fetchSiteInsights(widget.placeDetails.siteId, widget.daily, false);
 
     if (insights.isEmpty) {
       return;
@@ -801,7 +801,7 @@ class _InsightsTabState extends State<InsightsTab> {
 
   Future<void> _fetchInsights() async {
     var insights = await _airqoApiClient!
-        .fetchSiteInsights(widget.placeDetails.siteId, widget.daily);
+        .fetchSiteInsights(widget.placeDetails.siteId, widget.daily, false);
 
     if (insights.isEmpty || !mounted) {
       return;
@@ -919,21 +919,24 @@ class _InsightsTabState extends State<InsightsTab> {
       return;
     }
 
-    var firstDay = DateTime.now().getFirstDateOfMonth();
-    var lastDay = DateTime.now().getLastDateOfMonth();
-    var insights = insightsData.where((element) {
-      var date = element.time;
-      if (date == firstDay ||
-          date == lastDay ||
-          date.isAfter(firstDay) ||
-          date.isBefore(lastDay)) {
-        return true;
-      }
-      return false;
-    }).toList();
-
     if (widget.daily) {
-      var data = insights
+      var firstDay = DateTime.now()
+          .getFirstDateOfCalendarMonth()
+          .getDateOfFirstHourOfDay();
+      var lastDay =
+          DateTime.now().getLastDateOfCalendarMonth().getDateOfLastHourOfDay();
+
+      var dailyInsights = insightsData.where((element) {
+        var date = element.time;
+        if (date == firstDay ||
+            date == lastDay ||
+            (date.isAfter(firstDay) & date.isBefore(lastDay))) {
+          return true;
+        }
+        return false;
+      }).toList();
+
+      var data = dailyInsights
           .where((element) => element.frequency.equalsIgnoreCase('daily'))
           .toList();
 
@@ -949,7 +952,10 @@ class _InsightsTabState extends State<InsightsTab> {
       for (var element in _dailyPm2_5ChartData) {
         if (element.first.data.first.time.day == DateTime.now().day &&
             element.first.data.first.time.month == DateTime.now().month) {
-          _selectedMeasurement = element.first.data.last;
+          setState(() {
+            _selectedMeasurement = element.first.data.last;
+          });
+
           await scrollToItem(
               _itemScrollController,
               _dailyPm2_5ChartData.indexOf(element),
@@ -961,7 +967,22 @@ class _InsightsTabState extends State<InsightsTab> {
 
       await loadMiniCharts(DateTime.now());
     } else {
-      var data = insights
+      var firstDay =
+          DateTime.now().getDateOfFirstDayOfWeek().getDateOfFirstHourOfDay();
+      var lastDay =
+          DateTime.now().getDateOfLastDayOfWeek().getDateOfLastHourOfDay();
+
+      var hourlyInsights = insightsData.where((element) {
+        var date = element.time;
+        if (date == firstDay ||
+            date == lastDay ||
+            (date.isAfter(firstDay) & date.isBefore(lastDay))) {
+          return true;
+        }
+        return false;
+      }).toList();
+
+      var data = hourlyInsights
           .where((element) => element.frequency.equalsIgnoreCase('hourly'))
           .toList();
 
@@ -977,7 +998,10 @@ class _InsightsTabState extends State<InsightsTab> {
       for (var element in _hourlyPm2_5ChartData) {
         if (element.first.data.first.time.day == DateTime.now().day &&
             element.first.data.first.time.month == DateTime.now().month) {
-          _selectedMeasurement = element.first.data.last;
+          setState(() {
+            _selectedMeasurement = element.first.data.last;
+          });
+
           await scrollToItem(
               _itemScrollController,
               _hourlyPm2_5ChartData.indexOf(element),

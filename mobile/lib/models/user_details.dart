@@ -4,13 +4,28 @@ part 'user_details.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class UserDetails {
+  @JsonKey(defaultValue: '')
   String title = '';
+
+  @JsonKey(defaultValue: '')
   String firstName = '';
+
+  @JsonKey(defaultValue: '')
   String userId = '';
+
+  @JsonKey(defaultValue: '')
   String lastName = '';
+
+  @JsonKey(defaultValue: '')
   String emailAddress = '';
+
+  @JsonKey(defaultValue: '')
   String phoneNumber = '';
+
+  @JsonKey(defaultValue: '')
   String device = '';
+
+  @JsonKey(defaultValue: '')
   String photoUrl = '';
   UserPreferences preferences = UserPreferences(false, false, false, 0);
 
@@ -29,7 +44,9 @@ class UserDetails {
       _$UserDetailsFromJson(json);
 
   String getFullName() {
-    return '$firstName $lastName';
+    var fullName = '$firstName $lastName'.trim();
+
+    return fullName.isEmpty ? 'Hello' : fullName;
   }
 
   Map<String, dynamic> toJson() => _$UserDetailsToJson(this);

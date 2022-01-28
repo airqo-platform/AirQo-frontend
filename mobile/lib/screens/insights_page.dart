@@ -132,28 +132,28 @@ class _InsightsPageState extends State<InsightsPage>
   void initState() {
     _tabController = TabController(length: 2, vsync: this);
     _airqoApiClient = AirqoApiClient(context);
-    _fetchHourlyInsights();
+    _fetchAllHourlyInsights();
     _fetchDailyInsights();
     super.initState();
   }
 
-  void _fetchDailyInsights() async {
-    var dailyInsights = await _airqoApiClient!
-        .fetchSiteInsights(widget.placeDetails.siteId, true);
-
-    if (dailyInsights.isNotEmpty) {
-      await _dbHelper.insertInsights(
-          dailyInsights, widget.placeDetails.siteId, 'daily');
-    }
-  }
-
-  void _fetchHourlyInsights() async {
+  void _fetchAllHourlyInsights() async {
     var hourlyInsights = await _airqoApiClient!
-        .fetchSiteInsights(widget.placeDetails.siteId, false);
+        .fetchSiteInsights(widget.placeDetails.siteId, false, true);
 
     if (hourlyInsights.isNotEmpty) {
       await _dbHelper.insertInsights(
           hourlyInsights, widget.placeDetails.siteId, 'hourly');
+    }
+  }
+
+  void _fetchDailyInsights() async {
+    var dailyInsights = await _airqoApiClient!
+        .fetchSiteInsights(widget.placeDetails.siteId, true, false);
+
+    if (dailyInsights.isNotEmpty) {
+      await _dbHelper.insertInsights(
+          dailyInsights, widget.placeDetails.siteId, 'daily');
     }
   }
 }

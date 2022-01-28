@@ -287,6 +287,11 @@ class AppService {
     }
   }
 
+  void reloadData() {
+    _fetchLatestMeasurements();
+    _fetchKya();
+  }
+
   Future<void> updateFavouritePlace(PlaceDetails placeDetails) async {
     var isFav = await _dbHelper.updateFavouritePlace(placeDetails);
     if (isFav) {

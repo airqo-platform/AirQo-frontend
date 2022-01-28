@@ -691,7 +691,6 @@ class _MapViewState extends State<MapView> {
 
       if (useSingleZoom) {
         if (markers.length == 1) {
-          print('its one');
         }
 
         var latLng = LatLng(measurements.first.site.latitude,

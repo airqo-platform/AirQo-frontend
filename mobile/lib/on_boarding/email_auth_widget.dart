@@ -11,12 +11,14 @@ import 'package:flutter/material.dart';
 class EmailAuthWidget extends StatefulWidget {
   final ValueSetter<String> changeOption;
   final bool enableBackButton;
+  final ValueSetter<bool> appLoading;
   final String action;
 
   const EmailAuthWidget(
     this.enableBackButton,
     this.changeOption,
-    this.action, {
+    this.action,
+    this.appLoading, {
     Key? key,
   }) : super(key: key);
 
@@ -133,7 +135,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
         Visibility(
           visible: !_codeSent && _verifyCode,
           child: Text(
-            'The code should arrive with in 10 sec',
+            'The code should arrive with in 5 sec',
             textAlign: TextAlign.center,
             style:
                 TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.5)),
@@ -278,7 +280,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
             child: TextFormField(
           controller: _emailInputController,
           autofocus: true,
-          enableSuggestions: false,
+          enableSuggestions: true,
           cursorWidth: 1,
           cursorColor: Config.appColorBlue,
           keyboardType: TextInputType.emailAddress,
@@ -370,6 +372,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
     setState(() {
       _nextBtnColor = Config.appColorDisabled;
       _isVerifying = true;
+      widget.appLoading(true);
     });
 
     if (widget.action == 'signup') {
@@ -380,6 +383,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
         setState(() {
           _nextBtnColor = Config.appColorBlue;
           _isVerifying = false;
+          widget.appLoading(false);
         });
         await showSnackBar(
             context,
@@ -391,6 +395,10 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
 
     var emailSignupResponse = await _appService.apiClient
         .requestEmailVerificationCode(_emailAddress, false);
+
+    setState(() {
+      widget.appLoading(false);
+    });
 
     if (emailSignupResponse == null) {
       await showSnackBar(context, 'email signup verification failed');
@@ -493,7 +501,11 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
       return;
     }
 
-    var success = false;
+    setState(() {
+      widget.appLoading(true);
+    });
+
+    bool success;
     if (widget.action == 'signup') {
       success = await _appService.authenticateUser(null, _emailAddress,
           _emailVerificationLink, authMethod.email, authProcedure.signup);
@@ -503,6 +515,9 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
     }
 
     if (success) {
+      setState(() {
+        widget.appLoading(false);
+      });
       if (widget.action == 'signup') {
         await Navigator.pushAndRemoveUntil(context,
             MaterialPageRoute(builder: (context) {
@@ -516,6 +531,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
       }
     } else {
       setState(() {
+        widget.appLoading(false);
         _nextBtnColor = Config.appColorBlue;
         _isVerifying = false;
         _codeSent = true;
