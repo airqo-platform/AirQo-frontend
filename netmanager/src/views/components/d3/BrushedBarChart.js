@@ -245,13 +245,13 @@ const BrushedBarChart = ({
 }) => {
   const ref = useRef();
   const contextRef = useRef();
-  const margin = { top: 20, right: 20, bottom: 100, left: 35 };
+  const margin = { top: 20, right: 20, bottom: 100, left: 40 };
   const winWidth = 650;
   const winHeight = 370;
   const width = winWidth - margin.left - margin.right;
   const height = winHeight - margin.top - margin.bottom;
 
-  const margin_context = { top: 320, right: 20, bottom: 20, left: 35 };
+  const margin_context = { top: 320, right: 20, bottom: 20, left: 40 };
   const height_context = winHeight - margin_context.top - margin_context.bottom;
 
   const color = d3.scaleOrdinal().range(d3.schemeCategory10);
@@ -369,25 +369,21 @@ const BrushedBarChart = ({
     const brushHandle = brushg.selectAll(".handle");
 
     brushHandle.style("width", "3px");
-
-    let label = vis.select(".title");
-
-    if (label.empty()) {
-      label = vis
-        .append("text")
-        .attr("class", "y axis title")
-        .attr("x", -(height / 2))
-        .attr("y", 0)
-        .attr("dy", "1em")
-        .attr("transform", "rotate(-90)")
-        .style("text-anchor", "middle");
-    }
-    label.text(yLabel);
   }, [data, yLabel, loading]);
 
   return (
     <div className="brushed-TS">
       <svg viewBox={`0 0 ${winWidth} ${winHeight}`} ref={ref}>
+        <text
+          className="y axis title"
+          x={-(height / 2)}
+          y={0}
+          dy={"1em"}
+          transform="rotate(-90)"
+          style={{ textAnchor: "middle" }}
+        >
+          {yLabel}
+        </text>
         <BrushChart
           data={data}
           selection={selection}
