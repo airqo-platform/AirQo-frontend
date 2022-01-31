@@ -112,7 +112,8 @@ const BrushChart = ({
         .replace(/\s+/g, "")
         .replace(",", "")}-${Math.random().toString(16).slice(2)}-${i}`;
       focus
-        .selectAll("rect")
+        .selectAll(`#bar-${id}`)
+        .append("rect")
         .data(
           d.values.filter(
             (d) =>
@@ -286,7 +287,6 @@ const BrushedBarChart = ({
       .attr("width", width)
       .attr("height", height);
 
-    // const context = vis
     const context = d3
       .select(contextRef.current)
       .attr("class", "context")
@@ -327,8 +327,12 @@ const BrushedBarChart = ({
     const dataNest = d3.nest().key(symbolFunc).entries(data);
 
     dataNest.forEach((d) => {
+      const id = `bar-${d.key
+        .replace(/\s+/g, "")
+        .replace(",", "")}-${Math.random().toString(16).slice(2)}`;
       context
-        .selectAll("rect")
+        .selectAll(`#${id}`)
+        .append("rect")
         .data(d.values)
         .enter()
         .append("rect")
