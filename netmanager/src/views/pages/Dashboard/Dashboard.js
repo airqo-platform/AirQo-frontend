@@ -203,7 +203,6 @@ const Dashboard = () => {
                   <D3CustomisableChart
                     className={clsx(classes.customChartCard)}
                     defaultFilter={filter}
-                    idSuffix={`custom-${key + 1}`}
                     key={key}
                   />
                 </Grid>

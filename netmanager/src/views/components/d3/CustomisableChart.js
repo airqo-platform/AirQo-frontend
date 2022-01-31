@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { useDispatch } from "react-redux";
 import PropTypes from "prop-types";
 import { makeStyles, withStyles } from "@material-ui/styles";
@@ -122,7 +122,7 @@ const DialogTitle = withStyles(styles)((props) => {
 
 const CustomisableChart = (props) => {
   const { className, idSuffix, defaultFilter, ...rest } = props;
-  const classes = useStyles();
+  const ref = useRef();
   const dispatch = useDispatch();
 
   const airqloud = useCurrentAirQloudData();
@@ -459,7 +459,6 @@ const CustomisableChart = (props) => {
     handlePeriodChange(selectedPeriod);
   }, []);
 
-  const rootCustomChartContainerId = "rootCustomChartContainerId" + idSuffix;
   const iconButton = "exportIconButton";
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -570,10 +569,10 @@ const CustomisableChart = (props) => {
 
   const menuOptions = [
     { key: "Customise", action: handleClickOpen, text: "Customise Chart" },
-    // { key: "Print", action: print, text: "Print" },
-    // { key: "JPEG", action: exportToJpeg, text: "Save as JPEG" },
-    // { key: "PNG", action: exportToPng, text: "Save as PNG" },
-    // { key: "PDF", action: exportToPdf, text: "Save as PDF" },
+    { key: "Print", action: print, text: "Print" },
+    { key: "JPEG", action: exportToJpeg, text: "Save as JPEG" },
+    { key: "PNG", action: exportToPng, text: "Save as PNG" },
+    { key: "PDF", action: exportToPdf, text: "Save as PDF" },
     {
       key: "Delete",
       action: deleteChart,
@@ -590,7 +589,7 @@ const CustomisableChart = (props) => {
   };
 
   const handleExportCustomChart = ({ action }) => () => {
-    const chart = document.querySelector(`#${rootCustomChartContainerId}`);
+    const chart = ref.current;
     handleClose();
     action(chart);
   };
@@ -606,9 +605,8 @@ const CustomisableChart = (props) => {
   };
 
   return (
-    <>
+    <div ref={ref}>
       <ChartContainer
-        id={rootCustomChartContainerId}
         title={`${tempState.subTitle || "unknown location"} - ${title}`}
         open={openMenu}
         onClick={handleClick}
@@ -821,7 +819,7 @@ const CustomisableChart = (props) => {
           </DialogActions>
         </Dialog>
       </Grid>
-    </>
+    </div>
   );
 };
 
