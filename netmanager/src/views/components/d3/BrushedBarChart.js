@@ -125,8 +125,11 @@ const BrushChart = ({
         .enter()
         .append("rect")
         .attr("class", id)
-        .attr("width", xBand.bandwidth())
-        .attr("x", (d) => xBand(xFunc(d)))
+        .attr("width", xBand.bandwidth() / dataNest.length)
+        .attr(
+          "x",
+          (d) => xBand(xFunc(d)) + (xBand.bandwidth() / dataNest.length) * i
+        )
         .style("fill", function () {
           return color(d.key);
         })
@@ -326,7 +329,7 @@ const BrushedBarChart = ({
 
     const dataNest = d3.nest().key(symbolFunc).entries(data);
 
-    dataNest.forEach((d) => {
+    dataNest.forEach((d, i) => {
       const id = `bar-${d.key
         .replace(/\s+/g, "")
         .replace(",", "")}-${Math.random().toString(16).slice(2)}`;
@@ -336,8 +339,13 @@ const BrushedBarChart = ({
         .data(d.values)
         .enter()
         .append("rect")
-        .attr("width", xContextBand.bandwidth())
-        .attr("x", (d) => xContextBand(xFunc(d)))
+        .attr("width", xContextBand.bandwidth() / dataNest.length)
+        .attr(
+          "x",
+          (d) =>
+            xContextBand(xFunc(d)) +
+            (xContextBand.bandwidth() / dataNest.length) * i
+        )
         .style("fill", function () {
           return color(d.key);
         })
