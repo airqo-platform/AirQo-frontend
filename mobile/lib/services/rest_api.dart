@@ -330,6 +330,32 @@ class AirqoApiClient {
     return <Insights>[];
   }
 
+  Future<List<Insights>> fetchSitesInsights(List<String> siteIds) async {
+    try {
+      var insights = <Insights>[];
+      for (var siteId in siteIds) {
+        var siteInsights = await Future.wait([
+          fetchSiteInsights(siteId, true, true),
+          fetchSiteInsights(siteId, false, true),
+        ]);
+
+        insights.addAll(<Insights>[
+          ...siteInsights[0],
+          ...siteInsights[1],
+        ]);
+      }
+      return insights;
+    } on Error catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return <Insights>[];
+  }
+
   Future<String> imageUpload(String file, String? type, String name) async {
     type ??= 'jpeg';
 

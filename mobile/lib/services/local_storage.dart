@@ -68,8 +68,6 @@ class DBHelper {
     }
 
     await db.execute(Measurement.createTableStmt());
-    // await db.execute(HistoricalMeasurement.createTableStmt());
-    // await db.execute(Predict.createTableStmt());
     await db.execute(Site.createTableStmt());
     await db.execute(Story.createTableStmt());
     await db.execute(PlaceDetails.createTableStmt());
@@ -279,6 +277,23 @@ class DBHelper {
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
       return <UserNotification>[];
+    }
+  }
+
+  Future<List<String>> getVisitedPlaces() async {
+    try {
+      final db = await database;
+
+      var res = await db.query(Insights.dbName());
+      return res.isNotEmpty
+          ? List.generate(res.length, (i) {
+              return PlaceDetails.fromJson(res[i]).siteId;
+            })
+          : <String>[];
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+
+      return <String>[];
     }
   }
 

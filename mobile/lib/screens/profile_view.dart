@@ -80,86 +80,77 @@ class _ProfileViewState extends State<ProfileView> {
         ),
         body: Container(
             color: Config.appBodyColor,
-            child: RefreshIndicator(
-                onRefresh: initialize,
-                color: Config.appColorBlue,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Visibility(
-                          visible: _isLoggedIn,
-                          child: Expanded(
-                            child: ListView(
-                              shrinkWrap: true,
-                              children: <Widget>[
-                                AutoSizeText(
-                                  _userProfile.getFullName(),
-                                  maxLines: 2,
-                                  style: const TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                GestureDetector(
-                                  onTap: () async {
-                                    await viewProfile();
-                                  },
-                                  child: Text(
-                                    'Edit profile',
-                                    style: TextStyle(
-                                        fontSize: 16,
-                                        color: Config.appColorBlue),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.fromLTRB(
-                                      0.0, 16.0, 0.0, 0.0),
-                                  child: profileSection(),
-                                ),
-                              ],
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Visibility(
+                      visible: _isLoggedIn,
+                      child: Expanded(
+                        child: ListView(
+                          shrinkWrap: true,
+                          children: <Widget>[
+                            AutoSizeText(
+                              _userProfile.getFullName(),
+                              maxLines: 2,
+                              style: const TextStyle(
+                                  fontSize: 24, fontWeight: FontWeight.bold),
                             ),
-                          )),
-                      Visibility(
-                        visible: _isLoggedIn,
-                        child: logoutSection(
-                            'Logout',
-                            'assets/icon/location.svg',
-                            Config.appColorBlue,
-                            logOut),
-                      ),
-                      Visibility(
-                          visible: !_isLoggedIn,
-                          child: Expanded(
-                            child: ListView(
-                              shrinkWrap: true,
-                              children: <Widget>[
-                                const Text(
-                                  'Guest',
-                                  style: TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.fromLTRB(
-                                      0.0, 16.0, 0.0, 0.0),
-                                  child: signupSection(),
-                                ),
-                                const SizedBox(
-                                  height: 16,
-                                ),
-                                cardSection('Settings', 'assets/icon/cog.svg',
-                                    Config.appColorBlue, settings),
-                              ],
+                            GestureDetector(
+                              onTap: () async {
+                                await viewProfile();
+                              },
+                              child: Text(
+                                'Edit profile',
+                                style: TextStyle(
+                                    fontSize: 16, color: Config.appColorBlue),
+                              ),
                             ),
-                          )),
-                      const SizedBox(
-                        height: 32,
-                      ),
-                    ],
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(
+                                  0.0, 16.0, 0.0, 0.0),
+                              child: profileSection(),
+                            ),
+                          ],
+                        ),
+                      )),
+                  Visibility(
+                    visible: _isLoggedIn,
+                    child: logoutSection('Logout', 'assets/icon/location.svg',
+                        Config.appColorBlue, logOut),
                   ),
-                ))));
+                  Visibility(
+                      visible: !_isLoggedIn,
+                      child: Expanded(
+                        child: ListView(
+                          shrinkWrap: true,
+                          children: <Widget>[
+                            const Text(
+                              'Guest',
+                              style: TextStyle(
+                                  fontSize: 24, fontWeight: FontWeight.bold),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(
+                                  0.0, 16.0, 0.0, 0.0),
+                              child: signupSection(),
+                            ),
+                            const SizedBox(
+                              height: 16,
+                            ),
+                            cardSection('Settings', 'assets/icon/cog.svg',
+                                Config.appColorBlue, settings),
+                          ],
+                        ),
+                      )),
+                  const SizedBox(
+                    height: 32,
+                  ),
+                ],
+              ),
+            )));
   }
 
   Widget cardSection(text, icon, iconColor, callBackFn) {

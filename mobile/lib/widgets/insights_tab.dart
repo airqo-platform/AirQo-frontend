@@ -78,7 +78,7 @@ class _InsightsTabState extends State<InsightsTab> {
   Widget build(BuildContext context) {
     return RefreshIndicator(
       color: Config.appColorBlue,
-      onRefresh: _fetchInsights,
+      onRefresh: _refreshPage,
       child: Container(
           color: Config.appBodyColor,
           child: ListView(
@@ -639,21 +639,6 @@ class _InsightsTabState extends State<InsightsTab> {
     }
   }
 
-  Future<void> refreshPage() async {
-    var insights = await _airqoApiClient!
-        .fetchSiteInsights(widget.placeDetails.siteId, widget.daily, false);
-
-    if (insights.isEmpty) {
-      return;
-    }
-
-    if (mounted) {
-      await _setInsights(insights);
-    }
-
-    await _saveInsights(insights, widget.daily);
-  }
-
   Future<void> scrollToItem(
       ItemScrollController controller,
       int index,
@@ -906,6 +891,38 @@ class _InsightsTabState extends State<InsightsTab> {
         ),
       );
     });
+  }
+
+  Future<void> _refreshPage() async {
+    var placesInsights =
+        await _airqoApiClient!.fetchSitesInsights([widget.placeDetails.siteId]);
+
+    if (mounted) {
+      var frequency = widget.daily ? 'daily' : 'hourly';
+      var insights = placesInsights
+          .where((element) => element.frequency == frequency)
+          .toList();
+      if (insights.isNotEmpty) {
+        await _setInsights(insights);
+      }
+    }
+
+    while (placesInsights.isNotEmpty) {
+      var siteInsight = placesInsights.first;
+
+      var filteredInsights = placesInsights
+          .where((element) =>
+              (element.siteId == siteInsight.siteId) &&
+              (element.frequency == siteInsight.frequency))
+          .toList();
+
+      await _dbHelper.insertInsights(
+          filteredInsights, siteInsight.siteId, siteInsight.frequency);
+
+      placesInsights.removeWhere((element) =>
+          (element.siteId == siteInsight.siteId) &&
+          (element.frequency == siteInsight.frequency));
+    }
   }
 
   Future<void> _saveInsights(List<Insights> insights, bool daily) async {

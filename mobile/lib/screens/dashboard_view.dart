@@ -769,7 +769,7 @@ class _DashboardViewState extends State<DashboardView> {
       _getIncompleteKya();
       _getCompleteKya();
     }
-    _reloadData();
+    _appService.fetchData();
   }
 
   void _loadCompleteKya(List<Kya> completeKya) async {
@@ -825,13 +825,8 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   Future<void> _refresh() async {
-    _getLocationMeasurements();
-    _getDashboardLocations();
-    _reloadData();
-  }
-
-  void _reloadData() async {
-    _appService.reloadData();
+    await _appService.reloadData().then(
+        (value) => {_getLocationMeasurements(), _getDashboardLocations()});
   }
 
   void _setGreetings() {

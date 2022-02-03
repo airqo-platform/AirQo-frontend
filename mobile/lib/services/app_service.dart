@@ -114,6 +114,40 @@ class AppService {
     _fetchKya();
     loadNotifications();
     loadFavPlaces();
+    _loadVisitedPlacesInsights();
+  }
+
+  Future<void> fetchFavPlacesInsights() async {
+    try {
+      var favPlaces = await _dbHelper.getFavouritePlaces();
+      var favPlacesSiteIds = <String>[];
+
+      for (var element in favPlaces) {
+        favPlacesSiteIds.add(element.siteId);
+      }
+
+      var favPlacesInsights =
+          await _apiClient.fetchSitesInsights(favPlacesSiteIds);
+
+      while (favPlacesInsights.isNotEmpty) {
+        var siteInsight = favPlacesInsights.first;
+
+        var filteredInsights = favPlacesInsights
+            .where((element) =>
+                (element.siteId == siteInsight.siteId) &&
+                (element.frequency == siteInsight.frequency))
+            .toList();
+
+        await _dbHelper.insertInsights(
+            filteredInsights, siteInsight.siteId, siteInsight.frequency);
+
+        favPlacesInsights.removeWhere((element) =>
+            (element.siteId == siteInsight.siteId) &&
+            (element.frequency == siteInsight.frequency));
+      }
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+    }
   }
 
   Future<UserDetails> getUserDetails() async {
@@ -287,9 +321,9 @@ class AppService {
     }
   }
 
-  void reloadData() {
-    _fetchLatestMeasurements();
-    _fetchKya();
+  Future<void> reloadData() async {
+    await _fetchLatestMeasurements();
+    await _fetchKya();
   }
 
   Future<void> updateFavouritePlace(PlaceDetails placeDetails) async {
@@ -368,6 +402,39 @@ class AppService {
       await _apiClient.fetchLatestMeasurements().then((value) => {
             if (value.isNotEmpty) {_dbHelper.insertLatestMeasurements(value)}
           });
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+    }
+  }
+
+  Future<void> _loadVisitedPlacesInsights() async {
+    try {
+      var visitedPlaces = await _dbHelper.getVisitedPlaces();
+
+      if (visitedPlaces.isEmpty) {
+        return;
+      }
+
+      for (var siteId in visitedPlaces) {
+        var placesInsights = await _apiClient.fetchSitesInsights([siteId]);
+
+        while (placesInsights.isNotEmpty) {
+          var siteInsight = placesInsights.first;
+
+          var filteredInsights = placesInsights
+              .where((element) =>
+                  (element.siteId == siteInsight.siteId) &&
+                  (element.frequency == siteInsight.frequency))
+              .toList();
+
+          await _dbHelper.insertInsights(
+              filteredInsights, siteInsight.siteId, siteInsight.frequency);
+
+          placesInsights.removeWhere((element) =>
+              (element.siteId == siteInsight.siteId) &&
+              (element.frequency == siteInsight.frequency));
+        }
+      }
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }

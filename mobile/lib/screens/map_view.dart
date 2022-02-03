@@ -690,8 +690,7 @@ class _MapViewState extends State<MapView> {
       final controller = _mapController;
 
       if (useSingleZoom) {
-        if (markers.length == 1) {
-        }
+        if (markers.length == 1) {}
 
         var latLng = LatLng(measurements.first.site.latitude,
             measurements.first.site.longitude);

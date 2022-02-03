@@ -715,10 +715,12 @@ class CustomAuth {
         await showSnackBar(context, Config.appErrorMessage);
       }
       debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      if (!['invalid-email', 'expired-action-code'].contains(exception.code)) {
+        await Sentry.captureException(
+          exception,
+          stackTrace: stackTrace,
+        );
+      }
       return false;
     }
   }
@@ -816,10 +818,16 @@ class CustomAuth {
       }
 
       debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      if (![
+        'invalid-verification-code',
+        'invalid-verification-code',
+        'account-exists-with-different-credential'
+      ].contains(exception.code)) {
+        await Sentry.captureException(
+          exception,
+          stackTrace: stackTrace,
+        );
+      }
       return false;
     }
   }

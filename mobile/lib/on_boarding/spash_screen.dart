@@ -45,6 +45,8 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> initialize() async {
+    _appService.fetchData();
+
     var isLoggedIn = _appService.isLoggedIn();
 
     var nextPage =
@@ -80,7 +82,6 @@ class SplashScreenState extends State<SplashScreen> {
         }
       }), (r) => false);
     });
-    _appService.fetchData();
   }
 
   @override

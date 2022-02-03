@@ -609,7 +609,8 @@ class ShareService {
             ],
           ),
           Text(
-            '© ${DateTime.now().year} AirQo',
+            // '© ${DateTime.now().year} AirQo',
+            '${DateTime.now().year} AirQo',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.right,
@@ -622,44 +623,59 @@ class ShareService {
 
   Future<void> shareCard(BuildContext buildContext, GlobalKey globalKey,
       Measurement measurement) async {
-    var dialogResponse = await showDialog<String>(
-      context: buildContext,
-      builder: (BuildContext context) => AlertDialog(
-        title: const Text('Sharing Options'),
-        content: const Text('Share via'),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(context, 'image'),
-            child: const Text('Image'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, 'text'),
-            child: const Text('Text'),
-          ),
-        ],
-      ),
-    );
+    var boundary =
+        globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+    var image = await boundary.toImage(pixelRatio: 10.0);
+    var byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    var pngBytes = byteData!.buffer.asUint8List();
 
-    if (dialogResponse == 'image') {
-      var boundary =
-          globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-      var image = await boundary.toImage(pixelRatio: 10.0);
-      var byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-      var pngBytes = byteData!.buffer.asUint8List();
+    final directory = (await getApplicationDocumentsDirectory()).path;
+    var imgFile = File('$directory/airqo_analytics_card.png');
+    await imgFile.writeAsBytes(pngBytes);
 
-      final directory = (await getApplicationDocumentsDirectory()).path;
-      var imgFile = File('$directory/airqo_analytics_card.png');
-      await imgFile.writeAsBytes(pngBytes);
+    var message = '${measurement.site.getName()}, Current Air Quality. \n\n'
+        'Source: AiQo App';
+    await Share.shareFiles([imgFile.path], text: message)
+        .then((value) => {_updateUserShares()});
 
-      var message = '${measurement.site.getName()}, Current Air Quality. \n\n'
-          'Source: AiQo App';
-      await Share.shareFiles([imgFile.path], text: message)
-          .then((value) => {_updateUserShares()});
-    } else if (dialogResponse == 'text') {
-      shareMeasurementText(measurement);
-    } else {
-      return;
-    }
+    // var dialogResponse = await showDialog<String>(
+    //   context: buildContext,
+    //   builder: (BuildContext context) => AlertDialog(
+    //     title: const Text('Sharing Options'),
+    //     content: const Text('Share via'),
+    //     actions: <Widget>[
+    //       TextButton(
+    //         onPressed: () => Navigator.pop(context, 'image'),
+    //         child: const Text('Image'),
+    //       ),
+    //       TextButton(
+    //         onPressed: () => Navigator.pop(context, 'text'),
+    //         child: const Text('Text'),
+    //       ),
+    //     ],
+    //   ),
+    // );
+    //
+    // if (dialogResponse == 'image') {
+    //   var boundary =
+    //       globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+    //   var image = await boundary.toImage(pixelRatio: 10.0);
+    //   var byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    //   var pngBytes = byteData!.buffer.asUint8List();
+    //
+    //   final directory = (await getApplicationDocumentsDirectory()).path;
+    //   var imgFile = File('$directory/airqo_analytics_card.png');
+    //   await imgFile.writeAsBytes(pngBytes);
+    //
+    //   var message = '${measurement.site.getName()}, Current Air Quality. \n\n'
+    //       'Source: AiQo App';
+    //   await Share.shareFiles([imgFile.path], text: message)
+    //       .then((value) => {_updateUserShares()});
+    // } else if (dialogResponse == 'text') {
+    //   shareMeasurementText(measurement);
+    // } else {
+    //   return;
+    // }
   }
 
   Future<void> shareGraph(BuildContext buildContext, GlobalKey globalKey,

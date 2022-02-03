@@ -1,6 +1,7 @@
 import 'package:app/constants/config.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/screens/search_page.dart';
+import 'package:app/services/app_service.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/widgets/favourite_place_card.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +15,8 @@ class FavouritePlaces extends StatefulWidget {
 }
 
 class _FavouritePlacesState extends State<FavouritePlaces> {
+  late AppService _appService;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -103,8 +106,20 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
     );
   }
 
+  Future<void> initialize() async {
+    await _appService.fetchFavPlacesInsights();
+  }
+
+  @override
+  void initState() {
+    _appService = AppService(context);
+    initialize();
+    super.initState();
+  }
+
   Future<void> refreshData() async {
     await Provider.of<PlaceDetailsModel>(context, listen: false)
         .reloadFavouritePlaces();
+    await initialize();
   }
 }
