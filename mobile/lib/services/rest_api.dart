@@ -26,7 +26,6 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 
 class AirqoApiClient {
   final BuildContext context;
-  final AirQoUrls _airQoUrls = AirQoUrls();
   final httpClient = SentryHttpClient(
       client: http.Client(),
       failedRequestStatusCodes: [
@@ -40,13 +39,38 @@ class AirqoApiClient {
 
   AirqoApiClient(this.context);
 
+  Future<bool> checkIfUserExists(
+      String phoneNumber, String emailAddress) async {
+    Map<String, String> headers = HashMap()
+      ..putIfAbsent('Content-Type', () => 'application/json');
+    http.Response response;
+
+    if (phoneNumber.isNotEmpty) {
+      var body = {'phoneNumber': phoneNumber};
+      response = await httpClient.post(Uri.parse(AirQoUrls.checkUserExists),
+          headers: headers, body: jsonEncode(body));
+    } else if (emailAddress.isNotEmpty) {
+      var body = {'emailAddress': emailAddress};
+      response = await httpClient.post(Uri.parse(AirQoUrls.checkUserExists),
+          headers: headers, body: jsonEncode(body));
+    } else {
+      throw Exception('Failed to perform action. Try again later');
+    }
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to perform action. Try again later');
+    }
+
+    return json.decode(response.body)['status'];
+  }
+
   Future<List<Predict>> fetchForecast(int channelId) async {
     try {
       var startTime =
           DateTime.now().add(const Duration(hours: 1)).millisecondsSinceEpoch /
               1000;
 
-      var url = '${_airQoUrls.forecast}$channelId/${startTime.round()}';
+      var url = '${AirQoUrls.forecast}$channelId/${startTime.round()}';
 
       final responseBody = await _performGetRequestV2(<String, dynamic>{}, url);
 
@@ -84,7 +108,7 @@ class AirqoApiClient {
         ..putIfAbsent('tenant', () => 'airqo');
 
       final responseBody =
-          await _performGetRequest(queryParams, _airQoUrls.measurements);
+          await _performGetRequest(queryParams, AirQoUrls.measurements);
 
       if (responseBody != null) {
         return compute(HistoricalMeasurement.parseMeasurements, responseBody);
@@ -115,7 +139,7 @@ class AirqoApiClient {
         ..putIfAbsent('tenant', () => 'airqo');
 
       final responseBody =
-          await _performGetRequest(queryParams, _airQoUrls.measurements);
+          await _performGetRequest(queryParams, AirQoUrls.measurements);
       if (responseBody != null) {
         return await compute(parseMeasurements, responseBody);
       } else {
@@ -169,7 +193,7 @@ class AirqoApiClient {
         ..putIfAbsent('tenant', () => 'airqo');
 
       final responseBody =
-          await _performGetRequest(queryParams, _airQoUrls.measurements);
+          await _performGetRequest(queryParams, AirQoUrls.measurements);
 
       if (responseBody != null) {
         return compute(HistoricalMeasurement.parseMeasurements, responseBody);
@@ -237,7 +261,7 @@ class AirqoApiClient {
       }
 
       final responseBody =
-          await _performGetRequest(queryParams, _airQoUrls.measurements);
+          await _performGetRequest(queryParams, AirQoUrls.measurements);
 
       if (responseBody != null) {
         return compute(HistoricalMeasurement.parseMeasurements, responseBody);
@@ -312,7 +336,7 @@ class AirqoApiClient {
       }
 
       final responseBody =
-          await _performGetRequest(queryParams, _airQoUrls.insights);
+          await _performGetRequest(queryParams, AirQoUrls.insights);
 
       if (responseBody != null) {
         return compute(Insights.parseInsights, responseBody['data']);
@@ -403,8 +427,8 @@ class AirqoApiClient {
       var body = {'email': emailAddress};
 
       var uri = reAuthenticate
-          ? _airQoUrls.requestEmailReAuthentication
-          : _airQoUrls.requestEmailVerification;
+          ? AirQoUrls.requestEmailReAuthentication
+          : AirQoUrls.requestEmailVerification;
 
       final response = await http.post(Uri.parse(uri),
           headers: headers, body: jsonEncode(body));
@@ -474,7 +498,7 @@ class AirqoApiClient {
       };
 
       await _performPostRequest(
-          <String, dynamic>{}, _airQoUrls.welcomeMessage, jsonEncode(body));
+          <String, dynamic>{}, AirQoUrls.welcomeMessage, jsonEncode(body));
     } on SocketException {
       await showSnackBar(context, Config.socketErrorMessage);
     } on TimeoutException {
@@ -604,7 +628,6 @@ class SearchApi {
   final String sessionToken;
   final apiKey = Config.googleApiKey;
   final BuildContext context;
-  final AirQoUrls _airQoUrls = AirQoUrls();
 
   SearchApi(this.sessionToken, this.context);
 
@@ -617,7 +640,7 @@ class SearchApi {
         ..putIfAbsent('sessiontoken', () => sessionToken);
 
       final responseBody =
-          await _performGetRequest(queryParams, _airQoUrls.searchSuggestions);
+          await _performGetRequest(queryParams, AirQoUrls.searchSuggestions);
 
       if (responseBody == null) {
         return [];
@@ -645,7 +668,7 @@ class SearchApi {
         ..putIfAbsent('sessiontoken', () => sessionToken);
 
       final responseBody =
-          await _performGetRequest(queryParams, _airQoUrls.placeSearchDetails);
+          await _performGetRequest(queryParams, AirQoUrls.placeSearchDetails);
 
       var place = Place.fromJson(responseBody['result']);
 

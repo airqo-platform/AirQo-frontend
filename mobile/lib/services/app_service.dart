@@ -109,6 +109,20 @@ class AppService {
     return true;
   }
 
+  Future<bool> doesUserExist(String phoneNumber, String emailAddress) async {
+    try {
+      return _apiClient.checkIfUserExists(phoneNumber, emailAddress);
+    } catch (exception, stackTrace) {
+      debugPrint('$exception \n $stackTrace');
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+      await showSnackBar(_context, 'Failed to perform action. Try again later');
+      return true;
+    }
+  }
+
   void fetchData() {
     _fetchLatestMeasurements();
     _fetchKya();
@@ -412,6 +426,7 @@ class AppService {
       var visitedPlaces = await _dbHelper.getVisitedPlaces();
 
       if (visitedPlaces.isEmpty) {
+        debugPrint('Visited places is empty');
         return;
       }
 

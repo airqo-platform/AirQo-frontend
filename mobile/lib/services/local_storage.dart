@@ -287,7 +287,7 @@ class DBHelper {
       var res = await db.query(Insights.dbName());
       return res.isNotEmpty
           ? List.generate(res.length, (i) {
-              return PlaceDetails.fromJson(res[i]).siteId;
+              return Insights.fromJson(res[i]).siteId;
             })
           : <String>[];
     } catch (exception, stackTrace) {

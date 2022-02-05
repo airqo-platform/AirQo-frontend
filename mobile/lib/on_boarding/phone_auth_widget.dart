@@ -453,29 +453,38 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
         widget.appLoading(true);
       });
 
-      // TODO implement phone number checking
-      // if (widget.action == 'signup') {
-      //   var phoneExists = await _customAuth.userExists(
-      //       '$_countryCode$_phoneNumber', null);
-      //   if (phoneExists) {
-      //     await showSnackBar(
-      //         context,
-      //         'Phone number already taken. '
-      //         'Try logging in');
-      //     setState(() {
-      //       _nextBtnColor = Config.appColorBlue;
-      //       _isVerifying = false;
-      //       _codeSent = false;
-      //     });
-      //     return;
-      //   }
-      // }
+      var hasConnection = await _appService.isConnected();
+      if (!hasConnection) {
+        setState(() {
+          _codeSent = true;
+          _isVerifying = false;
+          widget.appLoading(false);
+        });
+        await showSnackBar(context, 'Check your internet connection');
+        return;
+      }
+
+      var phoneNumber = '$_countryCode$_phoneNumber';
+
+      if (widget.action == 'signup') {
+        var phoneNumberTaken = await _appService.doesUserExist(phoneNumber, '');
+
+        if (phoneNumberTaken) {
+          setState(() {
+            _codeSent = true;
+            _isVerifying = false;
+            widget.appLoading(false);
+          });
+          await showSnackBar(
+              context,
+              'Phone number already taken. '
+              'Try logging in');
+          return;
+        }
+      }
 
       var success = await _appService.customAuth.requestPhoneVerification(
-          '$_countryCode$_phoneNumber',
-          context,
-          verifyPhoneFn,
-          autoVerifyPhoneFn);
+          phoneNumber, context, verifyPhoneFn, autoVerifyPhoneFn);
 
       if (success) {
         setState(() {
@@ -490,13 +499,6 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
           widget.appLoading(false);
         });
       }
-
-      // Future.delayed(const Duration(seconds: 5), () {
-      //   setState(() {
-      //     _codeSent = true;
-      //     _isVerifying = false;
-      //   });
-      // });
     }
   }
 

@@ -1,27 +1,32 @@
 import 'config.dart';
 
 class AirQoUrls {
-  String get forecast => '${Config.airqoApiUrlV2}predict/';
+  static String get checkUserExists => Config.airqoApiUserExistsUrl;
 
-  String get insights => '${Config.airqoApiUrl}views/measurements/insights';
+  static String get forecast => '${Config.airqoApiUrlV2}predict/';
 
-  String get measurements => '${Config.airqoApiUrl}devices/events';
+  static String get insights =>
+      '${Config.airqoApiUrl}views/measurements/insights';
 
-  String get placeSearchDetails => '${Config.placesSearchUrl}details/json';
+  static String get measurements => '${Config.airqoApiUrl}devices/events';
 
-  String get requestEmailReAuthentication =>
+  static String get placeSearchDetails =>
+      '${Config.placesSearchUrl}details/json';
+
+  static String get requestEmailReAuthentication =>
       '${Config.airqoApiUrl}users/emailAuth';
 
-  String get requestEmailVerification =>
+  static String get requestEmailVerification =>
       '${Config.airqoApiUrl}users/emailLogin';
 
-  String get searchSuggestions => '${Config.placesSearchUrl}autocomplete/json';
+  static String get searchSuggestions =>
+      '${Config.placesSearchUrl}autocomplete/json';
 
-  String get sites => '${Config.airqoApiUrl}devices/sites';
+  static String get sites => '${Config.airqoApiUrl}devices/sites';
 
-  String get sitesByGeoCoordinates =>
+  static String get sitesByGeoCoordinates =>
       '${Config.airqoApiUrl}devices/sites/nearest';
 
-  String get welcomeMessage =>
+  static String get welcomeMessage =>
       '${Config.airqoApiUrl}notifications/welcomeMessage';
 }

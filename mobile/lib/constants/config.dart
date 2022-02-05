@@ -11,6 +11,9 @@ class Config {
 
   static String get airqoApiUrlV2 => dotenv.env['AIRQO_API_URL_V2'] ?? '';
 
+  static String get airqoApiUserExistsUrl =>
+      dotenv.env['AIRQO_API_USER_EXISTS_URL'] ?? '';
+
   static String get alertsCollection => dotenv.env['ALERTS_COLLECTION'] ?? '';
 
   static String get appAndroidWhatsappUrl =>
