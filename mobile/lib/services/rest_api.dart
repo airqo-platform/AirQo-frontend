@@ -7,13 +7,10 @@ import 'package:app/constants/api.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/email_auth_model.dart';
 import 'package:app/models/feedback.dart';
-import 'package:app/models/historical_measurement.dart';
 import 'package:app/models/insights.dart';
 import 'package:app/models/json_parsers.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place.dart';
-import 'package:app/models/predict.dart';
-import 'package:app/models/story.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:app/models/user_details.dart';
 import 'package:app/utils/dialogs.dart';
@@ -64,67 +61,6 @@ class AirqoApiClient {
     return json.decode(response.body)['status'];
   }
 
-  Future<List<Predict>> fetchForecast(int channelId) async {
-    try {
-      var startTime =
-          DateTime.now().add(const Duration(hours: 1)).millisecondsSinceEpoch /
-              1000;
-
-      var url = '${AirQoUrls.forecast}$channelId/${startTime.round()}';
-
-      final responseBody = await _performGetRequestV2(<String, dynamic>{}, url);
-
-      if (responseBody != null) {
-        return compute(Predict.parsePredictions, responseBody['predictions']);
-      } else {
-        return <Predict>[];
-      }
-    } on Error catch (exception, stackTrace) {
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-    }
-    return <Predict>[];
-  }
-
-  Future<List<HistoricalMeasurement>> fetchHistoricalMeasurements() async {
-    try {
-      var startTimeUtc = DateTime.now().toUtc().add(const Duration(hours: -24));
-      var date = DateFormat('yyyy-MM-dd').format(startTimeUtc);
-      var time = '${startTimeUtc.hour}';
-
-      if (time.length == 1) {
-        time = '0$time';
-      }
-      var startTime = '${date}T$time:00:00Z';
-
-      var queryParams = <String, dynamic>{}
-        ..putIfAbsent('startTime', () => startTime)
-        ..putIfAbsent('frequency', () => 'hourly')
-        ..putIfAbsent('recent', () => 'no')
-        ..putIfAbsent('external', () => 'no')
-        ..putIfAbsent('metadata', () => 'site_id')
-        ..putIfAbsent('tenant', () => 'airqo');
-
-      final responseBody =
-          await _performGetRequest(queryParams, AirQoUrls.measurements);
-
-      if (responseBody != null) {
-        return compute(HistoricalMeasurement.parseMeasurements, responseBody);
-      } else {
-        return <HistoricalMeasurement>[];
-      }
-    } on Error catch (exception, stackTrace) {
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-    }
-
-    return <HistoricalMeasurement>[];
-  }
-
   Future<List<Measurement>> fetchLatestMeasurements() async {
     try {
       var queryParams = <String, dynamic>{}
@@ -153,130 +89,6 @@ class AirqoApiClient {
     }
 
     return <Measurement>[];
-  }
-
-  Future<List<Story>> fetchLatestStories() async {
-    try {
-      final responseBody = await _performGetRequest({}, Config.storiesUrl);
-
-      if (responseBody != null) {
-        return compute(Story.parseStories, responseBody);
-      } else {
-        return <Story>[];
-      }
-    } on Error catch (exception, stackTrace) {
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-    }
-
-    return <Story>[];
-  }
-
-  Future<List<HistoricalMeasurement>> fetchSiteDayMeasurements(
-      String siteId, DateTime dateTime) async {
-    try {
-      var nowUtc = dateTime.toUtc();
-      var date = DateFormat('yyyy-MM-dd').format(nowUtc);
-      var startTime = '${date}T00:00:00Z';
-      var endTime = '${date}T11:59:00Z';
-
-      var queryParams = <String, dynamic>{}
-        ..putIfAbsent('site_id', () => siteId)
-        ..putIfAbsent('startTime', () => startTime)
-        ..putIfAbsent('endTime', () => endTime)
-        ..putIfAbsent('frequency', () => 'hourly')
-        ..putIfAbsent('metadata', () => 'site_id')
-        ..putIfAbsent('external', () => 'no')
-        ..putIfAbsent('recent', () => 'no')
-        ..putIfAbsent('tenant', () => 'airqo');
-
-      final responseBody =
-          await _performGetRequest(queryParams, AirQoUrls.measurements);
-
-      if (responseBody != null) {
-        return compute(HistoricalMeasurement.parseMeasurements, responseBody);
-      } else {
-        return <HistoricalMeasurement>[];
-      }
-    } on Error catch (exception, stackTrace) {
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-    }
-
-    return <HistoricalMeasurement>[];
-  }
-
-  Future<List<HistoricalMeasurement>> fetchSiteHistoricalMeasurements(
-      String siteId, bool daily) async {
-    try {
-      var queryParams = <String, dynamic>{}
-        ..putIfAbsent('site_id', () => siteId)
-        ..putIfAbsent('metadata', () => 'site_id')
-        ..putIfAbsent('external', () => 'no')
-        ..putIfAbsent('recent', () => 'no')
-        ..putIfAbsent('tenant', () => 'airqo');
-
-      if (daily) {
-        var startTime = DateTime.now();
-        var weekday = startTime.weekday;
-
-        if (weekday != 1) {
-          var offset = weekday - 1;
-          startTime = startTime.subtract(Duration(days: offset));
-        }
-
-        queryParams
-          ..putIfAbsent('frequency', () => 'daily')
-          ..putIfAbsent('startTime',
-              () => '${DateFormat('yyyy-MM-dd').format(startTime)}T00:00:00Z');
-      } else {
-        var offSet = DateTime.now().timeZoneOffset;
-        var startTime = '';
-        var time = DateTime.parse(
-            DateFormat('yyyy-MM-dd 00:00:00').format(DateTime.now()));
-
-        if (offSet.isNegative) {
-          time =
-              time.add(Duration(hours: DateTime.now().timeZoneOffset.inHours));
-          startTime =
-              '${DateFormat('yyyy-MM-dd').format(time)}T${time.hour}:00:00Z';
-        } else {
-          time = time
-              .subtract(Duration(hours: DateTime.now().timeZoneOffset.inHours));
-          startTime =
-              '${DateFormat('yyyy-MM-dd').format(time)}T${time.hour}:00:00Z';
-        }
-
-        var endTime = DateFormat('yyyy-MM-dd')
-            .format(DateTime.now().add(const Duration(hours: 24)));
-
-        queryParams
-          ..putIfAbsent('frequency', () => 'hourly')
-          ..putIfAbsent('startTime', () => startTime.replaceFirst(' ', 'T'))
-          ..putIfAbsent('endTime', () => '${endTime}T00:00:00Z');
-      }
-
-      final responseBody =
-          await _performGetRequest(queryParams, AirQoUrls.measurements);
-
-      if (responseBody != null) {
-        return compute(HistoricalMeasurement.parseMeasurements, responseBody);
-      } else {
-        return <HistoricalMeasurement>[];
-      }
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-    }
-
-    return <HistoricalMeasurement>[];
   }
 
   Future<List<Insights>> fetchSiteInsights(

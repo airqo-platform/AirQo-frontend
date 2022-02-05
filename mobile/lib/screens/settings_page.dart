@@ -1,5 +1,5 @@
+import 'package:app/auth/signup_screen.dart';
 import 'package:app/constants/config.dart';
-import 'package:app/on_boarding/signup_screen.dart';
 import 'package:app/screens/phone_reauthenticate_screen.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/services/native_api.dart';

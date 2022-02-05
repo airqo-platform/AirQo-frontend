@@ -1,9 +1,9 @@
 import 'package:animations/animations.dart';
+import 'package:app/auth/signup_screen.dart';
 import 'package:app/on_boarding/location_setup_screen.dart';
 import 'package:app/on_boarding/notifications_setup_screen.dart';
 import 'package:app/on_boarding/profile_setup_screen.dart';
 import 'package:app/on_boarding/setup_complete_screeen.dart';
-import 'package:app/on_boarding/signup_screen.dart';
 import 'package:app/on_boarding/welcome_screen.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/app_service.dart';

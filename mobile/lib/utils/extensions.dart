@@ -5,6 +5,26 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 extension DateTimeExtension on DateTime {
+  String getWeekday() {
+    if (weekday == 1) {
+      return 'monday';
+    } else if (weekday == 2) {
+      return 'tuesday';
+    } else if (weekday == 3) {
+      return 'wednesday';
+    } else if (weekday == 4) {
+      return 'thursday';
+    } else if (weekday == 5) {
+      return 'friday';
+    } else if (weekday == 6) {
+      return 'saturday';
+    } else if (weekday == 7) {
+      return 'sunday';
+    } else {
+      return '';
+    }
+  }
+
   String getShortDate() {
     if (day.toString().endsWith('1')) {
       return '${day}st ${getShortMonthString()}';

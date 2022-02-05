@@ -526,11 +526,3 @@ class Recommendation {
 
   Recommendation(this.title, this.body, this.imageUrl);
 }
-
-class Tip {
-  String header = '';
-  String body = '';
-  Color imageColor = Config.appTipColor;
-
-  Tip(this.header, this.body);
-}

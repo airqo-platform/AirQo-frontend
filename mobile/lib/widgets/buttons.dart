@@ -1,6 +1,6 @@
+import 'package:app/auth/login_screen.dart';
+import 'package:app/auth/signup_screen.dart';
 import 'package:app/constants/config.dart';
-import 'package:app/on_boarding/login_screen.dart';
-import 'package:app/on_boarding/signup_screen.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/firebase_service.dart';
 import 'package:flutter/material.dart';

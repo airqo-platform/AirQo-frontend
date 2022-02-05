@@ -658,6 +658,8 @@ class CustomAuth {
   final SecureStorage _secureStorage = SecureStorage();
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
+  FirebaseAuth get firebaseAuth => _firebaseAuth;
+
   Future<UserDetails?> createProfile() async {
     var hasConnection = await isConnected();
     if (!hasConnection) {
@@ -1100,33 +1102,6 @@ class CustomAuth {
         stackTrace: stackTrace,
       );
     }
-  }
-
-  Future<bool> userExists(String? phoneNumber, String? email) async {
-    var hasConnection = await isConnected();
-    if (!hasConnection) {
-      return false;
-    }
-    try {
-      if (email != null) {
-        var methods = await _firebaseAuth.fetchSignInMethodsForEmail(email);
-        return methods.isNotEmpty;
-      }
-      // TODO implement phone checking
-      if (phoneNumber != null) {
-        await _firebaseAuth.signInAnonymously();
-        return _cloudStore.credentialsExist(phoneNumber, null);
-      }
-
-      return false;
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-    }
-    return false;
   }
 }
 

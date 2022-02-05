@@ -1,5 +1,5 @@
+import 'package:app/auth/signup_screen.dart';
 import 'package:app/constants/config.dart';
-import 'package:app/on_boarding/signup_screen.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';

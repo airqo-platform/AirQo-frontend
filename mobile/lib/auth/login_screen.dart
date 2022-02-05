@@ -1,5 +1,5 @@
-import 'package:app/on_boarding/email_auth_widget.dart';
-import 'package:app/on_boarding/phone_auth_widget.dart';
+import 'package:app/auth/email_auth_widget.dart';
+import 'package:app/auth/phone_auth_widget.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/custom_shimmer.dart';

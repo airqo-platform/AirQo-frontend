@@ -376,8 +376,7 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
     });
 
     if (widget.action == 'signup') {
-      var emailExists =
-          await _appService.customAuth.userExists(null, _emailAddress);
+      var emailExists = await _appService.doesUserExist('', _emailAddress);
 
       if (emailExists) {
         setState(() {

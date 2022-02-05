@@ -1,17 +1,9 @@
 import 'package:app/constants/config.dart';
-import 'package:app/models/historical_measurement.dart';
 import 'package:app/models/insights.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/utils/pm.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:intl/intl.dart';
-
-charts.Color getChartBarColor(HistoricalMeasurement series, pollutant) {
-  if (series.formattedTime.isAfter(DateTime.now())) {
-    return charts.ColorUtil.fromDartColor(Config.appColorPaleBlue);
-  }
-  return pmToChartColor(series.getPm2_5Value(), pollutant);
-}
 
 charts.Color insightsChartBarColor(Insights series, String pollutant) {
   if (series.empty) {

@@ -145,36 +145,4 @@ class PlaceDetailsModel extends ChangeNotifier {
       );
     }
   }
-
-// Future<void> loadFavouritePlaces(List<PlaceDetails> places) async {
-//   try {
-//     await _dbHelper.setFavouritePlaces(places).then((value) => {
-//           reloadFavouritePlaces(),
-//         });
-//   } catch (exception, stackTrace) {
-//     debugPrint('$exception\n$stackTrace');
-//     await Sentry.captureException(
-//       exception,
-//       stackTrace: stackTrace,
-//     );
-//   }
-// }
-
-}
-
-extension PlaceDetailsExtension on List<PlaceDetails> {
-  List<Map<String, dynamic>> toJson() {
-    var jsonObject = <Map<String, dynamic>>[];
-    for (var place in this) {
-      jsonObject.add(place.toJson());
-    }
-    return jsonObject;
-  }
-
-  List<PlaceDetails> removeDuplicates() {
-    /// TODO
-    /// implement remove duplicates and update loadFavPlaces()
-    /// method in AppService
-    return [];
-  }
 }

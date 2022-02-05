@@ -111,6 +111,11 @@ class AppService {
 
   Future<bool> doesUserExist(String phoneNumber, String emailAddress) async {
     try {
+      if (emailAddress.isNotEmpty) {
+        var methods = await _customAuth.firebaseAuth
+            .fetchSignInMethodsForEmail(emailAddress);
+        return methods.isNotEmpty;
+      }
       return _apiClient.checkIfUserExists(phoneNumber, emailAddress);
     } catch (exception, stackTrace) {
       debugPrint('$exception \n $stackTrace');

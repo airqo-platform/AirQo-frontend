@@ -1,8 +1,8 @@
+import 'package:app/auth/login_screen.dart';
+import 'package:app/auth/signup_screen.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/models/user_details.dart';
-import 'package:app/on_boarding/login_screen.dart';
-import 'package:app/on_boarding/signup_screen.dart';
 import 'package:app/screens/profile_edit_page.dart';
 import 'package:app/screens/settings_page.dart';
 import 'package:app/services/app_service.dart';

@@ -62,7 +62,6 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
         return const HomePage();
       }), (r) => false);
     });
-    loadProfile();
   }
 
   @override
@@ -72,11 +71,6 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
     updateOnBoardingPage('complete');
     initialize();
     super.initState();
-  }
-
-  /// TODO check the relevance of this funcionality
-  void loadProfile() async {
-    await _appService.postLoginActions();
   }
 
   Future<bool> onWillPop() {

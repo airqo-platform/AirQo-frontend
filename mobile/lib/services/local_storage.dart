@@ -1,15 +1,12 @@
 import 'dart:async';
 
 import 'package:app/constants/config.dart';
-import 'package:app/models/historical_measurement.dart';
 import 'package:app/models/insights.dart';
 import 'package:app/models/kya.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/models/place_details.dart';
-import 'package:app/models/predict.dart';
 import 'package:app/models/site.dart';
-import 'package:app/models/story.dart';
 import 'package:app/models/user_details.dart';
 import 'package:app/utils/distance.dart';
 import 'package:collection/collection.dart';
@@ -56,10 +53,7 @@ class DBHelper {
 
     if (createDatabases) {
       await db.execute(Measurement.dropTableStmt());
-      await db.execute(HistoricalMeasurement.dropTableStmt());
-      await db.execute(Predict.dropTableStmt());
       await db.execute(Site.dropTableStmt());
-      await db.execute(Story.dropTableStmt());
       await db.execute(PlaceDetails.dropTableStmt());
       await db.execute(UserNotification.dropTableStmt());
       await db.execute(Insights.dropTableStmt());
@@ -69,7 +63,6 @@ class DBHelper {
 
     await db.execute(Measurement.createTableStmt());
     await db.execute(Site.createTableStmt());
-    await db.execute(Story.createTableStmt());
     await db.execute(PlaceDetails.createTableStmt());
     await db.execute(UserNotification.createTableStmt());
     await db.execute(Insights.createTableStmt());
