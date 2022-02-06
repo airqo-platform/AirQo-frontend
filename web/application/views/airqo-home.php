@@ -382,7 +382,7 @@
 	}
 
 	$(window).load(function() {
-		var map = L.map('leafletmap', {dragging: true}).setView([0.328015, 32.595011], 8);
+		var map = L.map('leafletmap', {dragging: true}).setView([0.328015, 32.595011], 12);
 		map.addControl(new L.Control.Fullscreen());
 		if (L.Browser.mobile) {
 			map.scrollWheelZoom.disable();

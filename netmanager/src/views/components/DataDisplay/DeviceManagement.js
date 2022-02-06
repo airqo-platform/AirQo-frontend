@@ -54,7 +54,7 @@ const DEVICE_FILTER_FIELDS = {
   due: { key: "maintenance_status", value: "due" },
   overDue: { key: "maintenance_status", value: "overdue" },
   solar: { key: "powerType", value: "solar" },
-  alternator: { key: "powerType", value: "battery" },
+  alternator: { key: "powerType", value: "alternator" },
   mains: { key: "powerType", value: "mains" },
 };
 

@@ -38,6 +38,7 @@ $author = "Buzen Technologies";
 	<!-- //web fonts -->
 	<!-- Template CSS -->
 	<link rel="stylesheet" href="<?= base_url(); ?>assets/update/css/style-starter.css">
+	<link rel="stylesheet" href="<?= base_url(); ?>assets/update/css/faq.css">
 	<!-- add ckedtitor styles -->
 	<link rel="stylesheet" href="<?= base_url(); ?>assets/ckeditor/css/content-styles.css">
     <script src="<?php echo base_url(); ?>assets/bootstrap/js/jquery-2.1.4.min.js"></script>

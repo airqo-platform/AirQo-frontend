@@ -24,7 +24,7 @@ const DeviceVoltageChart = ({ deviceUptimeData }) => {
       options={timeSeriesChartOptions({})}
       series={batteryVoltageSeries}
       type="area"
-      green
+      blue
     />
   );
 };

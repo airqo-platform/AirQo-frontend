@@ -1,0 +1,141 @@
+.brushed-TS .metric-chart text {
+	fill: #565656;
+	font-size: 9px;
+	font-family: Helvetica, Arial, "sans serif";
+}
+
+.brushed-TS .metric-chart text.no-data {
+	font-size: 16px;
+	font-weight: 100;
+	fill:#d0d0d0;
+}
+
+.brushed-TS .metric-chart rect.no-data {
+	fill: #f5f5f5;
+}
+
+.brushed-TS {
+	padding: 5px;
+	position: relative;
+}
+
+.brushed-TS .metric-chart rect.plot-background{
+	fill: white;
+}
+
+.brushed-TS .metric-chart path.line {
+	fill: none;
+	stroke: #00AA8D; /* default, changed in each theme */
+	stroke-width: 1.5px;
+	clip-path: url(#clip);
+}
+
+.brushed-TS .metric-chart path.area {
+	fill: #00AA8D; /* CB default, changed in each theme */
+	opacity: 0.6;
+	clip-path: url(#clip);
+}
+
+.brushed-TS .metric-chart .axis {
+	shape-rendering: crispEdges;
+}
+
+.brushed-TS .metric-chart .x.axis .domain{
+	display:none;
+}
+
+.brushed-TS .metric-chart .x.axis line {
+	stroke: white;
+	opacity: 0.4;
+}
+
+.brushed-TS .metric-chart .context .x.axis line {
+	display: none;
+}
+
+.brushed-TS .metric-chart .y.axis .domain{
+	display: none;
+}
+
+.brushed-TS .metric-chart .y.axis.title{
+	font-size: 13px;
+	font-weight: 100;
+}
+
+.brushed-TS .metric-chart .y.axis line {
+	stroke: #565656;
+	stroke-dasharray: 2,2;
+	stroke-opacity: 0.3;
+}
+
+.brushed-TS .metric-chart .brush .extent {
+  fill-opacity: .07;
+	fill: #eaeaea;
+  shape-rendering: crispEdges;
+  clip-path: url(#clip);
+}
+
+.brushed-TS .metric-chart rect.pane {
+	cursor: move;
+	fill: none;
+	pointer-events: all;
+}
+
+.handle {
+	fill: #555;
+}
+
+.handle-mini {
+	fill: white;
+    stroke-width: 5px;
+    stroke: #555;
+}
+
+
+.brushed-TS .metric-chart .scale_button {
+	cursor: pointer;
+}
+
+.brushed-TS .metric-chart .scale_button rect {
+	fill: #eaeaea;
+}
+.brushed-TS .metric-chart .scale_button:hover text {
+	fill: #417DD6;
+	transition: all 0.1s cubic-bezier(.25,.8,.25,1);
+}
+
+.brushed-TS .metric-chart text#displayDates  {
+	font-weight: bold;
+}
+
+.legend {
+    font-size: 10px;
+    font-weight: bold;
+    text-anchor: middle;
+}
+
+.legend-pie {
+    font-size: 10px;
+    font-weight: bold;
+    text-anchor: left;
+}
+
+#d3-tooltip {
+	position: absolute;
+	z-index: 2000000000000000;
+	background-color: #FFFFFF;
+	color: #263238;
+	border: 0.5px solid #bec4c8;
+	border-radius: 5px;
+	padding: 5px;
+}
+
+div#d3-tooltip:before {
+  	content: ' ';
+	position: absolute;
+  	height: 0;
+	width: 0;
+	left: -13px;
+	border: 6px solid transparent;
+	border-right-color: #bec4c8;
+}

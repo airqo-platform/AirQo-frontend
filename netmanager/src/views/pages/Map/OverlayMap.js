@@ -205,7 +205,7 @@ const MapSettings = ({
           <MenuItem onClick={() => onSensorChange(!showSensors)}>
             <Checkbox checked={showSensors} color="default" /> Sensors
           </MenuItem>
-          <MenuItem onClick={() => onHeatmapChange(!showHeatmap)}>
+          <MenuItem disabled onClick={() => onHeatmapChange(!showHeatmap)}>
             <Checkbox checked={showHeatmap} color="default" /> Heatmap
           </MenuItem>
           <Divider />
