@@ -131,9 +131,9 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
 
   @override
   void initState() {
+    super.initState();
     _initialize();
     _requestVerification();
-    super.initState();
   }
 
   void setCode(value, position) {

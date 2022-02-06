@@ -212,9 +212,9 @@ class _ProfileViewState extends State<ProfileView> {
 
   @override
   void initState() {
+    super.initState();
     _appService = AppService(context);
     initialize();
-    super.initState();
   }
 
   Future<void> logOut() async {

@@ -292,8 +292,8 @@ class _InsightsTabState extends State<InsightsTab> {
 
   @override
   void initState() {
-    _initialize();
     super.initState();
+    _initialize();
   }
 
   Widget insightsGraph() {
@@ -895,7 +895,7 @@ class _InsightsTabState extends State<InsightsTab> {
 
   Future<void> _refreshPage() async {
     var placesInsights =
-        await _airqoApiClient!.fetchSitesInsights([widget.placeDetails.siteId]);
+        await _airqoApiClient!.fetchSitesInsights(widget.placeDetails.siteId);
 
     if (mounted) {
       var frequency = widget.daily ? 'daily' : 'hourly';

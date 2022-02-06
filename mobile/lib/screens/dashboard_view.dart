@@ -285,9 +285,9 @@ class _DashboardViewState extends State<DashboardView> {
 
   @override
   void initState() {
+    super.initState();
     _initialize();
     _handleScroll();
-    super.initState();
   }
 
   Widget kyaAvatar(double rightPadding, Kya kya) {
@@ -664,7 +664,9 @@ class _DashboardViewState extends State<DashboardView> {
     var measurements = await _appService.dbHelper.getRegionSites(region);
 
     if (measurements.isNotEmpty) {
-      setState(_dashBoardPlaces.clear);
+      setState(() {
+        _dashBoardPlaces.clear();
+      });
 
       var dashboardCards = <AnalyticsCard>[];
       for (var i = 0; i <= 5; i++) {
@@ -769,7 +771,7 @@ class _DashboardViewState extends State<DashboardView> {
       _getIncompleteKya();
       _getCompleteKya();
     }
-    _appService.fetchData();
+    await _appService.fetchData();
   }
 
   void _loadCompleteKya(List<Kya> completeKya) async {
@@ -825,8 +827,9 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   Future<void> _refresh() async {
-    await _appService.reloadData().then(
-        (value) => {_getLocationMeasurements(), _getDashboardLocations()});
+    await _appService.fetchLatestMeasurements();
+    _getLocationMeasurements();
+    _getDashboardLocations();
   }
 
   void _setGreetings() {

@@ -343,7 +343,8 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                           //   child: SizedBox(
                                           //     height: 8.0,
                                           //     width: 8.0,
-                                          //     child: CircularProgressIndicator(
+                                          //     child:
+                                          //     CircularProgressIndicator(
                                           //       strokeWidth: 1.2,
                                           //       color: Config
                                           //       .appColorBlue,
@@ -459,8 +460,8 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
 
   @override
   void initState() {
-    _appService = AppService(context);
     super.initState();
+    _appService = AppService(context);
   }
 
   void updateFavPlace() async {
@@ -711,8 +712,8 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
 
   @override
   void initState() {
-    _appService = AppService(context);
     super.initState();
+    _appService = AppService(context);
   }
 
   void updateFavPlace() async {

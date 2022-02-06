@@ -312,12 +312,12 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
 
   @override
   void initState() {
+    super.initState();
     setState(() {
       userDetails = widget.userDetails;
       _phoneEditor.text = widget.userDetails.phoneNumber;
       _emailEditor.text = widget.userDetails.emailAddress;
     });
-    super.initState();
   }
 
   InputDecoration profileFormFieldDecoration() {

@@ -364,9 +364,9 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
 
   @override
   void initState() {
+    super.initState();
     _appService = AppService(context);
     initialize();
-    super.initState();
   }
 
   Widget phoneInputField() {

@@ -134,10 +134,10 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   void initState() {
+    super.initState();
     _searchApiClient = SearchApi(_sessionToken, context);
     getSites();
     getUserLocation();
-    super.initState();
   }
 
   Widget loadMainView() {

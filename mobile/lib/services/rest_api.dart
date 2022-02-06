@@ -166,20 +166,20 @@ class AirqoApiClient {
     return <Insights>[];
   }
 
-  Future<List<Insights>> fetchSitesInsights(List<String> siteIds) async {
+  Future<List<Insights>> fetchSitesInsights(String siteIds) async {
     try {
       var insights = <Insights>[];
-      for (var siteId in siteIds) {
-        var siteInsights = await Future.wait([
-          fetchSiteInsights(siteId, true, true),
-          fetchSiteInsights(siteId, false, true),
-        ]);
 
-        insights.addAll(<Insights>[
-          ...siteInsights[0],
-          ...siteInsights[1],
-        ]);
-      }
+      var siteInsights = await Future.wait([
+        fetchSiteInsights(siteIds, true, true),
+        fetchSiteInsights(siteIds, false, true),
+      ]);
+
+      insights.addAll(<Insights>[
+        ...siteInsights[0],
+        ...siteInsights[1],
+      ]);
+
       return insights;
     } on Error catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
@@ -343,41 +343,6 @@ class AirqoApiClient {
       } else {
         return null;
       }
-    } on SocketException {
-      await showSnackBar(context, Config.socketErrorMessage);
-    } on TimeoutException {
-      await showSnackBar(context, Config.connectionErrorMessage);
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-      await showSnackBar(context, Config.appErrorMessage);
-    }
-
-    return null;
-  }
-
-  Future<dynamic> _performGetRequestV2(
-      Map<String, dynamic> queryParams, String url) async {
-    try {
-      if (queryParams.isNotEmpty) {
-        url = '$url?';
-        queryParams.forEach((key, value) {
-          if (queryParams.keys.elementAt(0).compareTo(key) == 0) {
-            url = '$url$key=$value';
-          } else {
-            url = '$url&$key=$value';
-          }
-        });
-      }
-
-      Map<String, String> headers = HashMap()
-        ..putIfAbsent('Authorization', () => 'JWT ${Config.airqoApiToken}');
-
-      final response = await httpClient.get(Uri.parse(url), headers: headers);
-      return json.decode(response.body);
     } on SocketException {
       await showSnackBar(context, Config.socketErrorMessage);
     } on TimeoutException {

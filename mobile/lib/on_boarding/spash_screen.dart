@@ -45,7 +45,7 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> initialize() async {
-    _appService.fetchData();
+    await _appService.dbHelper.deleteNonFavPlacesInsights();
 
     var isLoggedIn = _appService.isLoggedIn();
 
@@ -82,13 +82,15 @@ class SplashScreenState extends State<SplashScreen> {
         }
       }), (r) => false);
     });
+
+    await _appService.fetchData();
   }
 
   @override
   void initState() {
+    super.initState();
     _appService = AppService(context);
     initialize();
-    super.initState();
   }
 
   Widget logoWidget() {

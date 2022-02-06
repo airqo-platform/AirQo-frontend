@@ -140,10 +140,10 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   @override
   void initState() {
+    super.initState();
     _appService = AppService(context);
     initialize();
     updateOnBoardingPage();
-    super.initState();
   }
 
   Widget nameInputField() {

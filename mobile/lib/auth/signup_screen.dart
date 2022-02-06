@@ -42,10 +42,10 @@ class SignupScreenState extends State<SignupScreen> {
 
   @override
   void initState() {
+    super.initState();
     _appService = AppService(context);
     dialogContext = context;
     updateOnBoardingPage();
-    super.initState();
   }
 
   Future<bool> onWillPop() {

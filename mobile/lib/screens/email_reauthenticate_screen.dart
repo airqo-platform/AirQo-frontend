@@ -142,10 +142,10 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
 
   @override
   void initState() {
+    super.initState();
     _airqoApiClient = AirqoApiClient(context);
     initialize();
     _requestVerification();
-    super.initState();
   }
 
   Future<void> resendVerificationCode() async {

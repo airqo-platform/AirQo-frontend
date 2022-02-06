@@ -658,7 +658,8 @@ class ShareService {
     //
     // if (dialogResponse == 'image') {
     //   var boundary =
-    //       globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+    //       globalKey.currentContext!.findRenderObject() as
+    //       RenderRepaintBoundary;
     //   var image = await boundary.toImage(pixelRatio: 10.0);
     //   var byteData = await image.toByteData(format: ui.ImageByteFormat.png);
     //   var pngBytes = byteData!.buffer.asUint8List();

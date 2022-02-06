@@ -66,11 +66,11 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
 
   @override
   void initState() {
+    super.initState();
     _airqoApiClient = AirqoApiClient(context);
     _appService = AppService(context);
     updateOnBoardingPage('complete');
     initialize();
-    super.initState();
   }
 
   Future<bool> onWillPop() {

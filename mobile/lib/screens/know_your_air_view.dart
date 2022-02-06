@@ -49,8 +49,8 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
 
   @override
   void initState() {
-    _getKya();
     super.initState();
+    _getKya();
   }
 
   Widget kyaWidget(Kya kya) {

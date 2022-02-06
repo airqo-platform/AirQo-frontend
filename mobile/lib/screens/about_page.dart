@@ -3,6 +3,7 @@ import 'package:app/utils/web_view.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class AboutAirQo extends StatefulWidget {
   const AboutAirQo({Key? key}) : super(key: key);
@@ -12,6 +13,14 @@ class AboutAirQo extends StatefulWidget {
 }
 
 class _AboutAirQoState extends State<AboutAirQo> {
+  PackageInfo _packageInfo = PackageInfo(
+    appName: 'Unknown',
+    packageName: 'Unknown',
+    version: 'Unknown',
+    buildNumber: 'Unknown',
+    buildSignature: 'Unknown',
+  );
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,13 +39,13 @@ class _AboutAirQoState extends State<AboutAirQo> {
                     'assets/icon/airqo_home.svg',
                     height: 52.86,
                     width: 76.91,
-                    semanticsLabel: 'Search',
+                    semanticsLabel: 'Home',
                   ),
                   const SizedBox(
                     height: 21.32,
                   ),
                   Text(
-                    Config.appName,
+                    _packageInfo.appName,
                     style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
@@ -46,7 +55,7 @@ class _AboutAirQoState extends State<AboutAirQo> {
                     height: 12,
                   ),
                   Text(
-                    Config.version,
+                    '${_packageInfo.version}(${_packageInfo.buildNumber})',
                     style: TextStyle(fontSize: 16, color: Config.appColorBlack),
                   ),
                   const Spacer(),
@@ -66,5 +75,18 @@ class _AboutAirQoState extends State<AboutAirQo> {
                 ],
               ),
             )));
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _initPackageInfo();
+  }
+
+  Future<void> _initPackageInfo() async {
+    final info = await PackageInfo.fromPlatform();
+    setState(() {
+      _packageInfo = info;
+    });
   }
 }

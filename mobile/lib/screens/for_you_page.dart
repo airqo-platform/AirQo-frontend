@@ -125,8 +125,8 @@ class _ForYouPageState extends State<ForYouPage>
 
   @override
   void initState() {
-    _tabController = TabController(length: 2, vsync: this);
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
   }
 
   void onValueChanged(int? newValue) {

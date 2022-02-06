@@ -130,11 +130,11 @@ class _InsightsPageState extends State<InsightsPage>
 
   @override
   void initState() {
+    super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _airqoApiClient = AirqoApiClient(context);
     _fetchAllHourlyInsights();
     _fetchDailyInsights();
-    super.initState();
   }
 
   void _fetchAllHourlyInsights() async {

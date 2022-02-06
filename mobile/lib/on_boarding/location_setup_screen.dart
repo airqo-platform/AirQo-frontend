@@ -101,9 +101,9 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
 
   @override
   void initState() {
+    super.initState();
     _appService = AppService(context);
     updateOnBoardingPage();
-    super.initState();
   }
 
   Future<bool> onWillPop() {

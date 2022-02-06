@@ -112,9 +112,9 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
 
   @override
   void initState() {
+    super.initState();
     _appService = AppService(context);
     initialize();
-    super.initState();
   }
 
   Future<void> refreshData() async {

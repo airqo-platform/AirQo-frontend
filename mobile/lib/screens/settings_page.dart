@@ -222,9 +222,9 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   void initState() {
+    super.initState();
     _appService = AppService(context);
     initialize();
-    super.initState();
   }
 
   Widget settingsSection() {

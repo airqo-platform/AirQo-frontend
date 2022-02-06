@@ -36,8 +36,8 @@ class LoginScreenState extends State<LoginScreen> {
 
   @override
   void initState() {
-    dialogContext = context;
     super.initState();
+    dialogContext = context;
   }
 
   Future<bool> onWillPop() {

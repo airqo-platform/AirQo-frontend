@@ -198,9 +198,9 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
 
   @override
   void initState() {
+    super.initState();
     _appService = AppService(context);
     getMeasurement();
-    super.initState();
   }
 
   void updateFavPlace() async {

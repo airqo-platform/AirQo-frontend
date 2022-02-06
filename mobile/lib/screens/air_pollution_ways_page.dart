@@ -92,8 +92,8 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
 
   @override
   void dispose() {
-    _controller.dispose();
     super.dispose();
+    _controller.dispose();
   }
 
   Widget endView() {

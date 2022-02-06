@@ -309,9 +309,9 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
 
   @override
   void initState() {
+    super.initState();
     _airqoApiClient = AirqoApiClient(context);
     initialize();
-    super.initState();
   }
 
   Future<void> requestVerification() async {

@@ -291,8 +291,8 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
 
   @override
   void initState() {
-    initialize();
     super.initState();
+    initialize();
   }
 
   Widget phoneInputField() {

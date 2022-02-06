@@ -94,9 +94,9 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
 
   @override
   void initState() {
+    super.initState();
     _appService = AppService(context);
     updateOnBoardingPage();
-    super.initState();
   }
 
   Future<bool> onWillPop() {

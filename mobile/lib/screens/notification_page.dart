@@ -53,8 +53,8 @@ class _NotificationPageState extends State<NotificationPage> {
 
   @override
   void initState() {
-    _getNotifications(false);
     super.initState();
+    _getNotifications(false);
   }
 
   Widget mainSection() {

@@ -69,6 +69,38 @@ class DBHelper {
     await db.execute(Kya.createTableStmt());
   }
 
+  Future<void> deleteNonFavPlacesInsights() async {
+    try {
+      final db = await database;
+
+      var resFavPlaces = await db.query(PlaceDetails.dbName());
+
+      var favPlaces = resFavPlaces.isNotEmpty
+          ? List.generate(resFavPlaces.length, (i) {
+              return PlaceDetails.fromJson(resFavPlaces[i]).siteId;
+            })
+          : <String>[];
+
+      var resInsights = await db.query(Insights.dbName());
+
+      var insights = resInsights.isNotEmpty
+          ? List.generate(resInsights.length, (i) {
+              return Insights.fromJson(resInsights[i]).siteId;
+            }).toSet()
+          : <String>[];
+
+      var nonFavPlaces =
+          insights.where((element) => !favPlaces.contains(element));
+
+      for (var nonFavPlace in nonFavPlaces) {
+        await db.delete(Insights.dbName(),
+            where: 'siteId = ?', whereArgs: [nonFavPlace]);
+      }
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+    }
+  }
+
   Future<List<PlaceDetails>> getFavouritePlaces() async {
     try {
       final db = await database;

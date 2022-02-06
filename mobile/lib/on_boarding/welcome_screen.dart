@@ -76,9 +76,9 @@ class WelcomeScreenState extends State<WelcomeScreen> {
 
   @override
   void initState() {
+    super.initState();
     _appService = AppService(context);
     updateOnBoardingPage();
-    super.initState();
   }
 
   Future<bool> onWillPop() {

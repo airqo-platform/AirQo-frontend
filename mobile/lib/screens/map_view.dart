@@ -275,9 +275,9 @@ class _MapViewState extends State<MapView> {
 
   @override
   void initState() {
+    super.initState();
     _airqoApiClient = AirqoApiClient(context);
     _searchApiClient = SearchApi(sessionToken, context);
-    super.initState();
   }
 
   Widget locationContent() {

@@ -511,8 +511,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
 
   @override
   void initState() {
-    _airqoApiClient = AirqoApiClient(context);
     super.initState();
+    _airqoApiClient = AirqoApiClient(context);
   }
 
   void openWhatsapp() async {

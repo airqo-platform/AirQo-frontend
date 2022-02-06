@@ -139,16 +139,16 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> initialize() async {
-    _appService.fetchData();
+    await _appService.fetchData();
     await _getCloudStore();
   }
 
   @override
   void initState() {
+    super.initState();
     _appService = AppService(context);
     initialize();
     updateOnBoardingPage();
-    super.initState();
   }
 
   Future<bool> onWillPop() {

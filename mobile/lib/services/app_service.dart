@@ -128,30 +128,40 @@ class AppService {
     }
   }
 
-  void fetchData() {
-    _fetchLatestMeasurements();
-    _fetchKya();
-    loadNotifications();
-    loadFavPlaces();
-    _loadVisitedPlacesInsights();
+  Future<void> fetchData() async {
+    await Future.wait([
+      fetchLatestMeasurements(),
+      _fetchKya(),
+      loadNotifications(),
+      loadFavPlaces(),
+      fetchFavPlacesInsights(),
+    ]);
   }
 
   Future<void> fetchFavPlacesInsights() async {
     try {
       var favPlaces = await _dbHelper.getFavouritePlaces();
-      var favPlacesSiteIds = <String>[];
 
-      for (var element in favPlaces) {
-        favPlacesSiteIds.add(element.siteId);
+      if (favPlaces.isEmpty) {
+        return;
       }
 
-      var favPlacesInsights =
-          await _apiClient.fetchSitesInsights(favPlacesSiteIds);
+      var placeIds = '';
 
-      while (favPlacesInsights.isNotEmpty) {
-        var siteInsight = favPlacesInsights.first;
+      for (var favPlace in favPlaces) {
+        if (placeIds.isEmpty) {
+          placeIds = favPlace.siteId;
+        } else {
+          placeIds = '$placeIds,${favPlace.siteId}';
+        }
+      }
 
-        var filteredInsights = favPlacesInsights
+      var placesInsights = await _apiClient.fetchSitesInsights(placeIds);
+
+      while (placesInsights.isNotEmpty) {
+        var siteInsight = placesInsights.first;
+
+        var filteredInsights = placesInsights
             .where((element) =>
                 (element.siteId == siteInsight.siteId) &&
                 (element.frequency == siteInsight.frequency))
@@ -160,9 +170,20 @@ class AppService {
         await _dbHelper.insertInsights(
             filteredInsights, siteInsight.siteId, siteInsight.frequency);
 
-        favPlacesInsights.removeWhere((element) =>
+        placesInsights.removeWhere((element) =>
             (element.siteId == siteInsight.siteId) &&
             (element.frequency == siteInsight.frequency));
+      }
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+    }
+  }
+
+  Future<void> fetchLatestMeasurements() async {
+    try {
+      var measurements = await _apiClient.fetchLatestMeasurements();
+      if (measurements.isNotEmpty) {
+        await _dbHelper.insertLatestMeasurements(measurements);
       }
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
@@ -341,8 +362,11 @@ class AppService {
   }
 
   Future<void> reloadData() async {
-    await _fetchLatestMeasurements();
-    await _fetchKya();
+    await Future.wait([
+      fetchLatestMeasurements(),
+      _fetchKya(),
+      fetchFavPlacesInsights(),
+    ]);
   }
 
   Future<void> updateFavouritePlace(PlaceDetails placeDetails) async {
@@ -411,50 +435,6 @@ class AppService {
     try {
       var kyas = await _cloudStore.getKya(_customAuth.getUserId());
       await _dbHelper.insertKyas(kyas);
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-  }
-
-  Future<void> _fetchLatestMeasurements() async {
-    try {
-      await _apiClient.fetchLatestMeasurements().then((value) => {
-            if (value.isNotEmpty) {_dbHelper.insertLatestMeasurements(value)}
-          });
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-  }
-
-  Future<void> _loadVisitedPlacesInsights() async {
-    try {
-      var visitedPlaces = await _dbHelper.getVisitedPlaces();
-
-      if (visitedPlaces.isEmpty) {
-        debugPrint('Visited places is empty');
-        return;
-      }
-
-      for (var siteId in visitedPlaces) {
-        var placesInsights = await _apiClient.fetchSitesInsights([siteId]);
-
-        while (placesInsights.isNotEmpty) {
-          var siteInsight = placesInsights.first;
-
-          var filteredInsights = placesInsights
-              .where((element) =>
-                  (element.siteId == siteInsight.siteId) &&
-                  (element.frequency == siteInsight.frequency))
-              .toList();
-
-          await _dbHelper.insertInsights(
-              filteredInsights, siteInsight.siteId, siteInsight.frequency);
-
-          placesInsights.removeWhere((element) =>
-              (element.siteId == siteInsight.siteId) &&
-              (element.frequency == siteInsight.frequency));
-        }
-      }
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
