@@ -51,10 +51,48 @@ extension DateTimeExtension on DateTime {
     return false;
   }
 
+  bool isInWeek(String referenceWeek) {
+    var now = DateTime.now();
+    DateTime referenceDay;
+    DateTime lastDay;
+    if (referenceWeek.toLowerCase() == 'last') {
+      referenceDay =
+          now.subtract(const Duration(days: 7)).getDateOfFirstDayOfWeek();
+      lastDay = now.subtract(const Duration(days: 7)).getDateOfLastDayOfWeek();
+    } else if (referenceWeek.toLowerCase() == 'next') {
+      referenceDay = now.add(const Duration(days: 7)).getDateOfFirstDayOfWeek();
+      lastDay = now.add(const Duration(days: 7)).getDateOfLastDayOfWeek();
+    } else {
+      referenceDay = now.getDateOfFirstDayOfWeek();
+      lastDay = now.getDateOfLastDayOfWeek();
+    }
+
+    while (referenceDay != lastDay) {
+      if (day == referenceDay.day &&
+          month == referenceDay.month &&
+          year == referenceDay.year) {
+        return true;
+      }
+      referenceDay = referenceDay.add(const Duration(days: 1));
+    }
+
+    return false;
+  }
+
   bool isTomorrow() {
     if (day == tomorrow().day &&
         month == tomorrow().month &&
         year == tomorrow().year) {
+      return true;
+    }
+
+    return false;
+  }
+
+  bool isYesterday() {
+    if (day == yesterday().day &&
+        month == yesterday().month &&
+        year == yesterday().year) {
       return true;
     }
 

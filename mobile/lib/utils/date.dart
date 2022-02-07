@@ -79,29 +79,37 @@ String getGreetings(String name) {
 String insightsChartTitleDateTimeToString(DateTime dateTime, bool daily) {
   try {
     if (daily) {
-      return '${dateTime.getDateOfFirstDayOfWeek().getShortDate()}'
+      var prefix = '';
+      var suffix = '${dateTime.getDateOfFirstDayOfWeek().getShortDate()}'
           ' - '
           '${dateTime.getDateOfLastDayOfWeek().getShortDate()}';
+
+      if (dateTime.isInWeek('last')) {
+        prefix = 'Last Week';
+      } else if (dateTime.isInWeek('this')) {
+        prefix = 'This Week';
+      } else if (dateTime.isInWeek('next')) {
+        prefix = 'Next Week';
+      } else {
+        prefix = '';
+      }
+
+      return prefix == '' ? suffix : '$prefix, $suffix';
     } else {
       var prefix = '';
+      var suffix = dateTime.getShortDate();
 
       if (dateTime.isToday()) {
         prefix = 'Today';
-      } else if (dateTime.day == yesterday().day &&
-          dateTime.month == yesterday().month) {
+      } else if (dateTime.isYesterday()) {
         prefix = 'Yesterday';
-      } else if (dateTime.day == tomorrow().day &&
-          dateTime.month == tomorrow().month) {
+      } else if (dateTime.isTomorrow()) {
         prefix = 'Tomorrow';
       } else {
         prefix = '';
       }
 
-      if (prefix == '') {
-        return dateTime.getShortDate();
-      }
-
-      return '$prefix, ${dateTime.getShortDate()}';
+      return prefix == '' ? suffix : '$prefix, $suffix';
     }
   } on Error catch (exception, stackTrace) {
     debugPrint('$exception\n$stackTrace');

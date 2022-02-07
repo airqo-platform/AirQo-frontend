@@ -13,8 +13,8 @@
    <application
         android:requestLegacyExternalStorage="true"
         android:label="AirQo"
-        android:icon="@mipmap/launcher_icon">
-
+        android:icon="@mipmap/launcher_icon"
+        android:networkSecurityConfig="@xml/network_security_config">
 
        <meta-data android:name="com.google.android.geo.API_KEY"
            android:value="${googleMapsKey}"/>
