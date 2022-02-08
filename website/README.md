@@ -223,8 +223,10 @@ The `PATH` variable is updated with the `node_modules` path and `.env` loaded.
 Populate the `.env` file with the following keys and their respective values
 
     DATABASE_URI
-    WEB_STATIC_HOST
     SECRET_KEY
+    CLOUDINARY_NAME
+    CLOUDINARY_KEY
+    CLOUDINARY_SECRET
 
 Allow `direnv` to load the new changes
 
