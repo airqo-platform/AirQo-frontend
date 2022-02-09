@@ -1,11 +1,8 @@
 import 'package:animations/animations.dart';
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/notification.dart';
-import 'package:app/models/place_details.dart';
 import 'package:app/screens/profile_view.dart';
-import 'package:app/services/fb_notifications.dart';
-import 'package:app/services/local_storage.dart';
-import 'package:app/services/rest_api.dart';
+import 'package:app/services/app_service.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -23,22 +20,19 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   DateTime? _exitTime;
-  AirqoApiClient? _airqoApiClient;
   int _selectedIndex = 0;
 
-  final CustomAuth _customAuth = CustomAuth();
-  final DBHelper _dbHelper = DBHelper();
-  final CloudStore _cloudStore = CloudStore();
   final List<Widget> _widgetOptions = <Widget>[
     const DashboardView(),
     const MapView(),
     const ProfileView(),
   ];
+  late AppService _appService;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ColorConstants.appBodyColor,
+      backgroundColor: Config.appBodyColor,
       body: WillPopScope(
         onWillPop: onWillPop,
         child: PageTransitionSwitcher(
@@ -64,10 +58,11 @@ class _HomePageState extends State<HomePage> {
       ),
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
-            canvasColor: ColorConstants.appBodyColor,
-            primaryColor: ColorConstants.appColorBlack,
-            textTheme: Theme.of(context).textTheme.copyWith(
-                caption: TextStyle(color: ColorConstants.appColorBlack))),
+            canvasColor: Config.appBodyColor,
+            primaryColor: Config.appColorBlack,
+            textTheme: Theme.of(context)
+                .textTheme
+                .copyWith(caption: TextStyle(color: Config.appColorBlack))),
         child: BottomNavigationBar(
           items: <BottomNavigationBarItem>[
             BottomNavigationBarItem(
@@ -75,8 +70,8 @@ class _HomePageState extends State<HomePage> {
                 'assets/icon/home_icon.svg',
                 semanticsLabel: 'Home',
                 color: _selectedIndex == 0
-                    ? ColorConstants.appColorBlue
-                    : ColorConstants.appColorBlack.withOpacity(0.4),
+                    ? Config.appColorBlue
+                    : Config.appColorBlack.withOpacity(0.4),
               ),
               label: 'Home',
             ),
@@ -84,8 +79,8 @@ class _HomePageState extends State<HomePage> {
               icon: SvgPicture.asset(
                 'assets/icon/location.svg',
                 color: _selectedIndex == 1
-                    ? ColorConstants.appColorBlue
-                    : ColorConstants.appColorBlack.withOpacity(0.4),
+                    ? Config.appColorBlue
+                    : Config.appColorBlack.withOpacity(0.4),
                 semanticsLabel: 'AirQo Map',
               ),
               label: 'AirQo Map',
@@ -96,8 +91,8 @@ class _HomePageState extends State<HomePage> {
                   SvgPicture.asset(
                     'assets/icon/profile.svg',
                     color: _selectedIndex == 2
-                        ? ColorConstants.appColorBlue
-                        : ColorConstants.appColorBlack.withOpacity(0.4),
+                        ? Config.appColorBlue
+                        : Config.appColorBlack.withOpacity(0.4),
                     semanticsLabel: 'Search',
                   ),
                   Positioned(
@@ -109,8 +104,7 @@ class _HomePageState extends State<HomePage> {
                             height: 4,
                             width: 4,
                             decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: ColorConstants.red),
+                                shape: BoxShape.circle, color: Config.red),
                           );
                         }
                         return Container(
@@ -129,10 +123,10 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
           currentIndex: _selectedIndex,
-          selectedItemColor: ColorConstants.appColorBlue,
-          unselectedItemColor: ColorConstants.inactiveColor,
+          selectedItemColor: Config.appColorBlue,
+          unselectedItemColor: Config.inactiveColor,
           elevation: 0.0,
-          backgroundColor: ColorConstants.appBodyColor,
+          backgroundColor: Config.appBodyColor,
           onTap: _onItemTapped,
           showSelectedLabels: true,
           showUnselectedLabels: true,
@@ -145,16 +139,16 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> initialize() async {
-    _airqoApiClient = AirqoApiClient(context);
-    _getLatestMeasurements();
-    _getFavPlaces();
+    await _appService.fetchData();
     await _getCloudStore();
   }
 
   @override
   void initState() {
-    initialize();
     super.initState();
+    _appService = AppService(context);
+    initialize();
+    updateOnBoardingPage();
   }
 
   Future<bool> onWillPop() {
@@ -179,20 +173,15 @@ class _HomePageState extends State<HomePage> {
     return Future.value(true);
   }
 
+  void updateOnBoardingPage() async {
+    await _appService.preferencesHelper.updateOnBoardingPage('home');
+  }
+
   Future<void> _getCloudStore() async {
-    if (_customAuth.isLoggedIn()) {
-      await _cloudStore.monitorNotifications(context, _customAuth.getId());
+    if (_appService.customAuth.isLoggedIn()) {
+      await _appService.cloudStore
+          .monitorNotifications(context, _appService.customAuth.getUserId());
     }
-  }
-
-  void _getFavPlaces() {
-    Provider.of<PlaceDetailsModel>(context, listen: false)
-        .reloadFavouritePlaces();
-  }
-
-  void _getLatestMeasurements() {
-    _airqoApiClient!.fetchLatestMeasurements().then((value) =>
-        {if (value.isNotEmpty) _dbHelper.insertLatestMeasurements(value)});
   }
 
   void _onItemTapped(int index) {

@@ -1,17 +1,17 @@
 import 'dart:async';
 
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/screens/insights_page.dart';
-import 'package:app/services/fb_notifications.dart';
-import 'package:app/services/local_storage.dart';
+import 'package:app/services/app_service.dart';
+import 'package:app/services/native_api.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/pm.dart';
-import 'package:app/utils/share.dart';
+import 'package:app/widgets/tooltip.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
@@ -95,7 +95,7 @@ Widget mapMoreInsightsWidget(PlaceDetails placeDetails) {
           const SizedBox(width: 8.0),
           Text(
             'View More Insights',
-            style: TextStyle(fontSize: 12, color: ColorConstants.appColorBlue),
+            style: TextStyle(fontSize: 12, color: Config.appColorBlue),
           ),
           const Spacer(),
           SvgPicture.asset(
@@ -131,7 +131,7 @@ Widget moreInsightsWidget(PlaceDetails placeDetails, context) {
           const SizedBox(width: 8.0),
           Text(
             'View More Insights',
-            style: TextStyle(fontSize: 12, color: ColorConstants.appColorBlue),
+            style: TextStyle(fontSize: 12, color: Config.appColorBlue),
           ),
           const Spacer(),
           SvgPicture.asset(
@@ -176,13 +176,11 @@ class MapAnalyticsCard extends StatefulWidget {
 }
 
 class _AnalyticsCardState extends State<AnalyticsCard> {
-  final DBHelper _dbHelper = DBHelper();
+  AppService? _appService;
   bool _showHeartAnimation = false;
   final GlobalKey _globalKey = GlobalKey();
-  final String _infoToolTipText = 'Tap this icon'
-      ' to understand what air quality analytics mean';
   final GlobalKey _infoToolTipKey = GlobalKey();
-  final CustomAuth _customAuth = CustomAuth();
+  final ShareService _shareSvc = ShareService();
 
   @override
   Widget build(BuildContext context) {
@@ -206,7 +204,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
             children: [
               RepaintBoundary(
                   key: _globalKey,
-                  child: shareCardImage(
+                  child: _shareSvc.analyticsCardImage(
                       widget.measurement, widget.placeDetails, context)),
               Container(
                 color: Colors.white,
@@ -249,8 +247,9 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                   child: analyticsAvatar(
                                       widget.measurement, 104, 40, 12),
                                   onTap: () {
-                                    showTipText(_infoToolTipText,
-                                        _infoToolTipKey, context, () {}, false);
+                                    ToolTip(context, toolTipType.info).show(
+                                      widgetKey: _infoToolTipKey,
+                                    );
                                   },
                                 ),
                                 const SizedBox(width: 16.0),
@@ -293,14 +292,14 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                                   .withOpacity(0.4),
                                               border: Border.all(
                                                   color: Colors.transparent)),
-                                          child: Text(
+                                          child: AutoSizeText(
                                             pm2_5ToString(widget.measurement
                                                 .getPm2_5Value()),
+                                            maxFontSize: 14,
                                             maxLines: 1,
                                             textAlign: TextAlign.start,
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
-                                              fontSize: 14,
                                               color: pm2_5TextColor(widget
                                                   .measurement
                                                   .getPm2_5Value()),
@@ -308,12 +307,10 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                           ),
                                         ),
                                         onTap: () {
-                                          showTipText(
-                                              _infoToolTipText,
-                                              _infoToolTipKey,
-                                              context,
-                                              () {},
-                                              false);
+                                          ToolTip(context, toolTipType.info)
+                                              .show(
+                                            widgetKey: _infoToolTipKey,
+                                          );
                                         },
                                       ),
                                       const SizedBox(
@@ -346,9 +343,10 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                           //   child: SizedBox(
                                           //     height: 8.0,
                                           //     width: 8.0,
-                                          //     child: CircularProgressIndicator(
+                                          //     child:
+                                          //     CircularProgressIndicator(
                                           //       strokeWidth: 1.2,
-                                          //       color: ColorConstants
+                                          //       color: Config
                                           //       .appColorBlue,
                                           //     ),
                                           //   ),
@@ -400,13 +398,14 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                   widget.placeDetails.getName();
                               shareMeasurement.site.description =
                                   widget.placeDetails.getName();
-                              shareCard(context, _globalKey, shareMeasurement);
+                              _shareSvc.shareCard(
+                                  context, _globalKey, shareMeasurement);
                             },
                             child: iconTextButton(
                                 SvgPicture.asset(
                                   'assets/icon/share_icon.svg',
                                   semanticsLabel: 'Share',
-                                  color: ColorConstants.greyColor,
+                                  color: Config.greyColor,
                                 ),
                                 'Share'),
                           ),
@@ -461,21 +460,8 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
 
   @override
   void initState() {
-    showTips();
     super.initState();
-  }
-
-  void showTips() {
-    return;
-    if (widget.showHelpTip) {
-      Future.delayed(const Duration(seconds: 2), () {
-        try {
-          showTipText(_infoToolTipText, _infoToolTipKey, context, () {}, false);
-        } catch (e) {
-          debugPrint(e.toString());
-        }
-      });
-    }
+    _appService = AppService(context);
   }
 
   void updateFavPlace() async {
@@ -487,16 +473,15 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
         _showHeartAnimation = false;
       });
     });
-    await _dbHelper.updateFavouritePlaces(
-        widget.placeDetails, context, _customAuth.getId());
+    await _appService!.updateFavouritePlace(widget.placeDetails);
   }
 }
 
 class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
-  final DBHelper _dbHelper = DBHelper();
   bool _showHeartAnimation = false;
   final GlobalKey _globalKey = GlobalKey();
-  final CustomAuth _customAuth = CustomAuth();
+  final ShareService _shareSvc = ShareService();
+  AppService? _appService;
 
   @override
   Widget build(BuildContext context) {
@@ -516,7 +501,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
             children: [
               RepaintBoundary(
                   key: _globalKey,
-                  child: shareCardImage(
+                  child: _shareSvc.analyticsCardImage(
                       widget.measurement, widget.placeDetails, context)),
               Container(
                 color: Colors.white,
@@ -584,10 +569,11 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                               .withOpacity(0.4),
                                           border: Border.all(
                                               color: Colors.transparent)),
-                                      child: Text(
+                                      child: AutoSizeText(
                                         pm2_5ToString(
                                             widget.measurement.getPm2_5Value()),
                                         maxLines: 1,
+                                        maxFontSize: 14,
                                         textAlign: TextAlign.start,
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
@@ -663,12 +649,13 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                 widget.placeDetails.getName();
                             shareMeasurement.site.description =
                                 widget.placeDetails.getName();
-                            shareCard(context, _globalKey, shareMeasurement);
+                            _shareSvc.shareCard(
+                                context, _globalKey, shareMeasurement);
                           },
                           child: iconTextButton(
                               SvgPicture.asset(
                                 'assets/icon/share_icon.svg',
-                                color: ColorConstants.greyColor,
+                                color: Config.greyColor,
                                 semanticsLabel: 'Share',
                               ),
                               'Share'),
@@ -723,6 +710,12 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
     );
   }
 
+  @override
+  void initState() {
+    super.initState();
+    _appService = AppService(context);
+  }
+
   void updateFavPlace() async {
     setState(() {
       _showHeartAnimation = true;
@@ -732,7 +725,6 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
         _showHeartAnimation = false;
       });
     });
-    await _dbHelper.updateFavouritePlaces(
-        widget.placeDetails, context, _customAuth.getId());
+    await _appService!.updateFavouritePlace(widget.placeDetails);
   }
 }

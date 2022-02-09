@@ -1,12 +1,11 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/on_boarding/setup_complete_screeen.dart';
 import 'package:app/screens/home_page.dart';
+import 'package:app/services/app_service.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 class LocationSetupScreen extends StatefulWidget {
   final bool enableBackButton;
@@ -21,6 +20,7 @@ class LocationSetupScreen extends StatefulWidget {
 class LocationSetupScreenState extends State<LocationSetupScreen> {
   DateTime? exitTime;
   final LocationService _locationService = LocationService();
+  late AppService _appService;
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +56,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
           child: GestureDetector(
             onTap: () {
               _locationService
-                  .requestLocationAccess()
+                  .allowLocationAccess()
                   .then((value) => {
                         Navigator.pushAndRemoveUntil(context,
                             MaterialPageRoute(builder: (context) {
@@ -70,7 +70,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
                         }), (r) => false)
                       });
             },
-            child: nextButton('Yes, keep me safe', ColorConstants.appColorBlue),
+            child: nextButton('Yes, keep me safe', Config.appColorBlue),
           ),
         ),
         const SizedBox(
@@ -89,7 +89,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
             style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: ColorConstants.appColorBlue),
+                color: Config.appColorBlue),
           ),
         ),
         const SizedBox(
@@ -97,6 +97,13 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
         ),
       ]),
     ));
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _appService = AppService(context);
+    updateOnBoardingPage();
   }
 
   Future<bool> onWillPop() {
@@ -117,5 +124,9 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
     }
 
     return Future.value(true);
+  }
+
+  void updateOnBoardingPage() async {
+    await _appService.preferencesHelper.updateOnBoardingPage('location');
   }
 }

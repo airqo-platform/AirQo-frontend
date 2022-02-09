@@ -1,5 +1,4 @@
-import 'package:app/constants/app_constants.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:app/constants/config.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -8,11 +7,11 @@ Widget circularLoadingAnimation(double size) {
       height: size,
       width: size,
       child: Shimmer.fromColors(
-        baseColor: ColorConstants.appLoadingColor,
+        baseColor: Config.appLoadingColor,
         highlightColor: Colors.white,
         child: Container(
           decoration: BoxDecoration(
-            color: ColorConstants.appLoadingColor,
+            color: Config.appLoadingColor,
             shape: BoxShape.circle,
           ),
         ),
@@ -23,12 +22,12 @@ Widget containerLoadingAnimation(double height, double radius) {
   return SizedBox(
     height: height,
     child: Shimmer.fromColors(
-      baseColor: ColorConstants.appLoadingColor,
+      baseColor: Config.appLoadingColor,
       highlightColor: Colors.white,
       child: Container(
           constraints: BoxConstraints(minHeight: height, maxHeight: height),
           decoration: BoxDecoration(
-              color: ColorConstants.appLoadingColor,
+              color: Config.appLoadingColor,
               borderRadius: BorderRadius.all(Radius.circular(radius)))),
     ),
   );
@@ -39,11 +38,11 @@ void loadingScreen(BuildContext _context) async {
       context: _context,
       barrierDismissible: false,
       builder: (ctx) => Container(
-          decoration: BoxDecoration(
-              color: ColorConstants.appColorBlack.withOpacity(0.2)),
+          decoration:
+              BoxDecoration(color: Config.appColorBlack.withOpacity(0.2)),
           child: Center(
               child: CircularProgressIndicator(
-            color: ColorConstants.appColorBlue,
+            color: Config.appColorBlue,
           ))));
 }
 
@@ -53,7 +52,7 @@ Widget sizedContainerLoadingAnimation(
     height: height,
     width: width,
     child: Shimmer.fromColors(
-      baseColor: ColorConstants.appLoadingColor,
+      baseColor: Config.appLoadingColor,
       highlightColor: Colors.white,
       child: Container(
           constraints: BoxConstraints(
@@ -62,7 +61,7 @@ Widget sizedContainerLoadingAnimation(
               maxWidth: width,
               maxHeight: height),
           decoration: BoxDecoration(
-              color: ColorConstants.appLoadingColor,
+              color: Config.appLoadingColor,
               borderRadius: BorderRadius.all(Radius.circular(radius)))),
     ),
   );
@@ -73,7 +72,7 @@ Widget textLoadingAnimation(double height, double width) {
     height: height,
     width: width,
     child: Shimmer.fromColors(
-      baseColor: ColorConstants.appLoadingColor,
+      baseColor: Config.appLoadingColor,
       highlightColor: Colors.white,
       child: Container(
           constraints: BoxConstraints(
@@ -82,25 +81,10 @@ Widget textLoadingAnimation(double height, double width) {
               maxWidth: width,
               maxHeight: height),
           decoration: BoxDecoration(
-              color: ColorConstants.appLoadingColor,
+              color: Config.appLoadingColor,
               borderRadius: const BorderRadius.all(Radius.circular(2)))),
     ),
   );
-}
-
-class ExampleMainWidget extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final overlay = LoadingOverlay.of(context);
-    return Scaffold(
-        body: Center(
-            child: TextButton(
-                child: const Text('Press me!'),
-                onPressed: () async {
-                  await overlay
-                      .during(Future.delayed(const Duration(seconds: 2)));
-                })));
-  }
 }
 
 class LoadingOverlay {
@@ -114,7 +98,7 @@ class LoadingOverlay {
 
   Future<T> during<T>(Future<T> future) {
     show();
-    return future.whenComplete(() => hide());
+    return future.whenComplete(hide);
   }
 
   void hide() {

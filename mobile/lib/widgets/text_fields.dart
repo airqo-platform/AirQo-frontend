@@ -1,9 +1,7 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:country_list_pick/country_list_pick.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'custom_widgets.dart';
 
@@ -16,10 +14,10 @@ Widget countryPickerField(String placeholder, valueChange, context) {
         borderRadius: const BorderRadius.all(Radius.circular(10.0))),
     child: CountryListPick(
       appBar: AppBar(
-        backgroundColor: ColorConstants.appBodyColor,
+        backgroundColor: Config.appBodyColor,
         elevation: 0.0,
         iconTheme: IconThemeData(
-          color: ColorConstants.appColorBlue,
+          color: Config.appColorBlue,
         ),
         centerTitle: true,
         leading: Padding(
@@ -37,10 +35,10 @@ Widget countryPickerField(String placeholder, valueChange, context) {
         isShowCode: false,
         isDownIcon: true,
         showEnglishName: false,
-        labelColor: ColorConstants.appColorBlue,
-        alphabetSelectedBackgroundColor: ColorConstants.appColorBlue,
-        alphabetTextColor: ColorConstants.appColorBlue,
-        alphabetSelectedTextColor: ColorConstants.appColorBlue,
+        labelColor: Config.appColorBlue,
+        alphabetSelectedBackgroundColor: Config.appColorBlue,
+        alphabetTextColor: Config.appColorBlue,
+        alphabetSelectedTextColor: Config.appColorBlue,
       ), //show down icon on dropdown
       initialSelection: placeholder,
       onChanged: (CountryCode? code) {
@@ -62,8 +60,7 @@ Widget optField(position, context, callbackFn, bool codeSent) {
               ? Colors.white
               : const Color(0xff8D8D8D).withOpacity(0.1),
           border: Border.all(
-              color:
-                  codeSent ? ColorConstants.appColorBlue : Colors.transparent),
+              color: codeSent ? Config.appColorBlue : Colors.transparent),
           borderRadius: const BorderRadius.all(Radius.circular(8.0))),
       child: Center(
         child: TextFormField(
@@ -73,13 +70,13 @@ Widget optField(position, context, callbackFn, bool codeSent) {
             callbackFn(value, position);
           },
           showCursor: codeSent,
-          cursorColor: ColorConstants.appColorBlue,
+          cursorColor: Config.appColorBlue,
           readOnly: false,
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.w500,
-            color: ColorConstants.appColorBlue,
+            color: Config.appColorBlue,
             letterSpacing: 10.0,
           ),
           keyboardType: TextInputType.number,
@@ -108,9 +105,7 @@ Widget profilePicWidget(double height, double width, double iconSize,
           child: Container(
             padding: const EdgeInsets.all(2.0),
             decoration: BoxDecoration(
-                color: photoUrl == ''
-                    ? ColorConstants.appPicColor
-                    : Colors.transparent,
+                color: photoUrl == '' ? Config.appPicColor : Colors.transparent,
                 shape: BoxShape.rectangle,
                 borderRadius: BorderRadius.all(Radius.circular(radius))),
             child: Container(
@@ -145,7 +140,7 @@ Widget profilePicWidget(double height, double width, double iconSize,
               padding: const EdgeInsets.all(2.0),
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.white),
-                color: ColorConstants.appColorBlue,
+                color: Config.appColorBlue,
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -170,7 +165,7 @@ Widget tabLayout(String day, date, Color background, Color foreground) {
     padding: const EdgeInsets.all(1.0),
     decoration: BoxDecoration(
       color: background,
-      border: Border.all(color: ColorConstants.inactiveColor.withOpacity(0.1)),
+      border: Border.all(color: Config.inactiveColor.withOpacity(0.1)),
       borderRadius: const BorderRadius.all(Radius.circular(5.0)),
     ),
     child: Column(
@@ -194,7 +189,7 @@ Widget textInputCloseButton() {
     padding: const EdgeInsets.all(15),
     child: Container(
       decoration: BoxDecoration(
-          color: ColorConstants.greyColor.withOpacity(0.7),
+          color: Config.greyColor.withOpacity(0.7),
           borderRadius: const BorderRadius.all(Radius.circular(5.0))),
       height: 15,
       width: 15,

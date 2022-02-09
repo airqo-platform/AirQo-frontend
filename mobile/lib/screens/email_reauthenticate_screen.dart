@@ -1,17 +1,16 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/user_details.dart';
-import 'package:app/services/fb_notifications.dart';
+import 'package:app/services/firebase_service.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 class EmailReAuthenticateScreen extends StatefulWidget {
-  UserDetails userDetails;
+  final UserDetails userDetails;
 
-  EmailReAuthenticateScreen(
+  const EmailReAuthenticateScreen(
     this.userDetails, {
     Key? key,
   }) : super(key: key);
@@ -28,7 +27,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
   var _emailVerificationLink = '';
   var _showResendCode = false;
   var _emailVerificationCode = <String>['', '', '', '', '', ''];
-  var _nextBtnColor = ColorConstants.appColorDisabled;
+  var _nextBtnColor = Config.appColorDisabled;
 
   final CustomAuth _customAuth = CustomAuth();
   AirqoApiClient? _airqoApiClient;
@@ -91,7 +90,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
                   fontSize: 12,
                   color: _isResending
                       ? Colors.black.withOpacity(0.5)
-                      : ColorConstants.appColorBlue),
+                      : Config.appColorBlue),
             ),
           ),
         ),
@@ -124,7 +123,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
         style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: ColorConstants.appColorBlue),
+            color: Config.appColorBlue),
       ),
     );
   }
@@ -137,16 +136,16 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
       _emailVerificationLink = '';
       _showResendCode = false;
       _emailVerificationCode = <String>['', '', '', '', '', ''];
-      _nextBtnColor = ColorConstants.appColorDisabled;
+      _nextBtnColor = Config.appColorDisabled;
     });
   }
 
   @override
   void initState() {
+    super.initState();
     _airqoApiClient = AirqoApiClient(context);
     initialize();
     _requestVerification();
-    super.initState();
   }
 
   Future<void> resendVerificationCode() async {
@@ -175,11 +174,11 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
     var code = _emailVerificationCode.join('');
     if (code.length == 6) {
       setState(() {
-        _nextBtnColor = ColorConstants.appColorBlue;
+        _nextBtnColor = Config.appColorBlue;
       });
     } else {
       setState(() {
-        _nextBtnColor = ColorConstants.appColorDisabled;
+        _nextBtnColor = Config.appColorDisabled;
       });
     }
   }
@@ -197,14 +196,14 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
     }
 
     setState(() {
-      _nextBtnColor = ColorConstants.appColorDisabled;
+      _nextBtnColor = Config.appColorDisabled;
       _isVerifying = true;
     });
 
     if (code != _emailToken.toString()) {
       await showSnackBar(context, 'Invalid Code');
       setState(() {
-        _nextBtnColor = ColorConstants.appColorBlue;
+        _nextBtnColor = Config.appColorBlue;
         _isVerifying = false;
       });
       return;
@@ -222,7 +221,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
       Navigator.pop(context, true);
     } else {
       setState(() {
-        _nextBtnColor = ColorConstants.appColorBlue;
+        _nextBtnColor = Config.appColorBlue;
         _isVerifying = false;
       });
       await showSnackBar(
@@ -238,21 +237,21 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
     }
 
     setState(() {
-      _nextBtnColor = ColorConstants.appColorDisabled;
+      _nextBtnColor = Config.appColorDisabled;
       _isVerifying = true;
     });
 
     var emailVerificationResponse = await _airqoApiClient!
         .requestEmailVerificationCode(widget.userDetails.emailAddress, true);
 
-    if(!mounted){
+    if (!mounted) {
       return;
     }
 
     if (emailVerificationResponse == null) {
       await showSnackBar(context, 'email verification failed');
       setState(() {
-        _nextBtnColor = ColorConstants.appColorBlue;
+        _nextBtnColor = Config.appColorBlue;
         _isVerifying = false;
       });
       return;

@@ -1,4 +1,4 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -8,7 +8,7 @@ class ThemeController extends ChangeNotifier {
   String _currentTheme = 'light';
 
   ThemeController(this._prefs) {
-    _currentTheme = _prefs.getString(PrefConstant.appTheme) ?? 'light';
+    _currentTheme = _prefs.getString(Config.prefAppTheme) ?? 'light';
   }
 
   String get currentTheme => _currentTheme;
@@ -17,7 +17,7 @@ class ThemeController extends ChangeNotifier {
     _currentTheme = theme;
     notifyListeners();
 
-    _prefs.setString(PrefConstant.appTheme, theme);
+    _prefs.setString(Config.prefAppTheme, theme);
   }
 
   static ThemeController of(BuildContext context) {

@@ -1,13 +1,12 @@
-import 'package:app/constants/app_constants.dart';
-import 'package:app/services/fb_notifications.dart';
+import 'package:app/constants/config.dart';
+import 'package:app/services/firebase_service.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dialogs.dart';
-import 'package:app/utils/string_extension.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 class ChangeEmailScreen extends StatefulWidget {
   const ChangeEmailScreen({
@@ -27,7 +26,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
   var _requestCode = false;
   var _showResendCode = false;
   var _emailVerificationCode = <String>['', '', '', '', '', ''];
-  var _nextBtnColor = ColorConstants.appColorDisabled;
+  var _nextBtnColor = Config.appColorDisabled;
 
   final _emailFormKey = GlobalKey<FormState>();
   final CustomAuth _customAuth = CustomAuth();
@@ -136,7 +135,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
                   fontSize: 12,
                   color: _isResending
                       ? Colors.black.withOpacity(0.5)
-                      : ColorConstants.appColorBlue),
+                      : Config.appColorBlue),
             ),
           ),
         ),
@@ -183,7 +182,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
               style: TextStyle(
                   fontSize: 12,
                   color: _showResendCode
-                      ? ColorConstants.appColorBlue
+                      ? Config.appColorBlue
                       : Colors.black.withOpacity(0.5)),
             ),
           ),
@@ -223,7 +222,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
     setState(() {
       _emailAddress = '';
       _emailInputController.text = '';
-      _nextBtnColor = ColorConstants.appColorDisabled;
+      _nextBtnColor = Config.appColorDisabled;
     });
   }
 
@@ -234,14 +233,14 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
         padding: const EdgeInsets.only(left: 15),
         decoration: BoxDecoration(
             borderRadius: const BorderRadius.all(Radius.circular(8.0)),
-            border: Border.all(color: ColorConstants.appColorBlue)),
+            border: Border.all(color: Config.appColorBlue)),
         child: Center(
             child: TextFormField(
           controller: _emailInputController,
           autofocus: true,
           enableSuggestions: false,
           cursorWidth: 1,
-          cursorColor: ColorConstants.appColorBlue,
+          cursorColor: Config.appColorBlue,
           keyboardType: TextInputType.emailAddress,
           onChanged: emailValueChange,
           validator: (value) {
@@ -281,11 +280,11 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
   void emailValueChange(text) {
     if (text.toString().isEmpty || !_emailInputController.text.isValidEmail()) {
       setState(() {
-        _nextBtnColor = ColorConstants.appColorDisabled;
+        _nextBtnColor = Config.appColorDisabled;
       });
     } else {
       setState(() {
-        _nextBtnColor = ColorConstants.appColorBlue;
+        _nextBtnColor = Config.appColorBlue;
       });
     }
     setState(() {
@@ -303,16 +302,16 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
       _requestCode = false;
       _showResendCode = false;
       _emailVerificationCode = <String>['', '', '', '', '', ''];
-      _nextBtnColor = ColorConstants.appColorDisabled;
+      _nextBtnColor = Config.appColorDisabled;
       _user = _customAuth.getUser();
     });
   }
 
   @override
   void initState() {
+    super.initState();
     _airqoApiClient = AirqoApiClient(context);
     initialize();
-    super.initState();
   }
 
   Future<void> requestVerification() async {
@@ -329,7 +328,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
     }
 
     setState(() {
-      _nextBtnColor = ColorConstants.appColorDisabled;
+      _nextBtnColor = Config.appColorDisabled;
       _isVerifying = true;
     });
 
@@ -339,7 +338,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
     if (emailVerificationResponse == null) {
       await showSnackBar(context, 'email verification failed');
       setState(() {
-        _nextBtnColor = ColorConstants.appColorBlue;
+        _nextBtnColor = Config.appColorBlue;
         _isVerifying = false;
       });
       return;
@@ -384,11 +383,11 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
     var code = _emailVerificationCode.join('');
     if (code.length == 6) {
       setState(() {
-        _nextBtnColor = ColorConstants.appColorBlue;
+        _nextBtnColor = Config.appColorBlue;
       });
     } else {
       setState(() {
-        _nextBtnColor = ColorConstants.appColorDisabled;
+        _nextBtnColor = Config.appColorDisabled;
       });
     }
   }
@@ -406,14 +405,14 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
     }
 
     setState(() {
-      _nextBtnColor = ColorConstants.appColorDisabled;
+      _nextBtnColor = Config.appColorDisabled;
       _isVerifying = true;
     });
 
     if (code != _emailToken.toString()) {
       await showSnackBar(context, 'Invalid Code');
       setState(() {
-        _nextBtnColor = ColorConstants.appColorBlue;
+        _nextBtnColor = Config.appColorBlue;
         _isVerifying = false;
       });
       return;
@@ -431,7 +430,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
       Navigator.pop(context, true);
     } else {
       setState(() {
-        _nextBtnColor = ColorConstants.appColorBlue;
+        _nextBtnColor = Config.appColorBlue;
         _isVerifying = false;
       });
       await showSnackBar(context, 'Failed to update email address');

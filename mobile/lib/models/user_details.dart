@@ -4,15 +4,30 @@ part 'user_details.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class UserDetails {
+  @JsonKey(defaultValue: '')
   String title = '';
+
+  @JsonKey(defaultValue: '')
   String firstName = '';
+
+  @JsonKey(defaultValue: '')
   String userId = '';
+
+  @JsonKey(defaultValue: '')
   String lastName = '';
+
+  @JsonKey(defaultValue: '')
   String emailAddress = '';
+
+  @JsonKey(defaultValue: '')
   String phoneNumber = '';
+
+  @JsonKey(defaultValue: '')
   String device = '';
+
+  @JsonKey(defaultValue: '')
   String photoUrl = '';
-  UserPreferences preferences = UserPreferences(false, false, false);
+  UserPreferences preferences = UserPreferences(false, false, false, 0);
 
   UserDetails(
       this.title,
@@ -29,7 +44,9 @@ class UserDetails {
       _$UserDetailsFromJson(json);
 
   String getFullName() {
-    return '$firstName $lastName';
+    var fullName = '$firstName $lastName'.trim();
+
+    return fullName.isEmpty ? 'Hello' : fullName;
   }
 
   Map<String, dynamic> toJson() => _$UserDetailsToJson(this);
@@ -54,8 +71,8 @@ class UserDetails {
   }
 
   static UserDetails initialize() {
-    return UserDetails(
-        '', '', '', '', '', '', '', '', UserPreferences(false, false, false));
+    return UserDetails('Ms.', '', '', '', '', '', '', '',
+        UserPreferences(false, false, false, 0));
   }
 
   static UserDetails parseUserDetails(dynamic jsonBody) {
@@ -74,7 +91,11 @@ class UserPreferences {
   @JsonKey(defaultValue: false)
   bool alerts;
 
-  UserPreferences(this.notifications, this.location, this.alerts);
+  @JsonKey(defaultValue: 0)
+  int aqShares;
+
+  UserPreferences(
+      this.notifications, this.location, this.alerts, this.aqShares);
 
   factory UserPreferences.fromJson(Map<String, dynamic> json) =>
       _$UserPreferencesFromJson(json);

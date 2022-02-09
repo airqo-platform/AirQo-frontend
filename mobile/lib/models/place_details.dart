@@ -1,13 +1,13 @@
 import 'dart:collection';
 
-import 'package:app/constants/app_constants.dart';
 import 'package:app/models/site.dart';
 import 'package:app/services/local_storage.dart';
-import 'package:app/utils/string_extension.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:uuid/uuid.dart';
 
 import 'measurement.dart';
 
@@ -18,11 +18,12 @@ class PlaceDetails {
   String name;
   String location;
   String siteId;
+  String placeId = const Uuid().v4();
   double latitude;
   double longitude;
 
-  PlaceDetails(
-      this.name, this.location, this.siteId, this.latitude, this.longitude);
+  PlaceDetails(this.name, this.location, this.siteId, this.placeId,
+      this.latitude, this.longitude);
 
   factory PlaceDetails.fromJson(Map<String, dynamic> json) =>
       _$PlaceDetailsFromJson(json);
@@ -31,27 +32,21 @@ class PlaceDetails {
     if (location.isNull()) {
       return '';
     }
-    return location.toTitleCase();
+    return location;
   }
 
   String getName() {
     if (name.isNull()) {
       return getLocation();
     }
-    return name.toTitleCase();
-  }
-
-  PlaceDetails initialize() {
-    return PlaceDetails(
-        '', '', '', AppConfig.defaultLatitude, AppConfig.defaultLongitude);
+    return name;
   }
 
   Map<String, dynamic> toJson() => _$PlaceDetailsToJson(this);
 
   static String createTableStmt() => 'CREATE TABLE IF NOT EXISTS ${dbName()}('
-      'siteId TEXT PRIMARY KEY, latitude REAL, '
-      'location TEXT, longitude REAL, '
-      'name TEXT)';
+      'placeId TEXT PRIMARY KEY, latitude REAL, '
+      'location TEXT, longitude REAL, siteId TEXT, name TEXT)';
 
   static String dbName() => 'fav_places';
 
@@ -81,6 +76,7 @@ class PlaceDetails {
         measurement.site.getName(),
         measurement.site.getLocation(),
         measurement.site.id,
+        const Uuid().v4(),
         measurement.site.latitude,
         measurement.site.longitude);
   }
@@ -92,8 +88,8 @@ class PlaceDetails {
       try {
         var placeDetail = PlaceDetails.fromJson(jsonElement);
         placeDetails.add(placeDetail);
-      } catch (e) {
-        debugPrint(e.toString());
+      } catch (exception, stackTrace) {
+        debugPrint('$exception\n$stackTrace');
       }
     }
     return placeDetails;
@@ -102,24 +98,21 @@ class PlaceDetails {
   static PlaceDetails? parsePlaceDetails(dynamic jsonBody) {
     try {
       return PlaceDetails.fromJson(jsonBody);
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
     return null;
   }
 
   static PlaceDetails siteToPLace(Site site) {
     return PlaceDetails(site.getName(), site.getLocation(), site.id,
-        site.latitude, site.longitude);
+        const Uuid().v4(), site.latitude, site.longitude);
   }
 }
 
 class PlaceDetailsModel extends ChangeNotifier {
   final List<PlaceDetails> _favouritePlaces = [];
   final DBHelper _dbHelper = DBHelper();
-
-  // final CloudStore _cloudStore = CloudStore();
-  // final CustomAuth _customAuth = CustomAuth();
 
   UnmodifiableListView<PlaceDetails> get favouritePlaces =>
       UnmodifiableListView(_favouritePlaces);
@@ -130,25 +123,7 @@ class PlaceDetailsModel extends ChangeNotifier {
       await _dbHelper.clearFavouritePlaces();
       notifyListeners();
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-    }
-  }
-
-  Future<void> loadFavouritePlaces(List<PlaceDetails> places) async {
-    try {
-      // _favouritePlaces.addAll(places);
-      // notifyListeners();
-      await _dbHelper.setFavouritePlaces(places).then((value) => {
-            reloadFavouritePlaces(),
-          });
-    } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -159,17 +134,11 @@ class PlaceDetailsModel extends ChangeNotifier {
   Future<void> reloadFavouritePlaces() async {
     try {
       _favouritePlaces.clear();
-
       var favPlaces = await _dbHelper.getFavouritePlaces();
       _favouritePlaces.addAll(favPlaces);
       notifyListeners();
-      // var id = _customAuth.getId();
-      // if (_customAuth.isLoggedIn() && id != '') {
-      //   await _cloudStore.updateFavouritePlaces(id, favPlaces);
-      // }
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,

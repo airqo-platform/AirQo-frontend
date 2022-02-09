@@ -1,9 +1,8 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/notification.dart';
-import 'package:app/services/fb_notifications.dart';
+import 'package:app/services/firebase_service.dart';
 import 'package:app/services/local_storage.dart';
-import 'package:app/utils/date.dart';
-import 'package:app/utils/string_extension.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
@@ -32,7 +31,7 @@ class _NotificationPageState extends State<NotificationPage> {
       appBar: AppBar(
         centerTitle: true,
         elevation: 0,
-        backgroundColor: ColorConstants.appBodyColor,
+        backgroundColor: Config.appBodyColor,
         leading: Padding(
           padding: const EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
           child: backButton(context),
@@ -54,14 +53,14 @@ class _NotificationPageState extends State<NotificationPage> {
 
   @override
   void initState() {
-    _getNotifications(false);
     super.initState();
+    _getNotifications(false);
   }
 
   Widget mainSection() {
     if (_isLoading) {
       return Container(
-          color: ColorConstants.appBodyColor,
+          color: Config.appBodyColor,
           child: ListView.builder(
             itemBuilder: (BuildContext context, int index) {
               return placeHolder();
@@ -72,21 +71,21 @@ class _NotificationPageState extends State<NotificationPage> {
 
     if (_notifications.isEmpty) {
       return Container(
-        color: ColorConstants.appBodyColor,
+        color: Config.appBodyColor,
         padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
         child: Center(
           child: Text(
             'No notifications',
-            style: TextStyle(color: ColorConstants.appColor),
+            style: TextStyle(color: Config.appColor),
           ),
         ),
       );
     }
 
     return Container(
-        color: ColorConstants.appBodyColor,
+        color: Config.appBodyColor,
         child: RefreshIndicator(
-          color: ColorConstants.appColorBlue,
+          color: Config.appColorBlue,
           onRefresh: () async {
             await _getNotifications(true);
           },
@@ -115,8 +114,8 @@ class _NotificationPageState extends State<NotificationPage> {
     try {
       notificationDate =
           DateTime.parse(notification.time).notificationDisplayDate();
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
 
     return Container(
@@ -139,7 +138,7 @@ class _NotificationPageState extends State<NotificationPage> {
         leading: Container(
           padding: const EdgeInsets.all(10.0),
           decoration: BoxDecoration(
-            color: ColorConstants.appColorPaleBlue,
+            color: Config.appColorPaleBlue,
             shape: BoxShape.circle,
           ),
           child: SvgPicture.asset(
@@ -157,15 +156,15 @@ class _NotificationPageState extends State<NotificationPage> {
                   maxWidth: 43.35,
                 ),
                 decoration: BoxDecoration(
-                    color: ColorConstants.appColorPaleBlue,
+                    color: Config.appColorPaleBlue,
                     borderRadius:
                         const BorderRadius.all(Radius.circular(535.87))),
                 child: Column(
                   children: [
                     Text(
                       'New',
-                      style: TextStyle(
-                          fontSize: 10, color: ColorConstants.appColorBlue),
+                      style:
+                          TextStyle(fontSize: 10, color: Config.appColorBlue),
                     ),
                   ],
                 ))
@@ -180,8 +179,8 @@ class _NotificationPageState extends State<NotificationPage> {
                       notificationDate,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                          fontSize: 10, color: ColorConstants.appColorBlack),
+                      style:
+                          TextStyle(fontSize: 10, color: Config.appColorBlack),
                     ),
                   ],
                 )),
@@ -190,15 +189,14 @@ class _NotificationPageState extends State<NotificationPage> {
           style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: ColorConstants.appColorBlack),
+              color: Config.appColorBlack),
         ),
         subtitle: Text(
           notification.body,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
-              fontSize: 12,
-              color: ColorConstants.appColorBlack.withOpacity(0.4)),
+              fontSize: 12, color: Config.appColorBlack.withOpacity(0.4)),
         ),
       ),
     );
@@ -217,7 +215,7 @@ class _NotificationPageState extends State<NotificationPage> {
       duration: const Duration(milliseconds: 100),
       child: Container(
         padding: const EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 8.0),
-        color: ColorConstants.appBodyColor,
+        color: Config.appBodyColor,
         child: Column(
           children: [
             Container(
@@ -258,7 +256,7 @@ class _NotificationPageState extends State<NotificationPage> {
                           Container(
                             padding: const EdgeInsets.all(15.0),
                             decoration: BoxDecoration(
-                              color: ColorConstants.appColorPaleBlue,
+                              color: Config.appColorPaleBlue,
                               shape: BoxShape.circle,
                             ),
                             child: SvgPicture.asset(
@@ -276,7 +274,7 @@ class _NotificationPageState extends State<NotificationPage> {
                             style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: ColorConstants.appColorBlack),
+                                color: Config.appColorBlack),
                           ),
                           const SizedBox(
                             height: 8.0,
@@ -286,8 +284,7 @@ class _NotificationPageState extends State<NotificationPage> {
                             textAlign: TextAlign.center,
                             style: TextStyle(
                                 fontSize: 14,
-                                color: ColorConstants.appColorBlack
-                                    .withOpacity(0.4)),
+                                color: Config.appColorBlack.withOpacity(0.4)),
                           ),
                         ],
                       ),
@@ -303,7 +300,7 @@ class _NotificationPageState extends State<NotificationPage> {
   Future<void> updateNotification(UserNotification notification) async {
     Provider.of<NotificationModel>(context, listen: false).removeAll();
     await _cloudStore.markNotificationAsRead(
-        _customAuth.getId(), notification.id);
+        _customAuth.getUserId(), notification.id);
     await _getNotifications(false);
   }
 
@@ -322,7 +319,7 @@ class _NotificationPageState extends State<NotificationPage> {
       });
     }
 
-    var notifies = await _cloudStore.getNotifications(_customAuth.getId());
+    var notifies = await _cloudStore.getNotifications(_customAuth.getUserId());
     if (notifies.isEmpty) {
       if (mounted) {
         setState(() {

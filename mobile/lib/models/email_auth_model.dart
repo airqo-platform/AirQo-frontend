@@ -30,8 +30,7 @@ class EmailAuthModel {
       var emailSignupModel = EmailAuthModel.fromJson(jsonBody);
       return emailSignupModel;
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       Sentry.captureException(
         exception,
         stackTrace: stackTrace,

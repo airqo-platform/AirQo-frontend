@@ -28,7 +28,7 @@ Site _$SiteFromJson(Map<String, dynamic> json) {
     json['name'] as String,
     json['search_name'] as String? ?? '',
     json['description'] as String? ?? '',
-    json['region'] as String? ?? '',
+    json['region'] == null ? '' : regionFromJson(json['region']),
     (json['distance'] as num?)?.toDouble() ?? 0.0,
   );
 }

@@ -12,7 +12,7 @@ class SecureStorage {
   Future<UserDetails> getUserDetails() async {
     var userInfo = await _secureStorage.readAll();
     var userDetails = UserDetails.initialize()
-      ..title = userInfo['title'] ?? ''
+      ..title = userInfo['title'] ?? 'Ms.'
       ..firstName = userInfo['firstName'] ?? ''
       ..lastName = userInfo['lastName'] ?? ''
       ..photoUrl = userInfo['photoUrl'] ?? ''

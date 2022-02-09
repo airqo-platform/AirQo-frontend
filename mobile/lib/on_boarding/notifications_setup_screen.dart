@@ -1,10 +1,10 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/screens/home_page.dart';
-import 'package:app/services/fb_notifications.dart';
+import 'package:app/services/app_service.dart';
+import 'package:app/services/native_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 import 'location_setup_screen.dart';
 
@@ -22,6 +22,7 @@ class NotificationsSetupScreen extends StatefulWidget {
 class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
   DateTime? exitTime;
   final NotificationService _notificationService = NotificationService();
+  late AppService _appService;
 
   @override
   Widget build(BuildContext context) {
@@ -54,15 +55,14 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
             padding: const EdgeInsets.only(left: 24, right: 24),
             child: GestureDetector(
               onTap: () {
-                _notificationService.requestPermission().then((value) => {
+                _notificationService.allowNotifications().then((value) => {
                       Navigator.pushAndRemoveUntil(context,
                           MaterialPageRoute(builder: (context) {
                         return LocationSetupScreen(widget.enableBackButton);
                       }), (r) => false)
                     });
               },
-              child: nextButton(
-                  'Yes, keep me updated', ColorConstants.appColorBlue),
+              child: nextButton('Yes, keep me updated', Config.appColorBlue),
             ),
           ),
           const SizedBox(
@@ -81,7 +81,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
               style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: ColorConstants.appColorBlue),
+                  color: Config.appColorBlue),
             ),
           ),
           const SizedBox(
@@ -90,6 +90,13 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
         ]),
       ),
     ));
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _appService = AppService(context);
+    updateOnBoardingPage();
   }
 
   Future<bool> onWillPop() {
@@ -111,5 +118,9 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
     }
 
     return Future.value(true);
+  }
+
+  void updateOnBoardingPage() async {
+    await _appService.preferencesHelper.updateOnBoardingPage('notification');
   }
 }

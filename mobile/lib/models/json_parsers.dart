@@ -1,13 +1,25 @@
+import 'package:app/models/measurement_value.dart';
 import 'package:flutter/foundation.dart';
 
 import 'measurement.dart';
 
 bool boolFromJson(dynamic json) {
-  return '$json' == 'true' ? true : false;
+  return '$json'.toLowerCase() == 'true' ? true : false;
 }
 
 String boolToJson(bool boolValue) {
   return boolValue ? 'true' : 'false';
+}
+
+String frequencyFromJson(String frequency) {
+  return frequency.toLowerCase();
+}
+
+MeasurementValue measurementValueFromJson(dynamic json) {
+  if (json == null) {
+    return MeasurementValue(value: -0.1, calibratedValue: -0.1);
+  }
+  return MeasurementValue.fromJson(json);
 }
 
 Measurement parseMeasurement(dynamic jsonBody) {
@@ -30,8 +42,8 @@ List<Measurement> parseMeasurements(dynamic jsonBody) {
         measurement.time = formattedDate.toString();
         measurements.add(measurement);
       }
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
   }
   measurements.sort((siteA, siteB) => siteA.site
@@ -40,6 +52,32 @@ List<Measurement> parseMeasurements(dynamic jsonBody) {
       .compareTo(siteB.site.getName().toLowerCase()));
 
   return measurements;
+}
+
+String regionFromJson(dynamic json) {
+  if (json == null) {
+    return 'Central Region';
+  }
+  var regionJson = json as String;
+  if (regionJson.toLowerCase().contains('central')) {
+    return 'Central Region';
+  } else if (regionJson.toLowerCase().contains('east')) {
+    return 'Eastern Region';
+  } else if (regionJson.toLowerCase().contains('west')) {
+    return 'Western Region';
+  } else if (regionJson.toLowerCase().contains('north')) {
+    return 'Northern Region';
+  } else {
+    return 'Central Region';
+  }
+}
+
+String temperatureFromJson(dynamic _) {
+  return 'siteId';
+}
+
+String temperatureToJson(String _) {
+  return 'site_id';
 }
 
 DateTime timeFromJson(dynamic json) {

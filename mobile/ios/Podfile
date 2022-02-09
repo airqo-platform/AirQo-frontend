@@ -1,7 +1,7 @@
 # Uncomment this line to define a global platform for your project
 
-platform :ios, '14.5'
-# platform :ios, '10.0'
+# platform :ios, '14.5'
+platform :ios, '10.0'
 
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
@@ -35,6 +35,7 @@ target 'Runner' do
   use_modular_headers!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+  pod 'FirebaseFirestore', :git => 'https://github.com/invertase/firestore-ios-sdk-frameworks.git', :tag => '8.10.0'
 end
 
 post_install do |installer|
@@ -56,7 +57,3 @@ end
 
 # add pods for desired Firebase products
 # https://firebase.google.com/docs/ios/setup#available-pods
-
-# target 'Runner' do
-#   pod 'FirebaseFirestore', :git => 'https://github.com/invertase/firestore-ios-sdk-frameworks.git', :tag => '8.5.0'
-# end

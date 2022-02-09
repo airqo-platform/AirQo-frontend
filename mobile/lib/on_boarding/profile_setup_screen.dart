@@ -1,14 +1,13 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/user_details.dart';
 import 'package:app/screens/home_page.dart';
-import 'package:app/services/fb_notifications.dart';
+import 'package:app/services/app_service.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 import 'notifications_setup_screen.dart';
 
@@ -24,14 +23,14 @@ class ProfileSetupScreen extends StatefulWidget {
 class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   String _fullName = '';
   DateTime? _exitTime;
-  Color nextBtnColor = ColorConstants.appColorDisabled;
+  Color nextBtnColor = Config.appColorDisabled;
   bool _isSaving = false;
   bool _nameFormValid = false;
   bool _showDropDown = false;
-  String _title = 'Ms.';
+  late UserDetails _userDetails = UserDetails.initialize();
 
   final _formKey = GlobalKey<FormState>();
-  final CustomAuth _customAuth = CustomAuth();
+  late AppService _appService;
   final TextEditingController _controller = TextEditingController();
   final List<String> _titleOptions = ['Ms.', 'Mr.', 'Rather Not Say'];
 
@@ -116,7 +115,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: ColorConstants.appColorBlue),
+                            color: Config.appColorBlue),
                       ),
                     ),
                     const SizedBox(
@@ -135,20 +134,32 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
     });
   }
 
+  void initialize() async {
+    _userDetails = await _appService.secureStorage.getUserDetails();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _appService = AppService(context);
+    initialize();
+    updateOnBoardingPage();
+  }
+
   Widget nameInputField() {
     return Container(
         alignment: Alignment.center,
         padding: const EdgeInsets.only(left: 15),
         decoration: BoxDecoration(
             borderRadius: const BorderRadius.all(Radius.circular(8.0)),
-            border: Border.all(color: ColorConstants.appColorBlue)),
+            border: Border.all(color: Config.appColorBlue)),
         child: Center(
             child: TextFormField(
           controller: _controller,
           autofocus: true,
           enableSuggestions: false,
           cursorWidth: 1,
-          cursorColor: ColorConstants.appColorBlue,
+          cursorColor: Config.appColorBlue,
           keyboardType: TextInputType.name,
           onChanged: valueChange,
           validator: (value) {
@@ -210,18 +221,18 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
     try {
       if (_nameFormValid && !_isSaving) {
         setState(() {
-          nextBtnColor = ColorConstants.appColorDisabled;
+          nextBtnColor = Config.appColorDisabled;
           _isSaving = true;
         });
-        var userDetails = UserDetails.initialize()
-          ..title = _title
-          ..firstName = UserDetails.getNames(_fullName).first
-          ..lastName = UserDetails.getNames(_fullName).last;
+        setState(() {
+          _userDetails
+            ..firstName = UserDetails.getNames(_fullName).first
+            ..lastName = UserDetails.getNames(_fullName).last;
+        });
 
         var dialogContext = context;
         loadingScreen(dialogContext);
-
-        await _customAuth.updateProfile(userDetails).then((value) => {
+        await _appService.updateProfile(_userDetails).then((value) => {
               Navigator.pop(dialogContext),
               Navigator.pushAndRemoveUntil(context,
                   MaterialPageRoute(builder: (context) {
@@ -229,13 +240,13 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
               }), (r) => false)
             });
       }
-    } on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException catch (exception, stackTrace) {
       setState(() {
-        nextBtnColor = ColorConstants.appColorBlue;
+        nextBtnColor = Config.appColorBlue;
         _isSaving = false;
       });
       await showSnackBar(context, 'Failed to update profile. Try again later');
-      debugPrint(e.toString());
+      debugPrint('$exception\n$stackTrace');
     }
   }
 
@@ -258,7 +269,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('${_title.substring(0, 2)}.'),
+                Text('${_userDetails.title.substring(0, 2)}.'),
                 const Icon(
                   Icons.keyboard_arrow_down_sharp,
                   color: Colors.black,
@@ -292,9 +303,9 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       _titleOptions[index],
                       style: TextStyle(
                           fontSize: 14,
-                          color: _title == _titleOptions[index]
-                              ? ColorConstants.appColorBlack
-                              : ColorConstants.appColorBlack.withOpacity(0.32)),
+                          color: _userDetails.title == _titleOptions[index]
+                              ? Config.appColorBlack
+                              : Config.appColorBlack.withOpacity(0.32)),
                     ),
                   ),
                 );
@@ -308,7 +319,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
         width: 70,
         padding: const EdgeInsets.only(left: 10, right: 10),
         decoration: BoxDecoration(
-            color: ColorConstants.greyColor.withOpacity(0.2),
+            color: Config.greyColor.withOpacity(0.2),
             borderRadius: BorderRadius.circular(10)),
         child: Center(
           child: DropdownButton<String>(
@@ -318,7 +329,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
               color: Colors.black,
             ),
             iconSize: 10,
-            dropdownColor: ColorConstants.greyColor.withOpacity(0.2),
+            dropdownColor: Config.greyColor.withOpacity(0.2),
             elevation: 0,
             underline: const Visibility(visible: false, child: SizedBox()),
             style: const TextStyle(color: Colors.black),
@@ -340,9 +351,13 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
         ));
   }
 
+  void updateOnBoardingPage() async {
+    await _appService.preferencesHelper.updateOnBoardingPage('profile');
+  }
+
   void updateTitle(String text) {
     setState(() {
-      _title = text;
+      _userDetails.title = text;
       _showDropDown = false;
     });
   }
@@ -350,11 +365,11 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   void valueChange(text) {
     if (text.toString().isEmpty || text.toString() == '') {
       setState(() {
-        nextBtnColor = ColorConstants.appColorDisabled;
+        nextBtnColor = Config.appColorDisabled;
       });
     } else {
       setState(() {
-        nextBtnColor = ColorConstants.appColorBlue;
+        nextBtnColor = Config.appColorBlue;
       });
     }
     setState(() {

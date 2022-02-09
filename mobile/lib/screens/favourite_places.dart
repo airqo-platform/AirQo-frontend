@@ -1,6 +1,7 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/screens/search_page.dart';
+import 'package:app/services/app_service.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/widgets/favourite_place_card.dart';
 import 'package:flutter/material.dart';
@@ -14,13 +15,15 @@ class FavouritePlaces extends StatefulWidget {
 }
 
 class _FavouritePlacesState extends State<FavouritePlaces> {
+  late AppService _appService;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
         elevation: 0,
-        backgroundColor: ColorConstants.appBodyColor,
+        backgroundColor: Config.appBodyColor,
         leading: Padding(
           padding: const EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
           child: backButton(context),
@@ -31,7 +34,7 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
         ),
       ),
       body: Container(
-          color: ColorConstants.appBodyColor,
+          color: Config.appBodyColor,
           child: Consumer<PlaceDetailsModel>(
             builder: (context, placeDetailsModel, child) {
               if (placeDetailsModel.favouritePlaces.isEmpty) {
@@ -39,7 +42,7 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
               }
 
               return RefreshIndicator(
-                color: ColorConstants.appColorBlue,
+                color: Config.appColorBlue,
                 onRefresh: refreshData,
                 child: ListView.builder(
                   itemBuilder: (context, index) => Padding(
@@ -57,7 +60,7 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
 
   Widget emptyPlaces() {
     return Container(
-      color: ColorConstants.appBodyColor,
+      color: Config.appBodyColor,
       child: Container(
         padding: const EdgeInsets.all(40.0),
         child: Column(
@@ -94,7 +97,7 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
               ),
               child: Text(
                 'Add',
-                style: TextStyle(color: ColorConstants.appColor),
+                style: TextStyle(color: Config.appColor),
               ),
             )
           ],
@@ -103,8 +106,20 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
     );
   }
 
+  Future<void> initialize() async {
+    await _appService.fetchFavPlacesInsights();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _appService = AppService(context);
+    initialize();
+  }
+
   Future<void> refreshData() async {
     await Provider.of<PlaceDetailsModel>(context, listen: false)
         .reloadFavouritePlaces();
+    await initialize();
   }
 }

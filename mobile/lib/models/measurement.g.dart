@@ -11,21 +11,20 @@ Measurement _$MeasurementFromJson(Map<String, dynamic> json) {
     json,
     requiredKeys: const [
       'time',
-      'average_pm2_5',
-      'average_pm10',
+      'pm2_5',
+      'pm10',
       'siteDetails',
       'device_number'
     ],
   );
   return Measurement(
     json['time'] as String,
-    MeasurementValue.fromJson(json['average_pm2_5'] as Map<String, dynamic>),
-    MeasurementValue.fromJson(json['average_pm10'] as Map<String, dynamic>),
-    MeasurementValue.fromJson(json['altitude'] as Map<String, dynamic>),
-    MeasurementValue.fromJson(json['speed'] as Map<String, dynamic>),
-    MeasurementValue.fromJson(
-        json['externalTemperature'] as Map<String, dynamic>),
-    MeasurementValue.fromJson(json['externalHumidity'] as Map<String, dynamic>),
+    MeasurementValue.fromJson(json['pm2_5'] as Map<String, dynamic>),
+    MeasurementValue.fromJson(json['pm10'] as Map<String, dynamic>),
+    measurementValueFromJson(json['altitude']),
+    measurementValueFromJson(json['speed']),
+    measurementValueFromJson(json['externalTemperature']),
+    measurementValueFromJson(json['externalHumidity']),
     Site.fromJson(json['siteDetails'] as Map<String, dynamic>),
     json['device_number'] as int,
   );
@@ -34,8 +33,8 @@ Measurement _$MeasurementFromJson(Map<String, dynamic> json) {
 Map<String, dynamic> _$MeasurementToJson(Measurement instance) =>
     <String, dynamic>{
       'time': instance.time,
-      'average_pm2_5': instance.pm2_5,
-      'average_pm10': instance.pm10,
+      'pm2_5': instance.pm2_5,
+      'pm10': instance.pm10,
       'altitude': instance.altitude,
       'speed': instance.speed,
       'externalTemperature': instance.temperature,

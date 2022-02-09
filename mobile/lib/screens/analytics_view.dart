@@ -1,4 +1,4 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/services/local_storage.dart';
@@ -20,7 +20,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
   @override
   Widget build(BuildContext context) {
     return Container(
-        color: ColorConstants.appBodyColor,
+        color: Config.appBodyColor,
         child: FutureBuilder(
             future: _dbHelper.getLatestMeasurements(),
             builder: (context, snapshot) {
@@ -39,7 +39,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                         ),
                         child: Text(
                           'No analytics at the moment',
-                          style: TextStyle(color: ColorConstants.appColor),
+                          style: TextStyle(color: Config.appColor),
                         ),
                       ),
                     ),
@@ -47,7 +47,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                 }
 
                 return RefreshIndicator(
-                  color: ColorConstants.appColorBlue,
+                  color: Config.appColorBlue,
                   onRefresh: refreshData,
                   child: ListView.builder(
                     itemBuilder: (context, index) => MiniAnalyticsCard(

@@ -1,7 +1,6 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/utils/pm.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 Widget recommendationContainer(Recommendation recommendation, context) {
   return Container(
@@ -49,7 +48,7 @@ Widget recommendationContainer(Recommendation recommendation, context) {
                   maxLines: 4,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                      color: ColorConstants.appColorBlack,
+                      color: Config.appColorBlack,
                       fontWeight: FontWeight.bold,
                       fontSize: 16),
                 ),
@@ -61,7 +60,7 @@ Widget recommendationContainer(Recommendation recommendation, context) {
                   maxLines: 4,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                      color: ColorConstants.appColorBlack.withOpacity(0.5),
+                      color: Config.appColorBlack.withOpacity(0.5),
                       fontSize: 14),
                 )
               ],

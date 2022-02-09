@@ -1,12 +1,15 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/auth/login_screen.dart';
+import 'package:app/auth/signup_screen.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/models/user_details.dart';
-import 'package:app/on_boarding/signup_screen.dart';
+import 'package:app/screens/profile_edit_page.dart';
 import 'package:app/screens/settings_page.dart';
-import 'package:app/screens/view_profile_page.dart';
-import 'package:app/services/fb_notifications.dart';
-import 'package:app/services/secure_storage.dart';
+import 'package:app/services/app_service.dart';
+import 'package:app/utils/dialogs.dart';
+import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/text_fields.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
@@ -24,10 +27,8 @@ class ProfileView extends StatefulWidget {
 
 class _ProfileViewState extends State<ProfileView> {
   UserDetails _userProfile = UserDetails.initialize();
-  final CustomAuth _customAuth = CustomAuth();
   bool _isLoggedIn = false;
-  final CloudAnalytics _cloudAnalytics = CloudAnalytics();
-  final SecureStorage _secureStorage = SecureStorage();
+  late AppService _appService;
 
   Widget appNavBar() {
     return Row(
@@ -75,89 +76,81 @@ class _ProfileViewState extends State<ProfileView> {
           title: appNavBar(),
           elevation: 0,
           toolbarHeight: 68,
-          backgroundColor: ColorConstants.appBodyColor,
+          backgroundColor: Config.appBodyColor,
         ),
         body: Container(
-            color: ColorConstants.appBodyColor,
-            child: RefreshIndicator(
-                onRefresh: initialize,
-                color: ColorConstants.appColorBlue,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Visibility(
-                          visible: _isLoggedIn,
-                          child: Expanded(
-                            child: ListView(
-                              shrinkWrap: true,
-                              children: <Widget>[
-                                Text(
-                                  _userProfile.getFullName(),
-                                  style: const TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                GestureDetector(
-                                  onTap: () async {
-                                    await viewProfile();
-                                  },
-                                  child: Text(
-                                    'Edit profile',
-                                    style: TextStyle(
-                                        fontSize: 16,
-                                        color: ColorConstants.appColorBlue),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.fromLTRB(
-                                      0.0, 16.0, 0.0, 0.0),
-                                  child: profileSection(),
-                                ),
-                              ],
+            color: Config.appBodyColor,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Visibility(
+                      visible: _isLoggedIn,
+                      child: Expanded(
+                        child: ListView(
+                          shrinkWrap: true,
+                          children: <Widget>[
+                            AutoSizeText(
+                              _userProfile.getFullName(),
+                              maxLines: 2,
+                              style: const TextStyle(
+                                  fontSize: 24, fontWeight: FontWeight.bold),
                             ),
-                          )),
-                      Visibility(
-                        visible: _isLoggedIn,
-                        child: logoutSection(
-                            'Logout',
-                            'assets/icon/location.svg',
-                            ColorConstants.appColorBlue,
-                            logOut),
-                      ),
-                      Visibility(
-                          visible: !_isLoggedIn,
-                          child: Expanded(
-                            child: ListView(
-                              shrinkWrap: true,
-                              children: <Widget>[
-                                const Text(
-                                  'Guest',
-                                  style: TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.fromLTRB(
-                                      0.0, 16.0, 0.0, 0.0),
-                                  child: signupSection(),
-                                ),
-                                const SizedBox(
-                                  height: 16,
-                                ),
-                                cardSection('Settings', 'assets/icon/cog.svg',
-                                    ColorConstants.appColorBlue, settings),
-                              ],
+                            GestureDetector(
+                              onTap: () async {
+                                await viewProfile();
+                              },
+                              child: Text(
+                                'Edit profile',
+                                style: TextStyle(
+                                    fontSize: 16, color: Config.appColorBlue),
+                              ),
                             ),
-                          )),
-                      const SizedBox(
-                        height: 32,
-                      ),
-                    ],
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(
+                                  0.0, 16.0, 0.0, 0.0),
+                              child: profileSection(),
+                            ),
+                          ],
+                        ),
+                      )),
+                  Visibility(
+                    visible: _isLoggedIn,
+                    child: logoutSection('Logout', 'assets/icon/location.svg',
+                        Config.appColorBlue, logOut),
                   ),
-                ))));
+                  Visibility(
+                      visible: !_isLoggedIn,
+                      child: Expanded(
+                        child: ListView(
+                          shrinkWrap: true,
+                          children: <Widget>[
+                            const Text(
+                              'Guest',
+                              style: TextStyle(
+                                  fontSize: 24, fontWeight: FontWeight.bold),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(
+                                  0.0, 16.0, 0.0, 0.0),
+                              child: signupSection(),
+                            ),
+                            const SizedBox(
+                              height: 16,
+                            ),
+                            cardSection('Settings', 'assets/icon/cog.svg',
+                                Config.appColorBlue, settings),
+                          ],
+                        ),
+                      )),
+                  const SizedBox(
+                    height: 32,
+                  ),
+                ],
+              ),
+            )));
   }
 
   Widget cardSection(text, icon, iconColor, callBackFn) {
@@ -173,7 +166,7 @@ class _ProfileViewState extends State<ProfileView> {
               height: 40,
               width: 40,
               decoration: BoxDecoration(
-                  color: ColorConstants.appColorBlue.withOpacity(0.15),
+                  color: Config.appColorBlue.withOpacity(0.15),
                   shape: BoxShape.circle),
               child: Center(
                 child: SvgPicture.asset(icon, color: iconColor),
@@ -203,13 +196,12 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   Future<void> initialize() async {
-    _cloudAnalytics.logScreenTransition('Profile Page');
     setState(() {
-      _isLoggedIn = _customAuth.isLoggedIn();
+      _isLoggedIn = _appService.customAuth.isLoggedIn();
     });
 
     if (_isLoggedIn) {
-      var userDetails = await _secureStorage.getUserDetails();
+      var userDetails = await _appService.secureStorage.getUserDetails();
       if (mounted) {
         setState(() {
           _userProfile = userDetails;
@@ -220,15 +212,30 @@ class _ProfileViewState extends State<ProfileView> {
 
   @override
   void initState() {
-    initialize();
     super.initState();
+    _appService = AppService(context);
+    initialize();
   }
 
-  void logOut() {
+  Future<void> logOut() async {
+    var loadingContext = context;
+    loadingScreen(loadingContext);
+
     setState(() {
       _userProfile = UserDetails.initialize();
     });
-    _customAuth.logOut(context).then((value) => {initialize()});
+
+    var successful = await _appService.logOut(context);
+    if (successful) {
+      Navigator.pop(loadingContext);
+      await Navigator.pushAndRemoveUntil(context,
+          MaterialPageRoute(builder: (context) {
+        return const LoginScreen();
+      }), (r) => false);
+    } else {
+      Navigator.pop(loadingContext);
+      await showSnackBar(context, 'failed to logout. Try again later');
+    }
   }
 
   Widget logoutSection(text, icon, iconColor, callBackFn) {
@@ -238,12 +245,12 @@ class _ProfileViewState extends State<ProfileView> {
         height: 48,
         padding: const EdgeInsets.only(top: 12, bottom: 12),
         decoration: BoxDecoration(
-            color: ColorConstants.appColorBlue.withOpacity(0.1),
+            color: Config.appColorBlue.withOpacity(0.1),
             borderRadius: const BorderRadius.all(Radius.circular(8.0))),
         child: Center(
           child: Text(
             'Log Out',
-            style: TextStyle(fontSize: 16, color: ColorConstants.appColorBlue),
+            style: TextStyle(fontSize: 16, color: Config.appColorBlue),
           ),
         ),
       ),
@@ -266,22 +273,22 @@ class _ProfileViewState extends State<ProfileView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          cardSection('Profile', 'assets/icon/profile.svg',
-              ColorConstants.appColorBlue, viewProfile),
+          cardSection('Profile', 'assets/icon/profile.svg', Config.appColorBlue,
+              viewProfile),
           Divider(
-            color: ColorConstants.appBodyColor,
+            color: Config.appBodyColor,
           ),
           cardSection('Favorites', 'assets/icon/heart.svg', null, favPlaces),
           Divider(
-            color: ColorConstants.appBodyColor,
+            color: Config.appBodyColor,
           ),
           cardSection('For you', 'assets/icon/sparkles.svg',
-              ColorConstants.appColorBlue, forYou),
+              Config.appColorBlue, forYou),
           Divider(
-            color: ColorConstants.appBodyColor,
+            color: Config.appBodyColor,
           ),
-          cardSection('Settings', 'assets/icon/cog.svg',
-              ColorConstants.appColorBlue, settings),
+          cardSection(
+              'Settings', 'assets/icon/cog.svg', Config.appColorBlue, settings),
         ],
       ),
     );
@@ -329,20 +336,17 @@ class _ProfileViewState extends State<ProfileView> {
           ),
           GestureDetector(
             onTap: () async {
-              var saved = await Navigator.push(context,
+              await Navigator.pushAndRemoveUntil(context,
                   MaterialPageRoute(builder: (context) {
-                return const SignupScreen(true);
-              }));
-              if (saved != null && saved) {
-                await initialize();
-              }
+                return const SignupScreen(false);
+              }), (r) => false);
             },
             child: Padding(
               padding: const EdgeInsets.only(left: 24, right: 24, bottom: 38),
               child: Container(
                 constraints: const BoxConstraints(minWidth: double.infinity),
                 decoration: BoxDecoration(
-                    color: ColorConstants.appColorBlue,
+                    color: Config.appColorBlue,
                     borderRadius: const BorderRadius.all(Radius.circular(8.0))),
                 child: const Tab(
                     child: Text(
@@ -361,7 +365,7 @@ class _ProfileViewState extends State<ProfileView> {
 
   Future<void> viewProfile() async {
     await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return ViewProfilePage(_userProfile);
+      return ProfileEditPage(_userProfile);
     })).whenComplete(() => {initialize()});
   }
 }
