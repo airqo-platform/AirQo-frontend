@@ -27,4 +27,5 @@ def webpack_dev_server(context):
 @task(name='run-web')
 def python_server(context):
     """run python server"""
+    run('python manage.py migrate', echo=True)
     run('python manage.py runserver', echo=True)
