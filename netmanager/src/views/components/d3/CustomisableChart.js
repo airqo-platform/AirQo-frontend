@@ -76,6 +76,24 @@ const styles = (theme) => ({
   },
 });
 
+const pollutantLabelMapper = {
+  "PM 2.5": (
+    <span>
+      PM<sub>2.5</sub>
+    </span>
+  ),
+  "PM 10": (
+    <span>
+      PM<sub>10</sub>
+    </span>
+  ),
+  NO2: (
+    <span>
+      NO<sub>2</sub>
+    </span>
+  ),
+};
+
 const DialogTitle = withStyles(styles)((props) => {
   const { children, classes, onClose, ...other } = props;
   return (
@@ -361,12 +379,14 @@ const CustomisableChart = (props) => {
     annotationMapper[selectedPollutant.value]
   );
 
-  const title = `Mean ${selectedFrequency.label} ${
-    selectedPollutant.label
-  } from ${formatDate(selectedDate, "YYYY-MM-DD")} to ${formatDateString(
-    selectedEndDate,
-    "YYYY-MM-DD"
-  )}`;
+  const title = (
+    <span>
+      Mean {selectedFrequency.label}{" "}
+      {pollutantLabelMapper[selectedPollutant.label]} from{" "}
+      {formatDate(selectedDate, "YYYY-MM-DD")} to{" "}
+      {formatDateString(selectedEndDate, "YYYY-MM-DD")}
+    </span>
+  );
 
   const [subTitle, setSubTitle] = useState(defaultFilter.chartSubTitle);
 
@@ -623,7 +643,11 @@ const CustomisableChart = (props) => {
   return (
     <div ref={ref}>
       <ChartContainer
-        title={`${tempState.subTitle || "unknown location"} - ${title}`}
+        title={
+          <span>
+            {tempState.subTitle || "unknown location"} - {title}
+          </span>
+        }
         open={openMenu}
         onClick={handleClick}
         close={handleMenuClose}
