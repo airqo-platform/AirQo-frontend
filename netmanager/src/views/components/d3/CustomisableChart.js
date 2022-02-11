@@ -477,6 +477,10 @@ const CustomisableChart = (props) => {
     };
 
     transferFromTempState();
+
+    // quick fix for circular imports
+    delete newFilter['chartTitle'];
+
     updateUserChartDefaultsApi(newFilter._id, newFilter);
     await fetchAndSetGraphData(newFilter);
   };
