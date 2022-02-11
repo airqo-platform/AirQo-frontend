@@ -112,7 +112,8 @@ const BrushChart = ({
         .replace(/\s+/g, "")
         .replace(",", "")}-${Math.random().toString(16).slice(2)}-${i}`;
       focus
-        .selectAll("rect")
+        .selectAll(`#bar-${id}`)
+        .append("rect")
         .data(
           d.values.filter(
             (d) =>
@@ -124,8 +125,11 @@ const BrushChart = ({
         .enter()
         .append("rect")
         .attr("class", id)
-        .attr("width", xBand.bandwidth())
-        .attr("x", (d) => xBand(xFunc(d)))
+        .attr("width", xBand.bandwidth() / dataNest.length)
+        .attr(
+          "x",
+          (d) => xBand(xFunc(d)) + (xBand.bandwidth() / dataNest.length) * i
+        )
         .style("fill", function () {
           return color(d.key);
         })
@@ -202,14 +206,6 @@ const BrushChart = ({
 
       const formatTime = d3.timeFormat("%d-%m-%Y %I:%M%p");
 
-      tooltipLine
-        .attr("stroke", "#bec4c8")
-        .attr("stroke-dasharray", "4")
-        .attr("x1", x(lineDate))
-        .attr("x2", x(lineDate))
-        .attr("y1", 0)
-        .attr("y2", height);
-
       let h = `<div style="font-size: 0.9rem;margin-bottom: 10px;display: flex">${formatTime(
         lineDate
       )}</div>`;
@@ -245,13 +241,13 @@ const BrushedBarChart = ({
 }) => {
   const ref = useRef();
   const contextRef = useRef();
-  const margin = { top: 20, right: 20, bottom: 100, left: 35 };
+  const margin = { top: 20, right: 20, bottom: 100, left: 40 };
   const winWidth = 650;
   const winHeight = 370;
   const width = winWidth - margin.left - margin.right;
   const height = winHeight - margin.top - margin.bottom;
 
-  const margin_context = { top: 320, right: 20, bottom: 20, left: 35 };
+  const margin_context = { top: 320, right: 20, bottom: 20, left: 40 };
   const height_context = winHeight - margin_context.top - margin_context.bottom;
 
   const color = d3.scaleOrdinal().range(d3.schemeCategory10);
@@ -286,7 +282,6 @@ const BrushedBarChart = ({
       .attr("width", width)
       .attr("height", height);
 
-    // const context = vis
     const context = d3
       .select(contextRef.current)
       .attr("class", "context")
@@ -326,14 +321,23 @@ const BrushedBarChart = ({
 
     const dataNest = d3.nest().key(symbolFunc).entries(data);
 
-    dataNest.forEach((d) => {
+    dataNest.forEach((d, i) => {
+      const id = `bar-${d.key
+        .replace(/\s+/g, "")
+        .replace(",", "")}-${Math.random().toString(16).slice(2)}`;
       context
-        .selectAll("rect")
+        .selectAll(`#${id}`)
+        .append("rect")
         .data(d.values)
         .enter()
         .append("rect")
-        .attr("width", xContextBand.bandwidth())
-        .attr("x", (d) => xContextBand(xFunc(d)))
+        .attr("width", xContextBand.bandwidth() / dataNest.length)
+        .attr(
+          "x",
+          (d) =>
+            xContextBand(xFunc(d)) +
+            (xContextBand.bandwidth() / dataNest.length) * i
+        )
         .style("fill", function () {
           return color(d.key);
         })
@@ -369,25 +373,21 @@ const BrushedBarChart = ({
     const brushHandle = brushg.selectAll(".handle");
 
     brushHandle.style("width", "3px");
-
-    let label = vis.select(".title");
-
-    if (label.empty()) {
-      label = vis
-        .append("text")
-        .attr("class", "y axis title")
-        .attr("x", -(height / 2))
-        .attr("y", 0)
-        .attr("dy", "1em")
-        .attr("transform", "rotate(-90)")
-        .style("text-anchor", "middle");
-    }
-    label.text(yLabel);
   }, [data, yLabel, loading]);
 
   return (
     <div className="brushed-TS">
       <svg viewBox={`0 0 ${winWidth} ${winHeight}`} ref={ref}>
+        <text
+          className="y axis title"
+          x={-(height / 2)}
+          y={0}
+          dy={"1em"}
+          transform="rotate(-90)"
+          style={{ textAnchor: "middle" }}
+        >
+          {yLabel}
+        </text>
         <BrushChart
           data={data}
           selection={selection}
