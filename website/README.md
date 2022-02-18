@@ -227,6 +227,8 @@ Populate the `.env` file with the following keys and their respective values
     CLOUDINARY_NAME
     CLOUDINARY_KEY
     CLOUDINARY_SECRET
+    WEB_STATIC_HOST
+    DJANGO_ALLOWED_HOSTS
 
 Allow `direnv` to load the new changes
 
