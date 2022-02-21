@@ -82,6 +82,8 @@ const ExceedancesChart = (props) => {
     `${pollutant.label} Exceedances Over the Past 28 Days Based on ${standard.label}`
   );
 
+  const [loading, setLoading] = useState(false);
+
   const handleStandardChange = (standard) => {
     setTempStandard(standard);
   };
@@ -141,6 +143,7 @@ const ExceedancesChart = (props) => {
   };
 
   const fetchAndSetExceedanceData = async (filter) => {
+    setLoading(true);
     filter = {
       ...filter,
       startDate: roundToStartOfDay(filter.startDate).toISOString(),
@@ -191,6 +194,7 @@ const ExceedancesChart = (props) => {
             myVeryUnhealthyValues.push(element.exceedance.VeryUnhealthy);
             myHazardousValues.push(element.exceedance.Hazardous);
           });
+          setLoading(false);
           setLocations(myLocations);
           setDataset([
             {
@@ -242,9 +246,13 @@ const ExceedancesChart = (props) => {
               borderWidth: 1,
             },
           ]);
+          setLoading(false);
         }
       })
-      .catch(console.log);
+      .catch(err => {
+        console.log(err);
+        setLoading(false);
+      });
   };
 
   const rootCustomChartContainerId = "rootCustomChartContainerId" + idSuffix;
@@ -380,6 +388,11 @@ const ExceedancesChart = (props) => {
       <CardContent>
         <Grid item lg={12} sm={12} xl={12} xs={12}>
           <div className={chartContainer}>
+            {loading ? (
+              <div>
+                loading...
+              </div>
+            ):(
             <Bar
               data={{
                 labels: locations,
@@ -458,7 +471,7 @@ const ExceedancesChart = (props) => {
                   responsive: true,
                 }
               }
-            />
+            />)}
           </div>
         </Grid>
 
