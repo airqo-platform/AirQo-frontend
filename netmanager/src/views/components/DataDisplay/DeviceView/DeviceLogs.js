@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { isEmpty } from "underscore";
-import { Button, Grid, Paper } from "@material-ui/core";
+import { Button, Grid, Paper, TableContainer, Table, TableBody, TableCell } from "@material-ui/core";
 import TextField from "@material-ui/core/TextField";
 import {
   KeyboardDatePicker,
@@ -9,6 +9,7 @@ import {
 } from "@material-ui/pickers";
 import DateFnsUtils from "@date-io/date-fns";
 import MaintenanceLogsTable from "./Table";
+import LogDetails from "./Table";
 import {
   forcedLoadDeviceMaintenanceLogs,
   loadDeviceMaintenanceLogs,
@@ -462,6 +463,7 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
     },
   ];
 
+  
   const handleLogDelete = async () => {
     setDelState({ ...delState, open: false });
     if (delState.data._id) {
@@ -583,12 +585,13 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
                 tooltip: "Show Details",
                 render: (rowData) => {
                   return (
-                    <div className={"ml-table-details"}>
-                      <span>{rowData.maintenanceType}</span>
-                      <span>{rowData.description}</span>
-                      <span>
-                        <ul>
-                          {rowData.tags &&
+                    <div style={{marginLeft:"40px"}}>
+                      <TableContainer>
+                        <Table aria-label="log-details-table">
+                          <TableBody>
+                            <TableCell width={270} fullWidth={270}>{rowData.description}</TableCell>
+                            <TableCell width={270} fullWidth={270}>
+                            {rowData.tags &&
                             rowData.tags.map((tag, key) => {
                               return (
                                 <li className="li-circle" key={key}>
@@ -596,9 +599,12 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
                                 </li>
                               );
                             })}
-                        </ul>
-                      </span>
-                      <span>{rowData.nextMaintenance}</span>
+                            </TableCell>
+                            <TableCell width={270} fullWidth={270}>{humanReadableDate(rowData.nextMaintenance)}</TableCell>
+                            <TableCell width={270} fullWidth={270}>{rowData.maintenanceType}</TableCell>
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
                     </div>
                   );
                 },
