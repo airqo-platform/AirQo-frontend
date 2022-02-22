@@ -126,65 +126,6 @@ class LocationService {
     return addresses;
   }
 
-  // Future<List<Address>> getLocalAddress(double lat, double lang) async {
-  //   final coordinates = Coordinates(lat, lang);
-  //   List<Address> localAddresses =
-  //       await Geocoder.local.findAddressesFromCoordinates(coordinates);
-  //   return localAddresses;
-  // }
-
-  Future<List<Measurement>> getCurrentLocationReadings() async {
-    try {
-      var nearestMeasurements = <Measurement>[];
-      double distanceInMeters;
-
-      var location = await getLocation();
-      if (location == null) {
-        return [];
-      }
-
-      if (location.longitude != null && location.latitude != null) {
-        var addresses =
-            await getAddresses(location.latitude!, location.longitude!);
-        Measurement? nearestMeasurement;
-        var latestMeasurements = await _dbHelper.getLatestMeasurements();
-
-        for (var measurement in latestMeasurements) {
-          distanceInMeters = metersToKmDouble(Geolocator.distanceBetween(
-              measurement.site.latitude,
-              measurement.site.longitude,
-              location.latitude!,
-              location.longitude!));
-          if (distanceInMeters < Config.maxSearchRadius.toDouble()) {
-            measurement.site.distance = distanceInMeters;
-            nearestMeasurements.add(measurement);
-          }
-        }
-
-        if (nearestMeasurements.isNotEmpty) {
-          nearestMeasurement = nearestMeasurements.first;
-          for (var measurement in nearestMeasurements) {
-            if (nearestMeasurement!.site.distance > measurement.site.distance) {
-              nearestMeasurement = measurement;
-            }
-          }
-        }
-        var measurements = <Measurement>[];
-        for (var address in addresses) {
-          nearestMeasurement?.site.name = address;
-          nearestMeasurement?.site.searchName = address;
-          nearestMeasurement?.site.description = address;
-          measurements.add(nearestMeasurement!);
-        }
-        return measurements;
-      }
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      return [];
-    }
-    return [];
-  }
-
   Future<locate_api.LocationData?> getLocation() async {
     bool _serviceEnabled;
     locate_api.PermissionStatus _permissionGranted;
@@ -238,6 +179,82 @@ class LocationService {
           'please enable permission to access your location');
     }
     return await Geolocator.getCurrentPosition();
+  }
+
+  // Future<List<Address>> getLocalAddress(double lat, double lang) async {
+  //   final coordinates = Coordinates(lat, lang);
+  //   List<Address> localAddresses =
+  //       await Geocoder.local.findAddressesFromCoordinates(coordinates);
+  //   return localAddresses;
+  // }
+
+  Future<List<Measurement>> getNearbyLocationReadings() async {
+    try {
+      var nearestMeasurements = <Measurement>[];
+      double distanceInMeters;
+
+      var location = await getLocation();
+      if (location == null) {
+        return [];
+      }
+
+      if (location.longitude != null && location.latitude != null) {
+        var addresses =
+            await getAddresses(location.latitude!, location.longitude!);
+        Measurement? nearestMeasurement;
+        var latestMeasurements = await _dbHelper.getLatestMeasurements();
+
+        for (var measurement in latestMeasurements) {
+          distanceInMeters = metersToKmDouble(Geolocator.distanceBetween(
+              measurement.site.latitude,
+              measurement.site.longitude,
+              location.latitude!,
+              location.longitude!));
+          if (distanceInMeters < (Config.maxSearchRadius.toDouble() * 2)) {
+            measurement.site.distance = distanceInMeters;
+            nearestMeasurements.add(measurement);
+          }
+        }
+
+        var measurements = <Measurement>[];
+
+        /// Get Actual location measurements
+        if (nearestMeasurements.isNotEmpty) {
+          nearestMeasurement = nearestMeasurements.first;
+          for (var measurement in nearestMeasurements) {
+            if (nearestMeasurement!.site.distance > measurement.site.distance) {
+              nearestMeasurement = measurement;
+            }
+          }
+          nearestMeasurements.remove(nearestMeasurement);
+
+          for (var address in addresses) {
+            nearestMeasurement?.site.name = address;
+            nearestMeasurement?.site.searchName = address;
+            nearestMeasurement?.site.description = address;
+            measurements.add(nearestMeasurement!);
+          }
+        }
+
+        /// Get Alternative location measurements
+        if (nearestMeasurements.isNotEmpty) {
+          nearestMeasurement = nearestMeasurements.first;
+          for (var measurement in nearestMeasurements) {
+            if (nearestMeasurement!.site.distance > measurement.site.distance) {
+              nearestMeasurement = measurement;
+            }
+          }
+
+          measurements.add(nearestMeasurement!);
+        }
+
+        return measurements;
+      }
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+      return [];
+    }
+    return [];
   }
 
   Future<Site?> getNearestSite(double latitude, double longitude) async {

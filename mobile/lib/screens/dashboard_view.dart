@@ -659,20 +659,17 @@ class _DashboardViewState extends State<DashboardView> {
     }
   }
 
-  void _getDashboardLocations() async {
+  void _getDashboardCards() async {
     var region = getNextDashboardRegion(_preferences);
     var measurements = await _appService.dbHelper.getRegionSites(region);
+    var dashboardCards = <AnalyticsCard>[];
 
     if (measurements.isNotEmpty) {
       setState(() {
         _dashBoardPlaces.clear();
       });
 
-      var dashboardCards = <AnalyticsCard>[];
       for (var i = 0; i <= 5; i++) {
-        if (measurements.isEmpty) {
-          break;
-        }
         var random = Random().nextInt(measurements.length);
 
         if (mounted) {
@@ -681,32 +678,39 @@ class _DashboardViewState extends State<DashboardView> {
               measurements[random],
               _isRefreshing,
               false));
-          setState(() {
-            _dashBoardPlaces.add(AnalyticsCard(
-                PlaceDetails.measurementToPLace(measurements[random]),
-                measurements[random],
-                _isRefreshing,
-                false));
-          });
         }
         measurements.removeAt(random);
       }
 
-      for (var location in currentLocation) {
-        dashboardCards.add(AnalyticsCard(
-            PlaceDetails.measurementToPLace(location),
-            location,
-            _isRefreshing,
-            false));
+      if (!mounted) {
+        return;
       }
 
-      if (dashboardCards.isNotEmpty) {
-        dashboardCards.shuffle();
-        setState(() {
-          _dashBoardPlaces = dashboardCards;
-        });
-      }
+      dashboardCards.shuffle();
+      setState(() {
+        _dashBoardPlaces = dashboardCards;
+      });
     }
+
+    var locationMeasurements =
+        await _locationService.getNearbyLocationReadings();
+
+    for (var location in locationMeasurements) {
+      dashboardCards.add(AnalyticsCard(
+          PlaceDetails.measurementToPLace(location),
+          location,
+          _isRefreshing,
+          false));
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    dashboardCards.shuffle();
+    setState(() {
+      _dashBoardPlaces = dashboardCards;
+    });
   }
 
   void _getIncompleteKya() async {
@@ -729,15 +733,6 @@ class _DashboardViewState extends State<DashboardView> {
           _kya = inCompleteKya.first;
         });
       }
-    }
-  }
-
-  void _getLocationMeasurements() async {
-    var measurements = await _locationService.getCurrentLocationReadings();
-    if (mounted) {
-      setState(() {
-        currentLocation = measurements;
-      });
     }
   }
 
@@ -764,8 +759,7 @@ class _DashboardViewState extends State<DashboardView> {
     _appService = AppService(context);
     _preferences = await SharedPreferences.getInstance();
     _setGreetings();
-    _getLocationMeasurements();
-    _getDashboardLocations();
+    _getDashboardCards();
     if (_appService.isLoggedIn()) {
       await _loadKya();
       _getIncompleteKya();
@@ -828,8 +822,7 @@ class _DashboardViewState extends State<DashboardView> {
 
   Future<void> _refresh() async {
     await _appService.fetchLatestMeasurements();
-    _getLocationMeasurements();
-    _getDashboardLocations();
+    _getDashboardCards();
   }
 
   void _setGreetings() {
