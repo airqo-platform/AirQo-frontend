@@ -1,3 +1,4 @@
+import 'package:app/auth/login_screen.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/on_boarding/profile_setup_screen.dart';
 import 'package:app/screens/home_page.dart';
@@ -13,10 +14,15 @@ class PhoneAuthWidget extends StatefulWidget {
   final ValueSetter<String> changeOption;
   final ValueSetter<bool> appLoading;
   final String action;
+  final String phoneNumber;
 
   const PhoneAuthWidget(
-      this.enableBackButton, this.changeOption, this.action, this.appLoading,
-      {Key? key})
+      {Key? key,
+      required this.enableBackButton,
+      required this.changeOption,
+      required this.action,
+      required this.appLoading,
+      required this.phoneNumber})
       : super(key: key);
 
   @override
@@ -25,19 +31,19 @@ class PhoneAuthWidget extends StatefulWidget {
 
 class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
   bool _phoneFormValid = false;
-  String _phoneNumber = '';
+  late String _phoneNumber;
+  late String _countryCodePlaceHolder;
+  late String _countryCode;
   bool _verifyCode = false;
   String _verificationId = '';
   bool _resendCode = false;
   bool _codeSent = false;
   bool _isResending = false;
   bool _isVerifying = false;
-  String _countryCodePlaceHolder = '+256(0) ';
-  String _countryCode = '+256';
   List<String> _phoneVerificationCode = <String>['', '', '', '', '', ''];
-  Color _nextBtnColor = Config.appColorDisabled;
+  late Color _nextBtnColor;
 
-  final TextEditingController _phoneInputController = TextEditingController();
+  late TextEditingController _phoneInputController;
   final _phoneFormKey = GlobalKey<FormState>();
   late AppService _appService;
 
@@ -233,7 +239,7 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
           child: GestureDetector(
             onTap: () {
               setState(() {
-                initialize();
+                _initialize();
                 widget.changeOption('email');
               });
             },
@@ -278,7 +284,7 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
         Visibility(
           visible: _verifyCode,
           child: GestureDetector(
-            onTap: initialize,
+            onTap: _initialize,
             child: Text(
               'Change Phone Number',
               textAlign: TextAlign.center,
@@ -345,28 +351,11 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
     });
   }
 
-  void initialize() {
-    setState(() {
-      _phoneFormValid = false;
-      _phoneNumber = '';
-      _verifyCode = false;
-      _verificationId = '';
-      _resendCode = false;
-      _codeSent = false;
-      _isResending = false;
-      _isVerifying = false;
-      _countryCodePlaceHolder = '+256(0) ';
-      _countryCode = '+256';
-      _phoneVerificationCode = <String>['', '', '', '', '', ''];
-      _nextBtnColor = Config.appColorDisabled;
-    });
-  }
-
   @override
   void initState() {
     super.initState();
     _appService = AppService(context);
-    initialize();
+    _initialize();
   }
 
   Widget phoneInputField() {
@@ -477,8 +466,15 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
           });
           await showSnackBar(
               context,
-              'Phone number already taken. '
-              'Try logging in');
+              'You already have an '
+              'account with ths phone number');
+          await Navigator.pushAndRemoveUntil(context,
+              MaterialPageRoute(builder: (context) {
+            return LoginScreen(
+              phoneNumber: '$_countryCode.$_phoneNumber',
+              emailAddress: '',
+            );
+          }), (r) => false);
           return;
         }
       }
@@ -590,5 +586,30 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
         smsCode: _phoneVerificationCode.join(''));
 
     await authenticatePhoneNumber(phoneCredential);
+  }
+
+  void _initialize() {
+    setState(() {
+      _phoneNumber =
+          widget.phoneNumber == '' ? '' : widget.phoneNumber.split('.').last;
+      _countryCodePlaceHolder = widget.phoneNumber == ''
+          ? '+256(0)'
+          : '${widget.phoneNumber.split('.').first}(0) ';
+      _countryCode = widget.phoneNumber == ''
+          ? '+256'
+          : widget.phoneNumber.split('.').first;
+      _phoneVerificationCode = <String>['', '', '', '', '', ''];
+      _nextBtnColor = widget.phoneNumber == ''
+          ? Config.appColorDisabled
+          : Config.appColorBlue;
+      _verifyCode = false;
+      _verificationId = '';
+      _resendCode = false;
+      _codeSent = false;
+      _isResending = false;
+      _isVerifying = false;
+      _phoneFormValid = false;
+      _phoneInputController = TextEditingController(text: _phoneNumber);
+    });
   }
 }
