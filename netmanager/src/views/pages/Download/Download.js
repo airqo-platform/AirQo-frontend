@@ -123,19 +123,19 @@ const Download = (props) => {
       fromBigQuery: true,
     };
 
-    const dateDiff = moment(data.endDate).diff(moment(data.startDate), "days");
-
-    if (dateDiff > MAX_ALLOWED_DATE_DIFF_IN_DAYS) {
-      setLoading(false);
-      dispatch(
-        updateMainAlert({
-          show: "true",
-          message: "The download of data of more than 3 months is prohibited",
-          severity: "error",
-        })
-      );
-      return;
-    }
+    // const dateDiff = moment(data.endDate).diff(moment(data.startDate), "days");
+    //
+    // if (dateDiff > MAX_ALLOWED_DATE_DIFF_IN_DAYS) {
+    //   setLoading(false);
+    //   dispatch(
+    //     updateMainAlert({
+    //       show: "true",
+    //       message: "The download of data of more than 3 months is prohibited",
+    //       severity: "error",
+    //     })
+    //   );
+    //   return;
+    // }
 
     await downloadDataApi(fileType.value, data, fileType.value === "csv")
       .then((response) => response.data)
