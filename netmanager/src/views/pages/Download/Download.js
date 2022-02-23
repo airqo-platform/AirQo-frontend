@@ -66,7 +66,10 @@ const Download = (props) => {
   const [endDate, setEndDate] = useState(null);
   const [selectedSites, setSelectedSites] = useState([]);
   const [pollutants, setPollutants] = useState([]);
-  const [frequency, setFrequency] = useState();
+  const [frequency, setFrequency] = useState({
+    value: "hourly",
+    label: "Hourly",
+  });
   const [fileType, setFileType] = useState(null);
 
   const frequencyOptions = [
@@ -258,6 +261,7 @@ const Download = (props) => {
                         onChange={(options) => setFrequency(options)}
                         variant="outlined"
                         margin="dense"
+                        isDisabled
                         required
                       />
                     </Grid>
