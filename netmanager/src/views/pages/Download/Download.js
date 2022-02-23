@@ -120,6 +120,7 @@ const Download = (props) => {
       frequency: frequency.value,
       pollutants: getValues(pollutants),
       fileType: fileType.value,
+      fromBigQuery: true,
     };
 
     const dateDiff = moment(data.endDate).diff(moment(data.startDate), "days");
