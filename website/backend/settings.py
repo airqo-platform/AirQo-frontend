@@ -14,6 +14,7 @@ from pathlib import Path
 import cloudinary
 from decouple import config
 import dj_database_url
+from google.oauth2 import service_account
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = []
 
@@ -129,7 +130,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 # Static
-STATIC_HOST = config('WEB_STATIC_HOST', '')
+STATIC_HOST = config('WEB_STATIC_HOST', 'http://localhost:8081/')  # Default to using webpack-dev-server on port 8081
 
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
@@ -141,11 +142,16 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # From Django's perspective, this is the input location.
 STATICFILES_DIRS = []
 
-if DEBUG:
-    STATIC_HOST = 'http://localhost:8081'  # Use webpack-dev-server on port 8081
-    STATICFILES_DIR = []  # type: Sequence[str]
+if not DEBUG:
+    GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+        os.path.join(BASE_DIR, 'google_application_credentials.json')
+    )
 
-STATIC_URL = STATIC_HOST + '/static/'
+    DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+    GS_BUCKET_NAME = 'airqo-website'
+    STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+
+STATIC_URL = STATIC_HOST + 'static/'
 
 # Configure cloudinary
 cloudinary.config(
