@@ -230,7 +230,7 @@ class _ProfileViewState extends State<ProfileView> {
       Navigator.pop(loadingContext);
       await Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
-        return const LoginScreen();
+        return const LoginScreen(phoneNumber: '', emailAddress: '');
       }), (r) => false);
     } else {
       Navigator.pop(loadingContext);

@@ -8,19 +8,23 @@ import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:flutter/material.dart';
 
+import 'login_screen.dart';
+
 class EmailAuthWidget extends StatefulWidget {
   final ValueSetter<String> changeOption;
   final bool enableBackButton;
   final ValueSetter<bool> appLoading;
   final String action;
+  final String emailAddress;
 
   const EmailAuthWidget(
-    this.enableBackButton,
-    this.changeOption,
-    this.action,
-    this.appLoading, {
-    Key? key,
-  }) : super(key: key);
+      {Key? key,
+      required this.enableBackButton,
+      required this.changeOption,
+      required this.action,
+      required this.appLoading,
+      required this.emailAddress})
+      : super(key: key);
 
   @override
   EmailAuthWidgetState createState() => EmailAuthWidgetState();
@@ -28,7 +32,6 @@ class EmailAuthWidget extends StatefulWidget {
 
 class EmailAuthWidgetState extends State<EmailAuthWidget> {
   bool _emailFormValid = false;
-  String _emailAddress = '';
   bool _isVerifying = false;
   bool _isResending = false;
   String _emailVerificationLink = '';
@@ -36,11 +39,12 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
   bool _verifyCode = false;
   bool _codeSent = false;
   List<String> _emailVerificationCode = <String>['', '', '', '', '', ''];
-  Color _nextBtnColor = Config.appColorDisabled;
-
   final _emailFormKey = GlobalKey<FormState>();
-  final TextEditingController _emailInputController = TextEditingController();
+
+  late TextEditingController _emailInputController;
   late AppService _appService;
+  late String _emailAddress;
+  late Color _nextBtnColor;
 
   @override
   Widget build(BuildContext context) {
@@ -336,8 +340,12 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
 
   void initialize() {
     setState(() {
+      _emailAddress = widget.emailAddress;
+      _nextBtnColor = widget.emailAddress == ''
+          ? Config.appColorDisabled
+          : Config.appColorBlue;
+
       _emailFormValid = false;
-      _emailAddress = '';
       _isVerifying = false;
       _isResending = false;
       _emailVerificationLink = '';
@@ -345,7 +353,8 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
       _verifyCode = false;
       _codeSent = false;
       _emailVerificationCode = <String>['', '', '', '', '', ''];
-      _nextBtnColor = Config.appColorDisabled;
+
+      _emailInputController = TextEditingController(text: _emailAddress);
     });
   }
 
@@ -386,8 +395,15 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
         });
         await showSnackBar(
             context,
-            'Email Address already taken. '
-            'Try logging in');
+            'You already have an '
+            'account with this email address');
+        await Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (context) {
+          return LoginScreen(
+            phoneNumber: '',
+            emailAddress: _emailAddress,
+          );
+        }), (r) => false);
         return;
       }
     }
