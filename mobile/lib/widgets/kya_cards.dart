@@ -120,8 +120,7 @@ Positioned kyaLessonCard(
     child: Dismissible(
       key: UniqueKey(),
       crossAxisEndOffset: -0.3,
-      onResize: () {
-      },
+      onResize: () {},
       onDismissed: (DismissDirection direction) {
         if (direction == DismissDirection.endToStart) {
           dismissKyaLesson(kyaLesson);

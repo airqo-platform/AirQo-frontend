@@ -190,9 +190,15 @@ class CloudStore {
             if (userKyaData.isEmpty) {
               continue;
             }
-            userKyaData['progress'] =
-                (userKyaData['progress'] as double).ceil();
-            var kya = UserKya.fromJson(userKyaData);
+            UserKya kya;
+            try {
+              kya = UserKya.fromJson(userKyaData);
+            } catch (e) {
+              userKyaData['progress'] =
+                  (userKyaData['progress'] as double).ceil();
+              kya = UserKya.fromJson(userKyaData);
+            }
+
             userKyas.add(kya);
           } catch (exception, stackTrace) {
             debugPrint('$exception\n$stackTrace');
@@ -223,7 +229,6 @@ class CloudStore {
       debugPrint('$exception\n$stackTrace');
     }
     return [];
-
   }
 
   Future<List<UserNotification>> getNotifications(String id) async {
@@ -432,7 +437,7 @@ class CloudStore {
     }
   }
 
-  Future<void> updateKyaProgress(String userId, Kya kya, int progress) async {
+  Future<void> updateKyaProgress(String userId, Kya kya) async {
     if (userId.isEmpty || userId.trim() == '') {
       return;
     }
@@ -443,7 +448,22 @@ class CloudStore {
           .doc(userId)
           .collection(userId)
           .doc(kya.id)
-          .update({'progress': progress});
+          .update({'progress': kya.progress});
+    } on FirebaseException catch (exception, stackTrace) {
+      if (exception.code == 'not-found') {
+        await _firebaseFirestore
+            .collection(Config.usersKyaCollection)
+            .doc(userId)
+            .collection(userId)
+            .doc(kya.id)
+            .set({'progress': kya.progress, 'id': kya.id});
+      } else {
+        debugPrint('$exception\n$stackTrace');
+        await Sentry.captureException(
+          exception,
+          stackTrace: stackTrace,
+        );
+      }
     } on Error catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(

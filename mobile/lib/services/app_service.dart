@@ -16,6 +16,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
+import '../models/kya.dart';
+
 class AppService {
   final DBHelper _dbHelper = DBHelper();
   final BuildContext _context;
@@ -225,9 +227,9 @@ class AppService {
       if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
         return true;
       }
-      return false;
     } catch (_) {}
 
+    await showSnackBar(_context, Config.connectionErrorMessage);
     return false;
   }
 
@@ -404,6 +406,18 @@ class AppService {
 
     await Provider.of<PlaceDetailsModel>(_context, listen: false)
         .reloadFavouritePlaces();
+  }
+
+  Future<void> updateKya(Kya kya) async {
+    if (_customAuth.isLoggedIn()) {
+      await isConnected();
+      await Future.wait([
+        _dbHelper.updateKya(kya),
+        _cloudStore.updateKyaProgress(_customAuth.getUserId(), kya)
+      ]);
+    } else {
+      await _dbHelper.updateKya(kya);
+    }
   }
 
   Future<void> updateProfile(UserDetails userDetails) async {

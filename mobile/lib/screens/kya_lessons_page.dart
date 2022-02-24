@@ -28,21 +28,17 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   int currentIndex = 0;
   late List<KyaLesson> kyaLessons;
   late AppService _appService;
-  bool _showTitleView = false;
+  bool _showTitleView = true;
   bool _showFinalView = false;
 
   @override
   Widget build(BuildContext context) {
     var screenSize = MediaQuery.of(context).size;
 
-    if (_showFinalView) {
-      return _finalView();
-    }
-    if (_showTitleView) {
-      return _titleView();
-    } else {
-      return _slidesView(screenSize);
-    }
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: getView(screenSize: screenSize),
+    );
   }
 
   Widget circularButton(String icon) {
@@ -61,16 +57,33 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
     );
   }
 
+  Widget getView({required Size screenSize}) {
+    if (_showFinalView) {
+      return _finalView();
+    }
+    if (_showTitleView) {
+      return _titleView();
+    } else {
+      return _slidesView(screenSize);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _appService = AppService(context);
     kyaLessons = widget.kya.lessons;
-    if (widget.kya.progress != -1) {
-      currentIndex = widget.kya.progress;
-    }
-    if (currentIndex == 0) {
+    currentIndex = 0;
+    if (widget.kya.progress <= 0) {
       _showTitleView = true;
+    } else {
+      _showTitleView = false;
+      // if (widget.kya.progress >= kyaLessons.length) {
+      //   currentIndex = kyaLessons.length - 1;
+      // }
+      // else {
+      //   currentIndex = kyaLessons.length;
+      // }
     }
   }
 
@@ -180,23 +193,35 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
             return const HomePage();
           }), (r) => false);
         });
-        updateProgress();
+        updateProgress(complete: true);
       }
     }
 
-    Future.delayed(const Duration(milliseconds: 500), () {
-      setState(() {
-        _tipsProgress = (currentIndex + 1) / kyaLessons.length;
-      });
+    Future.delayed(const Duration(milliseconds: 500), setTipsProgress);
+  }
+
+  void setTipsProgress() {
+    setState(() {
+      _tipsProgress = (currentIndex + 1) / kyaLessons.length;
     });
   }
 
-  void updateProgress() {
-    /// Use futures
-    ///
-    if (_appService.isLoggedIn()) {
-      /// update online db
+  void updateProgress({required bool complete}) {
+    var kya = widget.kya;
+
+    if (kya.progress == -1) {
+      return;
     }
+
+    if (currentIndex > kya.progress) {
+      kya.progress = currentIndex;
+    }
+
+    if (complete) {
+      kya.progress = kya.lessons.length;
+    }
+
+    _appService.updateKya(kya);
   }
 
   Widget _finalView() {
@@ -249,7 +274,23 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
     );
   }
 
+  Future<bool> _onWillPop() {
+    updateProgress(complete: false);
+    return Future.value(true);
+  }
+
   Widget _slidesView(Size screenSize) {
+    // Future.delayed(const Duration(milliseconds: 500), () {
+    //   if(mounted && itemScrollController.isAttached){
+    //
+    //     itemScrollController.scrollTo(
+    //         index: currentIndex,
+    //         duration: const Duration(milliseconds: 500),
+    //         curve: Curves.easeInOutCubic);
+    //     setTipsProgress();
+    //   }
+    // });
+
     return Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
@@ -263,8 +304,8 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
               children: [
                 GestureDetector(
                   onTap: () {
-                    // updateKyaProgress();
-                    Navigator.of(context).pop();
+                    updateProgress(complete: false);
+                    Navigator.of(context).pop(true);
                   },
                   child: SvgPicture.asset(
                     'assets/icon/close.svg',

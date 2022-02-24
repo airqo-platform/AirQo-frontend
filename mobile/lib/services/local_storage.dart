@@ -502,6 +502,13 @@ class DBHelper {
       return false;
     }
   }
+
+  Future<void> updateKya(Kya kya) async {
+    final db = await database;
+
+    await db.update(Kya.dbName(), {'progress': kya.progress},
+        where: 'id = ?', whereArgs: [kya.id]);
+  }
 }
 
 class SharedPreferencesHelper {
