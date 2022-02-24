@@ -22,9 +22,9 @@ import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'air_pollution_ways_page.dart';
 import 'favourite_places.dart';
 import 'for_you_page.dart';
+import 'kya_lessons_page.dart';
 
 class DashboardView extends StatefulWidget {
   const DashboardView({Key? key}) : super(key: key);
@@ -35,7 +35,8 @@ class DashboardView extends StatefulWidget {
 
 class _DashboardViewState extends State<DashboardView> {
   String _greetings = '';
-  bool _showName = true;
+
+  // bool _showName = true;
   List<Widget> _favLocations = [];
   List<Widget> _completeKyaWidgets = [
     SvgPicture.asset(
@@ -211,7 +212,7 @@ class _DashboardViewState extends State<DashboardView> {
               });
     } else {
       await Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return AirPollutionWaysPage(_kya!, true);
+        return KyaLessonsPage(_kya!);
       }));
     }
   }
@@ -591,7 +592,6 @@ class _DashboardViewState extends State<DashboardView> {
 
     if (completeKyaCards.isNotEmpty) {
       _loadCompleteKya(completeKyaCards);
-      await _appService.dbHelper.insertKyas(kyaCards);
     }
   }
 
@@ -731,10 +731,6 @@ class _DashboardViewState extends State<DashboardView> {
     var inCompleteKya =
         kyas.where((element) => element.progress < 100).toList();
 
-    if (kyas.isNotEmpty) {
-      await _appService.dbHelper.insertKyas(kyas);
-    }
-
     if (inCompleteKya.isNotEmpty) {
       if (mounted) {
         setState(() {
@@ -749,16 +745,16 @@ class _DashboardViewState extends State<DashboardView> {
       if (_scrollController.position.userScrollDirection ==
               ScrollDirection.reverse &&
           mounted) {
-        setState(() {
-          _showName = false;
-        });
+        // setState(() {
+        //   _showName = false;
+        // });
       }
       if (_scrollController.position.userScrollDirection ==
               ScrollDirection.forward &&
           mounted) {
-        setState(() {
-          _showName = true;
-        });
+        // setState(() {
+        //   _showName = true;
+        // });
       }
     });
   }
@@ -769,11 +765,9 @@ class _DashboardViewState extends State<DashboardView> {
     _setGreetings();
     _getDashboardCards();
     if (_appService.isLoggedIn()) {
-      await _loadKya();
       _getIncompleteKya();
       _getCompleteKya();
     }
-    await _appService.fetchData();
   }
 
   void _loadCompleteKya(List<Kya> completeKya) async {
@@ -822,14 +816,8 @@ class _DashboardViewState extends State<DashboardView> {
     }
   }
 
-  Future<void> _loadKya() async {
-    var kyas =
-        await _appService.cloudStore.getKya(_appService.customAuth.getUserId());
-    await _appService.dbHelper.insertKyas(kyas);
-  }
-
   Future<void> _refresh() async {
-    await _appService.fetchLatestMeasurements();
+    await _appService.refreshDashboard();
     _getDashboardCards();
   }
 

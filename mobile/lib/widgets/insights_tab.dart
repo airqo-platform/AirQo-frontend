@@ -674,7 +674,7 @@ class _InsightsTabState extends State<InsightsTab> {
     setState(() {
       _showHeartAnimation = true;
     });
-    Future.delayed(const Duration(seconds: 2), () async {
+    Future.delayed(const Duration(seconds: 2), () {
       setState(() {
         _showHeartAnimation = false;
       });

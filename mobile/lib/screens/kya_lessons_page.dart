@@ -1,0 +1,467 @@
+import 'package:app/constants/config.dart';
+import 'package:app/models/kya.dart';
+import 'package:app/services/app_service.dart';
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:visibility_detector/visibility_detector.dart';
+
+import '../widgets/buttons.dart';
+import '../widgets/custom_widgets.dart';
+import 'home_page.dart';
+
+class KyaLessonsPage extends StatefulWidget {
+  final Kya kya;
+
+  const KyaLessonsPage(this.kya, {Key? key}) : super(key: key);
+
+  @override
+  _KyaLessonsPageState createState() => _KyaLessonsPageState();
+}
+
+class _KyaLessonsPageState extends State<KyaLessonsPage> {
+  final ItemScrollController itemScrollController = ItemScrollController();
+
+  double _tipsProgress = 0.1;
+  int currentIndex = 0;
+  late List<KyaLesson> kyaLessons;
+  late AppService _appService;
+  bool _showTitleView = false;
+  bool _showFinalView = false;
+
+  @override
+  Widget build(BuildContext context) {
+    var screenSize = MediaQuery.of(context).size;
+
+    if (_showFinalView) {
+      return _finalView();
+    }
+    if (_showTitleView) {
+      return _titleView();
+    } else {
+      return _slidesView(screenSize);
+    }
+  }
+
+  Widget circularButton(String icon) {
+    return Container(
+      height: 48,
+      width: 48,
+      padding: const EdgeInsets.all(15.0),
+      decoration: BoxDecoration(
+        color: Config.appColorPaleBlue,
+        shape: BoxShape.circle,
+      ),
+      child: SvgPicture.asset(
+        icon,
+        color: Config.appColorBlue,
+      ),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _appService = AppService(context);
+    kyaLessons = widget.kya.lessons;
+    if (widget.kya.progress != -1) {
+      currentIndex = widget.kya.progress;
+    }
+    if (currentIndex == 0) {
+      _showTitleView = true;
+    }
+  }
+
+  Widget kyaCard(KyaLesson kyaItem) {
+    return Card(
+      color: Colors.white,
+      elevation: 20.0,
+      shadowColor: Config.appBodyColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Container(
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(
+              height: 8.0,
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+              child: Container(
+                height: 180,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  image: DecorationImage(
+                    fit: BoxFit.cover,
+                    image: CachedNetworkImageProvider(
+                      kyaItem.imageUrl,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(
+              height: 12,
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 36, right: 36),
+              child: Text(
+                kyaItem.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    color: Config.appColorBlack,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(
+              height: 8.0,
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 16, right: 16),
+                child: Text(
+                  kyaItem.body,
+                  maxLines: 4,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      color: Colors.black.withOpacity(0.5), fontSize: 16),
+                ),
+              ),
+            ),
+            const Spacer(),
+            SvgPicture.asset(
+              'assets/icon/tips_graphics.svg',
+              semanticsLabel: 'tips_graphics',
+            ),
+            const SizedBox(
+              height: 30,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void scrollToCard({required int direction}) {
+    if (direction == -1) {
+      setState(() {
+        currentIndex = currentIndex - 1;
+      });
+      itemScrollController.scrollTo(
+          index: currentIndex,
+          duration: const Duration(seconds: 1),
+          curve: Curves.easeInOutCubic);
+    } else {
+      setState(() {
+        currentIndex = currentIndex + 1;
+      });
+      if (currentIndex < kyaLessons.length) {
+        itemScrollController.scrollTo(
+            index: currentIndex,
+            duration: const Duration(seconds: 1),
+            curve: Curves.easeInOutCubic);
+      } else {
+        setState(() {
+          _showFinalView = true;
+        });
+        Future.delayed(const Duration(seconds: 4), () {
+          Navigator.pushAndRemoveUntil(context,
+              MaterialPageRoute(builder: (context) {
+            return const HomePage();
+          }), (r) => false);
+        });
+        updateProgress();
+      }
+    }
+
+    Future.delayed(const Duration(milliseconds: 500), () {
+      setState(() {
+        _tipsProgress = (currentIndex + 1) / kyaLessons.length;
+      });
+    });
+  }
+
+  void updateProgress() {
+    /// Use futures
+    ///
+    if (_appService.isLoggedIn()) {
+      /// update online db
+    }
+  }
+
+  Widget _finalView() {
+    return Scaffold(
+      appBar: AppBar(
+        elevation: 0,
+        toolbarHeight: 0,
+        backgroundColor: Config.appBodyColor,
+      ),
+      body: Container(
+          color: Config.appBodyColor,
+          child: Center(
+            child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SvgPicture.asset(
+                    'assets/icon/learn_complete.svg',
+                    height: 133,
+                    width: 221,
+                  ),
+                  const SizedBox(
+                    height: 33.61,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 40, right: 40),
+                    child: Text(
+                      'Congrats!',
+                      style: TextStyle(
+                          color: Config.appColorBlack,
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 8.0,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 60, right: 60),
+                    child: Text(
+                      widget.kya.completionMessage,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          color: Config.appColorBlack.withOpacity(0.5),
+                          fontSize: 16),
+                    ),
+                  ),
+                ]),
+          )),
+    );
+  }
+
+  Widget _slidesView(Size screenSize) {
+    return Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          elevation: 0,
+          backgroundColor: Config.appBodyColor,
+          centerTitle: false,
+          titleSpacing: 0,
+          title: Padding(
+            padding: const EdgeInsets.only(left: 24, right: 24),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    // updateKyaProgress();
+                    Navigator.of(context).pop();
+                  },
+                  child: SvgPicture.asset(
+                    'assets/icon/close.svg',
+                    height: 20,
+                    width: 20,
+                  ),
+                ),
+                const SizedBox(
+                  width: 7,
+                ),
+                Expanded(
+                    child: LinearProgressIndicator(
+                  color: Config.appColorBlue,
+                  value: _tipsProgress,
+                  backgroundColor: Config.appColorBlue.withOpacity(0.2),
+                )),
+                const SizedBox(
+                  width: 7,
+                ),
+                GestureDetector(
+                  onTap: () {
+                    // _shareService.shareKya(context, _globalKey);
+                  },
+                  child: SvgPicture.asset(
+                    'assets/icon/share_icon.svg',
+                    color: Config.greyColor,
+                    height: 16,
+                    width: 16,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        body: Container(
+            alignment: Alignment.center,
+            color: Config.appBodyColor,
+            child: Column(
+              children: [
+                const Spacer(),
+                SizedBox(
+                  height: screenSize.height * 0.75,
+                  child: ScrollablePositionedList.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: kyaLessons.length,
+                    itemBuilder: (context, index) {
+                      return VisibilityDetector(
+                        key: Key(index.toString()),
+                        onVisibilityChanged: (VisibilityInfo visibilityInfo) {
+                          // if ((visibilityInfo.visibleFraction >
+                          //     0.3) &&
+                          //     (currentIndex != index)) {
+                          //   setState(() {
+                          //     currentIndex = index;
+                          //   });
+                          //   scrollToCard();
+                          // }
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                              top: 52, bottom: 40, left: 19, right: 19),
+                          child: SizedBox(
+                              width: screenSize.width * 0.9,
+                              child: kyaCard(kyaLessons[index])),
+                        ),
+                      );
+                    },
+                    itemScrollController: itemScrollController,
+                  ),
+                ),
+                const Spacer(),
+                Padding(
+                  padding: const EdgeInsets.only(left: 20, right: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Visibility(
+                        child: GestureDetector(
+                            onTap: () {
+                              scrollToCard(direction: -1);
+                            },
+                            child: circularButton(
+                                'assets/icon/previous_arrow.svg')),
+                        visible: currentIndex > 0,
+                      ),
+                      GestureDetector(
+                          onTap: () {
+                            scrollToCard(direction: 1);
+                          },
+                          child: circularButton('assets/icon/next_arrow.svg')),
+                    ],
+                  ),
+                ),
+                const SizedBox(
+                  height: 40,
+                ),
+              ],
+            )));
+  }
+
+  Widget _titleView() {
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: knowYourAirAppBar(context, 'Know Your Air'),
+      body: Stack(children: [
+        Container(
+          color: Config.appBodyColor,
+          height: double.infinity,
+          width: double.infinity,
+        ),
+        FractionallySizedBox(
+          alignment: Alignment.topCenter,
+          widthFactor: 1.0,
+          heightFactor: 0.4,
+          child: Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                fit: BoxFit.cover,
+                image: CachedNetworkImageProvider(
+                  widget.kya.imageUrl,
+                ),
+              ),
+            ),
+          ),
+          // child: Image.asset(
+          //   'assets/images/tips-image.png',
+          //   fit: BoxFit.cover,
+          // ),
+        ),
+        Positioned.fill(
+          child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 24, right: 24),
+                child: Column(
+                  children: [
+                    const Spacer(),
+                    Container(
+                        decoration: const BoxDecoration(
+                            color: Colors.white,
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(16.0))),
+                        child: Center(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              const SizedBox(
+                                height: 48,
+                              ),
+                              SvgPicture.asset(
+                                'assets/icon/kya_stars.svg',
+                                height: 133.39,
+                                width: 221.46,
+                              ),
+                              const SizedBox(
+                                height: 18,
+                              ),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.only(left: 16, right: 16),
+                                child: AutoSizeText(
+                                  widget.kya.title,
+                                  textAlign: TextAlign.center,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxFontSize: 28,
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Config.appColorBlack,
+                                      fontSize: 28),
+                                ),
+                              ),
+                              const SizedBox(
+                                height: 64,
+                              ),
+                            ],
+                          ),
+                        )),
+                    const SizedBox(
+                      height: 16,
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _showTitleView = false;
+                        });
+                      },
+                      child: nextButton('Begin', Config.appColorBlue),
+                    ),
+                    const SizedBox(
+                      height: 32,
+                    ),
+                  ],
+                ),
+              )),
+        ),
+      ]),
+    );
+  }
+}

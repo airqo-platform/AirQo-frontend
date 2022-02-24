@@ -7,13 +7,15 @@ part of 'kya.dart';
 // **************************************************************************
 
 Kya _$KyaFromJson(Map<String, dynamic> json) => Kya(
-      json['title'] as String,
-      json['imageUrl'] as String,
-      json['id'] as String,
-      (json['lessons'] as List<dynamic>)
+      title: json['title'] as String,
+      imageUrl: json['imageUrl'] as String,
+      id: json['id'] as String,
+      lessons: (json['lessons'] as List<dynamic>)
           .map((e) => KyaLesson.fromJson(e as Map<String, dynamic>))
           .toList(),
-      (json['progress'] as num?)?.toDouble() ?? 0.0,
+      progress: json['progress'] as int? ?? 0,
+      completionMessage: json['completionMessage'] as String? ??
+          'You just finished your first Know You Air Lesson',
     );
 
 KyaLesson _$KyaLessonFromJson(Map<String, dynamic> json) => KyaLesson(
@@ -31,6 +33,7 @@ Map<String, dynamic> _$KyaLessonToJson(KyaLesson instance) => <String, dynamic>{
 Map<String, dynamic> _$KyaToJson(Kya instance) => <String, dynamic>{
       'progress': instance.progress,
       'title': instance.title,
+      'completionMessage': instance.completionMessage,
       'imageUrl': instance.imageUrl,
       'id': instance.id,
       'lessons': instance.lessons.map((e) => e.toJson()).toList(),
@@ -38,7 +41,7 @@ Map<String, dynamic> _$KyaToJson(Kya instance) => <String, dynamic>{
 
 UserKya _$UserKyaFromJson(Map<String, dynamic> json) => UserKya(
       json['id'] as String,
-      (json['progress'] as num?)?.toDouble() ?? 0.0,
+      json['progress'] as int? ?? 0,
     );
 
 Map<String, dynamic> _$UserKyaToJson(UserKya instance) => <String, dynamic>{

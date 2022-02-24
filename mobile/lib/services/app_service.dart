@@ -146,7 +146,7 @@ class AppService {
   Future<void> fetchData() async {
     await Future.wait([
       fetchLatestMeasurements(),
-      _fetchKya(),
+      fetchKya(),
       loadNotifications(),
       loadFavPlaces(),
       fetchFavPlacesInsights(),
@@ -189,6 +189,15 @@ class AppService {
             (element.siteId == siteInsight.siteId) &&
             (element.frequency == siteInsight.frequency));
       }
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+    }
+  }
+
+  Future<void> fetchKya() async {
+    try {
+      var kyas = await _cloudStore.getKya(_customAuth.getUserId());
+      await _dbHelper.insertKyas(kyas);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
@@ -376,11 +385,12 @@ class AppService {
     }
   }
 
-  Future<void> reloadData() async {
+  Future<void> refreshDashboard() async {
     await Future.wait([
       fetchLatestMeasurements(),
-      _fetchKya(),
-      fetchFavPlacesInsights(),
+      fetchKya(),
+      loadNotifications(),
+      loadFavPlaces(),
     ]);
   }
 
@@ -443,15 +453,6 @@ class AppService {
         exception,
         stackTrace: stackTrace,
       );
-    }
-  }
-
-  Future<void> _fetchKya() async {
-    try {
-      var kyas = await _cloudStore.getKya(_customAuth.getUserId());
-      await _dbHelper.insertKyas(kyas);
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
     }
   }
 

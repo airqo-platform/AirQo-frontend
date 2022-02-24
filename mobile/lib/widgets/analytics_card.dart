@@ -468,7 +468,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
     setState(() {
       _showHeartAnimation = true;
     });
-    Future.delayed(const Duration(seconds: 2), () async {
+    Future.delayed(const Duration(seconds: 2), () {
       setState(() {
         _showHeartAnimation = false;
       });
@@ -720,7 +720,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
     setState(() {
       _showHeartAnimation = true;
     });
-    Future.delayed(const Duration(seconds: 2), () async {
+    Future.delayed(const Duration(seconds: 2), () {
       setState(() {
         _showHeartAnimation = false;
       });
