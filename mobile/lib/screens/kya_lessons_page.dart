@@ -6,8 +6,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
+import '../services/native_api.dart';
 import '../widgets/buttons.dart';
 import '../widgets/custom_widgets.dart';
 import 'home_page.dart';
@@ -30,6 +32,8 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   late AppService _appService;
   bool _showTitleView = true;
   bool _showFinalView = false;
+  final List<GlobalKey> _globalKeys = <GlobalKey>[];
+  final ShareService _shareService = ShareService();
 
   @override
   Widget build(BuildContext context) {
@@ -85,6 +89,9 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
       //   currentIndex = kyaLessons.length;
       // }
     }
+    for (var _ in widget.kya.lessons) {
+      _globalKeys.add(GlobalKey());
+    }
   }
 
   Widget kyaCard(KyaLesson kyaItem) {
@@ -119,9 +126,10 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                 ),
               ),
             ),
-            const SizedBox(
-              height: 12,
-            ),
+            // const SizedBox(
+            //   height: 12,
+            // ),
+            const Spacer(),
             Padding(
               padding: const EdgeInsets.only(left: 36, right: 36),
               child: Text(
@@ -152,6 +160,9 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
               ),
             ),
             const Spacer(),
+            // const SizedBox(
+            //   height: 20.0,
+            // ),
             SvgPicture.asset(
               'assets/icon/tips_graphics.svg',
               semanticsLabel: 'tips_graphics',
@@ -326,8 +337,17 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                   width: 7,
                 ),
                 GestureDetector(
-                  onTap: () {
-                    // _shareService.shareKya(context, _globalKey);
+                  onTap: () async {
+                    try {
+                      await _shareService.shareKya(
+                          context, _globalKeys[currentIndex]);
+                    } catch (exception, stackTrace) {
+                      debugPrint('$exception\n$stackTrace');
+                      await Sentry.captureException(
+                        exception,
+                        stackTrace: stackTrace,
+                      );
+                    }
                   },
                   child: SvgPicture.asset(
                     'assets/icon/share_icon.svg',
@@ -367,9 +387,12 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                         child: Padding(
                           padding: const EdgeInsets.only(
                               top: 52, bottom: 40, left: 19, right: 19),
-                          child: SizedBox(
-                              width: screenSize.width * 0.9,
-                              child: kyaCard(kyaLessons[index])),
+                          child: RepaintBoundary(
+                            key: _globalKeys[index],
+                            child: SizedBox(
+                                width: screenSize.width * 0.9,
+                                child: kyaCard(kyaLessons[index])),
+                          ),
                         ),
                       );
                     },
