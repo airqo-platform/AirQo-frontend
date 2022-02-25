@@ -66,7 +66,10 @@ const Download = (props) => {
   const [endDate, setEndDate] = useState(null);
   const [selectedSites, setSelectedSites] = useState([]);
   const [pollutants, setPollutants] = useState([]);
-  const [frequency, setFrequency] = useState();
+  const [frequency, setFrequency] = useState({
+    value: "hourly",
+    label: "Hourly",
+  });
   const [fileType, setFileType] = useState(null);
 
   const frequencyOptions = [
@@ -117,27 +120,28 @@ const Download = (props) => {
       frequency: frequency.value,
       pollutants: getValues(pollutants),
       fileType: fileType.value,
+      fromBigQuery: true,
     };
 
-    const dateDiff = moment(data.endDate).diff(moment(data.startDate), "days");
+    // const dateDiff = moment(data.endDate).diff(moment(data.startDate), "days");
+    //
+    // if (dateDiff > MAX_ALLOWED_DATE_DIFF_IN_DAYS) {
+    //   setLoading(false);
+    //   dispatch(
+    //     updateMainAlert({
+    //       show: "true",
+    //       message: "The download of data of more than 3 months is prohibited",
+    //       severity: "error",
+    //     })
+    //   );
+    //   return;
+    // }
 
-    if (dateDiff > MAX_ALLOWED_DATE_DIFF_IN_DAYS) {
-      setLoading(false);
-      dispatch(
-        updateMainAlert({
-          show: "true",
-          message: "The download of data of more than 3 months is prohibited",
-          severity: "error",
-        })
-      );
-      return;
-    }
-
-    await downloadDataApi("json", data)
+    await downloadDataApi(fileType.value, data, fileType.value === "csv")
       .then((response) => response.data)
       .then((resData) => {
+        let filename = `airquality-${frequency.value}-data.${fileType.value}`;
         if (fileType.value === "json") {
-          let filename = `airquality-${frequency.value}-data.json`;
           let contentType = "application/json;charset=utf-8;";
 
           if (window.navigator && window.navigator.msSaveOrOpenBlob) {
@@ -160,28 +164,16 @@ const Download = (props) => {
             document.body.removeChild(a);
           }
         } else {
-          const fields = [
-            "time",
-            ...getValues(pollutants),
-            "frequency",
-            "latitude",
-            "longitude",
-            "site_id",
-            "site_description",
-          ];
-          const json2csvParser = new Parser({ fields });
-          const csv = json2csvParser.parse(resData);
-          let filename = `airquality-${frequency.value}-data.csv`;
-          var link = document.createElement("a");
-          link.setAttribute(
-            "href",
-            "data:text/csv;charset=utf-8,%EF%BB%BF" + encodeURIComponent(csv)
-          );
-          link.setAttribute("download", filename);
-          link.style.visibility = "hidden";
+          const downloadUrl = window.URL.createObjectURL(resData);
+          const link = document.createElement("a");
+
+          link.href = downloadUrl;
+          link.setAttribute("download", filename); //any other extension
+
           document.body.appendChild(link);
+
           link.click();
-          document.body.removeChild(link);
+          link.remove();
         }
       })
       .catch((err) => console.log(err && err.response && err.response.data));
@@ -258,6 +250,7 @@ const Download = (props) => {
                         onChange={(options) => setFrequency(options)}
                         variant="outlined"
                         margin="dense"
+                        isDisabled
                         required
                       />
                     </Grid>
