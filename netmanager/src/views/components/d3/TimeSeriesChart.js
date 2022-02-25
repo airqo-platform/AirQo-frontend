@@ -68,9 +68,10 @@ const TimeSeriesChart = ({ width, height, margin, data }) => {
     .y((d) => yScale(d.value));
 
   dataNest.forEach((d, i) => {
-    const id = `tag-${d.key
-      .replace(/\s+/g, "")
-      .replace(",", "")}-${Math.random().toString(16).slice(2)}-${i}`;
+    const id = `tag-${Math.random()
+      .toString(16)
+      .slice(2)}-${Math.random().toString(16).slice(2)}-${i}`;
+
     svg
       .append("path")
       .attr("class", "timeseries-path line")
