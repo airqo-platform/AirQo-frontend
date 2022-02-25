@@ -29,7 +29,7 @@ const DeviceSensorChart = ({ deviceUptimeData }) => {
       options={timeSeriesChartOptions()}
       series={sensorCorrelationSeries}
       type="area"
-      blue
+      green
       footerContent={
         <div>
           Pearson Correlation Value:&nbsp;

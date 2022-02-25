@@ -50,9 +50,9 @@ Future<void> reportPlace(Site site, context) async {
 
 void shareApp() {
   Share.share(
-      'Download the ${AppConfig.name} app from Play Store '
-      ' ${Links.playStoreUrl} '
-      'or App Store ${Links.iOSUrl}',
+      'Get the ${AppConfig.name} app from Play Store '
+      '\n\n${Links.playStoreUrl} '
+      '\nor App Store \n\n${Links.iOSUrl}',
       subject: '${AppConfig.name} app!');
 }
 
@@ -65,11 +65,18 @@ void shareLocation(Site site) {
 }
 
 void shareMeasurement(Measurement measurement) {
+  var recommendationList =
+      getHealthRecommendations(measurement.getPm2_5Value());
+  var recommendations = '';
+  for (var value in recommendationList) {
+    recommendations = '$recommendations\n- ${value.recommendation}';
+  }
   Share.share(
-      '${measurement.site.getName()} air quality readings \n'
+      '${measurement.site.getName()} air quality \n\n'
       'PM2.5 : ${measurement.getPm2_5Value().toStringAsFixed(2)} µg/m\u00B3 (${pmToString(measurement.getPm2_5Value())}) \n'
       'PM10 : ${measurement.getPm10Value().toStringAsFixed(2)} µg/m\u00B3 \n'
-      'See more on the AiQo app',
+      '$recommendations\n\n'
+      'Source: AiQo App',
       subject: '${AppConfig.name}, ${measurement.site.getName()}!');
 }
 
@@ -79,8 +86,10 @@ void shareRanking(List<Measurement> measurements) {
   for (var measurement in measurements) {
     size = size + 1;
     var message = '${measurement.site.getName()} ('
-        'PM2.5 : ${measurement.getPm2_5Value().toStringAsFixed(2)} µg/m\u00B3 (${pmToString(measurement.getPm2_5Value())}) , '
-        'PM10 : ${measurement.getPm10Value().toStringAsFixed(2)} µg/m\u00B3 )\n\n';
+        'PM2.5 : ${measurement.getPm2_5Value().toStringAsFixed(2)} µg/m\u00B3'
+        ' (${pmToString(measurement.getPm2_5Value())}) , '
+        'PM10 : ${measurement.getPm10Value().toStringAsFixed(2)} µg/m\u00B3 )'
+        '\n\n';
 
     messages = '$messages $message';
     if (size == 5) {
@@ -89,9 +98,7 @@ void shareRanking(List<Measurement> measurements) {
   }
 
   messages = '$messages ... \n\n'
-      'Get the ${AppConfig.name} app from Play Store '
-      ' ${Links.playStoreUrl} '
-      'or App Store ${Links.iOSUrl}';
+      'Source: AiQo App';
 
   Share.share(messages, subject: '${AppConfig.name}, places\' ranking');
 }

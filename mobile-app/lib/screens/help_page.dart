@@ -16,6 +16,7 @@ class HelpPage extends StatelessWidget {
       length: 3,
       child: Scaffold(
         appBar: AppBar(
+          centerTitle: true,
           backgroundColor: ColorConstants.appBarBgColor,
           leading: BackButton(color: ColorConstants.appColor),
           elevation: 0,
@@ -28,26 +29,8 @@ class HelpPage extends StatelessWidget {
                 'AQI',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
               )),
-              const Tab(
-                  child: Text(
-                'PM2.5',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
-              )),
-              const Tab(
-                  child: Text(
-                'PM10',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
-              )),
-              // const Tab(
-              //     child: Text(
-              //   'Humidity',
-              //   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
-              // )),
-              // const Tab(
-              //     child: Text(
-              //   'Temperature',
-              //   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
-              // )),
+              Tab(child: pmTab('2.5')),
+              Tab(child: pmTab('10')),
             ],
           ),
           title: Text(
@@ -62,8 +45,6 @@ class HelpPage extends StatelessWidget {
             AqiDialog(),
             PollutantDialog(pollutantDetails(PollutantConstant.pm2_5)),
             PollutantDialog(pollutantDetails(PollutantConstant.pm10)),
-            // PollutantDialogV2(pollutantDetails(PollutantConstant.humidity)),
-            // PollutantDialogV2(pollutantDetails(PollutantConstant.temperature)),
           ],
         ),
       ),
@@ -75,5 +56,33 @@ class HelpPage extends StatelessWidget {
       return 0;
     }
     return initialIndex;
+  }
+
+  Material pmTab(String pm) {
+    return Material(
+      color: Colors.transparent,
+      child: RichText(
+        text: TextSpan(
+          children: <TextSpan>[
+            TextSpan(
+              text: 'PM',
+              style: TextStyle(
+                fontSize: 17,
+                color: ColorConstants.appColor,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            TextSpan(
+              text: pm,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: ColorConstants.appColor,
+              ),
+            )
+          ],
+        ),
+      ),
+    );
   }
 }

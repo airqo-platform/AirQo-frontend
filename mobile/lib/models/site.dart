@@ -1,5 +1,8 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/utils/extensions.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:json_annotation/json_annotation.dart';
+
+import 'json_parsers.dart';
 
 part 'site.g.dart';
 
@@ -21,60 +24,42 @@ class Site {
   final String country;
 
   @JsonKey(required: true)
-  final String name;
+  String name;
+
+  @JsonKey(required: false, name: 'search_name', defaultValue: '')
+  String searchName;
 
   @JsonKey(required: false, defaultValue: '')
-  final String description;
+  String description;
 
-  @JsonKey(required: true, defaultValue: '')
+  @JsonKey(required: true, defaultValue: '', fromJson: regionFromJson)
   final String region;
 
   @JsonKey(required: false, defaultValue: 0.0)
   double distance;
 
-  @JsonKey(required: false, defaultValue: '')
-  String userLocation = '';
-
-  Site(
-      this.id,
-      this.latitude,
-      this.longitude,
-      this.district,
-      this.country,
-      this.name,
-      this.description,
-      this.region,
-      this.distance,
-      this.userLocation);
+  Site(this.id, this.latitude, this.longitude, this.district, this.country,
+      this.name, this.searchName, this.description, this.region, this.distance);
 
   factory Site.fromJson(Map<String, dynamic> json) => _$SiteFromJson(json);
 
   String getLocation() {
-    if (description == '') {
-      return name;
-    }
-    return '$district $country';
+    return '$district, $country'.toTitleCase();
   }
 
   String getName() {
-    if (description == '') {
+    if (!searchName.isNull()) {
+      return searchName;
+    }
+
+    if (!name.isNull()) {
       return name;
     }
-    return description;
-  }
 
-  String getUserLocation() {
-    if (userLocation != '') {
-      return userLocation;
+    if (!description.isNull()) {
+      return description;
     }
-    return getName();
-  }
-
-  String getUserLocationName() {
-    if (description == '') {
-      return name;
-    }
-    return description;
+    return getLocation();
   }
 
   Map<String, dynamic> toJson() => _$SiteToJson(this);
@@ -110,14 +95,14 @@ class Site {
   static String dropTableStmt() => 'DROP TABLE IF EXISTS ${sitesDbName()}';
 
   static Map<String, dynamic> fromDbMap(Map<String, dynamic> json) => {
-        'name': json['${dbSiteName()}'] as String,
-        'description': json['${dbDescription()}'] as String,
-        'region': json['${dbRegion()}'] as String,
-        '_id': json['${dbId()}'] as String,
-        'country': json['${dbCountry()}'] as String,
-        'district': json['${dbDistrict()}'] as String,
-        'latitude': json['${dbLatitude()}'] as double,
-        'longitude': json['${dbLongitude()}'] as double,
+        'name': json[dbSiteName()] as String,
+        'description': json[dbDescription()] as String,
+        'region': json[dbRegion()] as String,
+        '_id': json[dbId()] as String,
+        'country': json[dbCountry()] as String,
+        'district': json[dbDistrict()] as String,
+        'latitude': json[dbLatitude()] as double,
+        'longitude': json[dbLongitude()] as double,
       };
 
   static List<Site> parseSites(dynamic jsonBody) {
@@ -128,8 +113,8 @@ class Site {
       try {
         var site = Site.fromJson(jsonElement);
         sites.add(site);
-      } catch (e) {
-        print('Error parsing sites : $e');
+      } catch (exception, stackTrace) {
+        debugPrint('$exception\n$stackTrace');
       }
     }
 
@@ -143,14 +128,14 @@ class Site {
   static String sitesDbName() => 'sites';
 
   static Map<String, dynamic> toDbMap(Site site) => {
-        '${dbSiteName()}': site.name,
-        '${dbDescription()}': site.description,
-        '${dbRegion()}': site.region,
-        '${dbId()}': site.id,
-        '${dbCountry()}': site.country,
-        '${dbDistrict()}': site.district,
-        '${dbLatitude()}': site.latitude,
-        '${dbLongitude()}': site.longitude
+        dbSiteName(): site.getName(),
+        dbDescription(): site.description,
+        dbRegion(): site.region,
+        dbId(): site.id,
+        dbCountry(): site.country,
+        dbDistrict(): site.district,
+        dbLatitude(): site.latitude,
+        dbLongitude(): site.longitude
       };
 }
 
@@ -165,23 +150,4 @@ class Sites {
   factory Sites.fromJson(Map<String, dynamic> json) => _$SitesFromJson(json);
 
   Map<String, dynamic> toJson() => _$SitesToJson(this);
-}
-
-extension ParseSite on Site {
-  String getTopic(PollutantLevel pollutantLevel) {
-    if (pollutantLevel == PollutantLevel.good) {
-      return '$id-good'.trim().toLowerCase();
-    } else if (pollutantLevel == PollutantLevel.moderate) {
-      return '$id-moderate'.trim().toLowerCase();
-    } else if (pollutantLevel == PollutantLevel.sensitive) {
-      return '$id-sensitive'.trim().toLowerCase();
-    } else if (pollutantLevel == PollutantLevel.unhealthy) {
-      return '$id-unhealthy'.trim().toLowerCase();
-    } else if (pollutantLevel == PollutantLevel.veryUnhealthy) {
-      return '$id-very-unhealthy'.trim().toLowerCase();
-    } else if (pollutantLevel == PollutantLevel.hazardous) {
-      return '$id-hazardous'.trim().toLowerCase();
-    }
-    return '';
-  }
 }

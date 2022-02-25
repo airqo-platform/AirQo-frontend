@@ -1,0 +1,52 @@
+$logo-color:#222533;
+$base-color: white;
+$text-color: #515d6e;
+$font-size:13px;
+
+.panel{
+	box-shadow: 0 2px 5px 0 rgba(0,0,0,.26);
+	border-radius:0 !important;
+	background: white;
+	position:relative;
+	-webkit-transition:all .2s linear;
+}
+
+.panel-close{
+	transform:scale3d(0,0,0);
+}
+
+.panel-body{
+	position:relative;
+	-webkit-transition:all .2s linear;
+}
+
+.panel-heading{
+	background: $base-color !important;
+	border-radius:0;
+	padding:15px;
+	border-bottom:0 !important;
+}
+
+.panel-heading .panel-title{
+	text-transform:uppercase;
+	font-weight:600;
+	font-size:$font-size;
+	color:$text-color;
+}
+
+.rad-panel-action {
+  list-style: none;
+  display: inline-block;
+  float: right;
+}
+
+.rad-panel-action li {
+  display: inline-block;
+  color: $text-color;
+  margin: 0 5px;
+  cursor: pointer;
+}
+
+.rad-chart{
+	min-height:250px;
+}

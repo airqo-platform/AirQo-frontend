@@ -1,6 +1,9 @@
 import 'package:app/constants/app_constants.dart';
 import 'package:app/screens/my_places.dart';
+import 'package:app/screens/web_view.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
 
 RawMaterialButton customOkayButton(context) {
   return RawMaterialButton(
@@ -25,7 +28,7 @@ RawMaterialButton customOkayButton(context) {
   );
 }
 
-void infoDialog(context, String message) {
+void pollutantDialog(context, String message) {
   showGeneralDialog(
     context: context,
     barrierDismissible: false,
@@ -41,14 +44,50 @@ void infoDialog(context, String message) {
     },
     pageBuilder: (context, animation, secondaryAnimation) {
       return AlertDialog(
-        title: const Text('AirQopedia'),
-        content: Text(message),
+        title: const Text(
+          'AirQopedia',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: GestureDetector(
+          onTap: () {
+            Navigator.pop(context, 'OK');
+            openUrl(Links.whoUrl);
+          },
+          child: RichText(
+            text: TextSpan(
+              children: <TextSpan>[
+                TextSpan(
+                  text: message,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: ColorConstants.appColor,
+                    wordSpacing: 1,
+                  ),
+                ),
+                TextSpan(
+                  text: ' \n\nSource: ',
+                  style: TextStyle(
+                    color: ColorConstants.appColor,
+                  ),
+                ),
+                TextSpan(
+                  text: 'World Health Organisation',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: ColorConstants.appColor,
+                  ),
+                )
+              ],
+            ),
+          ),
+        ),
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.pop(context, 'OK'),
             child: Text(
-              'OK',
-              style: TextStyle(color: ColorConstants.appColor),
+              'CLOSE',
+              style: TextStyle(
+                  color: ColorConstants.appColor, fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -131,7 +170,7 @@ Future<void> showSnackBarGoToMyPlaces(context, String message) async {
     backgroundColor: ColorConstants.snackBarBgColor,
     action: SnackBarAction(
       textColor: Colors.white,
-      label: 'View MyPlaces',
+      label: 'View My Places',
       onPressed: () async {
         await Navigator.push(context, MaterialPageRoute(builder: (context) {
           return const MyPlaces();

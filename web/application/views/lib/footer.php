@@ -133,7 +133,7 @@
 
 				<div class="midd-footer-28 align-center py-lg-4 py-3 mt-5">
 					<div class="container">
-						<p class="copy-footer-28 text-center"> &copy; <?= date('Y'); ?> | AirQo</p>
+						<p class="copy-footer-28 text-center"> &copy;<?= date('Y'); ?> AirQo - <a href="https://docs.airqo.net/airqo-terms-and-conditions/HxYx3ysdA6k0ng6YJkU3/" class="copy-footer-a">Terms</a></p>
 					</div>
 				</div>
 			</div>

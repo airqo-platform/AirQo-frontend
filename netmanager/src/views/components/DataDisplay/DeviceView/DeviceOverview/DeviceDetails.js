@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Paper,
   Table,
@@ -9,9 +9,27 @@ import {
 } from "@material-ui/core";
 import Copyable from "views/components/Copy/Copyable";
 import { ChartContainer } from "views/charts";
+import { decryptKeyApi } from "views/apis/deviceRegistry";
+import { isEmpty } from "underscore";
 
 const DeviceDetails = ({ deviceData }) => {
   const BLANK_PLACE_HOLDER = "-";
+  const [readKey, setReadKey] = useState("");
+  const [writeKey, setWriteKey] = useState("");
+
+  const decryptKey = async (key, callback) => {
+    return await decryptKeyApi(key).then((res) => {
+      callback(res.decrypted_key || "Could not decrypt key");
+    });
+  };
+
+  useEffect(() => {
+    if (!isEmpty(deviceData)) {
+      decryptKey(deviceData.readKey, setReadKey);
+      decryptKey(deviceData.writeKey, setWriteKey);
+    }
+  }, []);
+
   return (
     <ChartContainer title={"device details"} blue>
       <TableContainer component={Paper}>
@@ -21,7 +39,9 @@ const DeviceDetails = ({ deviceData }) => {
               <TableCell>
                 <b>Name</b>
               </TableCell>
-              <TableCell>{deviceData.long_name || BLANK_PLACE_HOLDER}</TableCell>
+              <TableCell>
+                {deviceData.long_name || BLANK_PLACE_HOLDER}
+              </TableCell>
             </TableRow>
             <TableRow>
               <TableCell>
@@ -55,9 +75,7 @@ const DeviceDetails = ({ deviceData }) => {
               <TableCell>
                 <b>Latitude</b>
               </TableCell>
-              <TableCell>
-                {deviceData.latitude || BLANK_PLACE_HOLDER}
-              </TableCell>
+              <TableCell>{deviceData.latitude || BLANK_PLACE_HOLDER}</TableCell>
             </TableRow>
             <TableRow>
               <TableCell>
@@ -93,7 +111,7 @@ const DeviceDetails = ({ deviceData }) => {
                 <b>Read Key</b>
               </TableCell>
               <TableCell>
-                <Copyable value={deviceData.readKey || BLANK_PLACE_HOLDER} />
+                <Copyable value={readKey || BLANK_PLACE_HOLDER} />
               </TableCell>
             </TableRow>
             <TableRow>
@@ -101,7 +119,7 @@ const DeviceDetails = ({ deviceData }) => {
                 <b>Write Key</b>
               </TableCell>
               <TableCell>
-                <Copyable value={deviceData.writeKey || BLANK_PLACE_HOLDER} />
+                <Copyable value={writeKey || BLANK_PLACE_HOLDER} />
               </TableCell>
             </TableRow>
           </TableBody>

@@ -31,45 +31,50 @@ List<Recommendation> getHealthRecommendations(double pm2_5) {
   if (pm2_5 <= 12.09) {
     //good
     recommendations.add(Recommendation(
-        'Air quality is satisfactory, and air pollution'
-            ' poses little or no risk.',
+        'Great air here today! Zero air pollution, Zero worries',
         'assets/images/community.png',
-        ColorConstants.green.withOpacity(0.2)));
+        ColorConstants.green));
   } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
     //moderate
     recommendations
       ..add(Recommendation(
           'Unusually sensitive people should'
-              ' consider reducing prolonged or heavy exertion.',
+              ' consider reducing prolonged or '
+              'intense outdoor activities.',
           'assets/images/pregnant-woman.png',
-          ColorConstants.green.withOpacity(0.2)))
+          ColorConstants.yellow))
       ..add(Recommendation(
           'The elderly and children '
               'are the groups most at risk.',
           'assets/images/old.png',
-          ColorConstants.green.withOpacity(0.2)));
+          ColorConstants.yellow));
   } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
     //sensitive
     recommendations
       ..add(Recommendation(
           'The elderly and children '
-              'should limit prolonged exertion.',
+              'should limit intense outdoor activities.',
           'assets/images/baby.png',
-          ColorConstants.green.withOpacity(0.2)))
+          ColorConstants.orange))
       ..add(Recommendation(
-          'Sensitive people should reduce prolonged or heavy exertion.',
+          'Sensitive people should reduce prolonged or '
+              'intense outdoor activities.',
           'assets/images/pregnant-woman.png',
-          ColorConstants.green.withOpacity(0.2)));
+          ColorConstants.orange));
   } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
     // unhealthy
     recommendations
       ..add(Recommendation(
           'People with respiratory or heart disease,'
-              ' the elderly and children should avoid prolonged exertion.',
+              ' the elderly and children should avoid '
+              'intense outdoor activities.',
           'assets/images/old.png',
-          ColorConstants.green.withOpacity(0.2)))
-      ..add(Recommendation('Everyone else should limit prolonged exertion.',
-          'assets/images/cycling.png', ColorConstants.green.withOpacity(0.2)));
+          ColorConstants.red))
+      ..add(Recommendation(
+          'Everyone else should limit '
+              'intense outdoor activities.',
+          'assets/images/cycling.png',
+          ColorConstants.red));
   } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
     // very unhealthy
     recommendations
@@ -77,17 +82,20 @@ List<Recommendation> getHealthRecommendations(double pm2_5) {
           'People with respiratory or heart disease, '
               'the elderly and children should avoid any outdoor activity',
           'assets/images/baby.png',
-          ColorConstants.green.withOpacity(0.2)))
-      ..add(Recommendation('Everyone else should limit prolonged exertion.',
-          'assets/images/jogging.png', ColorConstants.green.withOpacity(0.2)));
+          ColorConstants.purple))
+      ..add(Recommendation(
+          'Everyone else should limit '
+              'intense outdoor activities.',
+          'assets/images/jogging.png',
+          ColorConstants.purple));
   } else if (pm2_5 >= 250.5) {
     // hazardous
     recommendations.add(Recommendation(
-        'Everyone should avoid any outdoor exertion. '
+        'Everyone should avoid any intense outdoor activities . '
             'People with respiratory or heart disease,'
             ' the elderly and children should remain indoors.',
         'assets/images/face-mask.png',
-        ColorConstants.purple));
+        ColorConstants.maroon));
   } else {}
 
   return recommendations;
@@ -420,27 +428,13 @@ Pollutant pollutantDetails(String pollutantConstant) {
 
   if (pollutantConstant == PollutantConstant.pm2_5.trim()) {
     return Pollutant(
-        pollutantToString(PollutantConstant.pm2_5),
-        PollutantDescription.pm2_5,
-        PollutantSource.pm2_5,
-        PollutantEffect.pm2_5,
-        PollutantReduction.pm2_5);
+        pollutantToString(PollutantConstant.pm2_5), PollutantDescription.pm2_5);
   } else if (pollutantConstant == PollutantConstant.pm10.trim()) {
     return Pollutant(
-        pollutantToString(PollutantConstant.pm10),
-        PollutantDescription.pm10,
-        PollutantSource.pm10,
-        PollutantEffect.pm10,
-        PollutantReduction.pm10);
-  } else if (pollutantConstant == PollutantConstant.temperature.trim()) {
-    return Pollutant(pollutantToString(PollutantConstant.temperature),
-        PollutantDescription.temperature, '', '', '');
-  } else if (pollutantConstant == PollutantConstant.humidity.trim()) {
-    return Pollutant(pollutantToString(PollutantConstant.humidity),
-        PollutantDescription.humidity, '', '', '');
+        pollutantToString(PollutantConstant.pm10), PollutantDescription.pm10);
   } else {
-    return Pollutant(pollutantToString(PollutantConstant.pm2_5),
-        PollutantDescription.pm2_5, '', '', '');
+    return Pollutant(
+        pollutantToString(PollutantConstant.pm2_5), PollutantDescription.pm2_5);
   }
 }
 
@@ -448,15 +442,11 @@ String pollutantToString(String pollutantConstant) {
   pollutantConstant = pollutantConstant.trim();
 
   if (pollutantConstant == PollutantConstant.pm2_5) {
-    return 'PM2.5';
+    return '2.5';
   } else if (pollutantConstant == PollutantConstant.pm10) {
-    return 'PM10';
-  } else if (pollutantConstant == PollutantConstant.humidity) {
-    return 'Humidity';
-  } else if (pollutantConstant == PollutantConstant.temperature) {
-    return 'Temperature';
+    return '10';
   } else {
-    return '';
+    return '2.5';
   }
 }
 

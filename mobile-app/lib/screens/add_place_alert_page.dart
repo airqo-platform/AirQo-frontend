@@ -115,18 +115,6 @@ class _AddPlaceAlertPageState extends State<AddPlaceAlertPage> {
                       ))
                 ],
               ),
-              // subtitle: Slider(
-              //   value: _currentSliderValue,
-              //   min: 0,
-              //   max: 100,
-              //   divisions: 5,
-              //   label: _currentSliderValue.round().toString(),
-              //   onChanged: (double value) {
-              //     setState(() {
-              //       _currentSliderValue = value;
-              //     });
-              //   },
-              // ),
               subtitle: Column(
                 children: [
                   Row(
@@ -139,7 +127,7 @@ class _AddPlaceAlertPageState extends State<AddPlaceAlertPage> {
                         softWrap: true,
                         maxLines: 2,
                       ),
-                      Spacer(),
+                      const Spacer(),
                       Radio(
                         value: AirQuality.good,
                         groupValue: _airQuality,
@@ -163,7 +151,7 @@ class _AddPlaceAlertPageState extends State<AddPlaceAlertPage> {
                         softWrap: true,
                         maxLines: 2,
                       ),
-                      Spacer(),
+                      const Spacer(),
                       Radio(
                         value: AirQuality.moderate,
                         groupValue: _airQuality,
@@ -187,7 +175,7 @@ class _AddPlaceAlertPageState extends State<AddPlaceAlertPage> {
                         softWrap: true,
                         maxLines: 2,
                       ),
-                      Spacer(),
+                      const Spacer(),
                       Radio(
                         value: AirQuality.ufsg,
                         groupValue: _airQuality,
@@ -211,7 +199,7 @@ class _AddPlaceAlertPageState extends State<AddPlaceAlertPage> {
                         softWrap: true,
                         maxLines: 2,
                       ),
-                      Spacer(),
+                      const Spacer(),
                       Radio(
                         value: AirQuality.unhealthy,
                         groupValue: _airQuality,
@@ -277,7 +265,7 @@ class _AddPlaceAlertPageState extends State<AddPlaceAlertPage> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.only(right: 30),
+              padding: const EdgeInsets.only(right: 30),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 mainAxisAlignment: MainAxisAlignment.end,

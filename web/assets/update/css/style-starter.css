@@ -15416,6 +15416,15 @@ button.owl-next {
 	opacity: 1;
 }
 
+.copy-footer-a {
+	cursor: pointer;
+	font-weight: normal;
+	font-size: 15px;
+	line-height: 20px;
+	color: var(--text-color) !important;
+	margin-bottom: 0;
+}
+
 .w3l-market-footer ul.list-btm-28 {
 	margin: 25px 0 15px;
 }

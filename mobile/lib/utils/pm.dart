@@ -1,95 +1,140 @@
 import 'dart:ui';
 
-import 'package:app/constants/app_constants.dart';
-import 'package:app/models/chartData.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
-import 'package:app/models/pollutant.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-List<charts.Series<TimeSeriesData, DateTime>> createData() {
-  var today = DateTime.now();
-
-  final data = [
-    TimeSeriesData(today.add(Duration(hours: 1)), 5),
-  ];
-
-  return [
-    charts.Series<TimeSeriesData, DateTime>(
-      id: 'Forecast',
-      colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
-      domainFn: (TimeSeriesData sales, _) => sales.time,
-      measureFn: (TimeSeriesData sales, _) => sales.value,
-      data: data,
-    )
-  ];
-}
-
-List<Recommendation> getHealthRecommendations(double pm2_5) {
+List<Recommendation> getHealthRecommendations(double pm2_5, String pollutant) {
+  // TODO add recommendations for pm10
   var recommendations = <Recommendation>[];
   if (pm2_5 <= 12.09) {
     //good
-    recommendations.add(Recommendation(
-        'Air quality is satisfactory, and air pollution'
-            ' poses little or no risk.',
-        'assets/images/community.png',
-        ColorConstants.green.withOpacity(0.2)));
+    recommendations
+      ..add(Recommendation(
+          'For everyone',
+          'Great air here today! Zero air pollution Zero worries',
+          'assets/images/family.png'))
+      ..add(Recommendation(
+          'For children',
+          'Perfect time to let your kids enjoy the park',
+          'assets/images/child.png'))
+      ..add(Recommendation(
+          'For pregnant women',
+          'Great time to enjoy a bleeze outdoor with caution',
+          'assets/images/pregnant_woman.png'))
+      ..add(Recommendation(
+          'For elderly people',
+          'Great time to enjoy a bleeze outdoor with caution',
+          'assets/images/old_man.png'));
   } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
     //moderate
     recommendations
       ..add(Recommendation(
-          'Unusually sensitive people should'
-              ' consider reducing prolonged or heavy exertion.',
-          'assets/images/pregnant-woman.png',
-          ColorConstants.green.withOpacity(0.2)))
+          'For everyone',
+          'Reduce the intensity of your outdoor activities,'
+              ' If possible stay indoor',
+          'assets/images/family.png'))
       ..add(Recommendation(
-          'The elderly and children '
-              'are the groups most at risk.',
-          'assets/images/old.png',
-          ColorConstants.green.withOpacity(0.2)));
+          'For children',
+          'Reduce the intensity of your outdoor activities',
+          'assets/images/child.png'))
+      ..add(Recommendation(
+          'For pregnant women',
+          'To keep you and your baby healthy, reduce'
+              ' the intensity of your outdoor activities',
+          'assets/images/pregnant_woman.png'))
+      ..add(Recommendation(
+          'For elderly people',
+          'Reduce the intensity of your outdoor activities',
+          'assets/images/old_man.png'));
   } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
     //sensitive
     recommendations
       ..add(Recommendation(
-          'The elderly and children '
-              'should limit prolonged exertion.',
-          'assets/images/baby.png',
-          ColorConstants.green.withOpacity(0.2)))
+          'For everyone',
+          'Reduce the intensity of your outdoor activities,'
+              ' If possible stay indoor',
+          'assets/images/family.png'))
       ..add(Recommendation(
-          'Sensitive people should reduce prolonged or heavy exertion.',
-          'assets/images/pregnant-woman.png',
-          ColorConstants.green.withOpacity(0.2)));
+          'For children',
+          'Reduce the intensity of your outdoor activities',
+          'assets/images/child.png'))
+      ..add(Recommendation(
+          'For pregnant women',
+          'To keep you and your baby healthy, reduce'
+              ' the intensity of your outdoor activities',
+          'assets/images/pregnant_woman.png'))
+      ..add(Recommendation(
+          'For elderly people',
+          'Reduce the intensity of your outdoor activities',
+          'assets/images/old_man.png'));
   } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
     // unhealthy
     recommendations
       ..add(Recommendation(
-          'People with respiratory or heart disease,'
-              ' the elderly and children should avoid prolonged exertion.',
-          'assets/images/old.png',
-          ColorConstants.green.withOpacity(0.2)))
-      ..add(Recommendation('Everyone else should limit prolonged exertion.',
-          'assets/images/cycling.png', ColorConstants.green.withOpacity(0.2)));
+          'For everyone',
+          'Reduce the intensity of your outdoor activities,'
+              ' If possible stay indoor',
+          'assets/images/family.png'))
+      ..add(Recommendation(
+          'For children',
+          'Reduce the intensity of your outdoor activities',
+          'assets/images/child.png'))
+      ..add(Recommendation(
+          'For pregnant women',
+          'To keep you and your baby healthy, reduce'
+              ' the intensity of your outdoor activities',
+          'assets/images/pregnant_woman.png'))
+      ..add(Recommendation(
+          'For elderly people',
+          'Reduce the intensity of your outdoor activities',
+          'assets/images/old_man.png'));
   } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
     // very unhealthy
     recommendations
       ..add(Recommendation(
-          'People with respiratory or heart disease, '
-              'the elderly and children should avoid any outdoor activity',
-          'assets/images/baby.png',
-          ColorConstants.green.withOpacity(0.2)))
-      ..add(Recommendation('Everyone else should limit prolonged exertion.',
-          'assets/images/jogging.png', ColorConstants.green.withOpacity(0.2)));
+          'For everyone',
+          'Reduce the intensity of your outdoor activities,'
+              ' If possible stay indoor',
+          'assets/images/family.png'))
+      ..add(Recommendation(
+          'For children',
+          'Reduce the intensity of your outdoor activities',
+          'assets/images/child.png'))
+      ..add(Recommendation(
+          'For pregnant women',
+          'To keep you and your baby healthy, reduce'
+              ' the intensity of your outdoor activities',
+          'assets/images/pregnant_woman.png'))
+      ..add(Recommendation(
+          'For elderly people',
+          'Reduce the intensity of your outdoor activities',
+          'assets/images/old_man.png'));
   } else if (pm2_5 >= 250.5) {
     // hazardous
-    recommendations.add(Recommendation(
-        'Everyone should avoid any outdoor exertion. '
-            'People with respiratory or heart disease,'
-            ' the elderly and children should remain indoors.',
-        'assets/images/face-mask.png',
-        ColorConstants.purple));
+    recommendations
+      ..add(Recommendation(
+          'For everyone',
+          'Reduce the intensity of your outdoor activities,'
+              ' If possible stay indoor',
+          'assets/images/family.png'))
+      ..add(Recommendation(
+          'For children',
+          'Reduce the intensity of your outdoor activities',
+          'assets/images/child.png'))
+      ..add(Recommendation(
+          'For pregnant women',
+          'To keep you and your baby healthy, reduce'
+              ' the intensity of your outdoor activities',
+          'assets/images/pregnant_woman.png'))
+      ..add(Recommendation(
+          'For elderly people',
+          'Reduce the intensity of your outdoor activities',
+          'assets/images/old_man.png'));
   } else {}
-
+  recommendations.shuffle();
   return recommendations;
 }
 
@@ -130,173 +175,256 @@ Widget mapSection(Measurement measurement) {
 Color pm10TextColor(double pm10) {
   if (pm10 <= 50.99) {
     //good
-    return Colors.black;
+    return const Color(0xff03B600);
   } else if (pm10 >= 51.00 && pm10 <= 100.99) {
     //moderate
-    return Colors.black;
+    return const Color(0xffA8A800);
   } else if (pm10 >= 101.00 && pm10 <= 250.99) {
     //sensitive
-    return Colors.black;
+    return const Color(0xffB86000);
   } else if (pm10 >= 251.00 && pm10 <= 350.99) {
     // unhealthy
-    return Colors.white;
+    return const Color(0xffB80B00);
   } else if (pm10 >= 351.00 && pm10 <= 430.99) {
     // very unhealthy
-    return Colors.white;
+    return const Color(0xff8E00AC);
   } else if (pm10 >= 431.00) {
     // hazardous
-    return Colors.white;
+    return const Color(0xffDBA5B2);
   } else {
-    return ColorConstants.appColor;
+    return Config.appColor;
   }
 }
 
 Color pm10ToColor(double pm10) {
   if (pm10 <= 50.99) {
     //good
-    return ColorConstants.green;
+    return Config.green;
   } else if (pm10 >= 51.00 && pm10 <= 100.99) {
     //moderate
-    return ColorConstants.yellow;
+    return Config.yellow;
   } else if (pm10 >= 101.00 && pm10 <= 250.99) {
     //sensitive
-    return ColorConstants.orange;
+    return Config.orange;
   } else if (pm10 >= 251.00 && pm10 <= 350.99) {
     // unhealthy
-    return ColorConstants.red;
+    return Config.red;
   } else if (pm10 >= 351.00 && pm10 <= 430.99) {
     // very unhealthy
-    return ColorConstants.purple;
+    return Config.purple;
   } else if (pm10 >= 431.00) {
     // hazardous
-    return ColorConstants.maroon;
+    return Config.maroon;
   } else {
-    return ColorConstants.appColor;
+    return Config.appColor;
+  }
+}
+
+String pm10ToString(double pm10) {
+  if (pm10 <= 50.99) {
+    //good
+    return 'Good';
+  } else if (pm10 >= 51.00 && pm10 <= 100.99) {
+    //moderate
+    return 'Moderate';
+  } else if (pm10 >= 101.00 && pm10 <= 250.99) {
+    //sensitive
+    return 'Unhealthy FSGs';
+  } else if (pm10 >= 251.00 && pm10 <= 350.99) {
+    // unhealthy
+    return 'Unhealthy';
+  } else if (pm10 >= 351.00 && pm10 <= 430.99) {
+    // very unhealthy
+    return 'Very Unhealthy';
+  } else if (pm10 >= 431.00) {
+    // hazardous
+    return 'Hazardous';
+  } else {
+    return '';
   }
 }
 
 Color pm2_5TextColor(double pm2_5) {
   if (pm2_5 <= 12.09) {
     //good
-    return Colors.black;
+    return const Color(0xff03B600);
   } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
     //moderate
-    return Colors.black;
+    return const Color(0xffA8A800);
   } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
     //sensitive
-    return Colors.black;
+    return const Color(0xffB86000);
   } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
     // unhealthy
-    return Colors.white;
+    return const Color(0xffB80B00);
   } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
     // very unhealthy
-    return Colors.white;
+    return const Color(0xff8E00AC);
   } else if (pm2_5 >= 250.5) {
     // hazardous
-    return Colors.white;
+    return const Color(0xffDBA5B2);
   } else {
-    return ColorConstants.appColor;
-  }
-}
-
-charts.Color pm2_5ToChartColor(double value, String pollutant) {
-  if (pollutant.trim().toLowerCase() == 'pm2.5') {
-    if (value <= 12.09) {
-      //good
-      return charts.ColorUtil.fromDartColor(ColorConstants.green);
-    } else if (value >= 12.1 && value <= 35.49) {
-      //moderate
-      return charts.ColorUtil.fromDartColor(ColorConstants.yellow);
-    } else if (value >= 35.5 && value <= 55.49) {
-      //sensitive
-      return charts.ColorUtil.fromDartColor(ColorConstants.orange);
-    } else if (value >= 55.5 && value <= 150.49) {
-      // unhealthy
-      return charts.ColorUtil.fromDartColor(ColorConstants.red);
-    } else if (value >= 150.5 && value <= 250.49) {
-      // very unhealthy
-      return charts.ColorUtil.fromDartColor(ColorConstants.purple);
-    } else if (value >= 250.5) {
-      // hazardous
-      return charts.ColorUtil.fromDartColor(ColorConstants.maroon);
-    } else {
-      return charts.ColorUtil.fromDartColor(ColorConstants.appColor);
-    }
-  } else {
-    if (value <= 50.99) {
-      //good
-      return charts.ColorUtil.fromDartColor(ColorConstants.green);
-    } else if (value >= 51.00 && value <= 100.99) {
-      //moderate
-      return charts.ColorUtil.fromDartColor(ColorConstants.yellow);
-    } else if (value >= 101.00 && value <= 250.99) {
-      //sensitive
-      return charts.ColorUtil.fromDartColor(ColorConstants.orange);
-    } else if (value >= 251.00 && value <= 350.99) {
-      // unhealthy
-      return charts.ColorUtil.fromDartColor(ColorConstants.red);
-    } else if (value >= 351.00 && value <= 430.99) {
-      // very unhealthy
-      return charts.ColorUtil.fromDartColor(ColorConstants.purple);
-    } else if (value >= 431.00) {
-      // hazardous
-      return charts.ColorUtil.fromDartColor(ColorConstants.maroon);
-    } else {
-      return charts.ColorUtil.fromDartColor(ColorConstants.appColor);
-    }
+    return Config.appColor;
   }
 }
 
 Color pm2_5ToColor(double pm2_5) {
   if (pm2_5 <= 12.09) {
     //good
-    return ColorConstants.green;
+    return Config.green;
   } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
     //moderate
-    return ColorConstants.yellow;
+    return Config.yellow;
   } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
     //sensitive
-    return ColorConstants.orange;
+    return Config.orange;
   } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
     // unhealthy
-    return ColorConstants.red;
+    return Config.red;
   } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
     // very unhealthy
-    return ColorConstants.purple;
+    return Config.purple;
   } else if (pm2_5 >= 250.5) {
     // hazardous
-    return ColorConstants.maroon;
+    return Config.maroon;
   } else {
-    return ColorConstants.appColor;
+    return Config.appColor;
   }
 }
 
-String pmToEmoji(double pm2_5) {
+String pm2_5ToString(double pm2_5) {
   if (pm2_5 <= 12.09) {
     //good
-    return 'assets/images/good-face.png';
+    return 'Good';
   } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
     //moderate
-    return 'assets/images/moderate-face.png';
+    return 'Moderate';
   } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
     //sensitive
-    return 'assets/images/sensitive-face.png';
+    return 'Unhealthy For Sensitive Groups';
   } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
     // unhealthy
-    return 'assets/images/unhealthy-face.png';
+    return 'Unhealthy';
   } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
     // very unhealthy
-    return 'assets/images/very-unhealthy-face.png';
+    return 'Very Unhealthy';
   } else if (pm2_5 >= 250.5) {
     // hazardous
-    return 'assets/images/hazardous-face.png';
+    return 'Hazardous';
   } else {
-    return 'assets/images/good-face.png';
+    return '';
+  }
+}
+
+charts.Color pmToChartColor(double value, String pollutant) {
+  if (pollutant.trim().toLowerCase() == 'pm2.5') {
+    if (value <= 12.09) {
+      //good
+      return charts.ColorUtil.fromDartColor(Config.green);
+    } else if (value >= 12.1 && value <= 35.49) {
+      //moderate
+      return charts.ColorUtil.fromDartColor(Config.yellow);
+    } else if (value >= 35.5 && value <= 55.49) {
+      //sensitive
+      return charts.ColorUtil.fromDartColor(Config.orange);
+    } else if (value >= 55.5 && value <= 150.49) {
+      // unhealthy
+      return charts.ColorUtil.fromDartColor(Config.red);
+    } else if (value >= 150.5 && value <= 250.49) {
+      // very unhealthy
+      return charts.ColorUtil.fromDartColor(Config.purple);
+    } else if (value >= 250.5) {
+      // hazardous
+      return charts.ColorUtil.fromDartColor(Config.maroon);
+    } else {
+      return charts.ColorUtil.fromDartColor(Config.appColor);
+    }
+  } else {
+    if (value <= 50.99) {
+      //good
+      return charts.ColorUtil.fromDartColor(Config.green);
+    } else if (value >= 51.00 && value <= 100.99) {
+      //moderate
+      return charts.ColorUtil.fromDartColor(Config.yellow);
+    } else if (value >= 101.00 && value <= 250.99) {
+      //sensitive
+      return charts.ColorUtil.fromDartColor(Config.orange);
+    } else if (value >= 251.00 && value <= 350.99) {
+      // unhealthy
+      return charts.ColorUtil.fromDartColor(Config.red);
+    } else if (value >= 351.00 && value <= 430.99) {
+      // very unhealthy
+      return charts.ColorUtil.fromDartColor(Config.purple);
+    } else if (value >= 431.00) {
+      // hazardous
+      return charts.ColorUtil.fromDartColor(Config.maroon);
+    } else {
+      return charts.ColorUtil.fromDartColor(Config.appColor);
+    }
+  }
+}
+
+String pmToInfoDialog(double pm2_5) {
+  if (pm2_5 <= 12.09) {
+    //good
+    return 'Air quality is safe for everyone!';
+  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
+    //moderate
+    return 'Unusually sensitive people should consider reducing '
+        'prolonged or intense outdoor activities.\n'
+        '';
+  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
+    //sensitive
+    return 'The elderly and children should limit intense outdoor activities.\n'
+        'Sensitive people should reduce prolonged or '
+        'intense outdoor activities.';
+  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
+    // unhealthy
+    return 'People with respiratory or heart disease,'
+        ' the elderly and children should avoid '
+        'intense outdoor activities.\n'
+        'Everyone else should limit intense outdoor activities.';
+  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
+    // very unhealthy
+    return 'People with respiratory or heart disease, '
+        'the elderly and children should avoid any outdoor activity.\n'
+        'Everyone else should limit intense outdoor activities.';
+  } else if (pm2_5 >= 250.5) {
+    // hazardous
+    return 'Everyone should avoid any intense outdoor activities. '
+        'People with respiratory or heart disease,'
+        ' the elderly and children should remain indoors.';
+  } else {
+    return '';
+  }
+}
+
+String pmToLongString(double pm2_5) {
+  if (pm2_5 <= 12.09) {
+    //good
+    return 'Good';
+  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
+    //moderate
+    return 'Moderate';
+  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
+    //sensitive
+    return 'Unhealthy for Sensitive Groups';
+  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
+    // unhealthy
+    return 'Unhealthy';
+  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
+    // very unhealthy
+    return 'Very Unhealthy';
+  } else if (pm2_5 >= 250.5) {
+    // hazardous
+    return 'Hazardous';
+  } else {
+    return '';
   }
 }
 
 Future<BitmapDescriptor> pmToMarker(double pm2_5) async {
-  var width = 55;
+  var width = 80;
   var value = pm2_5;
   var bgColor = pm2_5ToColor(pm2_5);
   var textColor = pm2_5TextColor(pm2_5);
@@ -316,7 +444,7 @@ Future<BitmapDescriptor> pmToMarker(double pm2_5) async {
     text: TextSpan(
       text: value.toStringAsFixed(2),
       style: TextStyle(
-        fontSize: radius - 10,
+        fontSize: 20,
         fontWeight: FontWeight.bold,
         color: textColor,
       ),
@@ -343,34 +471,34 @@ BitmapDescriptor pmToMarkerPoint(double pm2_5) {
   if (pm2_5 <= 12.09) {
     //good
     return BitmapDescriptor.defaultMarkerWithHue(
-        HSVColor.fromColor(ColorConstants.green).hue);
+        HSVColor.fromColor(Config.green).hue);
   } else if (pm2_5 >= 12.10 && pm2_5 <= 35.49) {
     //moderate
     return BitmapDescriptor.defaultMarkerWithHue(
-        HSVColor.fromColor(ColorConstants.yellow).hue);
+        HSVColor.fromColor(Config.yellow).hue);
   } else if (pm2_5 >= 35.50 && pm2_5 <= 55.49) {
     //sensitive
     return BitmapDescriptor.defaultMarkerWithHue(
-        HSVColor.fromColor(ColorConstants.orange).hue);
+        HSVColor.fromColor(Config.orange).hue);
   } else if (pm2_5 >= 55.50 && pm2_5 <= 150.49) {
     // unhealthy
     return BitmapDescriptor.defaultMarkerWithHue(
-        HSVColor.fromColor(ColorConstants.red).hue);
+        HSVColor.fromColor(Config.red).hue);
   } else if (pm2_5 >= 150.50 && pm2_5 <= 250.49) {
     // very unhealthy
     return BitmapDescriptor.defaultMarkerWithHue(
-        HSVColor.fromColor(ColorConstants.purple).hue);
+        HSVColor.fromColor(Config.purple).hue);
   } else if (pm2_5 >= 250.5) {
     // hazardous
     return BitmapDescriptor.defaultMarkerWithHue(
-        HSVColor.fromColor(ColorConstants.maroon).hue);
+        HSVColor.fromColor(Config.maroon).hue);
   } else {
     return BitmapDescriptor.defaultMarker;
   }
 }
 
-Future<BitmapDescriptor> pmToMarkerV2(double pm2_5) async {
-  var width = 40;
+Future<BitmapDescriptor> pmToSmallMarker(double pm2_5) async {
+  var width = 20;
   var bgColor = pm2_5ToColor(pm2_5);
 
   final pictureRecorder = PictureRecorder();
@@ -391,80 +519,10 @@ Future<BitmapDescriptor> pmToMarkerV2(double pm2_5) async {
   return BitmapDescriptor.fromBytes(data!.buffer.asUint8List());
 }
 
-String pmToString(double pm2_5) {
-  if (pm2_5 <= 12.09) {
-    //good
-    return 'Good';
-  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
-    //moderate
-    return 'Moderate';
-  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
-    //sensitive
-    return 'Unhealthy for\nsensitive people';
-  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
-    // unhealthy
-    return 'Unhealthy';
-  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
-    // very unhealthy
-    return 'Very Unhealthy';
-  } else if (pm2_5 >= 250.5) {
-    // hazardous
-    return 'Hazardous';
-  } else {
-    return '';
-  }
-}
-
-Pollutant pollutantDetails(String pollutantConstant) {
-  pollutantConstant = pollutantConstant.trim();
-
-  if (pollutantConstant == PollutantConstant.pm2_5.trim()) {
-    return Pollutant(
-        pollutantToString(PollutantConstant.pm2_5),
-        PollutantDescription.pm2_5,
-        PollutantSource.pm2_5,
-        PollutantEffect.pm2_5,
-        PollutantReduction.pm2_5);
-  } else if (pollutantConstant == PollutantConstant.pm10.trim()) {
-    return Pollutant(
-        pollutantToString(PollutantConstant.pm10),
-        PollutantDescription.pm10,
-        PollutantSource.pm10,
-        PollutantEffect.pm10,
-        PollutantReduction.pm10);
-  } else if (pollutantConstant == PollutantConstant.temperature.trim()) {
-    return Pollutant(pollutantToString(PollutantConstant.temperature),
-        PollutantDescription.temperature, '', '', '');
-  } else if (pollutantConstant == PollutantConstant.humidity.trim()) {
-    return Pollutant(pollutantToString(PollutantConstant.humidity),
-        PollutantDescription.humidity, '', '', '');
-  } else {
-    return Pollutant(pollutantToString(PollutantConstant.pm2_5),
-        PollutantDescription.pm2_5, '', '', '');
-  }
-}
-
-String pollutantToString(String pollutantConstant) {
-  pollutantConstant = pollutantConstant.trim();
-
-  if (pollutantConstant == PollutantConstant.pm2_5) {
-    return 'PM2.5';
-  } else if (pollutantConstant == PollutantConstant.pm10) {
-    return 'PM10';
-  } else if (pollutantConstant == PollutantConstant.humidity) {
-    return 'Humidity';
-  } else if (pollutantConstant == PollutantConstant.temperature) {
-    return 'Temperature';
-  } else {
-    return '';
-  }
-}
-
 class Recommendation {
-  String recommendation = '';
-  bool isSelected = false;
+  String title = '';
+  String body = '';
   String imageUrl = '';
-  Color imageColor = ColorConstants.green.withOpacity(0.2);
 
-  Recommendation(this.recommendation, this.imageUrl, this.imageColor);
+  Recommendation(this.title, this.body, this.imageUrl);
 }

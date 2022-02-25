@@ -53,7 +53,7 @@ class CurrentLocationCard extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.only(left: 10, right: 10),
-            child: PollutantsSection(measurementData),
+            child: PollutantsSection(measurementData, 'Current Air Quality'),
           ),
           const SizedBox(
             height: 10,
@@ -201,13 +201,28 @@ class CurrentLocationCard extends StatelessWidget {
                           fontSize: 20,
                           fontWeight: FontWeight.bold),
                     ),
-                    const Text(
-                      'PM2.5',
-                      style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey),
-                    ),
+                    RichText(
+                        text: TextSpan(
+                      style: DefaultTextStyle.of(context).style,
+                      children: <TextSpan>[
+                        const TextSpan(
+                          text: 'PM',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const TextSpan(
+                          text: '2.5',
+                          style: TextStyle(
+                            fontSize: 8,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                      ],
+                    ))
                   ],
                 ),
               )

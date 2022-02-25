@@ -41,7 +41,7 @@ class _MyPlacesViewState extends State<MyPlacesView> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               const Text(
-                                'Empty in MyPlaces',
+                                'Empty in My Places',
                                 softWrap: true,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(fontSize: 20),

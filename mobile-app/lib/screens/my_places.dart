@@ -28,6 +28,7 @@ class _MyPlacesState extends State<MyPlaces> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         backgroundColor: ColorConstants.appBarBgColor,
         leading: BackButton(color: ColorConstants.appColor),
         elevation: 0.0,
@@ -42,13 +43,13 @@ class _MyPlacesState extends State<MyPlaces> {
                 decoration: InputDecoration(
                   hintStyle:
                       TextStyle(fontSize: 18, color: ColorConstants.appColor),
-                  hintText: 'Search in MyPlaces',
+                  hintText: 'Search in My Places',
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.all(15),
                 ),
               )
             : Text(
-                'MyPlaces',
+                'My Places',
                 style: TextStyle(
                   color: ColorConstants.appBarTitleColor,
                   fontWeight: FontWeight.bold,
@@ -113,9 +114,7 @@ class _MyPlacesState extends State<MyPlaces> {
                               child: ListTile(
                                 leading: CircleAvatar(
                                   backgroundColor: pm2_5ToColor(
-                                      searchResults[index]
-                                          .pm2_5
-                                          .calibratedValue),
+                                      searchResults[index].getPm2_5Value()),
                                   foregroundColor: Colors.black54,
                                   child: Center(
                                     child: Text(
@@ -125,8 +124,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                           fontSize: 10.0,
                                           color: pm2_5TextColor(
                                               searchResults[index]
-                                                  .pm2_5
-                                                  .calibratedValue)),
+                                                  .getPm2_5Value())),
                                     ),
                                   ),
                                 ),
@@ -170,7 +168,7 @@ class _MyPlacesState extends State<MyPlaces> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     const Text(
-                                      'Empty in MyPlaces',
+                                      'Empty in My Places',
                                       softWrap: true,
                                       textAlign: TextAlign.center,
                                       style: TextStyle(fontSize: 20),
@@ -292,30 +290,6 @@ class _MyPlacesState extends State<MyPlaces> {
                           );
                         }
                       }))),
-      // floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      // floatingActionButton: FloatingActionButton(
-      //   // isExtended: true,
-      //   backgroundColor: ColorConstants.appColor,
-      //   onPressed: () {
-      //     setState(() {
-      //       if (isSearching) {
-      //         setState(() {
-      //           isSearching = false;
-      //           searchController.clear();
-      //           searchResults.clear();
-      //         });
-      //       } else {
-      //         setState(() {
-      //           isSearching = true;
-      //           searchController.clear();
-      //           searchResults.clear();
-      //         });
-      //       }
-      //     });
-      //   },
-      //   // isExtended: true,
-      //   child: const Icon(Icons.search_outlined),
-      // ),
     );
   }
 
