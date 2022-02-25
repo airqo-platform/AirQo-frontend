@@ -12,6 +12,8 @@ class Kya {
   @JsonKey(defaultValue: 'You just finished your first Know You Air Lesson')
   String completionMessage;
   String imageUrl;
+  @JsonKey(defaultValue: '')
+  String secondaryImageUrl;
   String id;
   List<KyaLesson> lessons = [];
 
@@ -21,7 +23,8 @@ class Kya {
       required this.id,
       required this.lessons,
       required this.progress,
-      required this.completionMessage});
+      required this.completionMessage,
+      required this.secondaryImageUrl});
 
   factory Kya.fromDbJson(List<Map<String, Object?>>? json) {
     if (json == null) {
@@ -31,7 +34,8 @@ class Kya {
           imageUrl: '',
           completionMessage: '',
           lessons: [],
-          progress: 0);
+          progress: 0,
+          secondaryImageUrl: '');
     }
 
     try {
@@ -43,6 +47,7 @@ class Kya {
         lessons: [],
         progress: singleKya['progress'] as int,
         completionMessage: singleKya['completionMessage'] as String,
+        secondaryImageUrl: singleKya['secondaryImageUrl'] as String,
       );
 
       var kyaLessons = <KyaLesson>[];
@@ -64,7 +69,8 @@ class Kya {
         imageUrl: '',
         completionMessage: '',
         lessons: [],
-        progress: 0);
+        progress: 0,
+        secondaryImageUrl: '');
   }
 
   factory Kya.fromJson(Map<String, dynamic> json) => _$KyaFromJson(json);
@@ -99,7 +105,8 @@ class Kya {
 
   static String createTableStmt() => 'CREATE TABLE IF NOT EXISTS ${dbName()}('
       'auto_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, id TEXT, '
-      'progress INTEGER, title TEXT, completionMessage TEXT, imageUrl TEXT,'
+      'progress INTEGER, title TEXT, completionMessage TEXT, '
+      'secondaryImageUrl TEXT, imageUrl TEXT,'
       'lesson_title TEXT, lesson_imageUrl TEXT, lesson_body TEXT)';
 
   static String dbName() => 'kya_db';

@@ -150,7 +150,7 @@ class _InsightsTabState extends State<InsightsTab> {
                 visible: !_hasMeasurements,
                 child: Padding(
                   padding: const EdgeInsets.only(right: 16, left: 16),
-                  child: containerLoadingAnimation(70.0, 8.0),
+                  child: containerLoadingAnimation(height: 70.0, radius: 8.0),
                 ),
               ),
               Visibility(
@@ -298,7 +298,7 @@ class _InsightsTabState extends State<InsightsTab> {
 
   Widget insightsGraph() {
     if (!_hasMeasurements) {
-      return containerLoadingAnimation(290.0, 8.0);
+      return containerLoadingAnimation(height: 290.0, radius: 8.0);
     }
     return Container(
         padding: const EdgeInsets.only(top: 12, bottom: 12),

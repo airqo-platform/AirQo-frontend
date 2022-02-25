@@ -39,6 +39,23 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
   }
 
   @override
+  void didChangeDependencies() {
+    downloadKyaImages();
+    super.didChangeDependencies();
+  }
+
+  void downloadKyaImages() async {
+    var futures = <Future<void>>[];
+    for (var kya in _kyaCards) {
+      futures
+        ..add(precacheImage(CachedNetworkImageProvider(kya.imageUrl), context))
+        ..add(precacheImage(
+            CachedNetworkImageProvider(kya.secondaryImageUrl), context));
+    }
+    await Future.wait(futures);
+  }
+
+  @override
   void initState() {
     super.initState();
     _appService = AppService(context);

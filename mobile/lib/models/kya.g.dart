@@ -16,6 +16,7 @@ Kya _$KyaFromJson(Map<String, dynamic> json) => Kya(
       progress: json['progress'] as int? ?? 0,
       completionMessage: json['completionMessage'] as String? ??
           'You just finished your first Know You Air Lesson',
+      secondaryImageUrl: json['secondaryImageUrl'] as String? ?? '',
     );
 
 KyaLesson _$KyaLessonFromJson(Map<String, dynamic> json) => KyaLesson(
@@ -35,6 +36,7 @@ Map<String, dynamic> _$KyaToJson(Kya instance) => <String, dynamic>{
       'title': instance.title,
       'completionMessage': instance.completionMessage,
       'imageUrl': instance.imageUrl,
+      'secondaryImageUrl': instance.secondaryImageUrl,
       'id': instance.id,
       'lessons': instance.lessons.map((e) => e.toJson()).toList(),
     };

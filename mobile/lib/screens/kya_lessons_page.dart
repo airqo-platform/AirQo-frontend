@@ -11,6 +11,7 @@ import 'package:visibility_detector/visibility_detector.dart';
 
 import '../services/native_api.dart';
 import '../widgets/buttons.dart';
+import '../widgets/custom_shimmer.dart';
 import '../widgets/custom_widgets.dart';
 import 'home_page.dart';
 
@@ -34,6 +35,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   bool _showFinalView = false;
   final List<GlobalKey> _globalKeys = <GlobalKey>[];
   final ShareService _shareService = ShareService();
+  GlobalKey bgImageKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -59,6 +61,26 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
         color: Config.appColorBlue,
       ),
     );
+  }
+
+  @override
+  void didChangeDependencies() {
+    downloadKyaImages();
+    super.didChangeDependencies();
+  }
+
+  void downloadKyaImages() async {
+    var futures = <Future<void>>[
+      precacheImage(CachedNetworkImageProvider(widget.kya.imageUrl), context),
+      precacheImage(
+          CachedNetworkImageProvider(widget.kya.secondaryImageUrl), context)
+    ];
+
+    for (var lesson in widget.kya.lessons) {
+      futures.add(
+          precacheImage(CachedNetworkImageProvider(lesson.imageUrl), context));
+    }
+    await Future.wait(futures);
   }
 
   Widget getView({required Size screenSize}) {
@@ -117,13 +139,21 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                 height: 180,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  image: DecorationImage(
-                    fit: BoxFit.cover,
-                    image: CachedNetworkImageProvider(
-                      kyaItem.imageUrl,
-                    ),
-                  ),
                 ),
+                child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: CachedNetworkImage(
+                      fit: BoxFit.fill,
+                      placeholder: (context, url) => SizedBox(
+                        child:
+                            containerLoadingAnimation(height: 180, radius: 16),
+                      ),
+                      imageUrl: kyaItem.imageUrl,
+                      errorWidget: (context, url, error) => Icon(
+                        Icons.error_outline,
+                        color: Config.red,
+                      ),
+                    )),
               ),
             ),
             // const SizedBox(
@@ -444,19 +474,39 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
           widthFactor: 1.0,
           heightFactor: 0.4,
           child: Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                fit: BoxFit.cover,
-                image: CachedNetworkImageProvider(
-                  widget.kya.imageUrl,
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  fit: BoxFit.cover,
+                  image: CachedNetworkImageProvider(
+                    widget.kya.secondaryImageUrl.trim() == ''
+                        ? widget.kya.imageUrl
+                        : widget.kya.secondaryImageUrl,
+                  ),
                 ),
               ),
-            ),
-          ),
-          // child: Image.asset(
-          //   'assets/images/tips-image.png',
-          //   fit: BoxFit.cover,
-          // ),
+              child: Stack(
+                children: [
+                  CachedNetworkImage(
+                    fit: BoxFit.fill,
+                    placeholder: (context, url) => SizedBox(
+                      child: containerLoadingAnimation(
+                          height:
+                              bgImageKey.currentContext?.size?.height ?? 180,
+                          radius: 0),
+                    ),
+                    imageUrl: widget.kya.secondaryImageUrl.trim() == ''
+                        ? widget.kya.imageUrl
+                        : widget.kya.secondaryImageUrl,
+                    errorWidget: (context, url, error) => Icon(
+                      Icons.error_outline,
+                      color: Config.red,
+                    ),
+                  ),
+                  Container(
+                    color: Config.appColorBlue.withOpacity(0.4),
+                  ),
+                ],
+              )),
         ),
         Positioned.fill(
           child: Align(

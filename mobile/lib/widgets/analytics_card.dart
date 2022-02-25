@@ -61,7 +61,7 @@ Widget analyticsCardLoading() {
         const SizedBox(height: 20),
         Padding(
           padding: const EdgeInsets.only(left: 24, right: 24),
-          child: containerLoadingAnimation(9, 1000),
+          child: containerLoadingAnimation(height: 9, radius: 1000),
         ),
         const Divider(color: Color(0xffC4C4C4)),
         const SizedBox(

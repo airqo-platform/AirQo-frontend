@@ -349,7 +349,7 @@ class _DashboardViewState extends State<DashboardView> {
                 placeholder: (context, url) => SizedBox(
                   width: 104,
                   height: 104,
-                  child: containerLoadingAnimation(104, 104),
+                  child: containerLoadingAnimation(height: 104, radius: 8),
                 ),
                 imageUrl: _incompleteKya[0].imageUrl,
                 errorWidget: (context, url, error) => Icon(
