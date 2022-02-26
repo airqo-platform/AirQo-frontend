@@ -142,6 +142,12 @@ class Measurement {
 }
 
 extension ParseMeasurement on Measurement {
+  String getTempValue() {
+    var tempValue = temperature.value.toStringAsFixed(2);
+
+    return '$tempValue\u2103';
+  }
+
   bool hasWeatherData() {
     if (humidity.value != -0.1 &&
         temperature.value != -0.1 &&
@@ -150,11 +156,5 @@ extension ParseMeasurement on Measurement {
       return true;
     }
     return false;
-  }
-
-  String getTempValue() {
-    var tempValue = temperature.value.toStringAsFixed(2);
-
-    return '$tempValue\u2103';
   }
 }

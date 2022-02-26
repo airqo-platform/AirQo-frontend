@@ -260,17 +260,51 @@ const googleMapsLightTheme = [
 ThemeData lightTheme() {
   final base = ThemeData.light();
 
+  /// height := line height * fontSize
+  /// letterSpacing := 16 * letter-spacing(em)
+  /// Theme.of(context).textTheme.headline1
+
   return base.copyWith(
     primaryColor: Colors.white,
     // accentColor: Config.appColor,
     // backgroundColor: Colors.white,
     visualDensity: VisualDensity.adaptivePlatformDensity,
-    textTheme: ThemeData.light().textTheme.apply(
-          fontFamily: 'Inter',
-          bodyColor: Config.appColor,
-          displayColor: Config.appColor,
-        ),
-    // canvasColor: Colors.transparent,
+    textTheme: const TextTheme(
+      headline4: TextStyle(
+          fontSize: 48.0,
+          fontWeight: FontWeight.bold,
+          fontStyle: FontStyle.normal,
+          height: 56.0 / 48.0),
+      headline6: TextStyle(
+        fontSize: 32.0,
+        fontWeight: FontWeight.bold,
+        fontStyle: FontStyle.normal,
+        height: 40.0 / 32.0,
+        letterSpacing: 16 * -0.01,
+      ),
+      bodyText1: TextStyle(
+        fontSize: 16.0,
+        fontWeight: FontWeight.normal,
+        fontStyle: FontStyle.normal,
+        height: 16.0 / 24.0,
+      ),
+      bodyText2: TextStyle(
+        fontSize: 14.0,
+        fontWeight: FontWeight.normal,
+        fontStyle: FontStyle.normal,
+        height: 18.0 / 14.0,
+      ),
+      caption: TextStyle(
+        fontSize: 12.0,
+        fontWeight: FontWeight.normal,
+        fontStyle: FontStyle.normal,
+        height: 12.0 / 16.0,
+      ),
+    ).apply(
+      fontFamily: 'Inter',
+      bodyColor: Config.appColorBlack,
+      displayColor: Config.appColorBlack,
+    ),
     primaryTextTheme: ThemeData.light().textTheme.apply(
           fontFamily: 'Inter',
           bodyColor: Config.appColor,
@@ -281,4 +315,25 @@ ThemeData lightTheme() {
     ),
     appBarTheme: const AppBarTheme(elevation: 0.0),
   );
+}
+
+class CustomTextStyle {
+  static TextStyle? headline10(BuildContext context) {
+    return Theme.of(context).textTheme.headline6?.copyWith(
+        fontSize: 16.0,
+        fontWeight: FontWeight.bold,
+        fontStyle: FontStyle.normal,
+        height: 20.0 / 16.0);
+  }
+
+  /// CustomTextStyle.headline10(context),
+
+  static TextStyle? headline7(BuildContext context) {
+    return Theme.of(context).textTheme.headline6?.copyWith(
+          fontSize: 24.0,
+          fontWeight: FontWeight.bold,
+          fontStyle: FontStyle.normal,
+          height: 32.0 / 24.0,
+        );
+  }
 }

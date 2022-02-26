@@ -6,8 +6,11 @@ import 'package:app/services/app_service.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/text_fields.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
+import '../themes/light_theme.dart';
 
 class PhoneAuthWidget extends StatefulWidget {
   final bool enableBackButton;
@@ -110,28 +113,25 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
 
         Visibility(
           visible: _verifyCode,
-          child: const Text(
-            'Verify your phone number!',
+          child: AutoSizeText(
+            'Verify your account',
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-                fontWeight: FontWeight.bold, fontSize: 24, color: Colors.black),
+            style: CustomTextStyle.headline7(context),
           ),
         ),
         Visibility(
-          visible: !_verifyCode,
-          child: Text(
-            widget.action == 'signup'
-                ? 'Sign up with your email\nor mobile number'
-                : 'Login with your email\nor mobile number',
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-                fontWeight: FontWeight.bold, fontSize: 24, color: Colors.black),
-          ),
-        ),
+            visible: !_verifyCode,
+            child: AutoSizeText(
+              widget.action == 'signup'
+                  ? 'Sign up with your mobile number\nemail'
+                  : 'Login with your mobile number\nor email',
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: CustomTextStyle.headline7(context),
+            )),
 
         const SizedBox(
           height: 8,
@@ -140,29 +140,30 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
         if (_phoneNumber.length > 8)
           Visibility(
             visible: _verifyCode,
-            child: Text(
-              // 'Enter the 6 digits code sent to your\n'
-              //     'number that ends with ...'
-              //     '${phoneNumber.substring(phoneNumber.length - 3)}',
-              'Enter the 6 digits code sent to your\n'
-              'number $_countryCode$_phoneNumber',
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style:
-                  TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.6)),
-            ),
+            child: AutoSizeText(
+                // 'Enter the 6 digits code sent to your\n'
+                //     'number that ends with ...'
+                //     '${phoneNumber.substring(phoneNumber.length - 3)}',
+                'Enter the 6 digits code sent to your\n'
+                'number $_countryCode$_phoneNumber',
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyText2
+                    ?.copyWith(color: Config.appColorBlack.withOpacity(0.6))),
           ),
         Visibility(
             visible: !_verifyCode,
-            child: Text(
-              'We’ll send you a verification code',
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style:
-                  TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.6)),
-            )),
+            child: AutoSizeText('We’ll send you a verification code',
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyText2
+                    ?.copyWith(color: Config.appColorBlack.withOpacity(0.6)))),
 
         const SizedBox(
           height: 32,
@@ -208,12 +209,12 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
 
         Visibility(
           visible: !_codeSent && _verifyCode,
-          child: Text(
-            'The code should arrive with in 5 sec',
-            textAlign: TextAlign.center,
-            style:
-                TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.5)),
-          ),
+          child: Text('The code should arrive with in 5 sec',
+              textAlign: TextAlign.center,
+              style: Theme.of(context)
+                  .textTheme
+                  .caption
+                  ?.copyWith(color: Config.appColorBlack.withOpacity(0.5))),
         ),
         Visibility(
           visible: _codeSent && _verifyCode,
@@ -221,17 +222,14 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
             onTap: () async {
               await resendVerificationCode();
             },
-            child: Text(
-              'Resend code',
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                  fontSize: 12,
-                  color: _isResending
-                      ? Colors.black.withOpacity(0.5)
-                      : Config.appColorBlue),
-            ),
+            child: Text('Resend code',
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context)
+                    .textTheme
+                    .caption
+                    ?.copyWith(color: Config.appColorBlue)),
           ),
         ),
         Visibility(
@@ -244,8 +242,10 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
               });
             },
             child: widget.action == 'signup'
-                ? signButton('Sign up with an email instead')
-                : signButton('Login with an email instead'),
+                ? signButton(
+                    text: 'Sign up with an email instead', context: context)
+                : signButton(
+                    text: 'Login with an email instead', context: context),
           ),
         ),
 
@@ -267,10 +267,11 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
                 Container(
                     color: Colors.white,
                     padding: const EdgeInsets.only(left: 5, right: 5),
-                    child: const Text(
-                      'Or',
-                      style: TextStyle(fontSize: 12, color: Color(0xffD1D3D9)),
-                    )),
+                    child: Text('Or',
+                        style: Theme.of(context)
+                            .textTheme
+                            .caption
+                            ?.copyWith(color: const Color(0xffD1D3D9)))),
               ],
             ),
           ),
@@ -288,11 +289,10 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
             child: Text(
               'Change Phone Number',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontSize: 12,
-                  color: _resendCode
-                      ? Config.appColorBlue
-                      : Colors.black.withOpacity(0.5)),
+              style: Theme.of(context)
+                  .textTheme
+                  .caption
+                  ?.copyWith(color: Config.appColorBlue),
             ),
           ),
         ),
@@ -375,6 +375,11 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
           cursorColor: Config.appColorBlue,
           keyboardType: TextInputType.number,
           onChanged: phoneValueChange,
+          style: TextStyle(
+              fontSize: 16.0,
+              fontWeight: FontWeight.normal,
+              fontStyle: FontStyle.normal,
+              color: Config.appColorBlack),
           validator: (value) {
             if (value == null || value.isEmpty) {
               showSnackBar(context, 'Please enter your phone number');
@@ -392,6 +397,10 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
             prefixText: _countryCodePlaceHolder,
             focusedBorder: InputBorder.none,
             enabledBorder: InputBorder.none,
+            prefixStyle: Theme.of(context)
+                .textTheme
+                .bodyText1
+                ?.copyWith(color: Config.appColorBlack.withOpacity(0.32)),
             // focusedBorder: OutlineInputBorder(
             //   borderSide: BorderSide(color: Config.appColorBlue,
             //   width: 1.0),
@@ -402,7 +411,11 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
             //   width: 1.0),
             //   borderRadius: BorderRadius.circular(10.0),
             // ),
-            hintText: '701000000',
+            hintText: '0700000000',
+            hintStyle: Theme.of(context)
+                .textTheme
+                .bodyText1
+                ?.copyWith(color: Config.appColorBlack.withOpacity(0.32)),
             suffixIcon: GestureDetector(
               onTap: clearPhoneCallBack,
               child: textInputCloseButton(),
@@ -593,8 +606,8 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
       _phoneNumber =
           widget.phoneNumber == '' ? '' : widget.phoneNumber.split('.').last;
       _countryCodePlaceHolder = widget.phoneNumber == ''
-          ? '+256(0)'
-          : '${widget.phoneNumber.split('.').first}(0) ';
+          ? '+256 '
+          : '${widget.phoneNumber.split('.').first} ';
       _countryCode = widget.phoneNumber == ''
           ? '+256'
           : widget.phoneNumber.split('.').first;

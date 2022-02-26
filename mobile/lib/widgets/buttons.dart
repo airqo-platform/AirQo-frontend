@@ -214,89 +214,89 @@ Widget onBoardingNotificationIcon() {
   );
 }
 
-Widget signButton(String text) {
+Widget signButton({required String text, required BuildContext context}) {
   return Container(
-    height: 48,
-    padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-    constraints: const BoxConstraints(minWidth: double.infinity, maxHeight: 48),
-    decoration: BoxDecoration(
-        color: const Color(0xff8D8D8D).withOpacity(0.1),
-        borderRadius: const BorderRadius.all(Radius.circular(8.0))),
-    child: Text(
-      text,
-      textAlign: TextAlign.center,
-      style: TextStyle(color: Config.appColorBlue, fontSize: 12),
-    ),
-  );
+      height: 48,
+      constraints:
+          const BoxConstraints(minWidth: double.infinity, maxHeight: 48),
+      decoration: BoxDecoration(
+          color: const Color(0xff8D8D8D).withOpacity(0.1),
+          borderRadius: const BorderRadius.all(Radius.circular(8.0))),
+      child: Center(
+          child: Padding(
+        padding: const EdgeInsets.fromLTRB(80, 16, 80, 16),
+        child: Text(text,
+            textAlign: TextAlign.center,
+            style: Theme.of(context)
+                .textTheme
+                .caption
+                ?.copyWith(color: Config.appColorBlue)),
+      )));
 }
 
 Widget signUpOptions(BuildContext context) {
   var cloudAnalytics = CloudAnalytics();
   return Column(
     children: [
-      Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'Already have an account',
-            textAlign: TextAlign.center,
-            style:
-                TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.6)),
-          ),
-          const SizedBox(
-            width: 2,
-          ),
-          GestureDetector(
-            onTap: () {
-              Navigator.pushAndRemoveUntil(context,
-                  MaterialPageRoute(builder: (context) {
-                return const LoginScreen(phoneNumber: '', emailAddress: '');
-              }), (r) => false);
-            },
-            child: Text(
-              'Log in',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Config.appColorBlue),
+      GestureDetector(
+        onTap: () {
+          Navigator.pushAndRemoveUntil(context,
+              MaterialPageRoute(builder: (context) {
+            return const LoginScreen(phoneNumber: '', emailAddress: '');
+          }), (r) => false);
+        },
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Already have an account',
+                textAlign: TextAlign.center,
+                style: Theme.of(context)
+                    .textTheme
+                    .caption
+                    ?.copyWith(color: Config.appColorBlack.withOpacity(0.6))),
+            const SizedBox(
+              width: 2,
             ),
-          )
-        ],
+            Text('Log in',
+                textAlign: TextAlign.center,
+                style: Theme.of(context)
+                    .textTheme
+                    .caption
+                    ?.copyWith(color: Config.appColorBlue))
+          ],
+        ),
       ),
       const SizedBox(
         height: 8,
       ),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'Proceed as',
-            textAlign: TextAlign.center,
-            style:
-                TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.6)),
-          ),
-          const SizedBox(
-            width: 2,
-          ),
-          GestureDetector(
-            onTap: () {
-              cloudAnalytics.logEvent(AnalyticsEvent.browserAsAppGuest);
-              Navigator.pushAndRemoveUntil(context,
-                  MaterialPageRoute(builder: (context) {
-                return const HomePage();
-              }), (r) => false);
-            },
-            child: Text(
-              'Guest',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Config.appColorBlue),
+      GestureDetector(
+        onTap: () {
+          cloudAnalytics.logEvent(AnalyticsEvent.browserAsAppGuest);
+          Navigator.pushAndRemoveUntil(context,
+              MaterialPageRoute(builder: (context) {
+            return const HomePage();
+          }), (r) => false);
+        },
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Proceed as',
+                textAlign: TextAlign.center,
+                style: Theme.of(context)
+                    .textTheme
+                    .caption
+                    ?.copyWith(color: Config.appColorBlack.withOpacity(0.6))),
+            const SizedBox(
+              width: 2,
             ),
-          )
-        ],
+            Text('Guest',
+                textAlign: TextAlign.center,
+                style: Theme.of(context)
+                    .textTheme
+                    .caption
+                    ?.copyWith(color: Config.appColorBlue))
+          ],
+        ),
       ),
     ],
   );

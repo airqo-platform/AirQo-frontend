@@ -126,11 +126,13 @@ class SplashScreenState extends State<SplashScreen> {
             width: double.infinity,
             alignment: Alignment.center,
           ),
-          const Text(
+          Text(
             'Breathe\nClean.',
             textAlign: TextAlign.center,
-            style: TextStyle(
-                fontWeight: FontWeight.bold, fontSize: 48, color: Colors.white),
+            style: Theme.of(context)
+                .textTheme
+                .headline4
+                ?.copyWith(color: Colors.white),
           ),
         ]),
       ),

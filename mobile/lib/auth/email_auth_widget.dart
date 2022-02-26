@@ -6,8 +6,10 @@ import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/text_fields.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
+import '../themes/light_theme.dart';
 import 'login_screen.dart';
 
 class EmailAuthWidget extends StatefulWidget {
@@ -60,26 +62,24 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
 
         Visibility(
           visible: _verifyCode,
-          child: const Text(
-            'Verify your email address!',
+          child: AutoSizeText(
+            'Verify your account',
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-                fontWeight: FontWeight.bold, fontSize: 24, color: Colors.black),
+            style: CustomTextStyle.headline7(context),
           ),
         ),
         Visibility(
           visible: !_verifyCode,
-          child: Text(
+          child: AutoSizeText(
             widget.action == 'signup'
                 ? 'Sign up with your email\nor mobile number'
                 : 'Login with your email\nor mobile number',
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-                fontWeight: FontWeight.bold, fontSize: 24, color: Colors.black),
+            style: CustomTextStyle.headline7(context),
           ),
         ),
 
@@ -89,26 +89,27 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
 
         Visibility(
           visible: _verifyCode,
-          child: Text(
-            'Enter the 6 digit code sent to\n'
-            '$_emailAddress',
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style:
-                TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.6)),
-          ),
+          child: AutoSizeText(
+              'Enter the 6 digit code sent to your email\n'
+              '$_emailAddress',
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyText2
+                  ?.copyWith(color: Config.appColorBlack.withOpacity(0.6))),
         ),
         Visibility(
             visible: !_verifyCode,
-            child: Text(
-              'We’ll send you a verification code',
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style:
-                  TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.6)),
-            )),
+            child: AutoSizeText('We’ll send you a verification code',
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyText2
+                    ?.copyWith(color: Config.appColorBlack.withOpacity(0.6)))),
 
         const SizedBox(
           height: 32,
@@ -138,12 +139,12 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
 
         Visibility(
           visible: !_codeSent && _verifyCode,
-          child: Text(
-            'The code should arrive with in 5 sec',
-            textAlign: TextAlign.center,
-            style:
-                TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.5)),
-          ),
+          child: Text('The code should arrive with in 5 sec',
+              textAlign: TextAlign.center,
+              style: Theme.of(context)
+                  .textTheme
+                  .caption
+                  ?.copyWith(color: Config.appColorBlack.withOpacity(0.5))),
         ),
         Visibility(
           visible: _codeSent && _verifyCode,
@@ -151,15 +152,12 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
             onTap: () async {
               await resendVerificationCode();
             },
-            child: Text(
-              'Resend code',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontSize: 12,
-                  color: _isResending
-                      ? Colors.black.withOpacity(0.5)
-                      : Config.appColorBlue),
-            ),
+            child: Text('Resend code',
+                textAlign: TextAlign.center,
+                style: Theme.of(context)
+                    .textTheme
+                    .caption
+                    ?.copyWith(color: Config.appColorBlue)),
           ),
         ),
         Visibility(
@@ -172,8 +170,12 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
               });
             },
             child: widget.action == 'signup'
-                ? signButton('Sign up with a mobile number instead')
-                : signButton('Login with a mobile number instead'),
+                ? signButton(
+                    text: 'Sign up with a mobile number instead',
+                    context: context)
+                : signButton(
+                    text: 'Login with a mobile number instead',
+                    context: context),
           ),
         ),
 
@@ -195,10 +197,11 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
                 Container(
                     color: Colors.white,
                     padding: const EdgeInsets.only(left: 5, right: 5),
-                    child: const Text(
-                      'Or',
-                      style: TextStyle(fontSize: 12, color: Color(0xffD1D3D9)),
-                    )),
+                    child: Text('Or',
+                        style: Theme.of(context)
+                            .textTheme
+                            .caption
+                            ?.copyWith(color: const Color(0xffD1D3D9)))),
               ],
             ),
           ),
@@ -214,13 +217,12 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
           child: GestureDetector(
             onTap: initialize,
             child: Text(
-              'Change Email Address',
+              'Change your email',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontSize: 12,
-                  color: _codeSent
-                      ? Config.appColorBlue
-                      : Colors.black.withOpacity(0.5)),
+              style: Theme.of(context)
+                  .textTheme
+                  .caption
+                  ?.copyWith(color: Config.appColorBlue),
             ),
           ),
         ),
@@ -319,6 +321,65 @@ class EmailAuthWidgetState extends State<EmailAuthWidget> {
                   clearEmailCallBack();
                 },
                 child: textInputCloseButton()),
+          ),
+        )));
+  }
+
+  Widget emailInputField1() {
+    return Container(
+        height: 48,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+            border: Border.all(color: Config.appColorBlue)),
+        child: Center(
+            child: Padding(
+          padding: const EdgeInsets.only(left: 15, top: 12, bottom: 12),
+          child: TextFormField(
+            controller: _emailInputController,
+            autofocus: true,
+            enableSuggestions: true,
+            cursorWidth: 1,
+            cursorColor: Config.appColorBlue,
+            cursorHeight: 16,
+            keyboardType: TextInputType.emailAddress,
+            onChanged: emailValueChange,
+            style: Theme.of(context).textTheme.bodyText1,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                showSnackBar(context, 'Please enter your email address');
+                setState(() {
+                  _emailFormValid = false;
+                });
+              } else {
+                if (!value.isValidEmail()) {
+                  showSnackBar(context, 'Please enter a valid email address');
+                  setState(() {
+                    _emailFormValid = false;
+                  });
+                } else {
+                  setState(() {
+                    _emailFormValid = true;
+                  });
+                }
+              }
+              return null;
+            },
+            decoration: InputDecoration(
+              focusedBorder: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              hintText: 'Enter your email',
+              hintStyle: Theme.of(context)
+                  .textTheme
+                  .bodyText1
+                  ?.copyWith(color: Config.appColorBlack.withOpacity(0.5)),
+              suffixIcon: GestureDetector(
+                  onTap: () {
+                    _emailInputController.text = '';
+                    clearEmailCallBack();
+                  },
+                  child: textInputCloseButton()),
+            ),
           ),
         )));
   }
