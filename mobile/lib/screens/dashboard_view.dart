@@ -22,9 +22,9 @@ import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'air_pollution_ways_page.dart';
 import 'favourite_places.dart';
 import 'for_you_page.dart';
+import 'kya_lessons_page.dart';
 
 class DashboardView extends StatefulWidget {
   const DashboardView({Key? key}) : super(key: key);
@@ -35,7 +35,7 @@ class DashboardView extends StatefulWidget {
 
 class _DashboardViewState extends State<DashboardView> {
   String _greetings = '';
-  bool _showName = true;
+
   List<Widget> _favLocations = [];
   List<Widget> _completeKyaWidgets = [
     SvgPicture.asset(
@@ -43,10 +43,10 @@ class _DashboardViewState extends State<DashboardView> {
     )
   ];
   List<Kya> _completeKya = [];
+  List<Kya> _incompleteKya = [];
 
   late AppService _appService;
   List<Measurement> currentLocation = [];
-  Kya? _kya;
   late SharedPreferences _preferences;
 
   final GlobalKey _favToolTipKey = GlobalKey();
@@ -196,23 +196,38 @@ class _DashboardViewState extends State<DashboardView> {
         ));
   }
 
-  Future<void> handleKyaOnClick() async {
-    if (_kya!.progress >= 99.0) {
-      var completeKya = _kya;
-      setState(() {
-        _kya = null;
-      });
-      await _appService.cloudStore
-          .updateKyaProgress(
-              _appService.customAuth.getUserId(), completeKya!, 100)
-          .then((value) => {
-                _getCompleteKya(),
-                _getIncompleteKya(),
-              });
+  String getKyaMessage({required Kya kya}) {
+    var kyaItems = kya.lessons.length;
+    var progress = kya.progress;
+    if (progress == 0) {
+      return 'Start learning';
+    }
+    if (progress > 0 && progress < kyaItems) {
+      return 'Continue';
+    }
+    if (progress >= kyaItems) {
+      return 'Complete! Move to For You';
+    }
+    return '';
+  }
+
+  Future<void> handleKyaOnClick({required Kya kya}) async {
+    if (kya.progress >= kya.lessons.length) {
+      kya.progress = -1;
+      await _appService.updateKya(kya);
+      _getKya();
     } else {
-      await Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return AirPollutionWaysPage(_kya!, true);
+      var returnStatus =
+          await Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return KyaLessonsPage(kya);
       }));
+      if (returnStatus) {
+        Future.delayed(const Duration(seconds: 500), () {
+          if (mounted) {
+            _getKya();
+          }
+        });
+      }
     }
   }
 
@@ -245,75 +260,46 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   Widget kyaSection() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 16.0),
-      decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(16.0))),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Column(
-              children: [
-                GestureDetector(
-                  onTap: () async {
-                    await handleKyaOnClick();
-                  },
-                  child: Text(_kya!.title,
+    if (_incompleteKya.isEmpty) {
+      return const SizedBox();
+    }
+    return GestureDetector(
+      onTap: () async {
+        await handleKyaOnClick(kya: _incompleteKya[0]);
+      },
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
+        decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.all(Radius.circular(16.0))),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Column(
+                children: [
+                  Text(_incompleteKya[0].title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       )),
-                ),
-                const SizedBox(
-                  height: 28,
-                ),
-                GestureDetector(
-                  onTap: () async {
-                    await handleKyaOnClick();
-                  },
-                  child: Row(
+                  const SizedBox(
+                    height: 28,
+                  ),
+                  Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      if (_kya!.progress == 0.0)
-                        Text('Start learning',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Config.appColorBlue,
-                            )),
-                      if (_kya!.progress > 0.0 && _kya!.progress < 89.0)
-                        Text('Continue',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Config.appColorBlue,
-                            )),
-                      if (_kya!.progress >= 89.0)
-                        const Text('Complete! Move to ',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 12,
-                            )),
-                      if (_kya!.progress >= 89.0)
-                        Text('For You',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Config.appColorBlue,
-                            )),
+                      AutoSizeText(getKyaMessage(kya: _incompleteKya[0]),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Config.appColorBlue,
+                          )),
                       const SizedBox(
                         width: 6,
                       ),
@@ -324,35 +310,37 @@ class _DashboardViewState extends State<DashboardView> {
                       )
                     ],
                   ),
-                ),
-                const SizedBox(
-                  height: 2,
-                ),
-                Visibility(
-                  visible: _kya!.progress > 0.0 && _kya!.progress < 89.0,
-                  child: Container(
-                      height: 4,
-                      decoration: const BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(8.0)),
-                      ),
-                      child: LinearProgressIndicator(
-                        color: Config.appColorBlue,
-                        value: _kya!.progress / 100,
-                        backgroundColor:
-                            Config.appColorDisabled.withOpacity(0.2),
-                      )),
-                ),
-              ],
+                  SizedBox(
+                    height:
+                        getKyaMessage(kya: _incompleteKya[0]).toLowerCase() ==
+                                'continue'
+                            ? 2
+                            : 0,
+                  ),
+                  Visibility(
+                    visible:
+                        getKyaMessage(kya: _incompleteKya[0]).toLowerCase() ==
+                            'continue',
+                    child: Container(
+                        height: 4,
+                        decoration: const BoxDecoration(
+                          borderRadius: BorderRadius.all(Radius.circular(8.0)),
+                        ),
+                        child: LinearProgressIndicator(
+                          color: Config.appColorBlue,
+                          value: _incompleteKya[0].progress /
+                              _incompleteKya[0].lessons.length,
+                          backgroundColor:
+                              Config.appColorDisabled.withOpacity(0.2),
+                        )),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(
-            width: 16,
-          ),
-          GestureDetector(
-            onTap: () async {
-              await handleKyaOnClick();
-            },
-            child: ClipRRect(
+            const SizedBox(
+              width: 16,
+            ),
+            ClipRRect(
               borderRadius: BorderRadius.circular(8.0),
               child: CachedNetworkImage(
                 fit: BoxFit.cover,
@@ -361,17 +349,17 @@ class _DashboardViewState extends State<DashboardView> {
                 placeholder: (context, url) => SizedBox(
                   width: 104,
                   height: 104,
-                  child: containerLoadingAnimation(104, 104),
+                  child: containerLoadingAnimation(height: 104, radius: 8),
                 ),
-                imageUrl: _kya!.imageUrl,
+                imageUrl: _incompleteKya[0].imageUrl,
                 errorWidget: (context, url, error) => Icon(
                   Icons.error_outline,
                   color: Config.red,
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -497,7 +485,7 @@ class _DashboardViewState extends State<DashboardView> {
             physics: const AlwaysScrollableScrollPhysics(),
             children: [
               const SizedBox(
-                height: 12,
+                height: 32,
               ),
               Text(
                 getDateTime(),
@@ -520,11 +508,13 @@ class _DashboardViewState extends State<DashboardView> {
                 const SizedBox(
                   height: 16,
                 ),
-              // if (_kya != null && _customAuth.isLoggedIn()) kyaSection(),
-              // if (_kya != null && _customAuth.isLoggedIn())
-              //   const SizedBox(
-              //     height: 16,
-              //   ),
+              kyaSection(),
+              Visibility(
+                visible: _incompleteKya.isNotEmpty,
+                child: const SizedBox(
+                  height: 16,
+                ),
+              ),
               if (_dashBoardPlaces.length >= 2) _dashBoardPlaces[1],
               if (_dashBoardPlaces.length >= 2)
                 const SizedBox(
@@ -561,38 +551,6 @@ class _DashboardViewState extends State<DashboardView> {
                   height: 16,
                 ),
             ]));
-  }
-
-  void _getCompleteKya() async {
-    var widgets = <Widget>[];
-
-    if (_appService.isLoggedIn()) {
-      widgets.add(SvgPicture.asset(
-        'assets/icon/add_avator.svg',
-      ));
-      if (mounted) {
-        setState(() {
-          _completeKyaWidgets.clear();
-          _completeKyaWidgets = widgets;
-        });
-      }
-      return;
-    }
-
-    var dbKya = await _appService.dbHelper.getKyas();
-    var completeKya =
-        dbKya.where((element) => element.progress >= 100).toList();
-    _loadCompleteKya(completeKya);
-
-    var kyaCards =
-        await _appService.cloudStore.getKya(_appService.customAuth.getUserId());
-    var completeKyaCards =
-        kyaCards.where((element) => element.progress >= 100.0).toList();
-
-    if (completeKyaCards.isNotEmpty) {
-      _loadCompleteKya(completeKyaCards);
-      await _appService.dbHelper.insertKyas(kyaCards);
-    }
   }
 
   void _getDashboardCards() async {
@@ -721,27 +679,15 @@ class _DashboardViewState extends State<DashboardView> {
     }
   }
 
-  void _getIncompleteKya() async {
-    if (_appService.isLoggedIn()) {
-      return;
-    }
+  void _getKya() async {
+    var kya = await _appService.dbHelper.getKyas();
 
-    var kyas =
-        await _appService.cloudStore.getKya(_appService.customAuth.getUserId());
-    var inCompleteKya =
-        kyas.where((element) => element.progress < 100).toList();
+    _completeKya = kya.where((element) => element.progress == -1).toList();
+    _loadCompleteKya(_completeKya);
 
-    if (kyas.isNotEmpty) {
-      await _appService.dbHelper.insertKyas(kyas);
-    }
-
-    if (inCompleteKya.isNotEmpty) {
-      if (mounted) {
-        setState(() {
-          _kya = inCompleteKya.first;
-        });
-      }
-    }
+    setState(() {
+      _incompleteKya = kya.where((element) => element.progress != -1).toList();
+    });
   }
 
   void _handleScroll() async {
@@ -749,16 +695,16 @@ class _DashboardViewState extends State<DashboardView> {
       if (_scrollController.position.userScrollDirection ==
               ScrollDirection.reverse &&
           mounted) {
-        setState(() {
-          _showName = false;
-        });
+        // setState(() {
+        //   _showName = false;
+        // });
       }
       if (_scrollController.position.userScrollDirection ==
               ScrollDirection.forward &&
           mounted) {
-        setState(() {
-          _showName = true;
-        });
+        // setState(() {
+        //   _showName = true;
+        // });
       }
     });
   }
@@ -768,12 +714,7 @@ class _DashboardViewState extends State<DashboardView> {
     _preferences = await SharedPreferences.getInstance();
     _setGreetings();
     _getDashboardCards();
-    if (_appService.isLoggedIn()) {
-      await _loadKya();
-      _getIncompleteKya();
-      _getCompleteKya();
-    }
-    await _appService.fetchData();
+    _getKya();
   }
 
   void _loadCompleteKya(List<Kya> completeKya) async {
@@ -822,15 +763,10 @@ class _DashboardViewState extends State<DashboardView> {
     }
   }
 
-  Future<void> _loadKya() async {
-    var kyas =
-        await _appService.cloudStore.getKya(_appService.customAuth.getUserId());
-    await _appService.dbHelper.insertKyas(kyas);
-  }
-
   Future<void> _refresh() async {
-    await _appService.fetchLatestMeasurements();
+    await _appService.refreshDashboard();
     _getDashboardCards();
+    _getKya();
   }
 
   void _setGreetings() {

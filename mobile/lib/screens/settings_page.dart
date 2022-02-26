@@ -81,20 +81,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
     if (user == null) {
       await showSnackBar(context, Config.appErrorMessage);
-      // loadingScreen(dialogContext);
-
-      //   var successful = await _appService.logOut(context);
-      //   if(!successful){
-      //     await showSnackBar(context, 'failed to delete account. '
-      //         'Try again later');
-      //     Navigator.pop(dialogContext);
-      //   }
-      // Navigator.pop(dialogContext);
-      // await _appService.logOut(context);
-      // await Navigator.pushAndRemoveUntil(context,
-      //     MaterialPageRoute(builder: (context) {
-      //       return const SignupScreen(false);
-      //     }), (r) => false);
       return;
     }
 
@@ -138,53 +124,6 @@ class _SettingsPageState extends State<SettingsPage> {
           'Authentication failed '
           'Try again later');
     }
-
-    // if (user == null) {
-    //   loadingScreen(dialogContext);
-    //
-    //   var successful = await _appService.logOut(context);
-    //   if(!successful){
-    //     await showSnackBar(context, 'failed to delete account. Try again later');
-    //     Navigator.pop(dialogContext);
-    //   }
-    //   Navigator.pop(dialogContext);
-    //   await Navigator.pushAndRemoveUntil(context,
-    //       MaterialPageRoute(builder: (context) {
-    //     return const HomePage();
-    //   }), (r) => false);
-    // }
-    // else {
-    //   bool authResponse;
-    //   var userDetails = await _appService.getUserDetails();
-    //   if (user.email != null) {
-    //     userDetails.emailAddress = user.email!;
-    //     authResponse =
-    //         await Navigator.push(context, MaterialPageRoute(builder: (context) {
-    //       return EmailReAuthenticateScreen(userDetails);
-    //     }));
-    //   } else if (user.phoneNumber != null) {
-    //     userDetails.phoneNumber = user.phoneNumber!;
-    //     authResponse =
-    //         await Navigator.push(context, MaterialPageRoute(builder: (context) {
-    //       return PhoneReAuthenticateScreen(userDetails);
-    //     }));
-    //   }
-    //   else{
-    //     authResponse = false;
-    //   }
-    //
-    //   if (authResponse) {
-    //     loadingScreen(dialogContext);
-    //
-    //     await _appService.deleteAccount().then((value) => {
-    //           Navigator.pop(dialogContext),
-    //           Navigator.pushAndRemoveUntil(context,
-    //               MaterialPageRoute(builder: (context) {
-    //             return const HomePage();
-    //           }), (r) => false)
-    //         });
-    //   }
-    // }
   }
 
   Widget deleteAccountSection() {
@@ -296,10 +235,6 @@ class _SettingsPageState extends State<SettingsPage> {
           GestureDetector(
             onTap: () async {
               openUrl(Config.faqsUrl);
-              // await Navigator.push(context,
-              //     MaterialPageRoute(builder: (context) {
-              //   return FaqsPage();
-              // }));
             },
             child: cardSection('FAQs'),
           ),

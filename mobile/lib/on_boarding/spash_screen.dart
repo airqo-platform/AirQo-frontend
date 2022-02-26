@@ -52,13 +52,11 @@ class SplashScreenState extends State<SplashScreen> {
     var nextPage =
         (await _appService.preferencesHelper.getOnBoardingPage()).toLowerCase();
 
-    Future.delayed(const Duration(seconds: 2), () async {
-      _updateWidget();
-    });
+    Future.delayed(const Duration(seconds: 2), _updateWidget);
 
     /// TODO add loading indicator to all onboarding pages
-    Future.delayed(const Duration(seconds: 6), () async {
-      await Navigator.pushAndRemoveUntil(context,
+    Future.delayed(const Duration(seconds: 6), () {
+      Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
         if (!isLoggedIn) {
           return const WelcomeScreen();

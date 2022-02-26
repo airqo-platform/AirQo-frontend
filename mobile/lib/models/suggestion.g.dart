@@ -2,10 +2,6 @@
 
 part of 'suggestion.dart';
 
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
 SuggestionDetails _$SuggestionDetailsFromJson(Map<String, dynamic> json) {
   $checkKeys(
     json,
@@ -22,6 +18,10 @@ Map<String, dynamic> _$SuggestionDetailsToJson(SuggestionDetails instance) =>
       'main_text': instance.mainText,
       'secondary_text': instance.secondaryText,
     };
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
 
 Suggestion _$SuggestionFromJson(Map<String, dynamic> json) {
   $checkKeys(
