@@ -3,8 +3,8 @@ import 'package:app/models/kya.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
-import '../services/app_service.dart';
-import 'kya_lessons_page.dart';
+import '../../services/app_service.dart';
+import 'kya_title_page.dart';
 
 class KnowYourAirView extends StatefulWidget {
   const KnowYourAirView({Key? key}) : super(key: key);
@@ -39,23 +39,6 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
   }
 
   @override
-  void didChangeDependencies() {
-    downloadKyaImages();
-    super.didChangeDependencies();
-  }
-
-  void downloadKyaImages() async {
-    var futures = <Future<void>>[];
-    for (var kya in _kyaCards) {
-      futures
-        ..add(precacheImage(CachedNetworkImageProvider(kya.imageUrl), context))
-        ..add(precacheImage(
-            CachedNetworkImageProvider(kya.secondaryImageUrl), context));
-    }
-    await Future.wait(futures);
-  }
-
-  @override
   void initState() {
     super.initState();
     _appService = AppService(context);
@@ -66,7 +49,7 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
     return GestureDetector(
         onTap: () async {
           await Navigator.push(context, MaterialPageRoute(builder: (context) {
-            return KyaLessonsPage(kya);
+            return KyaTitlePage(kya);
             // return MyHomePage();
           }));
         },

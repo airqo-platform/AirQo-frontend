@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:app/constants/config.dart';
 import 'package:app/models/kya.dart';
 import 'package:app/models/measurement.dart';
@@ -24,7 +22,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'favourite_places.dart';
 import 'for_you_page.dart';
-import 'kya_lessons_page.dart';
+import 'kya/kya_lessons_page.dart';
 
 class DashboardView extends StatefulWidget {
   const DashboardView({Key? key}) : super(key: key);
@@ -37,11 +35,7 @@ class _DashboardViewState extends State<DashboardView> {
   String _greetings = '';
 
   List<Widget> _favLocations = [];
-  List<Widget> _completeKyaWidgets = [
-    SvgPicture.asset(
-      'assets/icon/add_avator.svg',
-    )
-  ];
+  List<Widget> _completeKyaWidgets = [];
   List<Kya> _completeKya = [];
   List<Kya> _incompleteKya = [];
 
@@ -399,7 +393,7 @@ class _DashboardViewState extends State<DashboardView> {
                             'assets/icon/add_avator.svg',
                           );
                         }
-                        _getFavourites(placeDetailsModel.favouritePlaces);
+                        _loadFavourites(placeDetailsModel.favouritePlaces);
                         return SizedBox(
                           height: 32,
                           width: 44,
@@ -564,16 +558,21 @@ class _DashboardViewState extends State<DashboardView> {
       });
 
       for (var i = 0; i <= 5; i++) {
-        var random = Random().nextInt(measurements.length);
+        if (measurements.isEmpty) {
+          break;
+        }
+
+        var randomMeasurement = (measurements..shuffle()).first;
 
         if (mounted) {
           dashboardCards.add(AnalyticsCard(
-              PlaceDetails.measurementToPLace(measurements[random]),
-              measurements[random],
+              PlaceDetails.measurementToPLace(randomMeasurement),
+              randomMeasurement,
               _isRefreshing,
               false));
         }
-        measurements.removeAt(random);
+
+        measurements.remove(randomMeasurement);
       }
 
       if (!mounted) {
@@ -607,7 +606,92 @@ class _DashboardViewState extends State<DashboardView> {
     });
   }
 
-  void _getFavourites(List<PlaceDetails> favouritePlaces) async {
+  void _getKya() async {
+    var kya = await _appService.dbHelper.getKyas();
+
+    _completeKya = kya.where((element) => element.progress == -1).toList();
+    _loadCompleteKya(_completeKya);
+
+    setState(() {
+      _incompleteKya = kya.where((element) => element.progress != -1).toList();
+    });
+  }
+
+  void _handleScroll() async {
+    _scrollController.addListener(() {
+      if (_scrollController.position.userScrollDirection ==
+              ScrollDirection.reverse &&
+          mounted) {
+        // setState(() {
+        //   _showName = false;
+        // });
+      }
+      if (_scrollController.position.userScrollDirection ==
+              ScrollDirection.forward &&
+          mounted) {
+        // setState(() {
+        //   _showName = true;
+        // });
+      }
+    });
+  }
+
+  Future<void> _initialize() async {
+    _appService = AppService(context);
+    _preferences = await SharedPreferences.getInstance();
+    _completeKyaWidgets.add(circularLoadingAnimation(30));
+    _setGreetings();
+    _getDashboardCards();
+    _getKya();
+    Future.delayed(const Duration(seconds: 2), _getKya);
+  }
+
+  void _loadCompleteKya(List<Kya> completeKya) async {
+    var widgets = <Widget>[];
+
+    if (completeKya.isEmpty) {
+      widgets.add(SvgPicture.asset(
+        'assets/icon/add_avator.svg',
+      ));
+    } else {
+      setState(() {
+        _completeKya = completeKya;
+      });
+      try {
+        if (completeKya.length == 1) {
+          widgets.add(kyaAvatar(7, completeKya[0]));
+        } else if (completeKya.length == 2) {
+          widgets
+            ..add(kyaAvatar(0, completeKya[0]))
+            ..add(kyaAvatar(7, completeKya[1]));
+        } else if (completeKya.length >= 3) {
+          widgets
+            ..add(kyaAvatar(0, completeKya[0]))
+            ..add(kyaAvatar(7, completeKya[1]))
+            ..add(kyaAvatar(14, completeKya[2]));
+        } else {}
+      } on Error catch (exception, stackTrace) {
+        debugPrint('$exception\n$stackTrace');
+        await Sentry.captureException(
+          exception,
+          stackTrace: stackTrace,
+        );
+      }
+    }
+
+    if (mounted) {
+      if (widgets.isEmpty) {
+        widgets.add(SvgPicture.asset(
+          'assets/icon/add_avator.svg',
+        ));
+      }
+      setState(() {
+        _completeKyaWidgets = widgets;
+      });
+    }
+  }
+
+  void _loadFavourites(List<PlaceDetails> favouritePlaces) async {
     var widgets = <Widget>[];
 
     if ((_favLocations.length != 3 && favouritePlaces.length >= 3) ||
@@ -679,94 +763,16 @@ class _DashboardViewState extends State<DashboardView> {
     }
   }
 
-  void _getKya() async {
-    var kya = await _appService.dbHelper.getKyas();
-
-    _completeKya = kya.where((element) => element.progress == -1).toList();
-    _loadCompleteKya(_completeKya);
-
-    setState(() {
-      _incompleteKya = kya.where((element) => element.progress != -1).toList();
-    });
-  }
-
-  void _handleScroll() async {
-    _scrollController.addListener(() {
-      if (_scrollController.position.userScrollDirection ==
-              ScrollDirection.reverse &&
-          mounted) {
-        // setState(() {
-        //   _showName = false;
-        // });
-      }
-      if (_scrollController.position.userScrollDirection ==
-              ScrollDirection.forward &&
-          mounted) {
-        // setState(() {
-        //   _showName = true;
-        // });
-      }
-    });
-  }
-
-  Future<void> _initialize() async {
-    _appService = AppService(context);
-    _preferences = await SharedPreferences.getInstance();
-    _setGreetings();
-    _getDashboardCards();
-    _getKya();
-  }
-
-  void _loadCompleteKya(List<Kya> completeKya) async {
-    var widgets = <Widget>[];
-
-    if (completeKya.isEmpty) {
-      widgets.add(SvgPicture.asset(
-        'assets/icon/add_avator.svg',
-      ));
-    } else {
-      setState(() {
-        _completeKya = completeKya;
-      });
-      try {
-        if (completeKya.length == 1) {
-          widgets.add(kyaAvatar(7, completeKya[0]));
-        } else if (completeKya.length == 2) {
-          widgets
-            ..add(kyaAvatar(0, completeKya[0]))
-            ..add(kyaAvatar(7, completeKya[1]));
-        } else if (completeKya.length >= 3) {
-          widgets
-            ..add(kyaAvatar(0, completeKya[0]))
-            ..add(kyaAvatar(7, completeKya[1]))
-            ..add(kyaAvatar(14, completeKya[2]));
-        } else {}
-      } on Error catch (exception, stackTrace) {
-        debugPrint('$exception\n$stackTrace');
-        await Sentry.captureException(
-          exception,
-          stackTrace: stackTrace,
-        );
-      }
-    }
-
-    if (mounted) {
-      if (widgets.isEmpty) {
-        widgets.add(SvgPicture.asset(
-          'assets/icon/add_avator.svg',
-        ));
-      }
-      setState(() {
-        _completeKyaWidgets.clear();
-        _completeKyaWidgets = widgets;
-      });
-    }
-  }
-
   Future<void> _refresh() async {
     await _appService.refreshDashboard();
     _getDashboardCards();
     _getKya();
+    await _refreshFavPlaces();
+  }
+
+  Future<void> _refreshFavPlaces() async {
+    var favPlaces = await _appService.dbHelper.getFavouritePlaces();
+    _loadFavourites(favPlaces);
   }
 
   void _setGreetings() {

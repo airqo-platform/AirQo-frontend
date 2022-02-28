@@ -32,7 +32,7 @@ class _ProfileViewState extends State<ProfileView> {
 
   Widget appNavBar() {
     return Padding(
-      padding: EdgeInsets.only(top: 23),
+      padding: const EdgeInsets.only(top: 23),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,
@@ -141,7 +141,7 @@ class _ProfileViewState extends State<ProfileView> {
                             style: TextStyle(
                                 fontSize: 24, fontWeight: FontWeight.bold),
                           ),
-                          SizedBox(
+                          const SizedBox(
                             height: 24,
                           ),
                           signupSection(),
@@ -192,12 +192,6 @@ class _ProfileViewState extends State<ProfileView> {
     );
   }
 
-  @override
-  void didChangeDependencies() {
-    precacheImage(CachedNetworkImageProvider(_userProfile.photoUrl), context);
-    super.didChangeDependencies();
-  }
-
   void dummyFn() {}
 
   Future<void> favPlaces() async {
@@ -223,6 +217,8 @@ class _ProfileViewState extends State<ProfileView> {
         setState(() {
           _userProfile = userDetails;
         });
+        await precacheImage(
+            CachedNetworkImageProvider(_userProfile.photoUrl), context);
       }
     }
   }
@@ -392,7 +388,7 @@ class _ProfileViewState extends State<ProfileView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          SizedBox(
+          const SizedBox(
             height: 48,
           ),
           const Padding(
@@ -403,14 +399,15 @@ class _ProfileViewState extends State<ProfileView> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 24,
+                  height: 1.3,
                   fontWeight: FontWeight.bold,
                 )),
           ),
-          SizedBox(
-            height: 8,
+          const SizedBox(
+            height: 10,
           ),
           Padding(
-            padding: const EdgeInsets.only(left: 48.0, right: 48.0),
+            padding: const EdgeInsets.only(left: 55.0, right: 55.0),
             child: Text(
                 'Create your account today and enjoy air quality'
                 ' updates and recommendations.',
@@ -418,7 +415,8 @@ class _ProfileViewState extends State<ProfileView> {
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    fontSize: 15,
+                    fontSize: 14,
+                    height: 1.28,
                     color: Config.appColorBlack.withOpacity(0.4))),
           ),
           const SizedBox(

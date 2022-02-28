@@ -3,7 +3,7 @@ import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
 
 import 'analytics_view.dart';
-import 'know_your_air_view.dart';
+import 'kya/know_your_air_view.dart';
 
 class ForYouPage extends StatefulWidget {
   const ForYouPage({Key? key}) : super(key: key);
