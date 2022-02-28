@@ -1,7 +1,7 @@
-import 'package:app/models/historical_measurement.dart';
 import 'package:app/models/site.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import 'json_parsers.dart';
 import 'measurement_value.dart';
 
 part 'measurement.g.dart';
@@ -11,22 +11,28 @@ class Measurement {
   @JsonKey(required: true)
   String time;
 
-  @JsonKey(required: true, name: 'average_pm2_5')
+  @JsonKey(required: true)
   final MeasurementValue pm2_5;
 
-  @JsonKey(required: true, name: 'average_pm10')
+  @JsonKey(required: true)
   final MeasurementValue pm10;
 
-  @JsonKey(required: false)
+  @JsonKey(required: false, fromJson: measurementValueFromJson)
   final MeasurementValue altitude;
 
-  @JsonKey(required: false)
+  @JsonKey(required: false, fromJson: measurementValueFromJson)
   final MeasurementValue speed;
 
-  @JsonKey(required: false, name: 'externalTemperature')
+  @JsonKey(
+      required: false,
+      name: 'externalTemperature',
+      fromJson: measurementValueFromJson)
   final MeasurementValue temperature;
 
-  @JsonKey(required: false, name: 'externalHumidity')
+  @JsonKey(
+      required: false,
+      name: 'externalHumidity',
+      fromJson: measurementValueFromJson)
   final MeasurementValue humidity;
 
   @JsonKey(required: true, name: 'siteDetails')
@@ -61,11 +67,6 @@ class Measurement {
       return double.parse(pm2_5.value.toStringAsFixed(2));
     }
     return double.parse(pm2_5.calibratedValue.toStringAsFixed(2));
-  }
-
-  HistoricalMeasurement toHistorical() {
-    return HistoricalMeasurement(time, pm2_5, pm10, altitude, speed,
-        temperature, humidity, site.id, deviceNumber);
   }
 
   Map<String, dynamic> toJson() => _$MeasurementToJson(this);
@@ -113,8 +114,8 @@ class Measurement {
     return {
       'siteDetails': siteDetails,
       'time': json[dbTime()] as String,
-      'average_pm2_5': {'value': json[dbPm25()] as double},
-      'average_pm10': {'value': json[dbPm10()] as double},
+      'pm2_5': {'value': json[dbPm25()] as double},
+      'pm10': {'value': json[dbPm10()] as double},
       'externalTemperature': {'value': json[dbTemperature()] as double},
       'externalHumidity': {'value': json[dbHumidity()] as double},
       'speed': {'value': json[dbSpeed()] as double},

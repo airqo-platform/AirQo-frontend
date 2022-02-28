@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useRef } from "react";
 import { useDispatch } from "react-redux";
 import PropTypes from "prop-types";
-import { makeStyles, withStyles } from "@material-ui/styles";
+import { withStyles } from "@material-ui/styles";
 import {
   Divider,
   Grid,
@@ -21,7 +21,7 @@ import {
 } from "@material-ui/pickers";
 import "chartjs-plugin-annotation";
 import Typography from "@material-ui/core/Typography";
-import { MoreHoriz, Close } from "@material-ui/icons";
+import { Close } from "@material-ui/icons";
 import MuiDialogTitle from "@material-ui/core/DialogTitle";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
@@ -44,32 +44,6 @@ import ChartContainer from "./ChartContainer";
 
 import CustomDisplayChart from "./CustomDisplayChart";
 import { loadD3ChartDataApi } from "views/apis/analytics";
-
-const useStyles = makeStyles((theme) => ({
-  root: {
-    height: "100%",
-  },
-
-  avatar: {
-    backgroundColor: theme.palette.success.main,
-    height: 56,
-    width: 56,
-  },
-
-  card: {
-    display: "flex",
-  },
-  cardHeader: {
-    display: "block",
-    overflow: "hidden",
-  },
-  cardHeaderRoot: {
-    overflow: "hidden",
-  },
-  cardHeaderContent: {
-    overflow: "hidden",
-  },
-}));
 
 const capitalize = (str) => {
   return str && str.charAt(0).toUpperCase() + str.slice(1);
@@ -102,6 +76,24 @@ const styles = (theme) => ({
   },
 });
 
+const pollutantLabelMapper = {
+  "PM 2.5": (
+    <span>
+      PM<sub>2.5</sub>
+    </span>
+  ),
+  "PM 10": (
+    <span>
+      PM<sub>10</sub>
+    </span>
+  ),
+  NO2: (
+    <span>
+      NO<sub>2</sub>
+    </span>
+  ),
+};
+
 const DialogTitle = withStyles(styles)((props) => {
   const { children, classes, onClose, ...other } = props;
   return (
@@ -122,7 +114,7 @@ const DialogTitle = withStyles(styles)((props) => {
 
 const CustomisableChart = (props) => {
   const { className, idSuffix, defaultFilter, ...rest } = props;
-  const classes = useStyles();
+  const ref = useRef();
   const dispatch = useDispatch();
 
   const airqloud = useCurrentAirQloudData();
@@ -302,9 +294,51 @@ const CustomisableChart = (props) => {
   const pollutantOptions = usePollutantsOptions();
 
   const labelMapper = {
-    pm2_5: "PM2.5 (µg/m3)",
-    pm10: "PM10 (µg/m3)",
-    no2: "NO2 (µg/m3)",
+    pm2_5: (
+      <tspan>
+        PM
+        <tspan dy={5} style={{ fontSize: "0.6rem" }}>
+          2.5
+        </tspan>{" "}
+        <tspan dy={-5}>
+          (µg/m
+          <tspan dy={-5} style={{ fontSize: "0.6rem" }}>
+            3
+          </tspan>
+          <tspan dy={5}>)</tspan>
+        </tspan>
+      </tspan>
+    ),
+    pm10: (
+      <tspan>
+        PM
+        <tspan dy={5} style={{ fontSize: "0.6rem" }}>
+          10
+        </tspan>{" "}
+        <tspan dy={-5}>
+          (µg/m
+          <tspan dy={-5} style={{ fontSize: "0.6rem" }}>
+            3
+          </tspan>
+          <tspan dy={5}>)</tspan>
+        </tspan>
+      </tspan>
+    ),
+    no2: (
+      <tspan>
+        NO
+        <tspan dy={5} style={{ fontSize: "0.6rem" }}>
+          2
+        </tspan>{" "}
+        <tspan dy={-5}>
+          (µg/m
+          <tspan dy={-5} style={{ fontSize: "0.6rem" }}>
+            3
+          </tspan>
+          <tspan dy={5}>)</tspan>
+        </tspan>
+      </tspan>
+    ),
   };
 
   const setDefaulPollutant = (value) => {
@@ -345,12 +379,14 @@ const CustomisableChart = (props) => {
     annotationMapper[selectedPollutant.value]
   );
 
-  const title = `Mean ${selectedFrequency.label} ${
-    selectedPollutant.label
-  } from ${formatDate(selectedDate, "YYYY-MM-DD")} to ${formatDateString(
-    selectedEndDate,
-    "YYYY-MM-DD"
-  )}`;
+  const title = (
+    <span>
+      Mean {selectedFrequency.label}{" "}
+      {pollutantLabelMapper[selectedPollutant.label]} from{" "}
+      {formatDate(selectedDate, "YYYY-MM-DD")} to{" "}
+      {formatDateString(selectedEndDate, "YYYY-MM-DD")}
+    </span>
+  );
 
   const [subTitle, setSubTitle] = useState(defaultFilter.chartSubTitle);
 
@@ -441,6 +477,10 @@ const CustomisableChart = (props) => {
     };
 
     transferFromTempState();
+
+    // quick fix for circular imports
+    delete newFilter['chartTitle'];
+
     updateUserChartDefaultsApi(newFilter._id, newFilter);
     await fetchAndSetGraphData(newFilter);
   };
@@ -459,7 +499,6 @@ const CustomisableChart = (props) => {
     handlePeriodChange(selectedPeriod);
   }, []);
 
-  const rootCustomChartContainerId = "rootCustomChartContainerId" + idSuffix;
   const iconButton = "exportIconButton";
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -570,10 +609,10 @@ const CustomisableChart = (props) => {
 
   const menuOptions = [
     { key: "Customise", action: handleClickOpen, text: "Customise Chart" },
-    // { key: "Print", action: print, text: "Print" },
-    // { key: "JPEG", action: exportToJpeg, text: "Save as JPEG" },
-    // { key: "PNG", action: exportToPng, text: "Save as PNG" },
-    // { key: "PDF", action: exportToPdf, text: "Save as PDF" },
+    { key: "Print", action: print, text: "Print" },
+    { key: "JPEG", action: exportToJpeg, text: "Save as JPEG" },
+    { key: "PNG", action: exportToPng, text: "Save as PNG" },
+    { key: "PDF", action: exportToPdf, text: "Save as PDF" },
     {
       key: "Delete",
       action: deleteChart,
@@ -590,7 +629,7 @@ const CustomisableChart = (props) => {
   };
 
   const handleExportCustomChart = ({ action }) => () => {
-    const chart = document.querySelector(`#${rootCustomChartContainerId}`);
+    const chart = ref.current;
     handleClose();
     action(chart);
   };
@@ -606,10 +645,13 @@ const CustomisableChart = (props) => {
   };
 
   return (
-    <>
+    <div ref={ref}>
       <ChartContainer
-        id={rootCustomChartContainerId}
-        title={`${tempState.subTitle || "unknown location"} - ${title}`}
+        title={
+          <span>
+            {tempState.subTitle || "unknown location"} - {title}
+          </span>
+        }
         open={openMenu}
         onClick={handleClick}
         close={handleMenuClose}
@@ -821,7 +863,7 @@ const CustomisableChart = (props) => {
           </DialogActions>
         </Dialog>
       </Grid>
-    </>
+    </div>
   );
 };
 

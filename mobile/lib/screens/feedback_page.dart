@@ -1,17 +1,14 @@
 import 'dart:io';
 
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/feedback.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dialogs.dart';
-import 'package:app/utils/string_extension.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/widgets/text_fields.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
-import 'package:flutter/rendering.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class FeedbackPage extends StatefulWidget {
@@ -38,7 +35,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
         appBar: appTopBar(context, 'Send Feedback'),
         body: Container(
             padding: const EdgeInsets.only(left: 16, right: 16),
-            color: ColorConstants.appBodyColor,
+            color: Config.appBodyColor,
             child: Column(
               children: [
                 ListView(
@@ -54,32 +51,32 @@ class _FeedbackPageState extends State<FeedbackPage> {
                           width: 16,
                           decoration: BoxDecoration(
                               color: _feedbackType == ''
-                                  ? ColorConstants.greyColor
-                                  : ColorConstants.appColorBlue,
+                                  ? Config.greyColor
+                                  : Config.appColorBlue,
                               shape: BoxShape.circle),
                         ),
                         Expanded(
                             child: Divider(
                           thickness: 2,
                           color: _index >= 1
-                              ? ColorConstants.appColorBlue
-                              : ColorConstants.greyColor,
+                              ? Config.appColorBlue
+                              : Config.greyColor,
                         )),
                         Container(
                           height: 16,
                           width: 16,
                           decoration: BoxDecoration(
                               color: _feedbackChannel != '' && _index >= 1
-                                  ? ColorConstants.appColorBlue
-                                  : ColorConstants.greyColor,
+                                  ? Config.appColorBlue
+                                  : Config.greyColor,
                               shape: BoxShape.circle),
                         ),
                         Expanded(
                             child: Divider(
                           thickness: 2,
                           color: _index >= 2 || _feedbackChannel == 'WhatsApp'
-                              ? ColorConstants.appColorBlue
-                              : ColorConstants.greyColor,
+                              ? Config.appColorBlue
+                              : Config.greyColor,
                         )),
                         Container(
                           height: 16,
@@ -87,8 +84,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
                           decoration: BoxDecoration(
                               color:
                                   _index >= 2 || _feedbackChannel == 'WhatsApp'
-                                      ? ColorConstants.appColorBlue
-                                      : ColorConstants.greyColor,
+                                      ? Config.appColorBlue
+                                      : Config.greyColor,
                               shape: BoxShape.circle),
                         ),
                       ],
@@ -195,9 +192,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
                           }
                         },
                         child: _feedbackType == ''
-                            ? nextButton(
-                                'Next', ColorConstants.appColorPaleBlue)
-                            : nextButton('Next', ColorConstants.appColorBlue),
+                            ? nextButton('Next', Config.appColorPaleBlue)
+                            : nextButton('Next', Config.appColorBlue),
                       ),
                     ),
 
@@ -208,7 +204,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                         children: [
                           GestureDetector(
                             child: containerBackButton(
-                                'Back', ColorConstants.appColorPaleBlue),
+                                'Back', Config.appColorPaleBlue),
                             onTap: () {
                               setState(() {
                                 _index = _index - 1;
@@ -279,10 +275,10 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                 ? containerNextButton(
                                     'Send',
                                     _isSendingFeedback
-                                        ? ColorConstants.appColorPaleBlue
-                                        : ColorConstants.appColorBlue)
+                                        ? Config.appColorPaleBlue
+                                        : Config.appColorBlue)
                                 : containerNextButton(
-                                    'Next', ColorConstants.appColorBlue),
+                                    'Next', Config.appColorBlue),
                           )
                         ],
                       ),
@@ -301,8 +297,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
                       }
                     },
                     child: _feedbackType == ''
-                        ? nextButton('Next', ColorConstants.appColorPaleBlue)
-                        : nextButton('Next', ColorConstants.appColorBlue),
+                        ? nextButton('Next', Config.appColorPaleBlue)
+                        : nextButton('Next', Config.appColorBlue),
                   ),
                 ),
                 Visibility(
@@ -312,7 +308,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                     children: [
                       GestureDetector(
                         child: containerBackButton(
-                            'Back', ColorConstants.appColorPaleBlue),
+                            'Back', Config.appColorPaleBlue),
                         onTap: () {
                           setState(() {
                             _index = _index - 1;
@@ -382,10 +378,9 @@ class _FeedbackPageState extends State<FeedbackPage> {
                             ? containerNextButton(
                                 'Send',
                                 _isSendingFeedback
-                                    ? ColorConstants.appColorPaleBlue
-                                    : ColorConstants.appColorBlue)
-                            : containerNextButton(
-                                'Next', ColorConstants.appColorBlue),
+                                    ? Config.appColorPaleBlue
+                                    : Config.appColorBlue)
+                            : containerNextButton('Next', Config.appColorBlue),
                       )
                     ],
                   ),
@@ -455,7 +450,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
           enableSuggestions: false,
           cursorWidth: 1,
           maxLines: 12,
-          cursorColor: ColorConstants.appColorBlue,
+          cursorColor: Config.appColorBlue,
           keyboardType: TextInputType.emailAddress,
           onChanged: (text) {},
           validator: (value) {
@@ -490,7 +485,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
           autofocus: true,
           enableSuggestions: false,
           cursorWidth: 1,
-          cursorColor: ColorConstants.appColorBlue,
+          cursorColor: Config.appColorBlue,
           keyboardType: TextInputType.emailAddress,
           onChanged: (text) {},
           validator: (value) {
@@ -516,13 +511,13 @@ class _FeedbackPageState extends State<FeedbackPage> {
 
   @override
   void initState() {
-    _airqoApiClient = AirqoApiClient(context);
     super.initState();
+    _airqoApiClient = AirqoApiClient(context);
   }
 
   void openWhatsapp() async {
-    var androidUrl = '${Links.appAndroidWhatsappUrl}$_feedbackType';
-    var iosUrl = '${Links.appiOSWhatsappUrl}${Uri.parse(_feedbackType)}';
+    var androidUrl = '${Config.appAndroidWhatsappUrl}$_feedbackType';
+    var iosUrl = '${Config.appIOSWhatsappUrl}${Uri.parse(_feedbackType)}';
     if (Platform.isIOS) {
       if (await canLaunch(iosUrl)) {
         await launch(iosUrl, forceSafariVC: false);
@@ -543,11 +538,11 @@ class _FeedbackPageState extends State<FeedbackPage> {
       height: 24,
       width: 24,
       decoration: BoxDecoration(
-          color: isActive ? ColorConstants.appColorBlue : Colors.white,
+          color: isActive ? Config.appColorBlue : Colors.white,
           shape: BoxShape.circle,
           border: isActive
-              ? Border.all(color: ColorConstants.appColorBlue, width: 0)
-              : Border.all(color: ColorConstants.greyColor, width: 3)),
+              ? Border.all(color: Config.appColorBlue, width: 0)
+              : Border.all(color: Config.greyColor, width: 3)),
     );
   }
 }

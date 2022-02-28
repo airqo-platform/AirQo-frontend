@@ -1,18 +1,19 @@
 import 'dart:math';
 
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/kya.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/screens/search_page.dart';
-import 'package:app/services/fb_notifications.dart';
-import 'package:app/services/local_storage.dart';
+import 'package:app/services/app_service.dart';
 import 'package:app/services/native_api.dart';
-import 'package:app/services/rest_api.dart';
+import 'package:app/utils/dashboard.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/widgets/analytics_card.dart';
-import 'package:app/widgets/custom_widgets.dart';
+import 'package:app/widgets/custom_shimmer.dart';
+import 'package:app/widgets/tooltip.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -42,25 +43,22 @@ class _DashboardViewState extends State<DashboardView> {
     )
   ];
   List<Kya> _completeKya = [];
-  AirqoApiClient? _airqoApiClient;
-  Measurement? currentLocation;
-  Kya? _kya;
-  bool _showAnalyticsCardTips = false;
-  SharedPreferences? _preferences;
 
-  final String _kyaToolTipText = 'All your complete tasks will show up here';
-  final String _favToolTipText = 'Tap the ❤️ Favorite on any '
-      'location air quality to save them here for later';
+  late AppService _appService;
+  List<Measurement> currentLocation = [];
+  Kya? _kya;
+  late SharedPreferences _preferences;
+
   final GlobalKey _favToolTipKey = GlobalKey();
   final GlobalKey _kyaToolTipKey = GlobalKey();
   final bool _isRefreshing = false;
-  final CustomAuth _customAuth = CustomAuth();
-  final CloudStore _cloudStore = CloudStore();
+
   final LocationService _locationService = LocationService();
-  final CloudAnalytics _cloudAnalytics = CloudAnalytics();
-  final DBHelper _dbHelper = DBHelper();
+
   final ScrollController _scrollController = ScrollController();
-  final List<Widget> _dashBoardPlaces = [
+  List<Widget> _dashBoardPlaces = [
+    analyticsCardLoading(),
+    analyticsCardLoading(),
     analyticsCardLoading(),
     analyticsCardLoading(),
     analyticsCardLoading(),
@@ -113,19 +111,19 @@ class _DashboardViewState extends State<DashboardView> {
         title: appNavBar(),
         elevation: 0,
         toolbarHeight: 65,
-        backgroundColor: ColorConstants.appBodyColor,
+        backgroundColor: Config.appBodyColor,
       ),
       body: Container(
           padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 24),
-          color: ColorConstants.appBodyColor,
+          color: Config.appBodyColor,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Visibility(
                 visible: _showName,
-                child: Text(
+                child: AutoSizeText(
                   _greetings,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                       fontSize: 24, fontWeight: FontWeight.bold),
@@ -143,8 +141,8 @@ class _DashboardViewState extends State<DashboardView> {
               ),
               Expanded(
                   child: RefreshIndicator(
-                onRefresh: _getLatestMeasurements,
-                color: ColorConstants.appColorBlue,
+                onRefresh: _refresh,
+                color: Config.appColorBlue,
                 child: _dashboardItems(),
               )),
             ],
@@ -166,8 +164,8 @@ class _DashboardViewState extends State<DashboardView> {
           width: 32.0,
           padding: const EdgeInsets.all(2.0),
           decoration: BoxDecoration(
-            border: Border.all(color: ColorConstants.appBodyColor, width: 2),
-            color: ColorConstants.greyColor,
+            border: Border.all(color: Config.appBodyColor, width: 2),
+            color: Config.greyColor,
             shape: BoxShape.circle,
           ),
         ));
@@ -181,7 +179,7 @@ class _DashboardViewState extends State<DashboardView> {
           width: 32.0,
           padding: const EdgeInsets.all(2.0),
           decoration: BoxDecoration(
-            border: Border.all(color: ColorConstants.appBodyColor, width: 2),
+            border: Border.all(color: Config.appBodyColor, width: 2),
             color: pm2_5ToColor(measurement.getPm2_5Value()),
             shape: BoxShape.circle,
           ),
@@ -201,23 +199,24 @@ class _DashboardViewState extends State<DashboardView> {
 
     try {
       if (favouritePlaces.length == 1) {
-        var measurement =
-            await _dbHelper.getMeasurement(favouritePlaces[0].siteId);
+        var measurement = await _appService.dbHelper
+            .getMeasurement(favouritePlaces[0].siteId);
         if (measurement != null) {
           widgets.add(favPlaceAvatar(7, measurement));
         } else {
           widgets.add(emptyAvatar(0));
         }
       } else if (favouritePlaces.length == 2) {
-        var measurement =
-            await _dbHelper.getMeasurement(favouritePlaces[0].siteId);
+        var measurement = await _appService.dbHelper
+            .getMeasurement(favouritePlaces[0].siteId);
         if (measurement != null) {
           widgets.add(favPlaceAvatar(0, measurement));
         } else {
           widgets.add(emptyAvatar(0));
         }
 
-        measurement = await _dbHelper.getMeasurement(favouritePlaces[1].siteId);
+        measurement = await _appService.dbHelper
+            .getMeasurement(favouritePlaces[1].siteId);
         if (measurement != null) {
           widgets.add(favPlaceAvatar(7, measurement));
         } else {
@@ -228,30 +227,32 @@ class _DashboardViewState extends State<DashboardView> {
         //   ..add(favPlaceAvatar(0, favouritePlaces[0]))
         //   ..add(favPlaceAvatar(7, favouritePlaces[1]));
       } else if (favouritePlaces.length >= 3) {
-        var measurement =
-            await _dbHelper.getMeasurement(favouritePlaces[0].siteId);
+        var measurement = await _appService.dbHelper
+            .getMeasurement(favouritePlaces[0].siteId);
         if (measurement != null) {
           widgets.add(favPlaceAvatar(0, measurement));
         } else {
           widgets.add(emptyAvatar(0));
         }
 
-        measurement = await _dbHelper.getMeasurement(favouritePlaces[1].siteId);
+        measurement = await _appService.dbHelper
+            .getMeasurement(favouritePlaces[1].siteId);
         if (measurement != null) {
           widgets.add(favPlaceAvatar(7, measurement));
         } else {
           widgets.add(emptyAvatar(7));
         }
 
-        measurement = await _dbHelper.getMeasurement(favouritePlaces[2].siteId);
+        measurement = await _appService.dbHelper
+            .getMeasurement(favouritePlaces[2].siteId);
         if (measurement != null) {
           widgets.add(favPlaceAvatar(14, measurement));
         } else {
           widgets.add(emptyAvatar(14));
         }
       } else {}
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
 
     if (mounted) {
@@ -268,8 +269,9 @@ class _DashboardViewState extends State<DashboardView> {
       setState(() {
         _kya = null;
       });
-      await _cloudStore
-          .updateKyaProgress(_customAuth.getId(), completeKya!, 100)
+      await _appService.cloudStore
+          .updateKyaProgress(
+              _appService.customAuth.getUserId(), completeKya!, 100)
           .then((value) => {
                 _getCompleteKya(),
                 _getIncompleteKya(),
@@ -283,9 +285,9 @@ class _DashboardViewState extends State<DashboardView> {
 
   @override
   void initState() {
+    super.initState();
     _initialize();
     _handleScroll();
-    super.initState();
   }
 
   Widget kyaAvatar(double rightPadding, Kya kya) {
@@ -296,8 +298,8 @@ class _DashboardViewState extends State<DashboardView> {
           width: 32.0,
           padding: const EdgeInsets.all(2.0),
           decoration: BoxDecoration(
-            border: Border.all(color: ColorConstants.appBodyColor, width: 2),
-            color: ColorConstants.greyColor,
+            border: Border.all(color: Config.appBodyColor, width: 2),
+            color: Config.greyColor,
             shape: BoxShape.circle,
             image: DecorationImage(
               fit: BoxFit.cover,
@@ -351,7 +353,7 @@ class _DashboardViewState extends State<DashboardView> {
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 12,
-                              color: ColorConstants.appColorBlue,
+                              color: Config.appColorBlue,
                             )),
                       if (_kya!.progress > 0.0 && _kya!.progress < 89.0)
                         Text('Continue',
@@ -360,7 +362,7 @@ class _DashboardViewState extends State<DashboardView> {
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 12,
-                              color: ColorConstants.appColorBlue,
+                              color: Config.appColorBlue,
                             )),
                       if (_kya!.progress >= 89.0)
                         const Text('Complete! Move to ',
@@ -377,7 +379,7 @@ class _DashboardViewState extends State<DashboardView> {
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 12,
-                              color: ColorConstants.appColorBlue,
+                              color: Config.appColorBlue,
                             )),
                       const SizedBox(
                         width: 6,
@@ -385,7 +387,7 @@ class _DashboardViewState extends State<DashboardView> {
                       Icon(
                         Icons.arrow_forward_ios_sharp,
                         size: 10,
-                        color: ColorConstants.appColorBlue,
+                        color: Config.appColorBlue,
                       )
                     ],
                   ),
@@ -401,10 +403,10 @@ class _DashboardViewState extends State<DashboardView> {
                         borderRadius: BorderRadius.all(Radius.circular(8.0)),
                       ),
                       child: LinearProgressIndicator(
-                        color: ColorConstants.appColorBlue,
+                        color: Config.appColorBlue,
                         value: _kya!.progress / 100,
                         backgroundColor:
-                            ColorConstants.appColorDisabled.withOpacity(0.2),
+                            Config.appColorDisabled.withOpacity(0.2),
                       )),
                 ),
               ],
@@ -426,12 +428,12 @@ class _DashboardViewState extends State<DashboardView> {
                 placeholder: (context, url) => SizedBox(
                   width: 104,
                   height: 104,
-                  child: analyticsCardLoading(),
+                  child: containerLoadingAnimation(104, 104),
                 ),
                 imageUrl: _kya!.imageUrl,
                 errorWidget: (context, url, error) => Icon(
                   Icons.error_outline,
-                  color: ColorConstants.red,
+                  color: Config.red,
                 ),
               ),
             ),
@@ -450,8 +452,9 @@ class _DashboardViewState extends State<DashboardView> {
             child: GestureDetector(
               onTap: () async {
                 if (_favLocations.isEmpty) {
-                  showTipText(
-                      _favToolTipText, _favToolTipKey, context, () {}, false);
+                  ToolTip(context, toolTipType.favouritePlaces).show(
+                    widgetKey: _favToolTipKey,
+                  );
                   return;
                 }
                 await Navigator.push(context,
@@ -491,7 +494,7 @@ class _DashboardViewState extends State<DashboardView> {
                     Text(
                       'Favorites',
                       style: TextStyle(
-                          color: ColorConstants.appColorBlue,
+                          color: Config.appColorBlue,
                           fontWeight: FontWeight.w500,
                           fontSize: 14),
                     )
@@ -507,8 +510,9 @@ class _DashboardViewState extends State<DashboardView> {
             child: GestureDetector(
               onTap: () async {
                 if (_completeKya.isEmpty) {
-                  showTipText(
-                      _kyaToolTipText, _kyaToolTipKey, context, () {}, true);
+                  ToolTip(context, toolTipType.forYou).show(
+                    widgetKey: _kyaToolTipKey,
+                  );
                   return;
                 }
                 await Navigator.push(context,
@@ -538,7 +542,7 @@ class _DashboardViewState extends State<DashboardView> {
                     Text(
                       'For You',
                       style: TextStyle(
-                          color: ColorConstants.appColorBlue,
+                          color: Config.appColorBlue,
                           fontWeight: FontWeight.w500,
                           fontSize: 14),
                     )
@@ -557,6 +561,7 @@ class _DashboardViewState extends State<DashboardView> {
         child: ListView(
             controller: _scrollController,
             shrinkWrap: true,
+            physics: const AlwaysScrollableScrollPhysics(),
             children: [
               Text(
                 getDateTime(),
@@ -574,33 +579,58 @@ class _DashboardViewState extends State<DashboardView> {
               const SizedBox(
                 height: 12,
               ),
-              if (currentLocation != null)
-                AnalyticsCard(PlaceDetails.measurementToPLace(currentLocation!),
-                    currentLocation!, _isRefreshing, _showAnalyticsCardTips),
-              if (currentLocation == null) analyticsCardLoading(),
-              const SizedBox(
-                height: 16,
-              ),
-              if (_kya != null && _customAuth.isLoggedIn()) kyaSection(),
               if (_dashBoardPlaces.isNotEmpty) _dashBoardPlaces[0],
-              const SizedBox(
-                height: 16,
-              ),
+              if (_dashBoardPlaces.isNotEmpty)
+                const SizedBox(
+                  height: 16,
+                ),
+              // if (_kya != null && _customAuth.isLoggedIn()) kyaSection(),
+              // if (_kya != null && _customAuth.isLoggedIn())
+              //   const SizedBox(
+              //     height: 16,
+              //   ),
               if (_dashBoardPlaces.length >= 2) _dashBoardPlaces[1],
-              const SizedBox(
-                height: 16,
-              ),
+              if (_dashBoardPlaces.length >= 2)
+                const SizedBox(
+                  height: 16,
+                ),
               if (_dashBoardPlaces.length >= 3) _dashBoardPlaces[2],
-              const SizedBox(
-                height: 16,
-              ),
+              if (_dashBoardPlaces.length >= 3)
+                const SizedBox(
+                  height: 16,
+                ),
+              if (_dashBoardPlaces.length >= 4) _dashBoardPlaces[3],
+              if (_dashBoardPlaces.length >= 4)
+                const SizedBox(
+                  height: 16,
+                ),
+              if (_dashBoardPlaces.length >= 5) _dashBoardPlaces[4],
+              if (_dashBoardPlaces.length >= 5)
+                const SizedBox(
+                  height: 16,
+                ),
+              if (_dashBoardPlaces.length >= 6) _dashBoardPlaces[5],
+              if (_dashBoardPlaces.length >= 6)
+                const SizedBox(
+                  height: 16,
+                ),
+              if (_dashBoardPlaces.length >= 7) _dashBoardPlaces[6],
+              if (_dashBoardPlaces.length >= 7)
+                const SizedBox(
+                  height: 16,
+                ),
+              if (_dashBoardPlaces.length >= 8) _dashBoardPlaces[7],
+              if (_dashBoardPlaces.length >= 8)
+                const SizedBox(
+                  height: 16,
+                ),
             ]));
   }
 
   void _getCompleteKya() async {
     var widgets = <Widget>[];
 
-    if (!_customAuth.isLoggedIn()) {
+    if (_appService.isLoggedIn()) {
       widgets.add(SvgPicture.asset(
         'assets/icon/add_avator.svg',
       ));
@@ -613,79 +643,84 @@ class _DashboardViewState extends State<DashboardView> {
       return;
     }
 
-    var dbKya = await _dbHelper.getKyas();
+    var dbKya = await _appService.dbHelper.getKyas();
     var completeKya =
         dbKya.where((element) => element.progress >= 100).toList();
     _loadCompleteKya(completeKya);
 
-    var kyaCards = await _cloudStore.getKya(_customAuth.getId());
+    var kyaCards =
+        await _appService.cloudStore.getKya(_appService.customAuth.getUserId());
     var completeKyaCards =
         kyaCards.where((element) => element.progress >= 100.0).toList();
 
     if (completeKyaCards.isNotEmpty) {
       _loadCompleteKya(completeKyaCards);
-      await _dbHelper.insertKyas(kyaCards);
+      await _appService.dbHelper.insertKyas(kyaCards);
     }
   }
 
   void _getDashboardLocations() async {
-    var measurements = await _dbHelper.getLatestMeasurements();
+    var region = getNextDashboardRegion(_preferences);
+    var measurements = await _appService.dbHelper.getRegionSites(region);
 
     if (measurements.isNotEmpty) {
-      setState(_dashBoardPlaces.clear);
+      setState(() {
+        _dashBoardPlaces.clear();
+      });
 
-      var regions = [
-        'cent',
-        'west',
-        'east',
-      ];
-
-      for (var i = 0; i < regions.length; i++) {
-        var regionMeasurements = measurements
-            .where((element) =>
-                element.site.region.toLowerCase().contains(regions[i]))
-            .toList();
-
-        if (regionMeasurements.isNotEmpty) {
-          var random = Random().nextInt(regionMeasurements.length);
-
-          if (mounted) {
-            setState(() {
-              _dashBoardPlaces.add(AnalyticsCard(
-                  PlaceDetails.measurementToPLace(regionMeasurements[random]),
-                  regionMeasurements[random],
-                  _isRefreshing,
-                  false));
-            });
-          }
-        } else {
-          var random = Random().nextInt(measurements.length);
-
-          if (mounted) {
-            setState(() {
-              _dashBoardPlaces.add(AnalyticsCard(
-                  PlaceDetails.measurementToPLace(measurements[random]),
-                  measurements[random],
-                  _isRefreshing,
-                  false));
-            });
-          }
+      var dashboardCards = <AnalyticsCard>[];
+      for (var i = 0; i <= 5; i++) {
+        if (measurements.isEmpty) {
+          break;
         }
+        var random = Random().nextInt(measurements.length);
+
+        if (mounted) {
+          dashboardCards.add(AnalyticsCard(
+              PlaceDetails.measurementToPLace(measurements[random]),
+              measurements[random],
+              _isRefreshing,
+              false));
+          setState(() {
+            _dashBoardPlaces.add(AnalyticsCard(
+                PlaceDetails.measurementToPLace(measurements[random]),
+                measurements[random],
+                _isRefreshing,
+                false));
+          });
+        }
+        measurements.removeAt(random);
+      }
+
+      for (var location in currentLocation) {
+        dashboardCards.add(AnalyticsCard(
+            PlaceDetails.measurementToPLace(location),
+            location,
+            _isRefreshing,
+            false));
+      }
+
+      if (dashboardCards.isNotEmpty) {
+        dashboardCards.shuffle();
+        setState(() {
+          _dashBoardPlaces = dashboardCards;
+        });
       }
     }
   }
 
   void _getIncompleteKya() async {
-    if (!_customAuth.isLoggedIn()) {
+    if (_appService.isLoggedIn()) {
       return;
     }
 
-    var kyas = await _cloudStore.getKya(_customAuth.getId());
+    var kyas =
+        await _appService.cloudStore.getKya(_appService.customAuth.getUserId());
     var inCompleteKya =
         kyas.where((element) => element.progress < 100).toList();
 
     if (kyas.isNotEmpty) {
-      await _dbHelper.insertKyas(kyas);
+      await _appService.dbHelper.insertKyas(kyas);
     }
 
     if (inCompleteKya.isNotEmpty) {
@@ -697,29 +732,11 @@ class _DashboardViewState extends State<DashboardView> {
     }
   }
 
-  Future<void> _getLatestMeasurements() async {
-    var measurements = await _airqoApiClient!.fetchLatestMeasurements();
-    if (measurements.isNotEmpty) {
-      await _dbHelper.insertLatestMeasurements(measurements);
-      if (mounted) {
-        _getLocationMeasurements();
-        _getDashboardLocations();
-      }
-    }
-  }
-
   void _getLocationMeasurements() async {
-    var defaultMeasurement = await _locationService.defaultLocationPlace();
-    if (defaultMeasurement != null && mounted) {
+    var measurements = await _locationService.getCurrentLocationReadings();
+    if (mounted) {
       setState(() {
-        currentLocation = defaultMeasurement;
-      });
-    }
-
-    var measurement = await _locationService.getCurrentLocationReadings();
-    if (measurement != null && mounted) {
-      setState(() {
-        currentLocation = measurement;
+        currentLocation = measurements;
       });
     }
   }
@@ -744,19 +761,17 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   Future<void> _initialize() async {
-    _cloudAnalytics.logScreenTransition('Home Page');
-    _airqoApiClient = AirqoApiClient(context);
+    _appService = AppService(context);
     _preferences = await SharedPreferences.getInstance();
     _setGreetings();
     _getLocationMeasurements();
     _getDashboardLocations();
-    if (_customAuth.isLoggedIn()) {
+    if (_appService.isLoggedIn()) {
       await _loadKya();
       _getIncompleteKya();
       _getCompleteKya();
     }
-    await _getLatestMeasurements();
-    _showHelpTips();
+    await _appService.fetchData();
   }
 
   void _loadCompleteKya(List<Kya> completeKya) async {
@@ -784,8 +799,7 @@ class _DashboardViewState extends State<DashboardView> {
             ..add(kyaAvatar(14, completeKya[2]));
         } else {}
       } on Error catch (exception, stackTrace) {
-        debugPrint(exception.toString());
-        debugPrint(stackTrace.toString());
+        debugPrint('$exception\n$stackTrace');
         await Sentry.captureException(
           exception,
           stackTrace: stackTrace,
@@ -807,38 +821,22 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   Future<void> _loadKya() async {
-    var kyas = await _cloudStore.getKya(_customAuth.getId());
-    await _dbHelper.insertKyas(kyas);
+    var kyas =
+        await _appService.cloudStore.getKya(_appService.customAuth.getUserId());
+    await _appService.dbHelper.insertKyas(kyas);
+  }
+
+  Future<void> _refresh() async {
+    await _appService.fetchLatestMeasurements();
+    _getLocationMeasurements();
+    _getDashboardLocations();
   }
 
   void _setGreetings() {
     if (mounted) {
       setState(() {
-        _greetings = getGreetings(_customAuth.getDisplayName());
+        _greetings = getGreetings(_appService.customAuth.getDisplayName());
       });
-    }
-  }
-
-  void _showHelpTips() {
-    return;
-    if (!mounted) {
-      return;
-    }
-    try {
-      var showHelpTips =
-          _preferences!.getBool(PrefConstant.homePageTips) ?? true;
-      if (showHelpTips) {
-        showTipText(_favToolTipText, _favToolTipKey, context, () {
-          showTipText(_kyaToolTipText, _kyaToolTipKey, context, () {
-            setState(() {
-              _showAnalyticsCardTips = true;
-            });
-            _preferences!.setBool(PrefConstant.homePageTips, false);
-          }, true);
-        }, false);
-      }
-    } catch (e) {
-      debugPrint(e.toString());
     }
   }
 }

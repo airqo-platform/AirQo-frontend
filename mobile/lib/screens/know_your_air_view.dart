@@ -1,6 +1,6 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/kya.dart';
-import 'package:app/services/fb_notifications.dart';
+import 'package:app/services/firebase_service.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -30,14 +30,14 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
   Widget getBuildWidget() {
     if (_kyaCards.isEmpty) {
       return Container(
-          color: ColorConstants.appBodyColor,
+          color: Config.appBodyColor,
           child: Center(
             child: Text(_error),
           ));
     }
 
     return Container(
-        color: ColorConstants.appBodyColor,
+        color: Config.appBodyColor,
         child: ListView.builder(
           itemBuilder: (context, index) => Padding(
             padding: const EdgeInsets.only(bottom: 10),
@@ -49,8 +49,8 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
 
   @override
   void initState() {
-    _getKya();
     super.initState();
+    _getKya();
   }
 
   Widget kyaWidget(Kya kya) {
@@ -100,7 +100,7 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 12,
-                            color: ColorConstants.appColorBlue,
+                            color: Config.appColorBlue,
                           )),
                       const SizedBox(
                         width: 6,
@@ -108,7 +108,7 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
                       Icon(
                         Icons.arrow_forward_ios_sharp,
                         size: 10,
-                        color: ColorConstants.appColorBlue,
+                        color: Config.appColorBlue,
                       )
                     ],
                   ),
@@ -157,7 +157,7 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
 
     var isConnected = await _cloudStore.isConnected();
     if (!isConnected) {
-      await showSnackBar(context, ErrorMessages.timeoutException);
+      await showSnackBar(context, Config.connectionErrorMessage);
       return;
     }
 
@@ -170,7 +170,7 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
       return;
     }
 
-    var kyaCards = await _cloudStore.getKya(_customAuth.getId());
+    var kyaCards = await _cloudStore.getKya(_customAuth.getUserId());
     var completeKyaCards =
         kyaCards.where((element) => element.progress >= 100.0).toList();
 

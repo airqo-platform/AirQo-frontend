@@ -1,22 +1,20 @@
 import React, { useRef } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCog } from "@fortawesome/free-solid-svg-icons";
+import SettingsIcon from "@material-ui/icons/Settings";
 
 // css styles
 import "assets/css/d3/chart-container.scss";
 
-const ChartContainer = ({ title, children, action, open, onClick, id }) => {
+const ChartContainer = ({ title, children, action, open, onClick }) => {
   const anchorEl = useRef();
   return (
-    <div className="panel panel-default" id={id}>
+    <div className="panel panel-default">
       <div className="panel-heading">
         <div className="panel-title">
           {title || "Chart Area"}
           <ul className="rad-panel-action" ref={anchorEl}>
-            <FontAwesomeIcon
-              icon={faCog}
+            <SettingsIcon
               onClick={onClick}
-              style={{ cursor: "pointer" }}
+              style={{ fontSize: "15", cursor: "pointer" }}
             />
             {action(open, anchorEl.current)}
           </ul>

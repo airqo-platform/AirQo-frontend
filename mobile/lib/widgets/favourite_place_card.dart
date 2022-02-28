@@ -1,9 +1,8 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/screens/insights_page.dart';
-import 'package:app/services/fb_notifications.dart';
-import 'package:app/services/local_storage.dart';
+import 'package:app/services/app_service.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -24,8 +23,8 @@ class MiniAnalyticsCard extends StatefulWidget {
 class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
   Measurement? measurement;
   bool showHeartAnimation = false;
-  final DBHelper _dbHelper = DBHelper();
-  final CustomAuth _customAuth = CustomAuth();
+
+  late AppService _appService;
 
   @override
   Widget build(BuildContext context) {
@@ -110,7 +109,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                         height: 16,
                         width: 16,
                         decoration: BoxDecoration(
-                            color: ColorConstants.appColorBlue,
+                            color: Config.appColorBlue,
                             borderRadius:
                                 const BorderRadius.all(Radius.circular(3.0)),
                             border: Border.all(color: Colors.transparent)),
@@ -123,22 +122,22 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                       const SizedBox(width: 8.0),
                       Text(
                         'View More Insights',
-                        style: TextStyle(
-                            fontSize: 12, color: ColorConstants.appColorBlue),
+                        style:
+                            TextStyle(fontSize: 12, color: Config.appColorBlue),
                       ),
                       const Spacer(),
                       Container(
                         height: 16,
                         width: 16,
                         decoration: BoxDecoration(
-                            color: ColorConstants.appColorPaleBlue,
+                            color: Config.appColorPaleBlue,
                             borderRadius:
                                 const BorderRadius.all(Radius.circular(3.0)),
                             border: Border.all(color: Colors.transparent)),
                         child: Icon(
                           Icons.arrow_forward_ios,
                           size: 12,
-                          color: ColorConstants.appColorBlue,
+                          color: Config.appColorBlue,
                         ),
                       ),
                     ],
@@ -185,20 +184,23 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
   }
 
   void getMeasurement() {
-    _dbHelper.getMeasurement(widget.placeDetails.siteId).then((value) => {
-          if (value != null && mounted)
-            {
-              setState(() {
-                measurement = value;
-              })
-            }
-        });
+    _appService.dbHelper
+        .getMeasurement(widget.placeDetails.siteId)
+        .then((value) => {
+              if (value != null && mounted)
+                {
+                  setState(() {
+                    measurement = value;
+                  })
+                }
+            });
   }
 
   @override
   void initState() {
-    getMeasurement();
     super.initState();
+    _appService = AppService(context);
+    getMeasurement();
   }
 
   void updateFavPlace() async {
@@ -211,7 +213,6 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
       });
     });
 
-    await _dbHelper.updateFavouritePlaces(
-        widget.placeDetails, context, _customAuth.getId());
+    await _appService.updateFavouritePlace(widget.placeDetails);
   }
 }

@@ -1,8 +1,8 @@
-import 'package:app/constants/app_constants.dart';
-import 'package:app/utils/string_extension.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+import 'json_parsers.dart';
 
 part 'site.g.dart';
 
@@ -32,7 +32,7 @@ class Site {
   @JsonKey(required: false, defaultValue: '')
   String description;
 
-  @JsonKey(required: true, defaultValue: '')
+  @JsonKey(required: true, defaultValue: '', fromJson: regionFromJson)
   final String region;
 
   @JsonKey(required: false, defaultValue: 0.0)
@@ -44,20 +44,20 @@ class Site {
   factory Site.fromJson(Map<String, dynamic> json) => _$SiteFromJson(json);
 
   String getLocation() {
-    return '$district $country'.toTitleCase();
+    return '$district, $country'.toTitleCase();
   }
 
   String getName() {
     if (!searchName.isNull()) {
-      return searchName.toTitleCase();
+      return searchName;
     }
 
     if (!name.isNull()) {
-      return name.toTitleCase();
+      return name;
     }
 
     if (!description.isNull()) {
-      return description.toTitleCase();
+      return description;
     }
     return getLocation();
   }
@@ -113,8 +113,8 @@ class Site {
       try {
         var site = Site.fromJson(jsonElement);
         sites.add(site);
-      } catch (e) {
-        debugPrint(e.toString());
+      } catch (exception, stackTrace) {
+        debugPrint('$exception\n$stackTrace');
       }
     }
 
@@ -150,13 +150,4 @@ class Sites {
   factory Sites.fromJson(Map<String, dynamic> json) => _$SitesFromJson(json);
 
   Map<String, dynamic> toJson() => _$SitesToJson(this);
-}
-
-extension ParseSite on Site {
-  Future<bool> isFav() async {
-    var prefs = await SharedPreferences.getInstance();
-    var favouritePlaces =
-        prefs.getStringList(PrefConstant.favouritePlaces) ?? [];
-    return favouritePlaces.contains(id.trim().toLowerCase());
-  }
 }

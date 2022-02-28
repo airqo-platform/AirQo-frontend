@@ -1,4 +1,4 @@
-import 'package:app/utils/string_extension.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -39,8 +39,8 @@ class Suggestion {
       try {
         var measurement = Suggestion.fromJson(jsonElement);
         suggestions.add(measurement);
-      } catch (e) {
-        debugPrint(e.toString());
+      } catch (exception, stackTrace) {
+        debugPrint('$exception\n$stackTrace');
       }
     }
     return suggestions;

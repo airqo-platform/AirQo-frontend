@@ -104,8 +104,8 @@ class UserNotification {
     try {
       var notification = UserNotification.fromJson(jsonBody);
       return notification;
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
 
     return null;
@@ -118,8 +118,8 @@ class UserNotification {
       try {
         var measurement = UserNotification.fromJson(jsonElement);
         notifications.add(measurement);
-      } catch (e) {
-        debugPrint(e.toString());
+      } catch (exception, stackTrace) {
+        debugPrint('$exception\n$stackTrace');
       }
     }
     return notifications;

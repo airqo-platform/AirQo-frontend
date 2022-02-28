@@ -31,7 +31,11 @@ const useStyles = makeStyles((theme) => ({
   },
   chartCard: {},
   customChartCard: {
-    height: "70vh",
+    width: "100%",
+    padding: "20px",
+    minHeight: "200px",
+    // aspectRatio: "650 / 400",
+    // height: "50vh",
   },
   differenceIcon: {
     color: theme.palette.text.secondary,
@@ -203,7 +207,6 @@ const Dashboard = () => {
                   <D3CustomisableChart
                     className={clsx(classes.customChartCard)}
                     defaultFilter={filter}
-                    idSuffix={`custom-${key + 1}`}
                     key={key}
                   />
                 </Grid>

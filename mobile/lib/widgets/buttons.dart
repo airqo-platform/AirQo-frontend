@@ -1,8 +1,8 @@
-import 'package:app/constants/app_constants.dart';
-import 'package:app/on_boarding/login_screen.dart';
-import 'package:app/on_boarding/signup_screen.dart';
+import 'package:app/auth/login_screen.dart';
+import 'package:app/auth/signup_screen.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/screens/home_page.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:app/services/firebase_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -17,7 +17,7 @@ Widget cancelOption(BuildContext context) {
       style: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.bold,
-          color: ColorConstants.appColorBlue),
+          color: Config.appColorBlue),
     ),
   );
 }
@@ -37,7 +37,7 @@ Widget containerBackButton(String text, Color buttonColor) {
         Text(
           text,
           textAlign: TextAlign.center,
-          style: TextStyle(color: ColorConstants.appColorBlue, fontSize: 14),
+          style: TextStyle(color: Config.appColorBlue, fontSize: 14),
         ),
       ],
     ),
@@ -76,6 +76,7 @@ Widget containerNextButton(String text, Color buttonColor) {
 }
 
 Widget loginOptions(context) {
+  var cloudAnalytics = CloudAnalytics();
   return Column(
     children: [
       Row(
@@ -85,7 +86,7 @@ Widget loginOptions(context) {
             'Don\'t have an account',
             textAlign: TextAlign.center,
             style:
-                TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.6)),
+                TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.6)),
           ),
           const SizedBox(
             width: 2,
@@ -101,15 +102,15 @@ Widget loginOptions(context) {
               'Sign up',
               textAlign: TextAlign.center,
               style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color: ColorConstants.appColorBlue),
+                  color: Config.appColorBlue),
             ),
           )
         ],
       ),
       const SizedBox(
-        height: 4,
+        height: 8,
       ),
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -118,13 +119,14 @@ Widget loginOptions(context) {
             'Proceed as',
             textAlign: TextAlign.center,
             style:
-                TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.6)),
+                TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.6)),
           ),
           const SizedBox(
             width: 2,
           ),
           GestureDetector(
             onTap: () {
+              cloudAnalytics.logEvent(AnalyticsEvent.browserAsAppGuest);
               Navigator.pushAndRemoveUntil(context,
                   MaterialPageRoute(builder: (context) {
                 return const HomePage();
@@ -134,9 +136,9 @@ Widget loginOptions(context) {
               'Guest',
               textAlign: TextAlign.center,
               style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color: ColorConstants.appColorBlue),
+                  color: Config.appColorBlue),
             ),
           )
         ],
@@ -223,12 +225,13 @@ Widget signButton(String text) {
     child: Text(
       text,
       textAlign: TextAlign.center,
-      style: TextStyle(color: ColorConstants.appColorBlue, fontSize: 12),
+      style: TextStyle(color: Config.appColorBlue, fontSize: 12),
     ),
   );
 }
 
 Widget signUpOptions(BuildContext context) {
+  var cloudAnalytics = CloudAnalytics();
   return Column(
     children: [
       Row(
@@ -238,7 +241,7 @@ Widget signUpOptions(BuildContext context) {
             'Already have an account',
             textAlign: TextAlign.center,
             style:
-                TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.6)),
+                TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.6)),
           ),
           const SizedBox(
             width: 2,
@@ -254,15 +257,15 @@ Widget signUpOptions(BuildContext context) {
               'Log in',
               textAlign: TextAlign.center,
               style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color: ColorConstants.appColorBlue),
+                  color: Config.appColorBlue),
             ),
           )
         ],
       ),
       const SizedBox(
-        height: 4,
+        height: 8,
       ),
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -271,13 +274,14 @@ Widget signUpOptions(BuildContext context) {
             'Proceed as',
             textAlign: TextAlign.center,
             style:
-                TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.6)),
+                TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.6)),
           ),
           const SizedBox(
             width: 2,
           ),
           GestureDetector(
             onTap: () {
+              cloudAnalytics.logEvent(AnalyticsEvent.browserAsAppGuest);
               Navigator.pushAndRemoveUntil(context,
                   MaterialPageRoute(builder: (context) {
                 return const HomePage();
@@ -287,9 +291,9 @@ Widget signUpOptions(BuildContext context) {
               'Guest',
               textAlign: TextAlign.center,
               style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color: ColorConstants.appColorBlue),
+                  color: Config.appColorBlue),
             ),
           )
         ],

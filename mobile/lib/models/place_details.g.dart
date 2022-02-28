@@ -10,6 +10,7 @@ PlaceDetails _$PlaceDetailsFromJson(Map<String, dynamic> json) => PlaceDetails(
       json['name'] as String,
       json['location'] as String,
       json['siteId'] as String,
+      json['placeId'] as String,
       (json['latitude'] as num).toDouble(),
       (json['longitude'] as num).toDouble(),
     );
@@ -19,6 +20,7 @@ Map<String, dynamic> _$PlaceDetailsToJson(PlaceDetails instance) =>
       'name': instance.name,
       'location': instance.location,
       'siteId': instance.siteId,
+      'placeId': instance.placeId,
       'latitude': instance.latitude,
       'longitude': instance.longitude,
     };

@@ -1,12 +1,11 @@
-import 'package:app/constants/app_constants.dart';
-import 'package:app/models/insights_chart_data.dart';
+import 'package:app/constants/config.dart';
+import 'package:app/models/insights.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:app/utils/pm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:show_more_text_popup/show_more_text_popup.dart';
 
 Widget analyticsAvatar(
     Measurement measurement, double size, double fontSize, double iconHeight) {
@@ -54,14 +53,14 @@ PreferredSizeWidget appTopBar(context, String title) {
   return AppBar(
     centerTitle: true,
     elevation: 0,
-    backgroundColor: ColorConstants.appBodyColor,
+    backgroundColor: Config.appBodyColor,
     leading: Padding(
       padding: const EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
       child: backButton(context),
     ),
     title: Text(
       title,
-      style: TextStyle(color: ColorConstants.appColorBlack),
+      style: TextStyle(color: Config.appColorBlack),
     ),
   );
 }
@@ -95,15 +94,15 @@ Widget iconTextButton(Widget icon, text) {
   );
 }
 
-Widget insightsAvatar(
-    context, InsightsChartData measurement, double size, String pollutant) {
-  if (!measurement.available) {
+Widget insightsTabAvatar(
+    context, Insights measurement, double size, String pollutant) {
+  if (measurement.empty) {
     return Container(
       height: size,
       width: size,
       decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: ColorConstants.greyColor,
+          color: Config.greyColor,
           border: Border.all(color: Colors.transparent)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -116,7 +115,7 @@ Widget insightsAvatar(
             semanticsLabel: 'Pm2.5',
             height: 6,
             width: 32.45,
-            color: ColorConstants.darkGreyColor,
+            color: Config.darkGreyColor,
           ),
           Text(
             '--',
@@ -125,7 +124,7 @@ Widget insightsAvatar(
             style: GoogleFonts.robotoMono(
               fontStyle: FontStyle.normal,
               fontSize: 32,
-              color: ColorConstants.darkGreyColor,
+              color: Config.darkGreyColor,
             ),
           ),
           SvgPicture.asset(
@@ -133,7 +132,7 @@ Widget insightsAvatar(
             semanticsLabel: 'UNit',
             height: 6,
             width: 32,
-            color: ColorConstants.darkGreyColor,
+            color: Config.darkGreyColor,
           ),
           const Spacer(),
         ],
@@ -145,11 +144,11 @@ Widget insightsAvatar(
     width: size,
     decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: measurement.time.isAfter(DateTime.now())
-            ? ColorConstants.appColorPaleBlue
+        color: measurement.forecast
+            ? Config.appColorPaleBlue
             : pollutant == 'pm2.5'
-                ? pm2_5ToColor(measurement.value)
-                : pm10ToColor(measurement.value),
+                ? pm2_5ToColor(measurement.getChartValue(pollutant))
+                : pm10ToColor(measurement.getChartValue(pollutant)),
         border: Border.all(color: Colors.transparent)),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -162,24 +161,24 @@ Widget insightsAvatar(
           semanticsLabel: 'Pm2.5',
           height: 6,
           width: 32.45,
-          color: measurement.time.isAfter(DateTime.now())
-              ? ColorConstants.appColorBlue
+          color: measurement.forecast
+              ? Config.appColorBlue
               : pollutant == 'pm2.5'
-                  ? pm2_5TextColor(measurement.value)
-                  : pm10TextColor(measurement.value),
+                  ? pm2_5TextColor(measurement.getChartValue(pollutant))
+                  : pm10TextColor(measurement.getChartValue(pollutant)),
         ),
         Text(
-          measurement.value.toStringAsFixed(0),
+          measurement.getChartValue(pollutant).toStringAsFixed(0),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: GoogleFonts.robotoMono(
             fontStyle: FontStyle.normal,
             fontSize: 32,
-            color: measurement.time.isAfter(DateTime.now())
-                ? ColorConstants.appColorBlue
+            color: measurement.forecast
+                ? Config.appColorBlue
                 : pollutant == 'pm2.5'
-                    ? pm2_5TextColor(measurement.value)
-                    : pm10TextColor(measurement.value),
+                    ? pm2_5TextColor(measurement.getChartValue(pollutant))
+                    : pm10TextColor(measurement.getChartValue(pollutant)),
           ),
         ),
         SvgPicture.asset(
@@ -187,11 +186,11 @@ Widget insightsAvatar(
           semanticsLabel: 'UNit',
           height: 6,
           width: 32,
-          color: measurement.time.isAfter(DateTime.now())
-              ? ColorConstants.appColorBlue
+          color: measurement.forecast
+              ? Config.appColorBlue
               : pollutant == 'pm2.5'
-                  ? pm2_5TextColor(measurement.value)
-                  : pm10TextColor(measurement.value),
+                  ? pm2_5TextColor(measurement.getChartValue(pollutant))
+                  : pm10TextColor(measurement.getChartValue(pollutant)),
         ),
         const Spacer(),
       ],
@@ -279,28 +278,11 @@ Widget searchPlaceTile(Suggestion searchSuggestion) {
             height: 40,
             width: 40,
             decoration: BoxDecoration(
-                color: ColorConstants.appColorBlue.withOpacity(0.15),
+                color: Config.appColorBlue.withOpacity(0.15),
                 shape: BoxShape.circle),
             child: Center(
               child: SvgPicture.asset('assets/icon/location.svg',
-                  color: ColorConstants.appColorBlue),
+                  color: Config.appColorBlue),
             ))),
-  );
-}
-
-void showTipText(String text, GlobalKey tootTipKey, BuildContext context,
-    VoidCallback dismissFn, bool small) {
-  ShowMoreTextPopup(
-    context,
-    text: text,
-    onDismiss: dismissFn,
-    textStyle: const TextStyle(color: Colors.white, fontSize: 10),
-    height: small ? 60.0 : 64.0,
-    width: small ? 200.0 : 261.0,
-    backgroundColor: ColorConstants.appColorBlack,
-    padding: const EdgeInsets.fromLTRB(16.0, 18, 16, 18),
-    borderRadius: BorderRadius.circular(8.0),
-  ).show(
-    widgetKey: tootTipKey,
   );
 }

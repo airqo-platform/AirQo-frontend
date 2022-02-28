@@ -1,12 +1,13 @@
 import 'dart:ui';
 
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-List<Recommendation> getHealthRecommendations(double pm2_5) {
+List<Recommendation> getHealthRecommendations(double pm2_5, String pollutant) {
+  // TODO add recommendations for pm10
   var recommendations = <Recommendation>[];
   if (pm2_5 <= 12.09) {
     //good
@@ -133,7 +134,7 @@ List<Recommendation> getHealthRecommendations(double pm2_5) {
           'Reduce the intensity of your outdoor activities',
           'assets/images/old_man.png'));
   } else {}
-
+  recommendations.shuffle();
   return recommendations;
 }
 
@@ -189,33 +190,33 @@ Color pm10TextColor(double pm10) {
     return const Color(0xff8E00AC);
   } else if (pm10 >= 431.00) {
     // hazardous
-    return const Color(0xffA51F3F);
+    return const Color(0xffDBA5B2);
   } else {
-    return ColorConstants.appColor;
+    return Config.appColor;
   }
 }
 
 Color pm10ToColor(double pm10) {
   if (pm10 <= 50.99) {
     //good
-    return ColorConstants.green;
+    return Config.green;
   } else if (pm10 >= 51.00 && pm10 <= 100.99) {
     //moderate
-    return ColorConstants.yellow;
+    return Config.yellow;
   } else if (pm10 >= 101.00 && pm10 <= 250.99) {
     //sensitive
-    return ColorConstants.orange;
+    return Config.orange;
   } else if (pm10 >= 251.00 && pm10 <= 350.99) {
     // unhealthy
-    return ColorConstants.red;
+    return Config.red;
   } else if (pm10 >= 351.00 && pm10 <= 430.99) {
     // very unhealthy
-    return ColorConstants.purple;
+    return Config.purple;
   } else if (pm10 >= 431.00) {
     // hazardous
-    return ColorConstants.maroon;
+    return Config.maroon;
   } else {
-    return ColorConstants.appColor;
+    return Config.appColor;
   }
 }
 
@@ -261,33 +262,33 @@ Color pm2_5TextColor(double pm2_5) {
     return const Color(0xff8E00AC);
   } else if (pm2_5 >= 250.5) {
     // hazardous
-    return const Color(0xffA51F3F);
+    return const Color(0xffDBA5B2);
   } else {
-    return ColorConstants.appColor;
+    return Config.appColor;
   }
 }
 
 Color pm2_5ToColor(double pm2_5) {
   if (pm2_5 <= 12.09) {
     //good
-    return ColorConstants.green;
+    return Config.green;
   } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
     //moderate
-    return ColorConstants.yellow;
+    return Config.yellow;
   } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
     //sensitive
-    return ColorConstants.orange;
+    return Config.orange;
   } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
     // unhealthy
-    return ColorConstants.red;
+    return Config.red;
   } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
     // very unhealthy
-    return ColorConstants.purple;
+    return Config.purple;
   } else if (pm2_5 >= 250.5) {
     // hazardous
-    return ColorConstants.maroon;
+    return Config.maroon;
   } else {
-    return ColorConstants.appColor;
+    return Config.appColor;
   }
 }
 
@@ -319,46 +320,46 @@ charts.Color pmToChartColor(double value, String pollutant) {
   if (pollutant.trim().toLowerCase() == 'pm2.5') {
     if (value <= 12.09) {
       //good
-      return charts.ColorUtil.fromDartColor(ColorConstants.green);
+      return charts.ColorUtil.fromDartColor(Config.green);
     } else if (value >= 12.1 && value <= 35.49) {
       //moderate
-      return charts.ColorUtil.fromDartColor(ColorConstants.yellow);
+      return charts.ColorUtil.fromDartColor(Config.yellow);
     } else if (value >= 35.5 && value <= 55.49) {
       //sensitive
-      return charts.ColorUtil.fromDartColor(ColorConstants.orange);
+      return charts.ColorUtil.fromDartColor(Config.orange);
     } else if (value >= 55.5 && value <= 150.49) {
       // unhealthy
-      return charts.ColorUtil.fromDartColor(ColorConstants.red);
+      return charts.ColorUtil.fromDartColor(Config.red);
     } else if (value >= 150.5 && value <= 250.49) {
       // very unhealthy
-      return charts.ColorUtil.fromDartColor(ColorConstants.purple);
+      return charts.ColorUtil.fromDartColor(Config.purple);
     } else if (value >= 250.5) {
       // hazardous
-      return charts.ColorUtil.fromDartColor(ColorConstants.maroon);
+      return charts.ColorUtil.fromDartColor(Config.maroon);
     } else {
-      return charts.ColorUtil.fromDartColor(ColorConstants.appColor);
+      return charts.ColorUtil.fromDartColor(Config.appColor);
     }
   } else {
     if (value <= 50.99) {
       //good
-      return charts.ColorUtil.fromDartColor(ColorConstants.green);
+      return charts.ColorUtil.fromDartColor(Config.green);
     } else if (value >= 51.00 && value <= 100.99) {
       //moderate
-      return charts.ColorUtil.fromDartColor(ColorConstants.yellow);
+      return charts.ColorUtil.fromDartColor(Config.yellow);
     } else if (value >= 101.00 && value <= 250.99) {
       //sensitive
-      return charts.ColorUtil.fromDartColor(ColorConstants.orange);
+      return charts.ColorUtil.fromDartColor(Config.orange);
     } else if (value >= 251.00 && value <= 350.99) {
       // unhealthy
-      return charts.ColorUtil.fromDartColor(ColorConstants.red);
+      return charts.ColorUtil.fromDartColor(Config.red);
     } else if (value >= 351.00 && value <= 430.99) {
       // very unhealthy
-      return charts.ColorUtil.fromDartColor(ColorConstants.purple);
+      return charts.ColorUtil.fromDartColor(Config.purple);
     } else if (value >= 431.00) {
       // hazardous
-      return charts.ColorUtil.fromDartColor(ColorConstants.maroon);
+      return charts.ColorUtil.fromDartColor(Config.maroon);
     } else {
-      return charts.ColorUtil.fromDartColor(ColorConstants.appColor);
+      return charts.ColorUtil.fromDartColor(Config.appColor);
     }
   }
 }
@@ -470,27 +471,27 @@ BitmapDescriptor pmToMarkerPoint(double pm2_5) {
   if (pm2_5 <= 12.09) {
     //good
     return BitmapDescriptor.defaultMarkerWithHue(
-        HSVColor.fromColor(ColorConstants.green).hue);
+        HSVColor.fromColor(Config.green).hue);
   } else if (pm2_5 >= 12.10 && pm2_5 <= 35.49) {
     //moderate
     return BitmapDescriptor.defaultMarkerWithHue(
-        HSVColor.fromColor(ColorConstants.yellow).hue);
+        HSVColor.fromColor(Config.yellow).hue);
   } else if (pm2_5 >= 35.50 && pm2_5 <= 55.49) {
     //sensitive
     return BitmapDescriptor.defaultMarkerWithHue(
-        HSVColor.fromColor(ColorConstants.orange).hue);
+        HSVColor.fromColor(Config.orange).hue);
   } else if (pm2_5 >= 55.50 && pm2_5 <= 150.49) {
     // unhealthy
     return BitmapDescriptor.defaultMarkerWithHue(
-        HSVColor.fromColor(ColorConstants.red).hue);
+        HSVColor.fromColor(Config.red).hue);
   } else if (pm2_5 >= 150.50 && pm2_5 <= 250.49) {
     // very unhealthy
     return BitmapDescriptor.defaultMarkerWithHue(
-        HSVColor.fromColor(ColorConstants.purple).hue);
+        HSVColor.fromColor(Config.purple).hue);
   } else if (pm2_5 >= 250.5) {
     // hazardous
     return BitmapDescriptor.defaultMarkerWithHue(
-        HSVColor.fromColor(ColorConstants.maroon).hue);
+        HSVColor.fromColor(Config.maroon).hue);
   } else {
     return BitmapDescriptor.defaultMarker;
   }
@@ -524,12 +525,4 @@ class Recommendation {
   String imageUrl = '';
 
   Recommendation(this.title, this.body, this.imageUrl);
-}
-
-class Tip {
-  String header = '';
-  String body = '';
-  Color imageColor = ColorConstants.appTipColor;
-
-  Tip(this.header, this.body);
 }

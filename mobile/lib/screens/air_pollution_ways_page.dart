@@ -1,12 +1,11 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/kya.dart';
-import 'package:app/services/fb_notifications.dart';
+import 'package:app/services/firebase_service.dart';
+import 'package:app/services/native_api.dart';
 import 'package:app/utils/dialogs.dart';
-import 'package:app/utils/share.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -34,10 +33,10 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
   double _maxProgress = 1.0;
 
   final PageController _controller = PageController();
-  final CloudAnalytics _cloudAnalytics = CloudAnalytics();
   final CloudStore _cloudStore = CloudStore();
   final CustomAuth _customAuth = CustomAuth();
   final GlobalKey _globalKey = GlobalKey();
+  final ShareService _shareService = ShareService();
 
   @override
   Widget build(BuildContext context) {
@@ -81,20 +80,20 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
       width: 48,
       padding: const EdgeInsets.all(15.0),
       decoration: BoxDecoration(
-        color: ColorConstants.appColorPaleBlue,
+        color: Config.appColorPaleBlue,
         shape: BoxShape.circle,
       ),
       child: SvgPicture.asset(
         icon,
-        color: ColorConstants.appColorBlue,
+        color: Config.appColorBlue,
       ),
     );
   }
 
   @override
   void dispose() {
-    _controller.dispose();
     super.dispose();
+    _controller.dispose();
   }
 
   Widget endView() {
@@ -102,10 +101,10 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
       appBar: AppBar(
         elevation: 0,
         toolbarHeight: 0,
-        backgroundColor: ColorConstants.appBodyColor,
+        backgroundColor: Config.appBodyColor,
       ),
       body: Container(
-          color: ColorConstants.appBodyColor,
+          color: Config.appBodyColor,
           child: Center(
             child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -122,7 +121,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
                   Text(
                     'Well done',
                     style: TextStyle(
-                        color: ColorConstants.appColorBlack,
+                        color: Config.appColorBlack,
                         fontSize: 28,
                         fontWeight: FontWeight.bold),
                   ),
@@ -133,7 +132,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
                     'Keep around to receive more air quality tips',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                        color: ColorConstants.appColorBlack.withOpacity(0.5),
+                        color: Config.appColorBlack.withOpacity(0.5),
                         fontSize: 16),
                   ),
                 ]),
@@ -146,10 +145,10 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
       appBar: AppBar(
         elevation: 0,
         toolbarHeight: 0,
-        backgroundColor: ColorConstants.appBodyColor,
+        backgroundColor: Config.appBodyColor,
       ),
       body: Container(
-          color: ColorConstants.appBodyColor,
+          color: Config.appBodyColor,
           child: Center(
             child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -166,7 +165,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
                   Text(
                     'Congrats!',
                     style: TextStyle(
-                        color: ColorConstants.appColorBlack,
+                        color: Config.appColorBlack,
                         fontSize: 28,
                         fontWeight: FontWeight.bold),
                   ),
@@ -177,7 +176,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
                     'You just finished your first \nKnow You Air Lesson',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                        color: ColorConstants.appColorBlack.withOpacity(0.5),
+                        color: Config.appColorBlack.withOpacity(0.5),
                         fontSize: 16),
                   ),
                 ]),
@@ -187,11 +186,10 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
 
   @override
   void initState() {
-    _cloudAnalytics.logScreenTransition('Air Pollution ways');
     _interval =
-        double.parse((1 / widget.kya.kyaItems.length).toStringAsFixed(3));
+        double.parse((1 / widget.kya.lessons.length).toStringAsFixed(3));
     _tipsProgress = _interval!;
-    _maxProgress = _tipsProgress * widget.kya.kyaItems.length;
+    _maxProgress = _tipsProgress * widget.kya.lessons.length;
     super.initState();
   }
 
@@ -201,7 +199,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
       appBar: knowYourAirAppBar(context, 'Know Your Air'),
       body: Stack(children: [
         Container(
-          color: ColorConstants.appBodyColor,
+          color: Config.appBodyColor,
           height: double.infinity,
           width: double.infinity,
         ),
@@ -259,7 +257,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: ColorConstants.appColorBlack,
+                                    color: Config.appColorBlack,
                                     fontSize: 28),
                               ),
                               const SizedBox(
@@ -278,7 +276,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
                           _showLastPage = false;
                         });
                       },
-                      child: nextButton('Begin', ColorConstants.appColorBlue),
+                      child: nextButton('Begin', Config.appColorBlue),
                     ),
                     const SizedBox(
                       height: 32,
@@ -299,7 +297,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
     });
   }
 
-  Widget slideCard(KyaItem kyaItem, int index) {
+  Widget slideCard(KyaLesson kyaItem, int index) {
     return Card(
       shadowColor: Colors.transparent,
       shape: RoundedRectangleBorder(
@@ -340,7 +338,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
               style: TextStyle(
-                  color: ColorConstants.appColorBlack,
+                  color: Config.appColorBlack,
                   fontSize: 20,
                   fontWeight: FontWeight.bold),
             ),
@@ -382,10 +380,10 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
         automaticallyImplyLeading: false,
         elevation: 0,
         toolbarHeight: 24,
-        backgroundColor: ColorConstants.appBodyColor,
+        backgroundColor: Config.appBodyColor,
       ),
       body: Container(
-        color: ColorConstants.appBodyColor,
+        color: Config.appBodyColor,
         padding: const EdgeInsets.only(left: 24, right: 24, bottom: 40),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -409,21 +407,20 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
                 ),
                 Expanded(
                     child: LinearProgressIndicator(
-                  color: ColorConstants.appColorBlue,
+                  color: Config.appColorBlue,
                   value: _tipsProgress,
-                  backgroundColor:
-                      ColorConstants.appColorDisabled.withOpacity(0.2),
+                  backgroundColor: Config.appColorDisabled.withOpacity(0.2),
                 )),
                 const SizedBox(
                   width: 7,
                 ),
                 GestureDetector(
                   onTap: () {
-                    shareKya(context, _globalKey);
+                    _shareService.shareKya(context, _globalKey);
                   },
                   child: SvgPicture.asset(
                     'assets/icon/share_icon.svg',
-                    color: ColorConstants.greyColor,
+                    color: Config.greyColor,
                     height: 16,
                     width: 16,
                   ),
@@ -445,9 +442,9 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
                     });
                   },
                   itemBuilder: (BuildContext context, int index) {
-                    return slideCard(widget.kya.kyaItems[index], index);
+                    return slideCard(widget.kya.lessons[index], index);
                   },
-                  itemCount: widget.kya.kyaItems.length,
+                  itemCount: widget.kya.lessons.length,
                 ),
               ),
             ),
@@ -478,7 +475,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
                       if (_tipsProgress >= _maxProgress) {
                         showLastPage();
                       } else {
-                        if (_currentPage < (widget.kya.kyaItems.length - 1)) {
+                        if (_currentPage < (widget.kya.lessons.length - 1)) {
                           await _controller.animateToPage(_currentPage + 1,
                               duration: const Duration(milliseconds: 200),
                               curve: Curves.bounceIn);
@@ -511,7 +508,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
 
     var connected = await _cloudStore.isConnected();
     if (!connected) {
-      await showSnackBar(context, ErrorMessages.timeoutException);
+      await showSnackBar(context, Config.connectionErrorMessage);
       return;
     }
 
@@ -527,17 +524,16 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
       if (widget.trackProgress) {
         var page = _controller.page;
         if (page != null) {
-          var progress = (page / widget.kya.kyaItems.length) * 99;
+          var progress = (page / widget.kya.lessons.length) * 99;
           if (_showLastPage) {
             progress = 99;
           }
           await _cloudStore.updateKyaProgress(
-              _customAuth.getId(), widget.kya, progress);
+              _customAuth.getUserId(), widget.kya, progress);
         }
       }
     } catch (exception, stackTrace) {
-      debugPrint(exception.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -550,8 +546,8 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
       setState(() {
         _tipsProgress = _tipsProgress + _interval!;
       });
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
   }
 
@@ -560,7 +556,7 @@ class _AirPollutionWaysPageState extends State<AirPollutionWaysPage> {
       extendBodyBehindAppBar: true,
       appBar: knowYourAirAppBar(context, ''),
       body: Container(
-        color: ColorConstants.appBodyColor,
+        color: Config.appBodyColor,
         child: Column(children: [
           SizedBox(
             height: 221,

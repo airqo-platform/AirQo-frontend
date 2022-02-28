@@ -1,6 +1,7 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/screens/home_page.dart';
-import 'package:app/services/fb_notifications.dart';
+import 'package:app/services/app_service.dart';
+import 'package:app/services/firebase_service.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +21,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   AirqoApiClient? _airqoApiClient;
   final CustomAuth _customAuth = CustomAuth();
   final CloudStore _cloudStore = CloudStore();
+  late AppService _appService;
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +47,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 48,
-                    color: ColorConstants.appColorBlue),
+                    color: Config.appColorBlue),
               ),
             ]),
       ),
@@ -56,24 +58,19 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
     Future.delayed(const Duration(seconds: 4), () async {
       await Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
+        updateOnBoardingPage('home');
         return const HomePage();
       }), (r) => false);
     });
-    loadProfile();
   }
 
   @override
   void initState() {
-    _airqoApiClient = AirqoApiClient(context);
-    initialize();
     super.initState();
-  }
-
-  void loadProfile() async {
-    var user = _customAuth.getUser();
-    if (user != null) {
-      await _customAuth.updateLocalStorage(user, context);
-    }
+    _airqoApiClient = AirqoApiClient(context);
+    _appService = AppService(context);
+    updateOnBoardingPage('complete');
+    initialize();
   }
 
   Future<bool> onWillPop() {
@@ -99,11 +96,17 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   @Deprecated('Functionality has been transferred to the backend')
   Future<void> sendWelcomeEmail() async {
     try {
-      var userDetails = await _cloudStore.getProfile(_customAuth.getId());
+      var userDetails = await _cloudStore.getProfile(_customAuth.getUserId());
+      if (userDetails == null) {
+        return;
+      }
       await _airqoApiClient!.sendWelcomeMessage(userDetails);
-    } catch (e, track) {
-      debugPrint(e.toString());
-      debugPrint(track.toString());
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
+  }
+
+  void updateOnBoardingPage(String page) async {
+    await _appService.preferencesHelper.updateOnBoardingPage(page);
   }
 }

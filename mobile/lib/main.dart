@@ -2,18 +2,20 @@ import 'dart:io';
 
 import 'package:app/models/notification.dart';
 import 'package:app/providers/locale_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:firebase_analytics/observer.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'constants/app_constants.dart';
+import 'constants/config.dart';
+import 'firebase_options.dart';
 import 'languages/custom_localizations.dart';
 import 'languages/lg_intl.dart';
 import 'models/place_details.dart';
@@ -24,21 +26,32 @@ import 'themes/light_theme.dart';
 
 Future<void> main() async {
   HttpOverrides.global = AppHttpOverrides();
-
-  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    // statusBarColor: ColorConstants.appBodyColor,
-    statusBarIconBrightness: Brightness.dark,
-    systemNavigationBarDividerColor: ColorConstants.appBodyColor,
-    // systemNavigationBarColor: Colors.transparent,
-    systemNavigationBarColor: ColorConstants.appBodyColor,
-    // statusBarBrightness: Brightness.light,
-    systemNavigationBarIconBrightness: Brightness.dark,
-  ));
+  await dotenv.load(fileName: Config.environmentFile);
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  FirebaseFirestore.instance.settings =
+      const Settings(persistenceEnabled: true);
+
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.dark,
+    // systemNavigationBarDividerColor: Config.appBodyColor,
+    // systemNavigationBarColor: Colors.transparent,
+    // systemNavigationBarColor: Config.appBodyColor,
+    // statusBarBrightness: Brightness.light,
+    // systemNavigationBarIconBrightness: Brightness.dark,
+  ));
+
+  await SystemChrome.setPreferredOrientations(
+      [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+      overlays: [SystemUiOverlay.bottom, SystemUiOverlay.top]);
 
   // await Firebase.initializeApp().then((value) => {
   //       FirebaseMessaging.onBackgroundMessage(
@@ -48,15 +61,15 @@ Future<void> main() async {
   //           .listen(FbNotifications().foregroundMessageHandler)
   //     });
 
-  // await FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
-
   final prefs = await SharedPreferences.getInstance();
   final themeController = ThemeController(prefs);
 
   if (kReleaseMode) {
     await SentryFlutter.init(
       (options) {
-        options.dsn = AppConfig.sentryProdUrl;
+        options
+          ..dsn = Config.sentryUrl
+          ..tracesSampleRate = 1.0;
       },
       appRunner: () => runApp(AirQoApp(themeController: themeController)),
     );
@@ -67,7 +80,7 @@ Future<void> main() async {
 
 class AirQoApp extends StatelessWidget {
   final ThemeController themeController;
-  final FirebaseAnalytics analytics = FirebaseAnalytics();
+  final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
 
   AirQoApp({Key? key, required this.themeController}) : super(key: key);
 
@@ -91,6 +104,7 @@ class AirQoApp extends StatelessWidget {
                 debugShowCheckedModeBanner: false,
                 navigatorObservers: [
                   FirebaseAnalyticsObserver(analytics: analytics),
+                  SentryNavigatorObserver(),
                 ],
                 localizationsDelegates: const [
                   CustomLocalizations.delegate,
@@ -101,7 +115,7 @@ class AirQoApp extends StatelessWidget {
                 ],
                 supportedLocales: const [Locale('en'), Locale('lg')],
                 locale: provider.locale,
-                title: AppConfig.name,
+                title: Config.appName,
                 theme: _buildCurrentTheme(),
                 home: const SplashScreen(),
               );

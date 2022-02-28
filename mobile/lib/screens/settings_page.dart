@@ -1,22 +1,18 @@
-import 'dart:io';
-
-import 'package:app/constants/app_constants.dart';
+import 'package:app/auth/signup_screen.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/screens/phone_reauthenticate_screen.dart';
-import 'package:app/services/fb_notifications.dart';
+import 'package:app/services/app_service.dart';
 import 'package:app/services/native_api.dart';
-import 'package:app/services/secure_storage.dart';
+import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/web_view.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:in_app_review/in_app_review.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'about_page.dart';
 import 'email_reauthenticate_screen.dart';
 import 'feedback_page.dart';
-import 'home_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({Key? key}) : super(key: key);
@@ -26,23 +22,22 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  final CustomAuth _customAuth = CustomAuth();
   bool _allowNotification = false;
   bool _allowLocation = false;
-  final InAppReview _inAppReview = InAppReview.instance;
+  final RateService _rateService = RateService();
   final LocationService _locationService = LocationService();
   final NotificationService _notificationService = NotificationService();
-  final SecureStorage _secureStorage = SecureStorage();
+  late AppService _appService;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: appTopBar(context, 'Settings'),
         body: Container(
-            color: ColorConstants.appBodyColor,
+            color: Config.appBodyColor,
             child: RefreshIndicator(
                 onRefresh: initialize,
-                color: ColorConstants.appColorBlue,
+                color: Config.appColorBlue,
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
                   child: Column(
@@ -54,7 +49,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       settingsSection(),
                       const Spacer(),
                       Visibility(
-                        visible: _customAuth.isLoggedIn(),
+                        visible: _appService.isLoggedIn(),
                         child: deleteAccountSection(),
                       ),
                       const SizedBox(
@@ -81,45 +76,115 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> deleteAccount() async {
-    var _customAuth = CustomAuth();
-    var user = _customAuth.getUser();
+    var user = _appService.customAuth.getUser();
     var dialogContext = context;
-    if (user == null) {
-      loadingScreen(dialogContext);
-      await _customAuth.logOut(context);
-      Navigator.pop(dialogContext);
-      await Navigator.pushAndRemoveUntil(context,
-          MaterialPageRoute(builder: (context) {
-        return const HomePage();
-      }), (r) => false);
-    } else {
-      var authResponse = false;
-      var userDetails = await _secureStorage.getUserDetails();
-      if (user.email != null) {
-        userDetails.emailAddress = user.email!;
-        authResponse =
-            await Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return EmailReAuthenticateScreen(userDetails);
-        }));
-      } else if (user.phoneNumber != null) {
-        userDetails.phoneNumber = user.phoneNumber!;
-        authResponse =
-            await Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return PhoneReAuthenticateScreen(userDetails);
-        }));
-      }
 
-      if (authResponse) {
-        loadingScreen(dialogContext);
-        await _customAuth.deleteAccount(context).then((value) => {
-              Navigator.pop(dialogContext),
-              Navigator.pushAndRemoveUntil(context,
-                  MaterialPageRoute(builder: (context) {
-                return const HomePage();
-              }), (r) => false)
-            });
-      }
+    if (user == null) {
+      await showSnackBar(context, Config.appErrorMessage);
+      // loadingScreen(dialogContext);
+
+      //   var successful = await _appService.logOut(context);
+      //   if(!successful){
+      //     await showSnackBar(context, 'failed to delete account. '
+      //         'Try again later');
+      //     Navigator.pop(dialogContext);
+      //   }
+      // Navigator.pop(dialogContext);
+      // await _appService.logOut(context);
+      // await Navigator.pushAndRemoveUntil(context,
+      //     MaterialPageRoute(builder: (context) {
+      //       return const SignupScreen(false);
+      //     }), (r) => false);
+      return;
     }
+
+    bool authResponse;
+    var userDetails = await _appService.getUserDetails();
+    if (user.email != null) {
+      userDetails.emailAddress = user.email!;
+      authResponse =
+          await Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return EmailReAuthenticateScreen(userDetails);
+      }));
+    } else if (user.phoneNumber != null) {
+      userDetails.phoneNumber = user.phoneNumber!;
+      authResponse =
+          await Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return PhoneReAuthenticateScreen(userDetails);
+      }));
+    } else {
+      authResponse = false;
+    }
+
+    if (authResponse) {
+      loadingScreen(dialogContext);
+
+      var success = await _appService.deleteAccount();
+      if (success) {
+        Navigator.pop(dialogContext);
+        await Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (context) {
+          return const SignupScreen(false);
+        }), (r) => false);
+      } else {
+        await showSnackBar(
+            context,
+            'Failed to delete account. '
+            'Try again later');
+      }
+    } else {
+      await showSnackBar(
+          context,
+          'Authentication failed '
+          'Try again later');
+    }
+
+    // if (user == null) {
+    //   loadingScreen(dialogContext);
+    //
+    //   var successful = await _appService.logOut(context);
+    //   if(!successful){
+    //     await showSnackBar(context, 'failed to delete account. Try again later');
+    //     Navigator.pop(dialogContext);
+    //   }
+    //   Navigator.pop(dialogContext);
+    //   await Navigator.pushAndRemoveUntil(context,
+    //       MaterialPageRoute(builder: (context) {
+    //     return const HomePage();
+    //   }), (r) => false);
+    // }
+    // else {
+    //   bool authResponse;
+    //   var userDetails = await _appService.getUserDetails();
+    //   if (user.email != null) {
+    //     userDetails.emailAddress = user.email!;
+    //     authResponse =
+    //         await Navigator.push(context, MaterialPageRoute(builder: (context) {
+    //       return EmailReAuthenticateScreen(userDetails);
+    //     }));
+    //   } else if (user.phoneNumber != null) {
+    //     userDetails.phoneNumber = user.phoneNumber!;
+    //     authResponse =
+    //         await Navigator.push(context, MaterialPageRoute(builder: (context) {
+    //       return PhoneReAuthenticateScreen(userDetails);
+    //     }));
+    //   }
+    //   else{
+    //     authResponse = false;
+    //   }
+    //
+    //   if (authResponse) {
+    //     loadingScreen(dialogContext);
+    //
+    //     await _appService.deleteAccount().then((value) => {
+    //           Navigator.pop(dialogContext),
+    //           Navigator.pushAndRemoveUntil(context,
+    //               MaterialPageRoute(builder: (context) {
+    //             return const HomePage();
+    //           }), (r) => false)
+    //         });
+    //   }
+    // }
   }
 
   Widget deleteAccountSection() {
@@ -135,8 +200,7 @@ class _SettingsPageState extends State<SettingsPage> {
               'Delete your account',
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                  fontSize: 14,
-                  color: ColorConstants.appColorBlack.withOpacity(0.4)),
+                  fontSize: 14, color: Config.appColorBlack.withOpacity(0.4)),
             ),
           )),
     );
@@ -158,8 +222,9 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   void initState() {
-    initialize();
     super.initState();
+    _appService = AppService(context);
+    initialize();
   }
 
   Widget settingsSection() {
@@ -177,10 +242,10 @@ class _SettingsPageState extends State<SettingsPage> {
               style: TextStyle(fontSize: 16),
             ),
             trailing: CupertinoSwitch(
-              activeColor: ColorConstants.appColorBlue,
+              activeColor: Config.appColorBlue,
               onChanged: (bool value) {
                 if (value) {
-                  _locationService.requestLocationAccess().then((response) => {
+                  _locationService.allowLocationAccess().then((response) => {
                         setState(() {
                           _allowLocation = response;
                         })
@@ -197,7 +262,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           Divider(
-            color: ColorConstants.appBodyColor,
+            color: Config.appBodyColor,
           ),
           ListTile(
             title: const Text(
@@ -206,10 +271,10 @@ class _SettingsPageState extends State<SettingsPage> {
               style: TextStyle(fontSize: 16),
             ),
             trailing: CupertinoSwitch(
-              activeColor: ColorConstants.appColorBlue,
+              activeColor: Config.appColorBlue,
               onChanged: (bool value) {
                 if (value) {
-                  _notificationService.requestPermission().then((response) => {
+                  _notificationService.allowNotifications().then((response) => {
                         setState(() {
                           _allowNotification = response;
                         })
@@ -226,11 +291,11 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           Divider(
-            color: ColorConstants.appBodyColor,
+            color: Config.appBodyColor,
           ),
           GestureDetector(
             onTap: () async {
-              openUrl(Links.faqsUrl);
+              openUrl(Config.faqsUrl);
               // await Navigator.push(context,
               //     MaterialPageRoute(builder: (context) {
               //   return FaqsPage();
@@ -239,7 +304,7 @@ class _SettingsPageState extends State<SettingsPage> {
             child: cardSection('FAQs'),
           ),
           Divider(
-            color: ColorConstants.appBodyColor,
+            color: Config.appBodyColor,
           ),
           GestureDetector(
             onTap: () async {
@@ -251,37 +316,16 @@ class _SettingsPageState extends State<SettingsPage> {
             child: cardSection('Send feedback'),
           ),
           Divider(
-            color: ColorConstants.appBodyColor,
+            color: Config.appBodyColor,
           ),
           GestureDetector(
             onTap: () async {
-              if (await _inAppReview.isAvailable()) {
-                // await _inAppReview.requestReview();
-                await _inAppReview.openStoreListing(
-                  appStoreId: AppConfig.iosStoreId,
-                );
-              } else {
-                if (Platform.isAndroid ||
-                    Platform.isLinux ||
-                    Platform.isWindows) {
-                  try {
-                    await launch(Links.playStoreUrl);
-                  } catch (e) {
-                    debugPrint(e.toString());
-                  }
-                } else if (Platform.isIOS || Platform.isMacOS) {
-                  try {
-                    await launch(Links.appStoreUrl);
-                  } catch (e) {
-                    debugPrint(e.toString());
-                  }
-                }
-              }
+              await _rateService.rateApp();
             },
             child: cardSection('Rate the AirQo App'),
           ),
           Divider(
-            color: ColorConstants.appBodyColor,
+            color: Config.appBodyColor,
           ),
           GestureDetector(
             onTap: () async {

@@ -1,8 +1,9 @@
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/models/place_details.dart';
+import 'package:app/services/local_storage.dart';
+import 'package:app/services/rest_api.dart';
 import 'package:app/widgets/custom_widgets.dart';
-import 'package:app/widgets/insights_tab_view.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:app/widgets/insights_tab.dart';
 import 'package:flutter/material.dart';
 
 class InsightsPage extends StatefulWidget {
@@ -18,6 +19,8 @@ class _InsightsPageState extends State<InsightsPage>
     with AutomaticKeepAliveClientMixin, TickerProviderStateMixin {
   TabController? _tabController;
   bool _isWeekly = true;
+  AirqoApiClient? _airqoApiClient;
+  final DBHelper _dbHelper = DBHelper();
 
   @override
   bool get wantKeepAlive => true;
@@ -29,7 +32,7 @@ class _InsightsPageState extends State<InsightsPage>
       appBar: AppBar(
         centerTitle: true,
         elevation: 0,
-        backgroundColor: ColorConstants.appBodyColor,
+        backgroundColor: Config.appBodyColor,
         leading: Padding(
           padding: const EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
           child: backButton(context),
@@ -41,7 +44,7 @@ class _InsightsPageState extends State<InsightsPage>
       ),
       body: Container(
         padding: const EdgeInsets.only(right: 0, left: 0),
-        color: ColorConstants.appBodyColor,
+        color: Config.appBodyColor,
         child: Column(
           children: [
             Padding(
@@ -72,9 +75,8 @@ class _InsightsPageState extends State<InsightsPage>
                         constraints: const BoxConstraints(
                             minWidth: double.infinity, maxHeight: 32),
                         decoration: BoxDecoration(
-                            color: _isWeekly
-                                ? ColorConstants.appColorBlue
-                                : Colors.white,
+                            color:
+                                _isWeekly ? Config.appColorBlue : Colors.white,
                             borderRadius:
                                 const BorderRadius.all(Radius.circular(5.0))),
                         child: Tab(
@@ -89,9 +91,8 @@ class _InsightsPageState extends State<InsightsPage>
                         constraints: const BoxConstraints(
                             minWidth: double.infinity, maxHeight: 32),
                         decoration: BoxDecoration(
-                            color: _isWeekly
-                                ? Colors.white
-                                : ColorConstants.appColorBlue,
+                            color:
+                                _isWeekly ? Colors.white : Config.appColorBlue,
                             borderRadius:
                                 const BorderRadius.all(Radius.circular(5.0))),
                         child: Tab(
@@ -110,8 +111,8 @@ class _InsightsPageState extends State<InsightsPage>
               controller: _tabController,
               physics: const NeverScrollableScrollPhysics(),
               children: <Widget>[
-                InsightsTabView(widget.placeDetails, false),
-                InsightsTabView(widget.placeDetails, true),
+                InsightsTab(widget.placeDetails, false),
+                InsightsTab(widget.placeDetails, true),
                 // MonthlyView(site),
               ],
             )),
@@ -129,7 +130,30 @@ class _InsightsPageState extends State<InsightsPage>
 
   @override
   void initState() {
-    _tabController = TabController(length: 2, vsync: this);
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _airqoApiClient = AirqoApiClient(context);
+    _fetchAllHourlyInsights();
+    _fetchDailyInsights();
+  }
+
+  void _fetchAllHourlyInsights() async {
+    var hourlyInsights = await _airqoApiClient!
+        .fetchSiteInsights(widget.placeDetails.siteId, false, true);
+
+    if (hourlyInsights.isNotEmpty) {
+      await _dbHelper.insertInsights(
+          hourlyInsights, widget.placeDetails.siteId, 'hourly');
+    }
+  }
+
+  void _fetchDailyInsights() async {
+    var dailyInsights = await _airqoApiClient!
+        .fetchSiteInsights(widget.placeDetails.siteId, true, false);
+
+    if (dailyInsights.isNotEmpty) {
+      await _dbHelper.insertInsights(
+          dailyInsights, widget.placeDetails.siteId, 'daily');
+    }
   }
 }

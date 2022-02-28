@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:app/constants/app_constants.dart';
+import 'package:app/constants/config.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:camera/camera.dart';
@@ -60,14 +60,13 @@ class TakePictureState extends State<TakePicture> {
           } else {
             return Center(
                 child: CircularProgressIndicator(
-              valueColor:
-                  AlwaysStoppedAnimation<Color>(ColorConstants.appColor),
+              valueColor: AlwaysStoppedAnimation<Color>(Config.appColor),
             ));
           }
         },
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: ColorConstants.appColor,
+        backgroundColor: Config.appColor,
         onPressed: () async {
           try {
             await _initializeControllerFuture;
@@ -81,8 +80,8 @@ class TakePictureState extends State<TakePicture> {
                 ),
               ),
             );
-          } catch (e) {
-            debugPrint(e.toString());
+          } catch (exception, stackTrace) {
+            debugPrint('$exception\n$stackTrace');
           }
         },
         child: const Icon(Icons.camera_alt_outlined),
@@ -161,8 +160,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
                     color: Colors.white70,
                     child: IconButton(
                       iconSize: 30.0,
-                      icon: Icon(Icons.send_outlined,
-                          color: ColorConstants.appColor),
+                      icon: Icon(Icons.send_outlined, color: Config.appColor),
                       onPressed: sendPicture,
                     ),
                   ),
@@ -175,8 +173,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
               child: Align(
                   alignment: Alignment.center,
                   child: CircularProgressIndicator(
-                    valueColor:
-                        AlwaysStoppedAnimation<Color>(ColorConstants.appColor),
+                    valueColor: AlwaysStoppedAnimation<Color>(Config.appColor),
                   )),
             ),
         ]));

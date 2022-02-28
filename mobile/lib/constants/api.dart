@@ -1,34 +1,32 @@
-import 'package:app/config/env.dart';
+import 'config.dart';
 
 class AirQoUrls {
-  final String _baseUrl = baseUrl;
-  final _stageBaseUrl = stageBaseUrl;
-  final String _baseUrlV2 = baseUrlV2;
-  final String _searchBaseUrl = placesSearchUrl;
+  static String get checkUserExists => Config.airqoApiUserExistsUrl;
 
-  String get alerts => '${_baseUrl}notifications';
+  static String get forecast => '${Config.airqoApiUrlV2}predict/';
 
-  String get feedbackUrl => feedbackWebhook;
+  static String get insights =>
+      '${Config.airqoApiUrl}views/measurements/insights';
 
-  String get forecast => '${_baseUrlV2}predict/';
+  static String get measurements => '${Config.airqoApiUrl}devices/events';
 
-  String get imageUploadUrl => airqoImageUploadUrl;
+  static String get placeSearchDetails =>
+      '${Config.placesSearchUrl}details/json';
 
-  String get measurements => '${_baseUrl}devices/events';
+  static String get requestEmailReAuthentication =>
+      '${Config.airqoApiUrl}users/emailAuth';
 
-  String get placeSearchDetails => '${_searchBaseUrl}details/json';
+  static String get requestEmailVerification =>
+      '${Config.airqoApiUrl}users/emailLogin';
 
-  String get requestEmailReAuthentication => '${_stageBaseUrl}users/emailAuth';
+  static String get searchSuggestions =>
+      '${Config.placesSearchUrl}autocomplete/json';
 
-  String get requestEmailVerification => '${_baseUrl}users/emailLogin';
+  static String get sites => '${Config.airqoApiUrl}devices/sites';
 
-  String get searchSuggestions => '${_searchBaseUrl}autocomplete/json';
+  static String get sitesByGeoCoordinates =>
+      '${Config.airqoApiUrl}devices/sites/nearest';
 
-  String get sites => '${_baseUrl}devices/sites';
-
-  String get sitesByGeoCoordinates => '${_baseUrl}devices/sites/nearest';
-
-  String get stories => storiesLink;
-
-  String get welcomeMessage => '${_baseUrl}notifications/welcomeMessage';
+  static String get welcomeMessage =>
+      '${Config.airqoApiUrl}notifications/welcomeMessage';
 }
