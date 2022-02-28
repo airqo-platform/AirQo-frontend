@@ -14,7 +14,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # android test
-version: 2.0.1+20004
+version: 2.0.1+20005
 
 environment:
   sdk: '>=2.12.0 <3.0.0'
@@ -86,8 +86,9 @@ flutter_native_splash:
 flutter_icons:
   android: "launcher_icon"
   ios: true
-  image_path_ios: "assets/icon/airqo_logo.png"
+  image_path_ios: "assets/icon/ios_logo.png"
   image_path_android: "assets/icon/android_logo.png"
+  remove_alpha_ios: true
 
 dev_dependencies:
   flutter_test:
@@ -108,10 +109,8 @@ flutter:
   assets:
     # images
     - assets/images/world-map.png
-    - assets/images/know-your-air.png
     - assets/images/splash-image.png
-    - assets/images/tips-image.png
-    - assets/images/skate.png
+    - assets/images/kya_stars.png
     - assets/images/family.png
     - assets/icon/enable_location_icon.png
     - assets/icon/floating_bg.png
@@ -121,7 +120,7 @@ flutter:
     - assets/images/pregnant_woman.png
 
    # icons
-    - assets/icon/airqo_logo.png
+    - assets/icon/ios_logo.png
     - assets/icon/android_logo.png
     - assets/icon/splash_image.png
 
@@ -166,7 +165,6 @@ flutter:
     - assets/icon/close.svg
     - assets/icon/onboarding_profile_icon.svg
     - assets/icon/onboarding_hash_tag.svg
-    - assets/icon/kya_stars.svg
     - assets/icon/previous_arrow.svg
     - assets/icon/learn_complete.svg
     - assets/icon/profile_edit.svg

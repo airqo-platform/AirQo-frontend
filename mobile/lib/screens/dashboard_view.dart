@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:app/constants/config.dart';
 import 'package:app/models/kya.dart';
 import 'package:app/models/measurement.dart';
@@ -24,7 +22,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'favourite_places.dart';
 import 'for_you_page.dart';
-import 'kya_lessons_page.dart';
+import 'kya/kya_lessons_page.dart';
 
 class DashboardView extends StatefulWidget {
   const DashboardView({Key? key}) : super(key: key);
@@ -37,11 +35,7 @@ class _DashboardViewState extends State<DashboardView> {
   String _greetings = '';
 
   List<Widget> _favLocations = [];
-  List<Widget> _completeKyaWidgets = [
-    SvgPicture.asset(
-      'assets/icon/add_avator.svg',
-    )
-  ];
+  List<Widget> _completeKyaWidgets = [];
   List<Kya> _completeKya = [];
   List<Kya> _incompleteKya = [];
 
@@ -399,10 +393,10 @@ class _DashboardViewState extends State<DashboardView> {
                             'assets/icon/add_avator.svg',
                           );
                         }
-                        _getFavourites(placeDetailsModel.favouritePlaces);
+                        _loadFavourites(reload: false);
                         return SizedBox(
                           height: 32,
-                          width: 44,
+                          width: 47,
                           child: Stack(
                             children: _favLocations,
                           ),
@@ -452,7 +446,7 @@ class _DashboardViewState extends State<DashboardView> {
                   children: [
                     SizedBox(
                       height: 32,
-                      width: 44,
+                      width: 47,
                       child: Stack(
                         children: _completeKyaWidgets,
                       ),
@@ -564,16 +558,21 @@ class _DashboardViewState extends State<DashboardView> {
       });
 
       for (var i = 0; i <= 5; i++) {
-        var random = Random().nextInt(measurements.length);
+        if (measurements.isEmpty) {
+          break;
+        }
+
+        var randomMeasurement = (measurements..shuffle()).first;
 
         if (mounted) {
           dashboardCards.add(AnalyticsCard(
-              PlaceDetails.measurementToPLace(measurements[random]),
-              measurements[random],
+              PlaceDetails.measurementToPLace(randomMeasurement),
+              randomMeasurement,
               _isRefreshing,
               false));
         }
-        measurements.removeAt(random);
+
+        measurements.remove(randomMeasurement);
       }
 
       if (!mounted) {
@@ -605,78 +604,6 @@ class _DashboardViewState extends State<DashboardView> {
     setState(() {
       _dashBoardPlaces = dashboardCards;
     });
-  }
-
-  void _getFavourites(List<PlaceDetails> favouritePlaces) async {
-    var widgets = <Widget>[];
-
-    if ((_favLocations.length != 3 && favouritePlaces.length >= 3) ||
-        (_favLocations.length > favouritePlaces.length)) {
-      try {
-        if (favouritePlaces.length == 1) {
-          var measurement = await _appService.dbHelper
-              .getMeasurement(favouritePlaces[0].siteId);
-          if (measurement != null) {
-            widgets.add(favPlaceAvatar(7, measurement));
-          } else {
-            widgets.add(emptyAvatar(0));
-          }
-        } else if (favouritePlaces.length == 2) {
-          var measurement = await _appService.dbHelper
-              .getMeasurement(favouritePlaces[0].siteId);
-          if (measurement != null) {
-            widgets.add(favPlaceAvatar(0, measurement));
-          } else {
-            widgets.add(emptyAvatar(0));
-          }
-
-          measurement = await _appService.dbHelper
-              .getMeasurement(favouritePlaces[1].siteId);
-          if (measurement != null) {
-            widgets.add(favPlaceAvatar(7, measurement));
-          } else {
-            widgets.add(emptyAvatar(7));
-          }
-
-          // widgets
-          //   ..add(favPlaceAvatar(0, favouritePlaces[0]))
-          //   ..add(favPlaceAvatar(7, favouritePlaces[1]));
-        } else if (favouritePlaces.length >= 3) {
-          var measurement = await _appService.dbHelper
-              .getMeasurement(favouritePlaces[0].siteId);
-          if (measurement != null) {
-            widgets.add(favPlaceAvatar(0, measurement));
-          } else {
-            widgets.add(emptyAvatar(0));
-          }
-
-          measurement = await _appService.dbHelper
-              .getMeasurement(favouritePlaces[1].siteId);
-          if (measurement != null) {
-            widgets.add(favPlaceAvatar(7, measurement));
-          } else {
-            widgets.add(emptyAvatar(7));
-          }
-
-          measurement = await _appService.dbHelper
-              .getMeasurement(favouritePlaces[2].siteId);
-          if (measurement != null) {
-            widgets.add(favPlaceAvatar(14, measurement));
-          } else {
-            widgets.add(emptyAvatar(14));
-          }
-        } else {}
-      } catch (exception, stackTrace) {
-        debugPrint('$exception\n$stackTrace');
-      }
-
-      if (mounted) {
-        setState(() {
-          _favLocations.clear();
-          _favLocations = widgets;
-        });
-      }
-    }
   }
 
   void _getKya() async {
@@ -712,9 +639,11 @@ class _DashboardViewState extends State<DashboardView> {
   Future<void> _initialize() async {
     _appService = AppService(context);
     _preferences = await SharedPreferences.getInstance();
+    _completeKyaWidgets.add(circularLoadingAnimation(30));
     _setGreetings();
     _getDashboardCards();
     _getKya();
+    Future.delayed(const Duration(seconds: 2), _getKya);
   }
 
   void _loadCompleteKya(List<Kya> completeKya) async {
@@ -757,9 +686,81 @@ class _DashboardViewState extends State<DashboardView> {
         ));
       }
       setState(() {
-        _completeKyaWidgets.clear();
         _completeKyaWidgets = widgets;
       });
+    }
+  }
+
+  void _loadFavourites({required bool reload}) async {
+    var widgets = <Widget>[];
+
+    if (_favLocations.length != 3 || reload) {
+      try {
+        var favouritePlaces = await _appService.dbHelper.getFavouritePlaces();
+
+        if (!reload) {
+          if (_favLocations.length >= favouritePlaces.length) {
+            return;
+          }
+        }
+
+        var siteIds = <String>[];
+        for (var place in favouritePlaces) {
+          siteIds.add(place.siteId);
+        }
+        var measurements = await _appService.dbHelper.getMeasurements(siteIds);
+
+        if (favouritePlaces.length == 1) {
+          if (measurements.isNotEmpty) {
+            widgets.add(favPlaceAvatar(7, measurements[0]));
+          } else {
+            widgets.add(emptyAvatar(0));
+          }
+        } else if (favouritePlaces.length == 2) {
+          if (measurements.isNotEmpty) {
+            widgets.add(favPlaceAvatar(0, measurements[0]));
+          } else {
+            widgets.add(emptyAvatar(0));
+          }
+
+          if (measurements.length >= 2) {
+            widgets.add(favPlaceAvatar(7, measurements[1]));
+          } else {
+            widgets.add(emptyAvatar(7));
+          }
+
+          // widgets
+          //   ..add(favPlaceAvatar(0, favouritePlaces[0]))
+          //   ..add(favPlaceAvatar(7, favouritePlaces[1]));
+        } else if (favouritePlaces.length >= 3) {
+          if (measurements.isNotEmpty) {
+            widgets.add(favPlaceAvatar(0, measurements[0]));
+          } else {
+            widgets.add(emptyAvatar(0));
+          }
+
+          if (measurements.length >= 2) {
+            widgets.add(favPlaceAvatar(7, measurements[1]));
+          } else {
+            widgets.add(emptyAvatar(7));
+          }
+
+          if (measurements.length >= 3) {
+            widgets.add(favPlaceAvatar(14, measurements[2]));
+          } else {
+            widgets.add(emptyAvatar(14));
+          }
+        } else {}
+      } catch (exception, stackTrace) {
+        debugPrint('$exception\n$stackTrace');
+      }
+
+      if (mounted) {
+        setState(() {
+          _favLocations.clear();
+          _favLocations = widgets;
+        });
+      }
     }
   }
 
@@ -767,6 +768,7 @@ class _DashboardViewState extends State<DashboardView> {
     await _appService.refreshDashboard();
     _getDashboardCards();
     _getKya();
+    _loadFavourites(reload: true);
   }
 
   void _setGreetings() {

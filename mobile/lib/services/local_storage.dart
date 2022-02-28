@@ -203,6 +203,33 @@ class DBHelper {
     }
   }
 
+  Future<List<Measurement>> getMeasurements(List<String> siteIds) async {
+    try {
+      final db = await database;
+
+      var res = [];
+
+      for (var siteId in siteIds) {
+        var siteRes = await db.query(Measurement.latestMeasurementsDb(),
+            where: '${Site.dbId()} = ?', whereArgs: [siteId]);
+
+        res.addAll(siteRes);
+      }
+
+      if (res.isEmpty) {
+        return [];
+      }
+      return res.isNotEmpty
+          ? List.generate(res.length, (i) {
+              return Measurement.fromJson(Measurement.mapFromDb(res[i]));
+            })
+          : <Measurement>[];
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+      return [];
+    }
+  }
+
   Future<Measurement?> getNearestMeasurement(
       double latitude, double longitude) async {
     try {
