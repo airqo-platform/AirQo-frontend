@@ -393,10 +393,10 @@ class _DashboardViewState extends State<DashboardView> {
                             'assets/icon/add_avator.svg',
                           );
                         }
-                        _loadFavourites(placeDetailsModel.favouritePlaces);
+                        _loadFavourites(reload: false);
                         return SizedBox(
                           height: 32,
-                          width: 44,
+                          width: 47,
                           child: Stack(
                             children: _favLocations,
                           ),
@@ -446,7 +446,7 @@ class _DashboardViewState extends State<DashboardView> {
                   children: [
                     SizedBox(
                       height: 32,
-                      width: 44,
+                      width: 47,
                       child: Stack(
                         children: _completeKyaWidgets,
                       ),
@@ -691,33 +691,40 @@ class _DashboardViewState extends State<DashboardView> {
     }
   }
 
-  void _loadFavourites(List<PlaceDetails> favouritePlaces) async {
+  void _loadFavourites({required bool reload}) async {
     var widgets = <Widget>[];
 
-    if ((_favLocations.length != 3 && favouritePlaces.length >= 3) ||
-        (_favLocations.length > favouritePlaces.length)) {
+    if (_favLocations.length != 3 || reload) {
       try {
+        var favouritePlaces = await _appService.dbHelper.getFavouritePlaces();
+
+        if (!reload) {
+          if (_favLocations.length >= favouritePlaces.length) {
+            return;
+          }
+        }
+
+        var siteIds = <String>[];
+        for (var place in favouritePlaces) {
+          siteIds.add(place.siteId);
+        }
+        var measurements = await _appService.dbHelper.getMeasurements(siteIds);
+
         if (favouritePlaces.length == 1) {
-          var measurement = await _appService.dbHelper
-              .getMeasurement(favouritePlaces[0].siteId);
-          if (measurement != null) {
-            widgets.add(favPlaceAvatar(7, measurement));
+          if (measurements.isNotEmpty) {
+            widgets.add(favPlaceAvatar(7, measurements[0]));
           } else {
             widgets.add(emptyAvatar(0));
           }
         } else if (favouritePlaces.length == 2) {
-          var measurement = await _appService.dbHelper
-              .getMeasurement(favouritePlaces[0].siteId);
-          if (measurement != null) {
-            widgets.add(favPlaceAvatar(0, measurement));
+          if (measurements.isNotEmpty) {
+            widgets.add(favPlaceAvatar(0, measurements[0]));
           } else {
             widgets.add(emptyAvatar(0));
           }
 
-          measurement = await _appService.dbHelper
-              .getMeasurement(favouritePlaces[1].siteId);
-          if (measurement != null) {
-            widgets.add(favPlaceAvatar(7, measurement));
+          if (measurements.length >= 2) {
+            widgets.add(favPlaceAvatar(7, measurements[1]));
           } else {
             widgets.add(emptyAvatar(7));
           }
@@ -726,26 +733,20 @@ class _DashboardViewState extends State<DashboardView> {
           //   ..add(favPlaceAvatar(0, favouritePlaces[0]))
           //   ..add(favPlaceAvatar(7, favouritePlaces[1]));
         } else if (favouritePlaces.length >= 3) {
-          var measurement = await _appService.dbHelper
-              .getMeasurement(favouritePlaces[0].siteId);
-          if (measurement != null) {
-            widgets.add(favPlaceAvatar(0, measurement));
+          if (measurements.isNotEmpty) {
+            widgets.add(favPlaceAvatar(0, measurements[0]));
           } else {
             widgets.add(emptyAvatar(0));
           }
 
-          measurement = await _appService.dbHelper
-              .getMeasurement(favouritePlaces[1].siteId);
-          if (measurement != null) {
-            widgets.add(favPlaceAvatar(7, measurement));
+          if (measurements.length >= 2) {
+            widgets.add(favPlaceAvatar(7, measurements[1]));
           } else {
             widgets.add(emptyAvatar(7));
           }
 
-          measurement = await _appService.dbHelper
-              .getMeasurement(favouritePlaces[2].siteId);
-          if (measurement != null) {
-            widgets.add(favPlaceAvatar(14, measurement));
+          if (measurements.length >= 3) {
+            widgets.add(favPlaceAvatar(14, measurements[2]));
           } else {
             widgets.add(emptyAvatar(14));
           }
@@ -767,12 +768,7 @@ class _DashboardViewState extends State<DashboardView> {
     await _appService.refreshDashboard();
     _getDashboardCards();
     _getKya();
-    await _refreshFavPlaces();
-  }
-
-  Future<void> _refreshFavPlaces() async {
-    var favPlaces = await _appService.dbHelper.getFavouritePlaces();
-    _loadFavourites(favPlaces);
+    _loadFavourites(reload: true);
   }
 
   void _setGreetings() {

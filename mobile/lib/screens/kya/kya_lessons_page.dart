@@ -1,6 +1,7 @@
 import 'package:app/constants/config.dart';
 import 'package:app/models/kya.dart';
 import 'package:app/services/app_service.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -229,9 +230,9 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
             const Spacer(),
             Padding(
               padding: const EdgeInsets.only(left: 36, right: 36),
-              child: Text(
+              child: AutoSizeText(
                 kyaItem.title,
-                maxLines: 2,
+                maxLines: 3,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -246,9 +247,9 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.only(left: 16, right: 16),
-                child: Text(
+                child: AutoSizeText(
                   kyaItem.body,
-                  maxLines: 4,
+                  maxLines: 5,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
                   style: TextStyle(

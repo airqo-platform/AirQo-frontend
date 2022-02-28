@@ -93,10 +93,22 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
                               const SizedBox(
                                 height: 48,
                               ),
-                              SvgPicture.asset(
-                                'assets/icon/kya_stars.svg',
-                                height: 133.39,
-                                width: 221.46,
+                              Container(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 221.46,
+                                  maxHeight: 133.39,
+                                  minWidth: 221.46,
+                                  minHeight: 133.39,
+                                ),
+                                decoration: const BoxDecoration(
+                                  // borderRadius: BorderRadius.circular(8.0),
+                                  image: DecorationImage(
+                                    fit: BoxFit.cover,
+                                    image: AssetImage(
+                                      'assets/images/kya_stars.png',
+                                    ),
+                                  ),
+                                ),
                               ),
                               const SizedBox(
                                 height: 18,
