@@ -7,6 +7,7 @@ import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/web_view.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/custom_widgets.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -67,11 +68,9 @@ class _SettingsPageState extends State<SettingsPage> {
             color: Colors.white,
             borderRadius: BorderRadius.all(Radius.circular(0.0))),
         child: ListTile(
-          title: Text(
-            text,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 16),
-          ),
+          title: Text(text,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodyText1),
         ));
   }
 
@@ -135,11 +134,13 @@ class _SettingsPageState extends State<SettingsPage> {
               color: Colors.white,
               borderRadius: BorderRadius.all(Radius.circular(8.0))),
           child: ListTile(
-            title: Text(
+            title: AutoSizeText(
               'Delete your account',
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                  fontSize: 14, color: Config.appColorBlack.withOpacity(0.4)),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyText2
+                  ?.copyWith(color: Config.appColorBlack.withOpacity(0.6)),
             ),
           )),
     );
@@ -175,11 +176,9 @@ class _SettingsPageState extends State<SettingsPage> {
       child: Column(
         children: [
           ListTile(
-            title: const Text(
-              'Location',
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 16),
-            ),
+            title: Text('Location',
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodyText1),
             trailing: CupertinoSwitch(
               activeColor: Config.appColorBlue,
               onChanged: (bool value) {
@@ -204,11 +203,9 @@ class _SettingsPageState extends State<SettingsPage> {
             color: Config.appBodyColor,
           ),
           ListTile(
-            title: const Text(
-              'Notification',
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 16),
-            ),
+            title: Text('Notification',
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodyText1),
             trailing: CupertinoSwitch(
               activeColor: Config.appColorBlue,
               onChanged: (bool value) {

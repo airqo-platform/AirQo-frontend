@@ -202,11 +202,8 @@ Widget onBoardingNotificationIcon() {
     children: [
       Image.asset(
         'assets/icon/floating_bg.png',
+        width: double.infinity,
       ),
-      // SvgPicture.asset(
-      //   'assets/icon/floating_bg.svg',
-      //
-      // ),
       SvgPicture.asset(
         'assets/icon/enable_notifications_icon.svg',
       ),

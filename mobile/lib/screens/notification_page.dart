@@ -5,9 +5,12 @@ import 'package:app/services/local_storage.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/custom_widgets.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
+
+import '../themes/light_theme.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({Key? key}) : super(key: key);
@@ -28,19 +31,7 @@ class _NotificationPageState extends State<NotificationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: Config.appBodyColor,
-        leading: Padding(
-          padding: const EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
-          child: backButton(context),
-        ),
-        title: const Text(
-          'Notifications',
-          style: TextStyle(color: Colors.black),
-        ),
-      ),
+      appBar: appTopBar(context, 'Notifications'),
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 500),
         transitionBuilder: (Widget child, Animation<double> animation) {
@@ -184,19 +175,18 @@ class _NotificationPageState extends State<NotificationPage> {
                     ),
                   ],
                 )),
-        title: Text(
+        title: AutoSizeText(
           notification.title,
-          style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Config.appColorBlack),
+          style: CustomTextStyle.button2(context),
         ),
-        subtitle: Text(
+        subtitle: AutoSizeText(
           notification.body,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-              fontSize: 12, color: Config.appColorBlack.withOpacity(0.4)),
+          style: Theme.of(context)
+              .textTheme
+              .caption
+              ?.copyWith(color: Config.appColorBlack.withOpacity(0.4)),
         ),
       ),
     );
@@ -268,23 +258,24 @@ class _NotificationPageState extends State<NotificationPage> {
                           const SizedBox(
                             height: 17,
                           ),
-                          Text(
+                          AutoSizeText(
                             _selectedNotification!.title,
                             textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Config.appColorBlack),
+                            style: CustomTextStyle.headline10(context),
                           ),
                           const SizedBox(
                             height: 8.0,
                           ),
-                          Text(
+                          AutoSizeText(
                             _selectedNotification!.body,
                             textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontSize: 14,
-                                color: Config.appColorBlack.withOpacity(0.4)),
+                            maxLines: 4,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyText2
+                                ?.copyWith(
+                                    color:
+                                        Config.appColorBlack.withOpacity(0.4)),
                           ),
                         ],
                       ),

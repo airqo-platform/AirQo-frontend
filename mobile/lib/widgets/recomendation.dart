@@ -1,6 +1,9 @@
 import 'package:app/constants/config.dart';
 import 'package:app/utils/pm.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+
+import '../themes/light_theme.dart';
 
 Widget recommendationContainer(Recommendation recommendation, context) {
   return Container(
@@ -11,7 +14,7 @@ Widget recommendationContainer(Recommendation recommendation, context) {
       padding: const EdgeInsets.all(8.0),
       decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(8.0))),
+          borderRadius: BorderRadius.all(Radius.circular(16.0))),
       child: Row(
         children: [
           Container(
@@ -43,25 +46,23 @@ Widget recommendationContainer(Recommendation recommendation, context) {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                AutoSizeText(
                   recommendation.title,
-                  maxLines: 4,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                      color: Config.appColorBlack,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16),
+                  style: CustomTextStyle.headline10(context),
                 ),
                 const SizedBox(
                   height: 4,
                 ),
-                Text(
+                AutoSizeText(
                   recommendation.body,
                   maxLines: 4,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                      color: Config.appColorBlack.withOpacity(0.5),
-                      fontSize: 14),
+                  style: Theme.of(context)
+                      .textTheme
+                      .subtitle2
+                      ?.copyWith(color: Config.appColorBlack.withOpacity(0.5)),
                 )
               ],
             ),

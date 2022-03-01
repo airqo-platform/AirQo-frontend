@@ -97,7 +97,7 @@ String insightsChartTitleDateTimeToString(DateTime dateTime, bool daily) {
       return prefix == '' ? suffix : '$prefix, $suffix';
     } else {
       var prefix = '';
-      var suffix = dateTime.getShortDate();
+      var suffix = dateTime.getLongDate();
 
       if (dateTime.isToday()) {
         prefix = 'Today';

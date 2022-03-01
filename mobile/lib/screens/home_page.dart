@@ -64,6 +64,12 @@ class _HomePageState extends State<HomePage> {
                 .textTheme
                 .copyWith(caption: TextStyle(color: Config.appColorBlack))),
         child: BottomNavigationBar(
+          selectedIconTheme: Theme.of(context)
+              .iconTheme
+              .copyWith(color: Config.appColorBlue, opacity: 0.3),
+          unselectedIconTheme: Theme.of(context)
+              .iconTheme
+              .copyWith(color: Config.appColorBlack, opacity: 0.3),
           items: <BottomNavigationBarItem>[
             BottomNavigationBarItem(
               icon: SvgPicture.asset(
@@ -71,7 +77,7 @@ class _HomePageState extends State<HomePage> {
                 semanticsLabel: 'Home',
                 color: _selectedIndex == 0
                     ? Config.appColorBlue
-                    : Config.appColorBlack.withOpacity(0.4),
+                    : Config.appColorBlack.withOpacity(0.3),
               ),
               label: 'Home',
             ),
@@ -80,7 +86,7 @@ class _HomePageState extends State<HomePage> {
                 'assets/icon/location.svg',
                 color: _selectedIndex == 1
                     ? Config.appColorBlue
-                    : Config.appColorBlack.withOpacity(0.4),
+                    : Config.appColorBlack.withOpacity(0.3),
                 semanticsLabel: 'AirQo Map',
               ),
               label: 'AirQo Map',
@@ -92,7 +98,7 @@ class _HomePageState extends State<HomePage> {
                     'assets/icon/profile.svg',
                     color: _selectedIndex == 2
                         ? Config.appColorBlue
-                        : Config.appColorBlack.withOpacity(0.4),
+                        : Config.appColorBlack.withOpacity(0.3),
                     semanticsLabel: 'Search',
                   ),
                   Positioned(
@@ -124,7 +130,7 @@ class _HomePageState extends State<HomePage> {
           ],
           currentIndex: _selectedIndex,
           selectedItemColor: Config.appColorBlue,
-          unselectedItemColor: Config.inactiveColor,
+          unselectedItemColor: Config.appColorBlack.withOpacity(0.3),
           elevation: 0.0,
           backgroundColor: Config.appBodyColor,
           onTap: _onItemTapped,

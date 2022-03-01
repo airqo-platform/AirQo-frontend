@@ -263,22 +263,25 @@ ThemeData lightTheme() {
   /// height := line height * fontSize
   /// letterSpacing := 16 * letter-spacing(em)
   /// Theme.of(context).textTheme.headline1
+  /// CustomTextStyle.headline10(context)
 
   return base.copyWith(
     primaryColor: Colors.white,
     // accentColor: Config.appColor,
     // backgroundColor: Colors.white,
     visualDensity: VisualDensity.adaptivePlatformDensity,
-    textTheme: const TextTheme(
+    textTheme: TextTheme(
       headline4: TextStyle(
           fontSize: 48.0,
           fontWeight: FontWeight.bold,
           fontStyle: FontStyle.normal,
+          color: Config.appColorBlack,
           height: 56.0 / 48.0),
       headline6: TextStyle(
         fontSize: 32.0,
         fontWeight: FontWeight.bold,
         fontStyle: FontStyle.normal,
+        color: Config.appColorBlack,
         height: 40.0 / 32.0,
         letterSpacing: 16 * -0.01,
       ),
@@ -286,19 +289,43 @@ ThemeData lightTheme() {
         fontSize: 16.0,
         fontWeight: FontWeight.normal,
         fontStyle: FontStyle.normal,
-        height: 16.0 / 24.0,
+        color: Config.appColorBlack,
+        height: 24.0 / 16.0,
       ),
       bodyText2: TextStyle(
         fontSize: 14.0,
         fontWeight: FontWeight.normal,
         fontStyle: FontStyle.normal,
+        color: Config.appColorBlack,
         height: 18.0 / 14.0,
       ),
       caption: TextStyle(
         fontSize: 12.0,
         fontWeight: FontWeight.normal,
         fontStyle: FontStyle.normal,
-        height: 12.0 / 16.0,
+        color: Config.appColorBlack,
+        height: 16.0 / 12.0,
+      ),
+      overline: TextStyle(
+          fontSize: 8.0,
+          fontWeight: FontWeight.w500,
+          fontStyle: FontStyle.normal,
+          color: Config.appColorBlack,
+          height: 12.0 / 8.0,
+          letterSpacing: 16 * -0.24),
+      subtitle1: TextStyle(
+        fontSize: 16.0,
+        fontWeight: FontWeight.normal,
+        fontStyle: FontStyle.normal,
+        color: Config.appColorBlack,
+        height: 24.0 / 16.0,
+      ),
+      subtitle2: TextStyle(
+        fontSize: 14.0,
+        fontWeight: FontWeight.normal,
+        fontStyle: FontStyle.normal,
+        color: Config.appColorBlack,
+        height: 18.0 / 14.0,
       ),
     ).apply(
       fontFamily: 'Inter',
@@ -318,6 +345,48 @@ ThemeData lightTheme() {
 }
 
 class CustomTextStyle {
+  static TextStyle? bodyText4(BuildContext context) {
+    return Theme.of(context).textTheme.bodyText2?.copyWith(
+          fontSize: 14.0,
+          fontWeight: FontWeight.w500,
+          fontStyle: FontStyle.normal,
+          height: 18.0 / 14.0,
+        );
+  }
+
+  static TextStyle? button1(BuildContext context) {
+    return Theme.of(context).textTheme.headline6?.copyWith(
+          fontSize: 14.0,
+          fontWeight: FontWeight.normal,
+          fontStyle: FontStyle.normal,
+          height: 18.0 / 14.0,
+        );
+  }
+
+  static TextStyle? button2(BuildContext context) {
+    return Theme.of(context).textTheme.headline6?.copyWith(
+          fontSize: 14.0,
+          fontWeight: FontWeight.w500,
+          fontStyle: FontStyle.normal,
+          height: 18.0 / 14.0,
+        );
+  }
+
+  static TextStyle? caption3(BuildContext context) {
+    return Theme.of(context).textTheme.caption?.copyWith(
+          fontWeight: FontWeight.w500,
+          fontSize: 12.0,
+          height: 16.0 / 12.0,
+        );
+  }
+
+  static TextStyle? caption4(BuildContext context) {
+    return Theme.of(context).textTheme.caption?.copyWith(
+          fontSize: 12.0,
+          height: 16.0 / 12.0,
+        );
+  }
+
   static TextStyle? headline10(BuildContext context) {
     return Theme.of(context).textTheme.headline6?.copyWith(
         fontSize: 16.0,
@@ -326,7 +395,14 @@ class CustomTextStyle {
         height: 20.0 / 16.0);
   }
 
-  /// CustomTextStyle.headline10(context),
+  static TextStyle? headline11(BuildContext context) {
+    return Theme.of(context).textTheme.headline6?.copyWith(
+        fontSize: 28.0,
+        fontWeight: FontWeight.bold,
+        fontStyle: FontStyle.normal,
+        letterSpacing: 16 * -0.01,
+        height: 32.0 / 28.0);
+  }
 
   static TextStyle? headline7(BuildContext context) {
     return Theme.of(context).textTheme.headline6?.copyWith(
@@ -335,5 +411,31 @@ class CustomTextStyle {
           fontStyle: FontStyle.normal,
           height: 32.0 / 24.0,
         );
+  }
+
+  static TextStyle? headline8(BuildContext context) {
+    return Theme.of(context).textTheme.headline6?.copyWith(
+          fontSize: 16.0,
+          fontWeight: FontWeight.bold,
+          fontStyle: FontStyle.normal,
+          height: 20.0 / 16.0,
+        );
+  }
+
+  static TextStyle? headline9(BuildContext context) {
+    return Theme.of(context).textTheme.headline6?.copyWith(
+        fontSize: 20.0,
+        fontWeight: FontWeight.bold,
+        fontStyle: FontStyle.normal,
+        height: 24.0 / 20.0);
+  }
+
+  static TextStyle? overline1(BuildContext context) {
+    return Theme.of(context).textTheme.headline6?.copyWith(
+        fontWeight: FontWeight.normal,
+        fontStyle: FontStyle.normal,
+        fontSize: 10.0,
+        height: 14.0 / 10.0,
+        color: Colors.white);
   }
 }

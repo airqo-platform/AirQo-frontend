@@ -20,19 +20,7 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: Config.appBodyColor,
-        leading: Padding(
-          padding: const EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
-          child: backButton(context),
-        ),
-        title: const Text(
-          'Favorites',
-          style: TextStyle(color: Colors.black),
-        ),
-      ),
+      appBar: appTopBar(context, 'Favorites'),
       body: Container(
           color: Config.appBodyColor,
           child: Consumer<PlaceDetailsModel>(

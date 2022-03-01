@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 
+import '../themes/light_theme.dart';
 import 'favourite_places.dart';
 import 'for_you_page.dart';
 import 'notification_page.dart';
@@ -94,21 +95,26 @@ class _ProfileViewState extends State<ProfileView> {
                       child: ListView(
                         shrinkWrap: true,
                         children: <Widget>[
+                          const SizedBox(
+                            height: 10,
+                          ),
                           AutoSizeText(
                             _userProfile.getFullName(),
                             maxLines: 2,
-                            style: const TextStyle(
-                                fontSize: 24, fontWeight: FontWeight.bold),
+                            style: CustomTextStyle.headline9(context),
+                          ),
+                          const SizedBox(
+                            height: 4,
                           ),
                           GestureDetector(
                             onTap: () async {
                               await viewProfile();
                             },
-                            child: Text(
-                              'Edit profile',
-                              style: TextStyle(
-                                  fontSize: 16, color: Config.appColorBlue),
-                            ),
+                            child: Text('Edit profile',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyText2
+                                    ?.copyWith(color: Config.appColorBlue)),
                           ),
                           const SizedBox(
                             height: 40,
@@ -182,10 +188,10 @@ class _ProfileViewState extends State<ProfileView> {
               child: Center(
                 child: SvgPicture.asset(icon, color: iconColor),
               )),
-          title: Text(
+          title: AutoSizeText(
             '$text',
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 16),
+            style: Theme.of(context).textTheme.bodyText1,
           ),
         ),
       ),

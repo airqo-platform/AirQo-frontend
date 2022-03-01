@@ -6,6 +6,7 @@ import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:flutter/material.dart';
 
+import '../themes/light_theme.dart';
 import 'location_setup_screen.dart';
 
 class NotificationsSetupScreen extends StatefulWidget {
@@ -29,66 +30,70 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
     return Scaffold(
         body: WillPopScope(
       onWillPop: onWillPop,
-      child: Container(
-        padding: const EdgeInsets.only(top: 58),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
-          onBoardingNotificationIcon(),
-          const SizedBox(
-            height: 52,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
+        const Spacer(),
+        onBoardingNotificationIcon(),
+        const SizedBox(
+          height: 26,
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 40, right: 40),
+          child: Text(
+            'Know your air in real time',
+            textAlign: TextAlign.center,
+            style: CustomTextStyle.headline7(context),
           ),
-          const Text(
-            'Know your air \nin real time',
+        ),
+        const SizedBox(
+          height: 8,
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 40, right: 40),
+          child: Text(
+              'Get notified when air quality is getting better or worse',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyText1),
+        ),
+        const Spacer(),
+        Padding(
+          padding: const EdgeInsets.only(left: 24, right: 24),
+          child: GestureDetector(
+            onTap: () {
+              _notificationService.allowNotifications().then((value) => {
+                    Navigator.pushAndRemoveUntil(context,
+                        MaterialPageRoute(builder: (context) {
+                      return LocationSetupScreen(widget.enableBackButton);
+                    }), (r) => false)
+                  });
+            },
+            child: nextButton('Yes, keep me updated', Config.appColorBlue),
+          ),
+        ),
+        const SizedBox(
+          height: 20,
+        ),
+        GestureDetector(
+          onTap: () {
+            Navigator.pushAndRemoveUntil(context,
+                MaterialPageRoute(builder: (context) {
+              return LocationSetupScreen(widget.enableBackButton);
+            }), (r) => false);
+          },
+          child: Text(
+            'No, thanks',
             textAlign: TextAlign.center,
             style: TextStyle(
-                fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
+                fontSize: 12,
+                height: 16 / 12,
+                letterSpacing: 16 * -0.022,
+                fontWeight: FontWeight.bold,
+                color: Config.appColorBlue),
           ),
-          const SizedBox(
-            height: 8,
-          ),
-          const Text(
-            'Get notified when air quality is\ngetting better or worse ',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 16, color: Colors.black),
-          ),
-          const Spacer(),
-          Padding(
-            padding: const EdgeInsets.only(left: 24, right: 24),
-            child: GestureDetector(
-              onTap: () {
-                _notificationService.allowNotifications().then((value) => {
-                      Navigator.pushAndRemoveUntil(context,
-                          MaterialPageRoute(builder: (context) {
-                        return LocationSetupScreen(widget.enableBackButton);
-                      }), (r) => false)
-                    });
-              },
-              child: nextButton('Yes, keep me updated', Config.appColorBlue),
-            ),
-          ),
-          const SizedBox(
-            height: 20,
-          ),
-          GestureDetector(
-            onTap: () {
-              Navigator.pushAndRemoveUntil(context,
-                  MaterialPageRoute(builder: (context) {
-                return LocationSetupScreen(widget.enableBackButton);
-              }), (r) => false);
-            },
-            child: Text(
-              'No, thanks',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Config.appColorBlue),
-            ),
-          ),
-          const SizedBox(
-            height: 58,
-          ),
-        ]),
-      ),
+        ),
+        const SizedBox(
+          height: 58,
+        ),
+      ]),
     ));
   }
 

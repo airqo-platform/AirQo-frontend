@@ -125,8 +125,8 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
             visible: !_verifyCode,
             child: AutoSizeText(
               widget.action == 'signup'
-                  ? 'Sign up with your mobile number\nemail'
-                  : 'Login with your mobile number\nor email',
+                  ? 'Sign up with your mobile number or email'
+                  : 'Login with your mobile number or email',
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -144,7 +144,7 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
                 // 'Enter the 6 digits code sent to your\n'
                 //     'number that ends with ...'
                 //     '${phoneNumber.substring(phoneNumber.length - 3)}',
-                'Enter the 6 digits code sent to your\n'
+                'Enter the 6 digits code sent to your '
                 'number $_countryCode$_phoneNumber',
                 textAlign: TextAlign.center,
                 maxLines: 2,
