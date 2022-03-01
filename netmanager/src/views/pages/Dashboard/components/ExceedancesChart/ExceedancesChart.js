@@ -389,7 +389,12 @@ const ExceedancesChart = (props) => {
         <Grid item lg={12} sm={12} xl={12} xs={12}>
           <div className={chartContainer}>
             {loading ? (
-              <div>
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "30vh"
+              }}>
                 loading...
               </div>
             ):(

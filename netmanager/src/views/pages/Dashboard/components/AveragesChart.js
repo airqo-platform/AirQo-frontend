@@ -406,7 +406,13 @@ const AveragesChart = ({ classes }) => {
         <CardContent>
           <div className={classes.chartContainer}>
             {loading ? (
-              <div>
+              <div 
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "30vh"
+              }}>
                 loading...
               </div>
             ):(
