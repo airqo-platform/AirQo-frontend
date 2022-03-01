@@ -262,31 +262,9 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                     height: 12,
                                   ),
                                   GestureDetector(
-                                    child: Container(
-                                      padding: const EdgeInsets.fromLTRB(
-                                          10.0, 2.0, 10.0, 2.0),
-                                      decoration: BoxDecoration(
-                                          borderRadius: const BorderRadius.all(
-                                              Radius.circular(40.0)),
-                                          color: pm2_5ToColor(widget.measurement
-                                                  .getPm2_5Value())
-                                              .withOpacity(0.4),
-                                          border: Border.all(
-                                              color: Colors.transparent)),
-                                      child: AutoSizeText(
-                                        pm2_5ToString(
-                                            widget.measurement.getPm2_5Value()),
-                                        maxFontSize: 14,
-                                        maxLines: 1,
-                                        textAlign: TextAlign.start,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          color: pm2_5TextColor(widget
-                                              .measurement
-                                              .getPm2_5Value()),
-                                        ),
-                                      ),
-                                    ),
+                                    child: aqiContainerString(
+                                        measurement: widget.measurement,
+                                        context: context),
                                     onTap: () {
                                       ToolTip(context, toolTipType.info).show(
                                         widgetKey: _infoToolTipKey,

@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:uuid/uuid.dart';
 
+import '../themes/light_theme.dart';
 import 'insights_page.dart';
 
 class SearchPage extends StatefulWidget {
@@ -278,7 +279,8 @@ class _SearchPageState extends State<SearchPage> {
                       },
                       child: Padding(
                         padding: const EdgeInsets.only(bottom: 10),
-                        child: searchLocationTile(_nearbySites[index]),
+                        child: searchLocationTile(
+                            measurement: _nearbySites[index], context: context),
                       )),
                   itemCount: _nearbySites.length,
                   // separatorBuilder: (BuildContext context, int index) {
@@ -351,101 +353,105 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Widget requestLocationAccess() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(40.0),
-          decoration: const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.rectangle,
-              borderRadius: BorderRadius.all(Radius.circular(10.0))),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+    return Container(
+      padding: const EdgeInsets.all(40.0),
+      decoration: const BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.rectangle,
+          borderRadius: BorderRadius.all(Radius.circular(16.0))),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const SizedBox(
+            height: 84,
+          ),
+          Stack(
             children: [
-              const SizedBox(
-                height: 84,
+              Padding(
+                padding: const EdgeInsets.only(left: 23),
+                child: Image.asset(
+                  'assets/images/world-map.png',
+                  height: 119,
+                  width: 119,
+                ),
               ),
-              Stack(
-                children: [
-                  Image.asset(
-                    'assets/images/world-map.png',
-                    height: 130,
-                    width: 130,
-                  ),
-                  Container(
+              Positioned(
+                  left: 0,
+                  top: 22,
+                  child: Container(
+                    height: 56,
+                    width: 56,
                     decoration: BoxDecoration(
                       color: Config.appColorBlue,
                       shape: BoxShape.circle,
                     ),
-                    child: const Padding(
-                      padding: EdgeInsets.all(12.0),
-                      child: Icon(
-                        Icons.map_outlined,
-                        size: 30,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: SvgPicture.asset(
+                        'assets/icon/location.svg',
                         color: Colors.white,
+                        semanticsLabel: 'AirQo Map',
+                        height: 29,
+                        width: 25,
                       ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(
-                height: 52,
-              ),
-              const Text(
-                'Enable locations',
-                textAlign: TextAlign.start,
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(
-                height: 8,
-              ),
-              const Text(
-                'Allow AirQo to show you location air '
-                'quality update near you.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12),
-              ),
-              const SizedBox(
-                height: 24,
-              ),
-              GestureDetector(
-                onTap: () {
-                  _locationService
-                      .requestLocationAccess()
-                      .then((value) => {getUserLocation()});
-                },
-                child: Container(
-                    constraints:
-                        const BoxConstraints(minWidth: double.infinity),
-                    decoration: BoxDecoration(
-                        color: Config.appColorBlue,
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(10.0))),
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 19, bottom: 19),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Text(
-                            'Allow location',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.white,
-                            ),
-                          )
-                        ],
-                      ),
-                    )),
-              ),
-              const SizedBox(
-                height: 40,
-              ),
+                  )),
             ],
           ),
-        )
-      ],
+          const SizedBox(
+            height: 24,
+          ),
+          Text(
+            'Enable locations',
+            textAlign: TextAlign.start,
+            style: CustomTextStyle.headline7(context),
+          ),
+          const SizedBox(
+            height: 8,
+          ),
+          Text(
+            'Allow AirQo to show you location air '
+            'quality update near you.',
+            textAlign: TextAlign.center,
+            style: Theme.of(context)
+                .textTheme
+                .subtitle2
+                ?.copyWith(color: Config.appColorBlack.withOpacity(0.4)),
+          ),
+          const SizedBox(
+            height: 24,
+          ),
+          GestureDetector(
+            onTap: () {
+              _locationService
+                  .requestLocationAccess()
+                  .then((value) => {getUserLocation()});
+            },
+            child: Container(
+                decoration: BoxDecoration(
+                    color: Config.appColorBlue,
+                    borderRadius: const BorderRadius.all(Radius.circular(8.0))),
+                child: const Padding(
+                  padding: EdgeInsets.only(top: 12, bottom: 14),
+                  child: Center(
+                    child: Text(
+                      'Allow location',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.normal,
+                          fontSize: 14,
+                          height: 22 / 14,
+                          letterSpacing: 16 * -0.022),
+                    ),
+                  ),
+                )),
+          ),
+          const SizedBox(
+            height: 40,
+          ),
+        ],
+      ),
     );
   }
 
@@ -620,7 +626,9 @@ class _SearchPageState extends State<SearchPage> {
                         },
                         child: Padding(
                           padding: const EdgeInsets.only(bottom: 10),
-                          child: searchLocationTile(_searchSites[index]),
+                          child: searchLocationTile(
+                              measurement: _searchSites[index],
+                              context: context),
                         )),
                     itemCount: _searchSites.length,
                   )),
@@ -640,7 +648,9 @@ class _SearchPageState extends State<SearchPage> {
                         },
                         child: Padding(
                           padding: const EdgeInsets.only(bottom: 10),
-                          child: searchPlaceTile(_searchSuggestions[index]),
+                          child: searchPlaceTile(
+                              context: context,
+                              searchSuggestion: _searchSuggestions[index]),
                         )),
                     itemCount: _searchSuggestions.length,
                   )),

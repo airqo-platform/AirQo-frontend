@@ -93,6 +93,7 @@ class _ProfileViewState extends State<ProfileView> {
                   Visibility(
                       visible: _isLoggedIn,
                       child: ListView(
+                        physics: const BouncingScrollPhysics(),
                         shrinkWrap: true,
                         children: <Widget>[
                           const SizedBox(
@@ -142,10 +143,9 @@ class _ProfileViewState extends State<ProfileView> {
                       child: ListView(
                         shrinkWrap: true,
                         children: <Widget>[
-                          const Text(
+                          Text(
                             'Guest',
-                            style: TextStyle(
-                                fontSize: 24, fontWeight: FontWeight.bold),
+                            style: CustomTextStyle.headline9(context),
                           ),
                           const SizedBox(
                             height: 24,
@@ -397,33 +397,32 @@ class _ProfileViewState extends State<ProfileView> {
           const SizedBox(
             height: 48,
           ),
-          const Padding(
-            padding: EdgeInsets.only(left: 25.0, right: 25.0),
-            child: AutoSizeText('Personalise your \nexperience',
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 24,
-                  height: 1.3,
-                  fontWeight: FontWeight.bold,
-                )),
+          Padding(
+            padding: const EdgeInsets.only(left: 25.0, right: 25.0),
+            child: AutoSizeText(
+              'Personalise your\nexperience',
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: CustomTextStyle.headline7(context)
+                  ?.copyWith(letterSpacing: 16 * -0.01),
+            ),
           ),
           const SizedBox(
-            height: 10,
+            height: 8,
           ),
           Padding(
             padding: const EdgeInsets.only(left: 55.0, right: 55.0),
-            child: Text(
+            child: AutoSizeText(
                 'Create your account today and enjoy air quality'
                 ' updates and recommendations.',
                 maxLines: 6,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: 14,
-                    height: 1.28,
-                    color: Config.appColorBlack.withOpacity(0.4))),
+                style: Theme.of(context)
+                    .textTheme
+                    .subtitle2
+                    ?.copyWith(color: Config.appColorBlack.withOpacity(0.4))),
           ),
           const SizedBox(
             height: 24,
@@ -436,20 +435,26 @@ class _ProfileViewState extends State<ProfileView> {
               }), (r) => false);
             },
             child: Padding(
-              padding: const EdgeInsets.only(left: 24, right: 24),
+              padding: const EdgeInsets.only(left: 32, right: 32),
               child: Container(
-                constraints: const BoxConstraints(minWidth: double.infinity),
-                decoration: BoxDecoration(
-                    color: Config.appColorBlue,
-                    borderRadius: const BorderRadius.all(Radius.circular(8.0))),
-                child: const Tab(
-                    child: Text(
-                  'Sign Up',
-                  style: TextStyle(
-                    color: Colors.white,
-                  ),
-                )),
-              ),
+                  constraints: const BoxConstraints(minWidth: double.infinity),
+                  decoration: BoxDecoration(
+                      color: Config.appColorBlue,
+                      borderRadius:
+                          const BorderRadius.all(Radius.circular(8.0))),
+                  child: const Center(
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 12, bottom: 14),
+                      child: Text(
+                        'Sign Up',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            height: 22 / 14,
+                            letterSpacing: 16 * -0.022),
+                      ),
+                    ),
+                  )),
             ),
           ),
           const SizedBox(

@@ -504,25 +504,24 @@ class _InsightsTabState extends State<InsightsTab> {
                                         .withOpacity(0.4),
                             border: Border.all(color: Colors.transparent)),
                         child: AutoSizeText(
-                          _pollutant == 'pm2.5'
-                              ? pm2_5ToString(_selectedMeasurement!
-                                  .getChartValue(_pollutant))
-                              : pm10ToString(_selectedMeasurement!
-                                  .getChartValue(_pollutant)),
-                          maxLines: 1,
-                          maxFontSize: 14,
-                          textAlign: TextAlign.start,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: _selectedMeasurement!.forecast
-                                ? Config.appColorBlue
-                                : _pollutant == 'pm2.5'
-                                    ? pm2_5TextColor(_selectedMeasurement!
-                                        .getChartValue(_pollutant))
-                                    : pm10TextColor(_selectedMeasurement!
-                                        .getChartValue(_pollutant)),
-                          ),
-                        ),
+                            _pollutant == 'pm2.5'
+                                ? pm2_5ToString(_selectedMeasurement!
+                                    .getChartValue(_pollutant))
+                                : pm10ToString(_selectedMeasurement!
+                                    .getChartValue(_pollutant)),
+                            maxLines: 1,
+                            maxFontSize: 14,
+                            textAlign: TextAlign.start,
+                            overflow: TextOverflow.ellipsis,
+                            style: CustomTextStyle.button2(context)?.copyWith(
+                              color: _selectedMeasurement!.forecast
+                                  ? Config.appColorBlue
+                                  : _pollutant == 'pm2.5'
+                                      ? pm2_5TextColor(_selectedMeasurement!
+                                          .getChartValue(_pollutant))
+                                      : pm10TextColor(_selectedMeasurement!
+                                          .getChartValue(_pollutant)),
+                            )),
                       ),
                     ),
                   ),

@@ -3,6 +3,7 @@ import 'package:app/models/insights.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:app/utils/pm.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -68,6 +69,25 @@ PreferredSizeWidget appTopBar(context, String title) {
         title,
         style: CustomTextStyle.headline8(context),
       ));
+}
+
+Widget aqiContainerString(
+    {required Measurement measurement, required BuildContext context}) {
+  return Container(
+    padding: const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
+    decoration: BoxDecoration(
+        borderRadius: const BorderRadius.all(Radius.circular(40.0)),
+        color: pm2_5ToColor(measurement.getPm2_5Value()).withOpacity(0.4),
+        border: Border.all(color: Colors.transparent)),
+    child: AutoSizeText(pm2_5ToString(measurement.getPm2_5Value()),
+        maxFontSize: 14,
+        maxLines: 1,
+        textAlign: TextAlign.start,
+        overflow: TextOverflow.ellipsis,
+        style: CustomTextStyle.button2(context)?.copyWith(
+          color: pm2_5TextColor(measurement.getPm2_5Value()),
+        )),
+  );
 }
 
 Widget backButton(context) {
@@ -269,7 +289,8 @@ Widget miniAnalyticsAvatar({required Measurement measurement}) {
   );
 }
 
-Widget searchLocationTile(Measurement measurement) {
+Widget searchLocationTile(
+    {required Measurement measurement, required BuildContext context}) {
   return Container(
     padding: const EdgeInsets.only(left: 16.0, right: 30.0),
     decoration: BoxDecoration(
@@ -278,17 +299,18 @@ Widget searchLocationTile(Measurement measurement) {
         border: Border.all(color: Colors.transparent)),
     child: ListTile(
       contentPadding: const EdgeInsets.only(left: 0.0),
-      title: Text(
+      title: AutoSizeText(
         measurement.site.getName(),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        style: CustomTextStyle.headline8(context),
       ),
-      subtitle: Text(
+      subtitle: AutoSizeText(
         measurement.site.getLocation(),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: TextStyle(color: Colors.black.withOpacity(0.3), fontSize: 14),
+        style: CustomTextStyle.bodyText4(context)
+            ?.copyWith(color: Config.appColorBlack.withOpacity(0.3)),
       ),
       trailing: SvgPicture.asset(
         'assets/icon/more_arrow.svg',
@@ -296,12 +318,13 @@ Widget searchLocationTile(Measurement measurement) {
         height: 6.99,
         width: 4,
       ),
-      leading: analyticsAvatar(measurement, 40, 15, 5),
+      leading: miniAnalyticsAvatar(measurement: measurement),
     ),
   );
 }
 
-Widget searchPlaceTile(Suggestion searchSuggestion) {
+Widget searchPlaceTile(
+    {required Suggestion searchSuggestion, required BuildContext context}) {
   return Container(
     padding: const EdgeInsets.only(left: 16.0, right: 30.0),
     decoration: BoxDecoration(
@@ -314,13 +337,14 @@ Widget searchPlaceTile(Suggestion searchSuggestion) {
           searchSuggestion.suggestionDetails.getMainText(),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          style: CustomTextStyle.headline8(context),
         ),
         subtitle: Text(
           searchSuggestion.suggestionDetails.getSecondaryText(),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(color: Colors.black.withOpacity(0.3), fontSize: 14),
+          style: CustomTextStyle.bodyText4(context)
+              ?.copyWith(color: Config.appColorBlack.withOpacity(0.3)),
         ),
         trailing: SvgPicture.asset(
           'assets/icon/more_arrow.svg',
