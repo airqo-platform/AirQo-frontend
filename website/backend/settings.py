@@ -27,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', 'True') == 'True'
+DEBUG = config('DEBUG', False)
 
 ALLOWED_HOSTS = []
 
@@ -143,12 +143,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = []
 
 if not DEBUG:
-    GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-        os.path.join(BASE_DIR, 'google_application_credentials.json')
-    )
-
     DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-    GS_BUCKET_NAME = 'airqo-website'
+    GS_BUCKET_NAME = config('GS_BUCKET_NAME')
     STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 
 STATIC_URL = STATIC_HOST + 'static/'
