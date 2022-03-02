@@ -104,6 +104,11 @@ const allMainPages = [
     href: "/manager",
     icon: <ManageIcon />,
     collapse: true,
+    nested: true,
+    nestItems: [
+      { title: "Device Map", href: "/manager/map" },
+      { title: "Device Stats", href: "/manager/stats" },
+    ],
   },
   {
     title: "Device Registry",
