@@ -450,7 +450,7 @@ const DevicesTable = (props) => {
           userPreferencePaginationKey={"devices"}
           columns={deviceColumns}
           data={deviceList}
-          isLoading={deviceList.length === 0}
+          isLoading={isEmpty(devices)}
           onRowClick={(event, rowData) => {
             event.preventDefault();
             return history.push(`/device/${rowData.name}/overview`);
