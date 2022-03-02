@@ -2,7 +2,7 @@
 /* eslint-disable react/display-name */
 import React, { forwardRef, useState } from "react";
 import { useDispatch } from "react-redux";
-import { NavLink as RouterLink } from "react-router-dom";
+import { NavLink as RouterLink, useLocation } from "react-router-dom";
 import clsx from "clsx";
 import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/styles";
@@ -34,6 +34,18 @@ const useStyles = makeStyles((theme) => ({
     letterSpacing: 0,
     width: "100%",
     fontWeight: theme.typography.fontWeightMedium,
+  },
+  buttonActive: {
+    color: theme.palette.primary.main,
+    padding: "10px 8px",
+    justifyContent: "flex-start",
+    textTransform: "none",
+    letterSpacing: 0,
+    width: "100%",
+    fontWeight: theme.typography.fontWeightMedium,
+    "& $icon": {
+      color: theme.palette.primary.main,
+    },
   },
   nestButton: {
     color: colors.blueGrey[800],
@@ -106,6 +118,7 @@ export const SidebarWidgets = ({ className, ...rest }) => {
 const SidebarNav = (props) => {
   const classes = useStyles();
   const { pages, className, ...rest } = props;
+  const location = useLocation();
 
   return (
     <List {...rest} className={clsx(classes.root, className)}>
@@ -115,8 +128,11 @@ const SidebarNav = (props) => {
             <NestedMenuItem
               label={
                 <Button
-                  activeClassName={classes.active}
-                  className={classes.button}
+                  className={
+                    (location.pathname.includes(page.href) &&
+                      classes.buttonActive) ||
+                    classes.button
+                  }
                 >
                   <div className={classes.icon}>{page.icon}</div>
                   {page.title}
