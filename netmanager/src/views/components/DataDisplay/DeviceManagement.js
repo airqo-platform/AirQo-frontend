@@ -358,7 +358,6 @@ export default function DeviceManagement() {
           style={{
             display: "flex",
             flexWrap: "wrap",
-            alignItems: "center",
             justifyContent: "space-between",
             position: "absolute",
             width: "100%",
