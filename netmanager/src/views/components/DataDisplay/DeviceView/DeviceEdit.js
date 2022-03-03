@@ -63,6 +63,8 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
   const handleEditSubmit = async () => {
     setEditLoading(true);
 
+    editData.isActive = editData.status === 'deployed' ? true : false;
+
     if (site && site.value) editData.site_id = site.value;
 
     if (editData.deployment_date)
@@ -254,6 +256,31 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               <option value="" />
               <option value={true}>Yes</option>
               <option value={false}>No</option>
+            </TextField>
+          </Grid>
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
+            <TextField
+              select
+              fullWidth
+              label="Status"
+              style={{ margin: "10px 0" }}
+              value={editData.status}
+              onChange={handleSelectFieldChange("status")}
+              SelectProps={{
+                native: true,
+                style: { width: "100%", height: "50px" },
+              }}
+              variant="outlined"
+              error={!!errors.status}
+              helperText={errors.status}
+            >
+              <option value="" />
+              <option value={'assembly'}>Assembly</option>
+              <option value={'decommissioned'}>Decommissioned</option>
+              <option value={'deployed'}>Deployed</option>
+              <option value={'ready'}>Ready</option>
+              <option value={'recalled'}>Recalled</option>
+              <option value={'undeployed'}>Undeployed</option>
             </TextField>
           </Grid>
           {/*<Grid*/}
