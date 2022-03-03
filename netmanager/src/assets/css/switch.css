@@ -156,7 +156,7 @@
 }
 
 /* Dark mode */
-@media screen and (prefers-color-scheme: dark) {
+/* @media screen and (prefers-color-scheme: dark) {
   form {
     background-color: #101010;
   }
@@ -188,7 +188,7 @@
   .toggles [type="checkbox"][disabled] + label::after {
     border-color: #555;
   }
-}
+} */
 
 /* RTL */
 /* https://twitter.com/dror3go/status/1102946375396982784 */
