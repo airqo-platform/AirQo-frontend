@@ -262,7 +262,7 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
             <TextField
               select
               fullWidth
-              label="Status"
+              label="Deployment status"
               style={{ margin: "10px 0" }}
               value={editData.status}
               onChange={handleSelectFieldChange("status")}
@@ -275,12 +275,9 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               helperText={errors.status}
             >
               <option value="" />
-              <option value={'assembly'}>Assembly</option>
-              <option value={'decommissioned'}>Decommissioned</option>
               <option value={'deployed'}>Deployed</option>
-              <option value={'ready'}>Ready</option>
+              <option value={'testing'}>Testing</option>
               <option value={'recalled'}>Recalled</option>
-              <option value={'undeployed'}>Undeployed</option>
             </TextField>
           </Grid>
           {/*<Grid*/}

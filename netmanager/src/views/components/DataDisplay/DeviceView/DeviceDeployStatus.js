@@ -476,6 +476,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
     }
     return secondary;
   };
+  const currentStatus = `${deviceData.status?.charAt(0).toUpperCase()}${deviceData.status?.slice(1)}`;
 
   return (
     <>
@@ -515,13 +516,13 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                 padding: "0 5px",
               }}
             >
-              Deploy status
+              Deployment status
             </span>{" "}
-            {deviceData.isActive ? (
-              <span style={{ color: "green" }}>Deployed</span>
-            ) : (
-              <span style={{ color: "red" }}>Not Deployed</span>
-            )}
+            {
+                deviceData.status === 'deployed' || deviceData.isActive? <span style={{ color: "green" }}>Deployed</span> :
+                deviceData.status === 'testing' ? <span style={{ color: "grey" }}>Testing</span> :
+                <span style={{ color: "red" }}>Recalled</span>
+            }
           </span>
           <Tooltip
             arrow
