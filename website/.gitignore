@@ -137,3 +137,6 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+.idea/
+node_modules/
+ google_application_credentials.json
