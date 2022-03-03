@@ -18,7 +18,7 @@ export const updateMainAlert = (newAlertData) => {
         type: HIDE_ALERT_SUCCESS,
         payload: { ...state, show: false, timeout: null },
       });
-    }, newAlertData.severity === 'error'? 8000: 5000);
+    }, newAlertData.severity === 'error'? 10000: 5000);
     dispatch({
       type: UPDATE_ALERT_SUCCESS,
       payload: { ...newAlertData, timeout },
