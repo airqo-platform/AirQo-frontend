@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:app/constants/config.dart';
 import 'package:app/models/kya.dart';
 import 'package:app/models/measurement.dart';
@@ -22,9 +20,9 @@ import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'air_pollution_ways_page.dart';
 import 'favourite_places.dart';
 import 'for_you_page.dart';
+import 'kya/kya_lessons_page.dart';
 
 class DashboardView extends StatefulWidget {
   const DashboardView({Key? key}) : super(key: key);
@@ -35,18 +33,14 @@ class DashboardView extends StatefulWidget {
 
 class _DashboardViewState extends State<DashboardView> {
   String _greetings = '';
-  bool _showName = true;
+
   List<Widget> _favLocations = [];
-  List<Widget> _completeKyaWidgets = [
-    SvgPicture.asset(
-      'assets/icon/add_avator.svg',
-    )
-  ];
+  List<Widget> _completeKyaWidgets = [];
   List<Kya> _completeKya = [];
+  List<Kya> _incompleteKya = [];
 
   late AppService _appService;
   List<Measurement> currentLocation = [];
-  Kya? _kya;
   late SharedPreferences _preferences;
 
   final GlobalKey _favToolTipKey = GlobalKey();
@@ -196,23 +190,38 @@ class _DashboardViewState extends State<DashboardView> {
         ));
   }
 
-  Future<void> handleKyaOnClick() async {
-    if (_kya!.progress >= 99.0) {
-      var completeKya = _kya;
-      setState(() {
-        _kya = null;
-      });
-      await _appService.cloudStore
-          .updateKyaProgress(
-              _appService.customAuth.getUserId(), completeKya!, 100)
-          .then((value) => {
-                _getCompleteKya(),
-                _getIncompleteKya(),
-              });
+  String getKyaMessage({required Kya kya}) {
+    var kyaItems = kya.lessons.length;
+    var progress = kya.progress;
+    if (progress == 0) {
+      return 'Start learning';
+    }
+    if (progress > 0 && progress < kyaItems) {
+      return 'Continue';
+    }
+    if (progress >= kyaItems) {
+      return 'Complete! Move to For You';
+    }
+    return '';
+  }
+
+  Future<void> handleKyaOnClick({required Kya kya}) async {
+    if (kya.progress >= kya.lessons.length) {
+      kya.progress = -1;
+      await _appService.updateKya(kya);
+      _getKya();
     } else {
-      await Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return AirPollutionWaysPage(_kya!, true);
+      var returnStatus =
+          await Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return KyaLessonsPage(kya);
       }));
+      if (returnStatus) {
+        Future.delayed(const Duration(seconds: 500), () {
+          if (mounted) {
+            _getKya();
+          }
+        });
+      }
     }
   }
 
@@ -245,75 +254,46 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   Widget kyaSection() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 16.0),
-      decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(16.0))),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Column(
-              children: [
-                GestureDetector(
-                  onTap: () async {
-                    await handleKyaOnClick();
-                  },
-                  child: Text(_kya!.title,
+    if (_incompleteKya.isEmpty) {
+      return const SizedBox();
+    }
+    return GestureDetector(
+      onTap: () async {
+        await handleKyaOnClick(kya: _incompleteKya[0]);
+      },
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
+        decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.all(Radius.circular(16.0))),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Column(
+                children: [
+                  Text(_incompleteKya[0].title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       )),
-                ),
-                const SizedBox(
-                  height: 28,
-                ),
-                GestureDetector(
-                  onTap: () async {
-                    await handleKyaOnClick();
-                  },
-                  child: Row(
+                  const SizedBox(
+                    height: 28,
+                  ),
+                  Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      if (_kya!.progress == 0.0)
-                        Text('Start learning',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Config.appColorBlue,
-                            )),
-                      if (_kya!.progress > 0.0 && _kya!.progress < 89.0)
-                        Text('Continue',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Config.appColorBlue,
-                            )),
-                      if (_kya!.progress >= 89.0)
-                        const Text('Complete! Move to ',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 12,
-                            )),
-                      if (_kya!.progress >= 89.0)
-                        Text('For You',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Config.appColorBlue,
-                            )),
+                      AutoSizeText(getKyaMessage(kya: _incompleteKya[0]),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Config.appColorBlue,
+                          )),
                       const SizedBox(
                         width: 6,
                       ),
@@ -324,35 +304,37 @@ class _DashboardViewState extends State<DashboardView> {
                       )
                     ],
                   ),
-                ),
-                const SizedBox(
-                  height: 2,
-                ),
-                Visibility(
-                  visible: _kya!.progress > 0.0 && _kya!.progress < 89.0,
-                  child: Container(
-                      height: 4,
-                      decoration: const BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(8.0)),
-                      ),
-                      child: LinearProgressIndicator(
-                        color: Config.appColorBlue,
-                        value: _kya!.progress / 100,
-                        backgroundColor:
-                            Config.appColorDisabled.withOpacity(0.2),
-                      )),
-                ),
-              ],
+                  SizedBox(
+                    height:
+                        getKyaMessage(kya: _incompleteKya[0]).toLowerCase() ==
+                                'continue'
+                            ? 2
+                            : 0,
+                  ),
+                  Visibility(
+                    visible:
+                        getKyaMessage(kya: _incompleteKya[0]).toLowerCase() ==
+                            'continue',
+                    child: Container(
+                        height: 4,
+                        decoration: const BoxDecoration(
+                          borderRadius: BorderRadius.all(Radius.circular(8.0)),
+                        ),
+                        child: LinearProgressIndicator(
+                          color: Config.appColorBlue,
+                          value: _incompleteKya[0].progress /
+                              _incompleteKya[0].lessons.length,
+                          backgroundColor:
+                              Config.appColorDisabled.withOpacity(0.2),
+                        )),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(
-            width: 16,
-          ),
-          GestureDetector(
-            onTap: () async {
-              await handleKyaOnClick();
-            },
-            child: ClipRRect(
+            const SizedBox(
+              width: 16,
+            ),
+            ClipRRect(
               borderRadius: BorderRadius.circular(8.0),
               child: CachedNetworkImage(
                 fit: BoxFit.cover,
@@ -361,17 +343,17 @@ class _DashboardViewState extends State<DashboardView> {
                 placeholder: (context, url) => SizedBox(
                   width: 104,
                   height: 104,
-                  child: containerLoadingAnimation(104, 104),
+                  child: containerLoadingAnimation(height: 104, radius: 8),
                 ),
-                imageUrl: _kya!.imageUrl,
+                imageUrl: _incompleteKya[0].imageUrl,
                 errorWidget: (context, url, error) => Icon(
                   Icons.error_outline,
                   color: Config.red,
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -411,10 +393,10 @@ class _DashboardViewState extends State<DashboardView> {
                             'assets/icon/add_avator.svg',
                           );
                         }
-                        _getFavourites(placeDetailsModel.favouritePlaces);
+                        _loadFavourites(reload: false);
                         return SizedBox(
                           height: 32,
-                          width: 44,
+                          width: 47,
                           child: Stack(
                             children: _favLocations,
                           ),
@@ -464,7 +446,7 @@ class _DashboardViewState extends State<DashboardView> {
                   children: [
                     SizedBox(
                       height: 32,
-                      width: 44,
+                      width: 47,
                       child: Stack(
                         children: _completeKyaWidgets,
                       ),
@@ -497,7 +479,7 @@ class _DashboardViewState extends State<DashboardView> {
             physics: const AlwaysScrollableScrollPhysics(),
             children: [
               const SizedBox(
-                height: 12,
+                height: 32,
               ),
               Text(
                 getDateTime(),
@@ -520,11 +502,13 @@ class _DashboardViewState extends State<DashboardView> {
                 const SizedBox(
                   height: 16,
                 ),
-              // if (_kya != null && _customAuth.isLoggedIn()) kyaSection(),
-              // if (_kya != null && _customAuth.isLoggedIn())
-              //   const SizedBox(
-              //     height: 16,
-              //   ),
+              kyaSection(),
+              Visibility(
+                visible: _incompleteKya.isNotEmpty,
+                child: const SizedBox(
+                  height: 16,
+                ),
+              ),
               if (_dashBoardPlaces.length >= 2) _dashBoardPlaces[1],
               if (_dashBoardPlaces.length >= 2)
                 const SizedBox(
@@ -563,38 +547,6 @@ class _DashboardViewState extends State<DashboardView> {
             ]));
   }
 
-  void _getCompleteKya() async {
-    var widgets = <Widget>[];
-
-    if (_appService.isLoggedIn()) {
-      widgets.add(SvgPicture.asset(
-        'assets/icon/add_avator.svg',
-      ));
-      if (mounted) {
-        setState(() {
-          _completeKyaWidgets.clear();
-          _completeKyaWidgets = widgets;
-        });
-      }
-      return;
-    }
-
-    var dbKya = await _appService.dbHelper.getKyas();
-    var completeKya =
-        dbKya.where((element) => element.progress >= 100).toList();
-    _loadCompleteKya(completeKya);
-
-    var kyaCards =
-        await _appService.cloudStore.getKya(_appService.customAuth.getUserId());
-    var completeKyaCards =
-        kyaCards.where((element) => element.progress >= 100.0).toList();
-
-    if (completeKyaCards.isNotEmpty) {
-      _loadCompleteKya(completeKyaCards);
-      await _appService.dbHelper.insertKyas(kyaCards);
-    }
-  }
-
   void _getDashboardCards() async {
     var region = getNextDashboardRegion(_preferences);
     var measurements = await _appService.dbHelper.getRegionSites(region);
@@ -606,16 +558,21 @@ class _DashboardViewState extends State<DashboardView> {
       });
 
       for (var i = 0; i <= 5; i++) {
-        var random = Random().nextInt(measurements.length);
+        if (measurements.isEmpty) {
+          break;
+        }
+
+        var randomMeasurement = (measurements..shuffle()).first;
 
         if (mounted) {
           dashboardCards.add(AnalyticsCard(
-              PlaceDetails.measurementToPLace(measurements[random]),
-              measurements[random],
+              PlaceDetails.measurementToPLace(randomMeasurement),
+              randomMeasurement,
               _isRefreshing,
               false));
         }
-        measurements.removeAt(random);
+
+        measurements.remove(randomMeasurement);
       }
 
       if (!mounted) {
@@ -649,99 +606,15 @@ class _DashboardViewState extends State<DashboardView> {
     });
   }
 
-  void _getFavourites(List<PlaceDetails> favouritePlaces) async {
-    var widgets = <Widget>[];
+  void _getKya() async {
+    var kya = await _appService.dbHelper.getKyas();
 
-    if ((_favLocations.length != 3 && favouritePlaces.length >= 3) ||
-        (_favLocations.length > favouritePlaces.length)) {
-      try {
-        if (favouritePlaces.length == 1) {
-          var measurement = await _appService.dbHelper
-              .getMeasurement(favouritePlaces[0].siteId);
-          if (measurement != null) {
-            widgets.add(favPlaceAvatar(7, measurement));
-          } else {
-            widgets.add(emptyAvatar(0));
-          }
-        } else if (favouritePlaces.length == 2) {
-          var measurement = await _appService.dbHelper
-              .getMeasurement(favouritePlaces[0].siteId);
-          if (measurement != null) {
-            widgets.add(favPlaceAvatar(0, measurement));
-          } else {
-            widgets.add(emptyAvatar(0));
-          }
+    _completeKya = kya.where((element) => element.progress == -1).toList();
+    _loadCompleteKya(_completeKya);
 
-          measurement = await _appService.dbHelper
-              .getMeasurement(favouritePlaces[1].siteId);
-          if (measurement != null) {
-            widgets.add(favPlaceAvatar(7, measurement));
-          } else {
-            widgets.add(emptyAvatar(7));
-          }
-
-          // widgets
-          //   ..add(favPlaceAvatar(0, favouritePlaces[0]))
-          //   ..add(favPlaceAvatar(7, favouritePlaces[1]));
-        } else if (favouritePlaces.length >= 3) {
-          var measurement = await _appService.dbHelper
-              .getMeasurement(favouritePlaces[0].siteId);
-          if (measurement != null) {
-            widgets.add(favPlaceAvatar(0, measurement));
-          } else {
-            widgets.add(emptyAvatar(0));
-          }
-
-          measurement = await _appService.dbHelper
-              .getMeasurement(favouritePlaces[1].siteId);
-          if (measurement != null) {
-            widgets.add(favPlaceAvatar(7, measurement));
-          } else {
-            widgets.add(emptyAvatar(7));
-          }
-
-          measurement = await _appService.dbHelper
-              .getMeasurement(favouritePlaces[2].siteId);
-          if (measurement != null) {
-            widgets.add(favPlaceAvatar(14, measurement));
-          } else {
-            widgets.add(emptyAvatar(14));
-          }
-        } else {}
-      } catch (exception, stackTrace) {
-        debugPrint('$exception\n$stackTrace');
-      }
-
-      if (mounted) {
-        setState(() {
-          _favLocations.clear();
-          _favLocations = widgets;
-        });
-      }
-    }
-  }
-
-  void _getIncompleteKya() async {
-    if (_appService.isLoggedIn()) {
-      return;
-    }
-
-    var kyas =
-        await _appService.cloudStore.getKya(_appService.customAuth.getUserId());
-    var inCompleteKya =
-        kyas.where((element) => element.progress < 100).toList();
-
-    if (kyas.isNotEmpty) {
-      await _appService.dbHelper.insertKyas(kyas);
-    }
-
-    if (inCompleteKya.isNotEmpty) {
-      if (mounted) {
-        setState(() {
-          _kya = inCompleteKya.first;
-        });
-      }
-    }
+    setState(() {
+      _incompleteKya = kya.where((element) => element.progress != -1).toList();
+    });
   }
 
   void _handleScroll() async {
@@ -749,16 +622,16 @@ class _DashboardViewState extends State<DashboardView> {
       if (_scrollController.position.userScrollDirection ==
               ScrollDirection.reverse &&
           mounted) {
-        setState(() {
-          _showName = false;
-        });
+        // setState(() {
+        //   _showName = false;
+        // });
       }
       if (_scrollController.position.userScrollDirection ==
               ScrollDirection.forward &&
           mounted) {
-        setState(() {
-          _showName = true;
-        });
+        // setState(() {
+        //   _showName = true;
+        // });
       }
     });
   }
@@ -766,14 +639,11 @@ class _DashboardViewState extends State<DashboardView> {
   Future<void> _initialize() async {
     _appService = AppService(context);
     _preferences = await SharedPreferences.getInstance();
+    _completeKyaWidgets.add(circularLoadingAnimation(30));
     _setGreetings();
     _getDashboardCards();
-    if (_appService.isLoggedIn()) {
-      await _loadKya();
-      _getIncompleteKya();
-      _getCompleteKya();
-    }
-    await _appService.fetchData();
+    _getKya();
+    Future.delayed(const Duration(seconds: 2), _getKya);
   }
 
   void _loadCompleteKya(List<Kya> completeKya) async {
@@ -816,21 +686,89 @@ class _DashboardViewState extends State<DashboardView> {
         ));
       }
       setState(() {
-        _completeKyaWidgets.clear();
         _completeKyaWidgets = widgets;
       });
     }
   }
 
-  Future<void> _loadKya() async {
-    var kyas =
-        await _appService.cloudStore.getKya(_appService.customAuth.getUserId());
-    await _appService.dbHelper.insertKyas(kyas);
+  void _loadFavourites({required bool reload}) async {
+    var widgets = <Widget>[];
+
+    if (_favLocations.length != 3 || reload) {
+      try {
+        var favouritePlaces = await _appService.dbHelper.getFavouritePlaces();
+
+        if (!reload) {
+          if (_favLocations.length >= favouritePlaces.length) {
+            return;
+          }
+        }
+
+        var siteIds = <String>[];
+        for (var place in favouritePlaces) {
+          siteIds.add(place.siteId);
+        }
+        var measurements = await _appService.dbHelper.getMeasurements(siteIds);
+
+        if (favouritePlaces.length == 1) {
+          if (measurements.isNotEmpty) {
+            widgets.add(favPlaceAvatar(7, measurements[0]));
+          } else {
+            widgets.add(emptyAvatar(0));
+          }
+        } else if (favouritePlaces.length == 2) {
+          if (measurements.isNotEmpty) {
+            widgets.add(favPlaceAvatar(0, measurements[0]));
+          } else {
+            widgets.add(emptyAvatar(0));
+          }
+
+          if (measurements.length >= 2) {
+            widgets.add(favPlaceAvatar(7, measurements[1]));
+          } else {
+            widgets.add(emptyAvatar(7));
+          }
+
+          // widgets
+          //   ..add(favPlaceAvatar(0, favouritePlaces[0]))
+          //   ..add(favPlaceAvatar(7, favouritePlaces[1]));
+        } else if (favouritePlaces.length >= 3) {
+          if (measurements.isNotEmpty) {
+            widgets.add(favPlaceAvatar(0, measurements[0]));
+          } else {
+            widgets.add(emptyAvatar(0));
+          }
+
+          if (measurements.length >= 2) {
+            widgets.add(favPlaceAvatar(7, measurements[1]));
+          } else {
+            widgets.add(emptyAvatar(7));
+          }
+
+          if (measurements.length >= 3) {
+            widgets.add(favPlaceAvatar(14, measurements[2]));
+          } else {
+            widgets.add(emptyAvatar(14));
+          }
+        } else {}
+      } catch (exception, stackTrace) {
+        debugPrint('$exception\n$stackTrace');
+      }
+
+      if (mounted) {
+        setState(() {
+          _favLocations.clear();
+          _favLocations = widgets;
+        });
+      }
+    }
   }
 
   Future<void> _refresh() async {
-    await _appService.fetchLatestMeasurements();
+    await _appService.refreshDashboard();
     _getDashboardCards();
+    _getKya();
+    _loadFavourites(reload: true);
   }
 
   void _setGreetings() {

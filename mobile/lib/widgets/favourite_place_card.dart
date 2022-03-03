@@ -207,7 +207,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
     setState(() {
       showHeartAnimation = true;
     });
-    Future.delayed(const Duration(seconds: 2), () async {
+    Future.delayed(const Duration(seconds: 2), () {
       setState(() {
         showHeartAnimation = false;
       });

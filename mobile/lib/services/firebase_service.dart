@@ -171,14 +171,41 @@ class CloudStore {
   }
 
   Future<List<Kya>> getKya(String userId) async {
-    var hasConnection = await isConnected();
-    if (!hasConnection) {
-      return [];
-    }
-
-    if (userId.isEmpty || userId.trim() == '') {
+    try {
       var kyasJson =
           await _firebaseFirestore.collection(Config.kyaCollection).get();
+      var userKyas = <UserKya>[];
+
+      if (userId.isNotEmpty && userId.trim() != '') {
+        var userKyaJson = await _firebaseFirestore
+            .collection(Config.usersKyaCollection)
+            .doc(userId)
+            .collection(userId)
+            .get();
+
+        var userKyaDocs = userKyaJson.docs;
+        for (var userKyaDoc in userKyaDocs) {
+          try {
+            var userKyaData = userKyaDoc.data();
+            if (userKyaData.isEmpty) {
+              continue;
+            }
+            UserKya kya;
+            try {
+              kya = UserKya.fromJson(userKyaData);
+            } catch (e) {
+              userKyaData['progress'] =
+                  (userKyaData['progress'] as double).ceil();
+              kya = UserKya.fromJson(userKyaData);
+            }
+
+            userKyas.add(kya);
+          } catch (exception, stackTrace) {
+            debugPrint('$exception\n$stackTrace');
+          }
+        }
+      }
+
       var kyaDocs = kyasJson.docs;
       var kyas = <Kya>[];
       for (var kyaDoc in kyaDocs) {
@@ -187,62 +214,20 @@ class CloudStore {
           if (kyaData.isEmpty) {
             continue;
           }
-
           var kya = Kya.fromJson(kyaData);
+          var userKya = userKyas.firstWhere((element) => element.id == kya.id,
+              orElse: () => UserKya(kya.id, 0));
+
+          kya.progress = userKya.progress;
           kyas.add(kya);
         } catch (exception, stackTrace) {
           debugPrint('$exception\n$stackTrace');
         }
       }
       return kyas;
-    }
-
-    try {
-      var userKyaJson = await _firebaseFirestore
-          .collection(Config.usersKyaCollection)
-          .doc(userId)
-          .collection(userId)
-          .get();
-
-      if (userKyaJson.docs.isEmpty) {
-        await reloadKya(userId);
-      }
-
-      var kyas = <Kya>[];
-
-      var userKyaDocs = userKyaJson.docs;
-      for (var userKyaDoc in userKyaDocs) {
-        try {
-          var userKyaData = userKyaDoc.data();
-          if (userKyaData.isEmpty) {
-            continue;
-          }
-
-          var userKya = UserKya.fromJson(userKyaData);
-          var kyaJson = await _firebaseFirestore
-              .collection(Config.kyaCollection)
-              .doc(userKya.id)
-              .get();
-
-          var kyaData = kyaJson.data();
-          if (kyaData != null) {
-            var kya = Kya.fromJson(kyaData)..progress = userKya.progress;
-            kyas.add(kya);
-          }
-        } catch (exception, stackTrace) {
-          debugPrint('$exception\n$stackTrace');
-        }
-      }
-
-      return kyas;
-    } on Error catch (exception, stackTrace) {
+    } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
     }
-
     return [];
   }
 
@@ -406,58 +391,6 @@ class CloudStore {
     return false;
   }
 
-  Future<void> reloadKya(String userId) async {
-    if (userId.isEmpty || userId.trim() == '') {
-      return;
-    }
-
-    var hasConnection = await isConnected();
-    if (!hasConnection) {
-      return;
-    }
-
-    try {
-      var kyasJson =
-          await _firebaseFirestore.collection(Config.kyaCollection).get();
-
-      var kyaDocs = kyasJson.docs;
-      for (var kyaDoc in kyaDocs) {
-        try {
-          var kyaData = kyaDoc.data();
-          if (kyaData.isEmpty) {
-            continue;
-          }
-
-          var kya = Kya.fromJson(kyaData);
-          var userKyaJson = await _firebaseFirestore
-              .collection(Config.usersKyaCollection)
-              .doc(userId)
-              .collection(userId)
-              .doc(kya.id)
-              .get();
-
-          if (!userKyaJson.exists) {
-            var userKya = UserKya(kya.id, 0.0);
-            await _firebaseFirestore
-                .collection(Config.usersKyaCollection)
-                .doc(userId)
-                .collection(userId)
-                .doc(kya.id)
-                .set(userKya.toJson());
-          }
-        } catch (exception, stackTrace) {
-          debugPrint('$exception\n$stackTrace');
-        }
-      }
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-    }
-  }
-
   Future<void> removeFavPlace(String userId, PlaceDetails placeDetails) async {
     var hasConnection = await isConnected();
     if (!hasConnection || userId.trim().isEmpty) {
@@ -504,14 +437,8 @@ class CloudStore {
     }
   }
 
-  Future<void> updateKyaProgress(
-      String userId, Kya kya, double progress) async {
+  Future<void> updateKyaProgress(String userId, Kya kya) async {
     if (userId.isEmpty || userId.trim() == '') {
-      return;
-    }
-
-    var hasConnection = await isConnected();
-    if (!hasConnection) {
       return;
     }
 
@@ -521,7 +448,22 @@ class CloudStore {
           .doc(userId)
           .collection(userId)
           .doc(kya.id)
-          .update({'progress': progress});
+          .update({'progress': kya.progress});
+    } on FirebaseException catch (exception, stackTrace) {
+      if (exception.code == 'not-found') {
+        await _firebaseFirestore
+            .collection(Config.usersKyaCollection)
+            .doc(userId)
+            .collection(userId)
+            .doc(kya.id)
+            .set({'progress': kya.progress, 'id': kya.id});
+      } else {
+        debugPrint('$exception\n$stackTrace');
+        await Sentry.captureException(
+          exception,
+          stackTrace: stackTrace,
+        );
+      }
     } on Error catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(

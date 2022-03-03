@@ -200,19 +200,21 @@ Widget insightsTabAvatar(
 
 PreferredSizeWidget knowYourAirAppBar(context, title) {
   return AppBar(
-    centerTitle: true,
-    elevation: 0,
-    backgroundColor: Colors.transparent,
-    foregroundColor: Colors.transparent,
-    leading: Padding(
-      padding: const EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
-      child: backButton(context),
-    ),
-    title: Text(
-      title,
-      style: const TextStyle(color: Colors.white),
-    ),
-  );
+      centerTitle: true,
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      foregroundColor: Colors.transparent,
+      leading: Padding(
+        padding: const EdgeInsets.only(top: 12, bottom: 6.5, left: 16),
+        child: backButton(context),
+      ),
+      title: Padding(
+        padding: const EdgeInsets.only(top: 10),
+        child: Text(
+          title,
+          style: const TextStyle(color: Colors.white),
+        ),
+      ));
 }
 
 Widget searchLocationTile(Measurement measurement) {

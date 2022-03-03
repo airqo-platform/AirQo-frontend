@@ -16,6 +16,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
+import '../models/kya.dart';
+
 class AppService {
   final DBHelper _dbHelper = DBHelper();
   final BuildContext _context;
@@ -146,7 +148,7 @@ class AppService {
   Future<void> fetchData() async {
     await Future.wait([
       fetchLatestMeasurements(),
-      _fetchKya(),
+      fetchKya(),
       loadNotifications(),
       loadFavPlaces(),
       fetchFavPlacesInsights(),
@@ -194,6 +196,15 @@ class AppService {
     }
   }
 
+  Future<void> fetchKya() async {
+    try {
+      var kyas = await _cloudStore.getKya(_customAuth.getUserId());
+      await _dbHelper.insertKyas(kyas);
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+    }
+  }
+
   Future<void> fetchLatestMeasurements() async {
     try {
       var measurements = await _apiClient.fetchLatestMeasurements();
@@ -216,9 +227,9 @@ class AppService {
       if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
         return true;
       }
-      return false;
     } catch (_) {}
 
+    await showSnackBar(_context, Config.connectionErrorMessage);
     return false;
   }
 
@@ -376,11 +387,12 @@ class AppService {
     }
   }
 
-  Future<void> reloadData() async {
+  Future<void> refreshDashboard() async {
     await Future.wait([
       fetchLatestMeasurements(),
-      _fetchKya(),
-      fetchFavPlacesInsights(),
+      fetchKya(),
+      loadNotifications(),
+      loadFavPlaces(),
     ]);
   }
 
@@ -394,6 +406,18 @@ class AppService {
 
     await Provider.of<PlaceDetailsModel>(_context, listen: false)
         .reloadFavouritePlaces();
+  }
+
+  Future<void> updateKya(Kya kya) async {
+    if (_customAuth.isLoggedIn()) {
+      await isConnected();
+      await Future.wait([
+        _dbHelper.updateKya(kya),
+        _cloudStore.updateKyaProgress(_customAuth.getUserId(), kya)
+      ]);
+    } else {
+      await _dbHelper.updateKya(kya);
+    }
   }
 
   Future<void> updateProfile(UserDetails userDetails) async {
@@ -443,15 +467,6 @@ class AppService {
         exception,
         stackTrace: stackTrace,
       );
-    }
-  }
-
-  Future<void> _fetchKya() async {
-    try {
-      var kyas = await _cloudStore.getKya(_customAuth.getUserId());
-      await _dbHelper.insertKyas(kyas);
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
     }
   }
 

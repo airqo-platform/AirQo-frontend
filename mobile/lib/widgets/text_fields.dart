@@ -1,5 +1,4 @@
 import 'package:app/constants/config.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:country_list_pick/country_list_pick.dart';
 import 'package:flutter/material.dart';
 
@@ -92,70 +91,6 @@ Widget optField(position, context, callbackFn, bool codeSent) {
           ),
         ),
       ));
-}
-
-Widget profilePicWidget(double height, double width, double iconSize,
-    double textSize, radius, photoUrl, imageRadius, showIcon) {
-  return Stack(
-    alignment: AlignmentDirectional.center,
-    children: [
-      if (photoUrl == '')
-        RotationTransition(
-          turns: const AlwaysStoppedAnimation(-5 / 360),
-          child: Container(
-            padding: const EdgeInsets.all(2.0),
-            decoration: BoxDecoration(
-                color: photoUrl == '' ? Config.appPicColor : Colors.transparent,
-                shape: BoxShape.rectangle,
-                borderRadius: BorderRadius.all(Radius.circular(radius))),
-            child: Container(
-              height: height,
-              width: width,
-              color: Colors.transparent,
-            ),
-          ),
-        ),
-      if (photoUrl == '')
-        Text(
-          'A',
-          style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              fontSize: textSize),
-        ),
-      if (photoUrl != '')
-        CircleAvatar(
-          radius: imageRadius,
-          backgroundColor: Colors.transparent,
-          foregroundColor: Colors.transparent,
-          backgroundImage: CachedNetworkImageProvider(
-            photoUrl,
-          ),
-        ),
-      if (showIcon)
-        Positioned(
-            bottom: 0,
-            right: 0,
-            child: Container(
-              padding: const EdgeInsets.all(2.0),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.white),
-                color: Config.appColorBlue,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.add,
-                size: iconSize,
-                color: Colors.white,
-              ),
-              // child: const FaIcon(
-              //   FontAwesomeIcons.plus,
-              //   size: 18,
-              //   color: Colors.white,
-              // ),
-            ))
-    ],
-  );
 }
 
 Widget tabLayout(String day, date, Color background, Color foreground) {

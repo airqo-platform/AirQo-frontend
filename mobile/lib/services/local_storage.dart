@@ -203,6 +203,33 @@ class DBHelper {
     }
   }
 
+  Future<List<Measurement>> getMeasurements(List<String> siteIds) async {
+    try {
+      final db = await database;
+
+      var res = [];
+
+      for (var siteId in siteIds) {
+        var siteRes = await db.query(Measurement.latestMeasurementsDb(),
+            where: '${Site.dbId()} = ?', whereArgs: [siteId]);
+
+        res.addAll(siteRes);
+      }
+
+      if (res.isEmpty) {
+        return [];
+      }
+      return res.isNotEmpty
+          ? List.generate(res.length, (i) {
+              return Measurement.fromJson(Measurement.mapFromDb(res[i]));
+            })
+          : <Measurement>[];
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+      return [];
+    }
+  }
+
   Future<Measurement?> getNearestMeasurement(
       double latitude, double longitude) async {
     try {
@@ -305,23 +332,6 @@ class DBHelper {
     }
   }
 
-  Future<List<String>> getVisitedPlaces() async {
-    try {
-      final db = await database;
-
-      var res = await db.query(Insights.dbName());
-      return res.isNotEmpty
-          ? List.generate(res.length, (i) {
-              return Insights.fromJson(res[i]).siteId;
-            })
-          : <String>[];
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-
-      return <String>[];
-    }
-  }
-
   Future<Database> initDB() async {
     return await openDatabase(
       join(await getDatabasesPath(), Config.dbName),
@@ -391,20 +401,7 @@ class DBHelper {
     if (kyas.isEmpty) {
       return;
     }
-
-    for (var kya in kyas) {
-      try {
-        await db.delete(
-          Kya.dbName(),
-          where: 'id = ?',
-          whereArgs: [kya.id],
-        );
-      } catch (exception, stackTrace) {
-        debugPrint('$exception\n$stackTrace');
-        await db.execute(Kya.dropTableStmt());
-        await db.execute(Kya.createTableStmt());
-      }
-    }
+    await db.delete(Kya.dbName());
 
     for (var kya in kyas) {
       try {
@@ -531,6 +528,13 @@ class DBHelper {
       await removeFavPlace(placeDetails);
       return false;
     }
+  }
+
+  Future<void> updateKya(Kya kya) async {
+    final db = await database;
+
+    await db.update(Kya.dbName(), {'progress': kya.progress},
+        where: 'id = ?', whereArgs: [kya.id]);
   }
 }
 
