@@ -13,45 +13,31 @@ Site _$SiteFromJson(Map<String, dynamic> json) {
       '_id',
       'latitude',
       'longitude',
-      'district',
       'country',
-      'name',
+      'search_name',
+      'location_name',
       'region'
     ],
   );
   return Site(
-    json['_id'] as String,
-    (json['latitude'] as num).toDouble(),
-    (json['longitude'] as num).toDouble(),
-    json['district'] as String,
-    json['country'] as String,
-    json['name'] as String,
-    json['search_name'] as String? ?? '',
-    json['description'] as String? ?? '',
-    json['region'] == null ? '' : regionFromJson(json['region']),
-    (json['distance'] as num?)?.toDouble() ?? 0.0,
+    id: json['_id'] as String,
+    latitude: (json['latitude'] as num).toDouble(),
+    longitude: (json['longitude'] as num).toDouble(),
+    country: json['country'] as String,
+    name: json['search_name'] as String,
+    location: json['location_name'] as String,
+    region: json['region'] == null ? '' : regionFromJson(json['region']),
+    distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
   );
 }
-
-Sites _$SitesFromJson(Map<String, dynamic> json) => Sites(
-      sites: (json['sites'] as List<dynamic>)
-          .map((e) => Site.fromJson(e as Map<String, dynamic>))
-          .toList(),
-    );
-
-Map<String, dynamic> _$SitesToJson(Sites instance) => <String, dynamic>{
-      'sites': instance.sites,
-    };
 
 Map<String, dynamic> _$SiteToJson(Site instance) => <String, dynamic>{
       '_id': instance.id,
       'latitude': instance.latitude,
       'longitude': instance.longitude,
-      'district': instance.district,
       'country': instance.country,
-      'name': instance.name,
-      'search_name': instance.searchName,
-      'description': instance.description,
+      'search_name': instance.name,
+      'location_name': instance.location,
       'region': instance.region,
       'distance': instance.distance,
     };

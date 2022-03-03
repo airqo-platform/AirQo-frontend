@@ -227,13 +227,13 @@ Widget searchLocationTile(Measurement measurement) {
     child: ListTile(
       contentPadding: const EdgeInsets.only(left: 0.0),
       title: Text(
-        measurement.site.getName(),
+        measurement.site.name,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
       ),
       subtitle: Text(
-        measurement.site.getLocation(),
+        measurement.site.location,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(color: Colors.black.withOpacity(0.3), fontSize: 14),

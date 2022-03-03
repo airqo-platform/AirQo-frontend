@@ -38,11 +38,8 @@ class Measurement {
   @JsonKey(required: true, name: 'siteDetails')
   final Site site;
 
-  @JsonKey(required: true, name: 'device_number')
-  final int deviceNumber;
-
   Measurement(this.time, this.pm2_5, this.pm10, this.altitude, this.speed,
-      this.temperature, this.humidity, this.site, this.deviceNumber);
+      this.temperature, this.humidity, this.site);
 
   factory Measurement.fromJson(Map<String, dynamic> json) =>
       _$MeasurementFromJson(json);
@@ -74,71 +71,52 @@ class Measurement {
   @override
   String toString() {
     return 'Measurement{time: $time, pm2_5: $pm2_5, pm10: $pm10,'
-        ' site: $site, deviceNumber: $deviceNumber}';
+        ' site: $site';
   }
 
   static String createTableStmt() =>
-      'CREATE TABLE IF NOT EXISTS ${latestMeasurementsDb()}('
-      '${Site.dbId()} TEXT PRIMARY KEY, ${Site.dbLatitude()} REAL, '
-      '${Site.dbSiteName()} TEXT, ${Site.dbLongitude()} REAL, '
-      '${dbTime()} TEXT, ${dbPm25()} REAL, ${Site.dbCountry()} TEXT, '
-      '${dbPm10()} REAL, ${dbDeviceNumber()} REAL, ${dbAltitude()} REAL, '
-      '${dbSpeed()} REAL, ${dbTemperature()} REAL, '
-      '${dbHumidity()} REAL, ${Site.dbDistrict()} TEXT, '
-      '${Site.dbDescription()} TEXT, ${Site.dbRegion()} TEXT )';
+      'CREATE TABLE IF NOT EXISTS ${measurementsDb()}('
+      'id TEXT PRIMARY KEY, latitude REAL, '
+      'name TEXT, longitude REAL, '
+      'time TEXT, pm2_5 REAL, country TEXT, '
+      'pm10 REAL, altitude REAL, '
+      'speed REAL, temperature REAL, '
+      'humidity REAL, location TEXT, '
+      'region TEXT )';
 
-  static String dbAltitude() => 'altitude';
-
-  static String dbDeviceNumber() => 'deviceNumber';
-
-  static String dbHumidity() => 'humidity';
-
-  static String dbPm10() => 'pm10';
-
-  static String dbPm25() => 'pm2_5';
-
-  static String dbSpeed() => 'speed';
-
-  static String dbTemperature() => 'temperature';
-
-  static String dbTime() => 'time';
-
-  static String dropTableStmt() =>
-      'DROP TABLE IF EXISTS ${latestMeasurementsDb()}';
-
-  static String latestMeasurementsDb() => 'latest_measurements';
+  static String dropTableStmt() => 'DROP TABLE IF EXISTS ${measurementsDb()}';
 
   static Map<String, dynamic> mapFromDb(Map<String, dynamic> json) {
     var siteDetails = Site.fromDbMap(json);
 
     return {
       'siteDetails': siteDetails,
-      'time': json[dbTime()] as String,
-      'pm2_5': {'value': json[dbPm25()] as double},
-      'pm10': {'value': json[dbPm10()] as double},
-      'externalTemperature': {'value': json[dbTemperature()] as double},
-      'externalHumidity': {'value': json[dbHumidity()] as double},
-      'speed': {'value': json[dbSpeed()] as double},
-      'altitude': {'value': json[dbAltitude()] as double},
-      'device_number': (json[dbDeviceNumber()] as double).round(),
+      'time': json['time'] as String,
+      'pm2_5': {'value': json['pm2_5'] as double},
+      'pm10': {'value': json['pm10'] as double},
+      'externalTemperature': {'value': json['temperature'] as double},
+      'externalHumidity': {'value': json['humidity'] as double},
+      'speed': {'value': json['speed'] as double},
+      'altitude': {'value': json['altitude'] as double},
     };
   }
 
   static Map<String, dynamic> mapToDb(Measurement measurement) {
     var measurementMap = Site.toDbMap(measurement.site)
       ..addAll({
-        dbTime(): measurement.time,
-        dbPm25(): measurement.getPm2_5Value(),
-        dbPm10(): measurement.getPm10Value(),
-        dbAltitude(): measurement.altitude.value,
-        dbSpeed(): measurement.speed.value,
-        dbTemperature(): measurement.temperature.value,
-        dbHumidity(): measurement.humidity.value,
-        dbDeviceNumber(): measurement.deviceNumber,
+        'time': measurement.time,
+        'pm2_5': measurement.getPm2_5Value(),
+        'pm10': measurement.getPm10Value(),
+        'altitude': measurement.altitude.value,
+        'speed': measurement.speed.value,
+        'temperature': measurement.temperature.value,
+        'humidity': measurement.humidity.value,
       });
 
     return measurementMap;
   }
+
+  static String measurementsDb() => 'measurements';
 }
 
 extension ParseMeasurement on Measurement {
