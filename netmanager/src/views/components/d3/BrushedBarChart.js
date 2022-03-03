@@ -108,9 +108,9 @@ const BrushChart = ({
     const legendSpace = width / dataNest.length;
 
     dataNest.forEach((d, i) => {
-      const id = `tag-${d.key
-        .replace(/\s+/g, "")
-        .replace(",", "")}-${Math.random().toString(16).slice(2)}-${i}`;
+      const id = `tag-${Math.random()
+        .toString(16)
+        .slice(2)}-${Math.random().toString(16).slice(2)}-${i}`;
       focus
         .selectAll(`#bar-${id}`)
         .append("rect")
@@ -322,9 +322,9 @@ const BrushedBarChart = ({
     const dataNest = d3.nest().key(symbolFunc).entries(data);
 
     dataNest.forEach((d, i) => {
-      const id = `bar-${d.key
-        .replace(/\s+/g, "")
-        .replace(",", "")}-${Math.random().toString(16).slice(2)}`;
+      const id = `bar-${Math.random()
+        .toString(16)
+        .slice(2)}-${Math.random().toString(16).slice(2)}`;
       context
         .selectAll(`#${id}`)
         .append("rect")
