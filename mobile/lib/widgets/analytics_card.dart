@@ -244,13 +244,13 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    widget.placeDetails.getName(),
+                                    widget.placeDetails.name,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: CustomTextStyle.headline9(context),
                                   ),
                                   Text(
-                                    widget.placeDetails.getLocation(),
+                                    widget.placeDetails.location,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: CustomTextStyle.bodyText4(context)
@@ -332,12 +332,8 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                         GestureDetector(
                           onTap: () {
                             var shareMeasurement = widget.measurement;
-                            shareMeasurement.site.searchName =
-                                widget.placeDetails.getName();
                             shareMeasurement.site.name =
-                                widget.placeDetails.getName();
-                            shareMeasurement.site.description =
-                                widget.placeDetails.getName();
+                                widget.placeDetails.name;
                             _shareSvc.shareCard(
                                 context, _globalKey, shareMeasurement);
                           },
