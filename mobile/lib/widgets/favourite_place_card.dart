@@ -65,13 +65,13 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             AutoSizeText(
-                              widget.placeDetails.getName(),
+                              widget.placeDetails.name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: CustomTextStyle.headline8(context),
                             ),
                             AutoSizeText(
-                              widget.placeDetails.getLocation(),
+                              widget.placeDetails.location,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: CustomTextStyle.bodyText4(context)

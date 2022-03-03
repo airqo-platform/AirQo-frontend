@@ -300,13 +300,13 @@ Widget searchLocationTile(
     child: ListTile(
       contentPadding: const EdgeInsets.only(left: 0.0),
       title: AutoSizeText(
-        measurement.site.getName(),
+        measurement.site.name,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: CustomTextStyle.headline8(context),
       ),
       subtitle: AutoSizeText(
-        measurement.site.getLocation(),
+        measurement.site.location,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: CustomTextStyle.bodyText4(context)

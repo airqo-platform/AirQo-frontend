@@ -9,13 +9,7 @@ part of 'measurement.dart';
 Measurement _$MeasurementFromJson(Map<String, dynamic> json) {
   $checkKeys(
     json,
-    requiredKeys: const [
-      'time',
-      'pm2_5',
-      'pm10',
-      'siteDetails',
-      'device_number'
-    ],
+    requiredKeys: const ['time', 'pm2_5', 'pm10', 'siteDetails'],
   );
   return Measurement(
     json['time'] as String,
@@ -26,7 +20,6 @@ Measurement _$MeasurementFromJson(Map<String, dynamic> json) {
     measurementValueFromJson(json['externalTemperature']),
     measurementValueFromJson(json['externalHumidity']),
     Site.fromJson(json['siteDetails'] as Map<String, dynamic>),
-    json['device_number'] as int,
   );
 }
 
@@ -40,5 +33,4 @@ Map<String, dynamic> _$MeasurementToJson(Measurement instance) =>
       'externalTemperature': instance.temperature,
       'externalHumidity': instance.humidity,
       'siteDetails': instance.site,
-      'device_number': instance.deviceNumber,
     };

@@ -328,13 +328,13 @@ class _InsightsTabState extends State<InsightsTab> {
                                           .withOpacity(0.3)),
                             ),
                             AutoSizeText(
-                              widget.placeDetails.getName(),
+                              widget.placeDetails.name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: CustomTextStyle.headline8(context)
                                   ?.copyWith(color: Config.appColorBlack),
                             ),
-                            AutoSizeText(widget.placeDetails.getLocation(),
+                            AutoSizeText(widget.placeDetails.location,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: Theme.of(context)

@@ -486,7 +486,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      widget.placeDetails.getName(),
+                                      widget.placeDetails.name,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(
@@ -494,7 +494,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                           fontSize: 20),
                                     ),
                                     Text(
-                                      widget.placeDetails.getLocation(),
+                                      widget.placeDetails.location,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
@@ -589,12 +589,8 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                         GestureDetector(
                           onTap: () {
                             var shareMeasurement = widget.measurement;
-                            shareMeasurement.site.searchName =
-                                widget.placeDetails.getName();
                             shareMeasurement.site.name =
-                                widget.placeDetails.getName();
-                            shareMeasurement.site.description =
-                                widget.placeDetails.getName();
+                                widget.placeDetails.name;
                             _shareSvc.shareCard(
                                 context, _globalKey, shareMeasurement);
                           },
