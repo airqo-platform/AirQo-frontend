@@ -28,10 +28,19 @@ class SignupScreenState extends State<SignupScreen> {
         body: WillPopScope(
             onWillPop: onWillPop,
             child: _signUpOption == 'phone'
-                ? PhoneAuthWidget(widget.enableBackButton, changeOption,
-                    'signup', showLoading)
-                : EmailAuthWidget(widget.enableBackButton, changeOption,
-                    'signup', showLoading)));
+                ? PhoneAuthWidget(
+                    enableBackButton: widget.enableBackButton,
+                    changeOption: changeOption,
+                    action: 'signup',
+                    appLoading: showLoading,
+                    phoneNumber: '')
+                : EmailAuthWidget(
+                    enableBackButton: widget.enableBackButton,
+                    changeOption: changeOption,
+                    action: 'signup',
+                    appLoading: showLoading,
+                    emailAddress: '',
+                  )));
   }
 
   void changeOption(String value) {

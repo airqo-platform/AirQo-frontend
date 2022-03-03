@@ -250,7 +250,7 @@ Widget signUpOptions(BuildContext context) {
             onTap: () {
               Navigator.pushAndRemoveUntil(context,
                   MaterialPageRoute(builder: (context) {
-                return const LoginScreen();
+                return const LoginScreen(phoneNumber: '', emailAddress: '');
               }), (r) => false);
             },
             child: Text(
