@@ -1,17 +1,6 @@
 version: '2'
 
-services:    
-  proxy: 
-    restart: unless-stopped
-    image: nginx:stable-alpine
-    volumes:
-      - static_volume:/usr/share/nginx/html
-      - ./nginx:/etc/nginx/conf.d
-    ports:
-      - 80:80
-    depends_on:
-      - web-app
-          
+services:              
   web-app:
     restart: unless-stopped
     build:
