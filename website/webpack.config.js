@@ -2,7 +2,6 @@ const path = require('path');
 // const autoprefixer = require('autoprefixer');
 // const webpack = require('webpack');
 // const TerserPlugin = require('terser-webpack-plugin');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const ROOT = path.resolve(__dirname, 'frontend');
 
@@ -115,11 +114,7 @@ const config = () => {
       ],
     },
 
-    plugins: [
-      new HtmlWebpackPlugin({
-        template: path.resolve(`/${ROOT}/templates/index.html`),
-        minify: false,
-      })],
+    plugins: [],
   };
 };
 
