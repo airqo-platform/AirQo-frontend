@@ -307,7 +307,7 @@
 					<img src="<?= base_url(); ?>assets/images/partners/wehubit.png" class="img-fluid">
 				</div>
 				<div class="col-md-2" style="display: flex; align-items: center;">
-					<img src="<?= base_url(); ?>assets/images/partners/us-mission-uganda.webp" class="img-fluid" height="100px">
+					<img src="<?= base_url(); ?>assets/images/partners/us-mission-uganda.webp" class="img-fluid">
 				</div>
 				<div class="col-md-2">
 					<img src="<?= base_url(); ?>assets/images/partners/embassy.png" class="img-fluid" alt="">
