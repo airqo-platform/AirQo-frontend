@@ -5,7 +5,7 @@ services:
     container_name: airqo-website
     restart: unless-stopped
     build:
-      context: ../../
+      context: ../
       dockerfile: ./docker/Dockerfile
     entrypoint: /app/wsgi-entrypoint.sh    
     ports:
@@ -27,8 +27,4 @@ services:
       - ./database/:/docker-entrypoint-initdb.d
     ports:
       - 5432:5432
-    
-volumes:
-  database:
-    driver: local
 
