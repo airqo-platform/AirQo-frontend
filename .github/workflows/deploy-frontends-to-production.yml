@@ -1,0 +1,161 @@
+name: deploy-frontends-to-production
+
+on:
+  pull_request:
+    branches: 
+      - master
+    types:
+      - closed
+jobs:
+  image-tag:
+    name: create image tag
+    runs-on: ubuntu-latest
+    outputs:
+      build_id: ${{ steps.prep.outputs.build_id }} # build id
+      datetime: ${{ steps.prep.outputs.datetime }} # build date
+    steps:
+      - name: generate build ID
+        id: prep
+        run: |
+            sha=${GITHUB_SHA::8}
+            timestamp=$(date +%s)
+            datetime=$(date)
+            echo "::set-output name=build_id::stage-${sha}-${timestamp}"
+            echo "::set-output name=datetime::${datetime}"
+
+  check:
+    # this job will only run if the PR has been merged
+    if: github.event.pull_request.merged == true
+    name: check for changes in platform
+    outputs:
+      run_platform: ${{ steps.check_files.outputs.run_platform }} # platform
+      run_website: ${{ steps.check_files.outputs.run_website }} # website
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
+
+      - name: check modified frontends
+        id: check_files
+        run: |
+          echo "=============== list modified files ==============="
+          git diff --name-only HEAD^ HEAD
+          
+          echo "========== check paths of modified files =========="
+          git diff --name-only HEAD^ HEAD > files.txt
+
+          echo "::set-output name=run_platform::false"
+          echo "::set-output name=run_website::false"  
+
+          while IFS= read -r file
+          do
+            echo $file
+            if [[ $file == netmanager/* ]]; then
+              echo "::set-output name=run_platform::true"
+              break
+            fi
+
+            if [[ $file == website/* ]]; then
+              echo "::set-output name=run_website::true"
+            fi
+
+            if [[ $file == workflow-trigger.txt ]]; then
+              echo "::set-output name=run_platform::true"
+              echo "::set-output name=run_website::true"
+            fi
+
+          done < files.txt
+
+  ### deploy platform ###
+  platform:
+    name: build-push-deploy-netmanager
+    needs: [check, image-tag]
+    if: needs.check.outputs.run_platform == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      
+      - name: Login to GCR
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ secrets.REGISTRY_URL }}
+          username: _json_key
+          password: ${{ secrets.GCR_CONFIG }}
+
+      - name: Login to K8S
+        uses: azure/k8s-set-context@v1
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.K8S_CONFIG_STAGE }}
+
+      - name: NPM Setup and Build
+        uses: actions/setup-node@v2
+        with:
+          node-version: '12'
+      - run: |
+          cd netmanager/
+
+          export REACT_APP_BASE_URL=${{ secrets.REACT_APP_BASE_URL_STAGE }}
+          export REACT_APP_CLOUDINARY_NAME=${{ secrets.REACT_APP_CLOUDINARY_NAME }}
+          export REACT_APP_CLOUDINARY_PRESET=${{ secrets.REACT_APP_CLOUDINARY_PRESET }}
+          export REACT_APP_MAPBOX_TOKEN=${{ secrets.REACT_APP_MAPBOX_TOKEN }}
+          export REACT_APP_JIRA_KEY=${{ secrets.REACT_APP_JIRA_KEY }}
+          export NODE_PATH=${{ secrets.NODE_PATH }}
+          export PORT=${{ secrets.NODE_PORT }}
+
+          npm install
+    
+          CI=false npm run build
+
+      - name: Build and Push Docker Image
+        run: |
+          cd netmanager/
+          docker build --target=production --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} .
+          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:latest
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:latest
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:${{ needs.image-tag.outputs.build_id }}
+      - name: Deploy to K8S
+        run: |
+          kubectl apply -f k8s/platform/prod-airqo-platform-frontend.yaml
+          kubectl set image deployment/airqo-platform-frontend airqo-platform=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:${{ needs.image-tag.outputs.build_id }} -n production
+          kubectl annotate deployment/airqo-platform-frontend kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n production
+  
+  ### deploy website ###
+  website:
+    name: build-push-deploy-website
+    needs: [check, image-tag]
+    if: needs.check.outputs.run_website == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      
+      - name: Login to GCR
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ secrets.REGISTRY_URL }}
+          username: _json_key
+          password: ${{ secrets.GCR_CONFIG }}
+
+      - name: Login to K8S
+        uses: azure/k8s-set-context@v1
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.K8S_CONFIG_STAGE }}
+
+      - name: Build and Push Docker Image
+        run: |
+          cd website/
+          docker build --target=production --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }} -f docker/Dockerfile .
+          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-website:latest
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }}
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-website:latest
+      - name: Deploy to K8S
+        run: |
+          kubectl apply -f k8s/website/prod-airqo-website.yaml -n production
+          kubectl set image deployment/airqo-webiste airqo-webiste=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-webiste:${{ needs.image-tag.outputs.build_id }} -n production
+          kubectl annotate deployment/airqo-webiste kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-webiste:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n production
