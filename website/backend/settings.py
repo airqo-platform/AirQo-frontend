@@ -89,7 +89,10 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
 DATABASES = {
-    'default': dj_database_url.config(default=config('DATABASE_URI', 'postgresql://user:password@dbHost:5432/database'))
+    'default': dj_database_url.config(
+        # Default values for DATABASE_URI are for the development environment
+        default=config('DATABASE_URI', 'postgresql://user:password@dbHost:5432/database')
+    )
 }
 
 

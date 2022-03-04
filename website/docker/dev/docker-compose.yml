@@ -5,11 +5,9 @@ services:
     container_name: airqo-website
     restart: unless-stopped
     build:
-      context: ../
+      context: ../../
       dockerfile: ./docker/Dockerfile
     entrypoint: /app/wsgi-entrypoint.sh    
-    volumes:
-      - /tmp:/var/lib/postgresql/data
     ports:
       - 8000:8000
     env_file:
@@ -22,6 +20,7 @@ services:
     restart: unless-stopped
     image: postgres:14.2-alpine
     environment:
+      # This values are used in the backend settings file
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
     volumes:
