@@ -55,7 +55,6 @@ jobs:
             echo $file
             if [[ $file == netmanager/* ]]; then
               echo "::set-output name=run_platform::true"
-              break
             fi
 
             if [[ $file == website/* ]]; then

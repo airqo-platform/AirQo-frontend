@@ -20,7 +20,7 @@ jobs:
             sha=${GITHUB_SHA::8}
             timestamp=$(date +%s)
             datetime=$(date)
-            echo "::set-output name=build_id::stage-${sha}-${timestamp}"
+            echo "::set-output name=build_id::prod-${sha}-${timestamp}"
             echo "::set-output name=datetime::${datetime}"
 
   check:
@@ -55,7 +55,6 @@ jobs:
             echo $file
             if [[ $file == netmanager/* ]]; then
               echo "::set-output name=run_platform::true"
-              break
             fi
 
             if [[ $file == website/* ]]; then
@@ -90,7 +89,7 @@ jobs:
         uses: azure/k8s-set-context@v1
         with:
           method: kubeconfig
-          kubeconfig: ${{ secrets.K8S_CONFIG_STAGE }}
+          kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
 
       - name: NPM Setup and Build
         uses: actions/setup-node@v2
@@ -99,7 +98,7 @@ jobs:
       - run: |
           cd netmanager/
 
-          export REACT_APP_BASE_URL=${{ secrets.REACT_APP_BASE_URL_STAGE }}
+          export REACT_APP_BASE_URL=${{ secrets.REACT_APP_BASE_URL_PROD }}
           export REACT_APP_CLOUDINARY_NAME=${{ secrets.REACT_APP_CLOUDINARY_NAME }}
           export REACT_APP_CLOUDINARY_PRESET=${{ secrets.REACT_APP_CLOUDINARY_PRESET }}
           export REACT_APP_MAPBOX_TOKEN=${{ secrets.REACT_APP_MAPBOX_TOKEN }}
@@ -114,8 +113,8 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           cd netmanager/
-          docker build --target=production --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} .
-          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:latest
+          docker build --target=production --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:${{ needs.image-tag.outputs.build_id }} .
+          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:${{ needs.image-tag.outputs.build_id }}
       - name: Deploy to K8S
@@ -145,12 +144,12 @@ jobs:
         uses: azure/k8s-set-context@v1
         with:
           method: kubeconfig
-          kubeconfig: ${{ secrets.K8S_CONFIG_STAGE }}
+          kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
 
       - name: Build and Push Docker Image
         run: |
           cd website/
-          docker build --target=production --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }} -f docker/Dockerfile .
+          docker build --target=production --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }} -f docker/Dockerfile .
           docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-website:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }}
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-website:latest
