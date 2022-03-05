@@ -140,5 +140,5 @@ cython_debug/
 
 .idea/
 node_modules/
- google_application_credentials.json
+google_application_credentials.json
 

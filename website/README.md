@@ -1,14 +1,44 @@
 # AirQo Website
+---
+
+- [Prerequisites](#prerequisites)
+  - [Docker](#docker)
+  - [OSX, Linux, Windows](#osx-linux-windows)
+- [Setting up the development environment](#setting-up-the-development-environment)
+  - [Clone the repository](#clone-the-repository)
+  - [OSX](#osx)
+  - [Linux](#linux)
+  - [Windows](#windows)
+- [Running the stack](#running-the-stack)
+  - [Create the .envrc and .env files](#create-the-envrc-and-env-files)
+  - [Docker](#docker-1)
+  - [OSX, Linux, and Windows](#osx-linux-and-windows)
+- [Development Invoke Commands](#development-invoke-commands)
+  - [Running servers](#running-servers)
+  - [Lint checks and auto fixing](#lint-checks-and-auto-fixing)
+  - [Static builds](#static-builds)
 
 ## Prerequisites
+#### Docker
+-   `Git` [Installing Git](https://gist.github.com/derhuerst/1b15ff4652a867391f03)
+-   `Docker` [Install Docker Engine](https://docs.docker.com/engine/install/)
+-   `Docker Compose` [Install Docker Compose](https://docs.docker.com/compose/install/)
 
--   `Git` [Guide to Git](https://git-scm.com/doc) [Installing Git](https://gist.github.com/derhuerst/1b15ff4652a867391f03)
+#### OSX, Linux, Windows
+-   `Git` [Installing Git](https://gist.github.com/derhuerst/1b15ff4652a867391f03)
 -   `Python 3.6 or higher (Python 3.7 preferred)` [Python Software Foundation](https://www.python.org/)
 -   `NodeJs` [Download nodejs](https://nodejs.org/en/download/)
 -   `Npm` [NpmJs](https://www.npmjs.com/get-npm)
 
-## Setting up the development environment on OSX
+## Setting up the development environment
+### Clone the repository
+Clone the AirQo repo
 
+    git clone https://github.com/airqo-platform/AirQo-frontend.git
+
+Change directory into the `website` folder of the cloned  `AirQo-frontend` folder
+
+### OSX
 #### HomeBrew
 
 Install homebrew
@@ -68,7 +98,7 @@ Stop the postgresql service using
     or
     pg_ctl -D /usr/local/var/postgres stop  # if not installed using homebrew
     
-## Setting up the development Environment on Linux
+### Linux
 **_NOTE_**:
 
 Currently the environment does not run well on Windows Bash / WSL ( Windows Subsystem for Linux ).
@@ -138,22 +168,15 @@ or
     
     sudo systemctl stop postgresql
     
-## Setting up the development Environment on Windows
-**_NOTE_**:
-
-Currently the environment does not run well on Windows Bash / WSL ( Windows Subsystem for Linux ).
+### Windows
+**NOTE**: Currently the environment does not run well on Windows Bash / WSL ( Windows Subsystem for Linux ).
 There are too many issues with line terminators and other environment inconsistencies.
 
 We will have to configure the environment manually, `direnv` cant help us here.
 
 First install postgresql on windows [Postgresql Windows Installers](https://www.postgresql.org/download/windows/)
 
-#### Clone The Repo
-Clone the AirQo repo
 
-    git clone https://github.com/airqo-platform/AirQo-frontend.git
-
-`cd` into the cloned `website` folder in the `AirQo-frontend`
 
 #### Create Python Virtual Environment
 In your Windows command shell prompt type in
@@ -168,47 +191,10 @@ Activate the environment
 
     \env\Scripts\activate.bat
     
-**_NOTE_**:
-
-It is important at this point to add the path to the `node_modules` in the environment path variable. check [windows setting path](https://www.windows-commandline.com/set-path-command-line/)
+**NOTE**: It is important at this point to add the path to the `node_modules` in the environment path variable. check [windows setting path](https://www.windows-commandline.com/set-path-command-line/)
 for more details.
-    
-#### Install both `Python` and `node` requirements
 
-Python requirements
-
-    pip install -r requirements.txt
-
-Node requirements
-
-    npm install
-
-#### Running the website app
-
-Once properly setup, run the following in two separate terminals:
-
-    # Terminal 1
-    inv run-web
-
-    # Terminal 2
-    inv webpack-server
-
-At this point you should be able to navigate to the local instance at http://localhost:8000/   
- 
-    
-## Running the Stack
-**_NOTE_**:
-
-This is continuation to `MacOS` and `linux` setup above. **Not applicable to `Windows` setup**.
-
-#### AirQo Website
-
-Clone the AirQo repo
-
-    git clone https://github.com/airqo-platform/AirQo-frontend.git
-
-`cd` into the cloned `website` folder in the `AirQo-frontend`
-
+## Running the stack
 #### Create the `.envrc` and `.env` files
 
 In the `.envrc` file add the following code
@@ -229,12 +215,24 @@ Populate the `.env` file with the following keys and their respective values
     CLOUDINARY_SECRET
     WEB_STATIC_HOST
     DJANGO_ALLOWED_HOSTS
+    GS_BUCKET_NAME
 
-Allow `direnv` to load the new changes
+**Note**: Leave the `DATABASE_URI` empty if you are following the development steps for docker.
+
+#### Docker
+Run the command below to build and run the containers for the database and website app
+
+    docker-compose -f docker/docker-compose-dev.yml up --build
+
+When the build is complete and both _airqo-website_ and _airqo-website-db_ containers, you can access the website app at http://localhost:8000/
+
+#### OSX, Linux, and Windows
+
+**For OSX and Linux**, you need to allow `direnv` to load the new changes, so run the command below
 
     direnv allow .
 
-#### Install both `Python` and `node` requirements
+##### Install `Python` and `node` requirements
 
 Python requirements
 
@@ -244,7 +242,7 @@ Node requirements
 
     npm install
 
-#### Running the website app
+##### Run the website app
 
 Once properly setup, run the following in two separate terminals:
 
