@@ -16,10 +16,10 @@ class AboutAirQo extends StatefulWidget {
 
 class _AboutAirQoState extends State<AboutAirQo> {
   PackageInfo _packageInfo = PackageInfo(
-    appName: 'Unknown',
+    appName: 'AirQo',
     packageName: 'Unknown',
-    version: 'Unknown',
-    buildNumber: 'Unknown',
+    version: 'v1.0.0',
+    buildNumber: '1',
     buildSignature: 'Unknown',
   );
 
@@ -34,9 +34,7 @@ class _AboutAirQoState extends State<AboutAirQo> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const SizedBox(
-                    height: 126,
-                  ),
+                  const Spacer(),
                   SvgPicture.asset(
                     'assets/icon/airqo_home.svg',
                     height: 52.86,

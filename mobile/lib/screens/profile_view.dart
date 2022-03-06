@@ -1,5 +1,4 @@
-import 'package:app/auth/login_screen.dart';
-import 'package:app/auth/signup_screen.dart';
+import 'package:app/auth/phone_auth_widget.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/models/user_details.dart';
@@ -76,12 +75,7 @@ class _ProfileViewState extends State<ProfileView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: appNavBar(),
-          elevation: 0,
-          toolbarHeight: 77,
-          backgroundColor: Config.appBodyColor,
-        ),
+        appBar: navBar(),
         body: Container(
             color: Config.appBodyColor,
             child: Padding(
@@ -249,7 +243,7 @@ class _ProfileViewState extends State<ProfileView> {
       Navigator.pop(loadingContext);
       await Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
-        return const LoginScreen(phoneNumber: '', emailAddress: '');
+        return const PhoneLoginWidget(phoneNumber: '', enableBackButton: false);
       }), (r) => false);
     } else {
       Navigator.pop(loadingContext);
@@ -274,6 +268,49 @@ class _ProfileViewState extends State<ProfileView> {
         ),
       ),
     );
+  }
+
+  PreferredSizeWidget navBar() {
+    return AppBar(
+        toolbarHeight: 72,
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: Config.appBodyColor,
+        automaticallyImplyLeading: false,
+        title: Row(
+          children: [
+            profilePicWidget(
+                40, 40, 10, 12, 17.0, _userProfile.photoUrl, 27.0, false),
+            const Spacer(),
+            GestureDetector(
+              onTap: notifications,
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                height: 40,
+                width: 40,
+                decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.all(Radius.circular(8.0))),
+                child: Consumer<NotificationModel>(
+                  builder: (context, notifications, child) {
+                    if (notifications.hasNotifications()) {
+                      return SvgPicture.asset(
+                        'assets/icon/has_notifications.svg',
+                        height: 20,
+                        width: 16,
+                      );
+                    }
+                    return SvgPicture.asset(
+                      'assets/icon/empty_notifications.svg',
+                      height: 20,
+                      width: 16,
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        ));
   }
 
   Future<void> notifications() async {
@@ -431,7 +468,8 @@ class _ProfileViewState extends State<ProfileView> {
             onTap: () async {
               await Navigator.pushAndRemoveUntil(context,
                   MaterialPageRoute(builder: (context) {
-                return const SignupScreen(false);
+                return const PhoneLoginWidget(
+                    phoneNumber: '', enableBackButton: false);
               }), (r) => false);
             },
             child: Padding(

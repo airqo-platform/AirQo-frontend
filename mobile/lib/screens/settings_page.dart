@@ -1,6 +1,5 @@
-import 'package:app/auth/signup_screen.dart';
+import 'package:app/auth/phone_reauthenticate_screen.dart';
 import 'package:app/constants/config.dart';
-import 'package:app/screens/phone_reauthenticate_screen.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/utils/dialogs.dart';
@@ -11,8 +10,9 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import '../auth/email_reauthenticate_screen.dart';
+import '../auth/phone_auth_widget.dart';
 import 'about_page.dart';
-import 'email_reauthenticate_screen.dart';
 import 'feedback_page.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -109,7 +109,7 @@ class _SettingsPageState extends State<SettingsPage> {
         Navigator.pop(dialogContext);
         await Navigator.pushAndRemoveUntil(context,
             MaterialPageRoute(builder: (context) {
-          return const SignupScreen(false);
+          return const PhoneSignUpWidget(enableBackButton: false);
         }), (r) => false);
       } else {
         await showSnackBar(

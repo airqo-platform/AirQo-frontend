@@ -126,7 +126,7 @@ class ToolTip {
             width: 13.12,
           )),
           TextSpan(
-              text: ' Favorite on any location air quality '
+              text: ' Favorite icon on any location air quality '
                   'to save them here for later.',
               style: CustomTextStyle.overline1(context)),
         ]));

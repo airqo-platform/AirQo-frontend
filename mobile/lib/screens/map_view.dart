@@ -902,13 +902,10 @@ class _MapViewState extends State<MapView> {
         overflow: TextOverflow.ellipsis,
         style: CustomTextStyle.headline8(context),
       ),
-      subtitle: AutoSizeText(
-        measurement.site.location,
-        maxLines: 1,
-          style: CustomTextStyle.bodyText4(context)?.copyWith(
-            color: Config.appColorBlack.withOpacity(0.4)
-          )
-      ),
+      subtitle: AutoSizeText(measurement.site.location,
+          maxLines: 1,
+          style: CustomTextStyle.bodyText4(context)
+              ?.copyWith(color: Config.appColorBlack.withOpacity(0.4))),
       trailing: SvgPicture.asset(
         'assets/icon/more_arrow.svg',
         semanticsLabel: 'more',

@@ -1,4 +1,3 @@
-import 'package:app/auth/signup_screen.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/utils/dialogs.dart';
@@ -6,6 +5,7 @@ import 'package:app/widgets/buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../auth/phone_auth_widget.dart';
 import '../themes/light_theme.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -25,7 +25,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
         body: WillPopScope(
       onWillPop: onWillPop,
       child: Padding(
-        padding: const EdgeInsets.only(left: 24, right: 24.0, bottom: 96),
+        padding: const EdgeInsets.only(left: 24, right: 24.0),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const SizedBox(
             height: 56,
@@ -68,10 +68,13 @@ class WelcomeScreenState extends State<WelcomeScreen> {
             onTap: () {
               Navigator.pushAndRemoveUntil(context,
                   MaterialPageRoute(builder: (context) {
-                return const SignupScreen(false);
+                return const PhoneSignUpWidget(enableBackButton: false);
               }), (r) => false);
             },
-            child: nextButton('Let’s go', Config.appColorBlue),
+            child: nextButton('Let\'s go', Config.appColorBlue),
+          ),
+          const SizedBox(
+            height: 40,
           ),
         ]),
       ),

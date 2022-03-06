@@ -10,7 +10,7 @@ import '../home_page.dart';
 class KyaFinalPage extends StatefulWidget {
   final Kya kya;
 
-  KyaFinalPage({Key? key, required this.kya}) : super(key: key);
+  const KyaFinalPage({Key? key, required this.kya}) : super(key: key);
 
   @override
   _KyaFinalPageState createState() => _KyaFinalPageState();

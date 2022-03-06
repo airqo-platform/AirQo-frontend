@@ -1,6 +1,5 @@
-import 'package:app/auth/login_screen.dart';
+import 'package:app/auth/email_auth_widget.dart';
 import 'package:app/constants/config.dart';
-import 'package:app/on_boarding/profile_setup_screen.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/utils/dialogs.dart';
@@ -10,34 +9,31 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../on_boarding/profile_setup_screen.dart';
 import '../themes/light_theme.dart';
+import '../widgets/custom_shimmer.dart';
 
 class PhoneAuthWidget extends StatefulWidget {
-  final bool enableBackButton;
-  final ValueSetter<String> changeOption;
-  final ValueSetter<bool> appLoading;
-  final String action;
   final String phoneNumber;
+  final bool enableBackButton;
+  final bool isLogin;
 
-  const PhoneAuthWidget(
-      {Key? key,
-      required this.enableBackButton,
-      required this.changeOption,
-      required this.action,
-      required this.appLoading,
-      required this.phoneNumber})
-      : super(key: key);
+  const PhoneAuthWidget({
+    Key? key,
+    required this.phoneNumber,
+    required this.enableBackButton,
+    required this.isLogin,
+  }) : super(key: key);
 
   @override
   PhoneAuthWidgetState createState() => PhoneAuthWidgetState();
 }
 
-class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
-  bool _phoneFormValid = false;
+class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
   late String _phoneNumber;
-  late String _countryCodePlaceHolder;
   late String _countryCode;
   bool _verifyCode = false;
+  bool _showAuthOptions = true;
   String _verificationId = '';
   bool _resendCode = false;
   bool _codeSent = false;
@@ -45,51 +41,51 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
   bool _isVerifying = false;
   List<String> _phoneVerificationCode = <String>['', '', '', '', '', ''];
   late Color _nextBtnColor;
+  DateTime? _exitTime;
+  late BuildContext loadingContext;
+  String _authOptionsText = '';
+  String _authOptionsButtonText = '';
 
   late TextEditingController _phoneInputController;
   final _phoneFormKey = GlobalKey<FormState>();
   late AppService _appService;
 
   Future<void> authenticatePhoneNumber(AuthCredential authCredential) async {
-    if (widget.action == 'signup') {
-      var signUpSuccessful = await _appService.authenticateUser(
-          authCredential, '', '', authMethod.phone, authProcedure.signup);
-      if (signUpSuccessful) {
-        setState(() {
-          widget.appLoading(false);
-        });
-        await Navigator.pushAndRemoveUntil(context,
-            MaterialPageRoute(builder: (context) {
-          return ProfileSetupScreen(widget.enableBackButton);
-        }), (r) => false);
-      } else {
-        setState(() {
-          widget.appLoading(false);
-          _codeSent = true;
-          _isVerifying = false;
-          _nextBtnColor = Config.appColorBlue;
-        });
-        await showSnackBar(context, 'Signup failed.');
-      }
-    } else {
+    if (widget.isLogin) {
       var loginSuccessful = await _appService.authenticateUser(
           authCredential, '', '', authMethod.phone, authProcedure.login);
       if (loginSuccessful) {
-        setState(() {
-          widget.appLoading(false);
-        });
+        Navigator.pop(loadingContext);
         await Navigator.pushAndRemoveUntil(context,
             MaterialPageRoute(builder: (context) {
           return const HomePage();
         }), (r) => false);
       } else {
+        Navigator.pop(loadingContext);
         setState(() {
-          widget.appLoading(false);
           _codeSent = true;
           _isVerifying = false;
           _nextBtnColor = Config.appColorBlue;
         });
         await showSnackBar(context, 'Login failed.');
+      }
+    } else {
+      var signUpSuccessful = await _appService.authenticateUser(
+          authCredential, '', '', authMethod.phone, authProcedure.signup);
+      if (signUpSuccessful) {
+        Navigator.pop(loadingContext);
+        await Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (context) {
+          return const ProfileSetupScreen(false);
+        }), (r) => false);
+      } else {
+        Navigator.pop(loadingContext);
+        setState(() {
+          _codeSent = true;
+          _isVerifying = false;
+          _nextBtnColor = Config.appColorBlue;
+        });
+        await showSnackBar(context, 'Signup failed.');
       }
     }
   }
@@ -100,243 +96,24 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.only(left: 24, right: 24),
-      child: Center(
-          child: ListView(children: [
-        // Start Common widgets
-
-        const SizedBox(
-          height: 56,
-        ),
-
-        Visibility(
-          visible: _verifyCode,
-          child: AutoSizeText(
-            'Verify your account',
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: CustomTextStyle.headline7(context),
-          ),
-        ),
-        Visibility(
-            visible: !_verifyCode,
-            child: AutoSizeText(
-              widget.action == 'signup'
-                  ? 'Sign up with your mobile number or email'
-                  : 'Login with your mobile number or email',
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: CustomTextStyle.headline7(context),
-            )),
-
-        const SizedBox(
-          height: 8,
-        ),
-
-        if (_phoneNumber.length > 8)
-          Visibility(
-            visible: _verifyCode,
-            child: AutoSizeText(
-                // 'Enter the 6 digits code sent to your\n'
-                //     'number that ends with ...'
-                //     '${phoneNumber.substring(phoneNumber.length - 3)}',
-                'Enter the 6 digits code sent to your '
-                'number $_countryCode$_phoneNumber',
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyText2
-                    ?.copyWith(color: Config.appColorBlack.withOpacity(0.6))),
-          ),
-        Visibility(
-            visible: !_verifyCode,
-            child: AutoSizeText('We’ll send you a verification code',
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyText2
-                    ?.copyWith(color: Config.appColorBlack.withOpacity(0.6)))),
-
-        const SizedBox(
-          height: 32,
-        ),
-
-        // End Common widgets
-
-        Visibility(
-          visible: _verifyCode,
-          child: Padding(
-            padding: const EdgeInsets.only(left: 36, right: 36),
-            child: optField(0, context, setCode, _codeSent),
-          ),
-        ),
-        Visibility(
-          visible: !_verifyCode,
-          child: Form(
-            key: _phoneFormKey,
-            child: SizedBox(
-              height: 48,
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 64,
-                    child: countryPickerField(
-                        _countryCode, codeValueChange, context),
-                  ),
-                  const SizedBox(
-                    width: 16,
-                  ),
-                  Expanded(
-                    child: phoneInputField(),
-                  )
-                ],
-              ),
-            ),
-          ),
-        ),
-
-        const SizedBox(
-          height: 32,
-        ),
-
-        Visibility(
-          visible: !_codeSent && _verifyCode,
-          child: Text('The code should arrive with in 5 sec',
-              textAlign: TextAlign.center,
-              style: Theme.of(context)
-                  .textTheme
-                  .caption
-                  ?.copyWith(color: Config.appColorBlack.withOpacity(0.5))),
-        ),
-        Visibility(
-          visible: _codeSent && _verifyCode,
-          child: GestureDetector(
-            onTap: () async {
-              await resendVerificationCode();
-            },
-            child: Text('Resend code',
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context)
-                    .textTheme
-                    .caption
-                    ?.copyWith(color: Config.appColorBlue)),
-          ),
-        ),
-        Visibility(
-          visible: !_verifyCode,
-          child: GestureDetector(
-            onTap: () {
-              setState(() {
-                _initialize();
-                widget.changeOption('email');
-              });
-            },
-            child: widget.action == 'signup'
-                ? signButton(
-                    text: 'Sign up with an email instead', context: context)
-                : signButton(
-                    text: 'Login with an email instead', context: context),
-          ),
-        ),
-
-        const SizedBox(
-          height: 19,
-        ),
-
-        Visibility(
-          visible: _verifyCode,
-          child: Padding(
-            padding: const EdgeInsets.only(left: 36, right: 36),
-            child: Stack(
-              alignment: AlignmentDirectional.center,
-              children: [
-                Container(
-                  height: 1.09,
-                  color: Colors.black.withOpacity(0.05),
-                ),
-                Container(
-                    color: Colors.white,
-                    padding: const EdgeInsets.only(left: 5, right: 5),
-                    child: Text('Or',
-                        style: Theme.of(context)
-                            .textTheme
-                            .caption
-                            ?.copyWith(color: const Color(0xffD1D3D9)))),
-              ],
-            ),
-          ),
-        ),
-        Visibility(
-          visible: _verifyCode,
-          child: const SizedBox(
-            height: 19,
-          ),
-        ),
-        Visibility(
-          visible: _verifyCode,
-          child: GestureDetector(
-            onTap: _initialize,
-            child: Text(
-              'Change Phone Number',
-              textAlign: TextAlign.center,
-              style: Theme.of(context)
-                  .textTheme
-                  .caption
-                  ?.copyWith(color: Config.appColorBlue),
-            ),
-          ),
-        ),
-
-        const SizedBox(
-          height: 212,
-        ),
-        Visibility(
-          visible: _verifyCode,
-          child: GestureDetector(
-            onTap: () async {
-              await verifySentCode();
-            },
-            child: nextButton('Next', _nextBtnColor),
-          ),
-        ),
-        Visibility(
-          visible: !_verifyCode,
-          child: GestureDetector(
-            onTap: () async {
-              await requestVerification();
-            },
-            child: nextButton('Next', _nextBtnColor),
-          ),
-        ),
-        const SizedBox(
-          height: 16,
-        ),
-        Visibility(
-          visible: widget.action == 'signup',
-          child: signUpOptions(context),
-        ),
-        Visibility(
-          visible: widget.action == 'login',
-          child: loginOptions(context),
-        ),
-        const SizedBox(
-          height: 36,
-        ),
-      ])),
-    );
+    return Scaffold(
+        body: WillPopScope(
+            onWillPop: onWillPop,
+            child: Container(
+              color: Colors.white,
+              child: Center(child: Column(children: _getColumnWidget())),
+            )));
   }
 
   void clearPhoneCallBack() {
+    if (_phoneNumber == '') {
+      FocusScope.of(context).unfocus();
+      Future.delayed(const Duration(milliseconds: 250), () {
+        setState(() {
+          _showAuthOptions = true;
+        });
+      });
+    }
     setState(() {
       _phoneNumber = '';
       _phoneInputController.text = '';
@@ -347,81 +124,246 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
   void codeValueChange(text) {
     setState(() {
       _countryCode = text;
-      _countryCodePlaceHolder = '$text(0) ';
     });
+  }
+
+  @override
+  void dispose() {
+    _phoneInputController.dispose();
+    super.dispose();
   }
 
   @override
   void initState() {
     super.initState();
     _appService = AppService(context);
+    loadingContext = context;
     _initialize();
   }
 
+  Future<bool> onWillPop() {
+    var now = DateTime.now();
+
+    if (_exitTime == null ||
+        now.difference(_exitTime!) > const Duration(seconds: 2)) {
+      _exitTime = now;
+
+      showSnackBar(context, 'Tap again to cancel !');
+      return Future.value(false);
+    }
+
+    Navigator.pop(loadingContext);
+
+    // if (widget.enableBackButton) {
+    //   Navigator.pushAndRemoveUntil(context,
+    //       MaterialPageRoute(builder: (context) {
+    //         return const HomePage();
+    //       }), (r) => false);
+    // }
+
+    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) {
+      return const HomePage();
+    }), (r) => false);
+
+    return Future.value(false);
+  }
+
   Widget phoneInputField() {
-    return Container(
-        height: 48,
-        alignment: Alignment.center,
-        padding: const EdgeInsets.only(left: 15),
-        decoration: BoxDecoration(
-            borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-            border: Border.all(color: Config.appColorBlue)),
-        child: Center(
-            child: TextFormField(
-          controller: _phoneInputController,
-          autofocus: true,
-          enableSuggestions: false,
-          cursorWidth: 1,
-          cursorColor: Config.appColorBlue,
-          keyboardType: TextInputType.number,
-          onChanged: phoneValueChange,
-          style: TextStyle(
-              fontSize: 16.0,
-              fontWeight: FontWeight.normal,
-              fontStyle: FontStyle.normal,
-              color: Config.appColorBlack),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              showSnackBar(context, 'Please enter your phone number');
-              setState(() {
-                _phoneFormValid = false;
-              });
-            } else {
-              setState(() {
-                _phoneFormValid = true;
-              });
-            }
-            return null;
-          },
-          decoration: InputDecoration(
-            prefixText: _countryCodePlaceHolder,
-            focusedBorder: InputBorder.none,
-            enabledBorder: InputBorder.none,
-            prefixStyle: Theme.of(context)
+    return TextFormField(
+      controller: _phoneInputController,
+      onEditingComplete: () async {
+        FocusScope.of(context).requestFocus(FocusNode());
+        Future.delayed(const Duration(milliseconds: 250), (){
+          setState(() {
+            _showAuthOptions = true;
+          });
+        });
+      },
+      onTap: () {
+        setState(() {
+          _showAuthOptions = false;
+        });
+      },
+      onChanged: phoneValueChange,
+      style: Theme.of(context).textTheme.bodyText1,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter your phone number';
+        }
+        return null;
+      },
+      enableSuggestions: false,
+      cursorWidth: 1,
+      autofocus: false,
+      cursorColor: Config.appColorBlue,
+      keyboardType: TextInputType.number,
+      decoration: InputDecoration(
+        contentPadding: const EdgeInsets.fromLTRB(16, 12, 0, 12),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Config.appColorBlue, width: 1.0),
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Config.appColorBlue, width: 1.0),
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        border: OutlineInputBorder(
+            borderSide: BorderSide(color: Config.appColorBlue, width: 1.0),
+            borderRadius: BorderRadius.circular(8.0)),
+        hintText: '0700000000',
+        prefixIcon: Padding(
+            padding: const EdgeInsets.fromLTRB(8, 11, 0, 15),
+            child: Text(
+              '$_countryCode ',
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyText1
+                  ?.copyWith(color: Config.appColorBlack.withOpacity(0.32)),
+            )),
+        hintStyle: Theme.of(context)
+            .textTheme
+            .bodyText1
+            ?.copyWith(color: Config.appColorBlack.withOpacity(0.32)),
+        prefixStyle: Theme.of(context)
+            .textTheme
+            .bodyText1
+            ?.copyWith(color: Config.appColorBlack.withOpacity(0.32)),
+        suffixIcon: GestureDetector(
+          onTap: clearPhoneCallBack,
+          child: textInputCloseButton(),
+        ),
+        errorStyle: const TextStyle(
+          fontSize: 0,
+        ),
+      ),
+    );
+  }
+
+  List<Widget> phoneInputWidget() {
+    return [
+      const SizedBox(
+        height: 56,
+      ),
+      Padding(
+        padding: const EdgeInsets.only(left: 40, right: 40),
+        child: AutoSizeText(
+          _authOptionsText,
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: CustomTextStyle.headline7(context),
+        ),
+      ),
+      const SizedBox(
+        height: 8,
+      ),
+      Padding(
+        padding: const EdgeInsets.only(left: 40, right: 40),
+        child: AutoSizeText('We\'ll send you a verification code',
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context)
                 .textTheme
-                .bodyText1
-                ?.copyWith(color: Config.appColorBlack.withOpacity(0.32)),
-            // focusedBorder: OutlineInputBorder(
-            //   borderSide: BorderSide(color: Config.appColorBlue,
-            //   width: 1.0),
-            //   borderRadius: BorderRadius.circular(10.0),
-            // ),
-            // enabledBorder: OutlineInputBorder(
-            //   borderSide: BorderSide(color: Config.appColorBlue,
-            //   width: 1.0),
-            //   borderRadius: BorderRadius.circular(10.0),
-            // ),
-            hintText: '0700000000',
-            hintStyle: Theme.of(context)
-                .textTheme
-                .bodyText1
-                ?.copyWith(color: Config.appColorBlack.withOpacity(0.32)),
-            suffixIcon: GestureDetector(
-              onTap: clearPhoneCallBack,
-              child: textInputCloseButton(),
+                .bodyText2
+                ?.copyWith(color: Config.appColorBlack.withOpacity(0.6))),
+      ),
+      const SizedBox(
+        height: 32,
+      ),
+      Padding(
+        padding: const EdgeInsets.only(left: 24, right: 24),
+        child: Form(
+          key: _phoneFormKey,
+          child: SizedBox(
+            height: 48,
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 64,
+                  child: countryPickerField(
+                      _countryCode, codeValueChange, context),
+                ),
+                const SizedBox(
+                  width: 16,
+                ),
+                Expanded(
+                  child: phoneInputField(),
+                )
+              ],
             ),
           ),
-        )));
+        ),
+      ),
+      const SizedBox(
+        height: 32,
+      ),
+      Padding(
+        padding: const EdgeInsets.only(left: 24, right: 24),
+        child: GestureDetector(
+          onTap: () {
+            setState(() {
+              Navigator.pushAndRemoveUntil(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) {
+                      if (widget.isLogin) {
+                        return const EmailLoginWidget(
+                          enableBackButton: false,
+                          emailAddress: '',
+                        );
+                      }
+                      return const EmailSignUpWidget(
+                        enableBackButton: false,
+                      );
+                    },
+                    transitionsBuilder:
+                        (context, animation, secondaryAnimation, child) {
+                      return FadeTransition(
+                        opacity:
+                            animation.drive(Tween<double>(begin: 0, end: 1)),
+                        child: child,
+                      );
+                    },
+                  ),
+                  (r) => false);
+            });
+          },
+          child: signButton(text: _authOptionsButtonText, context: context),
+        ),
+      ),
+      const Spacer(),
+      Padding(
+        padding: const EdgeInsets.only(left: 24, right: 24),
+        child: GestureDetector(
+          onTap: () async {
+            await requestVerification();
+          },
+          child: nextButton('Next', _nextBtnColor),
+        ),
+      ),
+      Visibility(
+        visible: _showAuthOptions,
+        child: const Padding(
+          padding: EdgeInsets.only(left: 24, right: 24),
+          child: SizedBox(
+            height: 16,
+          ),
+        ),
+      ),
+      Visibility(
+        visible: _showAuthOptions,
+        child: Padding(
+          padding: const EdgeInsets.only(left: 24, right: 24),
+          child: widget.isLogin
+              ? loginOptionsV2(context: context)
+              : signUpOptionsV2(context: context),
+        ),
+      ),
+      SizedBox(
+        height: _showAuthOptions ? 40 : 12,
+      ),
+    ];
   }
 
   void phoneValueChange(text) {
@@ -440,27 +382,159 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
     });
   }
 
+  List<Widget> phoneVerificationWidget() {
+    return [
+      const SizedBox(
+        height: 56,
+      ),
+      Padding(
+        padding: const EdgeInsets.only(left: 24, right: 24),
+        child: AutoSizeText(
+          'Verify your account',
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: CustomTextStyle.headline7(context),
+        ),
+      ),
+      const SizedBox(
+        height: 8,
+      ),
+      Padding(
+        padding: const EdgeInsets.only(left: 40, right: 40),
+        child: AutoSizeText(
+            // 'Enter the 6 digits code sent to your\n'
+            //     'number that ends with ...'
+            //     '${phoneNumber.substring(phoneNumber.length - 3)}',
+            'Enter the 6 digits code sent to your '
+            'number $_countryCode$_phoneNumber',
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context)
+                .textTheme
+                .bodyText2
+                ?.copyWith(color: Config.appColorBlack.withOpacity(0.6))),
+      ),
+      const SizedBox(
+        height: 32,
+      ),
+      Padding(
+        padding: const EdgeInsets.only(left: 60, right: 60),
+        child: optFieldV2(0, context, setCode, _codeSent),
+      ),
+      const SizedBox(
+        height: 16,
+      ),
+      Padding(
+          padding: const EdgeInsets.only(left: 78, right: 78),
+          child: Visibility(
+            visible: !_codeSent,
+            child: Text('The code should arrive with in 5 sec',
+                textAlign: TextAlign.center,
+                style: Theme.of(context)
+                    .textTheme
+                    .caption
+                    ?.copyWith(color: Config.appColorBlack.withOpacity(0.5))),
+          )),
+      Padding(
+        padding: const EdgeInsets.only(left: 78, right: 78),
+        child: Visibility(
+          visible: _codeSent,
+          child: GestureDetector(
+            onTap: () async {
+              await resendVerificationCode();
+            },
+            child: Text('Resend code',
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context)
+                    .textTheme
+                    .caption
+                    ?.copyWith(color: Config.appColorBlue)),
+          ),
+        ),
+      ),
+      const SizedBox(
+        height: 19,
+      ),
+      Padding(
+        padding: const EdgeInsets.only(left: 60, right: 60),
+        child: Stack(
+          alignment: AlignmentDirectional.center,
+          children: [
+            Container(
+              height: 1.09,
+              color: Colors.black.withOpacity(0.05),
+            ),
+            Container(
+                color: Colors.white,
+                padding: const EdgeInsets.only(left: 5, right: 5),
+                child: Text('Or',
+                    style: Theme.of(context)
+                        .textTheme
+                        .caption
+                        ?.copyWith(color: const Color(0xffD1D3D9)))),
+          ],
+        ),
+      ),
+      const SizedBox(
+        height: 21,
+      ),
+      Padding(
+        padding: const EdgeInsets.only(left: 127, right: 127),
+        child: GestureDetector(
+          onTap: _initialize,
+          child: Text(
+            'Change Phone Number',
+            textAlign: TextAlign.center,
+            style: Theme.of(context)
+                .textTheme
+                .caption
+                ?.copyWith(color: Config.appColorBlue),
+          ),
+        ),
+      ),
+      const Spacer(),
+      Padding(
+        padding: const EdgeInsets.only(left: 24, right: 24),
+        child: GestureDetector(
+          onTap: () async {
+            await verifySentCode();
+          },
+          child: nextButton('Next', _nextBtnColor),
+        ),
+      ),
+      const SizedBox(
+        height: 12,
+      ),
+    ];
+  }
+
   Future<void> requestVerification() async {
     var connected = await _appService.isConnected();
     if (!connected) {
       await showSnackBar(context, Config.connectionErrorMessage);
       return;
     }
-    _phoneFormKey.currentState!.validate();
-    if (_phoneFormValid) {
+
+    if (_phoneFormKey.currentState!.validate()) {
+      FocusScope.of(context).requestFocus(FocusNode());
       setState(() {
         _nextBtnColor = Config.appColorDisabled;
         _isVerifying = true;
         _codeSent = false;
-        widget.appLoading(true);
+        _showAuthOptions = true;
       });
+      loadingScreen(loadingContext);
 
       var hasConnection = await _appService.isConnected();
       if (!hasConnection) {
+        Navigator.pop(loadingContext);
         setState(() {
           _codeSent = true;
           _isVerifying = false;
-          widget.appLoading(false);
         });
         await showSnackBar(context, 'Check your internet connection');
         return;
@@ -468,26 +542,36 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
 
       var phoneNumber = '$_countryCode$_phoneNumber';
 
-      if (widget.action == 'signup') {
+      if (!widget.isLogin) {
         var phoneNumberTaken = await _appService.doesUserExist(phoneNumber, '');
 
         if (phoneNumberTaken) {
           setState(() {
             _codeSent = true;
             _isVerifying = false;
-            widget.appLoading(false);
           });
+          Navigator.pop(loadingContext);
           await showSnackBar(
               context,
               'You already have an '
               'account with ths phone number');
-          await Navigator.pushAndRemoveUntil(context,
-              MaterialPageRoute(builder: (context) {
-            return LoginScreen(
-              phoneNumber: '$_countryCode.$_phoneNumber',
-              emailAddress: '',
-            );
-          }), (r) => false);
+          await Navigator.pushAndRemoveUntil(
+              context,
+              PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) =>
+                    PhoneLoginWidget(
+                  phoneNumber: '$_countryCode.$_phoneNumber',
+                  enableBackButton: false,
+                ),
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) {
+                  return FadeTransition(
+                    opacity: animation.drive(Tween<double>(begin: 0, end: 1)),
+                    child: child,
+                  );
+                },
+              ),
+              (r) => false);
           return;
         }
       }
@@ -495,17 +579,17 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
       var success = await _appService.customAuth.requestPhoneVerification(
           phoneNumber, context, verifyPhoneFn, autoVerifyPhoneFn);
 
+      Navigator.pop(loadingContext);
+
       if (success) {
         setState(() {
           _codeSent = true;
           _isVerifying = false;
-          widget.appLoading(false);
         });
       } else {
         setState(() {
           _codeSent = false;
           _isVerifying = false;
-          widget.appLoading(false);
         });
       }
     }
@@ -588,11 +672,14 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
       return;
     }
 
+    FocusScope.of(context).requestFocus(FocusNode());
     setState(() {
       _nextBtnColor = Config.appColorDisabled;
       _isVerifying = true;
-      widget.appLoading(true);
+      _showAuthOptions = true;
     });
+
+    loadingScreen(loadingContext);
 
     var phoneCredential = PhoneAuthProvider.credential(
         verificationId: _verificationId,
@@ -601,13 +688,18 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
     await authenticatePhoneNumber(phoneCredential);
   }
 
+  List<Widget> _getColumnWidget() {
+    if (_verifyCode) {
+      return phoneVerificationWidget();
+    }
+
+    return phoneInputWidget();
+  }
+
   void _initialize() {
     setState(() {
       _phoneNumber =
           widget.phoneNumber == '' ? '' : widget.phoneNumber.split('.').last;
-      _countryCodePlaceHolder = widget.phoneNumber == ''
-          ? '+256 '
-          : '${widget.phoneNumber.split('.').first} ';
       _countryCode = widget.phoneNumber == ''
           ? '+256'
           : widget.phoneNumber.split('.').first;
@@ -621,8 +713,43 @@ class PhoneAuthWidgetState extends State<PhoneAuthWidget> {
       _codeSent = false;
       _isResending = false;
       _isVerifying = false;
-      _phoneFormValid = false;
       _phoneInputController = TextEditingController(text: _phoneNumber);
+      _showAuthOptions = true;
+      _authOptionsText = widget.isLogin
+          ? 'Login with your mobile number or email'
+          : 'Sign up with your mobile number or email';
+      _authOptionsButtonText = widget.isLogin
+          ? 'Login with an email instead'
+          : 'Sign up with an email instead';
     });
   }
 }
+
+class PhoneLoginWidget extends PhoneAuthWidget {
+  const PhoneLoginWidget(
+      {Key? key, required String phoneNumber, required bool enableBackButton})
+      : super(
+            key: key,
+            phoneNumber: phoneNumber,
+            enableBackButton: enableBackButton,
+            isLogin: true);
+
+  @override
+  PhoneLoginWidgetState createState() => PhoneLoginWidgetState();
+}
+
+class PhoneLoginWidgetState extends PhoneAuthWidgetState<PhoneLoginWidget> {}
+
+class PhoneSignUpWidget extends PhoneAuthWidget {
+  const PhoneSignUpWidget({Key? key, required bool enableBackButton})
+      : super(
+            key: key,
+            phoneNumber: '',
+            enableBackButton: enableBackButton,
+            isLogin: false);
+
+  @override
+  PhoneSignUpWidgetState createState() => PhoneSignUpWidgetState();
+}
+
+class PhoneSignUpWidgetState extends PhoneAuthWidgetState<PhoneSignUpWidget> {}

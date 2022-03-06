@@ -61,6 +61,7 @@ PreferredSizeWidget appTopBar(context, String title) {
       centerTitle: true,
       elevation: 0,
       backgroundColor: Config.appBodyColor,
+      automaticallyImplyLeading: false,
       leading: Padding(
         padding: const EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
         child: backButton(context),

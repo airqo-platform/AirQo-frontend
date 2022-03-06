@@ -33,7 +33,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
         const Spacer(),
         onBoardingLocationIcon(),
         const SizedBox(
-          height: 43,
+          height: 26,
         ),
         Padding(
           padding: const EdgeInsets.only(left: 57, right: 57),
@@ -91,16 +91,14 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
           child: Text(
             'No, thanks',
             textAlign: TextAlign.center,
-            style: TextStyle(
-                fontSize: 12,
-                height: 16 / 12,
-                letterSpacing: 16 * -0.022,
-                fontWeight: FontWeight.bold,
-                color: Config.appColorBlue),
+            style: Theme.of(context)
+                .textTheme
+                .caption
+                ?.copyWith(color: Config.appColorBlue),
           ),
         ),
         const SizedBox(
-          height: 58,
+          height: 40,
         ),
       ]),
     ));
@@ -123,14 +121,18 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
       showSnackBar(context, 'Tap again to exit !');
       return Future.value(false);
     }
-    if (widget.enableBackButton) {
-      Navigator.pushAndRemoveUntil(context,
-          MaterialPageRoute(builder: (context) {
-        return const HomePage();
-      }), (r) => false);
-    }
+    // if (widget.enableBackButton) {
+    //   Navigator.pushAndRemoveUntil(context,
+    //       MaterialPageRoute(builder: (context) {
+    //     return const HomePage();
+    //   }), (r) => false);
+    // }
 
-    return Future.value(true);
+    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) {
+      return const HomePage();
+    }), (r) => false);
+
+    return Future.value(false);
   }
 
   void updateOnBoardingPage() async {
