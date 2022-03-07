@@ -570,6 +570,7 @@ export default function DeviceLogs({ deviceName, deviceLocation }) {
       <div>
         {show.logTable && (
           <MaintenanceLogsTable
+            isLoading={isEmpty(maintenanceLogs)}
             title={<TableTitle deviceName={deviceName} />}
             columns={logsColumns}
             data={maintenanceLogs}

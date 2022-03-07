@@ -49,6 +49,19 @@ class UserDetails {
     return fullName.isEmpty ? 'Hello' : fullName;
   }
 
+  String getInitials() {
+    var initials = '';
+    if (firstName.isNotEmpty) {
+      initials = firstName[0].toUpperCase();
+    }
+
+    if (lastName.isNotEmpty) {
+      initials = '$initials${lastName[0].toUpperCase()}';
+    }
+
+    return initials.isEmpty ? 'A' : initials;
+  }
+
   Map<String, dynamic> toJson() => _$UserDetailsToJson(this);
 
   @override

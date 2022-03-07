@@ -1302,13 +1302,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.0"
-  swiping_card_deck:
-    dependency: "direct main"
-    description:
-      name: swiping_card_deck
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.2.0"
   synchronized:
     dependency: transitive
     description:

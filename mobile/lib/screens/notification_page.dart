@@ -205,7 +205,7 @@ class _NotificationPageState extends State<NotificationPage> {
   Widget placeHolder() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-      child: containerLoadingAnimation(100.0, 16.0),
+      child: containerLoadingAnimation(height: 100.0, radius: 16.0),
     );
   }
 

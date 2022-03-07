@@ -61,7 +61,7 @@ Widget analyticsCardLoading() {
         const SizedBox(height: 20),
         Padding(
           padding: const EdgeInsets.only(left: 24, right: 24),
-          child: containerLoadingAnimation(9, 1000),
+          child: containerLoadingAnimation(height: 9, radius: 1000),
         ),
         const Divider(color: Color(0xffC4C4C4)),
         const SizedBox(
@@ -468,7 +468,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
     setState(() {
       _showHeartAnimation = true;
     });
-    Future.delayed(const Duration(seconds: 2), () async {
+    Future.delayed(const Duration(seconds: 2), () {
       setState(() {
         _showHeartAnimation = false;
       });
@@ -720,7 +720,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
     setState(() {
       _showHeartAnimation = true;
     });
-    Future.delayed(const Duration(seconds: 2), () async {
+    Future.delayed(const Duration(seconds: 2), () {
       setState(() {
         _showHeartAnimation = false;
       });

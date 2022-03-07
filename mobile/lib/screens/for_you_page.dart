@@ -1,10 +1,9 @@
 import 'package:app/constants/config.dart';
 import 'package:app/widgets/custom_widgets.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'analytics_view.dart';
-import 'know_your_air_view.dart';
+import 'kya/know_your_air_view.dart';
 
 class ForYouPage extends StatefulWidget {
   const ForYouPage({Key? key}) : super(key: key);
@@ -15,12 +14,8 @@ class ForYouPage extends StatefulWidget {
 
 class _ForYouPageState extends State<ForYouPage>
     with SingleTickerProviderStateMixin {
-  TabController? _tabController;
-  bool isWeekly = true;
-
-  int segmentedControlValue = 0;
-
-  int currentSegment = 0;
+  late TabController _tabController;
+  bool analytics = true;
 
   @override
   Widget build(BuildContext context) {
@@ -58,11 +53,11 @@ class _ForYouPageState extends State<ForYouPage>
                     onTap: (value) {
                       if (value == 0) {
                         setState(() {
-                          isWeekly = true;
+                          analytics = true;
                         });
                       } else {
                         setState(() {
-                          isWeekly = false;
+                          analytics = false;
                         });
                       }
                     },
@@ -72,14 +67,14 @@ class _ForYouPageState extends State<ForYouPage>
                             minWidth: double.infinity, maxHeight: 32),
                         decoration: BoxDecoration(
                             color:
-                                isWeekly ? Config.appColorBlue : Colors.white,
+                                analytics ? Config.appColorBlue : Colors.white,
                             borderRadius:
                                 const BorderRadius.all(Radius.circular(5.0))),
                         child: Tab(
                             child: Text(
                           'Analytics',
                           style: TextStyle(
-                            color: isWeekly ? Colors.white : Colors.black,
+                            color: analytics ? Colors.white : Colors.black,
                           ),
                         )),
                       ),
@@ -88,14 +83,14 @@ class _ForYouPageState extends State<ForYouPage>
                             minWidth: double.infinity, maxHeight: 32),
                         decoration: BoxDecoration(
                             color:
-                                isWeekly ? Colors.white : Config.appColorBlue,
+                                analytics ? Colors.white : Config.appColorBlue,
                             borderRadius:
                                 const BorderRadius.all(Radius.circular(5.0))),
                         child: Tab(
                             child: Text(
                           'Know you Air',
                           style: TextStyle(
-                            color: isWeekly ? Colors.black : Colors.white,
+                            color: analytics ? Colors.black : Colors.white,
                           ),
                         )),
                       )
@@ -120,7 +115,7 @@ class _ForYouPageState extends State<ForYouPage>
   @override
   void dispose() {
     super.dispose();
-    _tabController!.dispose();
+    _tabController.dispose();
   }
 
   @override
@@ -129,46 +124,18 @@ class _ForYouPageState extends State<ForYouPage>
     _tabController = TabController(length: 2, vsync: this);
   }
 
-  void onValueChanged(int? newValue) {
-    if (newValue != null) {
-      setState(() {
-        currentSegment = newValue;
-      });
-    }
-  }
-
-  Widget segmentedControl() {
-    return SizedBox(
-      width: 300,
-      child: CupertinoSlidingSegmentedControl(
-          groupValue: segmentedControlValue,
-          backgroundColor: Colors.blue.shade200,
-          children: const <int, Widget>{
-            0: Text('Analytics'),
-            1: Text('Know you Air'),
-          },
-          onValueChanged: (value) {
-            setState(() {
-              if (value != null) {
-                segmentedControlValue = value as int;
-              }
-            });
-          }),
-    );
-  }
-
   Widget topTabBar(text) {
     return Container(
       constraints:
           const BoxConstraints(minWidth: double.infinity, maxHeight: 32),
       decoration: BoxDecoration(
-          color: isWeekly ? Config.appColorBlue : Colors.white,
+          color: analytics ? Config.appColorBlue : Colors.white,
           borderRadius: const BorderRadius.all(Radius.circular(5.0))),
       child: Tab(
           child: Text(
         text,
         style: TextStyle(
-          color: isWeekly ? Colors.white : Colors.black,
+          color: analytics ? Colors.white : Colors.black,
         ),
       )),
     );

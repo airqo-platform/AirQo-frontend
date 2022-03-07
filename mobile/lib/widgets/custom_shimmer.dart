@@ -18,7 +18,8 @@ Widget circularLoadingAnimation(double size) {
       ));
 }
 
-Widget containerLoadingAnimation(double height, double radius) {
+Widget containerLoadingAnimation(
+    {required double height, required double radius}) {
   return SizedBox(
     height: height,
     child: Shimmer.fromColors(

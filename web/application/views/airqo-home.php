@@ -303,23 +303,26 @@
 				<div class="col-md-2">
 					<img src="<?= base_url(); ?>assets/images/partners/googleorg.png" class="img-fluid" alt="">
 				</div>
+				<div class="col-md-2" >
+					<img src="<?= base_url(); ?>assets/images/partners/wehubit.png" class="img-fluid">
+				</div>
+				<div class="col-md-2" style="display: flex; align-items: center;">
+					<img src="<?= base_url(); ?>assets/images/partners/us-mission-uganda.webp" class="img-fluid">
+				</div>
 				<div class="col-md-2">
 					<img src="<?= base_url(); ?>assets/images/partners/embassy.png" class="img-fluid" alt="">
 				</div>
 				<div class="col-md-2">
 					<img src="<?= base_url(); ?>assets/images/partners/epsrc.png" class="img-fluid">
 				</div>
+                <div class="col-md-2"></div>
+                <div class="col-md-2"></div>
 				<div class="col-md-2">
 					<img src="<?= base_url(); ?>assets/images/partners/nfr.png" class="img-fluid">
 				</div>
-				<div class="col-md-2">
+                <div class="col-md-2">
 					<img src="<?= base_url(); ?>assets/images/partners/world-bank.png" class="img-fluid">
 				</div>
-				<div class="col-md-5"></div>
-				<div class="col-md-2">
-					<img src="<?= base_url(); ?>assets/images/partners/wehubit.png" class="img-fluid">
-				</div>
-				<div class="col-md-5"></div>
 			</div>
 		</div>
 	</div>

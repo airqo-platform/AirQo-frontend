@@ -440,7 +440,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
       _verificationId = verificationId;
     });
 
-    Future.delayed(const Duration(seconds: 5), () async {
+    Future.delayed(const Duration(seconds: 5), () {
       setState(() {
         _resendCode = true;
       });
