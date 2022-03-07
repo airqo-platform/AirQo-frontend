@@ -53,6 +53,7 @@ const SiteForm = ({ site }) => {
   };
 
   const handleSubmit = async () => {
+    delete(siteInfo.airqlouds) //airqloud array deleted before submit
     setManualDisable(true);
     await updateSiteApi(site._id, siteInfo)
       .then((responseData) => {
@@ -70,6 +71,7 @@ const SiteForm = ({ site }) => {
         const errors =
           (err.response && err.response.data && err.response.data.error) || {};
         setErrors(errors);
+        console.log(err);
         dispatch(
           updateMainAlert({
             severity: "error",
