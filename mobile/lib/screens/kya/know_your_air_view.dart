@@ -1,9 +1,12 @@
 import 'package:app/constants/config.dart';
 import 'package:app/models/kya.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 import '../../services/app_service.dart';
+import '../../themes/light_theme.dart';
 import 'kya_title_page.dart';
 
 class KnowYourAirView extends StatefulWidget {
@@ -64,13 +67,12 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
               Expanded(
                 child: Column(
                   children: [
-                    Text(kya.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        )),
+                    AutoSizeText(
+                      kya.title,
+                      maxLines: 4,
+                      overflow: TextOverflow.ellipsis,
+                      style: CustomTextStyle.headline10(context),
+                    ),
                     const SizedBox(
                       height: 28,
                     ),
@@ -78,22 +80,21 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        Text('Start reading',
+                        AutoSizeText('Start reading',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Config.appColorBlue,
-                            )),
+                            style: CustomTextStyle.caption3(context)
+                                ?.copyWith(color: Config.appColorBlue)),
                         const SizedBox(
                           width: 6,
                         ),
-                        Icon(
-                          Icons.arrow_forward_ios_sharp,
-                          size: 10,
-                          color: Config.appColorBlue,
-                        )
+                        SvgPicture.asset(
+                          'assets/icon/more_arrow.svg',
+                          semanticsLabel: 'more',
+                          height: 6.99,
+                          width: 4,
+                        ),
                       ],
                     ),
                   ],

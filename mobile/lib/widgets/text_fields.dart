@@ -12,22 +12,7 @@ Widget countryPickerField(String placeholder, valueChange, context) {
         color: const Color(0xff8D8D8D).withOpacity(0.1),
         borderRadius: const BorderRadius.all(Radius.circular(10.0))),
     child: CountryListPick(
-      appBar: AppBar(
-        backgroundColor: Config.appBodyColor,
-        elevation: 0.0,
-        iconTheme: IconThemeData(
-          color: Config.appColorBlue,
-        ),
-        centerTitle: true,
-        leading: Padding(
-          padding: const EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
-          child: backButton(context),
-        ),
-        title: const Text(
-          'Select Country',
-          style: TextStyle(color: Colors.black),
-        ),
-      ),
+      appBar: appTopBar(context, 'Select Country'),
       theme: CountryTheme(
         isShowFlag: true,
         isShowTitle: false,
@@ -91,6 +76,49 @@ Widget optField(position, context, callbackFn, bool codeSent) {
           ),
         ),
       ));
+}
+
+Widget optFieldV2(position, context, callbackFn, bool codeSent) {
+  return SizedBox(
+    height: 64,
+    child: TextFormField(
+      onChanged: (value) {
+        callbackFn(value, position);
+      },
+      showCursor: codeSent,
+      textAlign: TextAlign.center,
+      maxLength: 6,
+      enableSuggestions: false,
+      cursorWidth: 1,
+      autofocus: true,
+      cursorColor: Config.appColorBlue,
+      keyboardType: TextInputType.number,
+      style: TextStyle(
+          fontSize: 32,
+          fontWeight: FontWeight.w500,
+          color: Config.appColorBlue,
+          letterSpacing: 16 * 0.41,
+          height: 40 / 32),
+      decoration: InputDecoration(
+        contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 0),
+        counter: const Offstage(),
+        fillColor:
+            codeSent ? Colors.white : const Color(0xff8D8D8D).withOpacity(0.1),
+        // filled: false,
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Config.appColorBlue, width: 1.0),
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Config.appColorBlue, width: 1.0),
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        errorStyle: const TextStyle(
+          fontSize: 0,
+        ),
+      ),
+    ),
+  );
 }
 
 Widget tabLayout(String day, date, Color background, Color foreground) {

@@ -2,7 +2,6 @@ import 'dart:collection';
 
 import 'package:app/models/site.dart';
 import 'package:app/services/local_storage.dart';
-import 'package:app/utils/extensions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -15,32 +14,23 @@ part 'place_details.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class PlaceDetails {
-  String name;
-  String location;
+  String name = '';
+  String location = '';
   String siteId;
   String placeId = const Uuid().v4();
   double latitude;
   double longitude;
 
-  PlaceDetails(this.name, this.location, this.siteId, this.placeId,
-      this.latitude, this.longitude);
+  PlaceDetails(
+      {required this.name,
+      required this.location,
+      required this.siteId,
+      required this.placeId,
+      required this.latitude,
+      required this.longitude});
 
   factory PlaceDetails.fromJson(Map<String, dynamic> json) =>
       _$PlaceDetailsFromJson(json);
-
-  String getLocation() {
-    if (location.isNull()) {
-      return '';
-    }
-    return location;
-  }
-
-  String getName() {
-    if (name.isNull()) {
-      return getLocation();
-    }
-    return name;
-  }
 
   Map<String, dynamic> toJson() => _$PlaceDetailsToJson(this);
 
@@ -73,12 +63,12 @@ class PlaceDetails {
 
   static PlaceDetails measurementToPLace(Measurement measurement) {
     return PlaceDetails(
-        measurement.site.getName(),
-        measurement.site.getLocation(),
-        measurement.site.id,
-        const Uuid().v4(),
-        measurement.site.latitude,
-        measurement.site.longitude);
+        name: measurement.site.name,
+        location: measurement.site.location,
+        siteId: measurement.site.id,
+        placeId: const Uuid().v4(),
+        latitude: measurement.site.latitude,
+        longitude: measurement.site.longitude);
   }
 
   static List<PlaceDetails> parseMultiPlaceDetails(dynamic jsonBody) {
@@ -105,8 +95,13 @@ class PlaceDetails {
   }
 
   static PlaceDetails siteToPLace(Site site) {
-    return PlaceDetails(site.getName(), site.getLocation(), site.id,
-        const Uuid().v4(), site.latitude, site.longitude);
+    return PlaceDetails(
+        name: site.name,
+        location: site.location,
+        siteId: site.id,
+        placeId: const Uuid().v4(),
+        latitude: site.latitude,
+        longitude: site.longitude);
   }
 }
 

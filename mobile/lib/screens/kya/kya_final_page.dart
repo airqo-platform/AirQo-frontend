@@ -4,12 +4,13 @@ import 'package:app/services/app_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../themes/light_theme.dart';
 import '../home_page.dart';
 
 class KyaFinalPage extends StatefulWidget {
   final Kya kya;
 
-  KyaFinalPage({Key? key, required this.kya}) : super(key: key);
+  const KyaFinalPage({Key? key, required this.kya}) : super(key: key);
 
   @override
   _KyaFinalPageState createState() => _KyaFinalPageState();
@@ -48,10 +49,7 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
                       padding: const EdgeInsets.only(left: 40, right: 40),
                       child: Text(
                         'Congrats!',
-                        style: TextStyle(
-                            color: Config.appColorBlack,
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold),
+                        style: CustomTextStyle.headline11(context),
                       ),
                     ),
                     const SizedBox(
@@ -59,13 +57,14 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
                     ),
                     Padding(
                       padding: const EdgeInsets.only(left: 60, right: 60),
-                      child: Text(
-                        widget.kya.completionMessage,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            color: Config.appColorBlack.withOpacity(0.5),
-                            fontSize: 16),
-                      ),
+                      child: Text(widget.kya.completionMessage,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context)
+                              .textTheme
+                              .subtitle1
+                              ?.copyWith(
+                                  color:
+                                      Config.appColorBlack.withOpacity(0.5))),
                     ),
                   ]),
             )),

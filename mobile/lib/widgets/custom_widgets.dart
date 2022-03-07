@@ -3,9 +3,12 @@ import 'package:app/models/insights.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:app/utils/pm.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import '../themes/light_theme.dart';
 
 Widget analyticsAvatar(
     Measurement measurement, double size, double fontSize, double iconHeight) {
@@ -34,11 +37,14 @@ Widget analyticsAvatar(
           style: GoogleFonts.robotoMono(
               color: pm2_5TextColor(measurement.getPm2_5Value()),
               fontStyle: FontStyle.normal,
-              fontSize: fontSize),
+              fontSize: fontSize,
+              fontWeight: FontWeight.bold,
+              height: 48 / fontSize,
+              letterSpacing: 16 * -0.022),
         ),
         SvgPicture.asset(
           'assets/icon/unit.svg',
-          semanticsLabel: 'UNit',
+          semanticsLabel: 'Unit',
           height: iconHeight,
           width: 32,
           color: pm2_5TextColor(measurement.getPm2_5Value()),
@@ -51,17 +57,37 @@ Widget analyticsAvatar(
 
 PreferredSizeWidget appTopBar(context, String title) {
   return AppBar(
-    centerTitle: true,
-    elevation: 0,
-    backgroundColor: Config.appBodyColor,
-    leading: Padding(
-      padding: const EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
-      child: backButton(context),
-    ),
-    title: Text(
-      title,
-      style: TextStyle(color: Config.appColorBlack),
-    ),
+      toolbarHeight: 72,
+      centerTitle: true,
+      elevation: 0,
+      backgroundColor: Config.appBodyColor,
+      automaticallyImplyLeading: false,
+      leading: Padding(
+        padding: const EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
+        child: backButton(context),
+      ),
+      title: Text(
+        title,
+        style: CustomTextStyle.headline8(context),
+      ));
+}
+
+Widget aqiContainerString(
+    {required Measurement measurement, required BuildContext context}) {
+  return Container(
+    padding: const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
+    decoration: BoxDecoration(
+        borderRadius: const BorderRadius.all(Radius.circular(40.0)),
+        color: pm2_5ToColor(measurement.getPm2_5Value()).withOpacity(0.4),
+        border: Border.all(color: Colors.transparent)),
+    child: AutoSizeText(pm2_5ToString(measurement.getPm2_5Value()),
+        maxFontSize: 14,
+        maxLines: 1,
+        textAlign: TextAlign.start,
+        overflow: TextOverflow.ellipsis,
+        style: CustomTextStyle.button2(context)?.copyWith(
+          color: pm2_5TextColor(measurement.getPm2_5Value()),
+        )),
   );
 }
 
@@ -88,7 +114,8 @@ Widget iconTextButton(Widget icon, text) {
       ),
       Text(
         text,
-        style: const TextStyle(fontSize: 14, color: Colors.black),
+        style: TextStyle(
+            fontSize: 14, color: Config.appColorBlack, height: 18 / 14),
       )
     ],
   );
@@ -152,8 +179,8 @@ Widget insightsTabAvatar(
         border: Border.all(color: Colors.transparent)),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Spacer(),
         SvgPicture.asset(
           pollutant.trim().toLowerCase() == 'pm2.5'
               ? 'assets/icon/PM2.5.svg'
@@ -173,6 +200,8 @@ Widget insightsTabAvatar(
           overflow: TextOverflow.ellipsis,
           style: GoogleFonts.robotoMono(
             fontStyle: FontStyle.normal,
+            fontWeight: FontWeight.bold,
+            height: 1,
             fontSize: 32,
             color: measurement.forecast
                 ? Config.appColorBlue
@@ -192,7 +221,6 @@ Widget insightsTabAvatar(
                   ? pm2_5TextColor(measurement.getChartValue(pollutant))
                   : pm10TextColor(measurement.getChartValue(pollutant)),
         ),
-        const Spacer(),
       ],
     ),
   );
@@ -212,12 +240,58 @@ PreferredSizeWidget knowYourAirAppBar(context, title) {
         padding: const EdgeInsets.only(top: 10),
         child: Text(
           title,
-          style: const TextStyle(color: Colors.white),
+          style:
+              CustomTextStyle.headline8(context)?.copyWith(color: Colors.white),
         ),
       ));
 }
 
-Widget searchLocationTile(Measurement measurement) {
+Widget miniAnalyticsAvatar({required Measurement measurement}) {
+  return Container(
+    height: 40,
+    width: 40,
+    decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: pm2_5ToColor(measurement.getPm2_5Value()),
+        border: Border.all(color: Colors.transparent)),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const Spacer(),
+        SvgPicture.asset(
+          'assets/icon/PM2.5.svg',
+          semanticsLabel: 'Pm2.5',
+          height: 5,
+          width: 32.45,
+          color: pm2_5TextColor(measurement.getPm2_5Value()),
+        ),
+        Text(
+          measurement.getPm2_5Value().toStringAsFixed(0),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.robotoMono(
+              color: pm2_5TextColor(measurement.getPm2_5Value()),
+              fontStyle: FontStyle.normal,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              height: 1,
+              letterSpacing: 16 * -0.06),
+        ),
+        SvgPicture.asset(
+          'assets/icon/unit.svg',
+          semanticsLabel: 'Unit',
+          height: 5,
+          width: 32,
+          color: pm2_5TextColor(measurement.getPm2_5Value()),
+        ),
+        const Spacer(),
+      ],
+    ),
+  );
+}
+
+Widget searchLocationTile(
+    {required Measurement measurement, required BuildContext context}) {
   return Container(
     padding: const EdgeInsets.only(left: 16.0, right: 30.0),
     decoration: BoxDecoration(
@@ -226,17 +300,18 @@ Widget searchLocationTile(Measurement measurement) {
         border: Border.all(color: Colors.transparent)),
     child: ListTile(
       contentPadding: const EdgeInsets.only(left: 0.0),
-      title: Text(
-        measurement.site.getName(),
+      title: AutoSizeText(
+        measurement.site.name,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        style: CustomTextStyle.headline8(context),
       ),
-      subtitle: Text(
-        measurement.site.getLocation(),
+      subtitle: AutoSizeText(
+        measurement.site.location,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: TextStyle(color: Colors.black.withOpacity(0.3), fontSize: 14),
+        style: CustomTextStyle.bodyText4(context)
+            ?.copyWith(color: Config.appColorBlack.withOpacity(0.3)),
       ),
       trailing: SvgPicture.asset(
         'assets/icon/more_arrow.svg',
@@ -244,12 +319,13 @@ Widget searchLocationTile(Measurement measurement) {
         height: 6.99,
         width: 4,
       ),
-      leading: analyticsAvatar(measurement, 40, 15, 5),
+      leading: miniAnalyticsAvatar(measurement: measurement),
     ),
   );
 }
 
-Widget searchPlaceTile(Suggestion searchSuggestion) {
+Widget searchPlaceTile(
+    {required Suggestion searchSuggestion, required BuildContext context}) {
   return Container(
     padding: const EdgeInsets.only(left: 16.0, right: 30.0),
     decoration: BoxDecoration(
@@ -262,13 +338,14 @@ Widget searchPlaceTile(Suggestion searchSuggestion) {
           searchSuggestion.suggestionDetails.getMainText(),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          style: CustomTextStyle.headline8(context),
         ),
         subtitle: Text(
           searchSuggestion.suggestionDetails.getSecondaryText(),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(color: Colors.black.withOpacity(0.3), fontSize: 14),
+          style: CustomTextStyle.bodyText4(context)
+              ?.copyWith(color: Config.appColorBlack.withOpacity(0.3)),
         ),
         trailing: SvgPicture.asset(
           'assets/icon/more_arrow.svg',

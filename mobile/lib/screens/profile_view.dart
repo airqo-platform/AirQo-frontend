@@ -1,5 +1,4 @@
-import 'package:app/auth/login_screen.dart';
-import 'package:app/auth/signup_screen.dart';
+import 'package:app/auth/phone_auth_widget.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/models/user_details.dart';
@@ -14,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 
+import '../themes/light_theme.dart';
 import 'favourite_places.dart';
 import 'for_you_page.dart';
 import 'notification_page.dart';
@@ -75,12 +75,7 @@ class _ProfileViewState extends State<ProfileView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: appNavBar(),
-          elevation: 0,
-          toolbarHeight: 77,
-          backgroundColor: Config.appBodyColor,
-        ),
+        appBar: navBar(),
         body: Container(
             color: Config.appBodyColor,
             child: Padding(
@@ -92,23 +87,29 @@ class _ProfileViewState extends State<ProfileView> {
                   Visibility(
                       visible: _isLoggedIn,
                       child: ListView(
+                        physics: const BouncingScrollPhysics(),
                         shrinkWrap: true,
                         children: <Widget>[
+                          const SizedBox(
+                            height: 10,
+                          ),
                           AutoSizeText(
                             _userProfile.getFullName(),
                             maxLines: 2,
-                            style: const TextStyle(
-                                fontSize: 24, fontWeight: FontWeight.bold),
+                            style: CustomTextStyle.headline9(context),
+                          ),
+                          const SizedBox(
+                            height: 4,
                           ),
                           GestureDetector(
                             onTap: () async {
                               await viewProfile();
                             },
-                            child: Text(
-                              'Edit profile',
-                              style: TextStyle(
-                                  fontSize: 16, color: Config.appColorBlue),
-                            ),
+                            child: Text('Edit profile',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyText2
+                                    ?.copyWith(color: Config.appColorBlue)),
                           ),
                           const SizedBox(
                             height: 40,
@@ -136,10 +137,9 @@ class _ProfileViewState extends State<ProfileView> {
                       child: ListView(
                         shrinkWrap: true,
                         children: <Widget>[
-                          const Text(
+                          Text(
                             'Guest',
-                            style: TextStyle(
-                                fontSize: 24, fontWeight: FontWeight.bold),
+                            style: CustomTextStyle.headline9(context),
                           ),
                           const SizedBox(
                             height: 24,
@@ -182,10 +182,10 @@ class _ProfileViewState extends State<ProfileView> {
               child: Center(
                 child: SvgPicture.asset(icon, color: iconColor),
               )),
-          title: Text(
+          title: AutoSizeText(
             '$text',
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 16),
+            style: Theme.of(context).textTheme.bodyText1,
           ),
         ),
       ),
@@ -243,7 +243,7 @@ class _ProfileViewState extends State<ProfileView> {
       Navigator.pop(loadingContext);
       await Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
-        return const LoginScreen(phoneNumber: '', emailAddress: '');
+        return const PhoneLoginWidget(phoneNumber: '', enableBackButton: false);
       }), (r) => false);
     } else {
       Navigator.pop(loadingContext);
@@ -268,6 +268,49 @@ class _ProfileViewState extends State<ProfileView> {
         ),
       ),
     );
+  }
+
+  PreferredSizeWidget navBar() {
+    return AppBar(
+        toolbarHeight: 72,
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: Config.appBodyColor,
+        automaticallyImplyLeading: false,
+        title: Row(
+          children: [
+            profilePicWidget(
+                40, 40, 10, 12, 17.0, _userProfile.photoUrl, 27.0, false),
+            const Spacer(),
+            GestureDetector(
+              onTap: notifications,
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                height: 40,
+                width: 40,
+                decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.all(Radius.circular(8.0))),
+                child: Consumer<NotificationModel>(
+                  builder: (context, notifications, child) {
+                    if (notifications.hasNotifications()) {
+                      return SvgPicture.asset(
+                        'assets/icon/has_notifications.svg',
+                        height: 20,
+                        width: 16,
+                      );
+                    }
+                    return SvgPicture.asset(
+                      'assets/icon/empty_notifications.svg',
+                      height: 20,
+                      width: 16,
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        ));
   }
 
   Future<void> notifications() async {
@@ -391,33 +434,32 @@ class _ProfileViewState extends State<ProfileView> {
           const SizedBox(
             height: 48,
           ),
-          const Padding(
-            padding: EdgeInsets.only(left: 25.0, right: 25.0),
-            child: AutoSizeText('Personalise your \nexperience',
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 24,
-                  height: 1.3,
-                  fontWeight: FontWeight.bold,
-                )),
+          Padding(
+            padding: const EdgeInsets.only(left: 25.0, right: 25.0),
+            child: AutoSizeText(
+              'Personalise your\nexperience',
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: CustomTextStyle.headline7(context)
+                  ?.copyWith(letterSpacing: 16 * -0.01),
+            ),
           ),
           const SizedBox(
-            height: 10,
+            height: 8,
           ),
           Padding(
             padding: const EdgeInsets.only(left: 55.0, right: 55.0),
-            child: Text(
+            child: AutoSizeText(
                 'Create your account today and enjoy air quality'
                 ' updates and recommendations.',
                 maxLines: 6,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: 14,
-                    height: 1.28,
-                    color: Config.appColorBlack.withOpacity(0.4))),
+                style: Theme.of(context)
+                    .textTheme
+                    .subtitle2
+                    ?.copyWith(color: Config.appColorBlack.withOpacity(0.4))),
           ),
           const SizedBox(
             height: 24,
@@ -426,24 +468,31 @@ class _ProfileViewState extends State<ProfileView> {
             onTap: () async {
               await Navigator.pushAndRemoveUntil(context,
                   MaterialPageRoute(builder: (context) {
-                return const SignupScreen(false);
+                return const PhoneLoginWidget(
+                    phoneNumber: '', enableBackButton: false);
               }), (r) => false);
             },
             child: Padding(
-              padding: const EdgeInsets.only(left: 24, right: 24),
+              padding: const EdgeInsets.only(left: 32, right: 32),
               child: Container(
-                constraints: const BoxConstraints(minWidth: double.infinity),
-                decoration: BoxDecoration(
-                    color: Config.appColorBlue,
-                    borderRadius: const BorderRadius.all(Radius.circular(8.0))),
-                child: const Tab(
-                    child: Text(
-                  'Sign Up',
-                  style: TextStyle(
-                    color: Colors.white,
-                  ),
-                )),
-              ),
+                  constraints: const BoxConstraints(minWidth: double.infinity),
+                  decoration: BoxDecoration(
+                      color: Config.appColorBlue,
+                      borderRadius:
+                          const BorderRadius.all(Radius.circular(8.0))),
+                  child: const Center(
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 12, bottom: 14),
+                      child: Text(
+                        'Sign Up',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            height: 22 / 14,
+                            letterSpacing: 16 * -0.022),
+                      ),
+                    ),
+                  )),
             ),
           ),
           const SizedBox(

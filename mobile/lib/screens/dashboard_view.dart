@@ -20,6 +20,7 @@ import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../themes/light_theme.dart';
 import 'favourite_places.dart';
 import 'for_you_page.dart';
 import 'kya/kya_lessons_page.dart';
@@ -45,7 +46,7 @@ class _DashboardViewState extends State<DashboardView> {
 
   final GlobalKey _favToolTipKey = GlobalKey();
   final GlobalKey _kyaToolTipKey = GlobalKey();
-  final bool _isRefreshing = false;
+  bool _isRefreshing = false;
 
   final LocationService _locationService = LocationService();
 
@@ -68,7 +69,7 @@ class _DashboardViewState extends State<DashboardView> {
             'assets/icon/airqo_home.svg',
             height: 40,
             width: 58,
-            semanticsLabel: 'Search',
+            semanticsLabel: 'AirQo',
           ),
           const Spacer(),
           Container(
@@ -120,8 +121,7 @@ class _DashboardViewState extends State<DashboardView> {
                   _greetings,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                      fontSize: 24, fontWeight: FontWeight.bold),
+                  style: CustomTextStyle.headline7(context),
                 ),
               ),
               const Visibility(
@@ -406,13 +406,10 @@ class _DashboardViewState extends State<DashboardView> {
                     const SizedBox(
                       width: 8,
                     ),
-                    Text(
-                      'Favorites',
-                      style: TextStyle(
+                    Text('Favorites',
+                        style: CustomTextStyle.bodyText4(context)?.copyWith(
                           color: Config.appColorBlue,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14),
-                    )
+                        ))
                   ],
                 ),
               ),
@@ -454,13 +451,10 @@ class _DashboardViewState extends State<DashboardView> {
                     const SizedBox(
                       width: 8,
                     ),
-                    Text(
-                      'For You',
-                      style: TextStyle(
+                    Text('For You',
+                        style: CustomTextStyle.bodyText4(context)?.copyWith(
                           color: Config.appColorBlue,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14),
-                    )
+                        ))
                   ],
                 ),
               ),
@@ -481,21 +475,17 @@ class _DashboardViewState extends State<DashboardView> {
               const SizedBox(
                 height: 32,
               ),
-              Text(
-                getDateTime(),
-                style: TextStyle(
-                  color: Colors.black.withOpacity(0.6),
-                  fontSize: 12,
-                ),
-              ),
-              const Text('Today’s air quality',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 24,
-                  )),
+              Text(getDateTime(),
+                  style: Theme.of(context).textTheme.caption?.copyWith(
+                        color: Colors.black.withOpacity(0.5),
+                      )),
               const SizedBox(
-                height: 12,
+                height: 4,
+              ),
+              Text('Today’s air quality',
+                  style: CustomTextStyle.headline11(context)),
+              const SizedBox(
+                height: 24,
               ),
               if (_dashBoardPlaces.isNotEmpty) _dashBoardPlaces[0],
               if (_dashBoardPlaces.isNotEmpty)
@@ -765,10 +755,18 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   Future<void> _refresh() async {
+    setState(() {
+      _isRefreshing = true;
+    });
+
     await _appService.refreshDashboard();
     _getDashboardCards();
     _getKya();
     _loadFavourites(reload: true);
+
+    setState(() {
+      _isRefreshing = false;
+    });
   }
 
   void _setGreetings() {

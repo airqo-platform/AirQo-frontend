@@ -9,6 +9,7 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../services/native_api.dart';
+import '../../themes/light_theme.dart';
 import '../../widgets/custom_shimmer.dart';
 import 'kya_final_page.dart';
 
@@ -235,10 +236,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                    color: Config.appColorBlack,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold),
+                style: CustomTextStyle.headline9(context),
               ),
             ),
             const SizedBox(
@@ -247,14 +245,12 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.only(left: 16, right: 16),
-                child: AutoSizeText(
-                  kyaItem.body,
-                  maxLines: 5,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      color: Colors.black.withOpacity(0.5), fontSize: 16),
-                ),
+                child: AutoSizeText(kyaItem.body,
+                    maxLines: 5,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                        color: Config.appColorBlack.withOpacity(0.5))),
               ),
             ),
             const Spacer(),

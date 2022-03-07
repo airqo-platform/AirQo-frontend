@@ -230,8 +230,6 @@ class LocationService {
 
           for (var address in addresses) {
             nearestMeasurement?.site.name = address;
-            nearestMeasurement?.site.searchName = address;
-            nearestMeasurement?.site.description = address;
             measurements.add(nearestMeasurement!);
           }
         }
@@ -350,7 +348,7 @@ class LocationService {
           measurement.site.longitude,
           latitude,
           longitude));
-      if (containsWord(measurement.site.getName(), term)) {
+      if (containsWord(measurement.site.name, term)) {
         measurement.site.distance = distanceInMeters;
         nearestSites.add(measurement);
       } else {
@@ -369,13 +367,11 @@ class LocationService {
     var nearestSites = <Measurement>[];
 
     for (var measurement in measurements) {
-      if (measurement.site
-              .getName()
+      if (measurement.site.name
               .trim()
               .toLowerCase()
               .contains(term.trim().toLowerCase()) ||
-          measurement.site
-              .getLocation()
+          measurement.site.location
               .trim()
               .toLowerCase()
               .contains(term.trim().toLowerCase())) {
@@ -391,13 +387,11 @@ class LocationService {
     var latestMeasurements = await _dbHelper.getLatestMeasurements();
 
     for (var measurement in latestMeasurements) {
-      if (measurement.site
-              .getName()
+      if (measurement.site.name
               .trim()
               .toLowerCase()
               .contains(term.trim().toLowerCase()) ||
-          measurement.site
-              .getLocation()
+          measurement.site.location
               .trim()
               .toLowerCase()
               .contains(term.trim().toLowerCase())) {
@@ -578,13 +572,13 @@ class ShareService {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     AutoSizeText(
-                      placeDetails.getName(),
+                      placeDetails.name,
                       maxLines: 2,
                       style: const TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 17),
                     ),
                     AutoSizeText(
-                      placeDetails.getLocation(),
+                      placeDetails.location,
                       maxLines: 1,
                       style: TextStyle(
                           fontSize: 12, color: Colors.black.withOpacity(0.3)),
@@ -650,11 +644,12 @@ class ShareService {
     var imgFile = File('$directory/airqo_analytics_card.png');
     await imgFile.writeAsBytes(pngBytes);
 
-    var message = '${measurement.site.getName()}, Current Air Quality. \n\n'
-        'Source: AiQo App';
+    var message = '${measurement.site.name}, Current Air Quality. \n\n'
+        'Source: AirQo App';
     await Share.shareFiles([imgFile.path], text: message)
         .then((value) => {_updateUserShares()});
 
+    /// Temporarily disabled sharing text
     // var dialogResponse = await showDialog<String>(
     //   context: buildContext,
     //   builder: (BuildContext context) => AlertDialog(
@@ -685,8 +680,8 @@ class ShareService {
     //   var imgFile = File('$directory/airqo_analytics_card.png');
     //   await imgFile.writeAsBytes(pngBytes);
     //
-    //   var message = '${measurement.site.getName()}, Current Air Quality. \n\n'
-    //       'Source: AiQo App';
+    //   var message = '${measurement.site.name}, Current Air Quality. \n\n'
+    //       'Source: AirQo App';
     //   await Share.shareFiles([imgFile.path], text: message)
     //       .then((value) => {_updateUserShares()});
     // } else if (dialogResponse == 'text') {
@@ -708,8 +703,8 @@ class ShareService {
     var imgFile = File('$directory/airqo_analytics_graph.png');
     await imgFile.writeAsBytes(pngBytes);
 
-    var message = '${placeDetails.getName()}, Current Air Quality. \n\n'
-        'Source: AiQo App';
+    var message = '${placeDetails.name}, Current Air Quality. \n\n'
+        'Source: AirQo App';
     await Share.shareFiles([imgFile.path], text: message)
         .then((value) => {_updateUserShares()});
   }
@@ -724,7 +719,7 @@ class ShareService {
     var imgFile = File('$directory/analytics_graph.png');
     await imgFile.writeAsBytes(pngBytes);
 
-    var message = 'Source: AiQo App';
+    var message = 'Source: AirQo App';
     await Share.shareFiles([imgFile.path], text: message)
         .then((value) => {_updateUserShares()});
   }
@@ -737,12 +732,12 @@ class ShareService {
       recommendations = '$recommendations\n- ${value.body}';
     }
     Share.share(
-            '${measurement.site.getName()}, Current Air Quality. \n\n'
+            '${measurement.site.name}, Current Air Quality. \n\n'
             'PM2.5 : ${measurement.getPm2_5Value().toStringAsFixed(2)} µg/m\u00B3 (${pm2_5ToString(measurement.getPm2_5Value())}) \n'
             'PM10 : ${measurement.getPm10Value().toStringAsFixed(2)} µg/m\u00B3 \n'
             '$recommendations\n\n'
-            'Source: AiQo App',
-            subject: '${Config.appName}, ${measurement.site.getName()}!')
+            'Source: AirQo App',
+            subject: '${Config.appName}, ${measurement.site.name}!')
         .then((value) => {_updateUserShares()});
   }
 

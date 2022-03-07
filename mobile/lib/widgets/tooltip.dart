@@ -5,6 +5,8 @@ import 'package:app/constants/config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../themes/light_theme.dart';
+
 class ToolTip {
   late double _popupWidth;
   late double _popupHeight;
@@ -115,10 +117,7 @@ class ToolTip {
       case toolTipType.favouritePlaces:
         return RichText(
             text: TextSpan(children: [
-          const TextSpan(
-            text: 'Tap the ',
-            style: TextStyle(color: Colors.white, fontSize: 10),
-          ),
+          TextSpan(text: 'Tap the ', style: CustomTextStyle.overline1(context)),
           WidgetSpan(
               child: SvgPicture.asset(
             'assets/icon/heart.svg',
@@ -126,25 +125,21 @@ class ToolTip {
             height: 13.33,
             width: 13.12,
           )),
-          const TextSpan(
-            text: ' Favorite on any location air quality '
-                'to save them here for later.',
-            style: TextStyle(color: Colors.white, fontSize: 10),
-          ),
+          TextSpan(
+              text: ' Favorite icon on any location air quality '
+                  'to save them here for later.',
+              style: CustomTextStyle.overline1(context)),
         ]));
       case toolTipType.forYou:
         return RichText(
-            text: const TextSpan(
-          text: 'All your complete tasks will show up here',
-          style: TextStyle(color: Colors.white, fontSize: 10),
-        ));
+            text: TextSpan(
+                text: 'All your complete tasks will show up here',
+                style: CustomTextStyle.overline1(context)));
       case toolTipType.info:
         return RichText(
             text: TextSpan(children: [
-          const TextSpan(
-            text: 'Tap this ',
-            style: TextStyle(color: Colors.white, fontSize: 10),
-          ),
+          TextSpan(
+              text: 'Tap this ', style: CustomTextStyle.overline1(context)),
           WidgetSpan(
               child: SvgPicture.asset(
             'assets/icon/info_icon_grey.svg',
@@ -152,26 +147,21 @@ class ToolTip {
             height: 16,
             width: 15.56,
           )),
-          const TextSpan(
-            text: ' icon to understand what '
-                'air quality analytics mean.',
-            style: TextStyle(color: Colors.white, fontSize: 10),
-          ),
+          TextSpan(
+              text: ' icon to understand what '
+                  'air quality analytics mean.',
+              style: CustomTextStyle.overline1(context)),
         ]));
       case toolTipType.forecast:
         return RichText(
-            text: const TextSpan(
-          text: 'Tap Forecast to view air quality analytics '
-              'for the next 24 hours',
-          style: TextStyle(color: Colors.white, fontSize: 10),
-        ));
+            text: TextSpan(
+                text: 'Tap Forecast to view air quality analytics '
+                    'for the next 24 hours',
+                style: CustomTextStyle.overline1(context)));
       default:
         return RichText(
             text: TextSpan(children: [
-          const TextSpan(
-            text: 'Tap the ',
-            style: TextStyle(color: Colors.white, fontSize: 10),
-          ),
+          TextSpan(text: 'Tap the ', style: CustomTextStyle.overline1(context)),
           WidgetSpan(
               child: SvgPicture.asset(
             'assets/icon/heart.svg',
@@ -179,11 +169,10 @@ class ToolTip {
             height: 13.33,
             width: 13.12,
           )),
-          const TextSpan(
-            text: ' Favorite on any location air quality '
-                'to save them here for later.',
-            style: TextStyle(color: Colors.white, fontSize: 10),
-          ),
+          TextSpan(
+              text: ' Favorite on any location air quality '
+                  'to save them here for later.',
+              style: CustomTextStyle.overline1(context)),
         ]));
     }
   }

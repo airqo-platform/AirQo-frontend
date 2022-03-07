@@ -6,6 +6,8 @@ import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/widgets/insights_tab.dart';
 import 'package:flutter/material.dart';
 
+import '../themes/light_theme.dart';
+
 class InsightsPage extends StatefulWidget {
   final PlaceDetails placeDetails;
 
@@ -29,19 +31,7 @@ class _InsightsPageState extends State<InsightsPage>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: Config.appBodyColor,
-        leading: Padding(
-          padding: const EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
-          child: backButton(context),
-        ),
-        title: const Text(
-          'More Insights',
-          style: TextStyle(color: Colors.black),
-        ),
-      ),
+      appBar: appTopBar(context, 'More Insights'),
       body: Container(
         padding: const EdgeInsets.only(right: 0, left: 0),
         color: Config.appBodyColor,
@@ -52,7 +42,7 @@ class _InsightsPageState extends State<InsightsPage>
                   top: 10, bottom: 10, right: 16, left: 16),
               child: Material(
                 color: Colors.white,
-                borderRadius: const BorderRadius.all(Radius.circular(7.0)),
+                borderRadius: const BorderRadius.all(Radius.circular(8.0)),
                 child: TabBar(
                     controller: _tabController,
                     indicatorColor: Colors.transparent,
@@ -71,38 +61,8 @@ class _InsightsPageState extends State<InsightsPage>
                       }
                     },
                     tabs: <Widget>[
-                      Container(
-                        constraints: const BoxConstraints(
-                            minWidth: double.infinity, maxHeight: 32),
-                        decoration: BoxDecoration(
-                            color:
-                                _isWeekly ? Config.appColorBlue : Colors.white,
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(5.0))),
-                        child: Tab(
-                            child: Text(
-                          'Day',
-                          style: TextStyle(
-                            color: _isWeekly ? Colors.white : Colors.black,
-                          ),
-                        )),
-                      ),
-                      Container(
-                        constraints: const BoxConstraints(
-                            minWidth: double.infinity, maxHeight: 32),
-                        decoration: BoxDecoration(
-                            color:
-                                _isWeekly ? Colors.white : Config.appColorBlue,
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(5.0))),
-                        child: Tab(
-                            child: Text(
-                          'Week',
-                          style: TextStyle(
-                            color: _isWeekly ? Colors.black : Colors.white,
-                          ),
-                        )),
-                      )
+                      tabButton(text: 'Day'),
+                      tabButton(text: 'Week'),
                     ]),
               ),
             ),
@@ -135,6 +95,33 @@ class _InsightsPageState extends State<InsightsPage>
     _airqoApiClient = AirqoApiClient(context);
     _fetchAllHourlyInsights();
     _fetchDailyInsights();
+  }
+
+  Widget tabButton({required String text}) {
+    return Container(
+      constraints:
+          const BoxConstraints(minWidth: double.infinity, maxHeight: 32),
+      decoration: BoxDecoration(
+          color: text.toLowerCase() == 'day'
+              ? _isWeekly
+                  ? Config.appColorBlue
+                  : Colors.white
+              : _isWeekly
+                  ? Colors.white
+                  : Config.appColorBlue,
+          borderRadius: const BorderRadius.all(Radius.circular(4.0))),
+      child: Tab(
+          child: Text(text,
+              style: CustomTextStyle.button1(context)?.copyWith(
+                color: text.toLowerCase() == 'day'
+                    ? _isWeekly
+                        ? Colors.white
+                        : Config.appColorBlue
+                    : _isWeekly
+                        ? Config.appColorBlue
+                        : Colors.white,
+              ))),
+    );
   }
 
   void _fetchAllHourlyInsights() async {
