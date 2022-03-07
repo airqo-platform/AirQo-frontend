@@ -72,10 +72,6 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
         editData.deployment_date
       ).toISOString();
 
-    if (isEmpty(editData.latitude)) delete editData.latitude;
-
-    if (isEmpty(editData.longitude)) delete editData.longitude;
-
     await updateDeviceDetails(deviceData._id, editData)
       .then((responseData) => {
         dispatch(loadDevicesData());
@@ -164,34 +160,6 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               onChange={handleTextFieldChange}
               error={!!errors.phoneNumber}
               helperText={errors.phoneNumber}
-              fullWidth
-            />
-          </Grid>
-          <Grid items xs={12} sm={4} style={gridItemStyle}>
-            <TextField
-              autoFocus
-              margin="dense"
-              variant="outlined"
-              id="latitude"
-              label="Latitude"
-              value={editData.latitude}
-              onChange={handleTextFieldChange}
-              error={!!errors.latitude}
-              helperText={errors.latitude}
-              fullWidth
-            />
-          </Grid>
-          <Grid items xs={12} sm={4} style={gridItemStyle}>
-            <TextField
-              autoFocus
-              margin="dense"
-              variant="outlined"
-              id="longitude"
-              label="Longitude"
-              value={editData.longitude}
-              onChange={handleTextFieldChange}
-              error={!!errors.longitude}
-              helperText={errors.longitude}
               fullWidth
             />
           </Grid>
