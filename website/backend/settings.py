@@ -16,6 +16,8 @@ from decouple import config
 import dj_database_url
 from google.oauth2 import service_account
 
+os.environ["GOOGLE_APPLICATION_CREDENTIALS_FILE"] = config('GOOGLE_CREDENTIALS_FILE_PATH')
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
