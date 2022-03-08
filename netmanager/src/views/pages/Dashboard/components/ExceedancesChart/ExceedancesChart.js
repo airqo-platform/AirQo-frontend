@@ -26,6 +26,8 @@ import moment from "moment";
 import JsPDF from "jspdf";
 import { roundToStartOfDay, roundToEndOfDay } from "utils/dateTime";
 import { usePollutantsOptions } from "utils/customHooks";
+import { useCurrentAirQloudData } from "redux/AirQloud/selectors";
+import { flattenSiteOptions } from "utils/sites";
 import OutlinedSelect from "views/components/CustomSelects/OutlinedSelect";
 
 const useStyles = makeStyles((theme) => ({
@@ -49,6 +51,8 @@ const ExceedancesChart = (props) => {
   const { className, chartContainer, idSuffix, ...rest } = props;
 
   const classes = useStyles();
+
+  const airqloud = useCurrentAirQloudData();
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [open, setOpen] = React.useState(false);
@@ -78,6 +82,8 @@ const ExceedancesChart = (props) => {
     `${pollutant.label} Exceedances Over the Past 28 Days Based on ${standard.label}`
   );
 
+  const [loading, setLoading] = useState(false);
+
   const handleStandardChange = (standard) => {
     setTempStandard(standard);
   };
@@ -106,9 +112,21 @@ const ExceedancesChart = (props) => {
       standard: standard.value,
       startDate,
       endDate,
+      sites: flattenSiteOptions(airqloud.siteOptions),
     };
     fetchAndSetExceedanceData(filter);
   }, []);
+
+  useEffect(() => {
+    let filter = {
+      pollutant: pollutant.value,
+      standard: standard.value,
+      startDate,
+      endDate,
+      sites: flattenSiteOptions(airqloud.siteOptions),
+    };
+    fetchAndSetExceedanceData(filter);
+  }, [airqloud]);
 
   let handleSubmit = async (e) => {
     e.preventDefault();
@@ -125,6 +143,7 @@ const ExceedancesChart = (props) => {
   };
 
   const fetchAndSetExceedanceData = async (filter) => {
+    setLoading(true);
     filter = {
       ...filter,
       startDate: roundToStartOfDay(filter.startDate).toISOString(),
@@ -175,6 +194,7 @@ const ExceedancesChart = (props) => {
             myVeryUnhealthyValues.push(element.exceedance.VeryUnhealthy);
             myHazardousValues.push(element.exceedance.Hazardous);
           });
+          setLoading(false);
           setLocations(myLocations);
           setDataset([
             {
@@ -226,9 +246,13 @@ const ExceedancesChart = (props) => {
               borderWidth: 1,
             },
           ]);
+          setLoading(false);
         }
       })
-      .catch(console.log);
+      .catch(err => {
+        console.log(err);
+        setLoading(false);
+      });
   };
 
   const rootCustomChartContainerId = "rootCustomChartContainerId" + idSuffix;
@@ -364,6 +388,17 @@ const ExceedancesChart = (props) => {
       <CardContent>
         <Grid item lg={12} sm={12} xl={12} xs={12}>
           <div className={chartContainer}>
+          {loading ? (
+            <div 
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "30vh"
+            }}>
+              loading...
+            </div>
+          ):(
             <Bar
               data={{
                 labels: locations,
@@ -443,6 +478,7 @@ const ExceedancesChart = (props) => {
                 }
               }
             />
+          )}
           </div>
         </Grid>
 

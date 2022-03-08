@@ -21,15 +21,10 @@ const DeviceVoltageChart = ({ deviceUptimeData }) => {
   return (
     <ApexChart
       title={"battery voltage"}
-      options={timeSeriesChartOptions({
-        yaxis: {
-          min: 0,
-          max: 5,
-        },
-      })}
+      options={timeSeriesChartOptions({})}
       series={batteryVoltageSeries}
       type="area"
-      green
+      blue
     />
   );
 };

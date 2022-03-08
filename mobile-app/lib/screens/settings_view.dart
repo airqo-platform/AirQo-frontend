@@ -16,7 +16,6 @@ class SettingsView extends StatefulWidget {
 }
 
 class _SettingsViewState extends State<SettingsView> {
-  Languages _language = Languages.english;
   bool _smartNotification = false;
   bool _pushNotification = false;
   bool _dailyReports = false;
@@ -24,7 +23,6 @@ class _SettingsViewState extends State<SettingsView> {
   bool _monthlyReports = false;
   bool _morningForecast = false;
   bool _eveningForecast = false;
-  Themes _theme = Themes.lightTheme;
   final LocalNotifications _notifications = LocalNotifications();
 
   @override
@@ -35,9 +33,6 @@ class _SettingsViewState extends State<SettingsView> {
           children: [
             Expanded(
               child: ListView(
-                // physics:  const BouncingScrollPhysics(
-                //     parent: AlwaysScrollableScrollPhysics()
-                // ),
                 children: <Widget>[
                   userPreferences(),
                   Divider(
@@ -45,17 +40,6 @@ class _SettingsViewState extends State<SettingsView> {
                     endIndent: 30,
                     color: ColorConstants.appColor,
                   ),
-                  // Divider(
-                  //   indent: 30,
-                  //   endIndent: 30,
-                  //   color: ColorConstants.appColor,
-                  // ),
-                  // reports(),
-                  // Divider(
-                  //   indent: 30,
-                  //   endIndent: 30,
-                  //   color: ColorConstants.appColor,
-                  // ),
                   supportSection(),
                   footerSection()
                 ],
@@ -159,13 +143,6 @@ class _SettingsViewState extends State<SettingsView> {
     );
   }
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   loadPreferences();
-  //   _notifications.initNotifications();
-  // }
-
   Future<void> loadPreferences() async {
     var prefs = await SharedPreferences.getInstance();
     var theme = prefs.getString(PrefConstant.appTheme);
@@ -173,18 +150,13 @@ class _SettingsViewState extends State<SettingsView> {
     if (theme != null) {
       switch (theme) {
         case 'light':
-          _theme = Themes.lightTheme;
           break;
         case 'dark':
-          _theme = Themes.darkTheme;
           break;
         default:
-          _theme = Themes.lightTheme;
           break;
       }
     }
-
-    _language = Languages.english;
   }
 
   Widget notifications() {
@@ -197,29 +169,6 @@ class _SettingsViewState extends State<SettingsView> {
             'Notifications',
             style: headerStyle(),
           ),
-          // ListTile(
-          //   title: const Text('Persistent Notifications'),
-          //   subtitle: const Text('Display persistent notifications '
-          //       'in the notification tray'),
-          //   trailing: Switch(
-          //     value: _persistentNotification,
-          //     activeColor: ColorConstants.appColor,
-          //     activeTrackColor: ColorConstants.appColor.withOpacity(0.6),
-          //     inactiveThumbColor: Colors.white,
-          //     inactiveTrackColor: Colors.black12,
-          //     onChanged: (bool value) {
-          //       if(value){
-          //         showNotification(persistentNotificationId);
-          //       }
-          //       else{
-          //         cancelNotification(persistentNotificationId);
-          //       }
-          //       setState(() {
-          //         _persistentNotification = value;
-          //       });
-          //     },
-          //   ),
-          // ),
           ListTile(
             title: const Text('Smart Notifications'),
             subtitle: const Text('Receive air pollution alerts and '
@@ -456,21 +405,6 @@ class _SettingsViewState extends State<SettingsView> {
               ),
             ),
           ),
-          // InkWell(
-          //   onTap: () {
-          //     _launchURL('rate');
-          //   },
-          //   child: ListTile(
-          //     title: Text(
-          //       'Rate App',
-          //       style: TextStyle(color: ColorConstants.appColor),
-          //     ),
-          //     leading: Icon(
-          //       Icons.rate_review_outlined,
-          //       color: ColorConstants.appColor,
-          //     ),
-          //   ),
-          // ),
         ],
       ),
     );
@@ -482,10 +416,6 @@ class _SettingsViewState extends State<SettingsView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          // Text(
-          //   'Preferences',
-          //   style: headerStyle(),
-          // ),
           InkWell(
             onTap: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) {
@@ -493,7 +423,7 @@ class _SettingsViewState extends State<SettingsView> {
               }));
             },
             child: ListTile(
-              title: const Text('MyPlaces'),
+              title: const Text('My Places'),
               leading: FaIcon(
                 FontAwesomeIcons.solidHeart,
                 color: ColorConstants.red,
@@ -522,101 +452,9 @@ class _SettingsViewState extends State<SettingsView> {
               ),
             ),
           ),
-          // InkWell(
-          //   onTap: () {
-          //     showDialog(
-          //         context: context,
-          //         builder: (context) {
-          //           return ChangeThemeDialog(
-          //             onValueChange: _onThemeValueChange,
-          //             initialValue: _theme,
-          //           );
-          //         });
-          //   },
-          //   child: ListTile(
-          //     title: const Text('Appearance'),
-          //     leading: FaIcon(
-          //       FontAwesomeIcons.paintRoller,
-          //       color: ColorConstants.appColor,
-          //     ),
-          //     trailing: Icon(
-          //       Icons.arrow_forward_ios_rounded,
-          //       color: ColorConstants.appColor,
-          //     ),
-          //   ),
-          // ),
-          // InkWell(
-          //   onTap: () {
-          //     showDialog(
-          //         context: context,
-          //         builder: (context) {
-          //           return ChangeLanguageDialog(
-          //             onValueChange: _onLanguageValueChange,
-          //             initialValue: _language,
-          //           );
-          //         });
-          //   },
-          //   child: ListTile(
-          //     title: const Text('Language'),
-          //     leading: FaIcon(
-          //       FontAwesomeIcons.language,
-          //       color: ColorConstants.appColor,
-          //     ),
-          //     trailing: Icon(
-          //       Icons.arrow_forward_ios_rounded,
-          //       color: ColorConstants.appColor,
-          //     ),
-          //   ),
-          // ),
-          // const ListTile(
-          //   title: Text('System Permissions'),
-          // ),
-          // InkWell(
-          //   onTap: () {
-          //     showDialog(
-          //         context: context,
-          //         builder: (context) {
-          //           return ClearAppDialog();
-          //         });
-          //   },
-          //   child: ListTile(
-          //     title: const Text('Clear All Data'),
-          //     leading: Icon(
-          //       Icons.delete,
-          //       color: ColorConstants.appColor,
-          //     ),
-          //     subtitle: const Text('Clear all saved data including saved '
-          //         'places and preferences'),
-          //   ),
-          // ),
         ],
       ),
     );
-  }
-
-  Future<void> _launchEmail(String action) async {
-    action = action.trim().toLowerCase();
-
-    switch (action) {
-      case 'feedback':
-        final _emailFeedbackUri = Uri(
-                scheme: 'mailto',
-                path: '${Links.airqoFeedbackEmail}',
-                queryParameters: {'subject': 'Mobile\bApplication\bFeedback!'})
-            .toString();
-
-        try {
-          await canLaunch(_emailFeedbackUri)
-              ? await launch(_emailFeedbackUri)
-              : throw Exception(
-                  'Could not launch faqs, try opening $_emailFeedbackUri');
-        } catch (e) {
-          print(e);
-        }
-        return;
-      default:
-        return;
-    }
   }
 
   Future<void> _launchURL(String page) async {
@@ -705,35 +543,6 @@ class _SettingsViewState extends State<SettingsView> {
       }
     } catch (e) {
       print(e);
-    }
-  }
-
-  Future<void> _onLanguageValueChange(Languages value) async {
-    setState(() {
-      _language = value;
-    });
-
-    // var prefs = await SharedPreferences.getInstance();
-    //
-    // if(value == Themes.lightTheme){
-    //   await prefs.setString(appTheme, 'light');
-    // }
-    // else{
-    //   await prefs.setString(appTheme, 'dark');
-    // }
-  }
-
-  Future<void> _onThemeValueChange(Themes value) async {
-    setState(() {
-      _theme = value;
-    });
-
-    var prefs = await SharedPreferences.getInstance();
-
-    if (value == Themes.lightTheme) {
-      await prefs.setString(PrefConstant.appTheme, 'light');
-    } else {
-      await prefs.setString(PrefConstant.appTheme, 'dark');
     }
   }
 }

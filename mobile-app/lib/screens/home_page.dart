@@ -1,10 +1,8 @@
 import 'package:app/constants/app_constants.dart';
-import 'package:app/on_boarding/onBoarding_page.dart';
 import 'package:app/screens/map_page.dart';
-import 'package:app/screens/resources_page.dart';
+import 'package:app/screens/ranking_page.dart';
 import 'package:app/screens/search_location_page.dart';
 import 'package:app/screens/settings_page.dart';
-import 'package:app/screens/settings_view.dart';
 import 'package:app/screens/share_picture.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
@@ -14,8 +12,8 @@ import 'package:camera/camera.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
+import 'blog_page.dart';
 import 'dashboard_page.dart';
 import 'help_page.dart';
 import 'my_places_view.dart';
@@ -28,26 +26,18 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  static const TextStyle optionStyle =
-      TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
   final PageController _pageCtrl = PageController(initialPage: 0);
   String title = '${AppConfig.name}';
   bool showAddPlace = true;
   DateTime? exitTime;
 
   double selectedPage = 0;
-  int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        // title: Text(title,
-        //     style: const TextStyle(
-        //       color: Colors.white,
-        //       fontWeight: FontWeight.bold,
-        //     )),
         backgroundColor: ColorConstants.appBarBgColor,
         elevation: 0,
         title: Text(
@@ -79,19 +69,6 @@ class _HomePageState extends State<HomePage> {
             ),
             onSelected: (value) => {navigateToMenuItem(value)},
             itemBuilder: (context) => <PopupMenuEntry<String>>[
-              // PopupMenuItem<String>(
-              //   value: 'MyPlaces',
-              //   child: ListTile(
-              //     leading: Icon(
-              //       Icons.favorite_outlined,
-              //       color: ColorConstants.appColor,
-              //     ),
-              //     title: Text('MyPlaces',
-              //         style: TextStyle(
-              //           color: ColorConstants.appColor,
-              //         )),
-              //   ),
-              // ),
               PopupMenuItem<String>(
                 textStyle: TextStyle(
                   color: ColorConstants.appColor,
@@ -108,59 +85,19 @@ class _HomePageState extends State<HomePage> {
                       )),
                 ),
               ),
-              // PopupMenuItem<String>(
-              //   value: 'Faqs',
-              //   child: ListTile(
-              //     leading: Icon(
-              //       Icons.help_outline_outlined,
-              //       color: ColorConstants.appColor,
-              //     ),
-              //     title: Text('Faqs',
-              //         style: TextStyle(
-              //           color: ColorConstants.appColor,
-              //         )),
-              //   ),
-              // ),
-              // PopupMenuItem<String>(
-              //   value: 'Feedback',
-              //   child: ListTile(
-              //     leading: Icon(
-              //       Icons.feedback_outlined,
-              //       color: ColorConstants.appColor,
-              //     ),
-              //     title: Text('Feedback',
-              //         style: TextStyle(
-              //           color: ColorConstants.appColor,
-              //         )),
-              //   ),
-              // ),
-              // PopupMenuItem<String>(
-              //   value: 'camera',
-              //   child: ListTile(
-              //     leading: Icon(
-              //       Icons.camera_alt_outlined,
-              //       color: ColorConstants.appColor,
-              //     ),
-              //     title: Text('AQI Camera',
-              //         style: TextStyle(
-              //           color: ColorConstants.appColor,
-              //         )),
-              //   ),
-              // ),
-              // PopupMenuItem<String>(
-              //   value: 'Settings',
-              //   child: ListTile(
-              //     leading: Icon(
-              //
-              //       Icons.settings,
-              //       color: ColorConstants.appColor,
-              //     ),
-              //     title: const Text(
-              //       'Settings',
-              //     ),
-              //   ),
-              // ),
-              // const PopupMenuDivider(),
+              PopupMenuItem<String>(
+                value: 'settings',
+                child: ListTile(
+                  leading: Icon(
+                    Icons.settings,
+                    color: ColorConstants.appColor,
+                  ),
+                  title: const Text(
+                    'Settings',
+                  ),
+                ),
+              ),
+              const PopupMenuDivider(),
               PopupMenuItem<String>(
                 value: 'Share',
                 child: ListTile(
@@ -193,8 +130,6 @@ class _HomePageState extends State<HomePage> {
                 flex: 1,
               ),
               IconButton(
-                // iconSize: 30.0,
-                // padding: const EdgeInsets.only(left: 28.0),
                 icon: Icon(Icons.home_outlined,
                     color: selectedPage == 0
                         ? ColorConstants.appColor
@@ -229,7 +164,7 @@ class _HomePageState extends State<HomePage> {
               IconButton(
                 // iconSize: 30.0,
                 // padding: const EdgeInsets.only(right: 28.0),
-                icon: Icon(Icons.library_books_outlined,
+                icon: Icon(Icons.bar_chart_outlined,
                     color: selectedPage == 2
                         ? ColorConstants.appColor
                         : ColorConstants.inactiveColor),
@@ -246,7 +181,7 @@ class _HomePageState extends State<HomePage> {
               IconButton(
                 // iconSize: 30.0,
                 // padding: const EdgeInsets.only(right: 28.0),
-                icon: Icon(Icons.settings,
+                icon: Icon(Icons.library_books_outlined,
                     color: selectedPage == 3
                         ? ColorConstants.appColor
                         : ColorConstants.inactiveColor),
@@ -273,8 +208,9 @@ class _HomePageState extends State<HomePage> {
           children: <Widget>[
             DashboardPage(),
             MyPlacesView(),
-            ResourcesPage(),
-            SettingsView(),
+            RankingPage(),
+            BlogPage(),
+            // SettingsView(),
           ],
         ),
       ),
@@ -293,18 +229,7 @@ class _HomePageState extends State<HomePage> {
               child: FaIcon(
                 FontAwesomeIcons.map,
                 color: ColorConstants.appColor,
-              )
-              // child: Image.asset(
-              //   'assets/images/world-map.png',
-              //   // height: 10,
-              //   // width: 10,
-              // ),
-              // child: const Icon(
-              //   Icons.public_sharp,
-              //   color: Colors.white,
-              // ),
-              // elevation: 5.0,
-              ),
+              )),
         ),
       ),
     );
@@ -336,8 +261,10 @@ class _HomePageState extends State<HomePage> {
           fullscreenDialog: true,
         ),
       );
-    } else if (menuItem.trim().toLowerCase() == 'camera') {
-      takePhoto();
+    } else if (menuItem.trim().toLowerCase() == 'settings') {
+      Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return SettingsPage();
+      }));
     } else {
       Navigator.push(context, MaterialPageRoute(builder: (context) {
         return SettingsPage();
@@ -392,21 +319,21 @@ class _HomePageState extends State<HomePage> {
         break;
       case 1:
         setState(() {
-          title = 'MyPlaces';
+          title = 'My Places';
           showAddPlace = false;
           selectedPage = 1;
         });
         break;
       case 2:
         setState(() {
-          title = 'AirQo';
+          title = 'Air Quality Ranking';
           showAddPlace = false;
           selectedPage = 2;
         });
         break;
       case 3:
         setState(() {
-          title = 'Settings';
+          title = 'Blog';
           showAddPlace = false;
           selectedPage = 3;
         });
@@ -439,27 +366,6 @@ class _HomePageState extends State<HomePage> {
     }));
   }
 
-  Future<void> _displayOnBoarding() async {
-    var prefs = await SharedPreferences.getInstance();
-    var isFirstUse = prefs.getBool(PrefConstant.firstUse) ?? true;
-
-    if (isFirstUse) {
-      await Navigator.pushAndRemoveUntil(context,
-          MaterialPageRoute(builder: (context) {
-        return OnBoardingPage();
-      }), (r) => false);
-    }
-  }
-
-  Future<void> _getHistoricalMeasurements() async {
-    await AirqoApiClient(context)
-        .fetchHistoricalMeasurements()
-        .then((value) => {
-              if (value.isNotEmpty)
-                {DBHelper().insertHistoricalMeasurements(value)}
-            });
-  }
-
   void _getLatestMeasurements() async {
     await AirqoApiClient(context).fetchLatestMeasurements().then((value) => {
           if (value.isNotEmpty) {DBHelper().insertLatestMeasurements(value)}
@@ -468,16 +374,5 @@ class _HomePageState extends State<HomePage> {
 
   void _handleMessage(RemoteMessage message) {
     print(message.data);
-    // if (message.data['type'] == 'chat') {
-    //   Navigator.pushNamed(context, '/chat',
-    //     arguments: ChatArguments(message),
-    //   );
-    // }
-  }
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
   }
 }

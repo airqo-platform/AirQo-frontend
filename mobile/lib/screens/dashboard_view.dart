@@ -1,449 +1,359 @@
-import 'dart:math';
-
-import 'package:app/constants/app_constants.dart';
-import 'package:app/models/historicalMeasurement.dart';
+import 'package:app/constants/config.dart';
+import 'package:app/models/kya.dart';
 import 'package:app/models/measurement.dart';
-import 'package:app/models/predict.dart';
-import 'package:app/models/site.dart';
-import 'package:app/models/story.dart';
-import 'package:app/screens/place_view.dart';
+import 'package:app/models/place_details.dart';
 import 'package:app/screens/search_page.dart';
-import 'package:app/services/local_storage.dart';
+import 'package:app/services/app_service.dart';
 import 'package:app/services/native_api.dart';
-import 'package:app/services/rest_api.dart';
+import 'package:app/utils/dashboard.dart';
 import 'package:app/utils/date.dart';
-import 'package:app/utils/settings.dart';
-import 'package:app/widgets/readings_card.dart';
+import 'package:app/utils/pm.dart';
+import 'package:app/widgets/analytics_card.dart';
+import 'package:app/widgets/custom_shimmer.dart';
+import 'package:app/widgets/tooltip.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class CircularBorder extends StatelessWidget {
-  final Color color = ColorConstants.inactiveColor;
-  final double size = 25;
-  final double width = 1.0;
-
-  // final Widget icon;
-
-  CircularBorder({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: size,
-      width: size,
-      alignment: Alignment.center,
-      child: Stack(
-        alignment: Alignment.center,
-        children: <Widget>[
-          Icon(
-            Icons.add,
-            size: 20,
-            color: ColorConstants.inactiveColor,
-          ),
-          CustomPaint(
-            size: Size(size, size),
-            foregroundPainter: MyPainter(completeColor: color, width: width),
-          ),
-        ],
-      ),
-    );
-  }
-}
+import 'favourite_places.dart';
+import 'for_you_page.dart';
+import 'kya/kya_lessons_page.dart';
 
 class DashboardView extends StatefulWidget {
+  const DashboardView({Key? key}) : super(key: key);
+
   @override
   _DashboardViewState createState() => _DashboardViewState();
 }
 
-class MyPainter extends CustomPainter {
-  Color lineColor = Colors.transparent;
-  Color completeColor;
-  double width;
-
-  MyPainter({required this.completeColor, required this.width});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    var complete = Paint()
-      ..color = completeColor
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = width;
-
-    var center = Offset(size.width / 2, size.height / 2);
-    var radius = min(size.width / 2, size.height / 2);
-    var percent = (size.width * 0.001) / 2;
-
-    var arcAngle = 2 * pi * percent;
-
-    for (var i = 0; i < 8; i++) {
-      var init = (-pi / 2) * (i / 2);
-
-      canvas.drawArc(Rect.fromCircle(center: center, radius: radius), init,
-          arcAngle, false, complete);
-    }
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) {
-    return true;
-  }
-}
-
 class _DashboardViewState extends State<DashboardView> {
-  var measurementData;
-  var historicalData = <HistoricalMeasurement>[];
-  var forecastData = <Predict>[];
-  var stories = <Story>[];
-  var storyIsSet = false;
+  String _greetings = '';
 
-  @override
-  Widget build(BuildContext context) {
-    if (measurementData == null) {
-      return Container(
-          color: ColorConstants.appBodyColor,
-          child: Center(
-            child: CircularProgressIndicator(
-              color: ColorConstants.appColor,
-            ),
-          ));
-    } else {
-      return Container(
-          color: ColorConstants.appBodyColor,
-          child: RefreshIndicator(
-              onRefresh: initialize,
-              color: ColorConstants.appColor,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16.0, 37, 16.0, 16.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Expanded(
-                      child: ListView(
-                        shrinkWrap: true,
-                        children: <Widget>[
-                          topBar(),
-                          const SizedBox(
-                            height: 10,
-                          ),
-                          Text(
-                            getGreetings(),
-                            style: const TextStyle(
-                                fontSize: 24, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          topTabs(),
-                          const SizedBox(
-                            height: 24,
-                          ),
-                          Text(
-                            getDateTime(),
-                            style: TextStyle(
-                              color: Colors.black.withOpacity(0.6),
-                              fontSize: 14,
-                            ),
-                          ),
-                          const Text(
-                            'Daily Forecast',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 32,
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 12,
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(context,
-                                  MaterialPageRoute(builder: (context) {
-                                return PlaceView(measurementData.site);
-                              }));
-                            },
-                            child: ReadingsCard(measurementData),
-                          ),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          if (stories.isNotEmpty)
-                            tipsSection(stories[pickStory(stories.length)]),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              )));
-    }
-  }
+  List<Widget> _favLocations = [];
+  List<Widget> _completeKyaWidgets = [];
+  List<Kya> _completeKya = [];
+  List<Kya> _incompleteKya = [];
 
-  void getLocationForecastMeasurements(Measurement measurement) async {
-    try {
-      await DBHelper()
-          .getForecastMeasurements(measurement.site.id)
-          .then((value) => {
-                if (value.isNotEmpty)
-                  {
-                    if (mounted)
-                      {
-                        setState(() {
-                          forecastData = value;
-                        })
-                      }
-                  }
-              });
-    } on Error catch (e) {
-      print('Getting forecast data locally error: $e');
-    } finally {
-      try {
-        await AirqoApiClient(context)
-            .fetchForecast(measurement.deviceNumber)
-            .then((value) => {
-                  if (value.isNotEmpty)
-                    {
-                      if (mounted)
-                        {
-                          setState(() {
-                            forecastData = value;
-                          }),
-                        },
-                      DBHelper().insertForecastMeasurements(
-                          value, measurement.site.id)
-                    },
-                });
-      } catch (e) {
-        print('Getting forecast data from api error: $e');
-      }
-    }
-  }
+  late AppService _appService;
+  List<Measurement> currentLocation = [];
+  late SharedPreferences _preferences;
 
-  void getLocationHistoricalMeasurements(Site site) async {
-    try {
-      await DBHelper().getHistoricalMeasurements(site.id).then((value) => {
-            if (value.isNotEmpty)
-              {
-                if (mounted)
-                  {
-                    setState(() {
-                      historicalData = value;
-                    })
-                  }
-              }
-          });
-    } catch (e) {
-      print('Historical data is currently not available.');
-    } finally {
-      try {
-        await AirqoApiClient(context)
-            .fetchSiteHistoricalMeasurements(site)
-            .then((value) => {
-                  if (value.isNotEmpty)
-                    {
-                      if (mounted)
-                        {
-                          setState(() {
-                            historicalData = value;
-                          }),
-                        },
-                      DBHelper()
-                          .insertSiteHistoricalMeasurements(value, site.id)
-                    }
-                });
-      } catch (e) {
-        print('Historical data is currently not available.');
-      }
-    }
+  final GlobalKey _favToolTipKey = GlobalKey();
+  final GlobalKey _kyaToolTipKey = GlobalKey();
+  final bool _isRefreshing = false;
 
-    try {
-      await AirqoApiClient(context)
-          .fetchSiteHistoricalMeasurements(site)
-          .then((value) => {
-                if (value.isNotEmpty)
-                  {
-                    if (mounted)
-                      {
-                        setState(() {
-                          historicalData = value;
-                        }),
-                      },
-                  }
-              });
-    } catch (e) {
-      print('Historical data is currently not available.');
-    }
-  }
+  final LocationService _locationService = LocationService();
 
-  Future<void> getLocationMeasurements() async {
-    try {
-      await Settings().dashboardMeasurement().then((value) => {
-            if (value != null)
-              {
-                if (mounted)
-                  {
-                    setState(() {
-                      measurementData = value;
-                    }),
-                    getLocationHistoricalMeasurements(value.site),
-                    // getLocationForecastMeasurements(value.site),
-                    updateCurrentLocation()
-                  },
-              }
-            else
-              {}
-          });
-    } catch (e) {
-      print('error getting data : $e');
-    }
-  }
+  final ScrollController _scrollController = ScrollController();
+  List<Widget> _dashBoardPlaces = [
+    analyticsCardLoading(),
+    analyticsCardLoading(),
+    analyticsCardLoading(),
+    analyticsCardLoading(),
+    analyticsCardLoading(),
+    analyticsCardLoading()
+  ];
 
-  void getStories() {
-    DBHelper().getStories().then((value) => {
-          if (mounted)
-            {
-              setState(() {
-                stories = value;
-              })
-            }
-        });
-
-    AirqoApiClient(context).fetchLatestStories().then((value) => {
-          if (mounted && stories.isEmpty)
-            {
-              setState(() {
-                stories = value;
-              })
-            },
-          DBHelper().insertLatestStories(value)
-        });
-  }
-
-  Future<void> initialize() async {
-    getStories();
-    await getLocationMeasurements();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    initialize();
-  }
-
-  int pickStory(int size) {
-    var random = Random();
-    return 0 + random.nextInt(size - 0);
-  }
-
-  Widget tipsSection(Story story) {
+  Widget appNavBar() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(10.0, 8.0, 8.0, 8.0),
-      decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(5.0))),
+      padding: const EdgeInsets.only(top: 24),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('${story.title}',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    )),
-                const SizedBox(
-                  height: 20,
-                ),
-                GestureDetector(
-                  onTap: () {},
-                  child: Container(
-                    height: 24,
-                    width: 60,
-                    decoration: BoxDecoration(
-                      color: ColorConstants.appColorBlue.withOpacity(0.2),
-                      borderRadius:
-                          const BorderRadius.all(Radius.circular(5.0)),
-                    ),
-                    child: Center(
-                      child: Text('Read',
-                          style: TextStyle(
-                            color: ColorConstants.appColorBlue,
-                            fontSize: 12,
-                          )),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(
-            width: 16,
-          ),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(5.0),
-            child: CachedNetworkImage(
-              width: 104,
-              height: 104,
-              fit: BoxFit.cover,
-              placeholder: (context, url) => const SizedBox(
-                height: 20.0,
-                width: 20.0,
-                child: Center(
-                  child: CircularProgressIndicator(
-                    strokeWidth: 4,
-                  ),
-                ),
-              ),
-              imageUrl: '${story.thumbnail}',
-              errorWidget: (context, url, error) => Icon(
-                Icons.error_outline,
-                color: ColorConstants.red,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget topBar() {
-    return Container(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image.asset(
-            'assets/icon/transparent_logo.png',
-            height: 58,
+          SvgPicture.asset(
+            'assets/icon/airqo_home.svg',
+            height: 40,
             width: 58,
+            semanticsLabel: 'Search',
           ),
           const Spacer(),
           Container(
+            height: 40,
+            width: 40,
+            padding: const EdgeInsets.all(10),
             decoration: const BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.rectangle,
                 borderRadius: BorderRadius.all(Radius.circular(10.0))),
-            child: IconButton(
-              iconSize: 30,
-              icon: Icon(
-                Icons.search,
-                color: ColorConstants.appBarTitleColor,
-              ),
-              onPressed: () async {
+            child: GestureDetector(
+              onTap: () async {
                 await Navigator.push(context,
                     MaterialPageRoute(builder: (context) {
                   return const SearchPage();
                 }));
               },
+              child: SvgPicture.asset(
+                'assets/icon/search.svg',
+                semanticsLabel: 'Search',
+              ),
             ),
           )
         ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: appNavBar(),
+        elevation: 0,
+        toolbarHeight: 65,
+        backgroundColor: Config.appBodyColor,
+      ),
+      body: Container(
+          padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 24),
+          color: Config.appBodyColor,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Visibility(
+                visible: true,
+                // visible: _showName,
+                child: AutoSizeText(
+                  _greetings,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                      fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const Visibility(
+                visible: true,
+                // visible: _showName,
+                child: SizedBox(
+                  height: 16,
+                ),
+              ),
+              topTabs(),
+              const SizedBox(
+                height: 8,
+              ),
+              Expanded(
+                  child: RefreshIndicator(
+                onRefresh: _refresh,
+                color: Config.appColorBlue,
+                child: _dashboardItems(),
+              )),
+            ],
+          )),
+    );
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(() {});
+    super.dispose();
+  }
+
+  Widget emptyAvatar(double rightPadding) {
+    return Positioned(
+        right: rightPadding,
+        child: Container(
+          height: 32.0,
+          width: 32.0,
+          padding: const EdgeInsets.all(2.0),
+          decoration: BoxDecoration(
+            border: Border.all(color: Config.appBodyColor, width: 2),
+            color: Config.greyColor,
+            shape: BoxShape.circle,
+          ),
+        ));
+  }
+
+  Widget favPlaceAvatar(double rightPadding, Measurement measurement) {
+    return Positioned(
+        right: rightPadding,
+        child: Container(
+          height: 32.0,
+          width: 32.0,
+          padding: const EdgeInsets.all(2.0),
+          decoration: BoxDecoration(
+            border: Border.all(color: Config.appBodyColor, width: 2),
+            color: pm2_5ToColor(measurement.getPm2_5Value()),
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: Text(
+              '${measurement.getPm2_5Value()}',
+              style: TextStyle(
+                  fontSize: 7,
+                  color: pm2_5TextColor(measurement.getPm2_5Value())),
+            ),
+          ),
+        ));
+  }
+
+  String getKyaMessage({required Kya kya}) {
+    var kyaItems = kya.lessons.length;
+    var progress = kya.progress;
+    if (progress == 0) {
+      return 'Start learning';
+    }
+    if (progress > 0 && progress < kyaItems) {
+      return 'Continue';
+    }
+    if (progress >= kyaItems) {
+      return 'Complete! Move to For You';
+    }
+    return '';
+  }
+
+  Future<void> handleKyaOnClick({required Kya kya}) async {
+    if (kya.progress >= kya.lessons.length) {
+      kya.progress = -1;
+      await _appService.updateKya(kya);
+      _getKya();
+    } else {
+      var returnStatus =
+          await Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return KyaLessonsPage(kya);
+      }));
+      if (returnStatus) {
+        Future.delayed(const Duration(seconds: 500), () {
+          if (mounted) {
+            _getKya();
+          }
+        });
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _initialize();
+    _handleScroll();
+  }
+
+  Widget kyaAvatar(double rightPadding, Kya kya) {
+    return Positioned(
+        right: rightPadding,
+        child: Container(
+          height: 32.0,
+          width: 32.0,
+          padding: const EdgeInsets.all(2.0),
+          decoration: BoxDecoration(
+            border: Border.all(color: Config.appBodyColor, width: 2),
+            color: Config.greyColor,
+            shape: BoxShape.circle,
+            image: DecorationImage(
+              fit: BoxFit.cover,
+              image: CachedNetworkImageProvider(
+                kya.imageUrl,
+              ),
+            ),
+          ),
+        ));
+  }
+
+  Widget kyaSection() {
+    if (_incompleteKya.isEmpty) {
+      return const SizedBox();
+    }
+    return GestureDetector(
+      onTap: () async {
+        await handleKyaOnClick(kya: _incompleteKya[0]);
+      },
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
+        decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.all(Radius.circular(16.0))),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Column(
+                children: [
+                  Text(_incompleteKya[0].title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      )),
+                  const SizedBox(
+                    height: 28,
+                  ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      AutoSizeText(getKyaMessage(kya: _incompleteKya[0]),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Config.appColorBlue,
+                          )),
+                      const SizedBox(
+                        width: 6,
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios_sharp,
+                        size: 10,
+                        color: Config.appColorBlue,
+                      )
+                    ],
+                  ),
+                  SizedBox(
+                    height:
+                        getKyaMessage(kya: _incompleteKya[0]).toLowerCase() ==
+                                'continue'
+                            ? 2
+                            : 0,
+                  ),
+                  Visibility(
+                    visible:
+                        getKyaMessage(kya: _incompleteKya[0]).toLowerCase() ==
+                            'continue',
+                    child: Container(
+                        height: 4,
+                        decoration: const BoxDecoration(
+                          borderRadius: BorderRadius.all(Radius.circular(8.0)),
+                        ),
+                        child: LinearProgressIndicator(
+                          color: Config.appColorBlue,
+                          value: _incompleteKya[0].progress /
+                              _incompleteKya[0].lessons.length,
+                          backgroundColor:
+                              Config.appColorDisabled.withOpacity(0.2),
+                        )),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(
+              width: 16,
+            ),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8.0),
+              child: CachedNetworkImage(
+                fit: BoxFit.cover,
+                width: 104,
+                height: 104,
+                placeholder: (context, url) => SizedBox(
+                  width: 104,
+                  height: 104,
+                  child: containerLoadingAnimation(height: 104, radius: 8),
+                ),
+                imageUrl: _incompleteKya[0].imageUrl,
+                errorWidget: (context, url, error) => Icon(
+                  Icons.error_outline,
+                  color: Config.red,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -453,130 +363,419 @@ class _DashboardViewState extends State<DashboardView> {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         Expanded(
-            child: Container(
-          padding: const EdgeInsets.all(15.0),
-          decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.all(Radius.circular(5.0))),
-          child: GestureDetector(
-            onTap: () {},
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  height: 32,
-                  width: 32,
-                  decoration: BoxDecoration(
-                      color: ColorConstants.appColorBlue.withOpacity(0.2),
-                      shape: BoxShape.circle),
-                  child: Icon(
-                    Icons.add,
-                    color: ColorConstants.appColorBlue,
-                    size: 17,
-                  ),
+            key: _favToolTipKey,
+            child: GestureDetector(
+              onTap: () async {
+                if (_favLocations.isEmpty) {
+                  ToolTip(context, toolTipType.favouritePlaces).show(
+                    widgetKey: _favToolTipKey,
+                  );
+                  return;
+                }
+                await Navigator.push(context,
+                    MaterialPageRoute(builder: (context) {
+                  return const FavouritePlaces();
+                }));
+              },
+              child: Container(
+                height: 56,
+                padding: const EdgeInsets.all(12.0),
+                decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.all(Radius.circular(8.0))),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Consumer<PlaceDetailsModel>(
+                      builder: (context, placeDetailsModel, child) {
+                        if (placeDetailsModel.favouritePlaces.isEmpty) {
+                          return SvgPicture.asset(
+                            'assets/icon/add_avator.svg',
+                          );
+                        }
+                        _loadFavourites(reload: false);
+                        return SizedBox(
+                          height: 32,
+                          width: 47,
+                          child: Stack(
+                            children: _favLocations,
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(
+                      width: 8,
+                    ),
+                    Text(
+                      'Favorites',
+                      style: TextStyle(
+                          color: Config.appColorBlue,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14),
+                    )
+                  ],
                 ),
-                const SizedBox(
-                  width: 8,
-                ),
-                Text(
-                  'Favorite',
-                  style: TextStyle(
-                    color: ColorConstants.appColorBlue,
-                  ),
-                )
-              ],
-            ),
-          ),
-        )),
+              ),
+            )),
         const SizedBox(
           width: 16,
         ),
         Expanded(
-            child: Container(
-          padding: const EdgeInsets.all(15.0),
-          decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.all(Radius.circular(5.0))),
-          child: GestureDetector(
-            onTap: () {},
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  height: 32,
-                  width: 32,
-                  decoration: BoxDecoration(
-                      color: ColorConstants.appColorBlue.withOpacity(0.2),
-                      shape: BoxShape.circle),
-                  child: Icon(
-                    Icons.add,
-                    color: ColorConstants.appColorBlue,
-                    size: 17,
-                  ),
+            key: _kyaToolTipKey,
+            child: GestureDetector(
+              onTap: () async {
+                if (_completeKya.isEmpty) {
+                  ToolTip(context, toolTipType.forYou).show(
+                    widgetKey: _kyaToolTipKey,
+                  );
+                  return;
+                }
+                await Navigator.push(context,
+                    MaterialPageRoute(builder: (context) {
+                  return const ForYouPage();
+                }));
+              },
+              child: Container(
+                height: 56,
+                padding: const EdgeInsets.all(12.0),
+                decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.all(Radius.circular(8.0))),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      height: 32,
+                      width: 47,
+                      child: Stack(
+                        children: _completeKyaWidgets,
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 8,
+                    ),
+                    Text(
+                      'For You',
+                      style: TextStyle(
+                          color: Config.appColorBlue,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14),
+                    )
+                  ],
                 ),
-                const SizedBox(
-                  width: 8,
-                ),
-                Text(
-                  'For you',
-                  style: TextStyle(
-                    color: ColorConstants.appColorBlue,
-                  ),
-                )
-              ],
-            ),
-          ),
-        )),
+              ),
+            )),
       ],
     );
   }
 
-  void updateCurrentLocation() async {
-    try {
-      var prefs = await SharedPreferences.getInstance();
-      var dashboardSite = prefs.getString(PrefConstant.dashboardSite) ?? '';
-
-      if (dashboardSite == '') {
-        await LocationApi().getCurrentLocationReadings().then((value) => {
-              if (value != null)
-                {
-                  prefs.setStringList(PrefConstant.lastKnownLocation,
-                      ['${value.site.getUserLocation()}', '${value.site.id}']),
-                  if (mounted)
-                    {
-                      setState(() {
-                        measurementData = value;
-                      }),
-                      getLocationHistoricalMeasurements(value.site),
-                      // getLocationForecastMeasurements(value.site),
-                    }
-                },
-            });
-      }
-    } catch (e) {}
+  Widget _dashboardItems() {
+    return MediaQuery.removePadding(
+        context: context,
+        removeTop: true,
+        child: ListView(
+            controller: _scrollController,
+            shrinkWrap: true,
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              const SizedBox(
+                height: 32,
+              ),
+              Text(
+                getDateTime(),
+                style: TextStyle(
+                  color: Colors.black.withOpacity(0.6),
+                  fontSize: 12,
+                ),
+              ),
+              const Text('Today’s air quality',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 24,
+                  )),
+              const SizedBox(
+                height: 12,
+              ),
+              if (_dashBoardPlaces.isNotEmpty) _dashBoardPlaces[0],
+              if (_dashBoardPlaces.isNotEmpty)
+                const SizedBox(
+                  height: 16,
+                ),
+              kyaSection(),
+              Visibility(
+                visible: _incompleteKya.isNotEmpty,
+                child: const SizedBox(
+                  height: 16,
+                ),
+              ),
+              if (_dashBoardPlaces.length >= 2) _dashBoardPlaces[1],
+              if (_dashBoardPlaces.length >= 2)
+                const SizedBox(
+                  height: 16,
+                ),
+              if (_dashBoardPlaces.length >= 3) _dashBoardPlaces[2],
+              if (_dashBoardPlaces.length >= 3)
+                const SizedBox(
+                  height: 16,
+                ),
+              if (_dashBoardPlaces.length >= 4) _dashBoardPlaces[3],
+              if (_dashBoardPlaces.length >= 4)
+                const SizedBox(
+                  height: 16,
+                ),
+              if (_dashBoardPlaces.length >= 5) _dashBoardPlaces[4],
+              if (_dashBoardPlaces.length >= 5)
+                const SizedBox(
+                  height: 16,
+                ),
+              if (_dashBoardPlaces.length >= 6) _dashBoardPlaces[5],
+              if (_dashBoardPlaces.length >= 6)
+                const SizedBox(
+                  height: 16,
+                ),
+              if (_dashBoardPlaces.length >= 7) _dashBoardPlaces[6],
+              if (_dashBoardPlaces.length >= 7)
+                const SizedBox(
+                  height: 16,
+                ),
+              if (_dashBoardPlaces.length >= 8) _dashBoardPlaces[7],
+              if (_dashBoardPlaces.length >= 8)
+                const SizedBox(
+                  height: 16,
+                ),
+            ]));
   }
 
-  Future<void> updateLocationMeasurements() async {
-    var prefs = await SharedPreferences.getInstance();
-    var dashboardMeasurement =
-        prefs.getString(PrefConstant.dashboardSite) ?? '';
-    if (dashboardMeasurement != '') {}
-    try {
-      await Settings().dashboardMeasurement().then((value) => {
-            if (value != null)
-              {
-                if (mounted)
-                  {
-                    setState(() {
-                      measurementData = value;
-                    }),
-                    getLocationHistoricalMeasurements(value.site),
-                    // getLocationForecastMeasurements(value.site),
-                  },
-              }
-          });
-    } catch (e) {
-      print('error getting data');
+  void _getDashboardCards() async {
+    var region = getNextDashboardRegion(_preferences);
+    var measurements = await _appService.dbHelper.getRegionSites(region);
+    var dashboardCards = <AnalyticsCard>[];
+
+    if (measurements.isNotEmpty) {
+      setState(() {
+        _dashBoardPlaces.clear();
+      });
+
+      for (var i = 0; i <= 5; i++) {
+        if (measurements.isEmpty) {
+          break;
+        }
+
+        var randomMeasurement = (measurements..shuffle()).first;
+
+        if (mounted) {
+          dashboardCards.add(AnalyticsCard(
+              PlaceDetails.measurementToPLace(randomMeasurement),
+              randomMeasurement,
+              _isRefreshing,
+              false));
+        }
+
+        measurements.remove(randomMeasurement);
+      }
+
+      if (!mounted) {
+        return;
+      }
+
+      dashboardCards.shuffle();
+      setState(() {
+        _dashBoardPlaces = dashboardCards;
+      });
+    }
+
+    var locationMeasurements =
+        await _locationService.getNearbyLocationReadings();
+
+    for (var location in locationMeasurements) {
+      dashboardCards.add(AnalyticsCard(
+          PlaceDetails.measurementToPLace(location),
+          location,
+          _isRefreshing,
+          false));
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    dashboardCards.shuffle();
+    setState(() {
+      _dashBoardPlaces = dashboardCards;
+    });
+  }
+
+  void _getKya() async {
+    var kya = await _appService.dbHelper.getKyas();
+
+    _completeKya = kya.where((element) => element.progress == -1).toList();
+    _loadCompleteKya(_completeKya);
+
+    setState(() {
+      _incompleteKya = kya.where((element) => element.progress != -1).toList();
+    });
+  }
+
+  void _handleScroll() async {
+    _scrollController.addListener(() {
+      if (_scrollController.position.userScrollDirection ==
+              ScrollDirection.reverse &&
+          mounted) {
+        // setState(() {
+        //   _showName = false;
+        // });
+      }
+      if (_scrollController.position.userScrollDirection ==
+              ScrollDirection.forward &&
+          mounted) {
+        // setState(() {
+        //   _showName = true;
+        // });
+      }
+    });
+  }
+
+  Future<void> _initialize() async {
+    _appService = AppService(context);
+    _preferences = await SharedPreferences.getInstance();
+    _completeKyaWidgets.add(circularLoadingAnimation(30));
+    _setGreetings();
+    _getDashboardCards();
+    _getKya();
+    Future.delayed(const Duration(seconds: 2), _getKya);
+  }
+
+  void _loadCompleteKya(List<Kya> completeKya) async {
+    var widgets = <Widget>[];
+
+    if (completeKya.isEmpty) {
+      widgets.add(SvgPicture.asset(
+        'assets/icon/add_avator.svg',
+      ));
+    } else {
+      setState(() {
+        _completeKya = completeKya;
+      });
+      try {
+        if (completeKya.length == 1) {
+          widgets.add(kyaAvatar(7, completeKya[0]));
+        } else if (completeKya.length == 2) {
+          widgets
+            ..add(kyaAvatar(0, completeKya[0]))
+            ..add(kyaAvatar(7, completeKya[1]));
+        } else if (completeKya.length >= 3) {
+          widgets
+            ..add(kyaAvatar(0, completeKya[0]))
+            ..add(kyaAvatar(7, completeKya[1]))
+            ..add(kyaAvatar(14, completeKya[2]));
+        } else {}
+      } on Error catch (exception, stackTrace) {
+        debugPrint('$exception\n$stackTrace');
+        await Sentry.captureException(
+          exception,
+          stackTrace: stackTrace,
+        );
+      }
+    }
+
+    if (mounted) {
+      if (widgets.isEmpty) {
+        widgets.add(SvgPicture.asset(
+          'assets/icon/add_avator.svg',
+        ));
+      }
+      setState(() {
+        _completeKyaWidgets = widgets;
+      });
+    }
+  }
+
+  void _loadFavourites({required bool reload}) async {
+    var widgets = <Widget>[];
+
+    if (_favLocations.length != 3 || reload) {
+      try {
+        var favouritePlaces = await _appService.dbHelper.getFavouritePlaces();
+
+        if (!reload) {
+          if (_favLocations.length >= favouritePlaces.length) {
+            return;
+          }
+        }
+
+        var siteIds = <String>[];
+        for (var place in favouritePlaces) {
+          siteIds.add(place.siteId);
+        }
+        var measurements = await _appService.dbHelper.getMeasurements(siteIds);
+
+        if (favouritePlaces.length == 1) {
+          if (measurements.isNotEmpty) {
+            widgets.add(favPlaceAvatar(7, measurements[0]));
+          } else {
+            widgets.add(emptyAvatar(0));
+          }
+        } else if (favouritePlaces.length == 2) {
+          if (measurements.isNotEmpty) {
+            widgets.add(favPlaceAvatar(0, measurements[0]));
+          } else {
+            widgets.add(emptyAvatar(0));
+          }
+
+          if (measurements.length >= 2) {
+            widgets.add(favPlaceAvatar(7, measurements[1]));
+          } else {
+            widgets.add(emptyAvatar(7));
+          }
+
+          // widgets
+          //   ..add(favPlaceAvatar(0, favouritePlaces[0]))
+          //   ..add(favPlaceAvatar(7, favouritePlaces[1]));
+        } else if (favouritePlaces.length >= 3) {
+          if (measurements.isNotEmpty) {
+            widgets.add(favPlaceAvatar(0, measurements[0]));
+          } else {
+            widgets.add(emptyAvatar(0));
+          }
+
+          if (measurements.length >= 2) {
+            widgets.add(favPlaceAvatar(7, measurements[1]));
+          } else {
+            widgets.add(emptyAvatar(7));
+          }
+
+          if (measurements.length >= 3) {
+            widgets.add(favPlaceAvatar(14, measurements[2]));
+          } else {
+            widgets.add(emptyAvatar(14));
+          }
+        } else {}
+      } catch (exception, stackTrace) {
+        debugPrint('$exception\n$stackTrace');
+      }
+
+      if (mounted) {
+        setState(() {
+          _favLocations.clear();
+          _favLocations = widgets;
+        });
+      }
+    }
+  }
+
+  Future<void> _refresh() async {
+    await _appService.refreshDashboard();
+    _getDashboardCards();
+    _getKya();
+    _loadFavourites(reload: true);
+  }
+
+  void _setGreetings() {
+    if (mounted) {
+      setState(() {
+        _greetings = getGreetings(_appService.customAuth.getDisplayName());
+      });
     }
   }
 }

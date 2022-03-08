@@ -23,3 +23,15 @@ export const useDeviceUptimeData = (deviceName) => {
 export const useUptimeLeaderboardData = () => {
   return useSelector((state) => state.deviceManagement.uptimeLeaderboard);
 };
+
+export const useManagementDevicesData = () => {
+  return useSelector((state) => state.deviceManagement.devices);
+};
+
+export const useManagementFilteredDevicesData = () => {
+  return useSelector((state) => state.deviceManagement.filteredDevices);
+};
+
+export const useActiveFiltersData = () => {
+  return useSelector((state) => state.deviceManagement.activeFilters);
+};

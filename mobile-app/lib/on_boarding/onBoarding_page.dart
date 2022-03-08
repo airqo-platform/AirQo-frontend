@@ -21,8 +21,8 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
         title: 'Map',
         localImageSrc: 'assets/images/map.png'),
     OnBoardingInfo(
-        description: 'Select locations important to you using MyPlaces',
-        title: 'MyPlaces',
+        description: 'Select locations important to you using My Places',
+        title: 'My Places',
         localImageSrc: 'assets/images/target.png'),
     OnBoardingInfo(
         description: 'See air quality for the last 48 hours and '

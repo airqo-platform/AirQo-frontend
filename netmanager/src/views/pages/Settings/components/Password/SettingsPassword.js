@@ -1,5 +1,6 @@
 /* eslint-disable */
 import React, { useState } from "react";
+import { useDispatch } from "react-redux";
 import PropTypes from "prop-types";
 import clsx from "clsx";
 import { makeStyles } from "@material-ui/styles";
@@ -18,6 +19,7 @@ import { CircularLoader } from "views/components/Loader/CircularLoader";
 import { updateUserPasswordApi } from "views/apis/authService";
 import { useOrgData } from "redux/Join/selectors";
 import usersStateConnector from "views/stateConnectors/usersStateConnector";
+import { updateMainAlert } from "redux/MainAlert/operations";
 
 const validPasswordRegex = RegExp(/(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}/);
 
@@ -28,6 +30,7 @@ const useStyles = makeStyles(() => ({
 const SettingsPassword = (props) => {
   const { className, mappedAuth, mappeduserState, ...rest } = props;
   const { user } = mappedAuth;
+  const dispatch = useDispatch();
 
   const orgData = useOrgData();
 
@@ -90,23 +93,24 @@ const SettingsPassword = (props) => {
     const tenant = orgData.name
     const userData = {
       ...newPassword,
-      old_pwd: newPassword.currentPassword,
+      old_password: newPassword.currentPassword,
     };
     setLoading(true);
     await updateUserPasswordApi(userId, tenant, userData)
         .then(data => {
-          setAlert({
+          dispatch(updateMainAlert({
+            severity: "success",
             show: true,
-            message: "Password update success",
-            type: "success"
-          })
+            message: "Password updated successfully",
+          }))
         })
         .catch(err => {
-          setAlert({
+
+          dispatch(updateMainAlert({
+            severity: "error",
             show: true,
-            message: err.response.data.message || err.response.data.password2,
-            type: "error"
-          })
+            message: err.response.data.message || err.response.data.password2 || "Password update failed",
+          }))
         })
     setLoading(false);
     clearState();

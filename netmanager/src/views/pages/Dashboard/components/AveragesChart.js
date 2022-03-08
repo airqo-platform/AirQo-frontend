@@ -25,6 +25,8 @@ import { DAILY_MEAN_AVERAGES_URI } from "config/urls/analytics";
 import { roundToEndOfDay, roundToStartOfDay } from "utils/dateTime";
 import { unzip, zip } from "underscore";
 import moment from "moment";
+import { useCurrentAirQloudData } from "redux/AirQloud/selectors";
+import { flattenSiteOptions } from "utils/sites";
 import { usePollutantsOptions } from "utils/customHooks";
 import OutlinedSelect from "../../../components/CustomSelects/OutlinedSelect";
 
@@ -38,6 +40,7 @@ function appendLeadingZeroes(n) {
 const AveragesChart = ({ classes }) => {
   const rootContainerId = "widget-container";
   const iconButton = "exportIconButton";
+  const airqloud = useCurrentAirQloudData();
   const filter = (node) => node.id !== iconButton;
   const endDate = moment(new Date()).toISOString();
   const startDate = moment(endDate).subtract(28, "days").toISOString();
@@ -57,6 +60,8 @@ const AveragesChart = ({ classes }) => {
   const [customChartTitle, setCustomChartTitle] = useState(
     `Mean Daily ${pollutant.label} Over the Past 28 Days`
   );
+
+  const [loading, setLoading] = useState(false);
 
   const handlePollutantChange = (pollutant) => {
     setTempPollutant(pollutant);
@@ -311,11 +316,13 @@ const AveragesChart = ({ classes }) => {
   };
 
   const fetchAndSetAverages = (pollutant) => {
+    setLoading(true);
     axios
       .post(DAILY_MEAN_AVERAGES_URI, {
         startDate: roundToStartOfDay(startDate).toISOString(),
         endDate: roundToEndOfDay(endDate).toISOString(),
         pollutant: pollutant.value,
+        sites: flattenSiteOptions(airqloud.siteOptions),
       })
       .then((response) => response.data)
       .then((responseData) => {
@@ -334,8 +341,11 @@ const AveragesChart = ({ classes }) => {
         });
         const [labels, average_values, background_colors] = unzip(zippedArr);
         setAverages({ labels, average_values, background_colors });
+        setLoading(false);
       })
-      .catch((e) => console.log(e));
+      .catch((e) => {
+        setLoading(false);
+        console.log(e)});
   };
 
   const handleSubmit = async (e) => {
@@ -353,6 +363,10 @@ const AveragesChart = ({ classes }) => {
   useEffect(() => {
     fetchAndSetAverages(pollutant);
   }, []);
+
+  useEffect(() => {
+    fetchAndSetAverages(pollutant);
+  }, [airqloud]);
 
   return (
     <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
@@ -389,7 +403,19 @@ const AveragesChart = ({ classes }) => {
         <Divider />
         <CardContent>
           <div className={classes.chartContainer}>
+            {loading ? (
+              <div 
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "30vh"
+              }}>
+                loading...
+              </div>
+            ):(
             <Bar data={locationsGraphData} options={options_main} />
+            )}
           </div>
         </CardContent>
       </Card>

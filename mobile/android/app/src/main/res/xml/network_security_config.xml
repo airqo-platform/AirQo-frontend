@@ -2,5 +2,9 @@
 <network-security-config>
     <domain-config cleartextTrafficPermitted="false">
         <domain includeSubdomains="true">airqo.net</domain>
+        <domain includeSubdomains="true">airqo.com</domain>
+        <domain includeSubdomains="true">airqo.africa</domain>
+        <domain includeSubdomains="true">firebase.google.com</domain>
+        <domain includeSubdomains="true">firebase.com</domain>
     </domain-config>
 </network-security-config>

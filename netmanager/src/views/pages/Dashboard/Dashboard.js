@@ -19,6 +19,11 @@ import { useEventsMapData } from "redux/MapData/selectors";
 import { PM_25_CATEGORY } from "utils/categories";
 import { isEmpty } from "underscore";
 import { useInitScrollTop } from "utils/customHooks";
+import ErrorBoundary from "views/ErrorBoundary/ErrorBoundary";
+import AirQloudDropDown from "../../containers/AirQloudDropDown";
+import { useCurrentAirQloudData } from "redux/AirQloud/selectors";
+import { flattenSiteOptions, siteOptionsToObject } from "utils/sites";
+import D3CustomisableChart from "../../components/d3/CustomisableChart";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -26,7 +31,11 @@ const useStyles = makeStyles((theme) => ({
   },
   chartCard: {},
   customChartCard: {
-    height: "70vh",
+    width: "100%",
+    padding: "20px",
+    minHeight: "200px",
+    // aspectRatio: "650 / 400",
+    // height: "50vh",
   },
   differenceIcon: {
     color: theme.palette.text.secondary,
@@ -45,6 +54,7 @@ const Dashboard = () => {
   useInitScrollTop();
   const classes = useStyles();
 
+  const currentAirQloud = useCurrentAirQloudData();
   const dispatch = useDispatch();
   const userDefaultGraphs = useUserDefaultGraphsData();
   const recentEventsData = useEventsMapData();
@@ -65,25 +75,36 @@ const Dashboard = () => {
 
   useEffect(() => {
     const initialCount = {
-      Good: 0,
-      Moderate: 0,
-      UHFSG: 0,
-      Unhealthy: 0,
-      VeryUnhealthy: 0,
-      Hazardous: 0,
+      Good: [],
+      Moderate: [],
+      UHFSG: [],
+      Unhealthy: [],
+      VeryUnhealthy: [],
+      Hazardous: [],
     };
+    const airqloudSites = flattenSiteOptions(currentAirQloud.siteOptions);
+    const airqloudSitesObj = siteOptionsToObject(currentAirQloud.siteOptions);
     recentEventsData.features &&
       recentEventsData.features.map((feature) => {
-        const pm2_5 = feature.properties.pm2_5.value;
-        Object.keys(PM_25_CATEGORY).map((key) => {
-          const valid = PM_25_CATEGORY[key];
-          if (pm2_5 > valid[0] && pm2_5 <= valid[1]) {
-            initialCount[key]++;
-          }
-        });
+        if (airqloudSites.includes(feature.properties.site_id)) {
+          const site_id = feature.properties.site_id || "";
+          const site = airqloudSitesObj[site_id];
+          const pm2_5 =
+            feature.properties &&
+            feature.properties.pm2_5 &&
+            (feature.properties.pm2_5.calibratedValue ||
+              feature.properties.pm2_5.value);
+
+          Object.keys(PM_25_CATEGORY).map((key) => {
+            const valid = PM_25_CATEGORY[key];
+            if (pm2_5 > valid[0] && pm2_5 <= valid[1]) {
+              initialCount[key].push({ ...site, pm2_5 });
+            }
+          });
+        }
       });
     setPm2_5SiteCount(initialCount);
-  }, [recentEventsData]);
+  }, [recentEventsData, currentAirQloud]);
 
   function appendLeadingZeroes(n) {
     if (n <= 9) {
@@ -113,83 +134,91 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <div className={classes.root}>
-      <Grid container spacing={4}>
-        <Grid item lg={2} sm={6} xl={2} xs={12}>
-          <PollutantCategory
-            pm25level="Good"
-            pm25levelCount={pm2_5SiteCount.Good}
-            iconClass="pm25Good"
-          />
+    <ErrorBoundary>
+      <div className={classes.root}>
+        <Grid container>
+          <Grid xs={12} sm={12} md={6} xl={6} style={{ display: "flex" }}>
+            <AirQloudDropDown />
+          </Grid>
         </Grid>
-        <Grid item lg={2} sm={6} xl={2} xs={12}>
-          <PollutantCategory
-            pm25level="Moderate"
-            pm25levelCount={pm2_5SiteCount.Moderate}
-            iconClass="pm25Moderate"
-          />
-        </Grid>
-        <Grid item lg={2} sm={6} xl={2} xs={12}>
-          <PollutantCategory
-            pm25level="UHFSG"
-            pm25levelCount={pm2_5SiteCount.UHFSG}
-            iconClass="pm25UH4SG"
-          />
+        <Grid container spacing={4}>
+          <Grid item lg={2} sm={6} xl={2} xs={12}>
+            <PollutantCategory
+              pm25level="Good"
+              sites={pm2_5SiteCount.Good}
+              iconClass="pm25Good"
+            />
+          </Grid>
+          <Grid item lg={2} sm={6} xl={2} xs={12}>
+            <PollutantCategory
+              pm25level="Moderate"
+              sites={pm2_5SiteCount.Moderate}
+              iconClass="pm25Moderate"
+            />
+          </Grid>
+          <Grid item lg={2} sm={6} xl={2} xs={12}>
+            <PollutantCategory
+              pm25level="UHFSG"
+              sites={pm2_5SiteCount.UHFSG}
+              iconClass="pm25UH4SG"
+            />
+          </Grid>
+
+          <Grid item lg={2} sm={6} xl={2} xs={12}>
+            <PollutantCategory
+              pm25level="Unhealthy"
+              sites={pm2_5SiteCount.Unhealthy}
+              iconClass="pm25UnHealthy"
+            />
+          </Grid>
+
+          <Grid item lg={2} sm={6} xl={2} xs={12}>
+            <PollutantCategory
+              pm25level="Very Unhealthy"
+              sites={pm2_5SiteCount.VeryUnhealthy}
+              iconClass="pm25VeryUnHealthy"
+            />
+          </Grid>
+          <Grid item lg={2} sm={6} xl={2} xs={12}>
+            <PollutantCategory
+              pm25level="Hazardous"
+              sites={pm2_5SiteCount.Hazardous}
+              iconClass="pm25Harzadous"
+            />
+          </Grid>
         </Grid>
 
-        <Grid item lg={2} sm={6} xl={2} xs={12}>
-          <PollutantCategory
-            pm25level="Unhealthy"
-            pm25levelCount={pm2_5SiteCount.Unhealthy}
-            iconClass="pm25UnHealthy"
-          />
-        </Grid>
+        <Grid container spacing={4}>
+          <AveragesChart classes={classes} />
 
-        <Grid item lg={2} sm={6} xl={2} xs={12}>
-          <PollutantCategory
-            pm25level="Very Unhealthy"
-            pm25levelCount={pm2_5SiteCount.VeryUnhealthy}
-            iconClass="pm25VeryUnHealthy"
-          />
-        </Grid>
-        <Grid item lg={2} sm={6} xl={2} xs={12}>
-          <PollutantCategory
-            pm25level="Hazardous"
-            pm25levelCount={pm2_5SiteCount.Hazardous}
-            iconClass="pm25Harzadous"
-          />
-        </Grid>
-      </Grid>
+          <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
+            <ExceedancesChart
+              className={clsx(classes.chartCard)}
+              date={dateValue}
+              chartContainer={classes.chartContainer}
+              idSuffix="exceedances"
+            />
+          </Grid>
 
-      <Grid container spacing={4}>
-        <AveragesChart classes={classes} />
+          {userDefaultGraphs &&
+            userDefaultGraphs.map((filter, key) => {
+              return (
+                <Grid item lg={6} md={6} sm={12} xl={6} xs={12} key={key}>
+                  <D3CustomisableChart
+                    className={clsx(classes.customChartCard)}
+                    defaultFilter={filter}
+                    key={key}
+                  />
+                </Grid>
+              );
+            })}
 
-        <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
-          <ExceedancesChart
-            className={clsx(classes.chartCard)}
-            date={dateValue}
-            chartContainer={classes.chartContainer}
-            idSuffix="exceedances"
-          />
+          <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
+            <AddChart className={classes.customChartCard} />
+          </Grid>
         </Grid>
-
-        {userDefaultGraphs &&
-          userDefaultGraphs.map((filter, key) => {
-            return (
-              <CustomisableChart
-                className={clsx(classes.customChartCard)}
-                defaultFilter={filter}
-                idSuffix={`custom-${key + 1}`}
-                key={key}
-              />
-            );
-          })}
-
-        <Grid item lg={6} md={6} sm={12} xl={6} xs={12}>
-          <AddChart className={classes.customChartCard} />
-        </Grid>
-      </Grid>
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 };
 

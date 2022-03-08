@@ -48,7 +48,7 @@ class Register extends Component {
   constructor(props) {
     super(props);
     this.query = new URLSearchParams(this.props.location.search);
-    this.tenant = this.query.get("tenant") || "airqo";
+    this.tenant = this.props.match.params.tenant || "airqo";
     this.state = {
       firstName: "",
       lastName: "",

@@ -24,6 +24,7 @@ import {
 import { ChartContainer } from "views/charts";
 import DeviceDetails from "./DeviceDetails";
 import DeviceLocation from "./DeviceLocation";
+import DeviceQRCode from "./DeviceQRCode";
 import DeviceOverviewCharts from "./DeviceOverviewChart";
 
 // styles
@@ -169,6 +170,8 @@ export default function DeviceOverview({ deviceData }) {
       }}
     >
       <DeviceDetails deviceData={deviceData} />
+
+      <DeviceQRCode deviceData={deviceData} />
 
       <DeviceLocation deviceData={deviceData} />
 

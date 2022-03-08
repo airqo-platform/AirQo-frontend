@@ -101,8 +101,7 @@ class Measurement {
   static String latestMeasurementsDb() => 'latest_measurements';
 
   static Map<String, dynamic> mapFromDb(Map<String, dynamic> json) {
-
-    var siteDetails =  Site.fromDbMap(json);
+    var siteDetails = Site.fromDbMap(json);
 
     return {
       'siteDetails': siteDetails,
@@ -118,7 +117,6 @@ class Measurement {
   }
 
   static Map<String, dynamic> mapToDb(Measurement measurement) {
-
     var measurementMap = Site.toDbMap(measurement.site)
       ..addAll({
         '${dbTime()}': measurement.time,
@@ -132,7 +130,6 @@ class Measurement {
       });
 
     return measurementMap;
-
   }
 
   static Measurement parseMeasurement(dynamic jsonBody) {

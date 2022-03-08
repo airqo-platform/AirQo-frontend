@@ -13,8 +13,8 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.21.9+12110
-
+# android test
+version: 2.0.1+20005
 
 environment:
   sdk: '>=2.12.0 <3.0.0'
@@ -26,54 +26,78 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
-  cupertino_icons: ^1.0.2
-  flutter_bloc: ^7.0.0
-  webview_flutter: ^2.0.4
-  shared_preferences: ^2.0.5
-  flutter_launcher_icons: ^0.9.0
-  google_maps_flutter: ^2.0.3
-  json_annotation: ^4.0.1
-  http: ^0.13.1
-  sqflite: ^2.0.0+3
-  cached_network_image: ^3.0.0
-  geolocator: ^7.0.3
-  flutter_local_notifications: ^8.1.1+2
-  share: ^2.0.1
-  url_launcher: ^6.0.3
-  path_provider: ^2.0.1
-  animations: ^2.0.0
-  provider: ^6.0.0
+  shared_preferences: ^2.0.13
+  flutter_launcher_icons: ^0.9.2
+  google_maps_flutter: ^2.1.1
+  json_annotation: ^4.4.0
+  http: ^0.13.4
+  sqflite: ^2.0.2
+  cached_network_image: ^3.2.0
+  geolocator: ^8.2.0
+  flutter_local_notifications: ^9.3.2
+  url_launcher: ^6.0.20
+  path_provider: ^2.0.9
+  animations: ^2.0.2
+  provider: ^6.0.2
   charts_flutter:
     git:
       url: git://github.com/google/charts.git
       path: charts_flutter
   intl: ^0.17.0
-  uuid: ^3.0.4
-  flutter_slidable: ^0.6.0
-  flutter_svg: ^0.22.0
-  animated_text_kit: ^4.2.1
-  camera: ^0.9.2+2
-  mime: ^1.0.0
-  font_awesome_flutter: ^9.0.0
-  firebase_messaging: ^10.0.6
-  firebase_core: ^1.6.0
+  uuid: ^3.0.5
+  flutter_svg: ^1.0.3
+  camera: ^0.9.4+14
   location: ^4.3.0
-  geocoder: ^0.2.1
-  flutter_html: ^2.1.2
-  cloud_firestore: ^2.5.3
+  image_picker: ^0.8.4+9
+  country_list_pick: ^1.0.1+5
+  shimmer: ^2.0.0
+  google_fonts: ^2.3.1
+  flutter_inappwebview: ^5.3.2
+  in_app_review: ^2.0.4
+  sentry_flutter: ^6.3.0
+  lottie: ^1.2.2
+  share_plus: ^3.0.5
+  flutter_secure_storage: ^5.0.2
+  geocoding: ^2.0.2
+  flutter_dotenv: ^5.0.2
+  flutter_native_splash: ^2.0.4
+  auto_size_text: ^3.0.0
+  firebase_core: ^1.12.0
+  firebase_messaging: ^11.2.6
+  cloud_firestore: ^3.1.8
+  firebase_auth: ^3.3.7
+  firebase_analytics: ^9.1.0
+  firebase_storage: ^10.2.7
+  scrollable_positioned_list: ^0.2.3
+  visibility_detector: ^0.2.2
+  package_info_plus: ^1.3.1
+  cloud_functions: ^3.2.7
+  
+flutter_native_splash:
+  # flutter pub run flutter_native_splash:create
+  # flutter pub run flutter_native_splash:remove
+
+  color: "#FFFFFF"
+  color_dark: "#FFFFFF"
+  image: assets/icon/splash_image.png
+  image_dark: assets/icon/splash_image.png
+  fullscreen: true
 
 flutter_icons:
   android: "launcher_icon"
   ios: true
-  image_path_ios: "assets/icon/airqo_logo.png"
+  image_path_ios: "assets/icon/ios_logo.png"
   image_path_android: "assets/icon/android_logo.png"
+  remove_alpha_ios: true
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  build_runner: ^2.0.4
-  pedantic: ^1.11.0
-  json_serializable: ^4.1.0
+  flutter_lints: ^1.0.4
+  build_runner: ^2.1.7
+  json_serializable: ^6.1.4
+  dart_code_metrics: ^4.10.1
 
 flutter:
 
@@ -84,47 +108,93 @@ flutter:
 
   assets:
     # images
-    - assets/images/good-face.png
-    - assets/images/moderate-face.png
-    - assets/images/unhealthy-face.png
-    - assets/images/very-unhealthy-face.png
-    - assets/images/sensitive-face.png
-    - assets/images/hazardous-face.png
-    - assets/images/historical.png
-    - assets/images/map.png
     - assets/images/world-map.png
-    - assets/images/heart.png
-    - assets/images/target.png
-    - assets/images/baby.png
-    - assets/images/cycling.png
-    - assets/images/face-mask.png
-    - assets/images/jogging.png
-    - assets/images/old.png
-    - assets/images/community.png
-    - assets/images/pregnant-woman.png
     - assets/images/splash-image.png
+    - assets/images/kya_stars.png
+    - assets/images/family.png
+    - assets/icon/enable_location_icon.png
+    - assets/icon/floating_bg.png
+    - assets/icon/coming_soon.png
+    - assets/images/child.png
+    - assets/images/old_man.png
+    - assets/images/pregnant_woman.png
 
    # icons
-    - assets/icon/airqo_logo.png
-    - assets/icon/airqo_logo.jpg
-    - assets/icon/airqo_logo_tagline.jpg
-    - assets/icon/airqo_logo_tagline_transparent.png
-    - assets/icon/airqo_logo.png
-    - assets/icon/transparent_logo.png
+    - assets/icon/ios_logo.png
     - assets/icon/android_logo.png
+    - assets/icon/splash_image.png
+
+    # lottie animations
+    - assets/lottie/animated_heart.json
+
+    # svg
+    - assets/icon/home_icon.svg
+    - assets/icon/toggle_icon.svg
+    - assets/icon/share_icon.svg
+    - assets/icon/tips_image.svg
+    - assets/icon/search.svg
+    - assets/icon/profile.svg
+    - assets/icon/location.svg
+    - assets/icon/airqo_home.svg
+    - assets/icon/unit.svg
+    - assets/icon/PM2.5.svg
+    - assets/icon/PM10.svg
+    - assets/icon/info_icon.svg
+    - assets/icon/loader.svg
+    - assets/icon/chart.svg
+    - assets/icon/unit.svg
+    - assets/icon/tips_image.svg
+    - assets/icon/info_icon.svg
+    - assets/icon/home_icon.svg
+    - assets/icon/tips_graphics.svg
+    - assets/icon/onboarding_fav.svg
+    - assets/icon/more_arrow.svg
+    - assets/icon/back_button.svg
+    - assets/icon/location_icon.svg
+    - assets/icon/notification_icon.svg
+    - assets/icon/star.svg
+    - assets/icon/sparkles.svg
+    - assets/icon/heart.svg
+    - assets/icon/heart_dislike.svg
+    - assets/icon/add_avator.svg
+    - assets/icon/next_arrow.svg
+    - assets/icon/enable_notifications_icon.svg
+    - assets/icon/cog.svg
+    - assets/icon/empty_notifications.svg
+    - assets/icon/floating_bg.svg
+    - assets/icon/close.svg
+    - assets/icon/onboarding_profile_icon.svg
+    - assets/icon/onboarding_hash_tag.svg
+    - assets/icon/previous_arrow.svg
+    - assets/icon/learn_complete.svg
+    - assets/icon/profile_edit.svg
+    - assets/icon/has_notifications.svg
+    - assets/icon/text_clear_btn.svg
+    - assets/icon/splash_image.svg
+    - assets/icon/tooltip_close.svg
+    - assets/icon/info_icon_grey.svg
 
     # Language Translation files
     - assets/i18n/en.json
 
+    # Environment Variables
+    - .env.dev
+    - .env.prod
+
   fonts:
-   - family: OpenSans
+   - family: Inter
      fonts:
-       - asset: assets/fonts/OpenSans-Bold.ttf
-       - asset: assets/fonts/OpenSans-BoldItalic.ttf
-       - asset: assets/fonts/OpenSans-ExtraBold.ttf
-       - asset: assets/fonts/OpenSans-Light.ttf
-       - asset: assets/fonts/OpenSans-Regular.ttf
-       - asset: assets/fonts/OpenSans-Semibold.ttf
+       - asset: assets/fonts/Inter-Bold.ttf
+       - asset: assets/fonts/Inter-Black.ttf
+       - asset: assets/fonts/Inter-ExtraBold.ttf
+       - asset: assets/fonts/Inter-ExtraLight.ttf
+       - asset: assets/fonts/Inter-Light.ttf
+       - asset: assets/fonts/Inter-Medium.ttf
+       - asset: assets/fonts/Inter-Regular.ttf
+       - asset: assets/fonts/Inter-Thin.ttf
+       - asset: assets/fonts/Inter-SemiBold.ttf
+
+# https://fonts.google.com/specimen/Inter?query=inter
 
 # An image asset can refer to one or more resolution-specific "variants", see
 # https://flutter.dev/assets-and-images/#resolution-aware.

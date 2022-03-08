@@ -32,6 +32,7 @@ import {
   createAlertBarExtraContentFromObject,
   dropEmpty,
 } from "utils/objectManipulators";
+import ErrorBoundary from "views/ErrorBoundary/ErrorBoundary";
 
 // css
 import "assets/css/device-registry.css";
@@ -421,63 +422,66 @@ const DevicesTable = (props) => {
   }, [devices]);
 
   return (
-    <div className={classes.root}>
-      <br />
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "flex-end",
-        }}
-      >
-        <Button
-          variant="contained"
-          color="primary"
-          type="submit"
-          align="right"
-          onClick={() => setRegisterOpen(true)}
+    <ErrorBoundary>
+      <div className={classes.root}>
+        <br />
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-end",
+          }}
         >
-          {" "}
-          Add Device
-        </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            type="submit"
+            align="right"
+            onClick={() => setRegisterOpen(true)}
+          >
+            {" "}
+            Add Device
+          </Button>
+        </div>
+        <br />
+
+        <CustomMaterialTable
+          title="Device Registry"
+          userPreferencePaginationKey={"devices"}
+          columns={deviceColumns}
+          data={deviceList}
+          isLoading={isEmpty(devices)}
+          onRowClick={(event, rowData) => {
+            event.preventDefault();
+            return history.push(`/device/${rowData.name}/overview`);
+          }}
+          options={{
+            search: true,
+            exportButton: true,
+            searchFieldAlignment: "left",
+            showTitle: false,
+            searchFieldStyle: {
+              fontFamily: "Open Sans",
+            },
+            headerStyle: {
+              fontFamily: "Open Sans",
+              fontSize: 16,
+              fontWeight: 600,
+            },
+          }}
+        />
+
+        <CreateDevice open={registerOpen} setOpen={setRegisterOpen} />
+        <ConfirmDialog
+          open={delDevice.open}
+          title={"Delete a device?"}
+          message={`Are you sure you want to delete this ${delDevice.name} device`}
+          close={() => setDelDevice({ open: false, name: "" })}
+          confirm={handleDeleteDevice}
+          error
+        />
       </div>
-      <br />
-
-      <CustomMaterialTable
-        title="Device Registry"
-        userPreferencePaginationKey={"devices"}
-        columns={deviceColumns}
-        data={deviceList}
-        onRowClick={(event, rowData) => {
-          event.preventDefault();
-          return history.push(`/device/${rowData.name}/overview`);
-        }}
-        options={{
-          search: true,
-          exportButton: true,
-          searchFieldAlignment: "left",
-          showTitle: false,
-          searchFieldStyle: {
-            fontFamily: "Open Sans",
-          },
-          headerStyle: {
-            fontFamily: "Open Sans",
-            fontSize: 16,
-            fontWeight: 600,
-          },
-        }}
-      />
-
-      <CreateDevice open={registerOpen} setOpen={setRegisterOpen} />
-      <ConfirmDialog
-        open={delDevice.open}
-        title={"Delete a device?"}
-        message={`Are you sure you want to delete this ${delDevice.name} device`}
-        close={() => setDelDevice({ open: false, name: "" })}
-        confirm={handleDeleteDevice}
-        error
-      />
-    </div>
+    </ErrorBoundary>
   );
 };
 

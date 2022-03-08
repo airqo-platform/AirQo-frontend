@@ -1,515 +1,547 @@
 import 'dart:io';
 
-import 'package:app/constants/app_constants.dart';
-import 'package:app/models/feedback.dart' as feedback_model;
+import 'package:app/constants/config.dart';
+import 'package:app/models/feedback.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dialogs.dart';
+import 'package:app/utils/extensions.dart';
+import 'package:app/widgets/buttons.dart';
+import 'package:app/widgets/custom_widgets.dart';
+import 'package:app/widgets/text_fields.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'home_page.dart';
-
-RawMaterialButton customOkayButton(context, success) {
-  return RawMaterialButton(
-    shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(4.0),
-        side: BorderSide(color: ColorConstants.appColor, width: 1)),
-    fillColor: ColorConstants.appColor,
-    elevation: 0,
-    highlightElevation: 0,
-    splashColor: Colors.black12,
-    highlightColor: ColorConstants.appColor.withOpacity(0.4),
-    onPressed: () async {
-      if (success) {
-        await Navigator.pushAndRemoveUntil(context,
-            MaterialPageRoute(builder: (context) {
-          return HomePage();
-        }), (r) => false);
-      } else {
-        Navigator.of(context).pop();
-      }
-    },
-    child: const Padding(
-      padding: EdgeInsets.all(4),
-      child: Text(
-        'Close',
-        style: TextStyle(color: Colors.white),
-      ),
-    ),
-  );
-}
-
 class FeedbackPage extends StatefulWidget {
+  const FeedbackPage({Key? key}) : super(key: key);
+
   @override
   _FeedbackPageState createState() => _FeedbackPageState();
 }
 
-class SuccessDialog extends StatelessWidget {
+class _FeedbackPageState extends State<FeedbackPage> {
+  int _index = 0;
+  String _feedbackType = '';
+  String _feedbackChannel = '';
+  bool _isSendingFeedback = false;
+  final TextEditingController _emailInputController = TextEditingController();
+  final TextEditingController _emailFeedbackController =
+      TextEditingController();
+  AirqoApiClient? _airqoApiClient;
+
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Row(
-              mainAxisSize: MainAxisSize.max,
-              children: <Widget>[
-                Icon(
-                  Icons.info_outline_rounded,
-                  color: ColorConstants.appColor,
-                ),
-                Flexible(
-                  child: Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Text(
-                      'Thanks for your feedback.'
-                      ' The AirQo team shall address it asap',
-                      softWrap: true,
-                      style: TextStyle(
-                        color: ColorConstants.appColor,
+    return Scaffold(
+        resizeToAvoidBottomInset: false,
+        appBar: appTopBar(context, 'Send Feedback'),
+        body: Container(
+            padding: const EdgeInsets.only(left: 16, right: 16),
+            color: Config.appBodyColor,
+            child: Column(
+              children: [
+                ListView(
+                  shrinkWrap: true,
+                  children: [
+                    const SizedBox(
+                      height: 37,
+                    ),
+                    Row(
+                      children: [
+                        Container(
+                          height: 16,
+                          width: 16,
+                          decoration: BoxDecoration(
+                              color: _feedbackType == ''
+                                  ? Config.greyColor
+                                  : Config.appColorBlue,
+                              shape: BoxShape.circle),
+                        ),
+                        Expanded(
+                            child: Divider(
+                          thickness: 2,
+                          color: _index >= 1
+                              ? Config.appColorBlue
+                              : Config.greyColor,
+                        )),
+                        Container(
+                          height: 16,
+                          width: 16,
+                          decoration: BoxDecoration(
+                              color: _feedbackChannel != '' && _index >= 1
+                                  ? Config.appColorBlue
+                                  : Config.greyColor,
+                              shape: BoxShape.circle),
+                        ),
+                        Expanded(
+                            child: Divider(
+                          thickness: 2,
+                          color: _index >= 2 || _feedbackChannel == 'WhatsApp'
+                              ? Config.appColorBlue
+                              : Config.greyColor,
+                        )),
+                        Container(
+                          height: 16,
+                          width: 16,
+                          decoration: BoxDecoration(
+                              color:
+                                  _index >= 2 || _feedbackChannel == 'WhatsApp'
+                                      ? Config.appColorBlue
+                                      : Config.greyColor,
+                              shape: BoxShape.circle),
+                        ),
+                      ],
+                    ),
+
+                    // Step 0 (Feedback type)
+                    Visibility(
+                        visible: _index == 0,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(
+                              height: 32,
+                            ),
+                            const Text(
+                              'What type of feedback?',
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(
+                              height: 16,
+                            ),
+                            cardContainer('Report air pollution'),
+                            const SizedBox(
+                              height: 4,
+                            ),
+                            cardContainer('Inquiry'),
+                            const SizedBox(
+                              height: 4,
+                            ),
+                            cardContainer('Suggestion'),
+                            const SizedBox(
+                              height: 4,
+                            ),
+                            cardContainer('App Bugs'),
+                          ],
+                        )),
+
+                    // Step 1 (Feedback channel)
+                    Visibility(
+                        visible: _index == 1,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(
+                              height: 32,
+                            ),
+                            const Text(
+                              'Send us feedback via email or whatsapp',
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(
+                              height: 16,
+                            ),
+                            cardContainer('Email'),
+                            const SizedBox(
+                              height: 4,
+                            ),
+                            Visibility(
+                              visible: _feedbackChannel == 'Email',
+                              child: emailInputField(),
+                            ),
+                            const SizedBox(
+                              height: 16,
+                            ),
+                            cardContainer('WhatsApp'),
+                          ],
+                        )),
+
+                    // Step 2 (Email Feedback channel)
+                    Visibility(
+                        visible: _index == 2 && _feedbackChannel == 'Email',
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(
+                              height: 32,
+                            ),
+                            const Text(
+                              'Go ahead, tell us more?',
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(
+                              height: 16,
+                            ),
+                            emailFeedbackInputField(),
+                          ],
+                        )),
+
+                    // Action buttons
+                    Visibility(
+                      visible: false,
+                      child: GestureDetector(
+                        onTap: () {
+                          if (_feedbackType != '') {
+                            setState(() {
+                              _index = 1;
+                            });
+                          }
+                        },
+                        child: _feedbackType == ''
+                            ? nextButton('Next', Config.appColorPaleBlue)
+                            : nextButton('Next', Config.appColorBlue),
                       ),
                     ),
-                  ),
-                ),
-              ],
-            ),
-            customOkayButton(context, true),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
-class _FeedbackPageState extends State<FeedbackPage> {
-  final _formKey = GlobalKey<FormState>();
-  final feedbackController = TextEditingController();
-  final emailController = TextEditingController();
-  bool sendingFeedback = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final height = MediaQuery.of(context).size.height;
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          '${AppConfig.name}',
-          style:
-              const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-      ),
-      body: Container(
-        height: height,
-        child: Stack(
-          children: <Widget>[
-            Form(
-              key: _formKey,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    const SizedBox(height: 10),
-                    // emailInput(),
-                    // const SizedBox(height: 5),
-                    feedbackInput(),
-                    const SizedBox(
-                      height: 10,
+                    Visibility(
+                      visible: false,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          GestureDetector(
+                            child: containerBackButton(
+                                'Back', Config.appColorPaleBlue),
+                            onTap: () {
+                              setState(() {
+                                _index = _index - 1;
+                              });
+                            },
+                          ),
+                          GestureDetector(
+                            onTap: () async {
+                              if (_index == 1 && _feedbackChannel != '') {
+                                if (_feedbackChannel == 'Email') {
+                                  if (!_emailInputController.text
+                                      .isValidEmail()) {
+                                    await showSnackBar(context,
+                                        'Please enter a valid email address');
+                                  } else {
+                                    setState(() {
+                                      _index = _index + 1;
+                                    });
+                                  }
+                                } else if (_feedbackChannel == 'WhatsApp') {
+                                  openWhatsapp();
+                                  Future.delayed(const Duration(seconds: 2),
+                                      () {
+                                    Navigator.of(context).pop();
+                                  });
+                                }
+                              } else if (_index == 2 &&
+                                  _feedbackChannel == 'Email') {
+                                if (_emailFeedbackController.text == '') {
+                                  await showSnackBar(
+                                      context, 'Please provide your feedback');
+                                } else {
+                                  var feedback = UserFeedback(
+                                      _emailInputController.text,
+                                      _emailFeedbackController.text,
+                                      _feedbackType);
+                                  setState(() {
+                                    _isSendingFeedback = true;
+                                  });
+                                  await _airqoApiClient!
+                                      .sendFeedback(feedback)
+                                      .then((value) => {
+                                            if (value)
+                                              {
+                                                showSnackBar(context,
+                                                    'Thanks for the feedback'),
+                                                Navigator.of(context).pop(),
+                                                setState(() {
+                                                  _isSendingFeedback = false;
+                                                })
+                                              }
+                                            else
+                                              {
+                                                showSnackBar(
+                                                    context,
+                                                    'Could not capture'
+                                                    ' your feedback.'
+                                                    ' Try again later'),
+                                                setState(() {
+                                                  _isSendingFeedback = false;
+                                                })
+                                              }
+                                          });
+                                }
+                              }
+                            },
+                            child: _index == 2 || _feedbackChannel == 'WhatsApp'
+                                ? containerNextButton(
+                                    'Send',
+                                    _isSendingFeedback
+                                        ? Config.appColorPaleBlue
+                                        : Config.appColorBlue)
+                                : containerNextButton(
+                                    'Next', Config.appColorBlue),
+                          )
+                        ],
+                      ),
                     ),
-                    submitButton(),
-                    support(),
-                    footer()
                   ],
                 ),
-              ),
+                const Spacer(),
+                Visibility(
+                  visible: _index == 0,
+                  child: GestureDetector(
+                    onTap: () {
+                      if (_feedbackType != '') {
+                        setState(() {
+                          _index = 1;
+                        });
+                      }
+                    },
+                    child: _feedbackType == ''
+                        ? nextButton('Next', Config.appColorPaleBlue)
+                        : nextButton('Next', Config.appColorBlue),
+                  ),
+                ),
+                Visibility(
+                  visible: _index > 0,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      GestureDetector(
+                        child: containerBackButton(
+                            'Back', Config.appColorPaleBlue),
+                        onTap: () {
+                          setState(() {
+                            _index = _index - 1;
+                          });
+                        },
+                      ),
+                      GestureDetector(
+                        onTap: () async {
+                          if (_index == 1 && _feedbackChannel != '') {
+                            if (_feedbackChannel == 'Email') {
+                              if (!_emailInputController.text.isValidEmail()) {
+                                await showSnackBar(context,
+                                    'Please enter a valid email address');
+                              } else {
+                                setState(() {
+                                  _index = _index + 1;
+                                });
+                              }
+                            } else if (_feedbackChannel == 'WhatsApp') {
+                              openWhatsapp();
+                              Future.delayed(const Duration(seconds: 2), () {
+                                Navigator.of(context).pop();
+                              });
+                            }
+                          } else if (_index == 2 &&
+                              _feedbackChannel == 'Email') {
+                            if (_emailFeedbackController.text == '') {
+                              await showSnackBar(
+                                  context, 'Please provide your feedback');
+                            } else {
+                              var feedback = UserFeedback(
+                                  _emailInputController.text,
+                                  _emailFeedbackController.text,
+                                  _feedbackType);
+                              setState(() {
+                                _isSendingFeedback = true;
+                              });
+                              await _airqoApiClient!
+                                  .sendFeedback(feedback)
+                                  .then((value) => {
+                                        if (value)
+                                          {
+                                            showSnackBar(context,
+                                                'Thanks for the feedback'),
+                                            Navigator.of(context).pop(),
+                                            setState(() {
+                                              _isSendingFeedback = false;
+                                            })
+                                          }
+                                        else
+                                          {
+                                            showSnackBar(
+                                                context,
+                                                'Could not capture'
+                                                ' your feedback.'
+                                                ' Try again later'),
+                                            setState(() {
+                                              _isSendingFeedback = false;
+                                            })
+                                          }
+                                      });
+                            }
+                          }
+                        },
+                        child: _index == 2 || _feedbackChannel == 'WhatsApp'
+                            ? containerNextButton(
+                                'Send',
+                                _isSendingFeedback
+                                    ? Config.appColorPaleBlue
+                                    : Config.appColorBlue)
+                            : containerNextButton('Next', Config.appColorBlue),
+                      )
+                    ],
+                  ),
+                ),
+                const SizedBox(
+                  height: 37,
+                ),
+              ],
+            )));
+  }
+
+  Widget cardContainer(text) {
+    return GestureDetector(
+      onTap: () {
+        if (_index == 0) {
+          setState(() {
+            _feedbackType = text;
+          });
+        } else if (_index == 1) {
+          setState(() {
+            _feedbackChannel = text;
+          });
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.only(left: 16, right: 16),
+        height: 56,
+        decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.all(Radius.circular(8.0))),
+        child: Row(
+          children: [
+            Visibility(
+              visible: _index == 0,
+              child: unselectedCircle(_feedbackType == text),
             ),
+            Visibility(
+              visible: _index == 1,
+              child: unselectedCircle(_feedbackChannel == text),
+            ),
+            const SizedBox(
+              width: 16,
+            ),
+            Text(
+              text,
+              style: const TextStyle(fontSize: 16),
+            )
           ],
         ),
       ),
     );
   }
 
-  EdgeInsets containerPadding() {
-    return const EdgeInsets.fromLTRB(10, 10, 10, 0);
-  }
-
-  @override
-  void dispose() {
-    emailController.dispose();
-    feedbackController.dispose();
-    super.dispose();
-  }
-
-  Widget emailInput() {
-    return TextFormField(
-      controller: emailController,
-      decoration: const InputDecoration(
-        icon: Icon(Icons.email_outlined),
-        labelText: 'Email Address (Optional)',
-      ),
-      keyboardType: TextInputType.emailAddress,
-      onChanged: (value) {},
-      textInputAction: TextInputAction.next,
-    );
-  }
-
-  Widget feedbackInput() {
-    return TextFormField(
-      style: TextStyle(color: ColorConstants.appColor),
-      autofocus: true,
-      controller: feedbackController,
-      decoration: InputDecoration(
-          labelText: 'Feedback',
-          hintText: 'Share your feedback to enable us make improvements.',
-          labelStyle: TextStyle(
-            color: ColorConstants.appColor,
-          ),
-          hintStyle: TextStyle(color: ColorConstants.appColor)),
-      textInputAction: TextInputAction.done,
-      maxLines: 5,
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Required';
-        }
-        return null;
-      },
-    );
-  }
-
-  Widget footer() {
+  Widget emailFeedbackInputField() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          GestureDetector(
-            onTap: () {
-              _launchURL('airqo');
-            },
-            child: Image.asset(
-              'assets/icon/airqo_logo_tagline_transparent.png',
-              height: 100,
-              width: 100,
-            ),
+        height: 255,
+        alignment: Alignment.center,
+        padding: const EdgeInsets.only(left: 15, right: 15),
+        decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+            border: Border.all(color: Colors.white)),
+        child: Center(
+            child: TextFormField(
+          controller: _emailFeedbackController,
+          autofocus: true,
+          enableSuggestions: false,
+          cursorWidth: 1,
+          maxLines: 12,
+          cursorColor: Config.appColorBlue,
+          keyboardType: TextInputType.emailAddress,
+          onChanged: (text) {},
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              showSnackBar(context, 'Please enter your email address');
+            }
+            if (!value!.isValidEmail()) {
+              showSnackBar(context, 'Please enter a valid email address');
+            }
+            return null;
+          },
+          decoration: const InputDecoration(
+            focusedBorder: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            hintText: 'Please tell us the details',
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                  icon: FaIcon(
-                    FontAwesomeIcons.facebook,
-                    size: 30,
-                    color: ColorConstants.facebookColor,
-                  ),
-                  onPressed: () {
-                    _launchURL('facebook');
-                  }),
-              IconButton(
-                  icon: FaIcon(
-                    FontAwesomeIcons.twitter,
-                    size: 30,
-                    color: ColorConstants.twitterColor,
-                  ),
-                  onPressed: () {
-                    _launchURL('twitter');
-                  }),
-              IconButton(
-                  icon: FaIcon(
-                    FontAwesomeIcons.youtube,
-                    size: 30,
-                    color: ColorConstants.youtubeColor,
-                  ),
-                  onPressed: () {
-                    _launchURL('youtube');
-                  }),
-              IconButton(
-                  icon: FaIcon(
-                    FontAwesomeIcons.linkedin,
-                    size: 30,
-                    color: ColorConstants.linkedInColor,
-                  ),
-                  onPressed: () {
-                    _launchURL('linkedin');
-                  }),
-            ],
-          ),
-          const SizedBox(
-            height: 5,
-          ),
-          Text(
-            '\u00a9 ${AppConfig.name} ${DateTime.now().year}',
-            style: TextStyle(color: ColorConstants.appColor),
-          ),
-          Text(
-            'Air Quality Initiative',
-            style: TextStyle(color: ColorConstants.appColor),
-          ),
-          const SizedBox(
-            height: 5,
-          ),
-          Text(
-            '${AppConfig.version}',
-            style: TextStyle(color: ColorConstants.appColor),
-          )
-        ],
-      ),
-    );
+        )));
   }
 
-  TextStyle headerStyle() {
-    return TextStyle(
-        fontWeight: FontWeight.bold,
-        fontSize: 20,
-        color: ColorConstants.appColor);
+  Widget emailInputField() {
+    return Container(
+        height: 56,
+        alignment: Alignment.center,
+        padding: const EdgeInsets.only(left: 15),
+        decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+            border: Border.all(color: Colors.white)),
+        child: Center(
+            child: TextFormField(
+          controller: _emailInputController,
+          autofocus: true,
+          enableSuggestions: false,
+          cursorWidth: 1,
+          cursorColor: Config.appColorBlue,
+          keyboardType: TextInputType.emailAddress,
+          onChanged: (text) {},
+          validator: (value) {
+            return null;
+          },
+          decoration: InputDecoration(
+            focusedBorder: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            hintText: 'Enter your email',
+            suffixIcon: GestureDetector(
+                onTap: () {
+                  _emailInputController.text = '';
+                },
+                child: GestureDetector(
+                  onTap: () {
+                    _emailInputController.text = '';
+                  },
+                  child: textInputCloseButton(),
+                )),
+          ),
+        )));
   }
 
   @override
   void initState() {
-    sendingFeedback = false;
     super.initState();
+    _airqoApiClient = AirqoApiClient(context);
   }
 
-  Widget submitButton() {
-    if (sendingFeedback) {
-      return Center(
-          child: CircularProgressIndicator(
-        valueColor: AlwaysStoppedAnimation<Color>(ColorConstants.appColor),
-      ));
-    } else {
-      return ElevatedButton(
-        style: ElevatedButton.styleFrom(primary: ColorConstants.appColor),
-        onPressed: () async {
-          if (_formKey.currentState!.validate()) {
-            var email = emailController.text;
-            var feedback = feedbackController.text;
-            var feedBackModel =
-                feedback_model.UserFeedback(email: email, feedback: feedback);
-
-            setState(() {
-              sendingFeedback = true;
-            });
-
-            var success =
-                await AirqoApiClient(context).sendFeedback(feedBackModel);
-
-            if (success) {
-              if (mounted) {
-                setState(() {
-                  sendingFeedback = false;
-                });
-
-                await showDialog<void>(
-                  context: context,
-                  builder: (_) => SuccessDialog(),
-                );
-              }
-            } else {
-              if (mounted) {
-                setState(() {
-                  sendingFeedback = false;
-                });
-
-                await showDialog<void>(
-                  context: context,
-                  builder: (_) => ShowErrorDialog(
-                    message: 'Oops! Something went wrong, try again later',
-                  ),
-                );
-              }
-            }
-          }
-        },
-        child: const Text(
-          'Send',
-          style: TextStyle(fontSize: 15.0),
-        ),
-      );
-    }
-  }
-
-  Widget support() {
-    return Container(
-      padding: containerPadding(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            'Support',
-            style: headerStyle(),
-          ),
-          InkWell(
-            onTap: () {
-              _launchURL('faqs');
-            },
-            child: ListTile(
-              title: Text(
-                'FAQs',
-                style: TextStyle(color: ColorConstants.appColor),
-              ),
-              leading: Icon(
-                Icons.help_outline_outlined,
-                color: ColorConstants.appColor,
-              ),
-            ),
-          ),
-          InkWell(
-            onTap: () {
-              _launchURL('Contact Us');
-            },
-            child: ListTile(
-              title: Text(
-                'Contact Us',
-                style: TextStyle(color: ColorConstants.appColor),
-              ),
-              leading: Icon(
-                Icons.contact_support_outlined,
-                color: ColorConstants.appColor,
-              ),
-            ),
-          ),
-          InkWell(
-            onTap: () {
-              _launchURL('terms');
-            },
-            child: ListTile(
-              title: Text(
-                'Terms of Use & Privacy Policy',
-                style: TextStyle(color: ColorConstants.appColor),
-              ),
-              leading: Icon(
-                Icons.description,
-                color: ColorConstants.appColor,
-              ),
-            ),
-          ),
-          InkWell(
-            onTap: () {
-              _launchURL('About');
-            },
-            child: ListTile(
-              title: Text(
-                'About ${AppConfig.name}',
-                style: TextStyle(color: ColorConstants.appColor),
-              ),
-              leading: Icon(
-                Icons.info_outline_rounded,
-                color: ColorConstants.appColor,
-              ),
-            ),
-          ),
-          // InkWell(
-          //   onTap: () {
-          //     _launchURL('rate');
-          //   },
-          //   child: ListTile(
-          //     title: Text(
-          //       'Rate App',
-          //       style: TextStyle(color: ColorConstants.appColor),
-          //     ),
-          //     leading: Icon(
-          //       Icons.rate_review_outlined,
-          //       color: ColorConstants.appColor,
-          //     ),
-          //   ),
-          // ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _launchURL(String page) async {
-    page = page.trim().toLowerCase();
-
-    try {
-      switch (page) {
-        case 'faqs':
-          await canLaunch(Links.faqsUrl)
-              ? await launch(Links.faqsUrl)
-              : throw Exception(
-                  'Could not launch faqs, try opening ${Links.faqsUrl}');
-          return;
-        case 'about':
-          await canLaunch(Links.aboutUsUrl)
-              ? await launch(Links.aboutUsUrl)
-              : throw Exception(
-                  'Could not launch about, try opening ${Links.aboutUsUrl}');
-          return;
-        case 'contact us':
-          await canLaunch(Links.contactUsUrl)
-              ? await launch(Links.contactUsUrl)
-              : throw Exception(
-                  'Could not launch contact us, try opening ${Links.contactUsUrl}');
-          return;
-        case 'terms':
-          await canLaunch(Links.termsUrl)
-              ? await launch(Links.termsUrl)
-              : throw Exception(
-                  'Could not launch terms, try opening ${Links.termsUrl}');
-          return;
-        case 'rate':
-          if (Platform.isAndroid) {
-            await canLaunch(Links.playStoreUrl)
-                ? await launch(Links.playStoreUrl)
-                : throw Exception('Could not launch rate us, try opening'
-                    ' ${Links.playStoreUrl}');
-          } else if (Platform.isIOS) {
-            await canLaunch(Links.iOSUrl)
-                ? await launch(Links.iOSUrl)
-                : throw Exception(
-                    'Could not launch rate us, try opening ${Links.iOSUrl}');
-          } else {
-            await canLaunch(Links.playStoreUrl)
-                ? await launch(Links.playStoreUrl)
-                : throw Exception('Could not launch rate us, try opening'
-                    ' ${Links.playStoreUrl}');
-          }
-          return;
-        case 'facebook':
-          await canLaunch(Links.facebookUrl)
-              ? await launch(Links.facebookUrl)
-              : throw Exception(
-                  'Could not launch facebook, try opening ${Links.facebookUrl}');
-          return;
-        case 'twitter':
-          await canLaunch(Links.twitterUrl)
-              ? await launch(Links.twitterUrl)
-              : throw Exception(
-                  'Could not launch twitter, try opening ${Links.twitterUrl}');
-          return;
-        case 'linkedin':
-          await canLaunch(Links.linkedinUrl)
-              ? await launch(Links.linkedinUrl)
-              : throw Exception(
-                  'Could not launch linkedin, try opening ${Links.linkedinUrl}');
-          return;
-        case 'youtube':
-          await canLaunch(Links.youtubeUrl)
-              ? await launch(Links.youtubeUrl)
-              : throw Exception(
-                  'Could not launch youtube, try opening ${Links.youtubeUrl}');
-          return;
-        case 'airqo':
-          await canLaunch(Links.websiteUrl)
-              ? await launch(Links.websiteUrl)
-              : throw Exception(
-                  'Could not launch airqo, try opening ${Links.websiteUrl}');
-          return;
-        default:
-          await canLaunch(Links.websiteUrl)
-              ? await launch(Links.websiteUrl)
-              : throw Exception(
-                  'Could not launch airqo, try opening ${Links.websiteUrl}');
-          return;
+  void openWhatsapp() async {
+    var androidUrl = '${Config.appAndroidWhatsappUrl}$_feedbackType';
+    var iosUrl = '${Config.appIOSWhatsappUrl}${Uri.parse(_feedbackType)}';
+    if (Platform.isIOS) {
+      if (await canLaunch(iosUrl)) {
+        await launch(iosUrl, forceSafariVC: false);
+      } else {
+        await showSnackBar(context, 'Whatsapp is not installed');
       }
-    } catch (e) {
-      print(e);
+    } else {
+      if (await canLaunch(androidUrl)) {
+        await launch(androidUrl);
+      } else {
+        await showSnackBar(context, 'Whatsapp is not installed');
+      }
     }
+  }
+
+  Widget unselectedCircle(bool isActive) {
+    return Container(
+      height: 24,
+      width: 24,
+      decoration: BoxDecoration(
+          color: isActive ? Config.appColorBlue : Colors.white,
+          shape: BoxShape.circle,
+          border: isActive
+              ? Border.all(color: Config.appColorBlue, width: 0)
+              : Border.all(color: Config.greyColor, width: 3)),
+    );
   }
 }

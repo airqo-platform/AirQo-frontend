@@ -15,12 +15,15 @@ import { isEmpty, mapObject, omit, values } from "underscore";
 import {
   useDevicesStatusData,
   useNetworkUptimeData,
+  useManagementFilteredDevicesData,
+  useActiveFiltersData,
 } from "redux/DeviceManagement/selectors";
 import {
   loadDevicesStatusData,
   loadNetworkUptimeData,
+  updateFilteredDevicesData,
+  updateActiveFilters,
 } from "redux/DeviceManagement/operations";
-import { multiFilter } from "utils/filters";
 import { createBarChartData, ApexTimeSeriesData } from "utils/charts";
 import { updateDeviceBackUrl } from "redux/Urls/operations";
 import { loadDevicesData } from "redux/DeviceRegistry/operations";
@@ -39,27 +42,19 @@ import {
   useInitScrollTop,
 } from "utils/customHooks";
 import MapBoxMap from "./Map/MapBoxMap";
+import ErrorBoundary from "views/ErrorBoundary/ErrorBoundary";
 
 // css style
 import "chartjs-plugin-annotation";
 import "assets/scss/device-management.sass";
 import "assets/css/device-view.css"; // there are some shared styles here too :)
 
-const DEFAULT_DEVICE_FILTERS = {
-  all: true,
-  due: true,
-  overDue: true,
-  solar: true,
-  alternator: true,
-  mains: true,
-};
-
 const DEVICE_FILTER_FIELDS = {
   all: {},
   due: { key: "maintenance_status", value: "due" },
   overDue: { key: "maintenance_status", value: "overdue" },
   solar: { key: "powerType", value: "solar" },
-  alternator: { key: "powerType", value: "battery" },
+  alternator: { key: "powerType", value: "alternator" },
   mains: { key: "powerType", value: "mains" },
 };
 
@@ -129,15 +124,15 @@ export default function DeviceManagement() {
   const location = useLocation();
   const devicesStatusData = useDevicesStatusData();
   const networkUptimeData = useNetworkUptimeData();
+  const activeFilters = useActiveFiltersData();
   const leaderboardData = useDeviceUptimeLeaderboard();
   const allDevices = useDevicesData();
   const dispatch = useDispatch();
   const [devicesUptime, setDevicesUptime] = useState([]);
-  const [showBarChart, setShowBarChart] = useState(false);
   const [devicesUptimeDescending, setDevicesUptimeDescending] = useState(true);
   const [devices, setDevices] = useState([]);
-  const [filteredDevices, setFilteredDevices] = useState(devices);
-  const [deviceFilters, setDeviceFilters] = useState(DEFAULT_DEVICE_FILTERS);
+  const filteredDevices = useManagementFilteredDevicesData();
+  const deviceFilters = activeFilters.main;
   const [pieChartStatusValues, setPieChartStatusValues] = useState([]);
   const [networkUptimeDataset, setNetworkUptimeDataset] = useState({
     bar: { label: [], data: [] },
@@ -168,10 +163,9 @@ export default function DeviceManagement() {
       return [...prevFiltered, ...filtered];
     }
 
-    const filtered = filteredDevices.filter((device) => {
-      return device[filter.key] !== filter.value;
-    });
-    return filtered;
+    return filteredDevices.filter(
+      (device) => device[filter.key] !== filter.value
+    );
   };
 
   const toggleDeviceFilter = (key) => {
@@ -189,8 +183,8 @@ export default function DeviceManagement() {
   };
 
   const handleDeviceFilterClick = (key) => () => {
-    setFilteredDevices(filterDevices(devices, key));
-    setDeviceFilters(toggleDeviceFilter(key));
+    dispatch(updateFilteredDevicesData(filterDevices(devices, key)));
+    dispatch(updateActiveFilters({ main: toggleDeviceFilter(key) }));
   };
 
   const sortLeaderBoardData = (leaderboardData) => {
@@ -228,23 +222,9 @@ export default function DeviceManagement() {
     return sortLeaderBoardData(patched);
   };
 
-  const handleNetworkUptimeClick = () => {
-    setShowBarChart(!showBarChart);
-  };
-
   const handleSortIconClick = () => {
     setDevicesUptime(devicesUptime.reverse());
     setDevicesUptimeDescending(!devicesUptimeDescending);
-  };
-
-  const handlePieChartClick = (event) => {
-    const chartElement = event[0];
-    if (chartElement === undefined) return;
-    const onlineIndex = 1;
-    setFilteredDevices(
-      multiFilter(devices, { isOnline: chartElement._index === onlineIndex })
-    );
-    setDeviceFilters({ ...mapObject(deviceFilters, () => false), all: true });
   };
 
   const cardsData = [
@@ -350,7 +330,6 @@ export default function DeviceManagement() {
       ...updateDevices(devicesStatusData.online_devices, { isOnline: true }),
     ];
     setDevices(devices);
-    setFilteredDevices(devices);
     setPieChartStatusValues([
       devicesStatusData.count_of_offline_devices,
       devicesStatusData.count_of_online_devices,
@@ -373,134 +352,133 @@ export default function DeviceManagement() {
   ];
 
   return (
-    <div className={"container-wrapper"}>
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          alignItems: "center",
-          justifyContent: "space-between",
-          position: "absolute",
-          width: "100%",
-          zIndex: 20,
-        }}
-      >
-        <Hidden mdDown>
-          {cardsData.map((data, key) => {
-            return (
-              <OverviewCard
-                label={data.label}
-                value={data.value}
-                icon={data.icon}
-                filterActive={data.filterActive}
-                onClick={data.onClick}
-                key={key}
-              />
-            );
-          })}
-        </Hidden>
-        <Hidden lgUp>
-          {cardsData.map((data, key) => {
-            return (
-              <OverviewCardMini
-                label={data.label}
-                value={data.value}
-                icon={data.icon}
-                filterActive={data.filterActive}
-                onClick={data.onClick}
-                key={key}
-              />
-            );
-          })}
-        </Hidden>
-      </div>
-      <MapBoxMap devices={filteredDevices} />
-
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <ApexChart
-          options={timeSeriesChartOptions({
-            yaxis: {
-              min: 0,
-              max: 100,
-            },
-          })}
-          title={"Network uptime"}
-          series={series}
-          lastUpdated={
-            networkUptimeData.length > 0 && networkUptimeData[0].created_at
-          }
-          type="area"
-          blue
-        />
-        <ApexChart
-          options={createPieChartOptions(
-            ["#FF2E2E", "#00A300"],
-            ["Offline", "Online"]
-          )}
-          series={pieChartStatusValues}
-          title={"online status"}
-          lastUpdated={devicesStatusData.created_at}
-          type="pie"
-          green
-          centerItems
-          disableController
-        />
-
-        <ChartContainer
-          title={"leaderboard"}
-          controller={
-            devicesUptimeDescending ? (
-              <SortAscendingIcon
-                onClick={handleSortIconClick}
-                style={{ fill: "white" }}
-              />
-            ) : (
-              <SortDescendingIcon
-                onClick={handleSortIconClick}
-                style={{ fill: "white" }}
-              />
-            )
-          }
-          blue
+    <ErrorBoundary>
+      <div className={"container-wrapper"}>
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            justifyContent: "space-between",
+            position: "absolute",
+            width: "100%",
+            zIndex: 20,
+          }}
         >
-          <div>
-            <div className={`m-device-uptime-row uptime-table-header`}>
-              <span>device name</span>
-              <span>downtime (%)</span>
-              <span>uptime (%)</span>
-            </div>
-            {devicesUptime.map(({ long_name, device_name, uptime }, index) => {
-              uptime = uptime <= 100 ? uptime : 100;
-              const style =
-                uptime >= 80
-                  ? "uptime-success"
-                  : uptime >= 50
-                  ? "uptime-warning"
-                  : "uptime-danger";
+          <Hidden mdDown>
+            {cardsData.map((data, key) => {
               return (
-                <div
-                  className={`m-device-uptime-row`}
-                  key={`device-${device_name}-${index}`}
-                  onClick={() =>
-                    history.push(`/device/${device_name}/overview`)
-                  }
-                >
-                  <span>{long_name}</span>
-                  <span>{(100 - uptime).toFixed(2)}</span>
-                  <span className={`${style}`}>{uptime.toFixed(2)}</span>
-                </div>
+                <OverviewCard
+                  label={data.label}
+                  value={data.value}
+                  icon={data.icon}
+                  filterActive={data.filterActive}
+                  onClick={data.onClick}
+                  key={key}
+                />
               );
             })}
-          </div>
-        </ChartContainer>
+          </Hidden>
+          <Hidden lgUp>
+            {cardsData.map((data, key) => {
+              return (
+                <OverviewCardMini
+                  label={data.label}
+                  value={data.value}
+                  icon={data.icon}
+                  filterActive={data.filterActive}
+                  onClick={data.onClick}
+                  key={key}
+                />
+              );
+            })}
+          </Hidden>
+        </div>
+        <MapBoxMap />
+
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <ApexChart
+            options={timeSeriesChartOptions({})}
+            title={"Network uptime"}
+            series={series}
+            lastUpdated={
+              networkUptimeData.length > 0 && networkUptimeData[0].created_at
+            }
+            type="area"
+            blue
+          />
+          <ApexChart
+            options={createPieChartOptions(
+              ["#FF2E2E", "#00A300"],
+              ["Offline", "Online"]
+            )}
+            series={pieChartStatusValues}
+            title={"online status"}
+            lastUpdated={devicesStatusData.created_at}
+            type="pie"
+            green
+            centerItems
+            disableController
+          />
+
+          <ChartContainer
+            title={"leaderboard"}
+            controller={
+              devicesUptimeDescending ? (
+                <SortAscendingIcon
+                  onClick={handleSortIconClick}
+                  style={{ fill: "white" }}
+                />
+              ) : (
+                <SortDescendingIcon
+                  onClick={handleSortIconClick}
+                  style={{ fill: "white" }}
+                />
+              )
+            }
+            blue
+          >
+            <div>
+              <div className={`m-device-uptime-row uptime-table-header`}>
+                <span>device name</span>
+                <span>downtime (%)</span>
+                <span>uptime (%)</span>
+              </div>
+              {devicesUptime.map(
+                ({ long_name, device_name, uptime }, index) => {
+                  uptime = uptime <= 100 ? uptime : 100;
+                  const style =
+                    uptime >= 80
+                      ? "uptime-success"
+                      : uptime >= 50
+                      ? "uptime-warning"
+                      : "uptime-danger";
+                  return (
+                    <div
+                      className={`m-device-uptime-row`}
+                      key={`device-${device_name}-${index}`}
+                      onClick={() =>
+                        history.push(`/device/${device_name}/overview`)
+                      }
+                    >
+                      <span>{long_name}</span>
+                      <span>{(100 - uptime).toFixed(2)}</span>
+                      <span className={`${style}`}>{uptime.toFixed(2)}</span>
+                    </div>
+                  );
+                }
+              )}
+            </div>
+          </ChartContainer>
+        </div>
       </div>
-    </div>
+    </ErrorBoundary>
   );
 }

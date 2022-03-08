@@ -5,7 +5,7 @@ import Copyable from "views/components/Copy/Copyable";
 
 const DeviceLocation = ({ deviceData }) => {
   return (
-    <ChartContainer title={"device location"} green centerItems>
+    <ChartContainer title={"device location"} blue centerItems>
       {deviceData.latitude && deviceData.longitude ? (
         <Map
           center={[deviceData.latitude, deviceData.longitude]}

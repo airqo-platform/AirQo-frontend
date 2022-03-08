@@ -15,15 +15,18 @@ import RichTooltip from "../../containers/RichToolTip";
 import { MenuItem } from "@material-ui/core";
 import Checkbox from "@material-ui/core/Checkbox";
 import { useInitScrollTop } from "utils/customHooks";
+import { ErrorBoundary } from "../../ErrorBoundary";
+import { useDashboardSitesData } from "redux/Dashboard/selectors";
+import { useOrgData } from "redux/Join/selectors";
 
 // css
 import "assets/css/overlay-map.css";
 
-import 'mapbox-gl/dist/mapbox-gl.css';
-import mapboxgl from 'mapbox-gl';
+import "mapbox-gl/dist/mapbox-gl.css";
+import mapboxgl from "mapbox-gl";
 
 // eslint-disable-next-line import/no-webpack-loader-syntax
-mapboxgl.workerClass = require('worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker').default;
+mapboxgl.workerClass = require("worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker").default;
 
 const markerDetailsPM2_5 = {
   0.0: ["marker-good", "Good"],
@@ -107,6 +110,7 @@ const MapControllerPosition = ({ className, children, position }) => {
 
 const PollutantSelector = ({ className, onChange }) => {
   useInitScrollTop();
+  const orgData = useOrgData();
   const [open, setOpen] = useState(false);
   const [pollutant, setPollutant] = useState("pm2_5");
   const pollutantMapper = {
@@ -159,15 +163,17 @@ const PollutantSelector = ({ className, onChange }) => {
           >
             PM<sub>10</sub>
           </MenuItem>
-          <MenuItem
-            onClick={handleMenuItemChange("no2", {
-              pm2_5: false,
-              no2: true,
-              pm10: false,
-            })}
-          >
-            NO<sub>2</sub>
-          </MenuItem>
+          {orgData.name !== "airqo" && (
+            <MenuItem
+              onClick={handleMenuItemChange("no2", {
+                pm2_5: false,
+                no2: true,
+                pm10: false,
+              })}
+            >
+              NO<sub>2</sub>
+            </MenuItem>
+          )}
         </div>
       }
       open={open}
@@ -199,7 +205,7 @@ const MapSettings = ({
           <MenuItem onClick={() => onSensorChange(!showSensors)}>
             <Checkbox checked={showSensors} color="default" /> Sensors
           </MenuItem>
-          <MenuItem onClick={() => onHeatmapChange(!showHeatmap)}>
+          <MenuItem disabled onClick={() => onHeatmapChange(!showHeatmap)}>
             <Checkbox checked={showHeatmap} color="default" /> Heatmap
           </MenuItem>
           <Divider />
@@ -256,6 +262,7 @@ export const OverlayMap = ({
   heatMapData,
   monitoringSiteData,
 }) => {
+  const sitesData = useDashboardSitesData();
   const MAX_OFFLINE_DURATION = 86400; // 24 HOURS
   const mapContainerRef = useRef(null);
   const [map, setMap] = useState(null);
@@ -436,22 +443,33 @@ export const OverlayMap = ({
           }`;
           el.innerText = (pollutantValue && pollutantValue.toFixed(0)) || "n/a";
 
-          new mapboxgl.Marker(el)
-            .setLngLat(feature.geometry.coordinates)
-            .setPopup(
-              new mapboxgl.Popup({ offset: 25 }).setHTML(
-                `<div>
-                    <div>Device - <span style="text-transform: uppercase"><b>${
-                      feature.properties.device || feature.properties._id
+          if (
+            feature.geometry.coordinates.length >= 2 &&
+            feature.geometry.coordinates[0] &&
+            feature.geometry.coordinates[1]
+          ) {
+            new mapboxgl.Marker(el)
+              .setLngLat(feature.geometry.coordinates)
+              .setPopup(
+                new mapboxgl.Popup({ offset: 25 }).setHTML(
+                  `<div>
+                    <div><span style="text-transform: uppercase"><b>${
+                      (sitesData[feature.properties.site_id] &&
+                        sitesData[feature.properties.site_id].name) ||
+                      (sitesData[feature.properties.site_id] &&
+                        sitesData[feature.properties.site_id].description) ||
+                      feature.properties.device ||
+                      feature.properties._id
                     }</b></span></div>
                     <div class="${"popup-body " + markerClass}"> AQI: ${
-                  (pollutantValue && pollutantValue.toFixed(2)) || "n/a"
-                } - ${desc}</div>
+                    (pollutantValue && pollutantValue.toFixed(2)) || "n/a"
+                  } - ${desc}</div>
                     <span>Last Refreshed: <b>${duration}</b> ago</span>
                 </div>`
+                )
               )
-            )
-            .addTo(map);
+              .addTo(map);
+          }
         })}
       <Filter pollutants={showPollutant} />
       {map && (
@@ -494,12 +512,14 @@ const MapContainer = () => {
 
   return (
     <div>
-      <OverlayMap
-        center={[32.5600613, 0.3341424]}
-        zoom={11}
-        heatMapData={heatMapData}
-        monitoringSiteData={monitoringSiteData}
-      />
+      <ErrorBoundary>
+        <OverlayMap
+          center={[32.5600613, 0.3341424]}
+          zoom={11}
+          heatMapData={heatMapData}
+          monitoringSiteData={monitoringSiteData}
+        />
+      </ErrorBoundary>
     </div>
   );
 };

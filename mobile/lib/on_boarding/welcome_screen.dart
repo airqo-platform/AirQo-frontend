@@ -1,25 +1,30 @@
-import 'package:app/constants/app_constants.dart';
-import 'package:app/on_boarding/phone_signup_screen.dart';
+import 'package:app/auth/signup_screen.dart';
+import 'package:app/constants/config.dart';
+import 'package:app/services/app_service.dart';
+import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
+import 'package:flutter_svg/svg.dart';
 
 class WelcomeScreen extends StatefulWidget {
+  const WelcomeScreen({Key? key}) : super(key: key);
+
   @override
   WelcomeScreenState createState() => WelcomeScreenState();
 }
 
 class WelcomeScreenState extends State<WelcomeScreen> {
+  DateTime? _exitTime;
+  late AppService _appService;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: Container(
+        body: WillPopScope(
+      onWillPop: onWillPop,
       child: Padding(
-        padding: EdgeInsets.fromLTRB(24, 48, 24.0, 0),
+        padding: const EdgeInsets.fromLTRB(24, 56, 24.0, 96),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const SizedBox(
-            height: 45,
-          ),
           const Text(
             'Welcome to',
             style: TextStyle(
@@ -30,70 +35,96 @@ class WelcomeScreenState extends State<WelcomeScreen> {
             style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 32,
-                color: ColorConstants.appColorBlue),
+                color: Config.appColorBlue),
           ),
           const SizedBox(
             height: 21,
           ),
-          welcomeSection(const Color(0xffFBC110)),
+          welcomeSection(
+              'Save your favorite places',
+              'Keep track of air quality in locations that matter to you',
+              'assets/icon/onboarding_fav.svg'),
           const SizedBox(
-            height: 22,
+            height: 24,
           ),
-          welcomeSection(const Color(0xff9492B8)),
+          welcomeSection(
+              'New experiences for You',
+              'Access analytics and content curated just for you',
+              'assets/icon/onboarding_hash_tag.svg'),
           const SizedBox(
-            height: 22,
+            height: 24,
           ),
-          welcomeSection(const Color(0xff55B7A1)),
+          welcomeSection(
+              'Know your air on the go',
+              'An easy way to plan your outdoor activities to minimise'
+                  ' excessive exposure to bad air quality ',
+              'assets/icon/onboarding_profile_icon.svg'),
           const Spacer(),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 96.0),
-            child: GestureDetector(
-              onTap: () {
-                Navigator.pushAndRemoveUntil(context,
-                    MaterialPageRoute(builder: (context) {
-                  return PhoneSignupScreen();
-                }), (r) => false);
-              },
-              child: nextButton('Let’s go'),
-            ),
+          GestureDetector(
+            onTap: () {
+              Navigator.pushAndRemoveUntil(context,
+                  MaterialPageRoute(builder: (context) {
+                return const SignupScreen(false);
+              }), (r) => false);
+            },
+            child: nextButton('Let’s go', Config.appColorBlue),
           ),
         ]),
       ),
     ));
   }
 
-  void initialize() {
-    Future.delayed(const Duration(seconds: 4), () async {
-      await Navigator.pushReplacement(context,
-          MaterialPageRoute(builder: (context) {
-        return PhoneSignupScreen();
-      }));
-    });
-  }
-
   @override
   void initState() {
     super.initState();
-    // initialize();
+    _appService = AppService(context);
+    updateOnBoardingPage();
   }
 
-  Widget welcomeSection(Color color) {
+  Future<bool> onWillPop() {
+    var now = DateTime.now();
+
+    if (_exitTime == null ||
+        now.difference(_exitTime!) > const Duration(seconds: 2)) {
+      _exitTime = now;
+
+      showSnackBar(context, 'Tap again to exit !');
+      return Future.value(false);
+    }
+    return Future.value(true);
+  }
+
+  void updateOnBoardingPage() async {
+    await _appService.preferencesHelper.updateOnBoardingPage('welcome');
+  }
+
+  Widget welcomeSection(
+    String header,
+    String body,
+    String svg,
+  ) {
     return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: color,
-      ),
-      title: Text(
-        'Lorem ipsum dolor',
-        style: TextStyle(
-            fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black),
-      ),
-      subtitle: Text(
-        'Lorem ipsum dolor sit amet, '
-        'consectetur adipiscing elit. Consequat.',
-        maxLines: 4,
-        softWrap: true,
-        style: TextStyle(fontSize: 12, color: Colors.black),
-      ),
-    );
+        contentPadding: const EdgeInsets.only(left: 0.0, right: 20),
+        horizontalTitleGap: 16,
+        leading: SizedBox(
+          height: 40,
+          width: 40,
+          child: SvgPicture.asset(
+            svg,
+          ),
+        ),
+        title: Text(
+          header,
+          style: const TextStyle(
+              fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black),
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4.0),
+          child: Text(
+            body,
+            style:
+                TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.5)),
+          ),
+        ));
   }
 }

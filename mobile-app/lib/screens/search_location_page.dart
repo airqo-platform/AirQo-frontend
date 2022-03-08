@@ -69,19 +69,6 @@ class LocationSearch extends SearchDelegate<Suggestion> {
           query = '';
         },
       ),
-      // IconButton(
-      //   tooltip: 'Map',
-      //   icon: Image.asset(
-      //     'assets/images/world-map.png',
-      //     height: 50,
-      //     width: 50,
-      //   ),
-      //   onPressed: () {
-      //     Navigator.push(context, MaterialPageRoute(builder: (context) {
-      //       return MapPage();
-      //     }));
-      //   },
-      // )
     ];
   }
 
@@ -196,7 +183,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                                 )),
                             leading: CircleAvatar(
                               backgroundColor: pm2_5ToColor(
-                                  measurements[index].pm2_5.calibratedValue),
+                                  measurements[index].getPm2_5Value()),
                               foregroundColor: Colors.black54,
                               child: Center(
                                 child: Text(
@@ -204,9 +191,8 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       fontSize: 10.0,
-                                      color: pm2_5TextColor(measurements[index]
-                                          .pm2_5
-                                          .calibratedValue)),
+                                      color: pm2_5TextColor(
+                                          measurements[index].getPm2_5Value())),
                                 ),
                               ),
                             ),
@@ -343,9 +329,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                                       )),
                                   leading: CircleAvatar(
                                     backgroundColor: pm2_5ToColor(
-                                        measurements[index]
-                                            .pm2_5
-                                            .calibratedValue),
+                                        measurements[index].getPm2_5Value()),
                                     foregroundColor: Colors.black54,
                                     child: Center(
                                       child: Text(
@@ -355,8 +339,7 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                                             fontSize: 10.0,
                                             color: pm2_5TextColor(
                                                 measurements[index]
-                                                    .pm2_5
-                                                    .calibratedValue)),
+                                                    .getPm2_5Value())),
                                       ),
                                     ),
                                   ),
@@ -480,40 +463,6 @@ class LocationSearch extends SearchDelegate<Suggestion> {
                         ));
                   },
                 );
-
-                // return ListView.builder(
-                //   itemBuilder: (context, index) => ListTile(
-                //     title: Text(
-                //       (results[index]).description,
-                //       style: TextStyle(
-                //           fontSize: 12, color: ColorConstants.appColor),
-                //     ),
-                //     leading: Icon(
-                //       Icons.history,
-                //       color: ColorConstants.appColor,
-                //     ),
-                //     trailing: GestureDetector(
-                //       onTap: () {
-                //         DBHelper()
-                //             .deleteSearchHistory(results[index])
-                //             .then((value) => {query = ''});
-                //       },
-                //       child: Icon(
-                //         Icons.delete_outlined,
-                //         color: ColorConstants.red,
-                //       ),
-                //     ),
-                //     onTap: () {
-                //       query = (results[index]).description;
-                //       showAllSites = false;
-                //       searchPlaceId = (results[index]).placeId;
-                //       showResults(context);
-                //       // navigateToPlace(context, results[index]);
-                //       // close(context, results[index]);
-                //     },
-                //   ),
-                //   itemCount: results.length,
-                // );
               }
 
               return Align(
@@ -746,37 +695,6 @@ class LocationSearch extends SearchDelegate<Suggestion> {
     query = '';
     showResults(context);
   }
-
-  // Future<void> navigateToPlace(context, Suggestion suggestion) async {
-  //   try {
-  //     if (query == '' || searchPlaceId == '') {
-  //       showResults(context);
-  //     }
-  //
-  //     await searchApiClient.getPlaceDetails(searchPlaceId).then((place) => {
-  //           LocationApi()
-  //               .getNearestSite(
-  //                   place.geometry.location.lat, place.geometry.location.lng)
-  //               .then((nearestSite) => {
-  //                     if (nearestSite != null)
-  //                       {
-  //                         nearestSite.userLocation = place.name,
-  //                         Navigator.push(context,
-  //                             MaterialPageRoute(builder: (context) {
-  //                           return PlaceDetailsPage(
-  //                             measurement: nearestSite,
-  //                           );
-  //                         }))
-  //                       }
-  //                     else
-  //                       {showResults(context)}
-  //                   }),
-  //         });
-  //   } catch (e) {
-  //     print(e);
-  //     showResults(context);
-  //   }
-  // }
 
   RawMaterialButton showAllLocationsCustomButton(context) {
     return RawMaterialButton(

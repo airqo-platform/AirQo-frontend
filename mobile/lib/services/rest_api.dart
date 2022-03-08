@@ -4,83 +4,61 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:app/constants/api.dart';
-import 'package:app/constants/app_constants.dart';
-import 'package:app/models/alert.dart';
+import 'package:app/constants/config.dart';
+import 'package:app/models/email_auth_model.dart';
 import 'package:app/models/feedback.dart';
-import 'package:app/models/historicalMeasurement.dart';
+import 'package:app/models/insights.dart';
+import 'package:app/models/json_parsers.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place.dart';
-import 'package:app/models/predict.dart';
-import 'package:app/models/site.dart';
-import 'package:app/models/story.dart';
 import 'package:app/models/suggestion.dart';
+import 'package:app/models/user_details.dart';
 import 'package:app/utils/dialogs.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 class AirqoApiClient {
   final BuildContext context;
+  final httpClient = SentryHttpClient(
+      client: http.Client(),
+      failedRequestStatusCodes: [
+        SentryStatusCode.range(400, 404),
+        SentryStatusCode(500),
+      ],
+      captureFailedRequests: true,
+      networkTracing: true);
+  final Map<String, String> headers = HashMap()
+    ..putIfAbsent('Authorization', () => 'JWT ${Config.airqoApiToken}');
 
   AirqoApiClient(this.context);
 
-  Future<List<Predict>> fetchForecast(int channelId) async {
-    try {
-      var startTime =
-          DateTime.now().add(const Duration(hours: 1)).millisecondsSinceEpoch /
-              1000;
+  Future<bool> checkIfUserExists(
+      String phoneNumber, String emailAddress) async {
+    Map<String, String> headers = HashMap()
+      ..putIfAbsent('Content-Type', () => 'application/json');
+    http.Response response;
 
-      var url = '${AirQoUrls().forecastV2}$channelId/${startTime.round()}';
-
-      final responseBody = await _performGetRequestV2(<String, dynamic>{}, url);
-
-      if (responseBody != null) {
-        return compute(Predict.parsePredictions, responseBody['predictions']);
-      } else {
-        print('Predictions are null');
-        return <Predict>[];
-      }
-    } on Error catch (e) {
-      print('Predictions error: $e');
+    if (phoneNumber.isNotEmpty) {
+      var body = {'phoneNumber': phoneNumber};
+      response = await httpClient.post(Uri.parse(AirQoUrls.checkUserExists),
+          headers: headers, body: jsonEncode(body));
+    } else if (emailAddress.isNotEmpty) {
+      var body = {'emailAddress': emailAddress};
+      response = await httpClient.post(Uri.parse(AirQoUrls.checkUserExists),
+          headers: headers, body: jsonEncode(body));
+    } else {
+      throw Exception('Failed to perform action. Try again later');
     }
 
-    return <Predict>[];
-  }
-
-  Future<List<HistoricalMeasurement>> fetchHistoricalMeasurements() async {
-    try {
-      var startTimeUtc = DateTime.now().toUtc().add(const Duration(hours: -24));
-      var date = DateFormat('yyyy-MM-dd').format(startTimeUtc);
-      var time = '${startTimeUtc.hour}';
-
-      if ('$time'.length == 1) {
-        time = '0$time';
-      }
-      var startTime = '${date}T$time:00:00Z';
-
-      var queryParams = <String, dynamic>{}
-        ..putIfAbsent('startTime', () => startTime)
-        ..putIfAbsent('frequency', () => 'hourly')
-        ..putIfAbsent('recent', () => 'no')
-        ..putIfAbsent('external', () => 'no')
-        ..putIfAbsent('metadata', () => 'site_id')
-        ..putIfAbsent('tenant', () => 'airqo');
-
-      final responseBody =
-          await _performGetRequest(queryParams, AirQoUrls().measurements);
-
-      if (responseBody != null) {
-        return compute(HistoricalMeasurement.parseMeasurements, responseBody);
-      } else {
-        print('Historical Measurements are null');
-        return <HistoricalMeasurement>[];
-      }
-    } on Error catch (e) {
-      print('Get Historical measurements error: $e');
+    if (response.statusCode != 200) {
+      throw Exception('Failed to perform action. Try again later');
     }
 
-    return <HistoricalMeasurement>[];
+    return json.decode(response.body)['status'];
   }
 
   Future<List<Measurement>> fetchLatestMeasurements() async {
@@ -89,182 +67,198 @@ class AirqoApiClient {
         ..putIfAbsent('recent', () => 'yes')
         ..putIfAbsent('metadata', () => 'site_id')
         ..putIfAbsent('external', () => 'no')
+        ..putIfAbsent(
+            'startTime',
+            () =>
+                '${DateFormat('yyyy-MM-dd').format(DateTime.now().toUtc().subtract(const Duration(days: 1)))}T00:00:00Z')
         ..putIfAbsent('frequency', () => 'hourly')
         ..putIfAbsent('tenant', () => 'airqo');
 
       final responseBody =
-          await _performGetRequest(queryParams, AirQoUrls().measurements);
+          await _performGetRequest(queryParams, AirQoUrls.measurements);
       if (responseBody != null) {
-        return compute(Measurement.parseMeasurements, responseBody);
+        return await compute(parseMeasurements, responseBody);
       } else {
-        // print('Measurements are null');
         return <Measurement>[];
       }
-    } on Error catch (e) {
-      print('Get Latest measurements error: $e');
+    } on Error catch (exception, stackTrace) {
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
     }
 
     return <Measurement>[];
   }
 
-  Future<List<Story>> fetchLatestStories() async {
-    try {
-      final responseBody = await _performGetRequest({}, AirQoUrls().stories);
-
-      if (responseBody != null) {
-        return compute(Story.parseStories, responseBody);
-      } else {
-        return <Story>[];
-      }
-    } on Error catch (e) {
-      print('Get Latest stories error: $e');
-    }
-
-    return <Story>[];
-  }
-
-  Future<List<HistoricalMeasurement>> fetchSiteDayMeasurements(
-      Site site, DateTime dateTime) async {
-    try {
-      var nowUtc = dateTime.toUtc();
-      var date = DateFormat('yyyy-MM-dd').format(nowUtc);
-      var startTime = '${date}T00:00:00Z';
-      var endTime = '${date}T11:59:00Z';
-
-      var queryParams = <String, dynamic>{}
-        ..putIfAbsent('site_id', () => site.id)
-        ..putIfAbsent('startTime', () => startTime)
-        ..putIfAbsent('endTime', () => endTime)
-        ..putIfAbsent('frequency', () => 'hourly')
-        ..putIfAbsent('metadata', () => 'site_id')
-        ..putIfAbsent('external', () => 'no')
-        ..putIfAbsent('recent', () => 'no')
-        ..putIfAbsent('tenant', () => 'airqo');
-
-      final responseBody =
-          await _performGetRequest(queryParams, AirQoUrls().measurements);
-
-      if (responseBody != null) {
-        return compute(HistoricalMeasurement.parseMeasurements, responseBody);
-      } else {
-        // print('Measurements are null');
-        return <HistoricalMeasurement>[];
-      }
-    } on Error {
-      // print('Get site historical measurements error: $e');
-    }
-
-    return <HistoricalMeasurement>[];
-  }
-
-  Future<List<HistoricalMeasurement>> fetchSiteHistoricalMeasurements(
-      Site site) async {
-    try {
-      var nowUtc = DateTime.now().toUtc();
-      var startTimeUtc = nowUtc.subtract(const Duration(hours: 24));
-
-      var time = '${startTimeUtc.hour}';
-      if ('$time'.length == 1) {
-        time = '0$time';
-      }
-
-      var date = DateFormat('yyyy-MM-dd').format(startTimeUtc);
-      var startTime = '${date}T$time:00:00Z';
-
-      var queryParams = <String, dynamic>{}
-        ..putIfAbsent('site_id', () => site.id)
-        ..putIfAbsent('startTime', () => startTime)
-        ..putIfAbsent('frequency', () => 'hourly')
-        ..putIfAbsent('metadata', () => 'site_id')
-        ..putIfAbsent('external', () => 'no')
-        ..putIfAbsent('recent', () => 'no')
-        ..putIfAbsent('tenant', () => 'airqo');
-
-      final responseBody =
-          await _performGetRequest(queryParams, AirQoUrls().measurements);
-
-      if (responseBody != null) {
-        return compute(HistoricalMeasurement.parseMeasurements, responseBody);
-      } else {
-        // print('Measurements are null');
-        return <HistoricalMeasurement>[];
-      }
-    } on Error {
-      // print('Get site historical measurements error: $e');
-    }
-
-    return <HistoricalMeasurement>[];
-  }
-
-  Future<Measurement> fetchSiteMeasurements(Site site) async {
+  Future<List<Insights>> fetchSiteInsights(
+      String siteId, bool daily, bool allHourlyData) async {
     try {
       var queryParams = <String, dynamic>{}
-        ..putIfAbsent('recent', () => 'yes')
-        ..putIfAbsent('site_id', () => site.id)
-        ..putIfAbsent('frequency', () => 'hourly')
-        ..putIfAbsent('external', () => 'no')
-        ..putIfAbsent('metadata', () => 'site_id')
-        ..putIfAbsent('tenant', () => 'airqo');
+        ..putIfAbsent('siteId', () => siteId);
+      // ..putIfAbsent(
+      //     'startTime',
+      //     () =>
+      //         '${DateFormat('yyyy-MM-dd')
+      //         .format(DateTime.now()
+      //         .firstDateOfCalendarMonth())}T00:00:00Z')
+      // ..putIfAbsent(
+      //     'endTime',
+      //     () =>
+      //         '${DateFormat('yyyy-MM-dd')
+      //         .format(DateTime.now()
+      //         .lastDateOfCalendarMonth())}T00:00:00Z');
+
+      if (daily) {
+        queryParams
+          ..putIfAbsent('frequency', () => 'daily')
+          ..putIfAbsent(
+              'startTime',
+              () =>
+                  '${DateFormat('yyyy-MM-dd').format(DateTime.now().getFirstDateOfCalendarMonth())}T00:00:00Z')
+          ..putIfAbsent(
+              'endTime',
+              () =>
+                  '${DateFormat('yyyy-MM-dd').format(DateTime.now().getLastDateOfCalendarMonth())}T23:30:00Z');
+        // ..putIfAbsent('startTime', () => '${DateFormat('yyyy-MM-dd').format(
+        //     DateTime.now().firstDateOfCalendarMonth())}T00:00:00Z')
+        // ..putIfAbsent('endTime', () => '${DateFormat('yyyy-MM-dd').format(
+        //     DateTime.now().lastDateOfCalendarMonth())}T00:00:00Z');
+      } else {
+        queryParams
+          ..putIfAbsent('frequency', () => 'hourly')
+          ..putIfAbsent(
+              'startTime',
+              () =>
+                  '${DateFormat('yyyy-MM-dd').format(DateTime.now().getDateOfFirstDayOfWeek())}T00:00:00Z')
+          ..putIfAbsent(
+              'endTime',
+              () =>
+                  '${DateFormat('yyyy-MM-dd').format(DateTime.now().getDateOfLastDayOfWeek())}T23:30:00Z');
+        if (allHourlyData) {
+          queryParams['startTime'] =
+              '${DateFormat('yyyy-MM-dd').format(DateTime.now().getFirstDateOfCalendarMonth())}T00:00:00Z';
+          queryParams['endTime'] =
+              '${DateFormat('yyyy-MM-dd').format(DateTime.now().getLastDateOfCalendarMonth())}T23:30:00Z';
+        }
+        // ..putIfAbsent('startTime', () => '${DateFormat('yyyy-MM-dd').format(
+        //     DateTime.now().getFirstDateOfMonth())}T00:00:00Z')
+        // ..putIfAbsent('endTime', () => '${DateFormat('yyyy-MM-dd').format(
+        //     DateTime.now().getLastDateOfMonth())}T00:00:00Z');
+      }
 
       final responseBody =
-          await _performGetRequest(queryParams, AirQoUrls().measurements);
+          await _performGetRequest(queryParams, AirQoUrls.insights);
 
       if (responseBody != null) {
-        return compute(Measurement.parseMeasurement, responseBody);
+        return compute(Insights.parseInsights, responseBody['data']);
       } else {
-        // print('Site latest measurements are null');
-        throw Exception('site does not exist');
+        return <Insights>[];
       }
-    } on Error {
-      // print('Get site latest measurements error: $e');
-      throw Exception('site does not exist');
+    } on Error catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
     }
+
+    return <Insights>[];
   }
 
-  Future<String> imageUpload(String file, String? type) async {
+  Future<List<Insights>> fetchSitesInsights(String siteIds) async {
+    try {
+      var insights = <Insights>[];
+
+      var siteInsights = await Future.wait([
+        fetchSiteInsights(siteIds, true, true),
+        fetchSiteInsights(siteIds, false, true),
+      ]);
+
+      insights.addAll(<Insights>[
+        ...siteInsights[0],
+        ...siteInsights[1],
+      ]);
+
+      return insights;
+    } on Error catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return <Insights>[];
+  }
+
+  Future<String> imageUpload(String file, String? type, String name) async {
     type ??= 'jpeg';
 
     var uploadStr = 'data:image/$type;base64,$file';
     try {
-      var body = {'file': uploadStr, 'upload_preset': 'mobile_uploads'};
+      var body = {
+        'file': uploadStr,
+        'upload_preset': Config.imageUploadPreset,
+      };
+      // 'public_id': name,
+      // 'api_key': Config.imageUploadApiKey
 
-      final response = await http.post(
-          Uri.parse('${AirQoUrls().imageUploadUrl}'),
+      final response = await http.post(Uri.parse(Config.imageUploadUrl),
           headers: {'Content-Type': 'application/json'},
           body: json.encode(body));
 
-      print(response.statusCode);
       if (response.statusCode == 200) {
-        return response.body.toString();
+        var body = json.decode(response.body);
+        return body['url'];
       } else {
-        print('Unexpected status code ${response.statusCode}:'
-            ' ${response.reasonPhrase}');
-        print('Body ${response.body}:');
-        print('uri: ${AirQoUrls().imageUploadUrl}');
         throw Exception('Error');
       }
     } on SocketException {
-      await showSnackBar(context, ErrorMessages.socketException);
-      throw Exception('Error');
+      await showSnackBar(context, Config.connectionErrorMessage);
+      return '';
     } on TimeoutException {
-      await showSnackBar(context, ErrorMessages.timeoutException);
-      throw Exception('Error');
-    } on Error catch (e) {
-      print('Image upload error: $e');
-      throw Exception('Error');
+      await showSnackBar(context, Config.connectionErrorMessage);
+      return '';
+    } on Error catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+      return '';
     }
   }
 
-  Future<bool> saveAlert(Alert alert) async {
+  Future<EmailAuthModel?> requestEmailVerificationCode(
+      String emailAddress, bool reAuthenticate) async {
     try {
-      var body = alert.toJson();
-      final response = await _performPostRequest(
-          <String, dynamic>{}, AirQoUrls().alerts, jsonEncode(body));
-      return response;
-    } on Error catch (e) {
-      print('Save alert error: $e');
-      return false;
+      Map<String, String> headers = HashMap()
+        ..putIfAbsent('Content-Type', () => 'application/json');
+
+      var body = {'email': emailAddress};
+
+      var uri = reAuthenticate
+          ? AirQoUrls.requestEmailReAuthentication
+          : AirQoUrls.requestEmailVerification;
+
+      final response = await http.post(Uri.parse(uri),
+          headers: headers, body: jsonEncode(body));
+
+      return compute(
+          EmailAuthModel.parseEmailAuthModel, json.decode(response.body));
+    } on SocketException {
+      await showSnackBar(context, Config.socketErrorMessage);
+    } on TimeoutException {
+      await showSnackBar(context, Config.connectionErrorMessage);
+    } on Error catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
     }
+    return null;
   }
 
   Future<bool> sendFeedback(UserFeedback feedback) async {
@@ -277,7 +271,10 @@ class AirqoApiClient {
             'color': '#3067e2',
             'title': 'Mobile App feedback',
             'fields': [
-              {'title': 'Message', 'value': '${feedback.feedback}'},
+              {
+                'title': feedback.contactDetails,
+              },
+              {'title': feedback.feedbackType, 'value': feedback.message},
             ],
             'footer': 'AirQo Mobile App'
           }
@@ -285,11 +282,44 @@ class AirqoApiClient {
       };
 
       final response = await _performPostRequest(
-          <String, dynamic>{}, AirQoUrls().feedbackUrl, jsonEncode(body));
+          <String, dynamic>{}, Config.feedbackWebhook, jsonEncode(body));
       return response;
-    } on Error catch (e) {
-      print('Send Feedback: $e');
-      return false;
+    } on Error catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return false;
+  }
+
+  @Deprecated('Functionality has been transferred to the backend')
+  Future<void> sendWelcomeMessage(UserDetails userDetails) async {
+    try {
+      if (!userDetails.emailAddress.isValidEmail()) {
+        return;
+      }
+
+      var body = {
+        'firstName':
+            userDetails.firstName.isNull() ? '' : userDetails.firstName,
+        'platform': 'mobile',
+        'email': userDetails.emailAddress
+      };
+
+      await _performPostRequest(
+          <String, dynamic>{}, AirQoUrls.welcomeMessage, jsonEncode(body));
+    } on SocketException {
+      await showSnackBar(context, Config.socketErrorMessage);
+    } on TimeoutException {
+      await showSnackBar(context, Config.connectionErrorMessage);
+    } on Error catch (exception, stackTrace) {
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
     }
   }
 
@@ -307,57 +337,23 @@ class AirqoApiClient {
         });
       }
 
-      Map<String, String> headers = HashMap()
-        ..putIfAbsent('Authorization', () => 'JWT ${AppConfig.airQoApiKey}');
-
-      final response = await http.get(Uri.parse(url), headers: headers);
-
+      final response = await httpClient.get(Uri.parse(url), headers: headers);
       if (response.statusCode == 200) {
         return json.decode(response.body);
       } else {
-        print(response.statusCode);
-        print('Unexpected status code ${response.statusCode}:'
-            ' ${response.reasonPhrase}');
-        // print('Body ${response.body}:');
-        // print('uri: $url');
         return null;
       }
     } on SocketException {
-      await showSnackBar(context, ErrorMessages.socketException);
+      await showSnackBar(context, Config.socketErrorMessage);
     } on TimeoutException {
-      await showSnackBar(context, ErrorMessages.timeoutException);
-    } on Error {
-      await showSnackBar(context, ErrorMessages.appException);
-    }
-
-    return null;
-  }
-
-  Future<dynamic> _performGetRequestV2(
-      Map<String, dynamic> queryParams, String url) async {
-    try {
-      if (queryParams.isNotEmpty) {
-        url = '$url?';
-        queryParams.forEach((key, value) {
-          if (queryParams.keys.elementAt(0).compareTo(key) == 0) {
-            url = '$url$key=$value';
-          } else {
-            url = '$url&$key=$value';
-          }
-        });
-      }
-
-      Map<String, String> headers = HashMap()
-        ..putIfAbsent('Authorization', () => 'JWT ${AppConfig.airQoApiKey}');
-
-      final response = await http.get(Uri.parse(url), headers: headers);
-      return json.decode(response.body);
-    } on SocketException {
-      await showSnackBar(context, ErrorMessages.socketException);
-    } on TimeoutException {
-      await showSnackBar(context, ErrorMessages.timeoutException);
-    } on Error {
-      await showSnackBar(context, ErrorMessages.appException);
+      await showSnackBar(context, Config.connectionErrorMessage);
+    } on Error catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+      await showSnackBar(context, Config.appErrorMessage);
     }
 
     return null;
@@ -381,34 +377,36 @@ class AirqoApiClient {
         ..putIfAbsent('Content-Type', () => 'application/json');
 
       final response =
-          await http.post(Uri.parse(url), headers: headers, body: body);
-
+          await httpClient.post(Uri.parse(url), headers: headers, body: body);
       if (response.statusCode == 200) {
         return true;
       } else {
-        print(response.statusCode);
-        print('Unexpected status code ${response.statusCode}:'
-            ' ${response.reasonPhrase}');
         return false;
       }
     } on SocketException {
-      await showSnackBar(context, ErrorMessages.socketException);
+      await showSnackBar(context, Config.socketErrorMessage);
       return false;
     } on TimeoutException {
-      await showSnackBar(context, ErrorMessages.timeoutException);
+      await showSnackBar(context, Config.connectionErrorMessage);
       return false;
-    } on Error {
-      await showSnackBar(context, ErrorMessages.appException);
+    } on Error catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+      await showSnackBar(context, Config.appErrorMessage);
       return false;
     }
   }
 }
 
 class SearchApi {
-  final sessionToken;
-  final apiKey = AppConfig.googleApiKey;
+  final String sessionToken;
+  final apiKey = Config.googleApiKey;
+  final BuildContext context;
 
-  SearchApi(this.sessionToken);
+  SearchApi(this.sessionToken, this.context);
 
   Future<List<Suggestion>> fetchSuggestions(String input) async {
     try {
@@ -419,26 +417,26 @@ class SearchApi {
         ..putIfAbsent('sessiontoken', () => sessionToken);
 
       final responseBody =
-          await _performGetRequest(queryParams, AirQoUrls().searchSuggestions);
+          await _performGetRequest(queryParams, AirQoUrls.searchSuggestions);
 
+      if (responseBody == null) {
+        return [];
+      }
       if (responseBody['status'] == 'OK') {
         return compute(Suggestion.parseSuggestions, responseBody);
       }
-      if (responseBody['status'] == 'ZERO_RESULTS') {
-        return [];
-      }
-
-      throw Exception(responseBody['error_message']);
-    } on SocketException {
-      throw Exception(ErrorMessages.socketException);
-    } on TimeoutException {
-      throw Exception(ErrorMessages.timeoutException);
-    } on Error {
-      throw Exception('Cannot get suggestions, please try again later');
+    } on Error catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
     }
+
+    return [];
   }
 
-  Future<Place> getPlaceDetails(String placeId) async {
+  Future<Place?> getPlaceDetails(String placeId) async {
     try {
       var queryParams = <String, dynamic>{}
         ..putIfAbsent('place_id', () => placeId)
@@ -447,15 +445,20 @@ class SearchApi {
         ..putIfAbsent('sessiontoken', () => sessionToken);
 
       final responseBody =
-          await _performGetRequest(queryParams, AirQoUrls().placeSearchDetails);
+          await _performGetRequest(queryParams, AirQoUrls.placeSearchDetails);
 
       var place = Place.fromJson(responseBody['result']);
 
       return place;
-    } on Error catch (e) {
-      print('Getting place details : $e');
-      throw Exception('$e');
+    } on Error catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
     }
+
+    return null;
   }
 
   Future<dynamic> _performGetRequest(
@@ -477,19 +480,21 @@ class SearchApi {
       if (response.statusCode == 200) {
         return json.decode(response.body);
       } else {
-        print(response.statusCode);
-        print('Unexpected status code ${response.statusCode}:'
-            ' ${response.reasonPhrase}');
-        // print('Body ${response.body}:');
-        // print('uri: $url');
         return null;
       }
     } on SocketException {
-      throw Exception(ErrorMessages.timeoutException);
+      await showSnackBar(context, Config.connectionErrorMessage);
+      return null;
     } on TimeoutException {
-      throw Exception(ErrorMessages.timeoutException);
-    } on Error {
-      throw Exception('Cannot get details, please try again later');
+      await showSnackBar(context, Config.connectionErrorMessage);
+      return null;
+    } on Error catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+      await Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+      return null;
     }
   }
 }

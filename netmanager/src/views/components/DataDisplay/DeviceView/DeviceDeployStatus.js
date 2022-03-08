@@ -298,7 +298,16 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
   const [primaryChecked, setPrimaryChecked] = useState(
     deviceData.isPrimaryInLocation || false
   );
-  const [collocationChecked, setCollocationChecked] = useState(primaryChecked && !primaryChecked || deviceData.isUsedForCollocation);
+
+  const checkColocation = () => {
+    if (typeof deviceData.isPrimaryInLocation === "boolean") {
+      return !deviceData.isPrimaryInLocation;
+    }
+    return undefined;
+  };
+  const [collocationChecked, setCollocationChecked] = useState(
+    checkColocation()
+  );
   const [recentFeed, setRecentFeed] = useState({});
   const [runReport, setRunReport] = useState({
     ranTest: false,
@@ -663,7 +672,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
               style={{ marginBottom: "15px" }}
               InputLabelProps={{ shrink: true }}
               defaultValue={deploymentDate}
-              onChange={event => setDeploymentDate(event.target.value)}
+              onChange={(event) => setDeploymentDate(event.target.value)}
               error={!!errors.deployment_date}
               helperText={errors.deployment_date}
               fullWidth

@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:app/constants/app_constants.dart';
-import 'package:app/models/topicData.dart';
+import 'package:app/constants/config.dart';
+import 'package:app/models/notification.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
@@ -14,12 +14,12 @@ class LocalNotifications {
   }
 
   void initNotifications() async {
-    final initializationSettingsAndroid =
-        const AndroidInitializationSettings('launcher_icon');
-    final initializationSettingsIOS =
-        const IOSInitializationSettings(onDidReceiveLocalNotification: null);
-    final initializationSettingsMacOS = const MacOSInitializationSettings();
-    final initializationSettings = InitializationSettings(
+    const initializationSettingsAndroid =
+        AndroidInitializationSettings('launcher_icon');
+    const initializationSettingsIOS =
+        IOSInitializationSettings(onDidReceiveLocalNotification: null);
+    const initializationSettingsMacOS = MacOSInitializationSettings();
+    const initializationSettings = InitializationSettings(
         android: initializationSettingsAndroid,
         iOS: initializationSettingsIOS,
         macOS: initializationSettingsMacOS);
@@ -29,7 +29,7 @@ class LocalNotifications {
 
   Future onDidReceiveLocalNotification(
       int? id, String? title, String? body, String? payload) async {
-    print('Notification paylosd$payload');
+    debugPrint('Notification paylosd$payload');
   }
 
   Future selectNotification(String? payload) async {
@@ -43,20 +43,19 @@ class LocalNotifications {
     // );
   }
 
-  Future<void> showAlertNotification(AppNotification notification) async {
+  Future<void> showAlertNotification(UserNotification notification) async {
     var bigTextStyleInformation = BigTextStyleInformation(
       notification.body,
       htmlFormatBigText: true,
       contentTitle: 'AirQo',
       htmlFormatContentTitle: true,
-      summaryText: 'Air Quality Alert',
+      summaryText: 'AirQo',
       htmlFormatSummaryText: true,
     );
 
     var androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'push_messages: 0',
       'push_messages: push_messages',
-      'push_messages: AirQo',
       styleInformation: bigTextStyleInformation,
       importance: Importance.max,
       priority: Priority.high,
@@ -75,7 +74,7 @@ class LocalNotifications {
         iOS: iosPlatformChannelSpecifics);
 
     await flutterLocalNotificationsPlugin.show(
-        notification.id, 'AirQo', 'Air Quality Alert', platformChannelSpecifics,
+        1, 'AirQo', 'Air Quality Alert', platformChannelSpecifics,
         payload: 'load');
   }
 
@@ -87,7 +86,7 @@ class LocalNotifications {
       summaryText: 'Big Picture Notification Summary Text',
     );
     var androidDetails = AndroidNotificationDetails(
-        'channel_id', 'Channel Name', 'Channel Description',
+        'channel_id', 'Channel Name',
         styleInformation: bigPictureStyleInformation);
     var platformDetails =
         NotificationDetails(android: androidDetails, iOS: null);
@@ -107,7 +106,7 @@ class LocalNotifications {
       htmlFormatSummaryText: true,
     );
     const androidNotificationDetails = AndroidNotificationDetails(
-        'channel_id', 'Channel Name', 'Channel Description',
+        'channel_id', 'Channel Name',
         styleInformation: bigTextStyleInformation);
     const notificationDetails =
         NotificationDetails(android: androidNotificationDetails, iOS: null);
@@ -119,7 +118,7 @@ class LocalNotifications {
   Future<void> showInsistentNotification() async {
     const insistentFlag = 4;
     final androidPlatformChannelSpecifics = AndroidNotificationDetails(
-        'channel_id', 'Channel Name', 'Channel Description',
+        'channel_id', 'Channel Name',
         importance: Importance.max,
         priority: Priority.high,
         ticker: 'ticker',
@@ -132,28 +131,23 @@ class LocalNotifications {
   }
 
   Future<void> showOngoingNotification() async {
-    const androidNotificationDetails = AndroidNotificationDetails(
-        '${NotificationConfig.persistentNotificationId}',
-        'Channel Name',
-        'Channel Description',
+    var androidNotificationDetails = AndroidNotificationDetails(
+        '${Config.persistentNotificationId}', 'Channel Name',
         importance: Importance.max,
         icon: 'launcher_icon',
         priority: Priority.high,
         ongoing: true,
         autoCancel: false);
-    const notificationDetails =
+    var notificationDetails =
         NotificationDetails(android: androidNotificationDetails, iOS: null);
-    await flutterLocalNotificationsPlugin.show(
-        NotificationConfig.persistentNotificationId,
-        'AirQo',
-        'Ongoing Notification',
-        notificationDetails,
+    await flutterLocalNotificationsPlugin.show(Config.persistentNotificationId,
+        'AirQo', 'Ongoing Notification', notificationDetails,
         payload: 'Destination Screen(Ongoing Notification)');
   }
 
   Future<void> showPeriodicNotification() async {
-    const androidNotificationDetails = AndroidNotificationDetails(
-        'channel_id', 'Channel Name', 'Channel Description');
+    const androidNotificationDetails =
+        AndroidNotificationDetails('channel_id', 'Channel Name');
     var notificationDetails = const NotificationDetails(
         android: androidNotificationDetails, iOS: null);
     await flutterLocalNotificationsPlugin.periodicallyShow(
@@ -170,7 +164,7 @@ class LocalNotifications {
     for (var i = 0; i <= maxProgress; i++) {
       await Future<void>.delayed(const Duration(seconds: 1), () async {
         final androidNotificationDetails = AndroidNotificationDetails(
-            'channel_id', 'Channel Name', 'Channel Description',
+            'channel_id', 'Channel Name',
             channelShowBadge: false,
             importance: Importance.max,
             priority: Priority.high,
@@ -181,7 +175,7 @@ class LocalNotifications {
         final notificationDetails =
             NotificationDetails(android: androidNotificationDetails, iOS: null);
         await flutterLocalNotificationsPlugin.show(
-            NotificationConfig.progressNotificationId,
+            Config.progressNotificationId,
             'AirQo',
             'Progress Notification',
             notificationDetails,
@@ -204,7 +198,6 @@ class LocalNotifications {
     const androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'push_messages: 0',
       'push_messages: push_messages',
-      'push_messages: AirQo',
       styleInformation: bigTextStyleInformation,
       importance: Importance.max,
       priority: Priority.high,
@@ -224,7 +217,6 @@ class LocalNotifications {
     var androidDetails = const AndroidNotificationDetails(
       'channel_id',
       'Channel Name',
-      'Channel Description',
       icon: 'launcher_icon',
       largeIcon: DrawableResourceAndroidBitmap('launcher_icon'),
     );
@@ -240,9 +232,8 @@ class LocalNotifications {
         payload: 'Destination Screen(Schedule Notification)');
   }
 
-  Future<void> showSimpleNotification(AppNotification notification) async {
-    var androidDetails = const AndroidNotificationDetails(
-        'id', 'channel ', 'description',
+  Future<void> showSimpleNotification(NotificationModel notification) async {
+    var androidDetails = const AndroidNotificationDetails('id', 'channel ',
         priority: Priority.high, importance: Importance.max);
     var iOSDetails = const IOSNotificationDetails();
     var platformDetails =
@@ -266,7 +257,6 @@ class LocalNotifications {
     const androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'smart_messages: 0',
       'smart_messages: smart_messages',
-      'smart_messages: AirQo',
       styleInformation: bigTextStyleInformation,
       importance: Importance.max,
       priority: Priority.high,
