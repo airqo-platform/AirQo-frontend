@@ -71,7 +71,6 @@ const SiteForm = ({ site }) => {
         const errors =
           (err.response && err.response.data && err.response.data.error) || {};
         setErrors(errors);
-        console.log(err);
         dispatch(
           updateMainAlert({
             severity: "error",
