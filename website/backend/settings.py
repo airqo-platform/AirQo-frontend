@@ -29,7 +29,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', False)
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('DJANGO_ALLOWED_HOSTS').split(',')
 
@@ -93,7 +93,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': dj_database_url.config(
         # Default values for DATABASE_URI are for the development environment
-        default=config('DATABASE_URI', 'postgresql://user:password@dbHost:5432/database')
+        default=config('DATABASE_URI', default='postgresql://user:password@dbHost:5432/database')
     )
 }
 
@@ -135,7 +135,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 # Static
-STATIC_HOST = config('WEB_STATIC_HOST', 'http://localhost:8081/')  # Default to using webpack-dev-server on port 8081
+# Default to using webpack-dev-server on port 8081
+STATIC_HOST = config('WEB_STATIC_HOST', default='http://localhost:8081/')
 
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
