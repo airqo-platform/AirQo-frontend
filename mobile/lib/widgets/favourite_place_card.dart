@@ -62,14 +62,14 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             Text(
-                              widget.placeDetails.getName(),
+                              widget.placeDetails.name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 16),
                             ),
                             Text(
-                              widget.placeDetails.getLocation(),
+                              widget.placeDetails.location,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(

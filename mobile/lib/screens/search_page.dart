@@ -672,12 +672,12 @@ class _SearchPageState extends State<SearchPage> {
       }
 
       var placeDetails = PlaceDetails(
-          suggestion.suggestionDetails.getMainText(),
-          suggestion.suggestionDetails.getSecondaryText(),
-          nearestSite.id,
-          suggestion.placeId,
-          place.geometry.location.lat,
-          place.geometry.location.lng);
+          name: suggestion.suggestionDetails.getMainText(),
+          location: suggestion.suggestionDetails.getSecondaryText(),
+          siteId: nearestSite.id,
+          placeId: suggestion.placeId,
+          latitude: place.geometry.location.lat,
+          longitude: place.geometry.location.lng);
 
       await Navigator.push(context, MaterialPageRoute(builder: (context) {
         return InsightsPage(placeDetails);

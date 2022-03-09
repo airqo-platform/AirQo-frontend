@@ -329,7 +329,7 @@ class _InsightsTabState extends State<InsightsTab> {
                                   color: Colors.black.withOpacity(0.3)),
                             ),
                             AutoSizeText(
-                              widget.placeDetails.getName(),
+                              widget.placeDetails.name,
                               maxLines: 1,
                               maxFontSize: 16,
                               minFontSize: 14,
@@ -338,7 +338,7 @@ class _InsightsTabState extends State<InsightsTab> {
                                   fontWeight: FontWeight.bold, fontSize: 16),
                             ),
                             AutoSizeText(
-                              widget.placeDetails.getLocation(),
+                              widget.placeDetails.location,
                               maxLines: 1,
                               maxFontSize: 12,
                               minFontSize: 10,
