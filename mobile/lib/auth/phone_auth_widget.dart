@@ -165,7 +165,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
       controller: _phoneInputController,
       onEditingComplete: () async {
         FocusScope.of(context).requestFocus(FocusNode());
-        Future.delayed(const Duration(milliseconds: 250), (){
+        Future.delayed(const Duration(milliseconds: 250), () {
           setState(() {
             _showAuthOptions = true;
           });
@@ -472,20 +472,17 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
         ),
       ),
       const SizedBox(
-        height: 21,
+        height: 19,
       ),
-      Padding(
-        padding: const EdgeInsets.only(left: 127, right: 127),
-        child: GestureDetector(
-          onTap: _initialize,
-          child: Text(
-            'Change Phone Number',
-            textAlign: TextAlign.center,
-            style: Theme.of(context)
-                .textTheme
-                .caption
-                ?.copyWith(color: Config.appColorBlue),
-          ),
+      GestureDetector(
+        onTap: _initialize,
+        child: Text(
+          'Change Phone Number',
+          textAlign: TextAlign.center,
+          style: Theme.of(context)
+              .textTheme
+              .caption
+              ?.copyWith(color: Config.appColorBlue),
         ),
       ),
       const Spacer(),
