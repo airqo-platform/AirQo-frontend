@@ -464,7 +464,7 @@ const CustomisableChart = (props) => {
 
     let newFilter = {
       ...defaultFilter,
-      period: JSON.stringify(period),
+      period: period,
       sites: optionToList(tempState.sites.selectedOption),
       startDate: selectedDate.toISOString(),
       endDate: selectedEndDate.toISOString(),
