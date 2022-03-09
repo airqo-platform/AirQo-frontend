@@ -35,7 +35,6 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
   bool _verifyCode = false;
   bool _showAuthOptions = true;
   String _verificationId = '';
-  bool _resendCode = false;
   bool _codeSent = false;
   bool _isResending = false;
   bool _isVerifying = false;
@@ -153,13 +152,6 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
     }
 
     Navigator.pop(loadingContext);
-
-    // if (widget.enableBackButton) {
-    //   Navigator.pushAndRemoveUntil(context,
-    //       MaterialPageRoute(builder: (context) {
-    //         return const HomePage();
-    //       }), (r) => false);
-    // }
 
     Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) {
       return const HomePage();
@@ -356,8 +348,8 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
         child: Padding(
           padding: const EdgeInsets.only(left: 24, right: 24),
           child: widget.isLogin
-              ? loginOptionsV2(context: context)
-              : signUpOptionsV2(context: context),
+              ? loginOptions(context: context)
+              : signUpOptions(context: context),
         ),
       ),
       SizedBox(
@@ -646,12 +638,6 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
       _verifyCode = true;
       _verificationId = verificationId;
     });
-
-    Future.delayed(const Duration(seconds: 5), () {
-      setState(() {
-        _resendCode = true;
-      });
-    });
   }
 
   Future<void> verifySentCode() async {
@@ -709,7 +695,6 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
           : Config.appColorBlue;
       _verifyCode = false;
       _verificationId = '';
-      _resendCode = false;
       _codeSent = false;
       _isResending = false;
       _isVerifying = false;

@@ -121,12 +121,6 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
       showSnackBar(context, 'Tap again to exit !');
       return Future.value(false);
     }
-    // if (widget.enableBackButton) {
-    //   Navigator.pushAndRemoveUntil(context,
-    //       MaterialPageRoute(builder: (context) {
-    //     return const HomePage();
-    //   }), (r) => false);
-    // }
 
     Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) {
       return const HomePage();

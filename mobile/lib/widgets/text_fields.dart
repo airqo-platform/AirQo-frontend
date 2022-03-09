@@ -6,7 +6,6 @@ import 'custom_widgets.dart';
 
 Widget countryPickerField(String placeholder, valueChange, context) {
   return Container(
-    // padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
     constraints: const BoxConstraints(minWidth: double.infinity),
     decoration: BoxDecoration(
         color: const Color(0xff8D8D8D).withOpacity(0.1),
@@ -104,7 +103,6 @@ Widget optFieldV2(position, context, callbackFn, bool codeSent) {
         counter: const Offstage(),
         fillColor:
             codeSent ? Colors.white : const Color(0xff8D8D8D).withOpacity(0.1),
-        // filled: false,
         focusedBorder: OutlineInputBorder(
           borderSide: BorderSide(color: Config.appColorBlue, width: 1.0),
           borderRadius: BorderRadius.circular(8.0),
