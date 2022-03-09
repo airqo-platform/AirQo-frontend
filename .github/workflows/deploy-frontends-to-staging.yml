@@ -113,7 +113,7 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           cd netmanager/
-          docker build --target=staging --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} .
+          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} .
           docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }}
