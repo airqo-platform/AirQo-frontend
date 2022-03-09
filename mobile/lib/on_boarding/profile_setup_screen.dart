@@ -248,13 +248,6 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
       return Future.value(false);
     }
 
-    // if (widget.enableBackButton) {
-    //   Navigator.pushAndRemoveUntil(context,
-    //       MaterialPageRoute(builder: (context) {
-    //     return const HomePage();
-    //   }), (r) => false);
-    // }
-
     Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) {
       return const HomePage();
     }), (r) => false);

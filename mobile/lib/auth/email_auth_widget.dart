@@ -33,8 +33,6 @@ class EmailAuthWidget extends StatefulWidget {
 
 class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
   bool _isVerifying = false;
-
-  // bool _isResending = false;
   String _emailVerificationLink = '';
   int _emailToken = 1;
   bool _verifyCode = false;
@@ -225,8 +223,8 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
       Visibility(
         visible: _showAuthOptions,
         child: widget.isLogin
-            ? loginOptionsV2(context: context)
-            : signUpOptionsV2(context: context),
+            ? loginOptions(context: context)
+            : signUpOptions(context: context),
       ),
       SizedBox(
         height: _showAuthOptions ? 40 : 12,
@@ -377,13 +375,6 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     }
 
     Navigator.pop(loadingContext);
-
-    // if (widget.enableBackButton) {
-    //   Navigator.pushAndRemoveUntil(context,
-    //       MaterialPageRoute(builder: (context) {
-    //         return const HomePage();
-    //       }), (r) => false);
-    // }
 
     Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) {
       return const HomePage();
@@ -599,7 +590,6 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
           ? Config.appColorDisabled
           : Config.appColorBlue;
       _isVerifying = false;
-      // _isResending = false;
       _emailVerificationLink = '';
       _emailToken = 1;
       _verifyCode = false;

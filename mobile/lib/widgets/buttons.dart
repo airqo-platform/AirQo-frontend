@@ -76,75 +76,7 @@ Widget containerNextButton(String text, Color buttonColor) {
   );
 }
 
-Widget loginOptions(BuildContext context) {
-  var cloudAnalytics = CloudAnalytics();
-  return Column(
-    children: [
-      GestureDetector(
-        onTap: () {
-          Navigator.pushAndRemoveUntil(context,
-              MaterialPageRoute(builder: (context) {
-            return PhoneSignUpWidget(enableBackButton: false);
-          }), (r) => false);
-        },
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('Don\'t have an account',
-                textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .caption
-                    ?.copyWith(color: Config.appColorBlack.withOpacity(0.6))),
-            const SizedBox(
-              width: 2,
-            ),
-            Text('Sign up',
-                textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .caption
-                    ?.copyWith(color: Config.appColorBlue))
-          ],
-        ),
-      ),
-      const SizedBox(
-        height: 8,
-      ),
-      GestureDetector(
-        onTap: () {
-          cloudAnalytics.logEvent(AnalyticsEvent.browserAsAppGuest);
-          Navigator.pushAndRemoveUntil(context,
-              MaterialPageRoute(builder: (context) {
-            return const HomePage();
-          }), (r) => false);
-        },
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('Proceed as',
-                textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .caption
-                    ?.copyWith(color: Config.appColorBlack.withOpacity(0.6))),
-            const SizedBox(
-              width: 2,
-            ),
-            Text('Guest',
-                textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .caption
-                    ?.copyWith(color: Config.appColorBlue))
-          ],
-        ),
-      ),
-    ],
-  );
-}
-
-Widget loginOptionsV2({required BuildContext context}) {
+Widget loginOptions({required BuildContext context}) {
   var cloudAnalytics = CloudAnalytics();
   var tween = Tween<double>(begin: 0, end: 1);
   return Column(
@@ -155,7 +87,7 @@ Widget loginOptionsV2({required BuildContext context}) {
               context,
               PageRouteBuilder(
                 pageBuilder: (context, animation, secondaryAnimation) =>
-                    PhoneSignUpWidget(enableBackButton: false),
+                    const PhoneSignUpWidget(enableBackButton: false),
                 transitionsBuilder:
                     (context, animation, secondaryAnimation, child) {
                   return FadeTransition(
@@ -310,82 +242,7 @@ Widget signButton({required String text, required BuildContext context}) {
       )));
 }
 
-Widget signUpOptions(BuildContext context) {
-  var cloudAnalytics = CloudAnalytics();
-  return Column(
-    children: [
-      GestureDetector(
-        onTap: () {
-          Navigator.pushAndRemoveUntil(context,
-              MaterialPageRoute(builder: (context) {
-            return PhoneLoginWidget(
-              phoneNumber: '',
-              enableBackButton: false,
-            );
-          }), (r) => false);
-          // Navigator.pushAndRemoveUntil(context,
-          //     MaterialPageRoute(builder: (context) {
-          //   return const LoginScreen(phoneNumber: '', emailAddress: '');
-          // }), (r) => false);
-        },
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('Already have an account',
-                textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .caption
-                    ?.copyWith(color: Config.appColorBlack.withOpacity(0.6))),
-            const SizedBox(
-              width: 2,
-            ),
-            Text('Log in',
-                textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .caption
-                    ?.copyWith(color: Config.appColorBlue))
-          ],
-        ),
-      ),
-      const SizedBox(
-        height: 8,
-      ),
-      GestureDetector(
-        onTap: () {
-          cloudAnalytics.logEvent(AnalyticsEvent.browserAsAppGuest);
-          Navigator.pushAndRemoveUntil(context,
-              MaterialPageRoute(builder: (context) {
-            return const HomePage();
-          }), (r) => false);
-        },
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('Proceed as',
-                textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .caption
-                    ?.copyWith(color: Config.appColorBlack.withOpacity(0.6))),
-            const SizedBox(
-              width: 2,
-            ),
-            Text('Guest',
-                textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .caption
-                    ?.copyWith(color: Config.appColorBlue))
-          ],
-        ),
-      ),
-    ],
-  );
-}
-
-Widget signUpOptionsV2({required BuildContext context}) {
+Widget signUpOptions({required BuildContext context}) {
   var cloudAnalytics = CloudAnalytics();
   var tween = Tween<double>(begin: 0, end: 1);
   return Column(
@@ -396,7 +253,7 @@ Widget signUpOptionsV2({required BuildContext context}) {
               context,
               PageRouteBuilder(
                 pageBuilder: (context, animation, secondaryAnimation) =>
-                    PhoneLoginWidget(
+                    const PhoneLoginWidget(
                   enableBackButton: false,
                   phoneNumber: '',
                 ),

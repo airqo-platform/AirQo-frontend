@@ -267,8 +267,6 @@ ThemeData lightTheme() {
 
   return base.copyWith(
     primaryColor: Colors.white,
-    // accentColor: Config.appColor,
-    // backgroundColor: Colors.white,
     visualDensity: VisualDensity.adaptivePlatformDensity,
     textTheme: TextTheme(
       headline4: TextStyle(

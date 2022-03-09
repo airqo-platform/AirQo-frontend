@@ -218,6 +218,29 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
     ));
   }
 
+  @override
+  void initState() {
+    super.initState();
+    _airqoApiClient = AirqoApiClient(context);
+    _initialize();
+  }
+
+  void setCode(value, position) {
+    setState(() {
+      _emailVerificationCode[position] = value;
+    });
+    var code = _emailVerificationCode.join('');
+    if (code.length == 6) {
+      setState(() {
+        _nextBtnColor = Config.appColorBlue;
+      });
+    } else {
+      setState(() {
+        _nextBtnColor = Config.appColorDisabled;
+      });
+    }
+  }
+
   void _clearEmailCallBack() {
     setState(() {
       _emailAddress = '';
@@ -307,13 +330,6 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
     });
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _airqoApiClient = AirqoApiClient(context);
-    _initialize();
-  }
-
   Future<void> _requestVerification() async {
     _emailFormKey.currentState!.validate();
 
@@ -374,22 +390,6 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
       _isResending = false;
       _emailToken = emailVerificationResponse.token;
     });
-  }
-
-  void setCode(value, position) {
-    setState(() {
-      _emailVerificationCode[position] = value;
-    });
-    var code = _emailVerificationCode.join('');
-    if (code.length == 6) {
-      setState(() {
-        _nextBtnColor = Config.appColorBlue;
-      });
-    } else {
-      setState(() {
-        _nextBtnColor = Config.appColorDisabled;
-      });
-    }
   }
 
   Future<void> _verifySentCode() async {
