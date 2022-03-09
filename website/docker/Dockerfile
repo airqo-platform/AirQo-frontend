@@ -11,7 +11,7 @@ COPY ./frontend /app/frontend
 RUN npm run build
 
 # Backend server
-FROM python:3.8
+FROM python:3.8 as deployment
 
 WORKDIR /app
 
@@ -27,3 +27,7 @@ RUN pip install -r requirements.txt
 COPY --from=build /app/frontend /app/frontend
 COPY manage.py ./docker/wsgi-entrypoint.sh /app/
 COPY ./backend /app/backend
+
+# Backend server
+FROM deployment as development
+COPY google_application_credentials.json /etc/config/

@@ -214,10 +214,11 @@ Populate the `.env` file with the following keys and their respective values
     CLOUDINARY_KEY
     CLOUDINARY_SECRET
     WEB_STATIC_HOST
-    DJANGO_ALLOWED_HOSTS
+    DJANGO_ALLOWED_HOSTS      # alist od comma seperated hosts
     GS_BUCKET_NAME
+    CONTAINER_ENV             # True for docker
 
-**Note**: Leave the `DATABASE_URI` empty if you are following the development steps for docker.
+**Note**: Remove `DATABASE_URI` variable  if you are using docker.
 
 #### Docker
 Run the command below to build and run the containers for the database and website app
