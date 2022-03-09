@@ -166,6 +166,20 @@ const CandidatesTable = (props) => {
       })
   }
 
+  const formatDate = date => {
+    if(!date) return '-';
+
+    date = new Date(date)
+    let day = date.getDate();
+    let month = date.getMonth()+1;
+    const year = date.getFullYear();
+
+    if (day < 10) day = `0${day}`
+    if (month < 10) month = `0${month}`
+
+    return `${day}-${month}-${year}`
+  }
+
   return (
     <Card {...rest} className={clsx(classes.root, className)}>
         <CustomMaterialTable
@@ -201,11 +215,23 @@ const CandidatesTable = (props) => {
               },
               {
                 title: "Organization",
-                field: "organization",
+                field: "long_organization",
               },
               {
                 title: "Job Title",
                 field: "jobTitle",
+              },
+              {
+                title: "Submitted",
+                field: "createdAt",
+                render: (candidate) => <span>{formatDate(candidate.createdAt)}</span>
+              },
+              {
+                title: "Rejected",
+                field: "updatedAt",
+                render: (candidate) => <span>
+                    {candidate.status === 'rejected'? formatDate(candidate.updatedAt) : '-' }
+                    </span>
               },
               {
                 title: "Status",
