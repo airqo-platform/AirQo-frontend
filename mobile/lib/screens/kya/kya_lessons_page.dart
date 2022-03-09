@@ -44,46 +44,43 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
             backgroundColor: Config.appBodyColor,
             centerTitle: false,
             titleSpacing: 0,
-            title: Padding(
-              padding: const EdgeInsets.only(left: 24, right: 24),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      updateProgress();
-                      Navigator.of(context).pop(true);
-                    },
+            title: Row(
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    updateProgress();
+                    Navigator.of(context).pop(true);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 24, right: 7),
                     child: SvgPicture.asset(
                       'assets/icon/close.svg',
                       height: 20,
                       width: 20,
                     ),
                   ),
-                  const SizedBox(
-                    width: 7,
-                  ),
-                  Expanded(
-                      child: LinearProgressIndicator(
-                    color: Config.appColorBlue,
-                    value: _tipsProgress,
-                    backgroundColor: Config.appColorBlue.withOpacity(0.2),
-                  )),
-                  const SizedBox(
-                    width: 7,
-                  ),
-                  GestureDetector(
-                    onTap: () async {
-                      try {
-                        await _shareService.shareKya(
-                            context, _globalKeys[currentIndex]);
-                      } catch (exception, stackTrace) {
-                        debugPrint('$exception\n$stackTrace');
-                        await Sentry.captureException(
-                          exception,
-                          stackTrace: stackTrace,
-                        );
-                      }
-                    },
+                ),
+                Expanded(
+                    child: LinearProgressIndicator(
+                  color: Config.appColorBlue,
+                  value: _tipsProgress,
+                  backgroundColor: Config.appColorBlue.withOpacity(0.2),
+                )),
+                GestureDetector(
+                  onTap: () async {
+                    try {
+                      await _shareService.shareKya(
+                          context, _globalKeys[currentIndex]);
+                    } catch (exception, stackTrace) {
+                      debugPrint('$exception\n$stackTrace');
+                      await Sentry.captureException(
+                        exception,
+                        stackTrace: stackTrace,
+                      );
+                    }
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 7, right: 24),
                     child: SvgPicture.asset(
                       'assets/icon/share_icon.svg',
                       color: Config.greyColor,
@@ -91,8 +88,8 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                       width: 16,
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
           body: Container(
@@ -288,9 +285,6 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                                 height: 180, radius: 8)),
                   ),
                 ),
-                // const SizedBox(
-                //   height: 12,
-                // ),
                 const Spacer(),
                 Padding(
                   padding: const EdgeInsets.only(left: 36, right: 36),
@@ -317,9 +311,6 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                   ),
                 ),
                 const Spacer(),
-                // const SizedBox(
-                //   height: 20.0,
-                // ),
                 SvgPicture.asset(
                   'assets/icon/tips_graphics.svg',
                   semanticsLabel: 'tips_graphics',
