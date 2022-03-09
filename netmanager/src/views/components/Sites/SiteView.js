@@ -53,6 +53,7 @@ const SiteForm = ({ site }) => {
   };
 
   const handleSubmit = async () => {
+    if(isEmpty(siteInfo.airqlouds)) { delete siteInfo.airqlouds }
     setManualDisable(true);
     await updateSiteApi(site._id, siteInfo)
       .then((responseData) => {
