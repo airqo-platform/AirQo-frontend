@@ -24,7 +24,7 @@ import '../themes/light_theme.dart';
 import '../utils/kya_utils.dart';
 import 'favourite_places.dart';
 import 'for_you_page.dart';
-import 'kya/kya_lessons_page.dart';
+import 'kya/kya_title_page.dart';
 
 class DashboardView extends StatefulWidget {
   const DashboardView({Key? key}) : super(key: key);
@@ -199,7 +199,7 @@ class _DashboardViewState extends State<DashboardView> {
     } else {
       var returnStatus =
           await Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return KyaLessonsPage(kya);
+        return KyaTitlePage(kya);
       }));
       if (returnStatus) {
         Future.delayed(const Duration(seconds: 500), () {

@@ -703,12 +703,16 @@ class _MapViewState extends State<MapView> {
         await controller
             .animateCamera(CameraUpdate.newCameraPosition(_cameraPosition));
       } else {
-        await controller.animateCamera(CameraUpdate.newLatLngBounds(
-            getBounds(markers.values.toList()), 40.0));
+        if (_displayRegions) {
+          await controller.animateCamera(
+              CameraUpdate.newCameraPosition(_defaultCameraPosition));
+        } else {
+          await controller.animateCamera(CameraUpdate.newLatLngBounds(
+              getBounds(markers.values.toList()), 40.0));
+        }
       }
 
       setState(() {
-        _markers.clear();
         _markers = markers;
       });
     }
