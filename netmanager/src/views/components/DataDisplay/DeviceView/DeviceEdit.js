@@ -86,7 +86,6 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
         );
       })
       .catch((err) => {
-        console.log("errors", err.response.data);
         const newErrors =
           (err.response && err.response.data && err.response.data.errors) || {};
         setErrors(newErrors);
@@ -162,6 +161,7 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               onChange={handleTextFieldChange}
               error={!!errors.phoneNumber}
               helperText={errors.phoneNumber}
+              placeholder="+256XXXXXXXXX"
               fullWidth
             />
           </Grid>
