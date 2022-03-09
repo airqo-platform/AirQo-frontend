@@ -165,7 +165,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
       controller: _phoneInputController,
       onEditingComplete: () async {
         FocusScope.of(context).requestFocus(FocusNode());
-        Future.delayed(const Duration(milliseconds: 250), (){
+        Future.delayed(const Duration(milliseconds: 250), () {
           setState(() {
             _showAuthOptions = true;
           });

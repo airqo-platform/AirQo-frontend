@@ -7,6 +7,7 @@ import 'package:flutter_svg/svg.dart';
 
 import '../../services/app_service.dart';
 import '../../themes/light_theme.dart';
+import '../../utils/kya_utils.dart';
 import 'kya_title_page.dart';
 
 class KnowYourAirView extends StatefulWidget {
@@ -34,7 +35,7 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
               : ListView.builder(
                   itemBuilder: (context, index) => Padding(
                     padding: const EdgeInsets.only(bottom: 10),
-                    child: kyaWidget(_kyaCards[index]),
+                    child: _kyaWidget(_kyaCards[index]),
                   ),
                   itemCount: _kyaCards.length,
                 ),
@@ -48,13 +49,35 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
     _getKya();
   }
 
-  Widget kyaWidget(Kya kya) {
+  Future<void> _getKya() async {
+    var kya = await _appService.dbHelper.getKyas();
+
+    if (kya.isEmpty) {
+      setState(() {
+        _kyaCards = [];
+        _error = 'Connect retrieve Know Your Air lessons. Try again later';
+      });
+      return;
+    }
+
+    if (mounted) {
+      setState(() {
+        _kyaCards = kya;
+      });
+    }
+  }
+
+  Widget _kyaWidget(Kya kya) {
     return GestureDetector(
         onTap: () async {
-          await Navigator.push(context, MaterialPageRoute(builder: (context) {
-            return KyaTitlePage(kya);
-            // return MyHomePage();
-          }));
+          if (kya.progress >= kya.lessons.length) {
+            kya.progress = -1;
+            await _appService.updateKya(kya).then((value) => _refreshKya());
+          } else {
+            await Navigator.push(context, MaterialPageRoute(builder: (context) {
+              return KyaTitlePage(kya);
+            })).then((value) => _refreshKya());
+          }
         },
         child: Container(
           padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
@@ -80,12 +103,7 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        AutoSizeText('Start reading',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            style: CustomTextStyle.caption3(context)
-                                ?.copyWith(color: Config.appColorBlue)),
+                        getKyaMessageWidget(kya: kya, context: context),
                         const SizedBox(
                           width: 6,
                         ),
@@ -97,6 +115,13 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
                         ),
                       ],
                     ),
+                    SizedBox(
+                      height:
+                          getKyaMessage(kya: kya).toLowerCase() == 'continue'
+                              ? 2
+                              : 0,
+                    ),
+                    kyaProgressBar(kya: kya),
                   ],
                 ),
               ),
@@ -119,24 +144,6 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
             ],
           ),
         ));
-  }
-
-  Future<void> _getKya() async {
-    var kya = await _appService.dbHelper.getKyas();
-
-    if (kya.isEmpty) {
-      setState(() {
-        _kyaCards = [];
-        _error = 'Connect retrieve Know Your Air lessons. Try again later';
-      });
-      return;
-    }
-
-    if (mounted) {
-      setState(() {
-        _kyaCards = kya;
-      });
-    }
   }
 
   Future<void> _refreshKya() async {

@@ -21,6 +21,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../themes/light_theme.dart';
+import '../utils/kya_utils.dart';
 import 'favourite_places.dart';
 import 'for_you_page.dart';
 import 'kya/kya_lessons_page.dart';
@@ -190,21 +191,6 @@ class _DashboardViewState extends State<DashboardView> {
         ));
   }
 
-  String getKyaMessage({required Kya kya}) {
-    var kyaItems = kya.lessons.length;
-    var progress = kya.progress;
-    if (progress == 0) {
-      return 'Start learning';
-    }
-    if (progress > 0 && progress < kyaItems) {
-      return 'Continue';
-    }
-    if (progress >= kyaItems) {
-      return 'Complete! Move to For You';
-    }
-    return '';
-  }
-
   Future<void> handleKyaOnClick({required Kya kya}) async {
     if (kya.progress >= kya.lessons.length) {
       kya.progress = -1;
@@ -286,22 +272,17 @@ class _DashboardViewState extends State<DashboardView> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      AutoSizeText(getKyaMessage(kya: _incompleteKya[0]),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Config.appColorBlue,
-                          )),
+                      getKyaMessageWidget(
+                          kya: _incompleteKya[0], context: context),
                       const SizedBox(
                         width: 6,
                       ),
-                      Icon(
-                        Icons.arrow_forward_ios_sharp,
-                        size: 10,
-                        color: Config.appColorBlue,
-                      )
+                      SvgPicture.asset(
+                        'assets/icon/more_arrow.svg',
+                        semanticsLabel: 'more',
+                        height: 6.99,
+                        width: 4,
+                      ),
                     ],
                   ),
                   SizedBox(
@@ -311,23 +292,7 @@ class _DashboardViewState extends State<DashboardView> {
                             ? 2
                             : 0,
                   ),
-                  Visibility(
-                    visible:
-                        getKyaMessage(kya: _incompleteKya[0]).toLowerCase() ==
-                            'continue',
-                    child: Container(
-                        height: 4,
-                        decoration: const BoxDecoration(
-                          borderRadius: BorderRadius.all(Radius.circular(8.0)),
-                        ),
-                        child: LinearProgressIndicator(
-                          color: Config.appColorBlue,
-                          value: _incompleteKya[0].progress /
-                              _incompleteKya[0].lessons.length,
-                          backgroundColor:
-                              Config.appColorDisabled.withOpacity(0.2),
-                        )),
-                  ),
+                  kyaProgressBar(kya: _incompleteKya[0]),
                 ],
               ),
             ),
