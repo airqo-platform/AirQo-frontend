@@ -190,180 +190,173 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                   key: _globalKey,
                   child: _shareSvc.analyticsCardImage(
                       widget.measurement, widget.placeDetails, context)),
-              Visibility(
-                visible: true,
-                child: Container(
-                  padding: const EdgeInsets.only(top: 12, bottom: 12),
-                  decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius:
-                          const BorderRadius.all(Radius.circular(16.0)),
-                      border: Border.all(color: Colors.transparent)),
-                  child: Column(
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          pmInfoDialog(
-                              context, widget.measurement.getPm2_5Value());
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.only(right: 12),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: SvgPicture.asset(
-                                  'assets/icon/info_icon.svg',
-                                  semanticsLabel: 'Pm2.5',
-                                  key: _infoToolTipKey,
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        height: 104,
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 24, right: 24),
-                          child: Row(
-                            children: [
-                              GestureDetector(
-                                child: analyticsAvatar(
-                                    widget.measurement, 104, 40, 12),
-                                onTap: () {
-                                  ToolTip(context, toolTipType.info).show(
-                                    widgetKey: _infoToolTipKey,
-                                  );
-                                },
+              Container(
+                padding: const EdgeInsets.only(top: 12, bottom: 12),
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: const BorderRadius.all(Radius.circular(16.0)),
+                    border: Border.all(color: Colors.transparent)),
+                child: Column(
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        pmInfoDialog(
+                            context, widget.measurement.getPm2_5Value());
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.only(right: 12),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: SvgPicture.asset(
+                                'assets/icon/info_icon.svg',
+                                semanticsLabel: 'Pm2.5',
+                                key: _infoToolTipKey,
                               ),
-                              const SizedBox(width: 16.0),
-                              Flexible(
-                                  child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    widget.placeDetails.name,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: CustomTextStyle.headline9(context),
-                                  ),
-                                  Text(
-                                    widget.placeDetails.location,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: CustomTextStyle.bodyText4(context)
-                                        ?.copyWith(
-                                            color: Config.appColorBlack
-                                                .withOpacity(0.3)),
-                                  ),
-                                  const SizedBox(
-                                    height: 12,
-                                  ),
-                                  GestureDetector(
-                                    child: aqiContainerString(
-                                        measurement: widget.measurement,
-                                        context: context),
-                                    onTap: () {
-                                      ToolTip(context, toolTipType.info).show(
-                                        widgetKey: _infoToolTipKey,
-                                      );
-                                    },
-                                  ),
-                                  const SizedBox(
-                                    height: 8,
-                                  ),
-                                  Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                          constraints: BoxConstraints(
-                                              maxWidth: MediaQuery.of(context)
-                                                      .size
-                                                      .width /
-                                                  3.2),
-                                          child: Text(
-                                            dateToString(
-                                                widget.measurement.time),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                                fontSize: 8,
-                                                color: Colors.black
-                                                    .withOpacity(0.3)),
-                                          )),
-                                      const SizedBox(
-                                        width: 4.0,
-                                      ),
-                                      Visibility(
-                                        visible: widget.isRefreshing,
-                                        child: SvgPicture.asset(
-                                          'assets/icon/loader.svg',
-                                          semanticsLabel: 'loader',
-                                          height: 8.0,
-                                          width: 8.0,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ))
-                            ],
-                          ),
+                            )
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 30),
-                      Padding(
+                    ),
+                    SizedBox(
+                      height: 104,
+                      child: Padding(
                         padding: const EdgeInsets.only(left: 24, right: 24),
-                        child: moreInsightsWidget(widget.placeDetails, context),
+                        child: Row(
+                          children: [
+                            GestureDetector(
+                              child: analyticsAvatar(
+                                  widget.measurement, 104, 40, 12),
+                              onTap: () {
+                                ToolTip(context, toolTipType.info).show(
+                                  widgetKey: _infoToolTipKey,
+                                );
+                              },
+                            ),
+                            const SizedBox(width: 16.0),
+                            Flexible(
+                                child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.placeDetails.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: CustomTextStyle.headline9(context),
+                                ),
+                                Text(
+                                  widget.placeDetails.location,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: CustomTextStyle.bodyText4(context)
+                                      ?.copyWith(
+                                          color: Config.appColorBlack
+                                              .withOpacity(0.3)),
+                                ),
+                                const SizedBox(
+                                  height: 12,
+                                ),
+                                GestureDetector(
+                                  child: aqiContainerString(
+                                      measurement: widget.measurement,
+                                      context: context),
+                                  onTap: () {
+                                    ToolTip(context, toolTipType.info).show(
+                                      widgetKey: _infoToolTipKey,
+                                    );
+                                  },
+                                ),
+                                const SizedBox(
+                                  height: 8,
+                                ),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                        constraints: BoxConstraints(
+                                            maxWidth: MediaQuery.of(context)
+                                                    .size
+                                                    .width /
+                                                3.2),
+                                        child: Text(
+                                          dateToString(widget.measurement.time),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                              fontSize: 8,
+                                              color: Colors.black
+                                                  .withOpacity(0.3)),
+                                        )),
+                                    const SizedBox(
+                                      width: 4.0,
+                                    ),
+                                    Visibility(
+                                      visible: widget.isRefreshing,
+                                      child: SvgPicture.asset(
+                                        'assets/icon/loader.svg',
+                                        semanticsLabel: 'loader',
+                                        height: 8.0,
+                                        width: 8.0,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ))
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 12),
-                      const Divider(
-                        color: Color(0xffC4C4C4),
-                        height: 1.0,
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              var shareMeasurement = widget.measurement;
-                              shareMeasurement.site.name =
-                                  widget.placeDetails.name;
-                              _shareSvc.shareCard(
-                                  context, _globalKey, shareMeasurement);
+                    ),
+                    const SizedBox(height: 30),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 24, right: 24),
+                      child: moreInsightsWidget(widget.placeDetails, context),
+                    ),
+                    const SizedBox(height: 12),
+                    const Divider(
+                      color: Color(0xffC4C4C4),
+                      height: 1.0,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            var shareMeasurement = widget.measurement;
+                            shareMeasurement.site.name =
+                                widget.placeDetails.name;
+                            _shareSvc.shareCard(
+                                context, _globalKey, shareMeasurement);
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 17),
+                            child: iconTextButton(
+                                SvgPicture.asset(
+                                  'assets/icon/share_icon.svg',
+                                  semanticsLabel: 'Share',
+                                  color: Config.greyColor,
+                                  height: 16,
+                                  width: 16,
+                                ),
+                                'Share'),
+                          ),
+                        ),
+                        GestureDetector(
+                            onTap: () async {
+                              updateFavPlace();
                             },
                             child: Padding(
                               padding: const EdgeInsets.only(top: 17),
-                              child: iconTextButton(
-                                  SvgPicture.asset(
-                                    'assets/icon/share_icon.svg',
-                                    semanticsLabel: 'Share',
-                                    color: Config.greyColor,
-                                    height: 16,
-                                    width: 16,
-                                  ),
-                                  'Share'),
-                            ),
-                          ),
-                          GestureDetector(
-                              onTap: () async {
-                                updateFavPlace();
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.only(top: 17),
-                                child:
-                                    iconTextButton(getHeartIcon(), 'Favorite'),
-                              )),
-                        ],
-                      ),
-                    ],
-                  ),
+                              child: iconTextButton(getHeartIcon(), 'Favorite'),
+                            )),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ],
