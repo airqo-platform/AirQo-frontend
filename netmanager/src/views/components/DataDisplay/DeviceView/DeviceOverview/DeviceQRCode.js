@@ -26,7 +26,7 @@ const DeviceQRCode = ({ deviceData, fromDeviceData }) => {
       >
         {!fromDeviceData && isEmpty(deviceData) && <span>Loading...</span>}
         {src && (
-          <img alt="device qr code" src={src} height={"80%"} width={"auto"} />
+          <img alt="device qr code" src={src} height={"90%"} width={"auto"} />
         )}
         {fromDeviceData && !isEmpty(deviceData) && (
           <QRCode
