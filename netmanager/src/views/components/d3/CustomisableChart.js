@@ -44,6 +44,7 @@ import ChartContainer from "./ChartContainer";
 
 import CustomDisplayChart from "./CustomDisplayChart";
 import { loadD3ChartDataApi } from "views/apis/analytics";
+import moment from "moment";
 
 const capitalize = (str) => {
   return str && str.charAt(0).toUpperCase() + str.slice(1);
@@ -170,12 +171,8 @@ const CustomisableChart = (props) => {
     if (isCustomPeriod(period)) {
       return [new Date(period.startDate), new Date(period.endDate)];
     }
-    let endDate = period.endDate ? new Date(period.endDate) : new Date();
-    let startDate = new Date(
-      endDate.getFullYear(),
-      endDate.getMonth(),
-      endDate.getDate() - period.unitValue
-    );
+    let endDate = new Date();
+    let startDate = moment().subtract(period.unitValue, 'days');
 
     return [startDate, endDate];
   };
