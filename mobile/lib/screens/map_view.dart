@@ -678,7 +678,7 @@ class _MapViewState extends State<MapView> {
             return;
           }
           setState(() {
-            _searchController.text = measurement.site.getName();
+            _searchController.text = measurement.site.name;
           });
           showLocationContent(measurement, null);
         },
@@ -830,12 +830,12 @@ class _MapViewState extends State<MapView> {
       }
 
       var placeDetails = PlaceDetails(
-          suggestion.suggestionDetails.getMainText(),
-          suggestion.suggestionDetails.getSecondaryText(),
-          nearestSite.id,
-          suggestion.placeId,
-          place.geometry.location.lat,
-          place.geometry.location.lng);
+          name: suggestion.suggestionDetails.getMainText(),
+          location: suggestion.suggestionDetails.getSecondaryText(),
+          siteId: nearestSite.id,
+          placeId: suggestion.placeId,
+          latitude: place.geometry.location.lat,
+          longitude: place.geometry.location.lng);
 
       showLocationContent(null, placeDetails);
     } else {
@@ -892,18 +892,18 @@ class _MapViewState extends State<MapView> {
           return;
         }
         setState(() {
-          _searchController.text = measurement.site.getName();
+          _searchController.text = measurement.site.name;
         });
         showLocationContent(measurement, null);
       },
       title: Text(
-        measurement.site.getName(),
+        measurement.site.name,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
       ),
       subtitle: Text(
-        measurement.site.getLocation(),
+        measurement.site.location,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(color: Colors.black.withOpacity(0.3), fontSize: 14),

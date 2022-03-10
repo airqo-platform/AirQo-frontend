@@ -150,7 +150,7 @@ class _InsightsTabState extends State<InsightsTab> {
                 visible: !_hasMeasurements,
                 child: Padding(
                   padding: const EdgeInsets.only(right: 16, left: 16),
-                  child: containerLoadingAnimation(70.0, 8.0),
+                  child: containerLoadingAnimation(height: 70.0, radius: 8.0),
                 ),
               ),
               Visibility(
@@ -298,7 +298,7 @@ class _InsightsTabState extends State<InsightsTab> {
 
   Widget insightsGraph() {
     if (!_hasMeasurements) {
-      return containerLoadingAnimation(290.0, 8.0);
+      return containerLoadingAnimation(height: 290.0, radius: 8.0);
     }
     return Container(
         padding: const EdgeInsets.only(top: 12, bottom: 12),
@@ -329,7 +329,7 @@ class _InsightsTabState extends State<InsightsTab> {
                                   color: Colors.black.withOpacity(0.3)),
                             ),
                             AutoSizeText(
-                              widget.placeDetails.getName(),
+                              widget.placeDetails.name,
                               maxLines: 1,
                               maxFontSize: 16,
                               minFontSize: 14,
@@ -338,7 +338,7 @@ class _InsightsTabState extends State<InsightsTab> {
                                   fontWeight: FontWeight.bold, fontSize: 16),
                             ),
                             AutoSizeText(
-                              widget.placeDetails.getLocation(),
+                              widget.placeDetails.location,
                               maxLines: 1,
                               maxFontSize: 12,
                               minFontSize: 10,
@@ -674,7 +674,7 @@ class _InsightsTabState extends State<InsightsTab> {
     setState(() {
       _showHeartAnimation = true;
     });
-    Future.delayed(const Duration(seconds: 2), () async {
+    Future.delayed(const Duration(seconds: 2), () {
       setState(() {
         _showHeartAnimation = false;
       });

@@ -13,9 +13,7 @@ export const formatDateString = (
 
 export const getElapsedDurationMapper = (dateTimeStr) => {
   let delta =
-    Math.abs(
-      new Date() - new Date(moment.utc(dateTimeStr).tz(moment.tz.guess()))
-    ) / 1000;
+    Math.abs(moment.utc(new Date()) - moment.utc(new Date(dateTimeStr))) / 1000;
   let seconds = delta;
   let result = {};
   let structure = {

@@ -157,7 +157,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
       _verificationId = verificationId;
     });
 
-    // Future.delayed(const Duration(seconds: 5), () async {
+    // Future.delayed(const Duration(seconds: 5), () {
     //   setState(() {
     //     _resendCode = true;
     //   });
