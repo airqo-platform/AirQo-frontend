@@ -19,6 +19,7 @@ import {
 import { RemoveRedEye } from '@material-ui/icons';
 
 import { getInitials } from "utils/users";
+import { formatDateString } from "utils/dateTime";
 import CustomMaterialTable from "views/components/Table/CustomMaterialTable";
 import usersStateConnector from "views/stateConnectors/usersStateConnector";
 import ConfirmDialog from "views/containers/ConfirmDialog";
@@ -183,6 +184,11 @@ const UsersTable = (props) => {
                 field: "privilege",
               },
               {
+                title: "Joined",
+                field: "createdAt",
+                render: (candidate) => <span>{formatDateString(candidate.createdAt, 'DD-MM-YYYY HH:mm:ss')}</span>
+              },
+              {
                 title: "More Details",                
                 render: (user) => <RemoveRedEye style={{color: "green"}} onClick={() => showMoreDetails(user)} />
               },
@@ -197,7 +203,7 @@ const UsersTable = (props) => {
                       >
                         Update
                       </Button>
-                      |
+
                       <Button  style={{color: "red"}} onClick={() => showDeleteDialog(user)}>
                         Delete
                       </Button>
