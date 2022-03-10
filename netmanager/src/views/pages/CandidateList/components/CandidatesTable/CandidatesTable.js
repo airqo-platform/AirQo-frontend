@@ -216,33 +216,23 @@ const CandidatesTable = (props) => {
               {
                 title: "Rejected",
                 field: "updatedAt",
-                render: (candidate) => <span>
-                    {candidate.status === 'rejected'? formatDateString(candidate.updatedAt, 'DD-MM-YYYY HH:mm:ss') : '-' }
-                    </span>
-              },
-              {
-                title: "Status",
-                field: "status",
-                  render: (candidate) => (<div>
-                      <span
-                          style={
-                              candidate.status === 'pending' ? {
-                                  padding: "5px",
-                                  border: "1px solid #e3e3e3",
-                                  background: "#e3e3e3",
-                                  fontWeight: "bold",
-                                  borderRadius: "5px"
-                              } : {
-                                  padding: "5px",
-                                  border: "1px solid #d70c00",
-                                  background: "#d70c00",
-                                  color: "white",
-                                  fontWeight: "bold",
-                                  borderRadius: "5px"
-                              }}>
-                          {candidate.status}
-                      </span>
-                  </div>)
+                render: (candidate) => {
+                    const pending = candidate.status === 'pending';
+                    return (
+                        <span 
+                            style={
+                                pending ? {
+                                    padding: "5px",
+                                    border: "1px solid #e3e3e3",
+                                    background: "#e3e3e3",
+                                    fontWeight: "bold",
+                                    borderRadius: "5px"
+                                } : null}
+                        >
+                            {pending ? 'pending' : formatDateString(candidate.updatedAt, 'DD-MM-YYYY HH:mm:ss')}
+                        </span>
+                    )
+                }
               },
               {
                 title: "Action",
