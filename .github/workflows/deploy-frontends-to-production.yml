@@ -156,5 +156,5 @@ jobs:
       - name: Deploy to K8S
         run: |
           kubectl apply -f k8s/website/prod-airqo-website.yaml -n production
-          kubectl set image deployment/airqo-webiste airqo-webiste=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-webiste:${{ needs.image-tag.outputs.build_id }} -n production
-          kubectl annotate deployment/airqo-webiste kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-webiste:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n production
+          kubectl set image deployment/airqo-website airqo-website=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }} -n production
+          kubectl annotate deployment/airqo-website kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n production
