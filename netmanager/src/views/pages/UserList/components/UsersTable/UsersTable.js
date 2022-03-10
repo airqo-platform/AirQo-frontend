@@ -5,19 +5,19 @@ import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/styles";
 import {
   Card,
-  CardContent,
   Avatar,
   Typography,
   Button,
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogContentText,
   TextField,
   DialogActions,
+  ListItemText,
+  Divider,
 } from "@material-ui/core";
+import { RemoveRedEye } from '@material-ui/icons';
 
-import { Alert, AlertTitle } from "@material-ui/lab";
 import { getInitials } from "utils/users";
 import CustomMaterialTable from "views/components/Table/CustomMaterialTable";
 import usersStateConnector from "views/stateConnectors/usersStateConnector";
@@ -81,14 +81,12 @@ const UsersTable = (props) => {
   const { className, mappeduserState, ...rest } = props;
   const [userDelState, setUserDelState] = useState({open: false, user: {}})
 
-  console.log("the mapped user state for UsersTable is here:");
-  console.dir(mappeduserState);
-
   const users = mappeduserState.users;
   const collaborators = mappeduserState.collaborators;
   const editUser = mappeduserState.userToEdit;
   const [updatedUser, setUpdatedUser] = useState({});
   const [showEditPopup, setShowEditPopup] = useState(false);
+  const [showMoreDetailsPopup, setShowMoreDetailsPopup] = useState(false);
   const userToDelete = mappeduserState.userToDelete;
 
   //the methods:
@@ -97,6 +95,16 @@ const UsersTable = (props) => {
     event.preventDefault();
     setUpdatedUser({ ...updatedUser, [field]: event.target.value });
   }
+
+  const showMoreDetails = (user) => {
+    props.mappedshowEditDialog(user);
+    setShowMoreDetailsPopup(true);
+  };
+
+  const hideMoreDetailsDialog = () => {
+    props.mappedhideEditDialog();
+    setShowMoreDetailsPopup(false)
+  };
 
   const showEditDialog = (userToEdit) => {
     props.mappedshowEditDialog(userToEdit);
@@ -175,6 +183,10 @@ const UsersTable = (props) => {
                 field: "privilege",
               },
               {
+                title: "More Details",                
+                render: (user) => <RemoveRedEye style={{color: "green"}} onClick={() => showMoreDetails(user)} />
+              },
+              {
                 title: "Action",
                 render: (user) => {
                   return (
@@ -201,6 +213,39 @@ const UsersTable = (props) => {
             }}
         />
 
+      {/*************************** the more details dialog **********************************************/}
+      {editUser &&
+      <Dialog
+          open={showMoreDetailsPopup}
+          onClose={hideMoreDetailsDialog}
+          aria-labelledby="form-dialog-title"
+      >
+        <DialogTitle>User request details</DialogTitle>
+        <DialogContent>
+            <div style={{ minWidth: 500 }} >
+                <ListItemText primary="Job Title" secondary={editUser.jobTitle || 'Not provided'} />
+                <Divider />
+                <ListItemText primary="Category" secondary={editUser.category || 'Not provided'} />
+                <Divider />
+                <ListItemText primary="Website" secondary={editUser.website || 'Not provided'} />
+                <Divider />
+                <ListItemText primary="Description" secondary={editUser.description || 'Not provided'} />
+            </div>
+        </DialogContent>
+        <DialogActions>
+          <div>
+            <Button
+                color="primary"
+                variant="outlined"
+                onClick={hideMoreDetailsDialog}
+            >
+              Close
+            </Button>
+          </div>
+        </DialogActions>
+      </Dialog>
+      }
+      
       {/*************************** the edit dialog **********************************************/}
       {editUser &&
       <Dialog
@@ -210,7 +255,6 @@ const UsersTable = (props) => {
       >
         <DialogTitle>Edit User</DialogTitle>
         <DialogContent>
-
           <div>
             <TextField
                 margin="dense"
