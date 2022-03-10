@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:app/auth/email_auth_widget.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/screens/home_page.dart';
@@ -36,34 +38,32 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
   bool _showAuthOptions = true;
   String _verificationId = '';
   bool _codeSent = false;
-  bool _isResending = false;
-  bool _isVerifying = false;
   List<String> _phoneVerificationCode = <String>['', '', '', '', '', ''];
   late Color _nextBtnColor;
   DateTime? _exitTime;
-  late BuildContext loadingContext;
+  late BuildContext _loadingContext;
   String _authOptionsText = '';
   String _authOptionsButtonText = '';
 
   late TextEditingController _phoneInputController;
   final _phoneFormKey = GlobalKey<FormState>();
   late AppService _appService;
+  int _codeSentCountDown = 0;
 
   Future<void> authenticatePhoneNumber(AuthCredential authCredential) async {
     if (widget.isLogin) {
       var loginSuccessful = await _appService.authenticateUser(
           authCredential, '', '', authMethod.phone, authProcedure.login);
       if (loginSuccessful) {
-        Navigator.pop(loadingContext);
+        Navigator.pop(_loadingContext);
         await Navigator.pushAndRemoveUntil(context,
             MaterialPageRoute(builder: (context) {
           return const HomePage();
         }), (r) => false);
       } else {
-        Navigator.pop(loadingContext);
+        Navigator.pop(_loadingContext);
         setState(() {
           _codeSent = true;
-          _isVerifying = false;
           _nextBtnColor = Config.appColorBlue;
         });
         await showSnackBar(context, 'Login failed.');
@@ -72,16 +72,15 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
       var signUpSuccessful = await _appService.authenticateUser(
           authCredential, '', '', authMethod.phone, authProcedure.signup);
       if (signUpSuccessful) {
-        Navigator.pop(loadingContext);
+        Navigator.pop(_loadingContext);
         await Navigator.pushAndRemoveUntil(context,
             MaterialPageRoute(builder: (context) {
           return const ProfileSetupScreen(false);
         }), (r) => false);
       } else {
-        Navigator.pop(loadingContext);
+        Navigator.pop(_loadingContext);
         setState(() {
           _codeSent = true;
-          _isVerifying = false;
           _nextBtnColor = Config.appColorBlue;
         });
         await showSnackBar(context, 'Signup failed.');
@@ -107,7 +106,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
   void clearPhoneCallBack() {
     if (_phoneNumber == '') {
       FocusScope.of(context).unfocus();
-      Future.delayed(const Duration(milliseconds: 250), () {
+      Future.delayed(const Duration(milliseconds: 400), () {
         setState(() {
           _showAuthOptions = true;
         });
@@ -136,7 +135,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
   void initState() {
     super.initState();
     _appService = AppService(context);
-    loadingContext = context;
+    _loadingContext = context;
     _initialize();
   }
 
@@ -151,7 +150,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
       return Future.value(false);
     }
 
-    Navigator.pop(loadingContext);
+    Navigator.pop(_loadingContext);
 
     Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) {
       return const HomePage();
@@ -165,7 +164,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
       controller: _phoneInputController,
       onEditingComplete: () async {
         FocusScope.of(context).requestFocus(FocusNode());
-        Future.delayed(const Duration(milliseconds: 250), () {
+        Future.delayed(const Duration(milliseconds: 400), () {
           setState(() {
             _showAuthOptions = true;
           });
@@ -329,7 +328,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
         padding: const EdgeInsets.only(left: 24, right: 24),
         child: GestureDetector(
           onTap: () async {
-            await requestVerification();
+            await _requestVerification();
           },
           child: nextButton('Next', _nextBtnColor),
         ),
@@ -418,34 +417,27 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
       const SizedBox(
         height: 16,
       ),
-      Padding(
-          padding: const EdgeInsets.only(left: 78, right: 78),
-          child: Visibility(
-            visible: !_codeSent,
-            child: Text('The code should arrive with in 5 sec',
-                textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .caption
-                    ?.copyWith(color: Config.appColorBlack.withOpacity(0.5))),
-          )),
-      Padding(
-        padding: const EdgeInsets.only(left: 78, right: 78),
-        child: Visibility(
-          visible: _codeSent,
-          child: GestureDetector(
-            onTap: () async {
-              await resendVerificationCode();
-            },
-            child: Text('Resend code',
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context)
-                    .textTheme
-                    .caption
-                    ?.copyWith(color: Config.appColorBlue)),
-          ),
+      Visibility(
+        visible: _codeSentCountDown > 0,
+        child: Text('The code should arrive with in $_codeSentCountDown sec',
+            textAlign: TextAlign.center,
+            style: Theme.of(context)
+                .textTheme
+                .caption
+                ?.copyWith(color: Config.appColorBlack.withOpacity(0.5))),
+      ),
+      Visibility(
+        visible: _codeSentCountDown <= 0,
+        child: GestureDetector(
+          onTap: () async {
+            await _resendVerificationCode();
+          },
+          child: Text('Resend code',
+              textAlign: TextAlign.center,
+              style: Theme.of(context)
+                  .textTheme
+                  .caption
+                  ?.copyWith(color: Config.appColorBlue)),
         ),
       ),
       const SizedBox(
@@ -493,7 +485,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
         padding: const EdgeInsets.only(left: 24, right: 24),
         child: GestureDetector(
           onTap: () async {
-            await verifySentCode();
+            await _verifySentCode();
           },
           child: nextButton('Next', _nextBtnColor),
         ),
@@ -504,7 +496,63 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
     ];
   }
 
-  Future<void> requestVerification() async {
+  void setCode(value, position) {
+    setState(() {
+      _phoneVerificationCode[position] = value;
+    });
+    var code = _phoneVerificationCode.join('');
+    if (code.length == 6) {
+      setState(() {
+        _nextBtnColor = Config.appColorBlue;
+      });
+    } else {
+      setState(() {
+        _nextBtnColor = Config.appColorDisabled;
+      });
+    }
+  }
+
+  void verifyPhoneFn(verificationId) {
+    setState(() {
+      _verifyCode = true;
+      _verificationId = verificationId;
+    });
+  }
+
+  List<Widget> _getColumnWidget() {
+    if (_verifyCode) {
+      return phoneVerificationWidget();
+    }
+
+    return phoneInputWidget();
+  }
+
+  void _initialize() {
+    setState(() {
+      _phoneNumber =
+          widget.phoneNumber == '' ? '' : widget.phoneNumber.split('.').last;
+      _countryCode = widget.phoneNumber == ''
+          ? '+256'
+          : widget.phoneNumber.split('.').first;
+      _phoneVerificationCode = <String>['', '', '', '', '', ''];
+      _nextBtnColor = widget.phoneNumber == ''
+          ? Config.appColorDisabled
+          : Config.appColorBlue;
+      _verifyCode = false;
+      _verificationId = '';
+      _codeSent = false;
+      _phoneInputController = TextEditingController(text: _phoneNumber);
+      _showAuthOptions = true;
+      _authOptionsText = widget.isLogin
+          ? 'Login with your mobile number or email'
+          : 'Sign up with your mobile number or email';
+      _authOptionsButtonText = widget.isLogin
+          ? 'Login with an email instead'
+          : 'Sign up with an email instead';
+    });
+  }
+
+  Future<void> _requestVerification() async {
     var connected = await _appService.isConnected();
     if (!connected) {
       await showSnackBar(context, Config.connectionErrorMessage);
@@ -515,18 +563,16 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
       FocusScope.of(context).requestFocus(FocusNode());
       setState(() {
         _nextBtnColor = Config.appColorDisabled;
-        _isVerifying = true;
         _codeSent = false;
         _showAuthOptions = true;
       });
-      loadingScreen(loadingContext);
+      loadingScreen(_loadingContext);
 
       var hasConnection = await _appService.isConnected();
       if (!hasConnection) {
-        Navigator.pop(loadingContext);
+        Navigator.pop(_loadingContext);
         setState(() {
           _codeSent = true;
-          _isVerifying = false;
         });
         await showSnackBar(context, 'Check your internet connection');
         return;
@@ -540,9 +586,8 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
         if (phoneNumberTaken) {
           setState(() {
             _codeSent = true;
-            _isVerifying = false;
           });
-          Navigator.pop(loadingContext);
+          Navigator.pop(_loadingContext);
           await showSnackBar(
               context,
               'You already have an '
@@ -571,76 +616,74 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
       var success = await _appService.customAuth.requestPhoneVerification(
           phoneNumber, context, verifyPhoneFn, autoVerifyPhoneFn);
 
-      Navigator.pop(loadingContext);
+      Navigator.pop(_loadingContext);
 
       if (success) {
         setState(() {
           _codeSent = true;
-          _isVerifying = false;
         });
       } else {
         setState(() {
           _codeSent = false;
-          _isVerifying = false;
         });
       }
     }
+
+    _startCodeSentCountDown();
   }
 
-  Future<void> resendVerificationCode() async {
+  Future<void> _resendVerificationCode() async {
     var connected = await _appService.isConnected();
     if (!connected) {
       await showSnackBar(context, Config.connectionErrorMessage);
       return;
     }
 
-    if (_isResending) {
-      return;
-    }
+    loadingScreen(_loadingContext);
 
-    setState(() {
-      _isResending = true;
-    });
+    var success = await _appService.customAuth.requestPhoneVerification(
+        '$_countryCode$_phoneNumber',
+        context,
+        verifyPhoneFn,
+        autoVerifyPhoneFn);
 
-    await _appService.customAuth
-        .requestPhoneVerification('$_countryCode$_phoneNumber', context,
-            verifyPhoneFn, autoVerifyPhoneFn)
-        .then((value) => {
-              setState(() {
-                _isResending = false;
-              })
-            })
-        .whenComplete(() => {
-              setState(() {
-                _isResending = false;
-              })
-            });
-  }
+    Navigator.pop(_loadingContext);
 
-  void setCode(value, position) {
-    setState(() {
-      _phoneVerificationCode[position] = value;
-    });
-    var code = _phoneVerificationCode.join('');
-    if (code.length == 6) {
+    if (success) {
       setState(() {
-        _nextBtnColor = Config.appColorBlue;
+        _codeSent = true;
       });
     } else {
       setState(() {
-        _nextBtnColor = Config.appColorDisabled;
+        _codeSent = false;
       });
     }
+
+    _startCodeSentCountDown();
   }
 
-  void verifyPhoneFn(verificationId) {
+  void _startCodeSentCountDown() {
     setState(() {
-      _verifyCode = true;
-      _verificationId = verificationId;
+      _codeSentCountDown = 5;
     });
+    Timer.periodic(
+      const Duration(milliseconds: 1200),
+      (Timer timer) {
+        if (_codeSentCountDown == 0) {
+          setState(() {
+            timer.cancel();
+            _codeSent = true;
+          });
+        } else {
+          setState(() {
+            _codeSentCountDown--;
+          });
+        }
+      },
+    );
   }
 
-  Future<void> verifySentCode() async {
+  Future<void> _verifySentCode() async {
     var connected = await _appService.isConnected();
     if (!connected) {
       await showSnackBar(context, Config.connectionErrorMessage);
@@ -654,59 +697,19 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
       return;
     }
 
-    if (_isVerifying) {
-      return;
-    }
-
     FocusScope.of(context).requestFocus(FocusNode());
     setState(() {
       _nextBtnColor = Config.appColorDisabled;
-      _isVerifying = true;
       _showAuthOptions = true;
     });
 
-    loadingScreen(loadingContext);
+    loadingScreen(_loadingContext);
 
     var phoneCredential = PhoneAuthProvider.credential(
         verificationId: _verificationId,
         smsCode: _phoneVerificationCode.join(''));
 
     await authenticatePhoneNumber(phoneCredential);
-  }
-
-  List<Widget> _getColumnWidget() {
-    if (_verifyCode) {
-      return phoneVerificationWidget();
-    }
-
-    return phoneInputWidget();
-  }
-
-  void _initialize() {
-    setState(() {
-      _phoneNumber =
-          widget.phoneNumber == '' ? '' : widget.phoneNumber.split('.').last;
-      _countryCode = widget.phoneNumber == ''
-          ? '+256'
-          : widget.phoneNumber.split('.').first;
-      _phoneVerificationCode = <String>['', '', '', '', '', ''];
-      _nextBtnColor = widget.phoneNumber == ''
-          ? Config.appColorDisabled
-          : Config.appColorBlue;
-      _verifyCode = false;
-      _verificationId = '';
-      _codeSent = false;
-      _isResending = false;
-      _isVerifying = false;
-      _phoneInputController = TextEditingController(text: _phoneNumber);
-      _showAuthOptions = true;
-      _authOptionsText = widget.isLogin
-          ? 'Login with your mobile number or email'
-          : 'Sign up with your mobile number or email';
-      _authOptionsButtonText = widget.isLogin
-          ? 'Login with an email instead'
-          : 'Sign up with an email instead';
-    });
   }
 }
 
