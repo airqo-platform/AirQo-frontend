@@ -1,0 +1,53 @@
+###########################################################
+# Start deployment of website - production
+###########################################################
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airqo-webiste
+  namespace: production
+spec:
+  selector:
+    matchLabels:
+      app: airqo-website
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: airqo-website
+    spec:
+      containers:
+        - name: airqo-website
+          image: us.gcr.io/airqo-250220/airqo-website:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+              name: airqo-website
+          envFrom:
+            - configMapRef:
+                name: prod-website-config
+          volumeMounts:
+          - name: config-volume
+            mountPath: /etc/config
+          resources: {}
+          command: ["/app/wsgi-entrypoint.sh"]
+      volumes:
+        - name: config-volume
+          configMap:
+            name:  prod-website-config-files
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: airqo-website-svc
+  namespace: production
+spec:
+  selector:
+    app: airqo-website
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+      nodePort: 30105
+  type: NodePort
