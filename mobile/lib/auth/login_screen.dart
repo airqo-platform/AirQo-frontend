@@ -6,14 +6,19 @@ import 'package:app/widgets/custom_shimmer.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  final String phoneNumber;
+  final String emailAddress;
+
+  const LoginScreen(
+      {Key? key, required this.phoneNumber, required this.emailAddress})
+      : super(key: key);
 
   @override
   LoginScreenState createState() => LoginScreenState();
 }
 
 class LoginScreenState extends State<LoginScreen> {
-  String _loginOption = 'phone';
+  late String _loginOption;
   DateTime? _exitTime;
   bool appLoading = false;
   late BuildContext dialogContext;
@@ -24,8 +29,18 @@ class LoginScreenState extends State<LoginScreen> {
         body: WillPopScope(
             onWillPop: onWillPop,
             child: _loginOption == 'phone'
-                ? PhoneAuthWidget(false, changeOption, 'login', showLoading)
-                : EmailAuthWidget(false, changeOption, 'login', showLoading)));
+                ? PhoneAuthWidget(
+                    enableBackButton: false,
+                    changeOption: changeOption,
+                    action: 'login',
+                    appLoading: showLoading,
+                    phoneNumber: widget.phoneNumber)
+                : EmailAuthWidget(
+                    enableBackButton: false,
+                    changeOption: changeOption,
+                    action: 'login',
+                    appLoading: showLoading,
+                    emailAddress: widget.emailAddress)));
   }
 
   void changeOption(String value) {
@@ -38,6 +53,7 @@ class LoginScreenState extends State<LoginScreen> {
   void initState() {
     super.initState();
     dialogContext = context;
+    _loginOption = widget.emailAddress != '' ? 'email' : 'phone';
   }
 
   Future<bool> onWillPop() {

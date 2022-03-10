@@ -55,8 +55,8 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   }
 
   Future<void> initialize() async {
-    Future.delayed(const Duration(seconds: 4), () async {
-      await Navigator.pushAndRemoveUntil(context,
+    Future.delayed(const Duration(seconds: 4), () {
+      Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
         updateOnBoardingPage('home');
         return const HomePage();

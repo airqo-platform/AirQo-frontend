@@ -61,7 +61,7 @@ Widget analyticsCardLoading() {
         const SizedBox(height: 20),
         Padding(
           padding: const EdgeInsets.only(left: 24, right: 24),
-          child: containerLoadingAnimation(9, 1000),
+          child: containerLoadingAnimation(height: 9, radius: 1000),
         ),
         const Divider(color: Color(0xffC4C4C4)),
         const SizedBox(
@@ -259,7 +259,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        widget.placeDetails.getName(),
+                                        widget.placeDetails.name,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: const TextStyle(
@@ -267,7 +267,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                             fontSize: 20),
                                       ),
                                       Text(
-                                        widget.placeDetails.getLocation(),
+                                        widget.placeDetails.location,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
@@ -392,12 +392,8 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                           GestureDetector(
                             onTap: () {
                               var shareMeasurement = widget.measurement;
-                              shareMeasurement.site.searchName =
-                                  widget.placeDetails.getName();
                               shareMeasurement.site.name =
-                                  widget.placeDetails.getName();
-                              shareMeasurement.site.description =
-                                  widget.placeDetails.getName();
+                                  widget.placeDetails.name;
                               _shareSvc.shareCard(
                                   context, _globalKey, shareMeasurement);
                             },
@@ -468,7 +464,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
     setState(() {
       _showHeartAnimation = true;
     });
-    Future.delayed(const Duration(seconds: 2), () async {
+    Future.delayed(const Duration(seconds: 2), () {
       setState(() {
         _showHeartAnimation = false;
       });
@@ -540,7 +536,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      widget.placeDetails.getName(),
+                                      widget.placeDetails.name,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(
@@ -548,7 +544,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                           fontSize: 20),
                                     ),
                                     Text(
-                                      widget.placeDetails.getLocation(),
+                                      widget.placeDetails.location,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
@@ -643,12 +639,8 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                         GestureDetector(
                           onTap: () {
                             var shareMeasurement = widget.measurement;
-                            shareMeasurement.site.searchName =
-                                widget.placeDetails.getName();
                             shareMeasurement.site.name =
-                                widget.placeDetails.getName();
-                            shareMeasurement.site.description =
-                                widget.placeDetails.getName();
+                                widget.placeDetails.name;
                             _shareSvc.shareCard(
                                 context, _globalKey, shareMeasurement);
                           },
@@ -720,7 +712,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
     setState(() {
       _showHeartAnimation = true;
     });
-    Future.delayed(const Duration(seconds: 2), () async {
+    Future.delayed(const Duration(seconds: 2), () {
       setState(() {
         _showHeartAnimation = false;
       });

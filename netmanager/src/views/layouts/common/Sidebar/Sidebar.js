@@ -53,7 +53,7 @@ const roleExcludePageMapper = {
     "Users",
     "Candidates",
     "Locate",
-    "Device Management",
+    "Network Monitoring",
     "Location Registry",
     "Device Registry",
     "Site Registry",
@@ -62,7 +62,7 @@ const roleExcludePageMapper = {
     "Users",
     "Candidates",
     "Locate",
-    "Device Management",
+    "Network Monitoring",
     "Location Registry",
     "Device Registry",
     "Site Registry",
@@ -100,10 +100,15 @@ const allMainPages = [
     icon: <LocateIcon />,
   },
   {
-    title: "Device Management",
+    title: "Network Monitoring",
     href: "/manager",
     icon: <ManageIcon />,
     collapse: true,
+    nested: true,
+    nestItems: [
+      { title: "Network Map", href: "/manager/map" },
+      { title: "Network Statistics", href: "/manager/stats" },
+    ],
   },
   {
     title: "Device Registry",
@@ -157,7 +162,7 @@ const Sidebar = (props) => {
   if (orgData.name.toLowerCase() === "airqo") {
     pages = excludePages(pages, []);
   } else {
-    pages = excludePages(pages, ["Overview", "Device Management", "Locate"]);
+    pages = excludePages(pages, ["Overview", "Network Monitoring", "Locate"]);
   }
 
   return (

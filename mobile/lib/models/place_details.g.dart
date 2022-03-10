@@ -7,12 +7,12 @@ part of 'place_details.dart';
 // **************************************************************************
 
 PlaceDetails _$PlaceDetailsFromJson(Map<String, dynamic> json) => PlaceDetails(
-      json['name'] as String,
-      json['location'] as String,
-      json['siteId'] as String,
-      json['placeId'] as String,
-      (json['latitude'] as num).toDouble(),
-      (json['longitude'] as num).toDouble(),
+      name: json['name'] as String,
+      location: json['location'] as String,
+      siteId: json['siteId'] as String,
+      placeId: json['placeId'] as String,
+      latitude: (json['latitude'] as num).toDouble(),
+      longitude: (json['longitude'] as num).toDouble(),
     );
 
 Map<String, dynamic> _$PlaceDetailsToJson(PlaceDetails instance) =>

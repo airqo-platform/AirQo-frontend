@@ -46,10 +46,8 @@ List<Measurement> parseMeasurements(dynamic jsonBody) {
       debugPrint('$exception\n$stackTrace');
     }
   }
-  measurements.sort((siteA, siteB) => siteA.site
-      .getName()
-      .toLowerCase()
-      .compareTo(siteB.site.getName().toLowerCase()));
+  measurements.sort((siteA, siteB) =>
+      siteA.site.name.toLowerCase().compareTo(siteB.site.name.toLowerCase()));
 
   return measurements;
 }
@@ -70,14 +68,6 @@ String regionFromJson(dynamic json) {
   } else {
     return 'Central Region';
   }
-}
-
-String temperatureFromJson(dynamic _) {
-  return 'siteId';
-}
-
-String temperatureToJson(String _) {
-  return 'site_id';
 }
 
 DateTime timeFromJson(dynamic json) {

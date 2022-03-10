@@ -227,7 +227,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                 } else if (_feedbackChannel == 'WhatsApp') {
                                   openWhatsapp();
                                   Future.delayed(const Duration(seconds: 2),
-                                      () async {
+                                      () {
                                     Navigator.of(context).pop();
                                   });
                                 }
@@ -329,8 +329,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                               }
                             } else if (_feedbackChannel == 'WhatsApp') {
                               openWhatsapp();
-                              Future.delayed(const Duration(seconds: 2),
-                                  () async {
+                              Future.delayed(const Duration(seconds: 2), () {
                                 Navigator.of(context).pop();
                               });
                             }

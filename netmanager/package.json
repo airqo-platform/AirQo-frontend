@@ -51,6 +51,7 @@
         "leaflet-spin": "^1.1.2",
         "mapbox-gl": "^2.5.1",
         "material-table": "^1.57.2",
+        "material-ui-nested-menu-item": "^1.0.2",
         "moment": "^2.29.1",
         "moment-timezone": "^0.5.31",
         "node-sass": "^4.14.1",

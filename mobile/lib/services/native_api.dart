@@ -126,65 +126,6 @@ class LocationService {
     return addresses;
   }
 
-  // Future<List<Address>> getLocalAddress(double lat, double lang) async {
-  //   final coordinates = Coordinates(lat, lang);
-  //   List<Address> localAddresses =
-  //       await Geocoder.local.findAddressesFromCoordinates(coordinates);
-  //   return localAddresses;
-  // }
-
-  Future<List<Measurement>> getCurrentLocationReadings() async {
-    try {
-      var nearestMeasurements = <Measurement>[];
-      double distanceInMeters;
-
-      var location = await getLocation();
-      if (location == null) {
-        return [];
-      }
-
-      if (location.longitude != null && location.latitude != null) {
-        var addresses =
-            await getAddresses(location.latitude!, location.longitude!);
-        Measurement? nearestMeasurement;
-        var latestMeasurements = await _dbHelper.getLatestMeasurements();
-
-        for (var measurement in latestMeasurements) {
-          distanceInMeters = metersToKmDouble(Geolocator.distanceBetween(
-              measurement.site.latitude,
-              measurement.site.longitude,
-              location.latitude!,
-              location.longitude!));
-          if (distanceInMeters < Config.maxSearchRadius.toDouble()) {
-            measurement.site.distance = distanceInMeters;
-            nearestMeasurements.add(measurement);
-          }
-        }
-
-        if (nearestMeasurements.isNotEmpty) {
-          nearestMeasurement = nearestMeasurements.first;
-          for (var measurement in nearestMeasurements) {
-            if (nearestMeasurement!.site.distance > measurement.site.distance) {
-              nearestMeasurement = measurement;
-            }
-          }
-        }
-        var measurements = <Measurement>[];
-        for (var address in addresses) {
-          nearestMeasurement?.site.name = address;
-          nearestMeasurement?.site.searchName = address;
-          nearestMeasurement?.site.description = address;
-          measurements.add(nearestMeasurement!);
-        }
-        return measurements;
-      }
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      return [];
-    }
-    return [];
-  }
-
   Future<locate_api.LocationData?> getLocation() async {
     bool _serviceEnabled;
     locate_api.PermissionStatus _permissionGranted;
@@ -238,6 +179,80 @@ class LocationService {
           'please enable permission to access your location');
     }
     return await Geolocator.getCurrentPosition();
+  }
+
+  // Future<List<Address>> getLocalAddress(double lat, double lang) async {
+  //   final coordinates = Coordinates(lat, lang);
+  //   List<Address> localAddresses =
+  //       await Geocoder.local.findAddressesFromCoordinates(coordinates);
+  //   return localAddresses;
+  // }
+
+  Future<List<Measurement>> getNearbyLocationReadings() async {
+    try {
+      var nearestMeasurements = <Measurement>[];
+      double distanceInMeters;
+
+      var location = await getLocation();
+      if (location == null) {
+        return [];
+      }
+
+      if (location.longitude != null && location.latitude != null) {
+        var addresses =
+            await getAddresses(location.latitude!, location.longitude!);
+        Measurement? nearestMeasurement;
+        var latestMeasurements = await _dbHelper.getLatestMeasurements();
+
+        for (var measurement in latestMeasurements) {
+          distanceInMeters = metersToKmDouble(Geolocator.distanceBetween(
+              measurement.site.latitude,
+              measurement.site.longitude,
+              location.latitude!,
+              location.longitude!));
+          if (distanceInMeters < (Config.maxSearchRadius.toDouble() * 2)) {
+            measurement.site.distance = distanceInMeters;
+            nearestMeasurements.add(measurement);
+          }
+        }
+
+        var measurements = <Measurement>[];
+
+        /// Get Actual location measurements
+        if (nearestMeasurements.isNotEmpty) {
+          nearestMeasurement = nearestMeasurements.first;
+          for (var measurement in nearestMeasurements) {
+            if (nearestMeasurement!.site.distance > measurement.site.distance) {
+              nearestMeasurement = measurement;
+            }
+          }
+          nearestMeasurements.remove(nearestMeasurement);
+
+          for (var address in addresses) {
+            nearestMeasurement?.site.name = address;
+            measurements.add(nearestMeasurement!);
+          }
+        }
+
+        /// Get Alternative location measurements
+        if (nearestMeasurements.isNotEmpty) {
+          nearestMeasurement = nearestMeasurements.first;
+          for (var measurement in nearestMeasurements) {
+            if (nearestMeasurement!.site.distance > measurement.site.distance) {
+              nearestMeasurement = measurement;
+            }
+          }
+
+          measurements.add(nearestMeasurement!);
+        }
+
+        return measurements;
+      }
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+      return [];
+    }
+    return [];
   }
 
   Future<Site?> getNearestSite(double latitude, double longitude) async {
@@ -333,7 +348,7 @@ class LocationService {
           measurement.site.longitude,
           latitude,
           longitude));
-      if (containsWord(measurement.site.getName(), term)) {
+      if (containsWord(measurement.site.name, term)) {
         measurement.site.distance = distanceInMeters;
         nearestSites.add(measurement);
       } else {
@@ -352,13 +367,11 @@ class LocationService {
     var nearestSites = <Measurement>[];
 
     for (var measurement in measurements) {
-      if (measurement.site
-              .getName()
+      if (measurement.site.name
               .trim()
               .toLowerCase()
               .contains(term.trim().toLowerCase()) ||
-          measurement.site
-              .getLocation()
+          measurement.site.location
               .trim()
               .toLowerCase()
               .contains(term.trim().toLowerCase())) {
@@ -374,13 +387,11 @@ class LocationService {
     var latestMeasurements = await _dbHelper.getLatestMeasurements();
 
     for (var measurement in latestMeasurements) {
-      if (measurement.site
-              .getName()
+      if (measurement.site.name
               .trim()
               .toLowerCase()
               .contains(term.trim().toLowerCase()) ||
-          measurement.site
-              .getLocation()
+          measurement.site.location
               .trim()
               .toLowerCase()
               .contains(term.trim().toLowerCase())) {
@@ -561,13 +572,13 @@ class ShareService {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     AutoSizeText(
-                      placeDetails.getName(),
+                      placeDetails.name,
                       maxLines: 2,
                       style: const TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 17),
                     ),
                     AutoSizeText(
-                      placeDetails.getLocation(),
+                      placeDetails.location,
                       maxLines: 1,
                       style: TextStyle(
                           fontSize: 12, color: Colors.black.withOpacity(0.3)),
@@ -633,7 +644,7 @@ class ShareService {
     var imgFile = File('$directory/airqo_analytics_card.png');
     await imgFile.writeAsBytes(pngBytes);
 
-    var message = '${measurement.site.getName()}, Current Air Quality. \n\n'
+    var message = '${measurement.site.name}, Current Air Quality. \n\n'
         'Source: AiQo App';
     await Share.shareFiles([imgFile.path], text: message)
         .then((value) => {_updateUserShares()});
@@ -668,7 +679,7 @@ class ShareService {
     //   var imgFile = File('$directory/airqo_analytics_card.png');
     //   await imgFile.writeAsBytes(pngBytes);
     //
-    //   var message = '${measurement.site.getName()}, Current Air Quality. \n\n'
+    //   var message = '${measurement.site.name}, Current Air Quality. \n\n'
     //       'Source: AiQo App';
     //   await Share.shareFiles([imgFile.path], text: message)
     //       .then((value) => {_updateUserShares()});
@@ -691,7 +702,7 @@ class ShareService {
     var imgFile = File('$directory/airqo_analytics_graph.png');
     await imgFile.writeAsBytes(pngBytes);
 
-    var message = '${placeDetails.getName()}, Current Air Quality. \n\n'
+    var message = '${placeDetails.name}, Current Air Quality. \n\n'
         'Source: AiQo App';
     await Share.shareFiles([imgFile.path], text: message)
         .then((value) => {_updateUserShares()});
@@ -720,12 +731,12 @@ class ShareService {
       recommendations = '$recommendations\n- ${value.body}';
     }
     Share.share(
-            '${measurement.site.getName()}, Current Air Quality. \n\n'
+            '${measurement.site.name}, Current Air Quality. \n\n'
             'PM2.5 : ${measurement.getPm2_5Value().toStringAsFixed(2)} µg/m\u00B3 (${pm2_5ToString(measurement.getPm2_5Value())}) \n'
             'PM10 : ${measurement.getPm10Value().toStringAsFixed(2)} µg/m\u00B3 \n'
             '$recommendations\n\n'
             'Source: AiQo App',
-            subject: '${Config.appName}, ${measurement.site.getName()}!')
+            subject: '${Config.appName}, ${measurement.site.name}!')
         .then((value) => {_updateUserShares()});
   }
 
