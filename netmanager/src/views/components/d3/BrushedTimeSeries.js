@@ -34,6 +34,7 @@ const BrushChart = ({
   symbolFunc,
   color,
   loading,
+  curve,
 }) => {
   const ref = useRef();
 
@@ -99,7 +100,8 @@ const BrushChart = ({
     const line = d3
       .line()
       .x((d) => x(xFunc(d)))
-      .y((d) => y(yFunc(d)));
+      .y((d) => y(yFunc(d)))
+      .curve(curve);
 
     const dataNest = d3.nest().key(symbolFunc).entries(data);
 
@@ -226,6 +228,7 @@ const BrushedTimeSeries = ({
   symbolFunc,
   yLabel,
   loading,
+  lineCurve,
 }) => {
   const ref = useRef();
   const contextRef = useRef();
@@ -235,6 +238,7 @@ const BrushedTimeSeries = ({
   const width = winWidth - margin.left - margin.right;
   const height = winHeight - margin.top - margin.bottom;
 
+  const curve = lineCurve || d3.curveMonotoneX;
   const color = d3.scaleOrdinal().range(d3.schemeCategory10);
 
   const margin_context = { top: 320, right: 20, bottom: 20, left: 40 };
@@ -304,7 +308,8 @@ const BrushedTimeSeries = ({
     const lineContext = d3
       .line()
       .x((d) => xContent(xFunc(d)))
-      .y((d) => yContext(yFunc(d)));
+      .y((d) => yContext(yFunc(d)))
+      .curve(curve);
 
     const dataNest = d3.nest().key(symbolFunc).entries(data);
 
@@ -375,6 +380,7 @@ const BrushedTimeSeries = ({
           symbolFunc={symbolFunc}
           color={color}
           loading={loading}
+          curve={curve}
         />
         <g ref={contextRef} />
       </svg>
