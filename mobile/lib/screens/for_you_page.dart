@@ -2,6 +2,7 @@ import 'package:app/constants/config.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
 
+import '../themes/light_theme.dart';
 import 'analytics_view.dart';
 import 'kya/know_your_air_view.dart';
 
@@ -20,19 +21,7 @@ class _ForYouPageState extends State<ForYouPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: Config.appBodyColor,
-        leading: Padding(
-          padding: const EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
-          child: backButton(context),
-        ),
-        title: const Text(
-          'For You',
-          style: TextStyle(color: Colors.black),
-        ),
-      ),
+      appBar: appTopBar(context, 'For You'),
       body: Container(
         padding: const EdgeInsets.only(right: 16, left: 16),
         color: Config.appBodyColor,
@@ -62,38 +51,8 @@ class _ForYouPageState extends State<ForYouPage>
                       }
                     },
                     tabs: <Widget>[
-                      Container(
-                        constraints: const BoxConstraints(
-                            minWidth: double.infinity, maxHeight: 32),
-                        decoration: BoxDecoration(
-                            color:
-                                analytics ? Config.appColorBlue : Colors.white,
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(5.0))),
-                        child: Tab(
-                            child: Text(
-                          'Analytics',
-                          style: TextStyle(
-                            color: analytics ? Colors.white : Colors.black,
-                          ),
-                        )),
-                      ),
-                      Container(
-                        constraints: const BoxConstraints(
-                            minWidth: double.infinity, maxHeight: 32),
-                        decoration: BoxDecoration(
-                            color:
-                                analytics ? Colors.white : Config.appColorBlue,
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(5.0))),
-                        child: Tab(
-                            child: Text(
-                          'Know you Air',
-                          style: TextStyle(
-                            color: analytics ? Colors.black : Colors.white,
-                          ),
-                        )),
-                      )
+                      tabButton(text: 'Analytics'),
+                      tabButton(text: 'Know your Air'),
                     ]),
               ),
             ),
@@ -122,6 +81,33 @@ class _ForYouPageState extends State<ForYouPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+  }
+
+  Widget tabButton({required String text}) {
+    return Container(
+      constraints:
+          const BoxConstraints(minWidth: double.infinity, maxHeight: 32),
+      decoration: BoxDecoration(
+          color: text.toLowerCase() == 'analytics'
+              ? analytics
+                  ? Config.appColorBlue
+                  : Colors.white
+              : analytics
+                  ? Colors.white
+                  : Config.appColorBlue,
+          borderRadius: const BorderRadius.all(Radius.circular(4.0))),
+      child: Tab(
+          child: Text(text,
+              style: CustomTextStyle.button1(context)?.copyWith(
+                color: text.toLowerCase() == 'analytics'
+                    ? analytics
+                        ? Colors.white
+                        : Config.appColorBlue
+                    : analytics
+                        ? Config.appColorBlue
+                        : Colors.white,
+              ))),
+    );
   }
 
   Widget topTabBar(text) {

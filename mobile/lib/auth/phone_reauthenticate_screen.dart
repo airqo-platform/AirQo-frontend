@@ -24,7 +24,6 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
   bool _isResending = false;
   bool _isVerifying = false;
 
-  // bool _resendCode = false;
   List<String> _phoneVerificationCode = <String>['', '', '', '', '', ''];
   Color _nextBtnColor = Config.appColorDisabled;
 

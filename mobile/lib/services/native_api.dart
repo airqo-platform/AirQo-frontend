@@ -645,10 +645,11 @@ class ShareService {
     await imgFile.writeAsBytes(pngBytes);
 
     var message = '${measurement.site.name}, Current Air Quality. \n\n'
-        'Source: AiQo App';
+        'Source: AirQo App';
     await Share.shareFiles([imgFile.path], text: message)
         .then((value) => {_updateUserShares()});
 
+    /// Temporarily disabled sharing text
     // var dialogResponse = await showDialog<String>(
     //   context: buildContext,
     //   builder: (BuildContext context) => AlertDialog(
@@ -680,7 +681,7 @@ class ShareService {
     //   await imgFile.writeAsBytes(pngBytes);
     //
     //   var message = '${measurement.site.name}, Current Air Quality. \n\n'
-    //       'Source: AiQo App';
+    //       'Source: AirQo App';
     //   await Share.shareFiles([imgFile.path], text: message)
     //       .then((value) => {_updateUserShares()});
     // } else if (dialogResponse == 'text') {
@@ -703,7 +704,7 @@ class ShareService {
     await imgFile.writeAsBytes(pngBytes);
 
     var message = '${placeDetails.name}, Current Air Quality. \n\n'
-        'Source: AiQo App';
+        'Source: AirQo App';
     await Share.shareFiles([imgFile.path], text: message)
         .then((value) => {_updateUserShares()});
   }
@@ -718,7 +719,7 @@ class ShareService {
     var imgFile = File('$directory/analytics_graph.png');
     await imgFile.writeAsBytes(pngBytes);
 
-    var message = 'Source: AiQo App';
+    var message = 'Source: AirQo App';
     await Share.shareFiles([imgFile.path], text: message)
         .then((value) => {_updateUserShares()});
   }
@@ -735,7 +736,7 @@ class ShareService {
             'PM2.5 : ${measurement.getPm2_5Value().toStringAsFixed(2)} µg/m\u00B3 (${pm2_5ToString(measurement.getPm2_5Value())}) \n'
             'PM10 : ${measurement.getPm10Value().toStringAsFixed(2)} µg/m\u00B3 \n'
             '$recommendations\n\n'
-            'Source: AiQo App',
+            'Source: AirQo App',
             subject: '${Config.appName}, ${measurement.site.name}!')
         .then((value) => {_updateUserShares()});
   }

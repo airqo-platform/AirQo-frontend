@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../themes/light_theme.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/custom_widgets.dart';
 import 'kya_lessons_page.dart';
@@ -122,10 +123,7 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
                                   maxLines: 3,
                                   overflow: TextOverflow.ellipsis,
                                   maxFontSize: 28,
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Config.appColorBlack,
-                                      fontSize: 28),
+                                  style: CustomTextStyle.headline11(context),
                                 ),
                               ),
                               const SizedBox(

@@ -1,5 +1,5 @@
 import 'package:animations/animations.dart';
-import 'package:app/auth/signup_screen.dart';
+import 'package:app/auth/phone_auth_widget.dart';
 import 'package:app/on_boarding/location_setup_screen.dart';
 import 'package:app/on_boarding/notifications_setup_screen.dart';
 import 'package:app/on_boarding/profile_setup_screen.dart';
@@ -63,7 +63,9 @@ class SplashScreenState extends State<SplashScreen> {
         } else {
           switch (nextPage) {
             case 'signup':
-              return const SignupScreen(false);
+              return const PhoneSignUpWidget(
+                enableBackButton: false,
+              );
             case 'profile':
               return const ProfileSetupScreen(false);
             case 'notification':
@@ -124,11 +126,13 @@ class SplashScreenState extends State<SplashScreen> {
             width: double.infinity,
             alignment: Alignment.center,
           ),
-          const Text(
+          Text(
             'Breathe\nClean.',
             textAlign: TextAlign.center,
-            style: TextStyle(
-                fontWeight: FontWeight.bold, fontSize: 48, color: Colors.white),
+            style: Theme.of(context)
+                .textTheme
+                .headline4
+                ?.copyWith(color: Colors.white),
           ),
         ]),
       ),

@@ -4,11 +4,13 @@ import 'package:app/models/place_details.dart';
 import 'package:app/screens/insights_page.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/widgets/custom_shimmer.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
+import '../themes/light_theme.dart';
 import 'custom_widgets.dart';
 
 class MiniAnalyticsCard extends StatefulWidget {
@@ -21,8 +23,9 @@ class MiniAnalyticsCard extends StatefulWidget {
 }
 
 class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
-  Measurement? measurement;
+  late Measurement measurement;
   bool showHeartAnimation = false;
+  bool isNull = true;
 
   late AppService _appService;
 
@@ -39,20 +42,20 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
         child: Container(
             decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: const BorderRadius.all(Radius.circular(16.0)),
+                borderRadius: const BorderRadius.all(Radius.circular(8.0)),
                 border: Border.all(color: Colors.transparent)),
             child: Column(
               children: [
                 const SizedBox(
-                  height: 12,
+                  height: 24,
                 ),
                 Container(
                   padding: const EdgeInsets.only(left: 32, right: 32),
                   child: Row(
                     children: [
-                      if (measurement != null)
-                        analyticsAvatar(measurement!, 40, 15, 5),
-                      if (measurement == null) circularLoadingAnimation(40),
+                      if (!isNull)
+                        miniAnalyticsAvatar(measurement: measurement),
+                      if (isNull) circularLoadingAnimation(40),
                       const SizedBox(
                         width: 12,
                       ),
@@ -61,20 +64,20 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
-                            Text(
+                            AutoSizeText(
                               widget.placeDetails.name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16),
+                              style: CustomTextStyle.headline8(context),
                             ),
-                            Text(
+                            AutoSizeText(
                               widget.placeDetails.location,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.black.withOpacity(0.3)),
+                              style: CustomTextStyle.bodyText4(context)
+                                  ?.copyWith(
+                                      color: Config.appColorBlack
+                                          .withOpacity(0.3)),
                             ),
                           ],
                         ),
@@ -95,11 +98,11 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                   ),
                 ),
                 const SizedBox(
-                  height: 12,
+                  height: 24,
                 ),
                 const Divider(color: Color(0xffC4C4C4)),
                 const SizedBox(
-                  height: 12,
+                  height: 11,
                 ),
                 Container(
                   padding: const EdgeInsets.only(left: 32, right: 32),
@@ -122,29 +125,31 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                       const SizedBox(width: 8.0),
                       Text(
                         'View More Insights',
-                        style:
-                            TextStyle(fontSize: 12, color: Config.appColorBlue),
+                        style: CustomTextStyle.caption3(context)
+                            ?.copyWith(color: Config.appColorBlue),
                       ),
                       const Spacer(),
                       Container(
                         height: 16,
                         width: 16,
+                        padding: const EdgeInsets.all(5),
                         decoration: BoxDecoration(
                             color: Config.appColorPaleBlue,
                             borderRadius:
                                 const BorderRadius.all(Radius.circular(3.0)),
                             border: Border.all(color: Colors.transparent)),
-                        child: Icon(
-                          Icons.arrow_forward_ios,
-                          size: 12,
-                          color: Config.appColorBlue,
+                        child: SvgPicture.asset(
+                          'assets/icon/more_arrow.svg',
+                          semanticsLabel: 'more',
+                          height: 6.99,
+                          width: 4,
                         ),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(
-                  height: 12,
+                  height: 20,
                 ),
               ],
             )),
@@ -191,6 +196,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                 {
                   setState(() {
                     measurement = value;
+                    isNull = false;
                   })
                 }
             });

@@ -87,6 +87,18 @@ extension DateTimeExtension on DateTime {
     return lastDate;
   }
 
+  String getLongDate() {
+    if (day.toString().endsWith('1')) {
+      return '${day}st ${getLongMonthString()}';
+    } else if (day.toString().endsWith('2')) {
+      return '${day}st ${getLongMonthString()}';
+    } else if (day.toString().endsWith('3')) {
+      return '${day}rd ${getLongMonthString()}';
+    } else {
+      return '${day}th ${getLongMonthString()}';
+    }
+  }
+
   String getLongMonthString() {
     switch (month) {
       case 1:
@@ -132,7 +144,7 @@ extension DateTimeExtension on DateTime {
     } else if (day.toString().endsWith('2')) {
       return '${day}st ${getShortMonthString()}';
     } else if (day.toString().endsWith('3')) {
-      return '${day}st ${getShortMonthString()}';
+      return '${day}rd ${getShortMonthString()}';
     } else {
       return '${day}th ${getShortMonthString()}';
     }

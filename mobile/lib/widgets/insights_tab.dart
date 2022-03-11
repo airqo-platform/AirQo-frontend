@@ -22,6 +22,7 @@ import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
+import '../themes/light_theme.dart';
 import 'custom_shimmer.dart';
 import 'custom_widgets.dart';
 
@@ -85,7 +86,7 @@ class _InsightsTabState extends State<InsightsTab> {
             // crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               const SizedBox(
-                height: 18,
+                height: 28,
               ),
               Padding(
                 padding: const EdgeInsets.only(right: 16, left: 16),
@@ -95,8 +96,8 @@ class _InsightsTabState extends State<InsightsTab> {
                       visible: _hasMeasurements,
                       child: Text(
                         'AIR QUALITY'.toUpperCase(),
-                        style: TextStyle(
-                            fontSize: 12, color: Colors.black.withOpacity(0.3)),
+                        style: Theme.of(context).textTheme.caption?.copyWith(
+                            color: Config.appColorBlack.withOpacity(0.3)),
                       ),
                     ),
                     Visibility(
@@ -134,7 +135,7 @@ class _InsightsTabState extends State<InsightsTab> {
                 ),
               ),
               const SizedBox(
-                height: 20,
+                height: 12,
               ),
               Padding(
                 padding: const EdgeInsets.only(right: 16, left: 16),
@@ -199,7 +200,7 @@ class _InsightsTabState extends State<InsightsTab> {
                 ),
               ),
               const SizedBox(
-                height: 36,
+                height: 32,
               ),
               Visibility(
                 visible: _recommendations.isNotEmpty,
@@ -210,13 +211,12 @@ class _InsightsTabState extends State<InsightsTab> {
                         ? 'Today\'s health tips'
                         : 'Tomorrow\'s health tips',
                     textAlign: TextAlign.left,
-                    style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold),
+                    style: CustomTextStyle.headline7(context),
                   ),
                 ),
               ),
               const SizedBox(
-                height: 11,
+                height: 16,
               ),
               Visibility(
                 visible: _recommendations.isNotEmpty,
@@ -228,20 +228,20 @@ class _InsightsTabState extends State<InsightsTab> {
                       if (index == 0) {
                         return Padding(
                           padding:
-                              const EdgeInsets.only(left: 16.0, right: 8.0),
+                              const EdgeInsets.only(left: 12.0, right: 6.0),
                           child: recommendationContainer(
                               _recommendations[index], context),
                         );
                       } else if (index == (_recommendations.length - 1)) {
                         return Padding(
                           padding:
-                              const EdgeInsets.only(left: 8.0, right: 16.0),
+                              const EdgeInsets.only(left: 6.0, right: 12.0),
                           child: recommendationContainer(
                               _recommendations[index], context),
                         );
                       } else {
                         return Padding(
-                          padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                          padding: const EdgeInsets.only(left: 6.0, right: 6.0),
                           child: recommendationContainer(
                               _recommendations[index], context),
                         );
@@ -252,7 +252,7 @@ class _InsightsTabState extends State<InsightsTab> {
                 ),
               ),
               const SizedBox(
-                height: 11,
+                height: 24,
               ),
             ],
           )),
@@ -321,32 +321,28 @@ class _InsightsTabState extends State<InsightsTab> {
                             AutoSizeText(
                               _titleDateTime,
                               maxLines: 1,
-                              maxFontSize: 14,
-                              minFontSize: 12,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.black.withOpacity(0.3)),
+                              style: CustomTextStyle.bodyText4(context)
+                                  ?.copyWith(
+                                      color: Config.appColorBlack
+                                          .withOpacity(0.3)),
                             ),
                             AutoSizeText(
                               widget.placeDetails.name,
                               maxLines: 1,
-                              maxFontSize: 16,
-                              minFontSize: 14,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16),
+                              style: CustomTextStyle.headline8(context)
+                                  ?.copyWith(color: Config.appColorBlack),
                             ),
-                            AutoSizeText(
-                              widget.placeDetails.location,
-                              maxLines: 1,
-                              maxFontSize: 12,
-                              minFontSize: 10,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.black.withOpacity(0.3)),
-                            ),
+                            AutoSizeText(widget.placeDetails.location,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .caption
+                                    ?.copyWith(
+                                        color: Config.appColorBlack
+                                            .withOpacity(0.3))),
                           ],
                         ),
                       ),
@@ -508,25 +504,24 @@ class _InsightsTabState extends State<InsightsTab> {
                                         .withOpacity(0.4),
                             border: Border.all(color: Colors.transparent)),
                         child: AutoSizeText(
-                          _pollutant == 'pm2.5'
-                              ? pm2_5ToString(_selectedMeasurement!
-                                  .getChartValue(_pollutant))
-                              : pm10ToString(_selectedMeasurement!
-                                  .getChartValue(_pollutant)),
-                          maxLines: 1,
-                          maxFontSize: 14,
-                          textAlign: TextAlign.start,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: _selectedMeasurement!.forecast
-                                ? Config.appColorBlue
-                                : _pollutant == 'pm2.5'
-                                    ? pm2_5TextColor(_selectedMeasurement!
-                                        .getChartValue(_pollutant))
-                                    : pm10TextColor(_selectedMeasurement!
-                                        .getChartValue(_pollutant)),
-                          ),
-                        ),
+                            _pollutant == 'pm2.5'
+                                ? pm2_5ToString(_selectedMeasurement!
+                                    .getChartValue(_pollutant))
+                                : pm10ToString(_selectedMeasurement!
+                                    .getChartValue(_pollutant)),
+                            maxLines: 1,
+                            maxFontSize: 14,
+                            textAlign: TextAlign.start,
+                            overflow: TextOverflow.ellipsis,
+                            style: CustomTextStyle.button2(context)?.copyWith(
+                              color: _selectedMeasurement!.forecast
+                                  ? Config.appColorBlue
+                                  : _pollutant == 'pm2.5'
+                                      ? pm2_5TextColor(_selectedMeasurement!
+                                          .getChartValue(_pollutant))
+                                      : pm10TextColor(_selectedMeasurement!
+                                          .getChartValue(_pollutant)),
+                            )),
                       ),
                     ),
                   ),

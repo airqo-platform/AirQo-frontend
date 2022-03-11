@@ -40,7 +40,7 @@ void loadingScreen(BuildContext _context) async {
       barrierDismissible: false,
       builder: (ctx) => Container(
           decoration:
-              BoxDecoration(color: Config.appColorBlack.withOpacity(0.2)),
+              BoxDecoration(color: Config.appColorBlue.withOpacity(0.05)),
           child: Center(
               child: CircularProgressIndicator(
             color: Config.appColorBlue,

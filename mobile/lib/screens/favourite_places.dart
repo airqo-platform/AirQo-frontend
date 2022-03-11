@@ -5,6 +5,7 @@ import 'package:app/services/app_service.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/widgets/favourite_place_card.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 
 class FavouritePlaces extends StatefulWidget {
@@ -20,19 +21,7 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: Config.appBodyColor,
-        leading: Padding(
-          padding: const EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
-          child: backButton(context),
-        ),
-        title: const Text(
-          'Favorites',
-          style: TextStyle(color: Colors.black),
-        ),
-      ),
+      appBar: appTopBar(context, 'Favorites'),
       body: Container(
           color: Config.appBodyColor,
           child: Consumer<PlaceDetailsModel>(
@@ -61,47 +50,48 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
   Widget emptyPlaces() {
     return Container(
       color: Config.appBodyColor,
-      child: Container(
-        padding: const EdgeInsets.all(40.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'Empty in favourite places',
-              softWrap: true,
+      padding: const EdgeInsets.all(40.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          RichText(
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 20),
+              text: TextSpan(children: [
+                TextSpan(
+                    text: 'Tap the ',
+                    style: Theme.of(context).textTheme.bodyText1),
+                WidgetSpan(
+                    child: SvgPicture.asset(
+                  'assets/icon/heart.svg',
+                  semanticsLabel: 'Favorite',
+                  height: 15.33,
+                  width: 15.12,
+                )),
+                TextSpan(
+                    text: ' Favorite icon on any location air quality '
+                        'to save them here for later.',
+                    style: Theme.of(context).textTheme.bodyText1),
+              ])),
+          const SizedBox(
+            height: 10,
+          ),
+          OutlinedButton(
+            onPressed: () async {
+              await Navigator.push(context,
+                  MaterialPageRoute(builder: (context) {
+                return const SearchPage();
+              }));
+            },
+            style: OutlinedButton.styleFrom(
+              shape: const CircleBorder(),
+              padding: const EdgeInsets.all(24),
             ),
-            const SizedBox(
-              height: 10,
+            child: Text(
+              'Add',
+              style: TextStyle(color: Config.appColor),
             ),
-            const Text(
-              'Add places of interest using the AirQo map '
-              'or search',
-              softWrap: true,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(
-              height: 10,
-            ),
-            OutlinedButton(
-              onPressed: () async {
-                await Navigator.push(context,
-                    MaterialPageRoute(builder: (context) {
-                  return const SearchPage();
-                }));
-              },
-              style: OutlinedButton.styleFrom(
-                shape: const CircleBorder(),
-                padding: const EdgeInsets.all(24),
-              ),
-              child: Text(
-                'Add',
-                style: TextStyle(color: Config.appColor),
-              ),
-            )
-          ],
-        ),
+          )
+        ],
       ),
     );
   }

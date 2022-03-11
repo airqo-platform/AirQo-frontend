@@ -14,6 +14,7 @@ import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/widgets/analytics_card.dart';
 import 'package:app/widgets/custom_widgets.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -221,10 +222,8 @@ class _MapViewState extends State<MapView> {
             child: Text(
               '$title\nComing soon on the network'.trim(),
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: CustomTextStyle.headline7(context)
+                  ?.copyWith(letterSpacing: 16 * -0.01),
             )),
         const SizedBox(
           height: 8,
@@ -235,8 +234,10 @@ class _MapViewState extends State<MapView> {
               'We currently do not support air quality '
               'monitoring in this $bodyInnerText, but we’re working on it.',
               textAlign: TextAlign.center,
-              style:
-                  TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.4)),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyText2
+                  ?.copyWith(color: Config.appColorBlack.withOpacity(0.4)),
             )),
         const SizedBox(
           height: 158,
@@ -375,20 +376,22 @@ class _MapViewState extends State<MapView> {
       onTap: () {
         showRegionSites(name);
       },
-      title: Text(
+      title: AutoSizeText(
         name,
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        style: CustomTextStyle.headline8(context),
       ),
-      subtitle: Text(
+      subtitle: AutoSizeText(
         'Uganda',
-        style: TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.3)),
+        style: CustomTextStyle.bodyText4(context)
+            ?.copyWith(color: Config.appColorBlack.withOpacity(0.3)),
       ),
-      trailing: Icon(
-        Icons.arrow_forward_ios_sharp,
-        size: 10,
-        color: Config.appColorBlue,
+      trailing: SvgPicture.asset(
+        'assets/icon/more_arrow.svg',
+        semanticsLabel: 'more',
+        height: 6.99,
+        width: 4,
       ),
     );
   }
@@ -614,22 +617,22 @@ class _MapViewState extends State<MapView> {
       onTap: () {
         showSuggestionReadings(suggestion);
       },
-      title: Text(
+      title: AutoSizeText(
         suggestion.suggestionDetails.mainText,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        style: CustomTextStyle.headline8(context),
       ),
-      subtitle: Text(
-        suggestion.suggestionDetails.secondaryText,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.3)),
-      ),
-      trailing: Icon(
-        Icons.arrow_forward_ios_sharp,
-        size: 10,
-        color: Config.appColorBlue,
+      subtitle: AutoSizeText(suggestion.suggestionDetails.secondaryText,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: CustomTextStyle.bodyText4(context)
+              ?.copyWith(color: Config.appColorBlack.withOpacity(0.3))),
+      trailing: SvgPicture.asset(
+        'assets/icon/more_arrow.svg',
+        semanticsLabel: 'more',
+        height: 6.99,
+        width: 4,
       ),
     );
   }
@@ -821,10 +824,6 @@ class _MapViewState extends State<MapView> {
           place.geometry.location.lat, place.geometry.location.lng);
 
       if (nearestSite == null) {
-        // await showSnackBar(
-        //     context,
-        //     'Sorry, we currently don\'t have air quality for '
-        //     '${suggestion.suggestionDetails.getMainText()}');
         showLocationContent(null, null);
         return;
       }
@@ -859,7 +858,8 @@ class _MapViewState extends State<MapView> {
               visible: _regionSites.isNotEmpty,
               child: Text(
                 _selectedRegion,
-                style: TextStyle(color: Colors.black.withOpacity(0.32)),
+                style: CustomTextStyle.overline1(context)
+                    ?.copyWith(color: Config.appColorBlack.withOpacity(0.32)),
               ),
             ),
             Visibility(
@@ -896,25 +896,23 @@ class _MapViewState extends State<MapView> {
         });
         showLocationContent(measurement, null);
       },
-      title: Text(
+      title: AutoSizeText(
         measurement.site.name,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        style: CustomTextStyle.headline8(context),
       ),
-      subtitle: Text(
-        measurement.site.location,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(color: Colors.black.withOpacity(0.3), fontSize: 14),
-      ),
+      subtitle: AutoSizeText(measurement.site.location,
+          maxLines: 1,
+          style: CustomTextStyle.bodyText4(context)
+              ?.copyWith(color: Config.appColorBlack.withOpacity(0.4))),
       trailing: SvgPicture.asset(
         'assets/icon/more_arrow.svg',
         semanticsLabel: 'more',
         height: 6.99,
         width: 4,
       ),
-      leading: analyticsAvatar(measurement, 40, 15, 5),
+      leading: miniAnalyticsAvatar(measurement: measurement),
     );
   }
 
