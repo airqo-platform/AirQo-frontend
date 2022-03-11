@@ -13,9 +13,7 @@ export const formatDateString = (
 
 export const getElapsedDurationMapper = (dateTimeStr) => {
   let delta =
-    Math.abs(
-      new Date() - new Date(moment.utc(dateTimeStr).tz(moment.tz.guess()))
-    ) / 1000;
+    Math.abs(moment.utc(new Date()) - moment.utc(new Date(dateTimeStr))) / 1000;
   let seconds = delta;
   let result = {};
   let structure = {
@@ -68,15 +66,17 @@ export const humanReadableDate = (dateString, options) => {
 };
 
 export const formatDate = (date) => {
-  let d = new Date(date),
-    month = "" + (d.getMonth() + 1),
-    day = "" + d.getDate(),
-    year = d.getFullYear();
+    if(!date) return '-';
 
-  if (month.length < 2) month = "0" + month;
-  if (day.length < 2) day = "0" + day;
+    date = new Date(date)
+    let day = date.getDate();
+    let month = date.getMonth()+1;
+    const year = date.getFullYear();
 
-  return [year, month, day].join("-");
+    if (day < 10) day = `0${day}`
+    if (month < 10) month = `0${month}`
+
+  return [year, month, day].join('-');
 };
 
 export const roundToEndOfDay = (dateISOString) => {

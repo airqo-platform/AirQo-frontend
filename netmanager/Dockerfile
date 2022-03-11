@@ -9,9 +9,4 @@ COPY ./build /usr/share/nginx/html
 # expose the product on port 80
 EXPOSE 80
 
-FROM base as staging
-CMD ["nginx", "-g", "daemon off;"]
-
-FROM base as production
-
 CMD ["nginx", "-g", "daemon off;"]
