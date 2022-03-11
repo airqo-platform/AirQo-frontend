@@ -1,18 +1,10 @@
 @import url(https://fonts.googleapis.com/css?family=Open+Sans);
 
-/*body{*/
-/*  background: #f2f2f2;*/
-/*  font-family: 'Open Sans', sans-serif;*/
-/*}*/
-
 .map-filter-search {
   width: 100%;
-    /*height: 36px;*/
   position: relative;
   display: flex;
-
-  justify-content: flex-end;
-
+  justify-content: flex-start;
 }
 
 .map-filter-searchTerm {
@@ -38,26 +30,41 @@
 }
 
 .map-filter-searchButton {
-  width: 40px;
-  height: 36px;
+  width: 48px;
+  height: 42px;
   /*border: 1px solid #00B4CC;*/
-  border: 1px solid #2f67e2;
+  border: 1.5px solid #bbb;
   /*background: #00B4CC;*/
-  background: #2f67e2;
+  background: #fff;
   text-align: center;
   color: #fff;
-  border-radius: 0 5px 5px 0;
+  border-radius: 0 6px 6px 0;
   cursor: pointer;
   font-size: 20px;
+  box-shadow: 0px 0px 3px 4px #eee;
 }
+
+.map-filter-searchButton:hover{
+  box-shadow: 0px 0px 2px 4px #ddd;
+  border: 1.5px solid #aaa;
+  width:44px;
+  height: 38px;
+}
+
+.map-filter-searchButton:focus{
+  border: 1.8px solid #aaa;
+  background-color: #f4f4f4;
+  transition: .1s ease;
+}
+
 
 /*Resize the wrap to see the search bar change!*/
 .map-filter-container {
     width: 30%;
     max-width: 350px;
     position: absolute;
-    bottom: 30px;
-    right: 5px;
+    bottom:60px;
+    left:10px;
     font-family: 'Open Sans', sans-serif;
 }
 .map-filter-wrapper{
