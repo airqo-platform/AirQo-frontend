@@ -16,7 +16,8 @@ import { LargeCircularLoader } from "views/components/Loader/CircularLoader";
 const Account = lazy(() => import("./views/pages/Account"));
 const AnalyticsDashboard = lazy(() => import("./views/pages/Dashboard"));
 const DeviceView = lazy(() => import("./views/components/DataDisplay/DeviceView"));
-const Manager = lazy(() => import("./views/components/DataDisplay/DeviceManagement"));
+const ManagerMap = lazy(() => import("./views/components/DataDisplay/DeviceManagement/ManagementMap"));
+const ManagerStats = lazy(() => import("./views/components/DataDisplay/DeviceManagement/ManagementStats"));
 const Map = lazy(() => import("./views/components/Map"));
 const OverlayMap = lazy(() => import("./views/pages/Map"));
 const ForgotPassword = lazy(() => import("./views/pages/ForgotPassword"));
@@ -103,8 +104,14 @@ const AppRoutes = () => {
           />
           <PrivateRoute
             exact
-            path="/manager"
-            component={Manager}
+            path="/manager/map"
+            component={ManagerMap}
+            layout={MainLayout}
+          />
+          <PrivateRoute
+            exact
+            path="/manager/stats"
+            component={ManagerStats}
             layout={MainLayout}
           />
           <PrivateRoute

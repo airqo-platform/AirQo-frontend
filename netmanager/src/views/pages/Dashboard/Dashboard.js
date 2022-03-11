@@ -203,13 +203,11 @@ const Dashboard = () => {
           {userDefaultGraphs &&
             userDefaultGraphs.map((filter, key) => {
               return (
-                <Grid item lg={6} md={6} sm={12} xl={6} xs={12} key={key}>
-                  <D3CustomisableChart
-                    className={clsx(classes.customChartCard)}
-                    defaultFilter={filter}
-                    key={key}
-                  />
-                </Grid>
+                <D3CustomisableChart
+                  className={clsx(classes.customChartCard)}
+                  defaultFilter={filter}
+                  key={key}
+                />
               );
             })}
 
