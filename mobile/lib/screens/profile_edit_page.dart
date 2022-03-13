@@ -234,7 +234,6 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                     ),
                   ),
                 ),
-                const Spacer(),
               ],
             ),
           ),
