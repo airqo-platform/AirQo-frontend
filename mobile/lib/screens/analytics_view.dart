@@ -1,10 +1,11 @@
 import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
-import 'package:app/services/local_storage.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/favourite_place_card.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+
+import '../services/app_service.dart';
 
 class AnalyticsView extends StatefulWidget {
   const AnalyticsView({Key? key}) : super(key: key);
@@ -14,81 +15,44 @@ class AnalyticsView extends StatefulWidget {
 }
 
 class _AnalyticsViewState extends State<AnalyticsView> {
-  var _favouritePlaces = <Measurement>[];
-  final DBHelper _dbHelper = DBHelper();
+  late AppService _appService;
+  List<Measurement> _places = [];
 
   @override
   Widget build(BuildContext context) {
     return Container(
         color: Config.appBodyColor,
-        child: FutureBuilder(
-            future: _dbHelper.getLatestMeasurements(),
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                _favouritePlaces = snapshot.data as List<Measurement>;
-
-                if (_favouritePlaces.isEmpty) {
-                  return Center(
-                    child: Container(
-                      padding: const EdgeInsets.all(16.0),
-                      child: OutlinedButton(
-                        onPressed: () async {},
-                        style: OutlinedButton.styleFrom(
-                          shape: const CircleBorder(),
-                          padding: const EdgeInsets.all(24),
-                        ),
-                        child: Text(
-                          'No analytics at the moment',
-                          style: TextStyle(color: Config.appColor),
-                        ),
-                      ),
-                    ),
+        child: _places.isEmpty
+            ? ListView.builder(
+                itemBuilder: (BuildContext context, int index) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    child:
+                        containerLoadingAnimation(height: 120.0, radius: 16.0),
                   );
-                }
-
-                return RefreshIndicator(
-                  color: Config.appColorBlue,
-                  onRefresh: refreshData,
-                  child: ListView.builder(
-                    itemBuilder: (context, index) => MiniAnalyticsCard(
-                        PlaceDetails.measurementToPLace(
-                            _favouritePlaces[index])),
-                    itemCount: _favouritePlaces.length,
-                  ),
-                );
-              } else {
-                return ListView(
-                  children: [
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    containerLoadingAnimation(height: 120.0, radius: 16.0),
-                    const SizedBox(
-                      height: 15,
-                    ),
-                    containerLoadingAnimation(height: 120.0, radius: 16.0),
-                    const SizedBox(
-                      height: 15,
-                    ),
-                    containerLoadingAnimation(height: 120.0, radius: 16.0),
-                    const SizedBox(
-                      height: 15,
-                    ),
-                    containerLoadingAnimation(height: 120.0, radius: 16.0),
-                  ],
-                );
-              }
-            }));
+                },
+                itemCount: 5,
+              )
+            : refreshIndicator(
+                sliverChildDelegate:
+                    SliverChildBuilderDelegate((context, index) {
+                  return MiniAnalyticsCard(
+                      PlaceDetails.measurementToPLace(_places[index]));
+                }, childCount: _places.length),
+                onRefresh: _initialize));
   }
 
-  Future<void> refreshData() async {
-    await _dbHelper.getLatestMeasurements().then((value) => {
-          if (mounted)
-            {
-              setState(() {
-                _favouritePlaces = value;
-              })
-            }
-        });
+  @override
+  void initState() {
+    super.initState();
+    _appService = AppService(context);
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    var places = await _appService.dbHelper.getLatestMeasurements();
+    setState(() {
+      _places = places;
+    });
   }
 }
