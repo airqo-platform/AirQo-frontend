@@ -1,0 +1,173 @@
+@import "lib/colors";
+
+$layout-breakpoint: 580px;
+@mixin flex-column{
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+}
+
+@mixin flex-row{
+    display: flex;
+    flex-direction: row;
+}
+
+.get-app{
+    margin:14% 14% 4% 14%;
+    padding:40px;
+
+    .back-drop{
+        @include flex-row();
+        justify-content: space-between;
+        padding:30px;
+        height:230px;
+        background-color: $aq-blue-1;
+        border-radius: 8px;
+
+        .get-content{
+            .get-text{
+                padding: 26px 0 0 10px;
+                width:230px;
+                h2{
+                    color:$aq-blue-0;
+                    font-weight: 700;
+                    font-size: 38px;
+                    line-height: 10px;
+                }
+                span{
+                    color:$aq-blue-0;
+                    font-weight: 400;
+                    font-size: 16px;
+                    line-height: 10px;
+                }
+            }
+            .get-btns{
+                @include flex-row();
+                margin-top: 10%;
+                padding:0 0 0 10px;
+
+                button{
+                    color: $aq-white-0;
+                    background-color: $aq-black-0;
+                    width:140px;
+                    border-radius: 7px;
+                }
+                .get-btn{
+                    @include flex-row();
+                    div{
+                        @include flex-column();
+                        text-align: left;
+                        padding:4px 0 2px 6px;
+
+                        small{
+                            font-size: 10px;
+                        }
+                        span{
+                            font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                            font-size: 17px;
+                        }
+                    }
+                    i{
+                        padding: 6px 0 3px 0
+                    }
+                }
+                .get-android{
+                    margin-left:18%;
+                    div{
+                        .google-play{
+                            @include flex-row();
+                            letter-spacing: 0.3px;
+                            padding:0;
+                            margin:0;
+                        }
+                        small{
+                            text-transform: uppercase;
+                        }
+                    }
+                    #google{
+                        font-family: serif;
+                        font-weight: 200;
+                        font-size: 17px;
+                    }
+                    #play{
+                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                        font-weight: 200;
+                        font-size: 16px;
+                        padding-left: 2px;
+                    }
+                }
+            }
+        }
+        .get-graphics{
+            border:3px solid $aq-blue-0;
+            border-radius:24px;
+            height:490px;
+            margin:-17% 5% 0 0;
+            width:270px;
+            background-color: #f2f1f6;
+        }
+    }
+}
+
+@media (max-width: $layout-breakpoint){
+    .get-app{
+        padding:0;
+        margin:90% 0 5% 0;
+        .back-drop{
+            @include flex-column();
+            justify-content: center;
+            flex-direction: column-reverse;
+            height:480px;
+            padding:0;
+
+            .get-graphics{
+            align-self: center;
+            min-height:480px;
+            width:250px;
+            margin: -70% 0 0 0;
+            }
+
+            .get-content{
+                .get-text{
+                padding: 20px 0 0 20px;
+                width:230px;
+                }
+                .get-btns{
+                    @include flex-column();
+                    padding:0 0 20px 0px;
+                    margin:10% 2% 0 2%;
+                    button{
+                        width: 100%;
+                    }
+                    .get-android{
+                        margin:4% 0 0 0;
+
+                        #google{
+                            font-size: 22px;
+                        }
+                        #play{
+                            font-size: 22px;
+                        }
+                    }
+                    .get-btn{
+                        justify-content: center;
+                        align-items: center;
+                        padding:8px 0 4px 0;
+                        div{
+                            small{
+                                font-size: 14px;
+                            }
+                            span{
+                                font-size: 22px;
+                            }
+                        }
+                        i{
+                            padding:0 6px 0 0;
+                            font-size: 30px;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
