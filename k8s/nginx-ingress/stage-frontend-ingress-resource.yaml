@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: stage-ingress-frontend-resource
+  namespace: staging
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  rules:
+    - host: staging.platform.airqo.net
+      http:
+        paths:
+          - backend:
+              serviceName: airqo-stage-platform-ui-svc
+              servicePort: 80
+    - host: staging.airqo.net
+      http:
+        paths:
+          - backend:
+              serviceName: airqo-stage-website-svc
+              servicePort: 8000
+    - host: staging.airqo.africa
+      http:
+        paths:
+          - backend:
+              serviceName: airqo-stage-website-svc
+              servicePort: 8000
