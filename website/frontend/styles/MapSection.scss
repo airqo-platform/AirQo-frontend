@@ -1,0 +1,81 @@
+@import "lib/colors";
+
+$layout-breakpoint: 580px;
+
+@mixin flex-column{
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+}
+
+@mixin flex-row{
+    display: flex;
+    flex-direction: row;
+}
+.map-section{
+    margin:10% 0 0 0;
+    .backdrop{
+        @include flex-row();
+        justify-content: space-between;
+        background-color: $aq-blue-1;
+        padding:20px;
+        height:auto;
+
+        .map-content{
+            @include flex-column();
+            margin:6% 0 0 16%;
+            #first-pill{
+                @include flex-row();
+                align-items: center;
+                justify-content: center;
+                background-color: $aq-white-1;
+                width:105px;
+                height:20px;
+                border-radius:1000px;
+                padding:3px 18px;
+                p{
+                    color:$aq-blue-0;
+                    padding:10px;
+                    font-size:9px;
+                    font-weight: 700;
+                    line-height: 26px;
+                    flex-grow:0;
+                    align-self:center;
+                }
+            }
+            .content-h{
+                color:$aq-black-0;
+                font-weight:700;
+                font-size:34px;
+            }
+            .content-p{
+                margin:-9% 0 0 0;
+                p{
+                    color:$aq-black-0;
+                    font-weight:400;
+                    font-size: 13px;  
+                    line-height:20px; 
+                }
+            }
+            #second-pill{
+                color:$aq-blue-0;
+                font-weight:600;
+                font-size:10.5px; 
+                line-height:10px;
+                flex-grow:0;
+                padding:3px;
+                margin: 2% 0 0 0;
+            }
+        }
+
+        .map-image{
+            padding:0px;
+            margin:0 70px 0 0;
+            width:40%;
+            .map-img{    
+                width:100%;
+                right:-10%;
+            }
+        }
+    }
+}
