@@ -169,17 +169,16 @@ class DBHelper {
     try {
       final db = await database;
 
-      var res = await db.query(Measurement.latestMeasurementsDb());
+      var res = await db.query(Measurement.measurementsDb());
 
       return res.isNotEmpty
           ? List.generate(res.length, (i) {
               return Measurement.fromJson(Measurement.mapFromDb(res[i]));
             })
           : <Measurement>[]
-        ..sort((siteA, siteB) => siteA.site
-            .getName()
+        ..sort((siteA, siteB) => siteA.site.name
             .toLowerCase()
-            .compareTo(siteB.site.getName().toLowerCase()));
+            .compareTo(siteB.site.name.toLowerCase()));
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
       return <Measurement>[];
@@ -190,8 +189,8 @@ class DBHelper {
     try {
       final db = await database;
 
-      var res = await db.query(Measurement.latestMeasurementsDb(),
-          where: '${Site.dbId()} = ?', whereArgs: [siteId]);
+      var res = await db.query(Measurement.measurementsDb(),
+          where: 'id = ?', whereArgs: [siteId]);
 
       if (res.isEmpty) {
         return null;
@@ -200,6 +199,33 @@ class DBHelper {
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
       return null;
+    }
+  }
+
+  Future<List<Measurement>> getMeasurements(List<String> siteIds) async {
+    try {
+      final db = await database;
+
+      var res = [];
+
+      for (var siteId in siteIds) {
+        var siteRes = await db.query(Measurement.measurementsDb(),
+            where: 'id = ?', whereArgs: [siteId]);
+
+        res.addAll(siteRes);
+      }
+
+      if (res.isEmpty) {
+        return [];
+      }
+      return res.isNotEmpty
+          ? List.generate(res.length, (i) {
+              return Measurement.fromJson(Measurement.mapFromDb(res[i]));
+            })
+          : <Measurement>[];
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+      return [];
     }
   }
 
@@ -221,9 +247,6 @@ class DBHelper {
                     longitude)),
                 if (distanceInMeters < Config.maxSearchRadius.toDouble())
                   {
-                    // print('$distanceInMeters : '
-                    //     '${AppConfig.maxSearchRadius.toDouble()} : '
-                    //     '${measurement.site.getName()}'),
                     measurement.site.distance = distanceInMeters,
                     nearestMeasurements.add(measurement)
                   }
@@ -250,8 +273,8 @@ class DBHelper {
     try {
       final db = await database;
 
-      var res = await db.query(Measurement.latestMeasurementsDb(),
-          where: '${Site.dbRegion()} = ?', whereArgs: [region.trim()]);
+      var res = await db.query(Measurement.measurementsDb(),
+          where: 'region = ?', whereArgs: [region.trim()]);
 
       return res.isNotEmpty
           ? List.generate(res.length, (i) {
@@ -274,10 +297,8 @@ class DBHelper {
               return Site.fromJson(Site.fromDbMap(res[i]));
             })
           : <Site>[]
-        ..sort((siteA, siteB) => siteA
-            .getName()
-            .toLowerCase()
-            .compareTo(siteB.getName().toLowerCase()));
+        ..sort((siteA, siteB) =>
+            siteA.name.toLowerCase().compareTo(siteB.name.toLowerCase()));
 
       return sites;
     } catch (exception, stackTrace) {
@@ -302,23 +323,6 @@ class DBHelper {
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
       return <UserNotification>[];
-    }
-  }
-
-  Future<List<String>> getVisitedPlaces() async {
-    try {
-      final db = await database;
-
-      var res = await db.query(Insights.dbName());
-      return res.isNotEmpty
-          ? List.generate(res.length, (i) {
-              return Insights.fromJson(res[i]).siteId;
-            })
-          : <String>[];
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-
-      return <String>[];
     }
   }
 
@@ -391,20 +395,7 @@ class DBHelper {
     if (kyas.isEmpty) {
       return;
     }
-
-    for (var kya in kyas) {
-      try {
-        await db.delete(
-          Kya.dbName(),
-          where: 'id = ?',
-          whereArgs: [kya.id],
-        );
-      } catch (exception, stackTrace) {
-        debugPrint('$exception\n$stackTrace');
-        await db.execute(Kya.dropTableStmt());
-        await db.execute(Kya.createTableStmt());
-      }
-    }
+    await db.delete(Kya.dbName());
 
     for (var kya in kyas) {
       try {
@@ -429,13 +420,13 @@ class DBHelper {
       final db = await database;
 
       if (measurements.isNotEmpty) {
-        await db.delete(Measurement.latestMeasurementsDb());
+        await db.delete(Measurement.measurementsDb());
 
         for (var measurement in measurements) {
           try {
             var jsonData = Measurement.mapToDb(measurement);
             await db.insert(
-              Measurement.latestMeasurementsDb(),
+              Measurement.measurementsDb(),
               jsonData,
               conflictAlgorithm: ConflictAlgorithm.replace,
             );
@@ -531,6 +522,13 @@ class DBHelper {
       await removeFavPlace(placeDetails);
       return false;
     }
+  }
+
+  Future<void> updateKya(Kya kya) async {
+    final db = await database;
+
+    await db.update(Kya.dbName(), {'progress': kya.progress},
+        where: 'id = ?', whereArgs: [kya.id]);
   }
 }
 

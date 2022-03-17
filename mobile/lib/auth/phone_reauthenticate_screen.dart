@@ -24,7 +24,6 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
   bool _isResending = false;
   bool _isVerifying = false;
 
-  // bool _resendCode = false;
   List<String> _phoneVerificationCode = <String>['', '', '', '', '', ''];
   Color _nextBtnColor = Config.appColorDisabled;
 
@@ -157,7 +156,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
       _verificationId = verificationId;
     });
 
-    // Future.delayed(const Duration(seconds: 5), () async {
+    // Future.delayed(const Duration(seconds: 5), () {
     //   setState(() {
     //     _resendCode = true;
     //   });

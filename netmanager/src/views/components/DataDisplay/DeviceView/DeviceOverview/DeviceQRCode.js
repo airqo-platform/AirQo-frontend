@@ -4,15 +4,15 @@ import { QRCodeApi } from "views/apis/deviceRegistry";
 import QRCode from "qrcode.react";
 import { isEmpty, omit, pick } from "underscore";
 
-const DeviceQRCode = ({ deviceData }) => {
+const DeviceQRCode = ({ deviceData, fromDeviceData }) => {
   const [src, setSrc] = useState("");
-  // useEffect(() => {
-  //   if (!isEmpty(deviceData)) {
-  //     QRCodeApi({ id: deviceData._id, include_site: "no" }).then((resData) => {
-  //       setSrc(resData.data);
-  //     });
-  //   }
-  // }, []);
+  useEffect(() => {
+    if (!isEmpty(deviceData)) {
+      QRCodeApi({ id: deviceData._id, include_site: "no" }).then((resData) => {
+        setSrc(resData.data);
+      });
+    }
+  }, []);
 
   return (
     <ChartContainer title={"device QR Code"} green centerItems>
@@ -24,11 +24,11 @@ const DeviceQRCode = ({ deviceData }) => {
           height: "100%",
         }}
       >
-        {isEmpty(deviceData) && <span>Loading...</span>}
+        {!fromDeviceData && isEmpty(deviceData) && <span>Loading...</span>}
         {src && (
-          <img alt="device qr code" src={src} height={"80%"} width={"auto"} />
+          <img alt="device qr code" src={src} height={"90%"} width={"auto"} />
         )}
-        {!isEmpty(deviceData) && (
+        {fromDeviceData && !isEmpty(deviceData) && (
           <QRCode
             value={JSON.stringify(
               pick(deviceData, "name", "long_name", "latitude", "longitude")

@@ -1,4 +1,4 @@
-name: deploy-platform-staging
+name: deploy-frontends-to-staging
 
 on:
   pull_request:
@@ -28,7 +28,9 @@ jobs:
     if: github.event.pull_request.merged == true
     name: check for changes in platform
     outputs:
-      run_job: ${{ steps.check_files.outputs.run_job }}
+      run_platform: ${{ steps.check_files.outputs.run_platform }} # platform
+      run_website: ${{ steps.check_files.outputs.run_website }} # website
+
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -36,7 +38,7 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: check modified files
+      - name: check modified frontends
         id: check_files
         run: |
           echo "=============== list modified files ==============="
@@ -45,26 +47,32 @@ jobs:
           echo "========== check paths of modified files =========="
           git diff --name-only HEAD^ HEAD > files.txt
 
-          echo "::set-output name=run_job::false"
+          echo "::set-output name=run_platform::false"
+          echo "::set-output name=run_website::false"  
 
           while IFS= read -r file
           do
             echo $file
             if [[ $file == netmanager/* ]]; then
-              echo "::set-output name=run_job::true"
-              break
+              echo "::set-output name=run_platform::true"
+            fi
+
+            if [[ $file == website/* ]]; then
+              echo "::set-output name=run_website::true"
             fi
 
             if [[ $file == workflow-trigger.txt ]]; then
-              echo "::set-output name=run_job::true"
+              echo "::set-output name=run_platform::true"
+              echo "::set-output name=run_website::true"
             fi
 
           done < files.txt
 
-  build:
+  ### deploy platform ###
+  platform:
     name: build-push-deploy-netmanager
     needs: [check, image-tag]
-    if: needs.check.outputs.run_job == 'true'
+    if: needs.check.outputs.run_platform == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -105,13 +113,48 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           cd netmanager/
-          docker build --target=staging --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} .
+          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} .
           docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }}
       - name: Deploy to K8S
         run: |
-          cd k8s/platform/
-          kubectl apply -f stage-airqo-platform-frontend.yaml
+          kubectl apply -f k8s/platform/stage-airqo-platform-frontend.yaml
           kubectl set image deployment/airqo-stage-platform-frontend sta-platform-ui=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} -n staging
           kubectl annotate deployment/airqo-stage-platform-frontend kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n staging
+  
+  ### deploy website ###
+  website:
+    name: build-push-deploy-website
+    needs: [check, image-tag]
+    if: needs.check.outputs.run_website == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      
+      - name: Login to GCR
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ secrets.REGISTRY_URL }}
+          username: _json_key
+          password: ${{ secrets.GCR_CONFIG }}
+
+      - name: Login to K8S
+        uses: azure/k8s-set-context@v1
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.K8S_CONFIG_STAGE }}
+
+      - name: Build and Push Docker Image
+        run: |
+          cd website/
+          docker build --target=deployment --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }} -f docker/Dockerfile .
+          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-website:latest
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }}
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-website:latest
+      - name: Deploy to K8S
+        run: |
+          kubectl apply -f k8s/website/stage-airqo-website.yaml -n staging
+          kubectl set image deployment/airqo-stage-website sta-website=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }} -n staging
+          kubectl annotate deployment/airqo-stage-website kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n staging

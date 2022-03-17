@@ -14,6 +14,13 @@ from pathlib import Path
 import cloudinary
 from decouple import config
 import dj_database_url
+from google.oauth2 import service_account
+
+CONTAINER_ENV = config('CONTAINER_ENV', default=True, cast=bool)
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/etc/config/google_application_credentials.json"
+
+# if not CONTAINER_ENV:
+#    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "../google_application_credentials.json"
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,9 +33,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config('DJANGO_ALLOWED_HOSTS').split(',')
 
 
 # Application definition
@@ -88,7 +95,10 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
 DATABASES = {
-    'default': dj_database_url.config(default=config('DATABASE_URI'))
+    'default': dj_database_url.config(
+        # Default values for DATABASE_URI are for the development environment
+        default=config('DATABASE_URI', default='postgresql://user:password@dbHost:5432/database')
+    )
 }
 
 
@@ -129,7 +139,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 # Static
-STATIC_HOST = config('WEB_STATIC_HOST', '')
+# Default to using webpack-dev-server on port 8081
+STATIC_HOST = config('WEB_STATIC_HOST', default='http://localhost:8081/')
 
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
@@ -141,11 +152,12 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # From Django's perspective, this is the input location.
 STATICFILES_DIRS = []
 
-if DEBUG:
-    STATIC_HOST = 'http://localhost:8081'  # Use webpack-dev-server on port 8081
-    STATICFILES_DIR = []  # type: Sequence[str]
+if not DEBUG:
+    DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+    GS_BUCKET_NAME = config('GS_BUCKET_NAME')
+    STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 
-STATIC_URL = STATIC_HOST + '/static/'
+STATIC_URL = STATIC_HOST + 'static/'
 
 # Configure cloudinary
 cloudinary.config(

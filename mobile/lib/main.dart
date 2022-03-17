@@ -40,11 +40,6 @@ Future<void> main() async {
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.dark,
-    // systemNavigationBarDividerColor: Config.appBodyColor,
-    // systemNavigationBarColor: Colors.transparent,
-    // systemNavigationBarColor: Config.appBodyColor,
-    // statusBarBrightness: Brightness.light,
-    // systemNavigationBarIconBrightness: Brightness.dark,
   ));
 
   await SystemChrome.setPreferredOrientations(

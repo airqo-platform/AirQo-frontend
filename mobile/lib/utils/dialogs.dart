@@ -4,6 +4,8 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../themes/light_theme.dart';
+
 void pmInfoDialog(context, double pm2_5) {
   showGeneralDialog(
     context: context,
@@ -20,25 +22,19 @@ void pmInfoDialog(context, double pm2_5) {
     },
     pageBuilder: (context, animation, secondaryAnimation) {
       return AlertDialog(
-        scrollable: true,
+        scrollable: false,
         shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(8.0))),
         contentPadding: const EdgeInsets.all(0),
         content: Container(
-            width: 200.0,
-            height: 240.0,
-            constraints: const BoxConstraints(
-              maxHeight: 260,
-            ),
+            width: 280.0,
             decoration: const BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.all(Radius.circular(8.0))),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: ListView(
+              physics: const BouncingScrollPhysics(),
+              shrinkWrap: true,
               children: [
-                const SizedBox(
-                  height: 16,
-                ),
                 Padding(
                   padding: const EdgeInsets.only(left: 16, right: 16),
                   child: Row(
@@ -46,10 +42,8 @@ void pmInfoDialog(context, double pm2_5) {
                     children: [
                       Text(
                         'Know Your Air',
-                        style: TextStyle(
-                            color: Config.appColorBlue,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold),
+                        style: CustomTextStyle.headline10(context)
+                            ?.copyWith(color: Config.appColorBlue),
                       ),
                       GestureDetector(
                         onTap: () => Navigator.pop(context, 'OK'),
@@ -84,18 +78,18 @@ void pmInfoDialog(context, double pm2_5) {
                             TextSpan(
                               text: 'PM',
                               style: TextStyle(
-                                fontSize: 17,
-                                color: Config.appColor,
-                                fontWeight: FontWeight.bold,
-                              ),
+                                  fontSize: 14,
+                                  color: Config.appColorBlack,
+                                  fontWeight: FontWeight.bold,
+                                  height: 18 / 14),
                             ),
                             TextSpan(
                               text: '2.5',
                               style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: Config.appColor,
-                              ),
+                                  fontSize: 12,
+                                  color: Config.appColorBlack,
+                                  fontWeight: FontWeight.bold,
+                                  height: 12 / 9),
                             )
                           ],
                         ),
@@ -111,15 +105,16 @@ void pmInfoDialog(context, double pm2_5) {
                               style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w500,
+                                  height: 14 / 10,
                                   color: Config.appColorBlack),
                             ),
                             TextSpan(
                               text: 'is a complex mixture of extremely'
                                   ' small particles and liquid droplets.',
                               style: TextStyle(
-                                color: Config.appColorBlack.withOpacity(0.7),
-                                fontSize: 10,
-                              ),
+                                  color: Config.appColorBlack.withOpacity(0.7),
+                                  fontSize: 10,
+                                  height: 14 / 10),
                             )
                           ],
                         ),
@@ -134,17 +129,17 @@ void pmInfoDialog(context, double pm2_5) {
                               text: 'When measuring particles there are two '
                                   'size categories commonly used: ',
                               style: TextStyle(
-                                color: Config.appColorBlack.withOpacity(0.7),
-                                fontSize: 10,
-                              ),
+                                  color: Config.appColorBlack.withOpacity(0.7),
+                                  fontSize: 10,
+                                  height: 14 / 10),
                             ),
                             TextSpan(
                               text: 'PM',
                               style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w500,
-                                color: Config.appColorBlack,
-                              ),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w500,
+                                  color: Config.appColorBlack,
+                                  height: 14 / 10),
                             ),
                             TextSpan(
                               text: '2.5',
@@ -157,17 +152,17 @@ void pmInfoDialog(context, double pm2_5) {
                             TextSpan(
                               text: ' and ',
                               style: TextStyle(
-                                fontSize: 10,
-                                color: Config.appColorBlack.withOpacity(0.7),
-                              ),
+                                  fontSize: 10,
+                                  color: Config.appColorBlack.withOpacity(0.7),
+                                  height: 14 / 10),
                             ),
                             TextSpan(
                               text: 'PM',
                               style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w500,
-                                color: Config.appColorBlack,
-                              ),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w500,
+                                  color: Config.appColorBlack,
+                                  height: 14 / 10),
                             ),
                             TextSpan(
                               text: '10',
@@ -198,6 +193,7 @@ void pmInfoDialog(context, double pm2_5) {
                           style: TextStyle(
                               fontSize: 10,
                               color: pm2_5TextColor(pm2_5),
+                              height: 14 / 10,
                               fontWeight: FontWeight.w500),
                         ),
                       ),
@@ -213,14 +209,15 @@ void pmInfoDialog(context, double pm2_5) {
                               style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w500,
+                                  height: 14 / 10,
                                   color: Config.appColorBlack),
                             ),
                             TextSpan(
                               text: pmToInfoDialog(pm2_5),
                               style: TextStyle(
-                                color: Config.appColorBlack.withOpacity(0.7),
-                                fontSize: 10,
-                              ),
+                                  color: Config.appColorBlack.withOpacity(0.7),
+                                  fontSize: 10,
+                                  height: 14 / 10),
                             )
                           ],
                         ),
@@ -229,7 +226,7 @@ void pmInfoDialog(context, double pm2_5) {
                   ),
                 ),
                 const SizedBox(
-                  height: 10,
+                  height: 16,
                 ),
               ],
             )),

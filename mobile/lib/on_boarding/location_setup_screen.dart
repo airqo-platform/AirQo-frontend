@@ -7,6 +7,8 @@ import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:flutter/material.dart';
 
+import '../themes/light_theme.dart';
+
 class LocationSetupScreen extends StatefulWidget {
   final bool enableBackButton;
 
@@ -28,27 +30,30 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
         body: WillPopScope(
       onWillPop: onWillPop,
       child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
-        const SizedBox(
-          height: 58,
-        ),
+        const Spacer(),
         onBoardingLocationIcon(),
         const SizedBox(
-          height: 52,
+          height: 26,
         ),
-        const Text(
-          'Enable locations',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-              fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
+        Padding(
+          padding: const EdgeInsets.only(left: 57, right: 57),
+          child: Text(
+            'Enable locations',
+            textAlign: TextAlign.center,
+            style: CustomTextStyle.headline7(context),
+          ),
         ),
         const SizedBox(
           height: 8,
         ),
-        const Text(
-          'Allow AirQo to send you location air\n'
-          'quality update for your work place,\nhome',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 16, color: Colors.black),
+        Padding(
+          padding: const EdgeInsets.only(left: 45, right: 45),
+          child: Text(
+            'Allow AirQo to send you location air '
+            'quality update for your work place, home',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyText1,
+          ),
         ),
         const Spacer(),
         Padding(
@@ -74,7 +79,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
           ),
         ),
         const SizedBox(
-          height: 20,
+          height: 16,
         ),
         GestureDetector(
           onTap: () {
@@ -86,14 +91,14 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
           child: Text(
             'No, thanks',
             textAlign: TextAlign.center,
-            style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Config.appColorBlue),
+            style: Theme.of(context)
+                .textTheme
+                .caption
+                ?.copyWith(color: Config.appColorBlue),
           ),
         ),
         const SizedBox(
-          height: 58,
+          height: 40,
         ),
       ]),
     ));
@@ -116,14 +121,12 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
       showSnackBar(context, 'Tap again to exit !');
       return Future.value(false);
     }
-    if (widget.enableBackButton) {
-      Navigator.pushAndRemoveUntil(context,
-          MaterialPageRoute(builder: (context) {
-        return const HomePage();
-      }), (r) => false);
-    }
 
-    return Future.value(true);
+    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) {
+      return const HomePage();
+    }), (r) => false);
+
+    return Future.value(false);
   }
 
   void updateOnBoardingPage() async {

@@ -371,23 +371,23 @@ String pmToInfoDialog(double pm2_5) {
   } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
     //moderate
     return 'Unusually sensitive people should consider reducing '
-        'prolonged or intense outdoor activities.\n'
+        'prolonged or intense outdoor activities.'
         '';
   } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
     //sensitive
-    return 'The elderly and children should limit intense outdoor activities.\n'
+    return 'The elderly and children should limit intense outdoor activities.'
         'Sensitive people should reduce prolonged or '
         'intense outdoor activities.';
   } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
     // unhealthy
     return 'People with respiratory or heart disease,'
         ' the elderly and children should avoid '
-        'intense outdoor activities.\n'
+        'intense outdoor activities.'
         'Everyone else should limit intense outdoor activities.';
   } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
     // very unhealthy
     return 'People with respiratory or heart disease, '
-        'the elderly and children should avoid any outdoor activity.\n'
+        'the elderly and children should avoid any outdoor activity.'
         'Everyone else should limit intense outdoor activities.';
   } else if (pm2_5 >= 250.5) {
     // hazardous

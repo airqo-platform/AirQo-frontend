@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../themes/light_theme.dart';
+
 class AboutAirQo extends StatefulWidget {
   const AboutAirQo({Key? key}) : super(key: key);
 
@@ -14,10 +16,10 @@ class AboutAirQo extends StatefulWidget {
 
 class _AboutAirQoState extends State<AboutAirQo> {
   PackageInfo _packageInfo = PackageInfo(
-    appName: 'Unknown',
+    appName: 'AirQo',
     packageName: 'Unknown',
-    version: 'Unknown',
-    buildNumber: 'Unknown',
+    version: 'v1.0.0',
+    buildNumber: '1',
     buildSignature: 'Unknown',
   );
 
@@ -32,9 +34,7 @@ class _AboutAirQoState extends State<AboutAirQo> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const SizedBox(
-                    height: 126,
-                  ),
+                  const Spacer(),
                   SvgPicture.asset(
                     'assets/icon/airqo_home.svg',
                     height: 52.86,
@@ -46,17 +46,15 @@ class _AboutAirQoState extends State<AboutAirQo> {
                   ),
                   Text(
                     _packageInfo.appName,
-                    style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Config.appColorBlack),
+                    style: CustomTextStyle.headline11(context),
                   ),
                   const SizedBox(
                     height: 12,
                   ),
                   Text(
                     '${_packageInfo.version}(${_packageInfo.buildNumber})',
-                    style: TextStyle(fontSize: 16, color: Config.appColorBlack),
+                    style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                        color: Config.appColorBlack.withOpacity(0.5)),
                   ),
                   const Spacer(),
                   GestureDetector(
@@ -65,8 +63,10 @@ class _AboutAirQoState extends State<AboutAirQo> {
                     },
                     child: Text(
                       'Terms & Privacy Policy',
-                      style:
-                          TextStyle(fontSize: 16, color: Config.appColorBlue),
+                      style: Theme.of(context)
+                          .textTheme
+                          .subtitle1
+                          ?.copyWith(color: Config.appColorBlue),
                     ),
                   ),
                   const SizedBox(

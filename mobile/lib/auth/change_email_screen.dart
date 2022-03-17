@@ -104,7 +104,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
           visible: !_requestCode,
           child: Form(
             key: _emailFormKey,
-            child: emailInputField(),
+            child: _emailInputField(),
           ),
         ),
         // end input fields
@@ -126,7 +126,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
           visible: _showResendCode && _requestCode,
           child: GestureDetector(
             onTap: () async {
-              await resendVerificationCode();
+              await _resendVerificationCode();
             },
             child: Text(
               'Resend code',
@@ -175,7 +175,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
         Visibility(
           visible: _requestCode,
           child: GestureDetector(
-            onTap: initialize,
+            onTap: _initialize,
             child: Text(
               'Change Email Address',
               textAlign: TextAlign.center,
@@ -193,7 +193,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
           visible: _requestCode,
           child: GestureDetector(
             onTap: () async {
-              await verifySentCode();
+              await _verifySentCode();
             },
             child: nextButton('Next', _nextBtnColor),
           ),
@@ -202,7 +202,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
           visible: !_requestCode,
           child: GestureDetector(
             onTap: () async {
-              await requestVerification();
+              await _requestVerification();
             },
             child: nextButton('Next', _nextBtnColor),
           ),
@@ -218,7 +218,30 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
     ));
   }
 
-  void clearEmailCallBack() {
+  @override
+  void initState() {
+    super.initState();
+    _airqoApiClient = AirqoApiClient(context);
+    _initialize();
+  }
+
+  void setCode(value, position) {
+    setState(() {
+      _emailVerificationCode[position] = value;
+    });
+    var code = _emailVerificationCode.join('');
+    if (code.length == 6) {
+      setState(() {
+        _nextBtnColor = Config.appColorBlue;
+      });
+    } else {
+      setState(() {
+        _nextBtnColor = Config.appColorDisabled;
+      });
+    }
+  }
+
+  void _clearEmailCallBack() {
     setState(() {
       _emailAddress = '';
       _emailInputController.text = '';
@@ -226,7 +249,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
     });
   }
 
-  Widget emailInputField() {
+  Widget _emailInputField() {
     return Container(
         height: 48,
         alignment: Alignment.center,
@@ -242,7 +265,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
           cursorWidth: 1,
           cursorColor: Config.appColorBlue,
           keyboardType: TextInputType.emailAddress,
-          onChanged: emailValueChange,
+          onChanged: _emailValueChange,
           validator: (value) {
             if (value == null || value.isEmpty) {
               showSnackBar(context, 'Please enter your new email address');
@@ -270,14 +293,14 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
             suffixIcon: GestureDetector(
                 onTap: () {
                   _emailInputController.text = '';
-                  clearEmailCallBack();
+                  _clearEmailCallBack();
                 },
                 child: textInputCloseButton()),
           ),
         )));
   }
 
-  void emailValueChange(text) {
+  void _emailValueChange(text) {
     if (text.toString().isEmpty || !_emailInputController.text.isValidEmail()) {
       setState(() {
         _nextBtnColor = Config.appColorDisabled;
@@ -292,7 +315,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
     });
   }
 
-  void initialize() {
+  void _initialize() {
     setState(() {
       _emailFormValid = false;
       _emailAddress = '';
@@ -307,14 +330,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
     });
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _airqoApiClient = AirqoApiClient(context);
-    initialize();
-  }
-
-  Future<void> requestVerification() async {
+  Future<void> _requestVerification() async {
     _emailFormKey.currentState!.validate();
 
     if (!_emailFormValid || _isVerifying) {
@@ -358,7 +374,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
     });
   }
 
-  Future<void> resendVerificationCode() async {
+  Future<void> _resendVerificationCode() async {
     setState(() {
       _isResending = true;
     });
@@ -376,23 +392,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
     });
   }
 
-  void setCode(value, position) {
-    setState(() {
-      _emailVerificationCode[position] = value;
-    });
-    var code = _emailVerificationCode.join('');
-    if (code.length == 6) {
-      setState(() {
-        _nextBtnColor = Config.appColorBlue;
-      });
-    } else {
-      setState(() {
-        _nextBtnColor = Config.appColorDisabled;
-      });
-    }
-  }
-
-  Future<void> verifySentCode() async {
+  Future<void> _verifySentCode() async {
     var code = _emailVerificationCode.join('');
 
     if (code.length != 6) {

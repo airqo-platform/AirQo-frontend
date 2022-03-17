@@ -422,6 +422,12 @@
                                                   <img src="<?= base_url(); ?>assets/images/partners/googleorg.png" class="img-fluid" alt="">
                                              </div>
                                              <div class="parts-w3ls col-sm-2 col-6 mt-5">
+                                                  <img src="<?= base_url(); ?>assets/images/partners/wehubit.png" class="img-fluid">
+                                             </div>
+                                             <div class="parts-w3ls col-sm-2 col-6 mt-5" style="display: flex; align-items: center;">
+                                                  <img src="<?= base_url(); ?>assets/images/partners/us-mission-uganda.webp" class="img-fluid">
+                                             </div>
+                                             <div class="parts-w3ls col-sm-2 col-6 mt-5">
                                                   <img src="<?= base_url(); ?>assets/images/partners/world-bank.png" class="img-fluid">
                                              </div>
                                              <div class="parts-w3ls col-sm-2 col-6 mt-5">
@@ -430,18 +436,19 @@
                                              <div class="parts-w3ls col-sm-2 col-6 mt-5">
                                                   <img src="<?= base_url(); ?>assets/images/partners/university-of-sheffied.png" class="img-fluid">
                                              </div>
-                                             <div class="parts-w3ls col-sm-2 col-6 mt-5">
-                                                  <img src="<?= base_url(); ?>assets/images/partners/epsrc.png" class="img-fluid">
-                                             </div>
-                                             <div class="parts-w3ls col-sm-2 col-6 mt-5">
-                                                  <img src="<?= base_url(); ?>assets/images/partners/nrf.png" class="img-fluid" alt="">
-                                             </div>
+
                                         </div>
                                    </div>
                               </div>
                               <div class="item">
                                    <div class="slider-info mt-lg-4 mt-3">
                                         <div class="row">
+                                            <div class="parts-w3ls col-sm-2 col-6 mt-5">
+                                                  <img src="<?= base_url(); ?>assets/images/partners/epsrc.png" class="img-fluid">
+                                             </div>
+                                             <div class="parts-w3ls col-sm-2 col-6 mt-5">
+                                                  <img src="<?= base_url(); ?>assets/images/partners/nrf.png" class="img-fluid" alt="">
+                                             </div>
                                              <div class="col-sm-2 col-6 mt-5">
                                                   <img src="<?= base_url(); ?>assets/images/partners/mapping-for-change.png" class="img-fluid" alt="">
                                              </div>
@@ -454,6 +461,13 @@
                                              <div class="parts-w3ls col-sm-2 col-6 mt-5">
                                                   <img src="<?= base_url(); ?>assets/images/partners/columbia-university.png" class="img-fluid" alt="">
                                              </div>
+
+                                        </div>
+                                   </div>
+                              </div>
+                              <div class="item">
+                                   <div class="slider-info mt-lg-4 mt-3">
+                                        <div class="row">
                                              <div class="parts-w3ls col-sm-2 col-6 mt-5">
                                                   <img src="<?= base_url(); ?>assets/images/partners/university-of-wyoming.png" class="img-fluid" alt="">
                                              </div>
