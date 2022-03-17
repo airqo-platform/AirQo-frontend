@@ -1,6 +1,8 @@
 import React from 'react'
 import Ios from '../../icons/getapp/ios'
 import Play from '../../icons/getapp/play'
+import GetappImg from '../../assets/img/get-app.png'
+import GetappImgSm from '../../assets/img/get-app-sm.png'
 
 const GetApp = () => {
     return (
@@ -16,7 +18,10 @@ const GetApp = () => {
                         <a><button className='get-btn get-android'><i><Play /></i><div><small>Get it on</small><div className='google-play'><span id="google">Google</span><span id="play">play</span></div></div></button></a>
                     </div>
                 </div>
-                <div className='get-graphics'></div>
+                <div className='get-graphics'>
+                    <img src={GetappImg} className="get-graphics-lg"/>
+                    <img src={GetappImgSm} className="get-graphics-sm" />
+                </div>
             </div>
         </div>
     )

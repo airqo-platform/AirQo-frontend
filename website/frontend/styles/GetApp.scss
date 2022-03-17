@@ -13,20 +13,20 @@ $layout-breakpoint: 580px;
 }
 
 .get-app{
-    margin:14% 14% 4% 14%;
+    margin:14% 8% 20% 8%;
     padding:40px;
 
     .back-drop{
         @include flex-row();
         justify-content: space-between;
         padding:30px;
-        height:230px;
+        height:260px;
         background-color: $aq-blue-1;
         border-radius: 8px;
 
         .get-content{
             .get-text{
-                padding: 26px 0 0 10px;
+                padding: 28px 0 0 30px;
                 width:230px;
                 h2{
                     color:$aq-blue-0;
@@ -44,7 +44,7 @@ $layout-breakpoint: 580px;
             .get-btns{
                 @include flex-row();
                 margin-top: 10%;
-                padding:0 0 0 10px;
+                padding:0 0 0 30px;
 
                 button{
                     color: $aq-white-0;
@@ -57,7 +57,8 @@ $layout-breakpoint: 580px;
                     div{
                         @include flex-column();
                         text-align: left;
-                        padding:4px 0 2px 6px;
+                        padding:4px 0 2px 8px;
+                        opacity:0.9;
 
                         small{
                             font-size: 10px;
@@ -68,7 +69,17 @@ $layout-breakpoint: 580px;
                         }
                     }
                     i{
-                        padding: 6px 0 3px 0
+                        padding: 5px 0 2px 0
+                    }
+                    .apple-icon{
+                        width:28px;
+                        height:28px;
+                        fill:$aq-white-0;
+                    }
+                    .play-icon{
+                        width:25px;
+                        height:25px;
+                        fill:$aq-white-0;
                     }
                 }
                 .get-android{
@@ -97,14 +108,33 @@ $layout-breakpoint: 580px;
                     }
                 }
             }
+            .get-btn:hover, .get-btn:focus{
+                outline:none;
+                cursor: pointer;
+
+                div{
+                    opacity: 1;
+                }
+                #google{
+                    opacity: 1;
+                }
+                #play{
+                    opacity: 1;
+                }
+            }
         }
         .get-graphics{
-            border:3px solid $aq-blue-0;
-            border-radius:24px;
-            height:490px;
-            margin:-17% 5% 0 0;
-            width:270px;
-            background-color: #f2f1f6;
+            .get-graphics-lg{
+                display:block;
+                height:auto;
+                margin-top:-52%;
+                margin-left: -20%;
+                width:auto;
+                background-color: transparent;
+            }
+            .get-graphics-sm{
+                display: none;
+            }
         }
     }
 }
@@ -112,19 +142,23 @@ $layout-breakpoint: 580px;
 @media (max-width: $layout-breakpoint){
     .get-app{
         padding:0;
-        margin:90% 0 5% 0;
+        margin:95% 0 22% 0;
         .back-drop{
             @include flex-column();
             justify-content: center;
             flex-direction: column-reverse;
-            height:480px;
+            height:auto;
             padding:0;
 
             .get-graphics{
-            align-self: center;
-            min-height:480px;
-            width:250px;
-            margin: -70% 0 0 0;
+                align-self: center;
+                .get-graphics-lg{
+                    display: none;
+                }
+                .get-graphics-sm{
+                    display:block;
+                    margin: -100% 0 0 0;
+                }
             }
 
             .get-content{
@@ -135,7 +169,7 @@ $layout-breakpoint: 580px;
                 .get-btns{
                     @include flex-column();
                     padding:0 0 20px 0px;
-                    margin:10% 2% 0 2%;
+                    margin:10% 3% 10% 3%;
                     button{
                         width: 100%;
                     }
@@ -152,8 +186,9 @@ $layout-breakpoint: 580px;
                     .get-btn{
                         justify-content: center;
                         align-items: center;
-                        padding:8px 0 4px 0;
+                        padding:6px 0 4px 0;
                         div{
+                            padding:2px 0 2px 0;
                             small{
                                 font-size: 14px;
                             }
@@ -163,7 +198,14 @@ $layout-breakpoint: 580px;
                         }
                         i{
                             padding:0 6px 0 0;
-                            font-size: 30px;
+                        }
+                        .apple-icon{
+                            width:35px;
+                            height:35px;
+                        }
+                        .play-icon{
+                            width:30px;
+                            height:30px;
                         }
                     }
                 }
