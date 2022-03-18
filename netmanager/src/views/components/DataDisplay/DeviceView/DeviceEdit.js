@@ -199,7 +199,6 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               error={!!errors.ISP}
               helperText={errors.ISP}
             >
-              <option value="" />
               <option value="MTN">MTN</option>
               <option value="Airtel">Airtel</option>
               <option value="Africell">Africell</option>
@@ -221,7 +220,6 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               error={!!errors.isPrimaryInLocation}
               helperText={errors.isPrimaryInLocation}
             >
-              <option value="" />
               <option value={true}>Yes</option>
               <option value={false}>No</option>
             </TextField>
@@ -242,7 +240,6 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               error={!!errors.status}
               helperText={errors.status}
             >
-              <option value="" />
               <option value={'deployed'}>Deployed</option>
               <option value={'testing'}>Testing</option>
               <option value={'recalled'}>Recalled</option>
