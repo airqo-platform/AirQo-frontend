@@ -32,3 +32,9 @@
     background: $aq-blue-0;
     border-radius: 4px;
   }
+
+@media(max-width: 580px){
+  .NavTab {
+    display: none;
+  }
+}

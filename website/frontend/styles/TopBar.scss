@@ -5,14 +5,41 @@ $topbar-padding: 80px;
 .TopBar {
   display: flex;
   align-items: center;
-  width: 1440px - 2*$topbar-padding;
   height: 80px;
-  background: $aq-blue-1;
+  background: $aq-white-0;
   padding: 0 $topbar-padding;
+  box-shadow: 0 0 13px -11px #0000001a;
 
   .container {
     display: flex;
     margin-left: 24px;
-    width: 776.5px;
+    width: 650px;
   }
+
+  .menu-btn {
+    display: none;
+  }
+}
+
+@media(max-width: 580px){
+  .TopBar {
+    justify-content: space-between;
+    padding: 20px 16px;
+
+    .container {
+      display: none;
+      width: 0;
+      margin-left: 0;
+    }
+
+    .menu-btn {
+      display: block;
+      background-color: #8d8d8d14;
+      border-radius: 2px;
+      padding: 8px 16px;
+      width: 23px;
+      height: 23px;
+    }
+  }
+  
 }
