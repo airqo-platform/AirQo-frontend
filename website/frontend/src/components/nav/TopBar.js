@@ -6,7 +6,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 const TopBar = () => {
     return(
         <div className="TopBar">
-            <AirQo className="brand-logo"/>
+            <AirQo />
             <div className="container">
                 <NavTab className="NavTab__menuItem" text="Solutions" width={135} />
                 <NavTab className="NavTab__menuItem" text="Our work" width={133} />
