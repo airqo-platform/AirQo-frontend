@@ -59,13 +59,6 @@ const senorListStyle = {
   width: "100%",
 };
 
-const coordinatesActivateStyles = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "flex-end",
-  fontSize: ".8rem",
-};
-
 const spanStyle = {
   width: "30%",
   whiteSpace: "nowrap",
@@ -315,7 +308,6 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
     error: false,
   });
   const [deviceTestLoading, setDeviceTestLoading] = useState(false);
-  const [manualCoordinate, setManualCoordinate] = useState(false);
   const [longitude, setLongitude] = useState(deviceData.longitude || "");
   const [latitude, setLatitude] = useState(deviceData.latitude || "");
   const [site, setSite] = useState(
@@ -364,34 +356,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
   };
 
   const checkErrors = () => {
-    const state = {
-      height,
-      mountType: installationType,
-      powerType: power,
-      longitude,
-      latitude,
-      site_id: site,
-    };
     let newErrors = {};
-    Object.keys(state).map((key) => {
-      if (isEmpty(state[key])) {
-        newErrors[key] = "This field is required";
-      }
-      if (key === "site") {
-        if (!state[key].value && !state[key].label)
-          newErrors[key] = "This field is required";
-      }
-    });
-    ["longitude", "latitude"].map((key) => {
-      if (
-        !isValidSensorValue(
-          state[key],
-          sensorFeedNameMapper[key] || defaultSensorRange
-        )
-      ) {
-        newErrors[key] = `Invalid ${key} value`;
-      }
-    });
     if (!isEmpty(newErrors)) {
       setErrors({ ...errors, ...newErrors });
       return true;
@@ -476,8 +441,6 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
     }
     return secondary;
   };
-  const currentStatus = `${deviceData.status?.charAt(0).toUpperCase()}${deviceData.status?.slice(1)}`;
-
   return (
     <>
       <div
@@ -678,57 +641,6 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
               helperText={errors.deployment_date}
               fullWidth
             />
-
-            <TextField
-              label="Longitude"
-              style={{ marginBottom: "15px" }}
-              disabled={!manualCoordinate}
-              variant="outlined"
-              value={longitude}
-              onChange={(event) => {
-                setLongitude(event.target.value);
-                setErrors({
-                  ...errors,
-                  longitude:
-                    event.target.value.length > 0 ? "" : errors.longitude,
-                });
-              }}
-              fullWidth
-              error={!!errors.longitude}
-              helperText={errors.longitude}
-              required
-            />
-
-            <TextField
-              label="Latitude"
-              disabled={!manualCoordinate}
-              style={{ marginBottom: "15px" }}
-              value={latitude}
-              variant="outlined"
-              onChange={(event) => {
-                setLatitude(event.target.value);
-                setErrors({
-                  ...errors,
-                  latitude:
-                    event.target.value.length > 0 ? "" : errors.latitude,
-                });
-              }}
-              fullWidth
-              error={!!errors.latitude}
-              helperText={errors.latitude}
-              required
-            />
-            <span
-              style={coordinatesActivateStyles}
-              onClick={(event) => setManualCoordinate(!manualCoordinate)}
-            >
-              Manually fill in coordinates
-              <Checkbox
-                checked={manualCoordinate}
-                name="primaryDevice"
-                color="primary"
-              />
-            </span>
 
             <div style={{ margin: "30px 0 20px 0" }}>
               <Grid container item xs={12} spacing={3}>
