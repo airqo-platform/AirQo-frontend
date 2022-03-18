@@ -10,7 +10,6 @@ const App = () => (
         <NotificationBanner />
         <TopBar />
         <HomePage />
-        <MapSection />
         <Footer />
     </div>
 );
