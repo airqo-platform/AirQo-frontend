@@ -1,5 +1,6 @@
 import React from 'react';
 import HomePageMap from '../../assets/img/homepage-map.png'
+import ArrowRight from '../../icons/common/ArrowRight';
 
 const MapSection = () => {
   return (
@@ -11,7 +12,7 @@ const MapSection = () => {
                 <span className='content-p'>
                     <p>A better way to visualize hourly air quality information <br/> with a single click over our growing network across <br/> African cities</p>
                 </span>
-                <span id='second-pill'>View map <i></i></span>
+                <span id='second-pill'><p>View map</p> <i> <ArrowRight/> </i></span>
             </div>
             <div className='map-image'>
                 <img className='map-img' src={HomePageMap}/>
