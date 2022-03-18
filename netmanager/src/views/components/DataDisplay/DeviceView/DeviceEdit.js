@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import TextField from "@material-ui/core/TextField";
-import Paper from "@material-ui/core/Paper";
-import { Button, Grid } from "@material-ui/core";
-import OutlinedSelect from "../../CustomSelects/OutlinedSelect";
+import {
+  Paper, TextField, Button, Grid, Accordion, AccordionDetails, AccordionSummary, Typography
+} from "@material-ui/core";
+import { ExpandMore } from '@material-ui/icons';
 import { isEmpty, isEqual, omit } from "underscore";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import { updateDeviceDetails } from "views/apis/deviceRegistry";
@@ -11,8 +11,6 @@ import { loadDevicesData } from "redux/DeviceRegistry/operations";
 import { useSiteOptionsData } from "redux/SiteRegistry/selectors";
 import { loadSitesData } from "redux/SiteRegistry/operations";
 import DeviceDeployStatus from "./DeviceDeployStatus";
-import { capitalize } from "utils/string";
-import { getDateString } from "utils/dateTime";
 
 import { filterSite } from "utils/sites";
 
@@ -110,6 +108,12 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
     return secondary;
   };
 
+  const [expanded, setExpanded] = React.useState(false);
+
+  const handleChange = (panel) => (event, isExpanded) => {
+    setExpanded(isExpanded ? panel : false);
+  };
+
   return (
     <div>
       <Paper
@@ -120,35 +124,54 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
           maxWidth: "1500px",
         }}
       >
-        <Grid container spacing={1}>
-          <Grid items xs={12} sm={4} style={gridItemStyle}>
+      <Accordion container spacing={1}>
+        <AccordionSummary
+            expandIcon={<ExpandMore />}
+            aria-controls="panel1a-content"
+            id="panel1a-header"
+        >
+          Name, Description
+        </AccordionSummary>
+        <AccordionDetails>            
+        <Grid items xs={12} sm={4} style={gridItemStyle}>
             <TextField
-              autoFocus
-              margin="dense"
-              id="long_name"
-              label="Name"
-              variant="outlined"
-              value={editData.long_name}
-              onChange={handleTextFieldChange}
-              error={!!errors.long_name}
-              helperText={errors.long_name}
-              fullWidth
+            autoFocus
+            margin="dense"
+            id="long_name"
+            label="Name"
+            variant="outlined"
+            value={editData.long_name}
+            onChange={handleTextFieldChange}
+            error={!!errors.long_name}
+            helperText={errors.long_name}
+            fullWidth
             />
-          </Grid>
-          <Grid items xs={12} sm={4} style={gridItemStyle}>
+        </Grid>
+        <Grid items xs={12} sm={4} style={gridItemStyle}>
             <TextField
-              autoFocus
-              margin="dense"
-              variant="outlined"
-              id="description"
-              label="Description"
-              value={editData.description}
-              onChange={handleTextFieldChange}
-              error={!!errors.description}
-              helperText={errors.description}
-              fullWidth
+            autoFocus
+            margin="dense"
+            variant="outlined"
+            id="description"
+            label="Description"
+            value={editData.description}
+            onChange={handleTextFieldChange}
+            error={!!errors.description}
+            helperText={errors.description}
+            fullWidth
             />
-          </Grid>
+        </Grid>
+            </AccordionDetails>
+      </Accordion>
+      <Accordion container spacing={1}>
+            <AccordionSummary
+                expandIcon={<ExpandMore />}
+                aria-controls="panel1a-content"
+                id="panel1a-header"
+            >
+              Phone Number, Internet Service Provider
+            </AccordionSummary>
+          <AccordionDetails>     
           <Grid items xs={12} sm={4} style={gridItemStyle}>
             <TextField
               autoFocus
@@ -162,26 +185,6 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               helperText={errors.phoneNumber}
               fullWidth
             />
-          </Grid>
-          <Grid items xs={12} sm={4} style={gridItemStyle}>
-            <TextField
-              select
-              fullWidth
-              label="Data Access"
-              style={{ margin: "10px 0" }}
-              value={editData.visibility}
-              onChange={handleSelectFieldChange("visibility")}
-              SelectProps={{
-                native: true,
-                style: { width: "100%", height: "50px" },
-              }}
-              error={!!errors.visibility}
-              helperText={errors.visibility}
-              variant="outlined"
-            >
-              <option value={false}>Private</option>
-              <option value={true}>Public</option>
-            </TextField>
           </Grid>
           <Grid items xs={12} sm={4} style={gridItemStyle}>
             <TextField
@@ -202,6 +205,37 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               <option value="MTN">MTN</option>
               <option value="Airtel">Airtel</option>
               <option value="Africell">Africell</option>
+            </TextField>
+          </Grid>
+          </AccordionDetails>
+      </Accordion>
+      <Accordion container spacing={1}>
+            <AccordionSummary
+                expandIcon={<ExpandMore />}
+                aria-controls="panel1a-content"
+                id="panel1a-header"
+            >
+              Data Access, Primary Device In Location, Deployment status
+            </AccordionSummary>
+            <AccordionDetails>     
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
+            <TextField
+              select
+              fullWidth
+              label="Data Access"
+              style={{ margin: "10px 0" }}
+              value={editData.visibility}
+              onChange={handleSelectFieldChange("visibility")}
+              SelectProps={{
+                native: true,
+                style: { width: "100%", height: "50px" },
+              }}
+              error={!!errors.visibility}
+              helperText={errors.visibility}
+              variant="outlined"
+            >
+              <option value={false}>Private</option>
+              <option value={true}>Public</option>
             </TextField>
           </Grid>
           <Grid items xs={12} sm={4} style={gridItemStyle}>
@@ -245,6 +279,8 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               <option value={'recalled'}>Recalled</option>
             </TextField>
           </Grid>
+          </AccordionDetails>
+      </Accordion>
           {/*<Grid*/}
           {/*  items*/}
           {/*  xs={12}*/}
@@ -371,7 +407,6 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               Save Changes
             </Button>
           </Grid>
-        </Grid>
       </Paper>
     </div>
   );
