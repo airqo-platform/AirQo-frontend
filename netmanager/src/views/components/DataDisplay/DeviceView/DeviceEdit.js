@@ -130,7 +130,7 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
             aria-controls="panel1a-content"
             id="panel1a-header"
         >
-          Name, Description
+          Details
         </AccordionSummary>
         <AccordionDetails>            
         <Grid items xs={12} sm={4} style={gridItemStyle}>
@@ -169,7 +169,7 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
                 aria-controls="panel1a-content"
                 id="panel1a-header"
             >
-              Phone Number, Internet Service Provider
+              Connectivity
             </AccordionSummary>
           <AccordionDetails>     
           <Grid items xs={12} sm={4} style={gridItemStyle}>
@@ -215,7 +215,7 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
                 aria-controls="panel1a-content"
                 id="panel1a-header"
             >
-              Data Access, Primary Device In Location, Deployment status
+              Management
             </AccordionSummary>
             <AccordionDetails>     
           <Grid items xs={12} sm={4} style={gridItemStyle}>
