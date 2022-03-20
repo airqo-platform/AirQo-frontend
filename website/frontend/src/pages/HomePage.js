@@ -14,6 +14,7 @@ import UnChecked from 'icons/homepage/unchecked.svg';
 import Page from './Page';
 import NavTab from '../components/nav/NavTab';
 import Hero from "../components/Hero";
+import Monitor from "../components/Monitor";
 
 const Icon = ({ icon }) => (
         <div className="icon">{icon}</div>
@@ -23,6 +24,7 @@ const HomePage = () => (
     <Page>
         <div className="HomePage">
             <Hero />
+            <Monitor />
             <div className="intro-container">
                 <div className="container">
                     <div className="text-container">

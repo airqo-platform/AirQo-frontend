@@ -1,0 +1,103 @@
+@import "lib/variables";
+@import "lib/colors";
+
+
+.Monitor {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  background: $aq-white-0;
+
+  .monitor-content {
+    margin: 80px 0 0 0;
+  }
+
+  .label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 186px;
+    height: 34px;
+
+    font-style: normal;
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 26px;
+
+    color: $aq-blue-0;
+
+    background: $aq-white-1;
+    border-radius: 1000px;
+  }
+
+  .text-main {
+    width: 328px;
+
+    font-style: normal;
+    font-weight: 700;
+    font-size: 40px;
+    line-height: 48px;
+
+    margin: 28px 0 16px 0;
+
+    color: $aq-black-1;
+  }
+
+  .text-sub {
+    width: 328px;
+
+    font-style: normal;
+    font-weight: 400;
+    font-size: 20px;
+    line-height: 28px;
+
+    margin: 16px 0 24px 0;
+
+    color: $aq-black-1;
+  }
+
+  .learn-more {
+    display: flex;
+    align-items: center;
+
+    font-style: normal;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 14px;
+
+    color: $aq-blue-0;
+  }
+
+  >img {
+    height: 400px;
+    width: 312px;
+    border-radius: 16px;
+    margin: 48px 0 80px 0;
+  }
+}
+
+@media (min-width: $mainBreakPoint) {
+  .Monitor {
+    height: 900px;
+    align-items: center;
+
+    .text-main {
+      width: 520px;
+      margin: 28px 0 24px 0;
+    }
+
+    .text-sub {
+      width: 477px;
+      font-size: 18px;
+      line-height: 26px;
+      margin: 24px 0 32px 0;
+    }
+
+    >img {
+      height: 584px;
+      width: 520px;
+      border-radius: 16px;
+      margin: 0;
+    }
+  }
+}
