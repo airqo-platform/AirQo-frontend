@@ -45,9 +45,7 @@
   >img {
     width: 360px;
     height: 235px;
-    margin: 0;
   }
-
   .hero-title {
     width: 328px;
     font-style: normal;
@@ -66,10 +64,46 @@
     margin: 0;
   }
 
-  >div {
+  .hero-buttons {
     display: flex;
     flex-wrap: wrap;
     width: 328px;
     margin: 40px 0 80px 0;
   }
+}
+
+@media (min-width: $mainBreakPoint) {
+  .Hero {
+    padding-left: $mainPadding;
+    justify-content: space-between;
+    >img {
+      width: 640px;
+      height: 730px;
+      margin: 0;
+    }
+
+    .hero-content {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      height: 730px;
+      max-width: 640px;
+      order: -1;
+    }
+
+    .hero-title {
+      width: 520px;
+      margin: 0;
+    }
+    .hero-sub {
+      width: 439px;
+      height: 84px;
+      margin: 16px 0 40px 0;
+    }
+    .hero-buttons {
+      margin: 0;
+    }
+  }
+
 }
