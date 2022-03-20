@@ -13,6 +13,7 @@ import Checked from 'icons/homepage/checked.svg';
 import UnChecked from 'icons/homepage/unchecked.svg';
 import Page from './Page';
 import NavTab from '../components/nav/NavTab';
+import Hero from "../components/Hero";
 
 const Icon = ({ icon }) => (
         <div className="icon">{icon}</div>
@@ -21,6 +22,7 @@ const Icon = ({ icon }) => (
 const HomePage = () => (
     <Page>
         <div className="HomePage">
+            <Hero />
             <div className="intro-container">
                 <div className="container">
                     <div className="text-container">
