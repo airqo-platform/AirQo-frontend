@@ -54,11 +54,11 @@ const Footer = () => (
             </div>
             <div className="copyright-section">
                 <div className="copyright-container">
-                    <div className="text copyright-text">© {new Date().getFullYear()} AirQo</div>
+                    <div className="text-copyright">© {new Date().getFullYear()} AirQo</div>
                     <div className="terms-section">
-                        <span className="text mr-24">Terms of service</span>
-                        <span className="text mr-24">Privacy policy</span>
-                        <span className="text mr-24">Sustainability</span>
+                        <span className="text-terms mr-24">Terms of service</span>
+                        <span className="text-terms mr-24">Privacy policy</span>
+                        <span className="text-terms mr-24">Sustainability</span>
                     </div>
                 </div>
                 <div className="project-container mb-24">

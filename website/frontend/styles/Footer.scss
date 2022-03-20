@@ -79,19 +79,18 @@ $footer-padding: 80px;
       }
     }
 
-  .text {
-      font-style: normal;
+  .text-copyright, .text-terms {
+    font-style: normal;
       font-weight: normal;
       font-size: 14px;
       line-height: 18px;
       margin-bottom: 24px;
       color: $aq-black-0;
-    }
+  }
 
   .terms-section {
     display: flex;
     flex-wrap: wrap;
-
   }
 
   .mr-24 {
@@ -196,21 +195,17 @@ $footer-padding: 80px;
       width: 30%;
     }
 
-    .text {
-      font-style: normal;
-      font-weight: normal;
-      font-size: 14px;
-      line-height: 18px;
+    .text-copyright {
+      display: flex;
+      align-items: center;
+      margin: 0 48px 0 0;
 
+    }
+
+    .text-terms {
       display: flex;
       align-items: center;
       margin: 0 48px;
-
-      color: $aq-black-0;
-    }
-
-    .copyright-text {
-      margin-right: 64px;
     }
 
     .terms {
