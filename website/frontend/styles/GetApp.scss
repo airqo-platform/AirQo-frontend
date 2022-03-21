@@ -1,6 +1,7 @@
 @import "lib/colors";
+@import "lib/variables";
 
-$layout-breakpoint: 580px;
+
 @mixin flex-column{
     display: flex;
     flex-direction: column;
@@ -26,6 +27,7 @@ $layout-breakpoint: 580px;
         border-radius: 8px;
 
         .get-content{
+            margin-left: 3%;
             .get-text{
                 padding: 28px 0 0 30px;
                 width:230px;
@@ -140,7 +142,7 @@ $layout-breakpoint: 580px;
     }
 }
 
-@media (max-width: $layout-breakpoint){
+@media (max-width: $mainBreakPoint){
     .get-app{
         padding:0;
         margin:95% 0 22% 0;
@@ -163,16 +165,20 @@ $layout-breakpoint: 580px;
             }
 
             .get-content{
+                margin:0 4% 0 3%;
+                @include flex-column();
+                justify-content: center;
                 .get-text{
-                padding: 20px 0 0 20px;
-                width:230px;
+                    padding: 20px 0 0 20px;
+                    width:230px;
                 }
                 .get-btns{
                     @include flex-column();
                     padding:0 0 20px 0px;
-                    margin:10% 3% 10% 3%;
+                    margin:10% 6% 10% 5%;
                     button{
                         width: 100%;
+                        outline: none;
                     }
                     .get-android{
                         margin:4% 0 0 0;
@@ -191,7 +197,7 @@ $layout-breakpoint: 580px;
                         div{
                             padding:2px 0 2px 0;
                             small{
-                                font-size: 14px;
+                                font-size: 13px;
                             }
                             span{
                                 font-size: 22px;
