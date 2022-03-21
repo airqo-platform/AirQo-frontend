@@ -6,7 +6,7 @@ import GetappImgSm from '../../assets/img/get-app-sm.png'
 
 const GetApp = () => {
     return (
-        <div className='container get-app'>
+        <div className='get-app'>
             <div className='back-drop'>
                 <div className='get-content'>
                     <div className='get-text'>

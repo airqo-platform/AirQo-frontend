@@ -13,8 +13,9 @@ $layout-breakpoint: 580px;
 }
 
 .get-app{
-    margin:14% 8% 20% 8%;
+    margin:14% 8% 14% 8%;
     padding:40px;
+    box-sizing: content-box;
 
     .back-drop{
         @include flex-row();
