@@ -1,3 +1,5 @@
+$layout-breakpoint: 580px;
+
 .Newsletter {
     height: 400px;
     display: flex;
@@ -60,7 +62,7 @@
     }
 }
 
-@media(max-width: 580px) {
+@media(max-width: $layout-breakpoint) {
     .Newsletter {
         padding: 0 16px;
 
