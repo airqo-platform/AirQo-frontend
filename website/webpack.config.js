@@ -106,7 +106,7 @@ const config = () => {
           test: /\.(png|jpg|ico)$/,
           use: compact([
             {
-              loader: 'file-loader',
+              loader: 'url-loader',
               options: { name: '[path][name].[ext]' },
             },
           ]),

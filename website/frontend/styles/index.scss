@@ -12,6 +12,24 @@
 
 @import "HomePage";
 
+@import "Hero";
+
+@import "Monitor";
+
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
+html {
+  box-sizing: border-box;
+}
+
 body {
   font-family: 'Inter', sans-serif;
+}
+
+.Page {
+  width: 100%;
+  max-width: 1500px;
+  margin: auto;
 }
