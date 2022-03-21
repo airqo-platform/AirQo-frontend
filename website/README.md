@@ -214,7 +214,7 @@ Populate the `.env` file with the following keys and their respective values
     CLOUDINARY_KEY
     CLOUDINARY_SECRET
     WEB_STATIC_HOST
-    DJANGO_ALLOWED_HOSTS      # alist od comma seperated hosts
+    DJANGO_ALLOWED_HOSTS      # a list of comma seperated hosts
     GS_BUCKET_NAME
     CONTAINER_ENV             # True for docker
 
