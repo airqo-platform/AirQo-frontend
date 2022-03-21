@@ -1,6 +1,7 @@
 @import "lib/colors";
 
 $topbar-padding: 80px;
+$layout-breakpoint: 580px;
 
 .TopBar {
   display: flex;
@@ -21,7 +22,7 @@ $topbar-padding: 80px;
   }
 }
 
-@media(max-width: 580px){
+@media(max-width: $layout-breakpoint){
   .TopBar {
     justify-content: space-between;
     padding: 20px 16px;
