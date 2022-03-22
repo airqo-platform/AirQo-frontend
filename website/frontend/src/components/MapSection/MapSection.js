@@ -4,7 +4,7 @@ import ArrowRight from '../../icons/common/ArrowRight';
 
 const MapSection = () => {
   return (
-    <div className="container map-section">
+    <div className="map-section">
         <div className='backdrop'>
             <div className='map-content'>
                 <span id='first-pill'><p>Air Quality by Map</p></span>

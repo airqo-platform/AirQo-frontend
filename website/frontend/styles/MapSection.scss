@@ -1,6 +1,6 @@
 @import "lib/colors";
+@import "lib/variables";
 
-$layout-breakpoint: 580px;
 
 @mixin flex-column{
     display: flex;
@@ -13,7 +13,8 @@ $layout-breakpoint: 580px;
     flex-direction: row;
 }
 .map-section{
-    margin:10% 0 0 0;
+    margin:6% 0 20% 0;
+    box-sizing: content-box;
     .backdrop{
         @include flex-row();
         justify-content: space-between;
@@ -29,14 +30,14 @@ $layout-breakpoint: 580px;
                 align-items: center;
                 justify-content: center;
                 background-color: $aq-white-1;
-                width:105px;
-                height:20px;
+                width:170px;
+                height:25px;
                 border-radius:1000px;
                 padding:3px 18px;
                 p{
                     color:$aq-blue-0;
                     padding:10px;
-                    font-size:9px;
+                    font-size:12.5px;
                     font-weight: 700;
                     line-height: 26px;
                     flex-grow:0;
@@ -46,14 +47,14 @@ $layout-breakpoint: 580px;
             .content-h{
                 color:$aq-black-0;
                 font-weight:700;
-                font-size:34px;
+                font-size:40px;
             }
             .content-p{
                 margin:-9% 0 0 0;
                 p{
                     color:$aq-black-0;
                     font-weight:400;
-                    font-size: 13px;  
+                    font-size: 16px;  
                     line-height:20px; 
                 }
             }
@@ -63,7 +64,7 @@ $layout-breakpoint: 580px;
                 p{
                     color:$aq-blue-0;
                     font-weight:600;
-                    font-size:10.5px; 
+                    font-size:12.5px; 
                     line-height:10px;
                     flex-grow:0;
                     padding:3px;
@@ -71,10 +72,10 @@ $layout-breakpoint: 580px;
                 }
                 i{
                     fill:$aq-blue-0;
-                    width:12px;
-                    height:12px;
+                    width:14px;
+                    height:14px;
                     font-weight:600;
-                    padding:1px 0 0 4px;
+                    margin-left:2px;
                 }
             }
         }
@@ -90,9 +91,9 @@ $layout-breakpoint: 580px;
     }
 }
 
-@media(max-width:$layout-breakpoint){
+@media(max-width:$mainBreakPoint){
     .map-section{
-        margin:14% 0 0 0;
+        padding:0 12px;
         .backdrop{
             @include flex-column();
             justify-content: center;
@@ -100,11 +101,13 @@ $layout-breakpoint: 580px;
             padding:0;
             .map-content{
                 margin: 20% 5% 0 5%;
-                #second-pill{
-                i{
-                    padding: 0 0 0 4px;
+                #first-pill{
+                    width:140px;
+                    height:20px;
                 }
-            }
+                .content-h{
+                    font-size: 35px;
+                }
             }
             .map-image{
                 width:auto;
