@@ -1,0 +1,126 @@
+@import "lib/colors";
+@import "lib/variables";
+
+
+@mixin flex-column{
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+}
+
+@mixin flex-row{
+    display: flex;
+    flex-direction: row;
+}
+.map-section{
+    margin:6% 0 20% 0;
+    box-sizing: content-box;
+    .backdrop{
+        @include flex-row();
+        justify-content: space-between;
+        background-color: $aq-blue-1;
+        padding:20px;
+        height:auto;
+
+        .map-content{
+            @include flex-column();
+            margin:6% 0 0 16%;
+            #first-pill{
+                @include flex-row();
+                align-items: center;
+                justify-content: center;
+                background-color: $aq-white-1;
+                width:170px;
+                height:25px;
+                border-radius:1000px;
+                padding:3px 18px;
+                p{
+                    color:$aq-blue-0;
+                    padding:10px;
+                    font-size:12.5px;
+                    font-weight: 700;
+                    line-height: 26px;
+                    flex-grow:0;
+                    align-self:center;
+                }
+            }
+            .content-h{
+                color:$aq-black-0;
+                font-weight:700;
+                font-size:40px;
+            }
+            .content-p{
+                margin:-9% 0 0 0;
+                p{
+                    color:$aq-black-0;
+                    font-weight:400;
+                    font-size: 16px;  
+                    line-height:20px; 
+                }
+            }
+            #second-pill{
+                @include flex-row();
+                align-items: center;
+                p{
+                    color:$aq-blue-0;
+                    font-weight:600;
+                    font-size:12.5px; 
+                    line-height:10px;
+                    flex-grow:0;
+                    padding:3px;
+                    margin: 2% 0 0 0;
+                }
+                i{
+                    fill:$aq-blue-0;
+                    width:14px;
+                    height:14px;
+                    font-weight:600;
+                    margin-left:2px;
+                }
+            }
+        }
+
+        .map-image{
+            padding:0px;
+            margin:0 70px 0 0;
+            width:40%;
+            .map-img{    
+                width:100%;
+            }
+        }
+    }
+}
+
+@media(max-width:$mainBreakPoint){
+    .map-section{
+        padding:0 12px;
+        .backdrop{
+            @include flex-column();
+            justify-content: center;
+            align-items: center;
+            padding:0;
+            .map-content{
+                margin: 20% 5% 0 5%;
+                #first-pill{
+                    width:140px;
+                    height:20px;
+                }
+                .content-h{
+                    font-size: 35px;
+                }
+            }
+            .map-image{
+                width:auto;
+                margin:25px 2% 0 0;
+                padding:0px;
+                .map-img{
+                    right:0;
+                    width:auto;
+                    padding:0px;
+                    width:98%;
+                    height:auto;
+                }
+            }
+        }
+    }
+}

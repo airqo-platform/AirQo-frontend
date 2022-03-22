@@ -1,0 +1,109 @@
+@import "lib/variables";
+@import "lib/colors";
+
+.button-hero {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 24px;
+
+  width: 157px;
+  height: 40px;
+
+  background: $aq-blue-0;
+  border: none;
+  border-radius: 8px;
+
+  font-style: normal;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 24px;
+  color: $aq-white-0;
+}
+
+.button-signin {
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  color: $aq-blue-0;
+  margin-left: 42px;
+  border: none;
+  background: $aq-white-0;
+}
+
+
+.Hero {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+  background: $aq-white-0;
+  color: $aq-black-1;
+
+  >img {
+    width: 360px;
+    height: 235px;
+  }
+  .hero-title {
+    width: 328px;
+    font-style: normal;
+    font-weight: 700;
+    font-size: 48px;
+    line-height: 56px;
+    margin: 32px 0 16px 0;
+  }
+
+  .hero-sub {
+    width: 328px;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 20px;
+    line-height: 28px;
+    margin: 0;
+  }
+
+  .hero-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    width: 328px;
+    margin: 40px 0 80px 0;
+  }
+}
+
+@media (min-width: $mainBreakPoint) {
+  .Hero {
+    padding-left: $mainPadding;
+    justify-content: space-between;
+    >img {
+      width: 640px;
+      height: 730px;
+      margin: 0;
+    }
+
+    .hero-content {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      height: 730px;
+      max-width: 640px;
+      order: -1;
+    }
+
+    .hero-title {
+      width: 520px;
+      margin: 0;
+    }
+    .hero-sub {
+      width: 439px;
+      height: 84px;
+      margin: 16px 0 40px 0;
+    }
+    .hero-buttons {
+      margin: 0;
+    }
+  }
+
+}
