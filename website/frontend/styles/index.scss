@@ -12,6 +12,10 @@
 
 @import "HomePage";
 
+@import "MapSection";
+
+@import "GetApp";
+
 @import "Hero";
 
 @import "Monitor";
@@ -26,6 +30,8 @@ html {
 
 body {
   font-family: 'Inter', sans-serif;
+  overflow-y: scroll;
+  overflow-x: hidden;
 }
 
 .Page {
