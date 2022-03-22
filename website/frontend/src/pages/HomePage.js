@@ -4,6 +4,7 @@ import Hero from '../components/Hero';
 import Monitor from '../components/Monitor';
 import GetApp from '../components/get-app/GetApp';
 import MapSection from '../components/MapSection/MapSection';
+import { NewsletterSection } from '../components/NewsletterSection';
 
 const HomePage = () => (
     <Page>
@@ -12,6 +13,7 @@ const HomePage = () => (
             <Monitor />
             <MapSection />
             <GetApp />
+            <NewsletterSection />
         </div>
     </Page>
 );
