@@ -10,6 +10,7 @@ $layout-breakpoint: 580px;
   background: $aq-white-0;
   padding: 0 $topbar-padding;
   box-shadow: 0 0 13px -11px #0000001a;
+  border-bottom: 1px solid #1217231a;
 
   .container {
     display: flex;
