@@ -142,5 +142,3 @@ cython_debug/
 node_modules/
 google_application_credentials.json
 
-
-/frontend/static/frontend/
