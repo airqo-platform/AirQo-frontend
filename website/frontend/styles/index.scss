@@ -12,8 +12,32 @@
 
 @import "HomePage";
 
+@import "MapSection";
+
+@import "GetApp";
+
+@import "Hero";
+
+@import "Monitor";
+
 @import "BackedBy";
+
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
+html {
+  box-sizing: border-box;
+}
 
 body {
   font-family: 'Inter', sans-serif;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+.Page {
+  width: 100%;
+  max-width: 1500px;
+  margin: auto;
 }
