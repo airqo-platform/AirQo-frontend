@@ -67,7 +67,8 @@ $layout-breakpoint: 580px;
 
 @media(max-width: $layout-breakpoint) {
     .Newsletter {
-        padding: 0 16px;
+        height: 100%;
+        padding: 80px 16px;
 
         p {
             margin: 10px 34.95px;
@@ -83,6 +84,7 @@ $layout-breakpoint: 580px;
             &-input {
                 padding: 4px 16px;
                 width: 92%;
+                box-sizing: content-box;
                 border-radius: 16px;
                 margin-bottom: 17.09px;
             }

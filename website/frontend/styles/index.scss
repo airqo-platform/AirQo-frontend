@@ -6,8 +6,6 @@
 
 @import "TopBar";
 
-@import "NewsletterSection";
-
 @import "NavTab";
 
 @import "Footer";
@@ -21,6 +19,8 @@
 @import "Hero";
 
 @import "Monitor";
+
+@import "NewsletterSection";
 
 *, *::before, *::after {
   box-sizing: inherit;
