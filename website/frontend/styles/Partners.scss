@@ -1,0 +1,130 @@
+@import "lib/colors";
+@import "lib/variables";
+
+
+@mixin flex-column{
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+}
+
+@mixin flex-row{
+    display: flex;
+    flex-direction: row;
+}
+
+.home-partners{
+    .backdrop{
+        @include flex-column();
+        justify-content: center;
+        align-items: center;
+        background-color: $aq-blue-1;
+        #title{
+            padding:60px 0 30px 0;
+            span{
+                font-size: 20px;
+            }
+        }
+        .logos-web{
+            @include flex-row();
+            display:block;
+            margin:0 -4% 4% -3%;
+            .logo{
+                @include flex-row();
+                div{
+                    display:flex;
+                    align-items: center;
+                    justify-content: center;
+                    border:1px solid $aq-white-2;
+                    min-width:230px;
+                    height:110px;
+                    animation:TranslateWeb 20s;
+                    animation-iteration-count: infinite;
+                    mix-blend-mode: multiply;
+                }
+            }
+        }
+        .logos-mobile{
+            display:none;
+        }
+    }
+}
+
+@media(max-width:$mainBreakPoint){
+    .home-partners{
+        .backdrop{
+            .logos-web{
+                display:none;
+            }
+            .logos-mobile{
+                display: block;
+                margin:0 0 6% 0;
+                .mobile-row{
+                    @include flex-row();
+                    justify-content: center;
+                    align-items: center;
+                    animation:TranslateMobile 10s;
+                    animation-iteration-count: infinite;
+                    mix-blend-mode: multiply;
+                    div{
+                        border:1px solid $aq-white-2;
+                        min-width: 130px;
+                        height:70px;
+                        svg{
+                            width:128px;
+                            height:60px;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@keyframes TranslateWeb{
+    0%{
+        transform: translateX(30%);
+        transition-duration: 1s;
+        transition-delay: 1s ease-in-out;
+    }
+    30%{
+        transform: translateX(-112%);
+        transition-duration: 9s ease-in-out;
+    }
+    70%{
+        transform: translateX(30%);
+        transition-duration: 2s ease-out;
+    }
+    90%{
+        transform:translateX(108%);
+        transition-duration: 4s;
+    }
+    100%{
+        transform: translateX(30%);
+        transition-duration: 2s;
+    }
+}
+
+@keyframes TranslateMobile{
+    0%{
+        transform: translateX(10%);
+        transition-duration: 3s;
+    }
+    30%{
+        transform: translateX(-23%);
+        transition-duration: 5s;
+        transition-delay: 0.8s ease-in;
+    }
+    60%{
+        transform: translateX(23%);
+        transition-duration: 5s;
+    }
+    90%{
+        transform:translateX(14%);
+        transition-duration: 2s;
+    }
+    100%{
+        transform:translateX(10%);
+        transition-duration: 3s;
+    }
+}
