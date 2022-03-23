@@ -5,6 +5,7 @@ import Monitor from '../components/Monitor';
 import TopBar from '../components/nav/TopBar';
 import GetApp from '../components/get-app/GetApp';
 import MapSection from '../components/MapSection/MapSection';
+import { NewsletterSection } from '../components/NewsletterSection';
 
 const HomePage = () => (
     <Page>
@@ -14,6 +15,7 @@ const HomePage = () => (
             <Monitor />
             <MapSection />
             <GetApp />
+            <NewsletterSection />
         </div>
     </Page>
 );
