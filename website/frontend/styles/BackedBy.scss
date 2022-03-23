@@ -1,0 +1,186 @@
+@import "lib/colors";
+
+$layout-breakpoint: 580px;
+
+@mixin flex-column{
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+}
+
+@mixin flex-row{
+    display: flex;
+    flex-direction: row;
+}
+
+.backed-by{
+    position: relative;
+    width: 1088px;
+    height: 840px;
+    left: 176px;
+    bottom: 90px;
+
+    background: #EDF3FF;
+    border: 16px solid #EDF3FF;
+    box-sizing: border-box;
+    border-radius: 16px;
+
+    .backed-by-title{
+        position: absolute;
+        width: 720px;
+        height: 96px;
+        left: 184px;
+        top: 80px;
+
+        font-family: 'Inter';
+        font-style: normal;
+        font-weight: 700;
+        font-size: 40px;
+        line-height: 48px;
+
+        /* or 120% */
+        display: flex;
+        align-items: center;
+        text-align: center;
+
+        /* Brand / Blue */
+        color: #145DFF;
+    }
+
+    .backed-by-subheading{
+        position: absolute;
+        width: 400px;
+        height: 56px;
+        left: 353px;
+        top: 200px;
+
+        font-family: 'Inter';
+        font-style: normal;
+        font-weight: 400;
+        font-size: 20px;
+        line-height: 28px;
+
+        /* or 140% */
+        display: flex;
+        align-items: center;
+        text-align: center;
+
+        /* Brand/Black */
+        color: #121723;
+    }
+
+    .backed-by-buttons{
+        position: relative;
+        top: 296px;
+        height: 56px;
+        width: 400px;
+        bottom: 80px;
+    }
+
+    button{
+        /* Auto layout */
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+
+        position: absolute;
+
+        width: 187px;
+        height: 48px;
+        border-radius: 16px;
+    }
+
+    #request-demo{
+        left: 333px;
+        background: #145DFF;
+        color: #FFFFFF;
+    }
+
+    #get-involved{    
+        left: 588px;  
+        background: #EDF3FF;
+        color: #145DFF;
+    }
+
+    .carousel{
+        position: relative;
+        top: 60px;
+        height: 100%;
+        width: 100%;
+        padding: 1px;
+        padding-top: 1px;
+        left: 1px;
+        right: 1px;
+        margin: 50px auto 0 auto;
+
+        .org-card{
+            position: relative;
+            top: 0%;
+            bottom: 0%;
+            left: 1px;  
+            right: 1px;  
+            width: 590px;
+            height: 270px;
+            margin: 50px 0;
+            padding-right: 40px;
+
+            #card-content{
+                position: relative;
+                right: 23%;  
+                width: 540px;
+                height: 100%;
+                background: #FFFFFF;
+                border-radius: 17.82px;
+
+                #org-image{
+                    position: absolute;
+                    top: 1px;
+                    bottom: 1px;
+                    left: 1px;
+                    height: 264px;
+                    width: 200px;
+                    padding: 4px;
+                }
+    
+                .card-text{
+                    position: absolute;
+                    width: 264px;
+                    height: 156px;
+                    left: 232px;
+                    top: 0%;
+    
+                    font-family: 'Inter';
+                    font-style: normal;
+                    font-size: 16px;
+                    line-height: 26px;
+    
+                    color: #121723;
+    
+                    opacity: 0.8;
+                    
+                    .card-heading{
+                        font-weight: 700;
+                    }
+                }
+    
+                #org-logo{
+                    position: absolute;
+                    width: 115px;
+                    height: 40px;
+                    left: 231px;
+                    top: 216px;
+                    mix-blend-mode: multiply;
+                }
+            }
+        }
+    }
+
+    .custom-dot {
+        position: relative;
+        top: -50px;
+        width: 58.82px;
+        height: 2px;
+        border-radius: 1px;
+    }
+}
