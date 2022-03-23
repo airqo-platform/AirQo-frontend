@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 // Assets
 import BackingOrg from '../../assets/img/OrganizationImage.svg';
-import OrganizationLogo from '../../assets/img/OrganizationLogo.svg';
+import OrganizationLogo from '../../icons/homepage/partners/google.svg';
 
 export default function OrganisationCard({
   imageUrl, logoUrl, heading, paragraph,

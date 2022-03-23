@@ -12,6 +12,7 @@ import Sensor from 'icons/homepage/sensor.svg';
 import Checked from 'icons/homepage/checked.svg';
 import UnChecked from 'icons/homepage/unchecked.svg';
 import NavTab from '../components/nav/NavTab';
+import BackedBy from '../components/backedBy';
 
 const Icon = ({ icon }) => (
         <div className="icon">{icon}</div>
@@ -105,6 +106,7 @@ const HomePage = () => (
                 </div>
             </div>
         </div>
+        <BackedBy />
         <div className="subscribe-container">
             <div className="text-primary">Get air quality updates!</div>
             <div className="text-secondary">Subscribe to our newsletter and learn about the quality of the air you are breathing</div>
