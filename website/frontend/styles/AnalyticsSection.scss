@@ -1,4 +1,4 @@
-$layout-breakpoint: 580px;
+@import "lib/variables";
 
 .AnalyticsSection {
     position: relative;
@@ -68,7 +68,7 @@ $layout-breakpoint: 580px;
     }
 }
 
-@media(max-width: $layout-breakpoint) {
+@media(max-width: $mainBreakPoint) {
     .AnalyticsSection {
         position: relative;
         padding: 60px 16px;
