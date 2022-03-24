@@ -1,0 +1,222 @@
+@import "lib/colors";
+@import "lib/variables";
+
+
+@mixin flex-column{
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+}
+
+@mixin flex-row{
+    display: flex;
+    flex-direction: row;
+}
+
+.get-app{
+    margin:14% 8% 14% 8%;
+    padding:40px;
+    box-sizing: content-box;
+
+    .back-drop{
+        @include flex-row();
+        justify-content: space-between;
+        padding:30px;
+        height:260px;
+        background-color: $aq-blue-1;
+        border-radius: 8px;
+
+        .get-content{
+            margin-left: 3%;
+            .get-text{
+                padding: 28px 0 0 30px;
+                width:230px;
+                h2{
+                    color:$aq-blue-0;
+                    font-weight: 700;
+                    font-size: 38px;
+                    line-height: 10px;
+                }
+                span{
+                    color:$aq-blue-0;
+                    font-weight: 400;
+                    font-size: 16px;
+                    line-height: 10px;
+                }
+            }
+            .get-btns{
+                @include flex-row();
+                margin-top: 10%;
+                padding:0 0 0 30px;
+
+                button{
+                    color: $aq-white-0;
+                    background-color: $aq-black-0;
+                    width:140px;
+                    border-radius: 7px;
+                }
+                .get-btn{
+                    @include flex-row();
+                    div{
+                        @include flex-column();
+                        text-align: left;
+                        padding:4px 0 2px 8px;
+                        opacity:0.9;
+
+                        small{
+                            font-size: 10px;
+                        }
+                        span{
+                            font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                            font-size: 17px;
+                        }
+                    }
+                    i{
+                        padding: 5px 0 2px 0
+                    }
+                    .apple-icon{
+                        width:28px;
+                        height:28px;
+                        fill:$aq-white-0;
+                    }
+                    .play-icon{
+                        width:25px;
+                        height:25px;
+                        fill:$aq-white-0;
+                    }
+                }
+                .get-android{
+                    margin-left:18%;
+                    div{
+                        .google-play{
+                            @include flex-row();
+                            letter-spacing: 0.3px;
+                            padding:0;
+                            margin:0;
+                        }
+                        small{
+                            text-transform: uppercase;
+                        }
+                    }
+                    #google{
+                        font-family: serif;
+                        font-weight: 200;
+                        font-size: 17px;
+                    }
+                    #play{
+                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                        font-weight: 200;
+                        font-size: 16px;
+                        padding-left: 2px;
+                    }
+                }
+            }
+            .get-btn:hover, .get-btn:focus{
+                outline:none;
+                cursor: pointer;
+
+                div{
+                    opacity: 1;
+                }
+                #google{
+                    opacity: 1;
+                }
+                #play{
+                    opacity: 1;
+                }
+            }
+        }
+        .get-graphics{
+            .get-graphics-lg{
+                display:block;
+                height:auto;
+                margin-top:-52%;
+                margin-left: -20%;
+                width:auto;
+                background-color: transparent;
+            }
+            .get-graphics-sm{
+                display: none;
+            }
+        }
+    }
+}
+
+@media (max-width: $mainBreakPoint){
+    .get-app{
+        padding:0;
+        margin:95% 0 22% 0;
+        .back-drop{
+            @include flex-column();
+            justify-content: center;
+            flex-direction: column-reverse;
+            height:auto;
+            padding:0;
+
+            .get-graphics{
+                align-self: center;
+                .get-graphics-lg{
+                    display: none;
+                }
+                .get-graphics-sm{
+                    display:block;
+                    margin: -100% 0 0 0;
+                }
+            }
+
+            .get-content{
+                margin:0 4% 0 3%;
+                @include flex-column();
+                justify-content: center;
+                .get-text{
+                    padding: 20px 0 0 20px;
+                    width:230px;
+                }
+                .get-btns{
+                    @include flex-column();
+                    padding:0 0 20px 0px;
+                    margin:10% 6% 10% 5%;
+                    button{
+                        width: 100%;
+                        outline: none;
+                    }
+                    .get-android{
+                        margin:4% 0 0 0;
+
+                        #google{
+                            font-size: 22px;
+                        }
+                        #play{
+                            font-size: 22px;
+                        }
+                    }
+                    .get-btn{
+                        justify-content: center;
+                        align-items: center;
+                        padding:6px 0 4px 0;
+                        div{
+                            padding:2px 0 2px 0;
+                            small{
+                                font-size: 13px;
+                            }
+                            span{
+                                font-size: 22px;
+                            }
+                        }
+                        i{
+                            padding:0 6px 0 0;
+                        }
+                        .apple-icon{
+                            width:35px;
+                            height:35px;
+                        }
+                        .play-icon{
+                            width:30px;
+                            height:30px;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

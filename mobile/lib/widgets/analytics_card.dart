@@ -184,11 +184,6 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
       child: Container(
           constraints: const BoxConstraints(
               maxHeight: 251, minHeight: 251, minWidth: 328, maxWidth: 328),
-          padding: const EdgeInsets.only(top: 12, bottom: 12),
-          decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: const BorderRadius.all(Radius.circular(16.0)),
-              border: Border.all(color: Colors.transparent)),
           child: Stack(
             children: [
               RepaintBoundary(
@@ -196,7 +191,11 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                   child: _shareSvc.analyticsCardImage(
                       widget.measurement, widget.placeDetails, context)),
               Container(
-                color: Colors.white,
+                padding: const EdgeInsets.only(top: 12, bottom: 12),
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: const BorderRadius.all(Radius.circular(16.0)),
+                    border: Border.all(color: Colors.transparent)),
                 child: Column(
                   children: [
                     GestureDetector(
@@ -239,78 +238,75 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                               },
                             ),
                             const SizedBox(width: 16.0),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    widget.placeDetails.name,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: CustomTextStyle.headline9(context),
-                                  ),
-                                  Text(
-                                    widget.placeDetails.location,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: CustomTextStyle.bodyText4(context)
-                                        ?.copyWith(
-                                            color: Config.appColorBlack
-                                                .withOpacity(0.3)),
-                                  ),
-                                  const SizedBox(
-                                    height: 12,
-                                  ),
-                                  GestureDetector(
-                                    child: aqiContainerString(
-                                        measurement: widget.measurement,
-                                        context: context),
-                                    onTap: () {
-                                      ToolTip(context, toolTipType.info).show(
-                                        widgetKey: _infoToolTipKey,
-                                      );
-                                    },
-                                  ),
-                                  const SizedBox(
-                                    height: 8,
-                                  ),
-                                  Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                          constraints: BoxConstraints(
-                                              maxWidth: MediaQuery.of(context)
-                                                      .size
-                                                      .width /
-                                                  3.2),
-                                          child: Text(
-                                            dateToString(
-                                                widget.measurement.time),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                                fontSize: 8,
-                                                color: Colors.black
-                                                    .withOpacity(0.3)),
-                                          )),
-                                      const SizedBox(
-                                        width: 4.0,
+                            Flexible(
+                                child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.placeDetails.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: CustomTextStyle.headline9(context),
+                                ),
+                                Text(
+                                  widget.placeDetails.location,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: CustomTextStyle.bodyText4(context)
+                                      ?.copyWith(
+                                          color: Config.appColorBlack
+                                              .withOpacity(0.3)),
+                                ),
+                                const SizedBox(
+                                  height: 12,
+                                ),
+                                GestureDetector(
+                                  child: aqiContainerString(
+                                      measurement: widget.measurement,
+                                      context: context),
+                                  onTap: () {
+                                    ToolTip(context, toolTipType.info).show(
+                                      widgetKey: _infoToolTipKey,
+                                    );
+                                  },
+                                ),
+                                const SizedBox(
+                                  height: 8,
+                                ),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                        constraints: BoxConstraints(
+                                            maxWidth: MediaQuery.of(context)
+                                                    .size
+                                                    .width /
+                                                3.2),
+                                        child: Text(
+                                          dateToString(widget.measurement.time),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                              fontSize: 8,
+                                              color: Colors.black
+                                                  .withOpacity(0.3)),
+                                        )),
+                                    const SizedBox(
+                                      width: 4.0,
+                                    ),
+                                    Visibility(
+                                      visible: widget.isRefreshing,
+                                      child: SvgPicture.asset(
+                                        'assets/icon/loader.svg',
+                                        semanticsLabel: 'loader',
+                                        height: 8.0,
+                                        width: 8.0,
                                       ),
-                                      Visibility(
-                                        visible: widget.isRefreshing,
-                                        child: SvgPicture.asset(
-                                          'assets/icon/loader.svg',
-                                          semanticsLabel: 'loader',
-                                          height: 8.0,
-                                          width: 8.0,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            )
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ))
                           ],
                         ),
                       ),
