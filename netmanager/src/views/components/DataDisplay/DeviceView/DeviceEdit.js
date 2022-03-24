@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import {
-  Paper, TextField, Button, Grid, Accordion, AccordionDetails, AccordionSummary, Typography
+  Paper, TextField, Button, Grid, Accordion, AccordionSummary
 } from "@material-ui/core";
+import MuiAccordionDetails from '@material-ui/core/AccordionDetails';
+import { styled } from '@material-ui/styles/'
 import { ExpandMore } from '@material-ui/icons';
 import { isEmpty, isEqual, omit } from "underscore";
 import { updateMainAlert } from "redux/MainAlert/operations";
@@ -15,7 +17,7 @@ import DeviceDeployStatus from "./DeviceDeployStatus";
 import { filterSite } from "utils/sites";
 
 const gridItemStyle = {
-  padding: "5px",
+    padding: "5px",
 };
 
 const EDIT_OMITTED_KEYS = [
@@ -30,6 +32,12 @@ const EDIT_OMITTED_KEYS = [
   "nextMaintenance",
   "pictures",
 ];
+
+const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
+    position: 'relative',
+    top: theme.spacing(-3),
+    height: '70px'
+}));
 
 const EditDeviceForm = ({ deviceData, siteOptions }) => {
   const dispatch = useDispatch();
@@ -124,7 +132,7 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
           maxWidth: "1500px",
         }}
       >
-      <Accordion container spacing={1}>
+      <Accordion container spacing={1} >
         <AccordionSummary
             expandIcon={<ExpandMore />}
             aria-controls="panel1a-content"
@@ -132,7 +140,7 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
         >
           Details
         </AccordionSummary>
-        <AccordionDetails>            
+        <AccordionDetails >            
         <Grid items xs={12} sm={4} style={gridItemStyle}>
             <TextField
             autoFocus
