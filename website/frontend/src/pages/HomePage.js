@@ -6,6 +6,7 @@ import TopBar from '../components/nav/TopBar';
 import GetApp from '../components/get-app/GetApp';
 import MapSection from '../components/MapSection/MapSection';
 import { NewsletterSection } from '../components/NewsletterSection';
+import ApiSection from '../components/ApiSection/ApiSection';
 
 const HomePage = () => (
     <Page>
@@ -13,6 +14,7 @@ const HomePage = () => (
             <TopBar />
             <Hero />
             <Monitor />
+            <ApiSection />
             <MapSection />
             <GetApp />
             <NewsletterSection />

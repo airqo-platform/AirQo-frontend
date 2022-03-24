@@ -1,9 +1,9 @@
-$layout-breakpoint: 580px;
+@import "lib/variables";
 
 .Apisection {
     display: flex;
     align-items: center;
-    margin: 158px 176px;
+    margin: 58px 176px;
 
     &-details {
         margin-right: 40px;
@@ -55,10 +55,20 @@ $layout-breakpoint: 580px;
     }
 }
 
-@media(max-width: $layout-breakpoint) {
+@media(max-width: $mainBreakPoint) {
     .Apisection {
         flex-direction: column;
         margin: 60px 16px;
+
+        h1 {
+            font-size: 40px;
+            line-height: 48px;
+        }
+
+        p {
+            font-size: 20px;
+            line-height: 28px;
+        }
     
     
         img {
