@@ -3,7 +3,7 @@
 .Apisection {
     display: flex;
     align-items: center;
-    margin: 58px 176px;
+    margin: 58px $mainPadding;
 
     &-details {
         margin-right: 40px;
