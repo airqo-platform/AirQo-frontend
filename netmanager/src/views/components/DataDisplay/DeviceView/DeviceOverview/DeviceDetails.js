@@ -48,11 +48,11 @@ const DeviceDetails = ({ deviceData }) => {
                 <b>Deployment status</b>
               </TableCell>
               <TableCell>
-                {
-                    deviceData.status === 'deployed' || deviceData.isActive? <span style={{ color: "green" }}>Deployed</span> :
-                    deviceData.status === 'testing' ? <span style={{ color: "grey" }}>Testing</span> :
-                    <span style={{ color: "red" }}>Recalled</span>
-                }
+                {deviceData.isActive ? (
+                  <span style={{ color: "green" }}>Deployed</span>
+                ) : (
+                  <span style={{ color: "red" }}>Not deployed</span>
+                )}
               </TableCell>
             </TableRow>
             <TableRow>

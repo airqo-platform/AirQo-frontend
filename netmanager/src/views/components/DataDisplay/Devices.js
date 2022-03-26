@@ -160,9 +160,11 @@ const createDeviceColumns = (history, setDelState) => [
     render: (data) => (
       <Cell
         fieldValue={
-            data.status === 'deployed' || data.isActive? <span style={{ color: "green" }}>Deployed</span> :
-            data.status === 'testing' ? <span style={{ color: "grey" }}>Testing</span> :
-            <span style={{ color: "red" }}>Recalled</span>
+          data.isActive ? (
+            <span style={{ color: "green" }}>Deployed</span>
+          ) : (
+            <span style={{ color: "red" }}>Not Deployed</span>
+          )
         }
       />
     ),

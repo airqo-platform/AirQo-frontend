@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import {
-  Paper, TextField, Button, Grid, Accordion, AccordionSummary
-} from "@material-ui/core";
-import MuiAccordionDetails from '@material-ui/core/AccordionDetails';
-import { styled } from '@material-ui/styles/'
-import { ExpandMore } from '@material-ui/icons';
+import TextField from "@material-ui/core/TextField";
+import Paper from "@material-ui/core/Paper";
+import { Button, Grid } from "@material-ui/core";
+import OutlinedSelect from "../../CustomSelects/OutlinedSelect";
 import { isEmpty, isEqual, omit } from "underscore";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import { updateDeviceDetails } from "views/apis/deviceRegistry";
@@ -13,11 +11,13 @@ import { loadDevicesData } from "redux/DeviceRegistry/operations";
 import { useSiteOptionsData } from "redux/SiteRegistry/selectors";
 import { loadSitesData } from "redux/SiteRegistry/operations";
 import DeviceDeployStatus from "./DeviceDeployStatus";
+import { capitalize } from "utils/string";
+import { getDateString } from "utils/dateTime";
 
 import { filterSite } from "utils/sites";
 
 const gridItemStyle = {
-    padding: "5px",
+  padding: "5px",
 };
 
 const EDIT_OMITTED_KEYS = [
@@ -32,12 +32,6 @@ const EDIT_OMITTED_KEYS = [
   "nextMaintenance",
   "pictures",
 ];
-
-const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
-    position: 'relative',
-    top: theme.spacing(-3),
-    height: '70px'
-}));
 
 const EditDeviceForm = ({ deviceData, siteOptions }) => {
   const dispatch = useDispatch();
@@ -69,14 +63,16 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
   const handleEditSubmit = async () => {
     setEditLoading(true);
 
-    editData.isActive = editData.status === 'deployed' ? true : false;
-
     if (site && site.value) editData.site_id = site.value;
 
     if (editData.deployment_date)
       editData.deployment_date = new Date(
         editData.deployment_date
       ).toISOString();
+
+    if (isEmpty(editData.latitude)) delete editData.latitude;
+
+    if (isEmpty(editData.longitude)) delete editData.longitude;
 
     await updateDeviceDetails(deviceData._id, editData)
       .then((responseData) => {
@@ -116,12 +112,6 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
     return secondary;
   };
 
-  const [expanded, setExpanded] = React.useState(false);
-
-  const handleChange = (panel) => (event, isExpanded) => {
-    setExpanded(isExpanded ? panel : false);
-  };
-
   return (
     <div>
       <Paper
@@ -132,54 +122,35 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
           maxWidth: "1500px",
         }}
       >
-      <Accordion container spacing={1} >
-        <AccordionSummary
-            expandIcon={<ExpandMore />}
-            aria-controls="panel1a-content"
-            id="panel1a-header"
-        >
-          Details
-        </AccordionSummary>
-        <AccordionDetails >            
-        <Grid items xs={12} sm={4} style={gridItemStyle}>
+        <Grid container spacing={1}>
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
             <TextField
-            autoFocus
-            margin="dense"
-            id="long_name"
-            label="Name"
-            variant="outlined"
-            value={editData.long_name}
-            onChange={handleTextFieldChange}
-            error={!!errors.long_name}
-            helperText={errors.long_name}
-            fullWidth
+              autoFocus
+              margin="dense"
+              id="long_name"
+              label="Name"
+              variant="outlined"
+              value={editData.long_name}
+              onChange={handleTextFieldChange}
+              error={!!errors.long_name}
+              helperText={errors.long_name}
+              fullWidth
             />
-        </Grid>
-        <Grid items xs={12} sm={4} style={gridItemStyle}>
+          </Grid>
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
             <TextField
-            autoFocus
-            margin="dense"
-            variant="outlined"
-            id="description"
-            label="Description"
-            value={editData.description}
-            onChange={handleTextFieldChange}
-            error={!!errors.description}
-            helperText={errors.description}
-            fullWidth
+              autoFocus
+              margin="dense"
+              variant="outlined"
+              id="description"
+              label="Description"
+              value={editData.description}
+              onChange={handleTextFieldChange}
+              error={!!errors.description}
+              helperText={errors.description}
+              fullWidth
             />
-        </Grid>
-            </AccordionDetails>
-      </Accordion>
-      <Accordion container spacing={1}>
-            <AccordionSummary
-                expandIcon={<ExpandMore />}
-                aria-controls="panel1a-content"
-                id="panel1a-header"
-            >
-              Connectivity
-            </AccordionSummary>
-          <AccordionDetails>     
+          </Grid>
           <Grid items xs={12} sm={4} style={gridItemStyle}>
             <TextField
               autoFocus
@@ -196,36 +167,32 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
           </Grid>
           <Grid items xs={12} sm={4} style={gridItemStyle}>
             <TextField
-              select
-              fullWidth
-              label="Internet Service Provider"
-              style={{ margin: "10px 0" }}
-              value={editData.ISP}
-              onChange={handleSelectFieldChange("ISP")}
-              SelectProps={{
-                native: true,
-                style: { width: "100%", height: "50px" },
-              }}
+              autoFocus
+              margin="dense"
               variant="outlined"
-              error={!!errors.ISP}
-              helperText={errors.ISP}
-            >
-              <option value="MTN">MTN</option>
-              <option value="Airtel">Airtel</option>
-              <option value="Africell">Africell</option>
-            </TextField>
+              id="latitude"
+              label="Latitude"
+              value={editData.latitude}
+              onChange={handleTextFieldChange}
+              error={!!errors.latitude}
+              helperText={errors.latitude}
+              fullWidth
+            />
           </Grid>
-          </AccordionDetails>
-      </Accordion>
-      <Accordion container spacing={1}>
-            <AccordionSummary
-                expandIcon={<ExpandMore />}
-                aria-controls="panel1a-content"
-                id="panel1a-header"
-            >
-              Management
-            </AccordionSummary>
-            <AccordionDetails>     
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
+            <TextField
+              autoFocus
+              margin="dense"
+              variant="outlined"
+              id="longitude"
+              label="Longitude"
+              value={editData.longitude}
+              onChange={handleTextFieldChange}
+              error={!!errors.longitude}
+              helperText={errors.longitude}
+              fullWidth
+            />
+          </Grid>
           <Grid items xs={12} sm={4} style={gridItemStyle}>
             <TextField
               select
@@ -250,6 +217,28 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
             <TextField
               select
               fullWidth
+              label="Internet Service Provider"
+              style={{ margin: "10px 0" }}
+              value={editData.ISP}
+              onChange={handleSelectFieldChange("ISP")}
+              SelectProps={{
+                native: true,
+                style: { width: "100%", height: "50px" },
+              }}
+              variant="outlined"
+              error={!!errors.ISP}
+              helperText={errors.ISP}
+            >
+              <option value="" />
+              <option value="MTN">MTN</option>
+              <option value="Airtel">Airtel</option>
+              <option value="Africell">Africell</option>
+            </TextField>
+          </Grid>
+          <Grid items xs={12} sm={4} style={gridItemStyle}>
+            <TextField
+              select
+              fullWidth
               label="Primary Device In Location"
               style={{ margin: "10px 0" }}
               value={editData.isPrimaryInLocation}
@@ -262,33 +251,11 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               error={!!errors.isPrimaryInLocation}
               helperText={errors.isPrimaryInLocation}
             >
+              <option value="" />
               <option value={true}>Yes</option>
               <option value={false}>No</option>
             </TextField>
           </Grid>
-          <Grid items xs={12} sm={4} style={gridItemStyle}>
-            <TextField
-              select
-              fullWidth
-              label="Deployment status"
-              style={{ margin: "10px 0" }}
-              value={editData.status}
-              onChange={handleSelectFieldChange("status")}
-              SelectProps={{
-                native: true,
-                style: { width: "100%", height: "50px" },
-              }}
-              variant="outlined"
-              error={!!errors.status}
-              helperText={errors.status}
-            >
-              <option value={'deployed'}>Deployed</option>
-              <option value={'testing'}>Testing</option>
-              <option value={'recalled'}>Recalled</option>
-            </TextField>
-          </Grid>
-          </AccordionDetails>
-      </Accordion>
           {/*<Grid*/}
           {/*  items*/}
           {/*  xs={12}*/}
@@ -415,6 +382,7 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               Save Changes
             </Button>
           </Grid>
+        </Grid>
       </Paper>
     </div>
   );
