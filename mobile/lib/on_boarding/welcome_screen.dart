@@ -1,10 +1,12 @@
-import 'package:app/auth/signup_screen.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+
+import '../auth/phone_auth_widget.dart';
+import '../themes/light_theme.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({Key? key}) : super(key: key);
@@ -23,19 +25,21 @@ class WelcomeScreenState extends State<WelcomeScreen> {
         body: WillPopScope(
       onWillPop: onWillPop,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 56, 24.0, 96),
+        padding: const EdgeInsets.only(left: 24, right: 24.0),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text(
+          const SizedBox(
+            height: 56,
+          ),
+          Text(
             'Welcome to',
-            style: TextStyle(
-                fontWeight: FontWeight.bold, fontSize: 32, color: Colors.black),
+            style: Theme.of(context).textTheme.headline6,
           ),
           Text(
             'AirQo',
-            style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 32,
-                color: Config.appColorBlue),
+            style: Theme.of(context)
+                .textTheme
+                .headline6
+                ?.copyWith(color: Config.appColorBlue),
           ),
           const SizedBox(
             height: 21,
@@ -64,10 +68,13 @@ class WelcomeScreenState extends State<WelcomeScreen> {
             onTap: () {
               Navigator.pushAndRemoveUntil(context,
                   MaterialPageRoute(builder: (context) {
-                return const SignupScreen(false);
+                return const PhoneSignUpWidget(enableBackButton: false);
               }), (r) => false);
             },
-            child: nextButton('Let’s go', Config.appColorBlue),
+            child: nextButton('Let\'s go', Config.appColorBlue),
+          ),
+          const SizedBox(
+            height: 40,
           ),
         ]),
       ),
@@ -115,15 +122,16 @@ class WelcomeScreenState extends State<WelcomeScreen> {
         ),
         title: Text(
           header,
-          style: const TextStyle(
-              fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black),
+          style: CustomTextStyle.headline10(context),
         ),
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 4.0),
           child: Text(
             body,
-            style:
-                TextStyle(fontSize: 14, color: Colors.black.withOpacity(0.5)),
+            style: Theme.of(context)
+                .textTheme
+                .bodyText2
+                ?.copyWith(color: Config.appColorBlack.withOpacity(0.5)),
           ),
         ));
   }

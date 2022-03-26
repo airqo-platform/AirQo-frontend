@@ -25,6 +25,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../themes/light_theme.dart';
 import 'firebase_service.dart';
 import 'local_notifications.dart';
 
@@ -126,65 +127,6 @@ class LocationService {
     return addresses;
   }
 
-  // Future<List<Address>> getLocalAddress(double lat, double lang) async {
-  //   final coordinates = Coordinates(lat, lang);
-  //   List<Address> localAddresses =
-  //       await Geocoder.local.findAddressesFromCoordinates(coordinates);
-  //   return localAddresses;
-  // }
-
-  Future<List<Measurement>> getCurrentLocationReadings() async {
-    try {
-      var nearestMeasurements = <Measurement>[];
-      double distanceInMeters;
-
-      var location = await getLocation();
-      if (location == null) {
-        return [];
-      }
-
-      if (location.longitude != null && location.latitude != null) {
-        var addresses =
-            await getAddresses(location.latitude!, location.longitude!);
-        Measurement? nearestMeasurement;
-        var latestMeasurements = await _dbHelper.getLatestMeasurements();
-
-        for (var measurement in latestMeasurements) {
-          distanceInMeters = metersToKmDouble(Geolocator.distanceBetween(
-              measurement.site.latitude,
-              measurement.site.longitude,
-              location.latitude!,
-              location.longitude!));
-          if (distanceInMeters < Config.maxSearchRadius.toDouble()) {
-            measurement.site.distance = distanceInMeters;
-            nearestMeasurements.add(measurement);
-          }
-        }
-
-        if (nearestMeasurements.isNotEmpty) {
-          nearestMeasurement = nearestMeasurements.first;
-          for (var measurement in nearestMeasurements) {
-            if (nearestMeasurement!.site.distance > measurement.site.distance) {
-              nearestMeasurement = measurement;
-            }
-          }
-        }
-        var measurements = <Measurement>[];
-        for (var address in addresses) {
-          nearestMeasurement?.site.name = address;
-          nearestMeasurement?.site.searchName = address;
-          nearestMeasurement?.site.description = address;
-          measurements.add(nearestMeasurement!);
-        }
-        return measurements;
-      }
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      return [];
-    }
-    return [];
-  }
-
   Future<locate_api.LocationData?> getLocation() async {
     bool _serviceEnabled;
     locate_api.PermissionStatus _permissionGranted;
@@ -238,6 +180,80 @@ class LocationService {
           'please enable permission to access your location');
     }
     return await Geolocator.getCurrentPosition();
+  }
+
+  // Future<List<Address>> getLocalAddress(double lat, double lang) async {
+  //   final coordinates = Coordinates(lat, lang);
+  //   List<Address> localAddresses =
+  //       await Geocoder.local.findAddressesFromCoordinates(coordinates);
+  //   return localAddresses;
+  // }
+
+  Future<List<Measurement>> getNearbyLocationReadings() async {
+    try {
+      var nearestMeasurements = <Measurement>[];
+      double distanceInMeters;
+
+      var location = await getLocation();
+      if (location == null) {
+        return [];
+      }
+
+      if (location.longitude != null && location.latitude != null) {
+        var addresses =
+            await getAddresses(location.latitude!, location.longitude!);
+        Measurement? nearestMeasurement;
+        var latestMeasurements = await _dbHelper.getLatestMeasurements();
+
+        for (var measurement in latestMeasurements) {
+          distanceInMeters = metersToKmDouble(Geolocator.distanceBetween(
+              measurement.site.latitude,
+              measurement.site.longitude,
+              location.latitude!,
+              location.longitude!));
+          if (distanceInMeters < (Config.maxSearchRadius.toDouble() * 2)) {
+            measurement.site.distance = distanceInMeters;
+            nearestMeasurements.add(measurement);
+          }
+        }
+
+        var measurements = <Measurement>[];
+
+        /// Get Actual location measurements
+        if (nearestMeasurements.isNotEmpty) {
+          nearestMeasurement = nearestMeasurements.first;
+          for (var measurement in nearestMeasurements) {
+            if (nearestMeasurement!.site.distance > measurement.site.distance) {
+              nearestMeasurement = measurement;
+            }
+          }
+          nearestMeasurements.remove(nearestMeasurement);
+
+          for (var address in addresses) {
+            nearestMeasurement?.site.name = address;
+            measurements.add(nearestMeasurement!);
+          }
+        }
+
+        /// Get Alternative location measurements
+        if (nearestMeasurements.isNotEmpty) {
+          nearestMeasurement = nearestMeasurements.first;
+          for (var measurement in nearestMeasurements) {
+            if (nearestMeasurement!.site.distance > measurement.site.distance) {
+              nearestMeasurement = measurement;
+            }
+          }
+
+          measurements.add(nearestMeasurement!);
+        }
+
+        return measurements;
+      }
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+      return [];
+    }
+    return [];
   }
 
   Future<Site?> getNearestSite(double latitude, double longitude) async {
@@ -333,7 +349,7 @@ class LocationService {
           measurement.site.longitude,
           latitude,
           longitude));
-      if (containsWord(measurement.site.getName(), term)) {
+      if (containsWord(measurement.site.name, term)) {
         measurement.site.distance = distanceInMeters;
         nearestSites.add(measurement);
       } else {
@@ -352,13 +368,11 @@ class LocationService {
     var nearestSites = <Measurement>[];
 
     for (var measurement in measurements) {
-      if (measurement.site
-              .getName()
+      if (measurement.site.name
               .trim()
               .toLowerCase()
               .contains(term.trim().toLowerCase()) ||
-          measurement.site
-              .getLocation()
+          measurement.site.location
               .trim()
               .toLowerCase()
               .contains(term.trim().toLowerCase())) {
@@ -374,13 +388,11 @@ class LocationService {
     var latestMeasurements = await _dbHelper.getLatestMeasurements();
 
     for (var measurement in latestMeasurements) {
-      if (measurement.site
-              .getName()
+      if (measurement.site.name
               .trim()
               .toLowerCase()
               .contains(term.trim().toLowerCase()) ||
-          measurement.site
-              .getLocation()
+          measurement.site.location
               .trim()
               .toLowerCase()
               .contains(term.trim().toLowerCase())) {
@@ -544,78 +556,101 @@ class ShareService {
   Widget analyticsCardImage(Measurement measurement, PlaceDetails placeDetails,
       BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(top: 12, bottom: 12, left: 10, right: 10),
+      constraints: const BoxConstraints(
+          maxHeight: 200, maxWidth: 300),
+      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
       decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: const BorderRadius.all(Radius.circular(16.0)),
           border: Border.all(color: Colors.transparent)),
-      child: ListView(
-        shrinkWrap: true,
+      child: Column(
         children: [
+          const Spacer(),
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               analyticsAvatar(measurement, 104, 40, 12),
               const SizedBox(width: 10.0),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    AutoSizeText(
-                      placeDetails.getName(),
+              Flexible(child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AutoSizeText(
+                    placeDetails.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    minFontSize: 17,
+                    style: CustomTextStyle.headline9(context),
+                  ),
+                  AutoSizeText(
+                    placeDetails.location,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    minFontSize: 12,
+                    style: CustomTextStyle.bodyText4(context)
+                        ?.copyWith(
+                        color: Config.appColorBlack
+                            .withOpacity(0.3)),
+                  ),
+                  const SizedBox(
+                    height: 12,
+                  ),
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
+                    decoration: BoxDecoration(
+                        borderRadius:
+                        const BorderRadius.all(Radius.circular(40.0)),
+                        color: pm2_5ToColor(measurement.getPm2_5Value())
+                            .withOpacity(0.4),
+                        border: Border.all(color: Colors.transparent)),
+                    child: AutoSizeText(
+                      pm2_5ToString(measurement.getPm2_5Value()),
                       maxLines: 2,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 17),
-                    ),
-                    AutoSizeText(
-                      placeDetails.getLocation(),
-                      maxLines: 1,
-                      style: TextStyle(
-                          fontSize: 12, color: Colors.black.withOpacity(0.3)),
-                    ),
-                    const SizedBox(
-                      height: 12,
-                    ),
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
-                      decoration: BoxDecoration(
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(40.0)),
-                          color: pm2_5ToColor(measurement.getPm2_5Value())
-                              .withOpacity(0.4),
-                          border: Border.all(color: Colors.transparent)),
-                      child: AutoSizeText(
-                        pm2_5ToString(measurement.getPm2_5Value()),
-                        maxLines: 1,
-                        textAlign: TextAlign.start,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: pm2_5TextColor(measurement.getPm2_5Value()),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 8,
-                    ),
-                    Text(
-                      dateToShareString(measurement.time),
-                      maxLines: 1,
+                      textAlign: TextAlign.start,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                          fontSize: 8, color: Colors.black.withOpacity(0.3)),
+                        fontSize: 12,
+                        color: pm2_5TextColor(measurement.getPm2_5Value()),
+                      ),
                     ),
-                  ],
-                ),
-              )
+                  ),
+                  const SizedBox(
+                    height: 8,
+                  ),
+                  Text(
+                    dateToShareString(measurement.time),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        fontSize: 8, color: Colors.black.withOpacity(0.3)),
+                  ),
+                ],
+              ),)
             ],
           ),
-          Text(
-            // '© ${DateTime.now().year} AirQo',
-            '${DateTime.now().year} AirQo',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.right,
-            style: TextStyle(fontSize: 6, color: Colors.black.withOpacity(0.5)),
-          ),
+          const Spacer(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '© ${DateTime.now().year} AirQo',
+                style: TextStyle(
+                  fontSize: 9,
+                  color: Config.appColorBlack.withOpacity(0.5),
+                  height: 32/9,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                'www.airqo.africa',
+                style: TextStyle(
+                  fontSize: 9,
+                  color: Config.appColorBlack.withOpacity(0.5),
+                  height: 32/9,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          )
         ],
       ),
     );
@@ -633,11 +668,11 @@ class ShareService {
     var imgFile = File('$directory/airqo_analytics_card.png');
     await imgFile.writeAsBytes(pngBytes);
 
-    var message = '${measurement.site.getName()}, Current Air Quality. \n\n'
-        'Source: AiQo App';
-    await Share.shareFiles([imgFile.path], text: message)
+
+    await Share.shareFiles([imgFile.path], text: getShareMessage())
         .then((value) => {_updateUserShares()});
 
+    /// Temporarily disabled sharing text
     // var dialogResponse = await showDialog<String>(
     //   context: buildContext,
     //   builder: (BuildContext context) => AlertDialog(
@@ -668,8 +703,8 @@ class ShareService {
     //   var imgFile = File('$directory/airqo_analytics_card.png');
     //   await imgFile.writeAsBytes(pngBytes);
     //
-    //   var message = '${measurement.site.getName()}, Current Air Quality. \n\n'
-    //       'Source: AiQo App';
+    //   var message = '${measurement.site.name}, Current Air Quality. \n\n'
+    //       'Source: AirQo App';
     //   await Share.shareFiles([imgFile.path], text: message)
     //       .then((value) => {_updateUserShares()});
     // } else if (dialogResponse == 'text') {
@@ -677,6 +712,10 @@ class ShareService {
     // } else {
     //   return;
     // }
+  }
+
+  String getShareMessage(){
+    return 'Download the AirQo app from Google play\nhttps://play.google.com/store/apps/details?id=com.airqo.app\nand App Store\nhttps://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091\n';
   }
 
   Future<void> shareGraph(BuildContext buildContext, GlobalKey globalKey,
@@ -691,9 +730,7 @@ class ShareService {
     var imgFile = File('$directory/airqo_analytics_graph.png');
     await imgFile.writeAsBytes(pngBytes);
 
-    var message = '${placeDetails.getName()}, Current Air Quality. \n\n'
-        'Source: AiQo App';
-    await Share.shareFiles([imgFile.path], text: message)
+    await Share.shareFiles([imgFile.path], text: getShareMessage())
         .then((value) => {_updateUserShares()});
   }
 
@@ -707,8 +744,7 @@ class ShareService {
     var imgFile = File('$directory/analytics_graph.png');
     await imgFile.writeAsBytes(pngBytes);
 
-    var message = 'Source: AiQo App';
-    await Share.shareFiles([imgFile.path], text: message)
+    await Share.shareFiles([imgFile.path], text: getShareMessage())
         .then((value) => {_updateUserShares()});
   }
 
@@ -720,12 +756,12 @@ class ShareService {
       recommendations = '$recommendations\n- ${value.body}';
     }
     Share.share(
-            '${measurement.site.getName()}, Current Air Quality. \n\n'
+            '${measurement.site.name}, Current Air Quality. \n\n'
             'PM2.5 : ${measurement.getPm2_5Value().toStringAsFixed(2)} µg/m\u00B3 (${pm2_5ToString(measurement.getPm2_5Value())}) \n'
             'PM10 : ${measurement.getPm10Value().toStringAsFixed(2)} µg/m\u00B3 \n'
             '$recommendations\n\n'
-            'Source: AiQo App',
-            subject: '${Config.appName}, ${measurement.site.getName()}!')
+            'Source: AirQo App',
+            subject: '${Config.appName}, ${measurement.site.name}!')
         .then((value) => {_updateUserShares()});
   }
 

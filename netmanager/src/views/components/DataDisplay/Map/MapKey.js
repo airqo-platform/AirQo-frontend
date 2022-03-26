@@ -39,7 +39,7 @@ export const MapKey = ({ title }) => {
         >
           <span>{title || "map key"}</span>
           <div className={"mapkey-icon-container"} onClick={toggleIsOpen}>
-            {isOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+            {isOpen ? <ExpandMoreIcon /> : <ExpandLessIcon />}
           </div>
         </h2>
         {isOpen && (

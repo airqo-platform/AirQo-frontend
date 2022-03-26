@@ -1,0 +1,99 @@
+$layout-breakpoint: 580px;
+
+.Newsletter {
+    position: relative;
+    height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: $aq-blue-1;
+    text-align: center;
+    margin-top: 197px;
+
+    h3 {
+        margin: 0 auto;
+        font-style: normal;
+        font-weight: bold;
+        font-size: 40px;
+        line-height: 48px;
+        color: $aq-blue-0;
+    }
+
+    p {
+        font-style: normal;
+        font-weight: normal;
+        font-size: 18px;
+        line-height: 26px;
+        color: $aq-blue-0;
+        margin: 16px auto 40px auto;
+        margin: 10px 32%;
+    }
+
+    .newsletter-form {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 41.2px auto 40px auto;
+        width: 100%;
+
+        &-input, &-btn {
+            outline: 0;
+            border: 0;
+            font-size: 14px;
+        }
+
+        &-input {
+            background-color: $aq-white-0;
+            width: 415px;
+            height: 53.76px;
+            border-top-left-radius: 16px;
+            border-bottom-left-radius: 16px;
+            padding-left: 16px;
+            color: $aq-black-1;
+        }
+
+        &-btn {
+            width: 168px;
+            height: 56px;
+            color: $aq-white-0;
+            background: $aq-blue-0;
+            border-top-right-radius: 16px;
+            border-bottom-right-radius: 16px;
+            cursor: pointer;
+        }
+    }
+}
+
+@media(max-width: $layout-breakpoint) {
+    .Newsletter {
+        height: 100%;
+        padding: 80px 16px;
+
+        p {
+            margin: 10px 34.95px;
+        }
+    
+        .newsletter-form {
+            flex-direction: column;
+
+            &-input, &-btn {
+                margin: 0 auto;
+            }
+            
+            &-input {
+                padding: 4px 16px;
+                width: 92%;
+                box-sizing: content-box;
+                border-radius: 16px;
+                margin-bottom: 17.09px;
+            }
+    
+            &-btn {
+                padding: 16px;
+                width: 100%;
+                border-radius: 16px;
+            }
+        }
+    }
+}

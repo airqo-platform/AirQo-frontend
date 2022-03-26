@@ -20,6 +20,7 @@ import { Alert, AlertTitle } from "@material-ui/lab";
 
 import { Check} from "@material-ui/icons";
 import { getInitials } from "utils/users";
+import { formatDateString } from "utils/dateTime";
 import CandidateEditForm from "views/pages/UserList/components/UserEditForm";
 import CustomMaterialTable from "views/components/Table/CustomMaterialTable";
 import usersStateConnector from "views/stateConnectors/usersStateConnector";
@@ -201,35 +202,37 @@ const CandidatesTable = (props) => {
               },
               {
                 title: "Organization",
-                field: "organization",
+                field: "long_organization",
               },
               {
                 title: "Job Title",
                 field: "jobTitle",
               },
               {
-                title: "Status",
-                field: "status",
-                  render: (candidate) => (<div>
-                      <span
-                          style={
-                              candidate.status === 'pending' ? {
-                                  padding: "5px",
-                                  border: "1px solid #e3e3e3",
-                                  background: "#e3e3e3",
-                                  fontWeight: "bold",
-                                  borderRadius: "5px"
-                              } : {
-                                  padding: "5px",
-                                  border: "1px solid #d70c00",
-                                  background: "#d70c00",
-                                  color: "white",
-                                  fontWeight: "bold",
-                                  borderRadius: "5px"
-                              }}>
-                          {candidate.status}
-                      </span>
-                  </div>)
+                title: "Submitted",
+                field: "createdAt",
+                render: (candidate) => <span>{formatDateString(candidate.createdAt, 'DD-MM-YYYY HH:mm:ss')}</span>
+              },
+              {
+                title: "Rejected",
+                field: "updatedAt",
+                render: (candidate) => {
+                    const pending = candidate.status === 'pending';
+                    return (
+                        <span 
+                            style={
+                                pending ? {
+                                    padding: "5px",
+                                    border: "1px solid #e3e3e3",
+                                    background: "#e3e3e3",
+                                    fontWeight: "bold",
+                                    borderRadius: "5px"
+                                } : null}
+                        >
+                            {pending ? 'pending' : formatDateString(candidate.updatedAt, 'DD-MM-YYYY HH:mm:ss')}
+                        </span>
+                    )
+                }
               },
               {
                 title: "Action",

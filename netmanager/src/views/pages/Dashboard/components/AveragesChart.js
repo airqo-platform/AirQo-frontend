@@ -61,6 +61,8 @@ const AveragesChart = ({ classes }) => {
     `Mean Daily ${pollutant.label} Over the Past 28 Days`
   );
 
+  const [loading, setLoading] = useState(false);
+
   const handlePollutantChange = (pollutant) => {
     setTempPollutant(pollutant);
   };
@@ -314,6 +316,7 @@ const AveragesChart = ({ classes }) => {
   };
 
   const fetchAndSetAverages = (pollutant) => {
+    setLoading(true);
     axios
       .post(DAILY_MEAN_AVERAGES_URI, {
         startDate: roundToStartOfDay(startDate).toISOString(),
@@ -338,8 +341,11 @@ const AveragesChart = ({ classes }) => {
         });
         const [labels, average_values, background_colors] = unzip(zippedArr);
         setAverages({ labels, average_values, background_colors });
+        setLoading(false);
       })
-      .catch((e) => console.log(e));
+      .catch((e) => {
+        setLoading(false);
+        console.log(e)});
   };
 
   const handleSubmit = async (e) => {
@@ -397,7 +403,19 @@ const AveragesChart = ({ classes }) => {
         <Divider />
         <CardContent>
           <div className={classes.chartContainer}>
+            {loading ? (
+              <div 
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "30vh"
+              }}>
+                loading...
+              </div>
+            ):(
             <Bar data={locationsGraphData} options={options_main} />
+            )}
           </div>
         </CardContent>
       </Card>

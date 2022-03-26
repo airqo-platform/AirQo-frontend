@@ -2,11 +2,12 @@
 /* eslint-disable react/display-name */
 import React, { forwardRef, useState } from "react";
 import { useDispatch } from "react-redux";
-import { NavLink as RouterLink } from "react-router-dom";
+import { NavLink as RouterLink, useLocation } from "react-router-dom";
 import clsx from "clsx";
 import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/styles";
-import { List, ListItem, Button, colors } from "@material-ui/core";
+import { List, ListItem, Button, MenuItem, colors } from "@material-ui/core";
+import NestedMenuItem from "material-ui-nested-menu-item";
 import Switch from "views/components/Switch";
 import { useUserPreferenceData } from "redux/UserPreference/selectors";
 import { updateUserPreferenceData } from "redux/UserPreference/operators";
@@ -33,6 +34,27 @@ const useStyles = makeStyles((theme) => ({
     letterSpacing: 0,
     width: "100%",
     fontWeight: theme.typography.fontWeightMedium,
+  },
+  buttonActive: {
+    color: theme.palette.primary.main,
+    padding: "10px 8px",
+    justifyContent: "flex-start",
+    textTransform: "none",
+    letterSpacing: 0,
+    width: "100%",
+    fontWeight: theme.typography.fontWeightMedium,
+    "& $icon": {
+      color: theme.palette.primary.main,
+    },
+  },
+  nestButton: {
+    color: colors.blueGrey[800],
+    padding: "0px",
+    justifyContent: "flex-start",
+    textTransform: "none",
+    letterSpacing: 0,
+    width: "100%",
+    fontWeight: theme.typography.fontWeightRegular,
   },
   buttonPushed: {
     color: colors.blueGrey[800],
@@ -96,22 +118,59 @@ export const SidebarWidgets = ({ className, ...rest }) => {
 const SidebarNav = (props) => {
   const classes = useStyles();
   const { pages, className, ...rest } = props;
+  const location = useLocation();
 
   return (
     <List {...rest} className={clsx(classes.root, className)}>
-      {pages.map((page) => (
-        <ListItem className={classes.item} disableGutters key={page.title}>
-          <Button
-            activeClassName={classes.active}
-            className={classes.button}
-            component={CustomRouterLink}
-            to={page.href}
-          >
-            <div className={classes.icon}>{page.icon}</div>
-            {page.title}
-          </Button>
-        </ListItem>
-      ))}
+      {pages.map((page) => {
+        if (page.nested) {
+          return (
+            <NestedMenuItem
+              label={
+                <Button
+                  className={
+                    (location.pathname.includes(page.href) &&
+                      classes.buttonActive) ||
+                    classes.button
+                  }
+                >
+                  <div className={classes.icon}>{page.icon}</div>
+                  {page.title}
+                </Button>
+              }
+              parentMenuOpen={true}
+              style={{ padding: "0px" }}
+            >
+              {page.nestItems.map((nestPage, key) => (
+                <MenuItem>
+                  <Button
+                    activeClassName={classes.active}
+                    className={classes.nestButton}
+                    component={CustomRouterLink}
+                    to={nestPage.href}
+                    key={key}
+                  >
+                    {nestPage.title}
+                  </Button>
+                </MenuItem>
+              ))}
+            </NestedMenuItem>
+          );
+        }
+        return (
+          <ListItem className={classes.item} disableGutters key={page.title}>
+            <Button
+              activeClassName={classes.active}
+              className={classes.button}
+              component={CustomRouterLink}
+              to={page.href}
+            >
+              <div className={classes.icon}>{page.icon}</div>
+              {page.title}
+            </Button>
+          </ListItem>
+        );
+      })}
     </List>
   );
 };

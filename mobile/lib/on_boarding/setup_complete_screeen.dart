@@ -33,21 +33,15 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Text(
+              Text(
                 'All Set!',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 48,
-                    color: Colors.black),
+                style: _textStyle(),
               ),
               Text(
                 'Breathe',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 48,
-                    color: Config.appColorBlue),
+                style: _textStyle()?.copyWith(color: Config.appColorBlue),
               ),
             ]),
       ),
@@ -55,8 +49,8 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   }
 
   Future<void> initialize() async {
-    Future.delayed(const Duration(seconds: 4), () async {
-      await Navigator.pushAndRemoveUntil(context,
+    Future.delayed(const Duration(seconds: 4), () {
+      Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
         updateOnBoardingPage('home');
         return const HomePage();
@@ -83,14 +77,12 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
       showSnackBar(context, 'Tap again to exit !');
       return Future.value(false);
     }
-    if (widget.enableBackButton && mounted) {
-      Navigator.pushAndRemoveUntil(context,
-          MaterialPageRoute(builder: (context) {
-        return const HomePage();
-      }), (r) => false);
-    }
 
-    return Future.value(true);
+    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) {
+      return const HomePage();
+    }), (r) => false);
+
+    return Future.value(false);
   }
 
   @Deprecated('Functionality has been transferred to the backend')
@@ -108,5 +100,14 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
 
   void updateOnBoardingPage(String page) async {
     await _appService.preferencesHelper.updateOnBoardingPage(page);
+  }
+
+  TextStyle? _textStyle() {
+    return Theme.of(context).textTheme.bodyText1?.copyWith(
+        fontWeight: FontWeight.bold,
+        fontStyle: FontStyle.normal,
+        fontSize: 48,
+        height: 56 / 48,
+        letterSpacing: 16 * -0.022);
   }
 }

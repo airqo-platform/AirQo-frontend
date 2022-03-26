@@ -11,6 +11,8 @@ import 'package:app/widgets/text_fields.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../themes/light_theme.dart';
+
 class FeedbackPage extends StatefulWidget {
   const FeedbackPage({Key? key}) : super(key: key);
 
@@ -101,10 +103,9 @@ class _FeedbackPageState extends State<FeedbackPage> {
                             const SizedBox(
                               height: 32,
                             ),
-                            const Text(
-                              'What type of feedback?',
-                              style: TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold),
+                            Text(
+                              'What Type Of Feedback?',
+                              style: CustomTextStyle.headline9(context),
                             ),
                             const SizedBox(
                               height: 16,
@@ -135,10 +136,9 @@ class _FeedbackPageState extends State<FeedbackPage> {
                             const SizedBox(
                               height: 32,
                             ),
-                            const Text(
-                              'Send us feedback via email or whatsapp',
-                              style: TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold),
+                            Text(
+                              'Send Us Feedback Via Email Or Whatsapp',
+                              style: CustomTextStyle.headline9(context),
                             ),
                             const SizedBox(
                               height: 16,
@@ -168,10 +168,9 @@ class _FeedbackPageState extends State<FeedbackPage> {
                             const SizedBox(
                               height: 32,
                             ),
-                            const Text(
-                              'Go ahead, tell us more?',
-                              style: TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold),
+                            Text(
+                              'Go Ahead, Tell Us More?',
+                              style: CustomTextStyle.headline9(context),
                             ),
                             const SizedBox(
                               height: 16,
@@ -227,7 +226,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                 } else if (_feedbackChannel == 'WhatsApp') {
                                   openWhatsapp();
                                   Future.delayed(const Duration(seconds: 2),
-                                      () async {
+                                      () {
                                     Navigator.of(context).pop();
                                   });
                                 }
@@ -329,8 +328,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                               }
                             } else if (_feedbackChannel == 'WhatsApp') {
                               openWhatsapp();
-                              Future.delayed(const Duration(seconds: 2),
-                                  () async {
+                              Future.delayed(const Duration(seconds: 2), () {
                                 Navigator.of(context).pop();
                               });
                             }
@@ -424,10 +422,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
             const SizedBox(
               width: 16,
             ),
-            Text(
-              text,
-              style: const TextStyle(fontSize: 16),
-            )
+            Text(text, style: Theme.of(context).textTheme.bodyText1)
           ],
         ),
       ),
@@ -447,6 +442,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
             child: TextFormField(
           controller: _emailFeedbackController,
           autofocus: true,
+          style: Theme.of(context).textTheme.bodyText2,
           enableSuggestions: false,
           cursorWidth: 1,
           maxLines: 12,
@@ -462,11 +458,15 @@ class _FeedbackPageState extends State<FeedbackPage> {
             }
             return null;
           },
-          decoration: const InputDecoration(
-            focusedBorder: InputBorder.none,
-            enabledBorder: InputBorder.none,
-            hintText: 'Please tell us the details',
-          ),
+          decoration: InputDecoration(
+              focusedBorder: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              hintText: 'Please tell us the details',
+              hintStyle: Theme.of(context)
+                  .textTheme
+                  .bodyText2
+                  ?.copyWith(color: Config.appColorBlack.withOpacity(0.32)),
+              counterStyle: Theme.of(context).textTheme.bodyText2),
         )));
   }
 
@@ -483,6 +483,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
             child: TextFormField(
           controller: _emailInputController,
           autofocus: true,
+          style: Theme.of(context).textTheme.bodyText2,
           enableSuggestions: false,
           cursorWidth: 1,
           cursorColor: Config.appColorBlue,
@@ -505,6 +506,10 @@ class _FeedbackPageState extends State<FeedbackPage> {
                   },
                   child: textInputCloseButton(),
                 )),
+            hintStyle: Theme.of(context)
+                .textTheme
+                .bodyText2
+                ?.copyWith(color: Config.appColorBlack.withOpacity(0.32)),
           ),
         )));
   }

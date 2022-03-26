@@ -18,7 +18,8 @@ Widget circularLoadingAnimation(double size) {
       ));
 }
 
-Widget containerLoadingAnimation(double height, double radius) {
+Widget containerLoadingAnimation(
+    {required double height, required double radius}) {
   return SizedBox(
     height: height,
     child: Shimmer.fromColors(
@@ -39,7 +40,7 @@ void loadingScreen(BuildContext _context) async {
       barrierDismissible: false,
       builder: (ctx) => Container(
           decoration:
-              BoxDecoration(color: Config.appColorBlack.withOpacity(0.2)),
+              BoxDecoration(color: Config.appColorBlue.withOpacity(0.05)),
           child: Center(
               child: CircularProgressIndicator(
             color: Config.appColorBlue,

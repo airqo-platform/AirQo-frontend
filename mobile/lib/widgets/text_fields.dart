@@ -1,5 +1,4 @@
 import 'package:app/constants/config.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:country_list_pick/country_list_pick.dart';
 import 'package:flutter/material.dart';
 
@@ -7,28 +6,12 @@ import 'custom_widgets.dart';
 
 Widget countryPickerField(String placeholder, valueChange, context) {
   return Container(
-    // padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
     constraints: const BoxConstraints(minWidth: double.infinity),
     decoration: BoxDecoration(
         color: const Color(0xff8D8D8D).withOpacity(0.1),
         borderRadius: const BorderRadius.all(Radius.circular(10.0))),
     child: CountryListPick(
-      appBar: AppBar(
-        backgroundColor: Config.appBodyColor,
-        elevation: 0.0,
-        iconTheme: IconThemeData(
-          color: Config.appColorBlue,
-        ),
-        centerTitle: true,
-        leading: Padding(
-          padding: const EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
-          child: backButton(context),
-        ),
-        title: const Text(
-          'Select Country',
-          style: TextStyle(color: Colors.black),
-        ),
-      ),
+      appBar: appTopBar(context, 'Select Country'),
       theme: CountryTheme(
         isShowFlag: true,
         isShowTitle: false,
@@ -94,67 +77,45 @@ Widget optField(position, context, callbackFn, bool codeSent) {
       ));
 }
 
-Widget profilePicWidget(double height, double width, double iconSize,
-    double textSize, radius, photoUrl, imageRadius, showIcon) {
-  return Stack(
-    alignment: AlignmentDirectional.center,
-    children: [
-      if (photoUrl == '')
-        RotationTransition(
-          turns: const AlwaysStoppedAnimation(-5 / 360),
-          child: Container(
-            padding: const EdgeInsets.all(2.0),
-            decoration: BoxDecoration(
-                color: photoUrl == '' ? Config.appPicColor : Colors.transparent,
-                shape: BoxShape.rectangle,
-                borderRadius: BorderRadius.all(Radius.circular(radius))),
-            child: Container(
-              height: height,
-              width: width,
-              color: Colors.transparent,
-            ),
-          ),
+Widget optFieldV2(position, context, callbackFn, bool codeSent) {
+  return SizedBox(
+    height: 64,
+    child: TextFormField(
+      onChanged: (value) {
+        callbackFn(value, position);
+      },
+      showCursor: codeSent,
+      textAlign: TextAlign.center,
+      maxLength: 6,
+      enableSuggestions: false,
+      cursorWidth: 1,
+      autofocus: true,
+      cursorColor: Config.appColorBlue,
+      keyboardType: TextInputType.number,
+      style: TextStyle(
+          fontSize: 32,
+          fontWeight: FontWeight.w500,
+          color: Config.appColorBlue,
+          letterSpacing: 16 * 0.41,
+          height: 40 / 32),
+      decoration: InputDecoration(
+        contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 0),
+        counter: const Offstage(),
+        fillColor:
+            codeSent ? Colors.white : const Color(0xff8D8D8D).withOpacity(0.1),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Config.appColorBlue, width: 1.0),
+          borderRadius: BorderRadius.circular(8.0),
         ),
-      if (photoUrl == '')
-        Text(
-          'A',
-          style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              fontSize: textSize),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Config.appColorBlue, width: 1.0),
+          borderRadius: BorderRadius.circular(8.0),
         ),
-      if (photoUrl != '')
-        CircleAvatar(
-          radius: imageRadius,
-          backgroundColor: Colors.transparent,
-          foregroundColor: Colors.transparent,
-          backgroundImage: CachedNetworkImageProvider(
-            photoUrl,
-          ),
+        errorStyle: const TextStyle(
+          fontSize: 0,
         ),
-      if (showIcon)
-        Positioned(
-            bottom: 0,
-            right: 0,
-            child: Container(
-              padding: const EdgeInsets.all(2.0),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.white),
-                color: Config.appColorBlue,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.add,
-                size: iconSize,
-                color: Colors.white,
-              ),
-              // child: const FaIcon(
-              //   FontAwesomeIcons.plus,
-              //   size: 18,
-              //   color: Colors.white,
-              // ),
-            ))
-    ],
+      ),
+    ),
   );
 }
 

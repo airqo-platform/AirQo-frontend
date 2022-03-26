@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:app/auth/email_reauthenticate_screen.dart';
+import 'package:app/auth/phone_reauthenticate_screen.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/user_details.dart';
-import 'package:app/screens/email_reauthenticate_screen.dart';
-import 'package:app/screens/phone_reauthenticate_screen.dart';
 import 'package:app/services/firebase_service.dart';
 import 'package:app/services/secure_storage.dart';
 import 'package:app/widgets/custom_shimmer.dart';
@@ -14,8 +14,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
 
-import 'change_email_screen.dart';
-import 'change_phone_screen.dart';
+import '../auth/change_email_screen.dart';
+import '../auth/change_phone_screen.dart';
+import '../themes/light_theme.dart';
 import 'home_page.dart';
 
 class ProfileEditPage extends StatefulWidget {
@@ -44,35 +45,17 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        appBar: navBar(),
         body: Container(
-      padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 40),
-      color: Config.appBodyColor,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Expanded(
-              child: Form(
+          padding: const EdgeInsets.only(left: 16.0, right: 16.0),
+          color: Config.appBodyColor,
+          child: Form(
             key: _formKey,
             child: ListView(
-              shrinkWrap: true,
+              physics: const BouncingScrollPhysics(),
               children: <Widget>[
-                Row(
-                  children: [
-                    backButton(context),
-                    const Spacer(),
-                    GestureDetector(
-                      onTap: updateProfile,
-                      child: SizedBox(
-                        height: 40,
-                        width: 40,
-                        child: Text(
-                          'Save',
-                          style: TextStyle(color: Config.inactiveColor),
-                        ),
-                      ),
-                    )
-                  ],
+                const SizedBox(
+                  height: 26,
                 ),
                 profilePicSection(),
                 const SizedBox(
@@ -87,7 +70,6 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                 ),
                 TextFormField(
                   initialValue: widget.userDetails.firstName,
-                  autofocus: true,
                   enableSuggestions: false,
                   cursorWidth: 1,
                   cursorColor: Config.appColorBlue,
@@ -115,7 +97,6 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                 ),
                 TextFormField(
                   initialValue: userDetails!.lastName,
-                  autofocus: true,
                   enableSuggestions: false,
                   cursorWidth: 1,
                   cursorColor: Config.appColorBlue,
@@ -131,18 +112,6 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                     return null;
                   },
                 ),
-                // const SizedBox(
-                //   height: 16,
-                // ),
-                // Text(
-                //   'Phone Number',
-                //   style: TextStyle(
-                //       fontSize: 12, color: Config.inactiveColor),
-                // ),
-                // const SizedBox(
-                //   height: 4,
-                // ),
-
                 Visibility(
                   visible: _phoneEditor.text.isNotEmpty,
                   child: const SizedBox(
@@ -204,7 +173,6 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                     ),
                   ),
                 ),
-
                 Visibility(
                   visible: _emailEditor.text.isNotEmpty,
                   child: const SizedBox(
@@ -266,15 +234,11 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                     ),
                   ),
                 ),
-                const SizedBox(
-                  height: 16,
-                ),
+                const Spacer(),
               ],
             ),
-          )),
-        ],
-      ),
-    ));
+          ),
+        ));
   }
 
   Widget editCredentialsButton() {
@@ -318,6 +282,34 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       _phoneEditor.text = widget.userDetails.phoneNumber;
       _emailEditor.text = widget.userDetails.emailAddress;
     });
+  }
+
+  PreferredSizeWidget navBar() {
+    return AppBar(
+        toolbarHeight: 72,
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: Config.appBodyColor,
+        automaticallyImplyLeading: false,
+        title: Row(
+          children: [
+            backButton(context),
+            const Spacer(),
+            Text(
+              'Edit Profile',
+              style: CustomTextStyle.headline8(context),
+            ),
+            const Spacer(),
+            GestureDetector(
+              onTap: updateProfile,
+              child: Text('Save',
+                  style: Theme.of(context)
+                      .textTheme
+                      .subtitle2
+                      ?.copyWith(color: Config.appColorBlack.withOpacity(0.2))),
+            ),
+          ],
+        ));
   }
 
   InputDecoration profileFormFieldDecoration() {

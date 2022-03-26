@@ -1,17 +1,18 @@
-import 'package:app/auth/signup_screen.dart';
+import 'package:app/auth/phone_reauthenticate_screen.dart';
 import 'package:app/constants/config.dart';
-import 'package:app/screens/phone_reauthenticate_screen.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/web_view.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/custom_widgets.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import '../auth/email_reauthenticate_screen.dart';
+import '../auth/phone_auth_widget.dart';
 import 'about_page.dart';
-import 'email_reauthenticate_screen.dart';
 import 'feedback_page.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -67,11 +68,9 @@ class _SettingsPageState extends State<SettingsPage> {
             color: Colors.white,
             borderRadius: BorderRadius.all(Radius.circular(0.0))),
         child: ListTile(
-          title: Text(
-            text,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 16),
-          ),
+          title: Text(text,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodyText1),
         ));
   }
 
@@ -81,20 +80,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
     if (user == null) {
       await showSnackBar(context, Config.appErrorMessage);
-      // loadingScreen(dialogContext);
-
-      //   var successful = await _appService.logOut(context);
-      //   if(!successful){
-      //     await showSnackBar(context, 'failed to delete account. '
-      //         'Try again later');
-      //     Navigator.pop(dialogContext);
-      //   }
-      // Navigator.pop(dialogContext);
-      // await _appService.logOut(context);
-      // await Navigator.pushAndRemoveUntil(context,
-      //     MaterialPageRoute(builder: (context) {
-      //       return const SignupScreen(false);
-      //     }), (r) => false);
       return;
     }
 
@@ -124,7 +109,7 @@ class _SettingsPageState extends State<SettingsPage> {
         Navigator.pop(dialogContext);
         await Navigator.pushAndRemoveUntil(context,
             MaterialPageRoute(builder: (context) {
-          return const SignupScreen(false);
+          return const PhoneSignUpWidget(enableBackButton: false);
         }), (r) => false);
       } else {
         await showSnackBar(
@@ -138,53 +123,6 @@ class _SettingsPageState extends State<SettingsPage> {
           'Authentication failed '
           'Try again later');
     }
-
-    // if (user == null) {
-    //   loadingScreen(dialogContext);
-    //
-    //   var successful = await _appService.logOut(context);
-    //   if(!successful){
-    //     await showSnackBar(context, 'failed to delete account. Try again later');
-    //     Navigator.pop(dialogContext);
-    //   }
-    //   Navigator.pop(dialogContext);
-    //   await Navigator.pushAndRemoveUntil(context,
-    //       MaterialPageRoute(builder: (context) {
-    //     return const HomePage();
-    //   }), (r) => false);
-    // }
-    // else {
-    //   bool authResponse;
-    //   var userDetails = await _appService.getUserDetails();
-    //   if (user.email != null) {
-    //     userDetails.emailAddress = user.email!;
-    //     authResponse =
-    //         await Navigator.push(context, MaterialPageRoute(builder: (context) {
-    //       return EmailReAuthenticateScreen(userDetails);
-    //     }));
-    //   } else if (user.phoneNumber != null) {
-    //     userDetails.phoneNumber = user.phoneNumber!;
-    //     authResponse =
-    //         await Navigator.push(context, MaterialPageRoute(builder: (context) {
-    //       return PhoneReAuthenticateScreen(userDetails);
-    //     }));
-    //   }
-    //   else{
-    //     authResponse = false;
-    //   }
-    //
-    //   if (authResponse) {
-    //     loadingScreen(dialogContext);
-    //
-    //     await _appService.deleteAccount().then((value) => {
-    //           Navigator.pop(dialogContext),
-    //           Navigator.pushAndRemoveUntil(context,
-    //               MaterialPageRoute(builder: (context) {
-    //             return const HomePage();
-    //           }), (r) => false)
-    //         });
-    //   }
-    // }
   }
 
   Widget deleteAccountSection() {
@@ -196,11 +134,13 @@ class _SettingsPageState extends State<SettingsPage> {
               color: Colors.white,
               borderRadius: BorderRadius.all(Radius.circular(8.0))),
           child: ListTile(
-            title: Text(
+            title: AutoSizeText(
               'Delete your account',
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                  fontSize: 14, color: Config.appColorBlack.withOpacity(0.4)),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyText2
+                  ?.copyWith(color: Config.appColorBlack.withOpacity(0.6)),
             ),
           )),
     );
@@ -236,11 +176,9 @@ class _SettingsPageState extends State<SettingsPage> {
       child: Column(
         children: [
           ListTile(
-            title: const Text(
-              'Location',
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 16),
-            ),
+            title: Text('Location',
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodyText1),
             trailing: CupertinoSwitch(
               activeColor: Config.appColorBlue,
               onChanged: (bool value) {
@@ -265,11 +203,9 @@ class _SettingsPageState extends State<SettingsPage> {
             color: Config.appBodyColor,
           ),
           ListTile(
-            title: const Text(
-              'Notification',
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 16),
-            ),
+            title: Text('Notification',
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodyText1),
             trailing: CupertinoSwitch(
               activeColor: Config.appColorBlue,
               onChanged: (bool value) {
@@ -296,10 +232,6 @@ class _SettingsPageState extends State<SettingsPage> {
           GestureDetector(
             onTap: () async {
               openUrl(Config.faqsUrl);
-              // await Navigator.push(context,
-              //     MaterialPageRoute(builder: (context) {
-              //   return FaqsPage();
-              // }));
             },
             child: cardSection('FAQs'),
           ),

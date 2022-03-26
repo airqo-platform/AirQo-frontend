@@ -116,8 +116,8 @@ const MapBoxMap = () => {
               </div>
             </Popup>
           )}
-          <MapKey />
           <MapFilter />
+          <MapKey />
         </ReactMapGL>
       </div>
     </ErrorBoundary>
