@@ -106,7 +106,7 @@ jobs:
           export NODE_PATH=${{ secrets.NODE_PATH }}
           export PORT=${{ secrets.NODE_PORT }}
 
-          npm install
+          npm ci
     
           CI=false npm run build
 
