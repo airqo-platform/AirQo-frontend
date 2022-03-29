@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../themes/light_theme.dart';
-import '../home_page.dart';
 
 class KyaFinalPage extends StatefulWidget {
   final Kya kya;
@@ -76,16 +75,13 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
   void initState() {
     super.initState();
     _appService = AppService(context);
-    kya = widget.kya..progress = -1;
+    kya = widget.kya..progress = widget.kya.lessons.length;
     _initialize();
   }
 
   Future<void> _initialize() async {
     Future.delayed(const Duration(seconds: 4), () {
-      Navigator.pushAndRemoveUntil(context,
-          MaterialPageRoute(builder: (context) {
-        return const HomePage();
-      }), (r) => false);
+      Navigator.pop(context);
     });
     await _appService.updateKya(kya);
   }

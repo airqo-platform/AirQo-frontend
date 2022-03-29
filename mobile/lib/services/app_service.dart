@@ -409,14 +409,10 @@ class AppService {
   }
 
   Future<void> updateKya(Kya kya) async {
-    if (_customAuth.isLoggedIn()) {
-      await isConnected();
-      await Future.wait([
-        _dbHelper.updateKya(kya),
-        _cloudStore.updateKyaProgress(_customAuth.getUserId(), kya)
-      ]);
-    } else {
-      await _dbHelper.updateKya(kya);
+    await _dbHelper.updateKya(kya);
+    var connected = await isConnected();
+    if (_customAuth.isLoggedIn() && connected) {
+      await _cloudStore.updateKyaProgress(_customAuth.getUserId(), kya);
     }
   }
 

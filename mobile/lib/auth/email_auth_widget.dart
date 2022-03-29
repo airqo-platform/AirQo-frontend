@@ -32,7 +32,6 @@ class EmailAuthWidget extends StatefulWidget {
 }
 
 class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
-  bool _isVerifying = false;
   String _emailVerificationLink = '';
   int _emailToken = 1;
   bool _verifyCode = false;
@@ -66,7 +65,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
   void clearEmailCallBack() {
     if (_emailAddress == '') {
       FocusScope.of(context).unfocus();
-      Future.delayed(const Duration(milliseconds: 250), () {
+      Future.delayed(const Duration(milliseconds: 400), () {
         setState(() {
           _showAuthOptions = true;
         });
@@ -90,7 +89,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
       },
       onEditingComplete: () async {
         FocusScope.of(context).requestFocus(FocusNode());
-        Future.delayed(const Duration(milliseconds: 250), () {
+        Future.delayed(const Duration(milliseconds: 400), () {
           setState(() {
             _showAuthOptions = true;
           });
@@ -210,7 +209,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
       const Spacer(),
       GestureDetector(
         onTap: () async {
-          await requestVerification();
+          await _requestVerification();
         },
         child: nextButton('Next', _nextBtnColor),
       ),
@@ -280,7 +279,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
         child: optField(0, context, setCode, _codeSent),
       ),
       const SizedBox(
-        height: 32,
+        height: 16,
       ),
       Visibility(
         visible: _codeSentCountDown > 0,
@@ -295,7 +294,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
         visible: _codeSentCountDown <= 0,
         child: GestureDetector(
           onTap: () async {
-            await resendVerificationCode();
+            await _resendVerificationCode();
           },
           child: Text('Resend code',
               textAlign: TextAlign.center,
@@ -383,19 +382,126 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     return Future.value(false);
   }
 
-  Future<void> requestVerification() async {
+  void setCode(value, position) {
+    setState(() {
+      _emailVerificationCode[position] = value;
+    });
+    var code = _emailVerificationCode.join('');
+    if (code.length == 6) {
+      setState(() {
+        _nextBtnColor = Config.appColorBlue;
+      });
+    } else {
+      setState(() {
+        _nextBtnColor = Config.appColorDisabled;
+      });
+    }
+  }
+
+  Future<void> verifySentCode() async {
     var connected = await _appService.isConnected();
     if (!connected) {
       await showSnackBar(context, Config.connectionErrorMessage);
       return;
     }
 
-    if (!_emailFormKey.currentState!.validate() || _isVerifying) {
+    var code = _emailVerificationCode.join('');
+
+    if (code.length != 6) {
+      await showSnackBar(context, 'Enter all the 6 digits');
+      return;
+    }
+
+    setState(() {
+      _nextBtnColor = Config.appColorDisabled;
+    });
+
+    if (code != _emailToken.toString()) {
+      await showSnackBar(context, 'Invalid Code');
+      setState(() {
+        _nextBtnColor = Config.appColorBlue;
+      });
+      return;
+    }
+
+    loadingScreen(loadingContext);
+
+    bool success;
+    if (!widget.isLogin) {
+      success = await _appService.authenticateUser(null, _emailAddress,
+          _emailVerificationLink, authMethod.email, authProcedure.signup);
+    } else {
+      success = await _appService.authenticateUser(null, _emailAddress,
+          _emailVerificationLink, authMethod.email, authProcedure.login);
+    }
+
+    Navigator.pop(loadingContext);
+
+    if (success) {
+      if (!widget.isLogin) {
+        await Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (context) {
+          return ProfileSetupScreen(widget.enableBackButton);
+        }), (r) => false);
+      } else {
+        await Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (context) {
+          return const HomePage();
+        }), (r) => false);
+      }
+    } else {
+      setState(() {
+        _nextBtnColor = Config.appColorBlue;
+        _codeSent = true;
+      });
+      await showSnackBar(context, 'Authentication failed');
+    }
+  }
+
+  List<Widget> _getColumnWidget() {
+    if (_verifyCode) {
+      return emailVerificationWidget();
+    }
+    return emailInputWidget();
+  }
+
+  void _initialize() {
+    setState(() {
+      _emailAddress = widget.emailAddress;
+      _nextBtnColor = widget.emailAddress == ''
+          ? Config.appColorDisabled
+          : Config.appColorBlue;
+      _emailVerificationLink = '';
+      _emailToken = 1;
+      _verifyCode = false;
+      _codeSent = false;
+      _emailVerificationCode = <String>['', '', '', '', '', ''];
+
+      _emailInputController = TextEditingController(text: _emailAddress);
+
+      _showAuthOptions = true;
+      _authOptionsText = widget.isLogin
+          ? 'Login with your email or mobile number'
+          : 'Sign up with your email or mobile number';
+      _authOptionsButtonText = widget.isLogin
+          ? 'Login with a mobile number instead'
+          : 'Sign up with a mobile number instead';
+    });
+  }
+
+  Future<void> _requestVerification() async {
+    var connected = await _appService.isConnected();
+    if (!connected) {
+      await showSnackBar(context, Config.connectionErrorMessage);
+      return;
+    }
+
+    if (!_emailFormKey.currentState!.validate()) {
       return;
     }
 
     FocusScope.of(context).requestFocus(FocusNode());
-    Future.delayed(const Duration(milliseconds: 250), () {
+    Future.delayed(const Duration(milliseconds: 400), () {
       setState(() {
         _showAuthOptions = true;
       });
@@ -403,7 +509,6 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
 
     setState(() {
       _nextBtnColor = Config.appColorDisabled;
-      _isVerifying = true;
     });
     loadingScreen(loadingContext);
 
@@ -413,7 +518,6 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
       if (emailExists) {
         setState(() {
           _nextBtnColor = Config.appColorBlue;
-          _isVerifying = false;
         });
         Navigator.pop(loadingContext);
         await showSnackBar(
@@ -451,7 +555,6 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
       await showSnackBar(context, 'email signup verification failed');
       setState(() {
         _nextBtnColor = Config.appColorBlue;
-        _isVerifying = false;
       });
       return;
     }
@@ -460,14 +563,13 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
       _emailVerificationLink = emailSignupResponse.loginLink;
       _emailToken = emailSignupResponse.token;
       _verifyCode = true;
-      _isVerifying = false;
       _codeSent = false;
     });
 
     _startCodeSentCountDown();
   }
 
-  Future<void> resendVerificationCode() async {
+  Future<void> _resendVerificationCode() async {
     var connected = await _appService.isConnected();
     if (!connected) {
       await showSnackBar(context, Config.connectionErrorMessage);
@@ -493,127 +595,12 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     _startCodeSentCountDown();
   }
 
-  void setCode(value, position) {
-    setState(() {
-      _emailVerificationCode[position] = value;
-    });
-    var code = _emailVerificationCode.join('');
-    if (code.length == 6) {
-      setState(() {
-        _nextBtnColor = Config.appColorBlue;
-      });
-    } else {
-      setState(() {
-        _nextBtnColor = Config.appColorDisabled;
-      });
-    }
-  }
-
-  Future<void> verifySentCode() async {
-    var connected = await _appService.isConnected();
-    if (!connected) {
-      await showSnackBar(context, Config.connectionErrorMessage);
-      return;
-    }
-
-    var code = _emailVerificationCode.join('');
-
-    if (code.length != 6) {
-      await showSnackBar(context, 'Enter all the 6 digits');
-      return;
-    }
-
-    if (_isVerifying) {
-      return;
-    }
-
-    setState(() {
-      _nextBtnColor = Config.appColorDisabled;
-      _isVerifying = true;
-    });
-
-    if (code != _emailToken.toString()) {
-      await showSnackBar(context, 'Invalid Code');
-      setState(() {
-        _nextBtnColor = Config.appColorBlue;
-        _isVerifying = false;
-      });
-      return;
-    }
-
-    loadingScreen(loadingContext);
-
-    bool success;
-    if (!widget.isLogin) {
-      success = await _appService.authenticateUser(null, _emailAddress,
-          _emailVerificationLink, authMethod.email, authProcedure.signup);
-    } else {
-      success = await _appService.authenticateUser(null, _emailAddress,
-          _emailVerificationLink, authMethod.email, authProcedure.login);
-    }
-
-    Navigator.pop(loadingContext);
-
-    if (success) {
-      if (!widget.isLogin) {
-        await Navigator.pushAndRemoveUntil(context,
-            MaterialPageRoute(builder: (context) {
-          return ProfileSetupScreen(widget.enableBackButton);
-        }), (r) => false);
-      } else {
-        await Navigator.pushAndRemoveUntil(context,
-            MaterialPageRoute(builder: (context) {
-          return const HomePage();
-        }), (r) => false);
-      }
-    } else {
-      setState(() {
-        _nextBtnColor = Config.appColorBlue;
-        _isVerifying = false;
-        _codeSent = true;
-      });
-      await showSnackBar(context, 'Authentication failed');
-    }
-  }
-
-  List<Widget> _getColumnWidget() {
-    if (_verifyCode) {
-      return emailVerificationWidget();
-    }
-    return emailInputWidget();
-  }
-
-  void _initialize() {
-    setState(() {
-      _emailAddress = widget.emailAddress;
-      _nextBtnColor = widget.emailAddress == ''
-          ? Config.appColorDisabled
-          : Config.appColorBlue;
-      _isVerifying = false;
-      _emailVerificationLink = '';
-      _emailToken = 1;
-      _verifyCode = false;
-      _codeSent = false;
-      _emailVerificationCode = <String>['', '', '', '', '', ''];
-
-      _emailInputController = TextEditingController(text: _emailAddress);
-
-      _showAuthOptions = true;
-      _authOptionsText = widget.isLogin
-          ? 'Login with your email or mobile number'
-          : 'Sign up with your email or mobile number';
-      _authOptionsButtonText = widget.isLogin
-          ? 'Login with a mobile number instead'
-          : 'Sign up with a mobile number instead';
-    });
-  }
-
   void _startCodeSentCountDown() {
     setState(() {
       _codeSentCountDown = 5;
     });
     Timer.periodic(
-      const Duration(seconds: 1),
+      const Duration(milliseconds: 1200),
       (Timer timer) {
         if (_codeSentCountDown == 0) {
           setState(() {

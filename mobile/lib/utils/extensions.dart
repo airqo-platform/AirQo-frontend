@@ -300,8 +300,7 @@ extension StringCasingExtension on String {
   }
 
   bool isNull() {
-    if (this == null ||
-        isEmpty ||
+    if (isEmpty ||
         length == 0 ||
         this == '' ||
         toLowerCase() == 'null' ||
