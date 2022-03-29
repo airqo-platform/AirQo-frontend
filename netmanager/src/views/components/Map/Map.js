@@ -124,8 +124,7 @@ class Maps extends React.Component {
   onOpenClicked = () => {
     axios
       .get(GET_LOCATE_MAP + 
-        "?tenant=" + this.props.auth.user.organizatio + 
-        "&userId=" + this.props.auth.user._id)
+        "?userId=" + this.props.auth.user._id)
       .then((res) => {
         this.setState({ savedPlan: res.data });
         console.log(res.data);
@@ -144,8 +143,7 @@ class Maps extends React.Component {
     // console.log("plan: ", this.state.plan);
     axios
       .post(
-        SAVE_LOCATE_MAP + 
-        "?tenant=" + this.props.auth.user.organization,
+        SAVE_LOCATE_MAP,
         {
           userId: this.props.auth.user._id,
           spaceName: this.state.space_name,
@@ -216,10 +214,9 @@ class Maps extends React.Component {
   onUpdatePlanSpace = () => {
     console.log("onUpdate: ", this.state.selected_name);
     axios
-      .post(
+      .put(
         UPDATE_LOCATE_MAP + 
-        "?tenant=" + this.props.auth.user.organizatio + 
-        "&userId=" + this.props.auth.user._id + 
+        "?userId=" + this.props.auth.user._id + 
         "&spaceName=" + this.state.selected_name,
         {
           plan: this.state.selected_plan,
@@ -254,8 +251,7 @@ class Maps extends React.Component {
     console.log("onDelete :", name);
     axios
       .delete(DELETE_LOCATE_MAP + 
-        "?tenant=" + this.props.auth.user.organizatio + 
-        "&userId=" + this.props.auth.user._id + 
+        "?userId=" + this.props.auth.user._id + 
         "&spaceName=" + name)
       .then((res) => {
         console.log(res.data);
