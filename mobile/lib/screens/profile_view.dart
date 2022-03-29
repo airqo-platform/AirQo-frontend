@@ -217,8 +217,10 @@ class _ProfileViewState extends State<ProfileView> {
         setState(() {
           _userProfile = userDetails;
         });
-        await precacheImage(
-            CachedNetworkImageProvider(_userProfile.photoUrl), context);
+        if (userDetails.photoUrl != '') {
+          await precacheImage(
+              CachedNetworkImageProvider(_userProfile.photoUrl), context);
+        }
       }
     }
   }

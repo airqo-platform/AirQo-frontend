@@ -556,8 +556,7 @@ class ShareService {
   Widget analyticsCardImage(Measurement measurement, PlaceDetails placeDetails,
       BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(
-          maxHeight: 200, maxWidth: 300),
+      constraints: const BoxConstraints(maxHeight: 200, maxWidth: 300),
       padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
       decoration: BoxDecoration(
           color: Colors.white,
@@ -571,60 +570,60 @@ class ShareService {
             children: [
               analyticsAvatar(measurement, 104, 40, 12),
               const SizedBox(width: 10.0),
-              Flexible(child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AutoSizeText(
-                    placeDetails.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    minFontSize: 17,
-                    style: CustomTextStyle.headline9(context),
-                  ),
-                  AutoSizeText(
-                    placeDetails.location,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    minFontSize: 12,
-                    style: CustomTextStyle.bodyText4(context)
-                        ?.copyWith(
-                        color: Config.appColorBlack
-                            .withOpacity(0.3)),
-                  ),
-                  const SizedBox(
-                    height: 12,
-                  ),
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
-                    decoration: BoxDecoration(
-                        borderRadius:
-                        const BorderRadius.all(Radius.circular(40.0)),
-                        color: pm2_5ToColor(measurement.getPm2_5Value())
-                            .withOpacity(0.4),
-                        border: Border.all(color: Colors.transparent)),
-                    child: AutoSizeText(
-                      pm2_5ToString(measurement.getPm2_5Value()),
-                      maxLines: 2,
-                      textAlign: TextAlign.start,
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AutoSizeText(
+                      placeDetails.name,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: pm2_5TextColor(measurement.getPm2_5Value()),
+                      minFontSize: 17,
+                      style: CustomTextStyle.headline9(context),
+                    ),
+                    AutoSizeText(
+                      placeDetails.location,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      minFontSize: 12,
+                      style: CustomTextStyle.bodyText4(context)?.copyWith(
+                          color: Config.appColorBlack.withOpacity(0.3)),
+                    ),
+                    const SizedBox(
+                      height: 12,
+                    ),
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
+                      decoration: BoxDecoration(
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(40.0)),
+                          color: pm2_5ToColor(measurement.getPm2_5Value())
+                              .withOpacity(0.4),
+                          border: Border.all(color: Colors.transparent)),
+                      child: AutoSizeText(
+                        pm2_5ToString(measurement.getPm2_5Value()),
+                        maxLines: 2,
+                        textAlign: TextAlign.start,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: pm2_5TextColor(measurement.getPm2_5Value()),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(
-                    height: 8,
-                  ),
-                  Text(
-                    dateToShareString(measurement.time),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        fontSize: 8, color: Colors.black.withOpacity(0.3)),
-                  ),
-                ],
-              ),)
+                    const SizedBox(
+                      height: 8,
+                    ),
+                    Text(
+                      dateToShareString(measurement.time),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          fontSize: 8, color: Colors.black.withOpacity(0.3)),
+                    ),
+                  ],
+                ),
+              )
             ],
           ),
           const Spacer(),
@@ -636,7 +635,7 @@ class ShareService {
                 style: TextStyle(
                   fontSize: 9,
                   color: Config.appColorBlack.withOpacity(0.5),
-                  height: 32/9,
+                  height: 32 / 9,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -645,7 +644,7 @@ class ShareService {
                 style: TextStyle(
                   fontSize: 9,
                   color: Config.appColorBlack.withOpacity(0.5),
-                  height: 32/9,
+                  height: 32 / 9,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -654,6 +653,10 @@ class ShareService {
         ],
       ),
     );
+  }
+
+  String getShareMessage() {
+    return 'Download the AirQo app from Google play\nhttps://play.google.com/store/apps/details?id=com.airqo.app\nand App Store\nhttps://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091\n';
   }
 
   Future<void> shareCard(BuildContext buildContext, GlobalKey globalKey,
@@ -667,7 +670,6 @@ class ShareService {
     final directory = (await getApplicationDocumentsDirectory()).path;
     var imgFile = File('$directory/airqo_analytics_card.png');
     await imgFile.writeAsBytes(pngBytes);
-
 
     await Share.shareFiles([imgFile.path], text: getShareMessage())
         .then((value) => {_updateUserShares()});
@@ -712,10 +714,6 @@ class ShareService {
     // } else {
     //   return;
     // }
-  }
-
-  String getShareMessage(){
-    return 'Download the AirQo app from Google play\nhttps://play.google.com/store/apps/details?id=com.airqo.app\nand App Store\nhttps://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091\n';
   }
 
   Future<void> shareGraph(BuildContext buildContext, GlobalKey globalKey,
