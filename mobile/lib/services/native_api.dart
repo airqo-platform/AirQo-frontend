@@ -25,6 +25,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../themes/light_theme.dart';
 import 'firebase_service.dart';
 import 'local_notifications.dart';
 
@@ -555,33 +556,38 @@ class ShareService {
   Widget analyticsCardImage(Measurement measurement, PlaceDetails placeDetails,
       BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(top: 12, bottom: 12, left: 10, right: 10),
+      constraints: const BoxConstraints(maxHeight: 200, maxWidth: 300),
+      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
       decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: const BorderRadius.all(Radius.circular(16.0)),
           border: Border.all(color: Colors.transparent)),
-      child: ListView(
-        shrinkWrap: true,
+      child: Column(
         children: [
+          const Spacer(),
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               analyticsAvatar(measurement, 104, 40, 12),
               const SizedBox(width: 10.0),
-              Expanded(
+              Flexible(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     AutoSizeText(
                       placeDetails.name,
-                      maxLines: 2,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 17),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      minFontSize: 17,
+                      style: CustomTextStyle.headline9(context),
                     ),
                     AutoSizeText(
                       placeDetails.location,
                       maxLines: 1,
-                      style: TextStyle(
-                          fontSize: 12, color: Colors.black.withOpacity(0.3)),
+                      overflow: TextOverflow.ellipsis,
+                      minFontSize: 12,
+                      style: CustomTextStyle.bodyText4(context)?.copyWith(
+                          color: Config.appColorBlack.withOpacity(0.3)),
                     ),
                     const SizedBox(
                       height: 12,
@@ -596,8 +602,9 @@ class ShareService {
                           border: Border.all(color: Colors.transparent)),
                       child: AutoSizeText(
                         pm2_5ToString(measurement.getPm2_5Value()),
-                        maxLines: 1,
+                        maxLines: 2,
                         textAlign: TextAlign.start,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 12,
                           color: pm2_5TextColor(measurement.getPm2_5Value()),
@@ -619,17 +626,37 @@ class ShareService {
               )
             ],
           ),
-          Text(
-            // '© ${DateTime.now().year} AirQo',
-            '${DateTime.now().year} AirQo',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.right,
-            style: TextStyle(fontSize: 6, color: Colors.black.withOpacity(0.5)),
-          ),
+          const Spacer(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '© ${DateTime.now().year} AirQo',
+                style: TextStyle(
+                  fontSize: 9,
+                  color: Config.appColorBlack.withOpacity(0.5),
+                  height: 32 / 9,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                'www.airqo.africa',
+                style: TextStyle(
+                  fontSize: 9,
+                  color: Config.appColorBlack.withOpacity(0.5),
+                  height: 32 / 9,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          )
         ],
       ),
     );
+  }
+
+  String getShareMessage() {
+    return 'Download the AirQo app from Google play\nhttps://play.google.com/store/apps/details?id=com.airqo.app\nand App Store\nhttps://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091\n';
   }
 
   Future<void> shareCard(BuildContext buildContext, GlobalKey globalKey,
@@ -644,9 +671,7 @@ class ShareService {
     var imgFile = File('$directory/airqo_analytics_card.png');
     await imgFile.writeAsBytes(pngBytes);
 
-    var message = '${measurement.site.name}, Current Air Quality. \n\n'
-        'Source: AirQo App';
-    await Share.shareFiles([imgFile.path], text: message)
+    await Share.shareFiles([imgFile.path], text: getShareMessage())
         .then((value) => {_updateUserShares()});
 
     /// Temporarily disabled sharing text
@@ -703,9 +728,7 @@ class ShareService {
     var imgFile = File('$directory/airqo_analytics_graph.png');
     await imgFile.writeAsBytes(pngBytes);
 
-    var message = '${placeDetails.name}, Current Air Quality. \n\n'
-        'Source: AirQo App';
-    await Share.shareFiles([imgFile.path], text: message)
+    await Share.shareFiles([imgFile.path], text: getShareMessage())
         .then((value) => {_updateUserShares()});
   }
 
@@ -719,8 +742,7 @@ class ShareService {
     var imgFile = File('$directory/analytics_graph.png');
     await imgFile.writeAsBytes(pngBytes);
 
-    var message = 'Source: AirQo App';
-    await Share.shareFiles([imgFile.path], text: message)
+    await Share.shareFiles([imgFile.path], text: getShareMessage())
         .then((value) => {_updateUserShares()});
   }
 
