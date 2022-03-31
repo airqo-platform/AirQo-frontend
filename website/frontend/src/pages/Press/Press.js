@@ -7,8 +7,8 @@ const Press = () => {
             <div className='p-header'>
                 <div className='content'>
                     <div className='press-top'>
-                        <h2>In the Press</h2>
-                        <span>
+                        <h2>In the <span className='underline'>Press</span></h2>
+                        <span className='sub-title'>
                             Stories about AirQo that we think you'll love
                         </span>
                     </div>
