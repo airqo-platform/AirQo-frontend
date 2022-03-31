@@ -1,4 +1,4 @@
-$layout-breakpoint: 580px;
+@import "lib/variables";
 
 .Newsletter {
     position: relative;
@@ -65,7 +65,7 @@ $layout-breakpoint: 580px;
     }
 }
 
-@media(max-width: $layout-breakpoint) {
+@media(max-width: $mainBreakPoint) {
     .Newsletter {
         height: 100%;
         padding: 80px 16px;
