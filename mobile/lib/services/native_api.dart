@@ -16,6 +16,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:in_app_review/in_app_review.dart';
@@ -501,14 +502,40 @@ class NotificationService {
     }
   }
 
-  static Future<void> foregroundMessageHandler(RemoteMessage message) async {
+  static Future<void> notificationHandler(RemoteMessage message) async {
     try {
-      var notificationMessage = UserNotification.composeNotification(message);
-      if (notificationMessage != null) {
-        await LocalNotifications().showAlertNotification(notificationMessage);
+      const channel = AndroidNotificationChannel(
+        'high_importance_channel',
+        'High Importance Notifications',
+        description: 'This channel is used for important notifications.',
+        importance: Importance.max,
+      );
+
+      final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+      await flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(channel);
+
+      var notification = message.notification;
+
+      if (notification != null) {
+        await flutterLocalNotificationsPlugin.show(
+            notification.hashCode,
+            notification.title,
+            notification.body,
+            NotificationDetails(
+                android: AndroidNotificationDetails(channel.id, channel.name,
+                    channelDescription: channel.description,
+                    icon: 'notification_icon'),
+                iOS: const IOSNotificationDetails(
+                    presentAlert: true,
+                    presentSound: true,
+                    presentBadge: true)));
       }
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
+    } catch (e) {
+      print(e);
     }
   }
 }
