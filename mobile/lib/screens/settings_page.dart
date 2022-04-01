@@ -36,32 +36,62 @@ class _SettingsPageState extends State<SettingsPage> {
         appBar: appTopBar(context, 'Settings'),
         body: Container(
             color: Config.appBodyColor,
-            child: RefreshIndicator(
-                onRefresh: initialize,
-                color: Config.appColorBlue,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      const SizedBox(
-                        height: 31,
-                      ),
-                      settingsSection(),
-                      const Spacer(),
-                      Visibility(
-                        visible: _appService.isLoggedIn(),
-                        child: deleteAccountSection(),
-                      ),
-                      const SizedBox(
-                        height: 32,
-                      ),
-                    ],
-                  ),
-                ))));
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                const SizedBox(
+                  height: 31,
+                ),
+                _settingsSection(),
+                const Spacer(),
+                Visibility(
+                  visible: _appService.isLoggedIn(),
+                  child: _deleteAccountSection(),
+                ),
+                const SizedBox(
+                  height: 32,
+                ),
+              ],
+            )));
   }
 
-  Widget cardSection(String text) {
+  @override
+  void initState() {
+    super.initState();
+    _appService = AppService(context);
+    _initialize();
+  }
+
+  void showConfirmationDialog(BuildContext context) {
+    Widget okButton = TextButton(
+      child: const Text('Yes'),
+      onPressed: _deleteAccount,
+    );
+
+    Widget cancelButton = TextButton(
+      child: const Text('No'),
+      onPressed: () {
+        Navigator.of(context).pop();
+      },
+    );
+
+    var alert = AlertDialog(
+      title: const Text('Delete Account'),
+      content: const Text('Are you sure toy want to delete your account ? '),
+      actions: [okButton, cancelButton],
+    );
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+
+  Widget _cardSection(String text) {
     return Container(
         height: 56,
         decoration: const BoxDecoration(
@@ -74,7 +104,7 @@ class _SettingsPageState extends State<SettingsPage> {
         ));
   }
 
-  Future<void> deleteAccount() async {
+  Future<void> _deleteAccount() async {
     var user = _appService.customAuth.getUser();
     var dialogContext = context;
 
@@ -125,9 +155,9 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  Widget deleteAccountSection() {
+  Widget _deleteAccountSection() {
     return GestureDetector(
-      onTap: deleteAccount,
+      onTap: _deleteAccount,
       child: Container(
           height: 56,
           decoration: const BoxDecoration(
@@ -146,7 +176,7 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Future<void> initialize() async {
+  Future<void> _initialize() async {
     await _notificationService.checkPermission().then((value) => {
           setState(() {
             _allowNotification = value;
@@ -160,14 +190,7 @@ class _SettingsPageState extends State<SettingsPage> {
         });
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _appService = AppService(context);
-    initialize();
-  }
-
-  Widget settingsSection() {
+  Widget _settingsSection() {
     return Container(
       padding: const EdgeInsets.only(top: 10, bottom: 10),
       decoration: const BoxDecoration(
@@ -233,7 +256,7 @@ class _SettingsPageState extends State<SettingsPage> {
             onTap: () async {
               openUrl(Config.faqsUrl);
             },
-            child: cardSection('FAQs'),
+            child: _cardSection('FAQs'),
           ),
           Divider(
             color: Config.appBodyColor,
@@ -245,7 +268,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 return const FeedbackPage();
               }));
             },
-            child: cardSection('Send feedback'),
+            child: _cardSection('Send feedback'),
           ),
           Divider(
             color: Config.appBodyColor,
@@ -254,7 +277,7 @@ class _SettingsPageState extends State<SettingsPage> {
             onTap: () async {
               await _rateService.rateApp();
             },
-            child: cardSection('Rate the AirQo App'),
+            child: _cardSection('Rate the AirQo App'),
           ),
           Divider(
             color: Config.appBodyColor,
@@ -266,37 +289,10 @@ class _SettingsPageState extends State<SettingsPage> {
                 return const AboutAirQo();
               }));
             },
-            child: cardSection('About'),
+            child: _cardSection('About'),
           ),
         ],
       ),
-    );
-  }
-
-  void showConfirmationDialog(BuildContext context) {
-    Widget okButton = TextButton(
-      child: const Text('Yes'),
-      onPressed: deleteAccount,
-    );
-
-    Widget cancelButton = TextButton(
-      child: const Text('No'),
-      onPressed: () {
-        Navigator.of(context).pop();
-      },
-    );
-
-    var alert = AlertDialog(
-      title: const Text('Delete Account'),
-      content: const Text('Are you sure toy want to delete your account ? '),
-      actions: [okButton, cancelButton],
-    );
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return alert;
-      },
     );
   }
 }
