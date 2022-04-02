@@ -1,0 +1,177 @@
+@import "lib/colors";
+@import "lib/variables";
+
+$tab_width: 120px;
+$text-size: 17px;
+$text-size-h2:40px;
+
+.tos-page{
+    width:100%;
+    height:auto;
+
+    .content{
+        display:grid;
+        grid-template-columns: 2fr repeat(5, 2fr) 2fr;
+        .tos-top, .tos-sub{
+            grid-column: 2 / 7;
+        }
+    }
+
+    .tos-header{
+        background-color: $aq-white-3;
+        .content{
+            height:244px;
+            .tos-top{
+                display:grid;
+                grid-template-columns: 1fr;
+                grid-template-rows: 190px 54px;
+            }
+            h2{
+                font-size: 48px;
+                font-weight: 700;
+                font-style: normal;
+                line-height: 48px;
+                display:flex;
+                align-items: center;
+                padding-top:25px;
+            }
+            .header-nav{
+                position: relative;
+                span{
+                    position: absolute;
+                    bottom:0px;
+                }
+                #tab1{
+                    left: 0;
+                }
+                #tab2{
+                    left:$tab_width + 10px;
+                }
+                button{
+                    border:0px;
+                    outline: none;
+                    cursor: pointer;
+                    padding:0 0 5px 0;
+                    background-color: transparent;
+                    height:32px;
+                    width:$tab_width;
+                    font-size:14px;
+                    font-weight: 400;
+                    line-height: 20px;
+                    flex-grow: 0;
+                }
+                .selected{
+                    border-bottom: 2px solid $aq-black-0;
+                    color:$aq-black-0;
+                }
+                .unselected{
+                    border-bottom: 0px;
+                    color:$aq-grey-0;
+                }
+            }
+        }
+    }
+
+    .tos-body{
+        background-color: $aq-white-0;
+        margin-bottom: 3%;
+
+        .tos-sub{
+            display:grid;
+            grid-template-columns: 2fr 5fr;
+            grid-column-gap: 50px;
+            padding-top:60px;
+            .sidenav{
+                height:100%;
+                div{
+                    padding-top: 10px;
+                    a{
+                        font-size: 17px;
+                        outline: none;
+                        text-decoration: none;
+                        text-decoration-color: none;
+                        font-weight: 400;
+                        line-height: 26px;
+                        flex-grow: 0;
+                        color: $aq-grey-0;
+                        transition: color 0.5s;
+                    }
+                }
+                div.selected a{
+                    color: $aq-black-0;
+                }
+                div:first-child{
+                    padding-top:0px;
+                }
+                div a.active, div a:hover, div a:focus{
+                    color:$aq-black-0
+                }
+            }
+            .tos-wording{
+                margin-left: 5%;
+                max-height: 780px;
+                overflow-y: hidden;
+                overflow-y: scroll;
+                padding-right: 40px;
+                text-align: justify;
+                div:first-child{
+                    padding-top: 0px;
+                    margin-top:-5.5%;
+                }
+                div{
+                    h2{
+                        font-size: $text-size-h2;
+                        font-weight: 700;
+                        line-height: 42px;
+                        color:$aq-black-0;
+                        text-transform: capitalize;
+                    }
+                    ol{
+                        margin-left:-2%;
+                        margin-top: -3%;
+                        li{
+                            font-size: $text-size;
+                            font-weight: 400;
+                            list-style: decimal;
+                            line-height: 22px;
+                            padding-bottom: 10px;
+                        }
+                        p{
+                            font-size: $text-size;
+                            font-weight: 400;
+                            line-height: 22px;
+                            margin:0 0 0 -3%;
+                        }
+                        .bulleted{
+                            list-style: disc;
+                        }
+                    }
+                    p{
+                        margin-top:-3%;
+                        font-size: $text-size;
+                        font-weight: 400;
+                        line-height: 22px;
+                        padding-bottom: 10px;
+                    }
+                }
+            }
+            ::-webkit-scrollbar{
+                width:14px;
+            }
+            ::-webkit-scrollbar-button{
+                display:none;
+            }
+            ::-webkit-scrollbar-track{
+                background: $aq-white-3;
+                opacity:0.2;
+            }
+            ::-webkit-scrollbar-thumb{
+                background: $aq-blue-0;
+                border-radius: 10px;
+            }
+            ::-webkit-scrollbar-corner{
+                border-radius: 10px;
+            }
+        }
+    }
+}
