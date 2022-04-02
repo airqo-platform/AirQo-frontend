@@ -1,0 +1,44 @@
+@import "lib/colors";
+@import "lib/variables";
+
+
+.ResearchPage {
+  .research-title {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: $aq-green-0;
+    min-height: 416px;
+    text-align: center;
+
+    .page-nav {
+      max-width: 173px;
+      font-style: normal;
+      font-weight: 400;
+      font-size: 14px;
+      line-height: 28px;
+      color: $aq-black-2;
+    }
+
+    .research-main-text {
+      max-width: 800px;
+      min-height: 56px;
+      font-style: normal;
+      font-weight: 600;
+      font-size: 48px;
+      line-height: 56px;
+      color: $aq-black-1;
+      margin: 32px 0 16px 0;
+    }
+
+    .research-sub-text {
+      max-width: 720px;
+      font-weight: 400;
+      font-size: 20px;
+      line-height: 28px;
+      color: $aq-black-1;
+    }
+  }
+}
