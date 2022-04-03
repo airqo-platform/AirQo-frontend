@@ -5,6 +5,7 @@ import ConsultImg from 'icons/research/consult.png';
 import ConsultImg2 from 'icons/research/consult-2.png';
 import ConsultLongImg from 'icons/research/consult-long.png';
 import BackgroundShape from 'icons/research/background-shape.svg';
+import { useInitScrollTop } from "../../utils/customHooks";
 
 const ResearchHeroSection = () => {
     return (
@@ -81,6 +82,7 @@ const ResearchContent = () => {
 }
 
 const ResearchPage = () => {
+    useInitScrollTop();
     return (
         <Page>
             <div className="ResearchPage">
