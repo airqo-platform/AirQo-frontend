@@ -4,7 +4,6 @@ import Hero from '../components/Hero';
 import Monitor from '../components/Monitor';
 import GetApp from '../components/get-app/GetApp';
 import MapSection from '../components/MapSection/MapSection';
-import { NewsletterSection } from '../components/NewsletterSection';
 import ApiSection from '../components/ApiSection/ApiSection';
 
 const HomePage = () => (
@@ -15,7 +14,6 @@ const HomePage = () => (
             <ApiSection />
             <MapSection />
             <GetApp />
-            <NewsletterSection />
         </div>
     </Page>
 );
