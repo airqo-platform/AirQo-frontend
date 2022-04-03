@@ -3,6 +3,11 @@
 
 
 .ResearchPage {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  font-style: normal;
+
   .research-title {
     display: flex;
     flex-wrap: wrap;
@@ -10,12 +15,12 @@
     align-items: center;
     justify-content: center;
     background: $aq-green-0;
+    width: 100%;
     min-height: 416px;
     text-align: center;
 
     .page-nav {
       max-width: 173px;
-      font-style: normal;
       font-weight: 400;
       font-size: 14px;
       line-height: 28px;
@@ -25,7 +30,6 @@
     .research-main-text {
       max-width: 800px;
       min-height: 56px;
-      font-style: normal;
       font-weight: 600;
       font-size: 48px;
       line-height: 56px;
@@ -39,6 +43,86 @@
       font-size: 20px;
       line-height: 28px;
       color: $aq-black-1;
+    }
+  }
+
+  .publications-section {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    max-width: $columnWidth;
+    width: 100%;
+    min-height: 482px;
+    background: $aq-green-0;
+    border-radius: 8px;
+    padding: 10px;
+
+    >* {
+      width: 100%;
+      max-width: 944px;
+    }
+
+    .title {
+      font-weight: 700;
+      font-size: 20px;
+      line-height: 28px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: $aq-black-3;
+    }
+
+    .main-text {
+      font-weight: 500;
+      font-size: 48px;
+      line-height: 56px;
+      color: $aq-black-2;
+      margin: 24px 0 32px 0;
+    }
+
+    .author {
+      font-weight: 500;
+      font-size: 24px;
+      line-height: 32px;
+      color: $aq-black-1;
+      //margin: 32px 0 4px 0;
+    }
+
+    .team {
+      font-weight: 400;
+      font-size: 20px;
+      line-height: 28px;
+      color: $aq-black-1;
+      margin: 4px 0 36px 0;
+    }
+
+    .link {
+      display: flex;
+      width: 280px;
+      height: 48px;
+      padding: 11px 24px;
+      font-weight: 400;
+      font-size: 20px;
+      line-height: 26px;
+      color: $aq-black-1;
+      background: $aq-white-0;
+      border-radius: 16px;
+
+      .link-arrow {
+        display: inline-block;
+        width: 27px;
+        height: 26px;
+        font-weight: 400;
+        font-size: 20px;
+        line-height: 26px;
+        text-align: center;
+        margin-left: 5px;
+
+        color: $aq-black-1;
+
+        transform: rotate(-180deg);
+      }
     }
   }
 }
