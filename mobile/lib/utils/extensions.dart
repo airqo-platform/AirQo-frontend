@@ -181,6 +181,10 @@ extension DateTimeExtension on DateTime {
     }
   }
 
+  int getUtcOffset() {
+    return timeZoneOffset.inHours;
+  }
+
   String getWeekday() {
     if (weekday == 1) {
       return 'monday';

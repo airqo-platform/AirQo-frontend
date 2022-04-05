@@ -571,8 +571,11 @@ class SharedPreferencesHelper {
     var location = _sharedPreferences!.getBool('location') ?? false;
     var alerts = _sharedPreferences!.getBool('alerts') ?? false;
     var aqShares = _sharedPreferences!.getInt('aqShares') ?? 0;
-
-    return UserPreferences(notifications, location, alerts, aqShares);
+    return UserPreferences(
+        notifications: notifications,
+        location: location,
+        alerts: alerts,
+        aqShares: aqShares);
   }
 
   Future<void> initialize() async {

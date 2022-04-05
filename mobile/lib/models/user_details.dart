@@ -25,20 +25,25 @@ class UserDetails {
   @JsonKey(defaultValue: '')
   String device = '';
 
+  @JsonKey(defaultValue: 0)
+  int utcOffset = 0;
+
   @JsonKey(defaultValue: '')
   String photoUrl = '';
-  UserPreferences preferences = UserPreferences(false, false, false, 0);
+
+  UserPreferences preferences = UserPreferences.initialize();
 
   UserDetails(
-      this.title,
-      this.firstName,
-      this.userId,
-      this.lastName,
-      this.emailAddress,
-      this.phoneNumber,
-      this.device,
-      this.photoUrl,
-      this.preferences);
+      {required this.title,
+      required this.firstName,
+      required this.lastName,
+      required this.userId,
+      required this.emailAddress,
+      required this.phoneNumber,
+      required this.device,
+      required this.preferences,
+      required this.photoUrl,
+      required this.utcOffset});
 
   factory UserDetails.fromJson(Map<String, dynamic> json) =>
       _$UserDetailsFromJson(json);
@@ -84,8 +89,18 @@ class UserDetails {
   }
 
   static UserDetails initialize() {
-    return UserDetails('Ms.', '', '', '', '', '', '', '',
-        UserPreferences(false, false, false, 0));
+    return UserDetails(
+        title: '',
+        firstName: '',
+        lastName: '',
+        userId: '',
+        emailAddress: '',
+        phoneNumber: '',
+        device: '',
+        preferences: UserPreferences(
+            notifications: false, location: false, alerts: false, aqShares: 0),
+        utcOffset: 0,
+        photoUrl: '');
   }
 
   static UserDetails parseUserDetails(dynamic jsonBody) {
@@ -108,7 +123,10 @@ class UserPreferences {
   int aqShares;
 
   UserPreferences(
-      this.notifications, this.location, this.alerts, this.aqShares);
+      {required this.notifications,
+      required this.location,
+      required this.alerts,
+      required this.aqShares});
 
   factory UserPreferences.fromJson(Map<String, dynamic> json) =>
       _$UserPreferencesFromJson(json);
@@ -119,5 +137,10 @@ class UserPreferences {
   String toString() {
     return 'UserPreferences{notifications: $notifications,'
         ' location: $location, alerts: $alerts}';
+  }
+
+  static UserPreferences initialize() {
+    return UserPreferences(
+        notifications: false, location: false, alerts: false, aqShares: 0);
   }
 }

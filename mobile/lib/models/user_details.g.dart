@@ -7,15 +7,17 @@ part of 'user_details.dart';
 // **************************************************************************
 
 UserDetails _$UserDetailsFromJson(Map<String, dynamic> json) => UserDetails(
-      json['title'] as String? ?? '',
-      json['firstName'] as String? ?? '',
-      json['userId'] as String? ?? '',
-      json['lastName'] as String? ?? '',
-      json['emailAddress'] as String? ?? '',
-      json['phoneNumber'] as String? ?? '',
-      json['device'] as String? ?? '',
-      json['photoUrl'] as String? ?? '',
-      UserPreferences.fromJson(json['preferences'] as Map<String, dynamic>),
+      title: json['title'] as String? ?? '',
+      firstName: json['firstName'] as String? ?? '',
+      lastName: json['lastName'] as String? ?? '',
+      userId: json['userId'] as String? ?? '',
+      emailAddress: json['emailAddress'] as String? ?? '',
+      phoneNumber: json['phoneNumber'] as String? ?? '',
+      device: json['device'] as String? ?? '',
+      preferences:
+          UserPreferences.fromJson(json['preferences'] as Map<String, dynamic>),
+      photoUrl: json['photoUrl'] as String? ?? '',
+      utcOffset: json['utcOffset'] as int? ?? 0,
     );
 
 Map<String, dynamic> _$UserDetailsToJson(UserDetails instance) =>
@@ -27,16 +29,17 @@ Map<String, dynamic> _$UserDetailsToJson(UserDetails instance) =>
       'emailAddress': instance.emailAddress,
       'phoneNumber': instance.phoneNumber,
       'device': instance.device,
+      'utcOffset': instance.utcOffset,
       'photoUrl': instance.photoUrl,
       'preferences': instance.preferences.toJson(),
     };
 
 UserPreferences _$UserPreferencesFromJson(Map<String, dynamic> json) =>
     UserPreferences(
-      json['notifications'] as bool? ?? false,
-      json['location'] as bool? ?? false,
-      json['alerts'] as bool? ?? false,
-      json['aqShares'] as int? ?? 0,
+      notifications: json['notifications'] as bool? ?? false,
+      location: json['location'] as bool? ?? false,
+      alerts: json['alerts'] as bool? ?? false,
+      aqShares: json['aqShares'] as int? ?? 0,
     );
 
 Map<String, dynamic> _$UserPreferencesToJson(UserPreferences instance) =>

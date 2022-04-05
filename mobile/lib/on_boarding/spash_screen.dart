@@ -49,6 +49,10 @@ class SplashScreenState extends State<SplashScreen> {
 
     var isLoggedIn = _appService.isLoggedIn();
 
+    if (isLoggedIn) {
+      await _appService.postLoginActions();
+    }
+
     var nextPage =
         (await _appService.preferencesHelper.getOnBoardingPage()).toLowerCase();
 

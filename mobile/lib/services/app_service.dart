@@ -324,27 +324,32 @@ class AppService {
       }
 
       var device = await _firebaseMessaging.getToken();
+      var utcOffset = DateTime.now().getUtcOffset();
+
       if (device != null) {
-        await _cloudStore.updateProfileFields(user.uid, {'device': device});
+        await _cloudStore.updateProfileFields(
+            user.uid, {'device': device, 'utcOffset': utcOffset});
       }
 
-      await _secureStorage.updateUserDetails(userDetails);
-      await _preferencesHelper.updatePreferences(userDetails.preferences);
-      await _cloudStore.getFavPlaces(user.uid).then((value) => {
-            if (value.isNotEmpty)
-              {
-                _dbHelper.setFavouritePlaces(value),
-                Provider.of<PlaceDetailsModel>(_context, listen: false)
-                    .reloadFavouritePlaces(),
-              }
-          });
-      await _cloudStore.getNotifications(user.uid).then((value) => {
-            if (value.isNotEmpty)
-              {
-                Provider.of<NotificationModel>(_context, listen: false)
-                    .addAll(value),
-              }
-          });
+      await Future.wait([
+        _secureStorage.updateUserDetails(userDetails),
+        _preferencesHelper.updatePreferences(userDetails.preferences),
+        _cloudStore.getFavPlaces(user.uid).then((value) => {
+              if (value.isNotEmpty)
+                {
+                  _dbHelper.setFavouritePlaces(value),
+                  Provider.of<PlaceDetailsModel>(_context, listen: false)
+                      .reloadFavouritePlaces(),
+                }
+            }),
+        _cloudStore.getNotifications(user.uid).then((value) => {
+              if (value.isNotEmpty)
+                {
+                  Provider.of<NotificationModel>(_context, listen: false)
+                      .addAll(value),
+                }
+            }),
+      ]);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
