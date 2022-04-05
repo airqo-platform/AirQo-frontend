@@ -6,7 +6,7 @@
 
     .content{
         display:grid;
-        grid-template-columns: 2fr repeat(5, 2fr) 2fr;
+        grid-template-columns: $gridColumn;
         .press-top{
             grid-column: 2 / 7;
         }
