@@ -11,7 +11,7 @@ $text-size-h2:40px;
 
     .content{
         display:grid;
-        grid-template-columns: 2fr repeat(5, 2fr) 2fr;
+        grid-template-columns: $gridColumn;
         .tos-top, .tos-sub{
             grid-column: 2 / 7;
         }
