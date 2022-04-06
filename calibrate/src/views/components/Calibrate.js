@@ -6,6 +6,10 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import FormControl from "@mui/material/FormControl";
 import FormLabel from "@mui/material/FormLabel";
 import Button from "@mui/material/Button";
+import {
+  calibrateDataApi,
+  trainAndCalibrateDataApi,
+} from "../apis/calibrateTool";
 import PropTypes from "prop-types";
 
 // styles
@@ -127,6 +131,10 @@ const Calibrate = () => {
     ref_data: null,
   });
 
+  const [loading, setLoading] = useState(false);
+
+  const checkHasReference = () => hasReference === "yes";
+
   const onChange = (key) => (event) => {
     setData({ ...data, [key]: event.target.value });
   };
@@ -146,10 +154,10 @@ const Calibrate = () => {
         return false;
       }
     }
-    if (hasReference) {
+    if (checkHasReference()) {
       let keys = Object.keys(refData);
       for (let i = 0; i < keys.length; i++) {
-        if (refData[keys[i]] === null || data[keys[i]] === "_") {
+        if (refData[keys[i]] === null || refData[keys[i]] === "_") {
           return false;
         }
       }
@@ -167,6 +175,38 @@ const Calibrate = () => {
       reader.readAsText(selectedFile);
     }
   }, [selectedFile]);
+
+  const downloadCSVData = (filename, data) => {
+    const downloadUrl = window.URL.createObjectURL(data);
+    const link = document.createElement("a");
+
+    link.href = downloadUrl;
+    link.setAttribute("download", filename); //any other extension
+
+    document.body.appendChild(link);
+
+    link.click();
+    link.remove();
+  };
+
+  const onSubmit = async (event) => {
+    event.preventDefault();
+    setLoading(true);
+    const filename = "calibrated_data.csv";
+
+    if (checkHasReference()) {
+      const responseData = await trainAndCalibrateDataApi({
+        ...data,
+        ...refData,
+      });
+      downloadCSVData(filename, responseData);
+    } else {
+      const responseData = await calibrateDataApi(data);
+      downloadCSVData(filename, responseData);
+    }
+
+    setLoading(false);
+  };
 
   return (
     <div className="calibrate-container">
@@ -238,7 +278,7 @@ const Calibrate = () => {
           </RadioGroup>
         </FormControl>
 
-        {hasReference === "yes" && (
+        {checkHasReference() && (
           <ColumnTextField
             label="Reference Data Column Name"
             onChange={onRefDataChange("ref_data")}
@@ -246,7 +286,7 @@ const Calibrate = () => {
           />
         )}
 
-        {hasReference === "yes" && (
+        {checkHasReference() && (
           <ColumnTextField
             label="Reference Data Pollutant Type"
             onChange={onRefDataChange("pollutant")}
@@ -256,8 +296,9 @@ const Calibrate = () => {
 
         <Button
           style={{ marginTop: "30px" }}
-          disabled={!checkValid()}
+          disabled={loading || !checkValid()}
           variant="outlined"
+          onClick={onSubmit}
         >
           Calibrate Data
         </Button>
