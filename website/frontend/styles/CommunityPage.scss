@@ -1,0 +1,147 @@
+@import "lib/variables";
+@import "lib/colors";
+
+.CommunityPage {
+    position: relative;
+
+    h1, h2, h3, h6 {
+        margin: 0;
+        padding: 0;
+    }
+
+    .hero {
+        width: 100%;
+        height: 416px;
+        background-color: $aq-orange-0;
+        margin: 0 auto;
+
+        .header-1 {
+            padding-top: 104px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+
+            h6, .arrow-forward {
+                font-size: 14px;
+                font-weight: 400;
+                line-height: 28px;
+            }
+
+            .arrow-forward {
+                margin: 0 7px;
+            }   
+        }
+
+        .header-2 {
+            font-weight: 600;
+            font-size: 48px;
+            line-height: 56px;
+            text-align: center;
+            margin: 32px auto 16px auto;
+        }
+
+        .header-3 {
+            font-size: 20px;
+            line-height: 28px;
+            font-weight: 400;
+            text-align: center;
+            width: 720px;
+            margin: 0 auto;
+        }
+    }
+
+    .wrapper {
+        position: relative;
+        max-width: 1088px;
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0 auto;
+
+        .blob {
+            margin-top: 80px;
+            margin-bottom: 160px;
+            height: 277.53px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .section-1 {
+            width: 100%;
+
+            .layer-1 {
+                position: relative;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 482px;
+                z-index: 2;
+                
+                .text {
+                    flex: 0.5;
+
+                    h1 {
+                        font-size: 40px;
+                        font-weight: 500;
+                        line-height: 48px;
+                    }
+
+                    p {
+                        font-size: 18px;
+                        line-height: 26px;
+                        font-weight: 400;
+                        margin-right: 66px;
+                    }
+                }
+
+                .img-stack {
+                    flex: 0.5;
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+
+                    .stack-1 {
+                        flex: 0.5;
+                        width: 262px;
+
+                        img {
+                            width: 100%;
+                            height: 231px;
+                            object-fit: cover;
+                            border-radius: 8px;
+                        }
+                    }
+                    
+                    .stack-2 {
+                        margin-left: 24px;
+                        flex: 0.5;
+                        width: 262px;
+                        height: 100%;
+                        object-fit: cover;
+                        border-radius: 8px;
+                    }
+                    
+                }
+            }
+
+            .layer-2 {
+                width: 100vw;
+                position: absolute;
+                z-index: 1;
+                top: 14.06%;
+                // width: 657.22px;
+                height: 360.72px;
+
+                .blob {
+                    width: 657.22px;
+                    height: 100%;
+                    object-fit: cover;
+                }
+            }
+        }
+    }
+}
