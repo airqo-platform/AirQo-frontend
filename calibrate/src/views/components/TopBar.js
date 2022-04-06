@@ -39,7 +39,7 @@ const TopBar = () => {
           style={logoStyle}
           src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png"
         />
-        <span style={{ fontSize: "20px" }}>Calibrate</span>
+        <span style={{ fontSize: "20px" }}>AirQalibrate</span>
       </div>
     </AppBar>
   );
