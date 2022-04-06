@@ -64,7 +64,7 @@ const config = () => {
 
     resolve: {
       modules: [ROOT, 'frontend/src', 'node_modules'],
-      extensions: ['.js', '.jsx', '.ts', '.tsx'],
+      extensions: ['.js', '.jsx', '.ts', '.tsx', '...'],
     },
 
     module: {
@@ -103,13 +103,8 @@ const config = () => {
 
         // Images
         {
-          test: /\.(png|jpg|ico)$/,
-          use: compact([
-            {
-              loader: 'url-loader',
-              options: { name: '[path][name].[ext]' },
-            },
-          ]),
+          test: /\.(png|jpe?g|ico)$/i,
+          type: 'asset/resource',
         },
       ],
     },

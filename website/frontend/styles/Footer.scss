@@ -124,12 +124,17 @@
 
 }
 
+.footer-wrapper {
+  max-width: $columnWidth;
+  margin: 0 auto;
+}
+
 @media (min-width: $mainBreakPoint) {
 
   .Footer {
     width: 100%;
     height: 600px;
-    padding: $mainPadding $mainPadding $mainPadding/2 $mainPadding;
+    padding: $mainPadding 0 $mainPadding/2 0;
     background: $aq-white-0;
     font-family: 'Inter', serif;
 

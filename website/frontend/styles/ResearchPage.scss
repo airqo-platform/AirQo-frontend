@@ -1,0 +1,300 @@
+@import "lib/colors";
+@import "lib/variables";
+
+
+.ResearchPage {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  font-style: normal;
+
+  .research-title {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: $aq-green-0;
+    width: 100%;
+    min-height: 416px;
+    text-align: center;
+
+    .page-nav {
+      max-width: 173px;
+      font-weight: 400;
+      font-size: 14px;
+      line-height: 28px;
+      color: $aq-black-2;
+    }
+
+    .research-main-text {
+      max-width: 800px;
+      min-height: 56px;
+      font-weight: 600;
+      font-size: 48px;
+      line-height: 56px;
+      color: $aq-black-1;
+      margin: 32px 0 16px 0;
+    }
+
+    .research-sub-text {
+      max-width: 720px;
+      font-weight: 400;
+      font-size: 20px;
+      line-height: 28px;
+      color: $aq-black-1;
+    }
+  }
+
+  .publications-section {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    max-width: $columnWidth;
+    width: 100%;
+    min-height: 482px;
+    background: $aq-green-0;
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 48px;
+
+    >* {
+      width: 100%;
+      max-width: 944px;
+    }
+
+    .title {
+      font-weight: 700;
+      font-size: 20px;
+      line-height: 28px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: $aq-black-3;
+    }
+
+    .main-text {
+      font-weight: 500;
+      font-size: 48px;
+      line-height: 56px;
+      color: $aq-black-2;
+      margin: 24px 0 32px 0;
+    }
+
+    .author {
+      font-weight: 500;
+      font-size: 24px;
+      line-height: 32px;
+      color: $aq-black-1;
+      //margin: 32px 0 4px 0;
+    }
+
+    .team {
+      font-weight: 400;
+      font-size: 20px;
+      line-height: 28px;
+      color: $aq-black-1;
+      margin: 4px 0 36px 0;
+    }
+
+    .link {
+      display: flex;
+      width: 280px;
+      height: 48px;
+      padding: 11px 24px;
+      font-weight: 400;
+      font-size: 20px;
+      line-height: 26px;
+      color: $aq-black-1;
+      background: $aq-white-0;
+      border-radius: 16px;
+
+      .link-arrow {
+        display: inline-block;
+        width: 27px;
+        height: 26px;
+        font-weight: 400;
+        font-size: 20px;
+        line-height: 26px;
+        text-align: center;
+        margin-left: 5px;
+
+        color: $aq-black-1;
+
+        transform: rotate(-180deg);
+      }
+    }
+  }
+
+  .research-content {
+    width: 100%;
+    min-height: 2084px;
+    padding: 10px;
+
+    .content-intro {
+      width: 100%;
+      max-width: $columnWidth;
+      font-weight: 400;
+      font-size: 40px;
+      line-height: 48px;
+      text-align: center;
+      color: $aq-black-2;
+      margin: 110px auto 0 auto;
+    }
+
+    .research-divider {
+      width: 100%;
+      max-width: $columnWidth;
+      height: 0px;
+      border: 8px solid #F0FFF8;
+      margin: 120px auto 80px auto;
+    }
+
+    .collaborate-container, .consult-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+
+      .consult-text {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        width: 100%;
+        max-width: 520px;
+        min-height: 346px;
+
+        p:first-child {
+          font-weight: 500;
+          font-size: 32px;
+          line-height: 40px;
+          width: 100%;
+
+          color: $aq-black-1;
+          margin: 0px;
+        }
+
+        p {
+          width: 100%;
+          max-width: 478px;
+          font-weight: 400;
+          font-size: 18px;
+          line-height: 26px;
+
+          color: $aq-black-1;
+          margin-top: 32px;
+        }
+
+        p:last-child {
+          margin-top: 20px;
+        }
+      }
+
+      .consult-images {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-column-gap: 23px;
+        grid-row-gap: 21px;
+        position: relative;
+
+        width: 100%;
+        max-width: 568px;
+
+        .img-small {
+          align-self: center;
+          width: 100%;
+          height: auto;
+          border-radius: 8px;
+        }
+
+        .img-long {
+          grid-column: 2/3;
+          grid-row: 1/3;
+          align-self: center;
+          width: 100%;
+          height: auto;
+          border-radius: 8px;
+        }
+
+        .background-shape {
+          position: absolute;
+          left: -8%;
+          top: 7.74%;
+          z-index: -1;
+          transform: rotate(2.54deg);
+        }
+      }
+    }
+
+    .research-whitepapers {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      width: 100%;
+      max-width: $columnWidth;
+      margin: 138px auto 119px auto;
+
+      >p {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        max-width: 726px;
+        min-height: 168px;
+
+        font-weight: 300;
+        font-size: 32px;
+        line-height: 40px;
+
+        text-align: center;
+
+        color: $aq-green-1;
+
+        background: $aq-green-0;
+        border-radius: 100px;
+
+        margin: 0px;
+
+        >span {
+          width: 100%;
+          max-width: 589px;
+        }
+      }
+
+      >div {
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        max-width: 299px;
+        height: 168px;
+
+        background: $aq-green-0;
+        border-radius: 100px;
+
+        >span:first-child {
+          width: 95px;
+          height: 91px;
+          font-family: 'DM Mono', monospace;
+          font-style: normal;
+          font-weight: 300;
+          font-size: 79.2px;
+          line-height: 92px;
+
+          color: $aq-green-1;
+        }
+
+        >span:last-child {
+          font-family: 'DM Serif Text', serif;
+          font-style: normal;
+          font-weight: 400;
+          font-size: 32.2px;
+          line-height: 38px;
+          color: $aq-black-2;
+        }
+      }
+    }
+  }
+}
