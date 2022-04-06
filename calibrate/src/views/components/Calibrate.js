@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { TextField } from "@mui/material";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
@@ -77,7 +77,7 @@ FileUploadField.protoTypes = {
   setSelectedFile: PropTypes.func,
 };
 
-const ColumnTextField = ({ label, onChange, options, className }) => {
+const ColumnTextField = ({ label, onChange, options, className, value }) => {
   return (
     <TextField
       className={className}
@@ -85,6 +85,7 @@ const ColumnTextField = ({ label, onChange, options, className }) => {
       fullWidth
       label={label}
       style={{ marginTop: "25px" }}
+      value={value}
       onChange={onChange}
       InputLabelProps={{ shrink: true }}
       SelectProps={{
@@ -110,18 +111,62 @@ const Calibrate = () => {
   const [selectedFile, setSelectedFile] = useState();
   const [options, setOptions] = useState([]);
   const [hasReference, setHasReference] = useState(false);
-  console.log("has reference", hasReference);
+  const [data, setData] = useState({
+    file: null,
+    datetime: null,
+    pm2_5: null,
+    s2_pm2_5: null,
+    pm10: null,
+    s2_pm10: null,
+    temperature: null,
+    humidity: null,
+  });
+
+  const [refData, setRefData] = useState({
+    pollutant: null,
+    ref_data: null,
+  });
+
+  const onChange = (key) => (event) => {
+    setData({ ...data, [key]: event.target.value });
+  };
+
+  const onRefDataChange = (key) => (event) => {
+    setRefData({ ...refData, [key]: event.target.value });
+  };
+
   const handleReferenceChange = (event) => {
     setHasReference(event.target.value);
   };
 
-  if (selectedFile) {
-    const reader = new FileReader();
-    reader.onload = function (event) {
-      setOptions(csvHeaders(event.target.result));
-    };
-    reader.readAsText(selectedFile);
-  }
+  const checkValid = () => {
+    let keys = Object.keys(data);
+    for (let i = 0; i < keys.length; i++) {
+      if (data[keys[i]] === null || data[keys[i]] === "_") {
+        return false;
+      }
+    }
+    if (hasReference) {
+      let keys = Object.keys(refData);
+      for (let i = 0; i < keys.length; i++) {
+        if (refData[keys[i]] === null || data[keys[i]] === "_") {
+          return false;
+        }
+      }
+    }
+    return true;
+  };
+  useEffect(() => {
+    if (selectedFile) {
+      setData({ ...data, file: selectedFile });
+
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        setOptions(csvHeaders(event.target.result));
+      };
+      reader.readAsText(selectedFile);
+    }
+  }, [selectedFile]);
 
   return (
     <div className="calibrate-container">
@@ -134,43 +179,43 @@ const Calibrate = () => {
 
         <ColumnTextField
           label="Datetime Column Name"
-          onChange={() => {}}
+          onChange={onChange("datetime")}
           options={options}
         />
 
         <ColumnTextField
           label="Sensor 1 PM2.5 Column Name"
-          onChange={() => {}}
+          onChange={onChange("pm2_5")}
           options={options}
         />
 
         <ColumnTextField
           label="Sensor 2 PM2.5 Column Name"
-          onChange={() => {}}
+          onChange={onChange("s2_pm2_5")}
           options={options}
         />
 
         <ColumnTextField
           label="Sensor 1 PM10 Column Name"
-          onChange={() => {}}
+          onChange={onChange("pm10")}
           options={options}
         />
 
         <ColumnTextField
           label="Sensor 2 PM10 Column Name"
-          onChange={() => {}}
+          onChange={onChange("s2_pm10")}
           options={options}
         />
 
         <ColumnTextField
           label="Temperature Column Name"
-          onChange={() => {}}
+          onChange={onChange("temperature")}
           options={options}
         />
 
         <ColumnTextField
           label="Humidity Column Name"
-          onChange={() => {}}
+          onChange={onChange("humidity")}
           options={options}
         />
       </div>
@@ -196,7 +241,7 @@ const Calibrate = () => {
         {hasReference === "yes" && (
           <ColumnTextField
             label="Reference Data Column Name"
-            onChange={() => {}}
+            onChange={onRefDataChange("ref_data")}
             options={options}
           />
         )}
@@ -204,12 +249,16 @@ const Calibrate = () => {
         {hasReference === "yes" && (
           <ColumnTextField
             label="Reference Data Pollutant Type"
-            onChange={() => {}}
+            onChange={onRefDataChange("pollutant")}
             options={["PM 2.5", "PM 10"]}
           />
         )}
 
-        <Button style={{ marginTop: "30px" }} disabled variant="outlined">
+        <Button
+          style={{ marginTop: "30px" }}
+          disabled={!checkValid()}
+          variant="outlined"
+        >
           Calibrate Data
         </Button>
       </div>
