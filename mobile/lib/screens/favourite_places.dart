@@ -4,9 +4,9 @@ import 'package:app/screens/search_page.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/widgets/favourite_place_card.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:provider/provider.dart';
 
 class FavouritePlaces extends StatefulWidget {
   const FavouritePlaces({Key? key}) : super(key: key);
@@ -17,6 +17,7 @@ class FavouritePlaces extends StatefulWidget {
 
 class _FavouritePlacesState extends State<FavouritePlaces> {
   late AppService _appService;
+  List<PlaceDetails> _favouritePlaces = [];
 
   @override
   Widget build(BuildContext context) {
@@ -24,92 +25,85 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
       appBar: appTopBar(context, 'Favorites'),
       body: Container(
           color: Config.appBodyColor,
-          child: Consumer<PlaceDetailsModel>(
-            builder: (context, placeDetailsModel, child) {
-              if (placeDetailsModel.favouritePlaces.isEmpty) {
-                return emptyPlaces();
-              }
-
-              return RefreshIndicator(
-                color: Config.appColorBlue,
-                onRefresh: refreshData,
-                child: ListView.builder(
-                  itemBuilder: (context, index) => Padding(
-                    padding: const EdgeInsets.only(left: 16, right: 16),
-                    child: MiniAnalyticsCard(
-                        placeDetailsModel.favouritePlaces[index]),
-                  ),
-                  itemCount: placeDetailsModel.favouritePlaces.length,
-                ),
-              );
-            },
-          )),
-    );
-  }
-
-  Widget emptyPlaces() {
-    return Container(
-      color: Config.appBodyColor,
-      padding: const EdgeInsets.all(40.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          RichText(
-              textAlign: TextAlign.center,
-              text: TextSpan(children: [
-                TextSpan(
-                    text: 'Tap the ',
-                    style: Theme.of(context).textTheme.bodyText1),
-                WidgetSpan(
-                    child: SvgPicture.asset(
-                  'assets/icon/heart.svg',
-                  semanticsLabel: 'Favorite',
-                  height: 15.33,
-                  width: 15.12,
+          child: _favouritePlaces.isEmpty
+              ? _emptyView()
+              : CustomScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  slivers: [
+                    CupertinoSliverRefreshControl(
+                      refreshTriggerPullDistance: 70,
+                      refreshIndicatorExtent: 60,
+                      onRefresh: _initialize,
+                    ),
+                    SliverList(
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: MiniAnalyticsCard(_favouritePlaces[index]),
+                        );
+                      }, childCount: _favouritePlaces.length),
+                    ),
+                  ],
                 )),
-                TextSpan(
-                    text: ' Favorite icon on any location air quality '
-                        'to save them here for later.',
-                    style: Theme.of(context).textTheme.bodyText1),
-              ])),
-          const SizedBox(
-            height: 10,
-          ),
-          OutlinedButton(
-            onPressed: () async {
-              await Navigator.push(context,
-                  MaterialPageRoute(builder: (context) {
-                return const SearchPage();
-              }));
-            },
-            style: OutlinedButton.styleFrom(
-              shape: const CircleBorder(),
-              padding: const EdgeInsets.all(24),
-            ),
-            child: Text(
-              'Add',
-              style: TextStyle(color: Config.appColor),
-            ),
-          )
-        ],
-      ),
     );
-  }
-
-  Future<void> initialize() async {
-    await _appService.fetchFavPlacesInsights();
   }
 
   @override
   void initState() {
     super.initState();
     _appService = AppService(context);
-    initialize();
+    _initialize();
   }
 
-  Future<void> refreshData() async {
-    await Provider.of<PlaceDetailsModel>(context, listen: false)
-        .reloadFavouritePlaces();
-    await initialize();
+  Widget _emptyView() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        RichText(
+            textAlign: TextAlign.center,
+            text: TextSpan(children: [
+              TextSpan(
+                  text: 'Tap the ',
+                  style: Theme.of(context).textTheme.bodyText1),
+              WidgetSpan(
+                  child: SvgPicture.asset(
+                'assets/icon/heart.svg',
+                semanticsLabel: 'Favorite',
+                height: 15.33,
+                width: 15.12,
+              )),
+              TextSpan(
+                  text: ' Favorite icon on any location air quality '
+                      'to save them here for later.',
+                  style: Theme.of(context).textTheme.bodyText1),
+            ])),
+        const SizedBox(
+          height: 10,
+        ),
+        OutlinedButton(
+          onPressed: () async {
+            await Navigator.push(context, MaterialPageRoute(builder: (context) {
+              return const SearchPage();
+            }));
+          },
+          style: OutlinedButton.styleFrom(
+            shape: const CircleBorder(),
+            padding: const EdgeInsets.all(24),
+          ),
+          child: Text(
+            'Add',
+            style: TextStyle(color: Config.appColor),
+          ),
+        )
+      ],
+    );
+  }
+
+  Future<void> _initialize() async {
+    var favPlaces = await _appService.dbHelper.getFavouritePlaces();
+    setState(() {
+      _favouritePlaces = favPlaces;
+    });
+    await _appService.fetchFavPlacesInsights();
   }
 }
