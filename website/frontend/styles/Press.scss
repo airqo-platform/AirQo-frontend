@@ -8,13 +8,16 @@
         display:grid;
         grid-template-columns: $gridColumn;
         .press-top{
-            grid-column: 2 / 7;
+            //grid-column: 2 / 7;
+            grid-column: 2 / 3;
         }
         .press-cards{
-            grid-column: 2 / 7;
+            //grid-column: 2 / 7;
+            grid-column: 2 / 3;
         }
         .press-cards-lg{
-            grid-column: 2 / 7;
+            //grid-column: 2 / 7;
+            grid-column: 2 / 3;
         }
     }
 

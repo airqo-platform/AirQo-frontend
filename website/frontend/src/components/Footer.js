@@ -43,8 +43,7 @@ const Footer = () => (
                         <div>
                             <span>About</span>
                             <span>Contact</span>
-                            <span>Press</span>
-                            <span>Blog</span>
+                            <span><Link to="/press">Press</Link></span>
                         </div>
                     </section>
                 </div>
