@@ -1,5 +1,5 @@
 import React from 'react';
-import Page from '../Page';
+import Page from './Page';
 import { useInitScrollTop } from 'utils/customHooks';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import AirQommunities from "assets/img/community/AirQommunities.png";
