@@ -4,7 +4,7 @@ import HomePage from 'src/pages/HomePage';
 import ResearchPage from 'src/pages/ResearchPage';
 import Press from 'src/pages/Press/Press';
 import Terms from "./src/pages/Legal/Terms";
-import CommunityPage from './src/pages/Solutions/CommunityPage';
+import CommunityPage from "./src/pages/CommunityPage";
 
 const App = () => (
     <Router>

@@ -1,29 +1,29 @@
 import React from 'react';
-import Page from './Page';
 import { useInitScrollTop } from 'utils/customHooks';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import AirQommunities from "assets/img/community/AirQommunities.png";
-import Blob from "assets/img/community/AirQo_blob_fill.svg";
-import AssetImg1 from "assets/img/community/Rectangle 406.png";
-import AssetImg2 from "assets/img/community/Rectangle 408-1.png";
-import AssetImg3 from "assets/img/community/Rectangle 409.png";
-import AirQoArrowLeft from "assets/img/community/AirQo_arrow_left.svg";
-import AirQoQuotes from "assets/img/community/AirQo_quotes.png";
+import AirQommunities from 'assets/img/community/AirQommunities.png';
+import Blob from 'assets/img/community/AirQo_blob_fill.svg';
+import AssetImg1 from 'assets/img/community/Rectangle 406.png';
+import AssetImg2 from 'assets/img/community/Rectangle 408-1.png';
+import AssetImg3 from 'assets/img/community/Rectangle 409.png';
+import AirQoArrowLeft from 'assets/img/community/AirQo_arrow_left.svg';
+import AirQoQuotes from 'assets/img/community/AirQo_quotes.png';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import Page from './Page';
 
 const CommunityPage = () => {
-    useInitScrollTop();
-    return(
+  useInitScrollTop();
+  return (
         <Page>
             <div className="CommunityPage">
-                
+
                 <div className="hero">
                     <div className="header-1">
                         <h6>Solutions</h6>
                         <ArrowForwardIosIcon className="arrow-forward" />
                         <h6>For Communities</h6>
                     </div>
-                    
+
                     <h1 className="header-2">Communities with AirQo</h1>
                     <h3 className="header-3">We empower communities across Africa with accurate, hyperlocal, and timely air quality data to drive actions to reduce air pollution.</h3>
                 </div>
@@ -32,7 +32,7 @@ const CommunityPage = () => {
                     <div className="blob">
                         <img src={AirQommunities} className="blob-img" />
                     </div>
-                    
+
                     <div className="section-1">
                         <div className="layer-1">
                             <div className="text">
@@ -42,12 +42,12 @@ const CommunityPage = () => {
                             </div>
                             <div className="img-stack">
                                 <div className="stack-1">
-                                    <img src={AssetImg1} alt="Image Stock 1"/>
+                                    <img src={AssetImg1} alt="Image Stock 1" />
                                     <img src={AssetImg2} alt="Image Stock 2" />
                                 </div>
                                 <img src={AssetImg3} className="stack-2" alt="Image Stock 3" />
                                 <div className="layer-2">
-                                    <Blob className="blob" style={{height:"360px"}} />
+                                    <Blob className="blob" style={{ height: '360px' }} />
                                 </div>
                             </div>
                         </div>
@@ -75,12 +75,12 @@ const CommunityPage = () => {
                             </div>
                             <div className="img-stack">
                                 <div className="stack-1">
-                                    <img src={AssetImg1} alt="Image Stock 1"/>
+                                    <img src={AssetImg1} alt="Image Stock 1" />
                                     <img src={AssetImg2} alt="Image Stock 2" />
                                 </div>
                                 <img src={AssetImg3} className="stack-2" alt="Image Stock 3" />
                                 <div className="layer-2">
-                                    <Blob className="blob" style={{height:"360px"}} />
+                                    <Blob className="blob" style={{ height: '360px' }} />
                                 </div>
                             </div>
                         </div>
@@ -92,13 +92,13 @@ const CommunityPage = () => {
                         <h3>Mercy Nasejje</h3>
                         <h6>Health, Safety and Environmental Lead at MOGAS</h6>
 
-                        <button><PlayArrowIcon style={{marginRight: "10px"}}/>Watch video</button>
+                        <button><PlayArrowIcon style={{ marginRight: '10px' }} />Watch video</button>
                     </div>
                 </div>
-                
+
             </div>
         </Page>
-    );
-}
+  );
+};
 
 export default CommunityPage;
