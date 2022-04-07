@@ -104,7 +104,14 @@ const config = () => {
         // Images
         {
           test: /\.(png|jpe?g|ico)$/i,
-          type: 'asset/resource',
+          use: compact([
+            {
+              loader: 'url-loader',
+              options: { name: '[path][name].[ext]' },
+            },
+          ]),
+          // TODO: We are migrating to using asset/resource module
+          // type: 'asset/resource',
         },
       ],
     },
