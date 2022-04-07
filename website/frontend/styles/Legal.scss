@@ -13,7 +13,8 @@ $text-size-h2:40px;
         display:grid;
         grid-template-columns: $gridColumn;
         .tos-top, .tos-sub{
-            grid-column: 2 / 7;
+            //grid-column: 2 / 7;
+            grid-column: 2 / 3;
         }
     }
 
