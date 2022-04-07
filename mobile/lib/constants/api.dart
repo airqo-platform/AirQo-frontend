@@ -1,6 +1,8 @@
 import 'config.dart';
 
 class AirQoUrls {
+  static String get carrierSearchApi => Config.carrierSearchApi;
+
   static String get checkUserExists => Config.airqoApiUserExistsUrl;
 
   static String get forecast => '${Config.airqoApiUrlV2}predict/';

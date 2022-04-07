@@ -25,6 +25,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../models/event.dart';
 import '../themes/light_theme.dart';
 import 'firebase_service.dart';
 import 'local_notifications.dart';
@@ -39,7 +40,7 @@ class LocationService {
   Future<bool> allowLocationAccess() async {
     var enabled = await requestLocationAccess();
     if (enabled) {
-      await _cloudAnalytics.logEvent(AnalyticsEvent.allowLocation);
+      await _cloudAnalytics.logEvent(AnalyticsEvent.allowLocation, true);
     }
     return requestLocationAccess();
   }
@@ -412,7 +413,7 @@ class NotificationService {
   Future<bool> allowNotifications() async {
     var enabled = await requestPermission();
     if (enabled) {
-      await _cloudAnalytics.logEvent(AnalyticsEvent.allowNotification);
+      await _cloudAnalytics.logEvent(AnalyticsEvent.allowNotification, true);
     }
     return enabled;
   }
@@ -543,7 +544,7 @@ class RateService {
   }
 
   Future<void> _logAppRating() async {
-    await _cloudAnalytics.logEvent(AnalyticsEvent.rateApp);
+    await _cloudAnalytics.logEvent(AnalyticsEvent.rateApp, true);
   }
 }
 
@@ -774,7 +775,8 @@ class ShareService {
     }
 
     if (value >= 5) {
-      await _cloudAnalytics.logEvent(AnalyticsEvent.shareAirQualityInformation);
+      await _cloudAnalytics.logEvent(
+          AnalyticsEvent.shareAirQualityInformation, true);
     }
   }
 }

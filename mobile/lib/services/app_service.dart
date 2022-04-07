@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:app/constants/config.dart';
+import 'package:app/models/event.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/user_details.dart';
@@ -27,6 +28,7 @@ class AppService {
   final SharedPreferencesHelper _preferencesHelper = SharedPreferencesHelper();
   final SecureStorage _secureStorage = SecureStorage();
   late AirqoApiClient _apiClient;
+  final CloudAnalytics _cloudAnalytics = CloudAnalytics();
 
   AppService(this._context) {
     _apiClient = AirqoApiClient(_context);
@@ -267,6 +269,11 @@ class AppService {
         .loadNotifications();
   }
 
+  Future<void> logEvent(AnalyticsEvent analyticsEvent) async {
+    var loggedIn = isLoggedIn();
+    await _cloudAnalytics.logEvent(analyticsEvent, loggedIn);
+  }
+
   Future<bool> logOut(context) async {
     var hasConnection = await isConnected();
     if (!hasConnection) {
@@ -379,9 +386,12 @@ class AppService {
         userDetails.device = device;
       }
 
-      await _cloudStore.updateProfile(userDetails, user.uid);
-      await _secureStorage.updateUserDetails(userDetails);
-      await _preferencesHelper.updatePreferences(userDetails.preferences);
+      await Future.wait([
+        _cloudStore.updateProfile(userDetails, user.uid),
+        _secureStorage.updateUserDetails(userDetails),
+        _preferencesHelper.updatePreferences(userDetails.preferences),
+        logEvent(AnalyticsEvent.createUserProfile),
+      ]);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
@@ -416,10 +426,10 @@ class AppService {
     }
   }
 
-  Future<void> updateProfile(UserDetails userDetails) async {
+  Future<bool> updateProfile(UserDetails userDetails) async {
     var hasConnection = await isConnected();
     if (!hasConnection) {
-      return;
+      return false;
     }
 
     try {
@@ -456,6 +466,7 @@ class AppService {
         };
 
         await _cloudStore.updateProfileFields(firebaseUser.uid, fields);
+        return true;
       }
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
@@ -463,6 +474,7 @@ class AppService {
         exception,
         stackTrace: stackTrace,
       );
+      return false;
     }
   }
 

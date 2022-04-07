@@ -1,12 +1,11 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:app/auth/email_reauthenticate_screen.dart';
 import 'package:app/auth/phone_reauthenticate_screen.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/user_details.dart';
-import 'package:app/services/firebase_service.dart';
-import 'package:app/services/secure_storage.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -16,6 +15,8 @@ import 'package:image_picker/image_picker.dart';
 
 import '../auth/change_email_screen.dart';
 import '../auth/change_phone_screen.dart';
+import '../models/event.dart';
+import '../services/app_service.dart';
 import '../themes/light_theme.dart';
 import 'home_page.dart';
 
@@ -31,15 +32,13 @@ class ProfileEditPage extends StatefulWidget {
 class _ProfileEditPageState extends State<ProfileEditPage> {
   final _formKey = GlobalKey<FormState>();
   bool updating = false;
-  final CustomAuth _customAuth = CustomAuth();
-  final CloudStore _cloudStore = CloudStore();
+  late AppService _appService;
   final ImagePicker _imagePicker = ImagePicker();
 
   String _profilePic = '';
   final TextEditingController _phoneEditor = TextEditingController();
   final TextEditingController _emailEditor = TextEditingController();
   bool changeImage = false;
-  final SecureStorage _secureStorage = SecureStorage();
   UserDetails? userDetails;
 
   @override
@@ -264,7 +263,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   }
 
   Future<void> initialize() async {
-    await _secureStorage.getUserDetails().then((value) => {
+    await _appService.secureStorage.getUserDetails().then((value) => {
           setState(() {
             _phoneEditor.text = value.phoneNumber;
             _emailEditor.text = value.emailAddress;
@@ -276,6 +275,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   @override
   void initState() {
     super.initState();
+    _appService = AppService(context);
     setState(() {
       userDetails = widget.userDetails;
       _phoneEditor.text = widget.userDetails.phoneNumber;
@@ -437,7 +437,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       setState(() {
         updating = true;
       });
-      await _customAuth.updateProfile(userDetails!).then((value) => {
+      await _appService.customAuth.updateProfile(userDetails!).then((value) => {
             uploadPicture().then((_) => {
                   Navigator.pop(dialogContext),
                   updating = false,
@@ -456,18 +456,16 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     }
 
     try {
-      // var imageBytes = await File(userDetails!.photoUrl).readAsBytes();
-      //
-      // var imageUrl = await _airqoApiClient!
-      //     .imageUpload(base64Encode(imageBytes),
-      //     mimeType, userDetails!.userId);
-
-      var imageUrl = await _cloudStore.uploadProfilePicture(
-          _profilePic, _customAuth.getUserId());
+      var imageUrl = await _appService.cloudStore.uploadProfilePicture(
+          _profilePic, _appService.customAuth.getUserId());
 
       if (imageUrl != null) {
+        if (userDetails!.photoUrl == '') {
+          await Isolate.spawn(
+              _appService.logEvent, AnalyticsEvent.uploadProfilePicture);
+        }
         userDetails!.photoUrl = imageUrl;
-        await _customAuth.updateProfile(userDetails!);
+        await _appService.customAuth.updateProfile(userDetails!);
       }
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');

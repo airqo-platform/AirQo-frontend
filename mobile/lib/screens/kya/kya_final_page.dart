@@ -75,7 +75,8 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
   void initState() {
     super.initState();
     _appService = AppService(context);
-    kya = widget.kya..progress = widget.kya.lessons.length;
+    kya = widget.kya
+      ..progress = widget.kya.progress == -1 ? -1 : widget.kya.lessons.length;
     _initialize();
   }
 

@@ -1,3 +1,5 @@
+import 'dart:isolate';
+
 import 'package:app/constants/config.dart';
 import 'package:app/models/user_details.dart';
 import 'package:app/screens/home_page.dart';
@@ -9,6 +11,7 @@ import 'package:app/widgets/text_fields.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
+import '../models/event.dart';
 import '../themes/light_theme.dart';
 import 'notifications_setup_screen.dart';
 
@@ -33,7 +36,9 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   late AppService _appService;
   bool _showOptions = true;
   final TextEditingController _controller = TextEditingController();
-  final List<String> _titleOptions = ['Ms.', 'Mr.', 'Rather not say'];
+
+  // final List<String> _titleOptions = ['Ms.', 'Mr.', 'Rather not say'];
+
   late BuildContext dialogContext;
 
   @override
@@ -152,15 +157,15 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   List<GestureDetector> getTitleOptions() {
     var options = <GestureDetector>[];
 
-    for (var option in _titleOptions) {
+    for (var option in titleOptions.values) {
       options.add(GestureDetector(
         onTap: () {
-          updateTitle(option);
+          updateTitle(option.getValue());
         },
         child: AutoSizeText(
-          option,
+          option.getDisplayName(),
           style: Theme.of(context).textTheme.bodyText1?.copyWith(
-              color: _userDetails.title == option
+              color: _userDetails.title == option.getValue()
                   ? Config.appColorBlack
                   : Config.appColorBlack.withOpacity(0.32)),
         ),
@@ -276,13 +281,31 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
         });
 
         loadingScreen(dialogContext);
-        await _appService.updateProfile(_userDetails).then((value) => {
-              Navigator.pop(dialogContext),
-              Navigator.pushAndRemoveUntil(context,
-                  MaterialPageRoute(builder: (context) {
-                return NotificationsSetupScreen(widget.enableBackButton);
-              }), (r) => false)
-            });
+        var success = await _appService.updateProfile(_userDetails);
+        if (success) {
+          if (_userDetails.title == titleOptions.ms.getValue()) {
+            await Isolate.spawn(
+                _appService.logEvent, AnalyticsEvent.femaleUser);
+          } else if (_userDetails.title == titleOptions.mr.getValue()) {
+            await Isolate.spawn(_appService.logEvent, AnalyticsEvent.maleUser);
+          } else {
+            await Isolate.spawn(
+                _appService.logEvent, AnalyticsEvent.undefinedGender);
+          }
+
+          Navigator.pop(dialogContext);
+          await Navigator.pushAndRemoveUntil(context,
+              MaterialPageRoute(builder: (context) {
+            return NotificationsSetupScreen(widget.enableBackButton);
+          }), (r) => false);
+        }
+        // await _appService.updateProfile(_userDetails).then((value) => {
+        //       Navigator.pop(dialogContext),
+        //       Navigator.pushAndRemoveUntil(context,
+        //           MaterialPageRoute(builder: (context) {
+        //         return NotificationsSetupScreen(widget.enableBackButton);
+        //       }), (r) => false)
+        //     });
       }
     } on Exception catch (exception, stackTrace) {
       Navigator.pop(dialogContext);
@@ -349,5 +372,35 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
     setState(() {
       _fullName = text;
     });
+  }
+}
+
+enum titleOptions { ms, mr, undefined }
+
+extension TitleOptionsExtension on titleOptions {
+  String getDisplayName() {
+    switch (this) {
+      case titleOptions.ms:
+        return 'Ms.';
+      case titleOptions.mr:
+        return 'Mr.';
+      case titleOptions.undefined:
+        return 'Rather Not Say';
+      default:
+        return '';
+    }
+  }
+
+  String getValue() {
+    switch (this) {
+      case titleOptions.ms:
+        return 'Ms';
+      case titleOptions.mr:
+        return 'Mr';
+      case titleOptions.undefined:
+        return 'Rather Not Say';
+      default:
+        return '';
+    }
   }
 }
