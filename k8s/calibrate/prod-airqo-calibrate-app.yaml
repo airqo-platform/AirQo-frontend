@@ -1,44 +1,44 @@
 ###########################################################
-# Start deployment of calibrate app - staging
+# Start deployment of calibrate app - production
 ###########################################################
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: airqo-stage-calibrate-app
-  namespace: staging
+  name: airqo-calibrate-app
+  namespace: production
 spec:
   selector:
     matchLabels:
-      app: sta-calibrate-app
+      app: prod-calibrate-app
   replicas: 2
   template:
     metadata:
       labels:
-        app: sta-calibrate-app
+        app: prod-calibrate-app
     spec:
       containers:
-        - name: sta-calibrate-app
-          image: us.gcr.io/airqo-250220/airqo-stage-calibrate-app:latest
+        - name: prod-calibrate-app
+          image: us.gcr.io/airqo-250220/airqo-calibrate-app:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 80
-              name: sta-calibrate
+              name: prod-calibrate
           envFrom:
             - configMapRef:
-                name: env-calibrate-staging
+                name: env-calibrate-prod
 
 ---
 kind: Service
 apiVersion: v1
 metadata:
-  name: airqo-stage-calibrate-app-svc
-  namespace: staging
+  name: airqo-calibrate-app-svc
+  namespace: production
 spec:
   selector:
-    app: sta-calibrate-app
+    app: prod-calibrate-app
   ports:
     - protocol: TCP
       port: 80
       targetPort: 80
-      nodePort: 31106
+      nodePort: 30106
   type: NodePort
