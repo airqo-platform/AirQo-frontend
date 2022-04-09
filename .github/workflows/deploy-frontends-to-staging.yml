@@ -30,7 +30,7 @@ jobs:
     outputs:
       run_platform: ${{ steps.check_files.outputs.run_platform }} # platform
       run_website: ${{ steps.check_files.outputs.run_website }} # website
-      run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }} # calibrate
+      run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }} # calibrate app
 
     runs-on: ubuntu-latest
     steps:
@@ -199,7 +199,7 @@ jobs:
       - run: |
           cd calibrate/
 
-          export REACT_APP_BASE_URL=${{ secrets.REACT_APP_BASE_URL }}
+          export REACT_APP_BASE_URL=${{ secrets.REACT_APP_BASE_URL_STAGE }}
           export REACT_APP_BASE_CALIBRATE_URL=${{ secrets.REACT_APP_BASE_CALIBRATE_URL }}
           export NODE_PATH=${{ secrets.NODE_PATH }}
           export PORT=${{ secrets.NODE_PORT }}
