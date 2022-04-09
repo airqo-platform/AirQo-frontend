@@ -56,6 +56,7 @@ export const humanReadableDate = (dateString, options) => {
     month: "long",
     day: "numeric",
   };
+  if (!dateString) return "N/A";
   return new Date(dateString).toLocaleDateString(undefined, format);
 };
 

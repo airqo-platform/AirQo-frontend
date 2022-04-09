@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import MakText from 'icons/nav/MakText';
 import AirQo from 'icons/footer/AirQo';
 import Instagram from 'icons/footer/Instagram';
@@ -7,7 +8,8 @@ import Youtube from 'icons/footer/Youtube';
 import Twitter from 'icons/footer/Twitter';
 
 const Footer = () => (
-        <footer className="Footer">
+        <footer className="footer-wrapper">
+            <div className="Footer">
             <div className="body-section">
                 <div className="logo">
                     <AirQo />
@@ -21,33 +23,27 @@ const Footer = () => (
                 </div>
                 <div className="content">
                     <section>
+                        <span>Solutions</span>
+                        <div>
+                            <span>For African cities</span>
+                            <span><Link to="/solutions/communities">For Communities</Link></span>
+                            <span><Link to="/solutions/research">For Research</Link></span>
+                        </div>
+                    </section>
+                    <section>
                         <span>Our Works</span>
                         <div>
                             <span>Air Quality Monitors</span>
                             <span>Air Quality Analytics</span>
                             <span>Air Quality Mobile App</span>
-                            <span>Air Quality Map</span>
-                            <span>Air Quality API</span>
                         </div>
                     </section>
                     <section>
-                        <span>Company</span>
+                        <span>About</span>
                         <div>
-                            <span>About</span>
+                            <span><Link to="/about-us">About</Link></span>
                             <span>Contact</span>
-                            <span>Careers</span>
-                            <span>Press</span>
-                            <span>Media Kit</span>
-                        </div>
-                    </section>
-                    <section>
-                        <span>Resources</span>
-                        <div>
-                            <span>Help Center</span>
-                            <span>Developer</span>
-                            <span>Partners</span>
-                            <span>Blog</span>
-                            <span>FAQ</span>
+                            <span><Link to="/press">Press</Link></span>
                         </div>
                     </section>
                 </div>
@@ -56,7 +52,7 @@ const Footer = () => (
                 <div className="copyright-container">
                     <div className="text-copyright">© {new Date().getFullYear()} AirQo</div>
                     <div className="terms-section">
-                        <span className="text-terms mr-24">Terms of service</span>
+                        <span className="text-terms mr-24"><Link to="/terms">Terms of service</Link></span>
                         <span className="text-terms mr-24">Privacy policy</span>
                         <span className="text-terms mr-24">Sustainability</span>
                     </div>
@@ -67,6 +63,7 @@ const Footer = () => (
                         <MakText />
                     </div>
                 </div>
+            </div>
             </div>
         </footer>
 );

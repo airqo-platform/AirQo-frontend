@@ -26,3 +26,9 @@ export default function useWindowSize() {
   }, []); // Empty array ensures that effect is only run on mount
   return windowSize;
 }
+
+export function useInitScrollTop() {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+}
