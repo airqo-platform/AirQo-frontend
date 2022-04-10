@@ -26,13 +26,8 @@ class CloudAnalytics {
 
   Future<void> logEvent(
       AnalyticsEvent analyticsEvent, bool loggedInUser) async {
-    var prefix = '';
-    if (analyticsEvent != AnalyticsEvent.browserAsAppGuest) {
-      prefix = loggedInUser ? 'authenticated_' : 'guest_';
-    }
-
     await analytics.logEvent(
-      name: analyticsEvent.getName(prefix),
+      name: analyticsEvent.getName(''),
     );
   }
 }

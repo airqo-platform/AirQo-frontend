@@ -335,23 +335,26 @@ class AppService {
         await _cloudStore.updateProfileFields(user.uid, {'device': device});
       }
 
-      await _secureStorage.updateUserDetails(userDetails);
-      await _preferencesHelper.updatePreferences(userDetails.preferences);
-      await _cloudStore.getFavPlaces(user.uid).then((value) => {
-            if (value.isNotEmpty)
-              {
-                _dbHelper.setFavouritePlaces(value),
-                Provider.of<PlaceDetailsModel>(_context, listen: false)
-                    .reloadFavouritePlaces(),
-              }
-          });
-      await _cloudStore.getNotifications(user.uid).then((value) => {
-            if (value.isNotEmpty)
-              {
-                Provider.of<NotificationModel>(_context, listen: false)
-                    .addAll(value),
-              }
-          });
+      await Future.wait([
+        _secureStorage.updateUserDetails(userDetails),
+        _preferencesHelper.updatePreferences(userDetails.preferences),
+        _cloudStore.getFavPlaces(user.uid).then((value) => {
+              if (value.isNotEmpty)
+                {
+                  _dbHelper.setFavouritePlaces(value),
+                  Provider.of<PlaceDetailsModel>(_context, listen: false)
+                      .reloadFavouritePlaces(),
+                }
+            }),
+        _cloudStore.getNotifications(user.uid).then((value) => {
+              if (value.isNotEmpty)
+                {
+                  Provider.of<NotificationModel>(_context, listen: false)
+                      .addAll(value),
+                }
+            }),
+        _logPlatformType(),
+      ]);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
@@ -391,9 +394,43 @@ class AppService {
         _secureStorage.updateUserDetails(userDetails),
         _preferencesHelper.updatePreferences(userDetails.preferences),
         logEvent(AnalyticsEvent.createUserProfile),
+        _logNetworkProvider(userDetails),
+        _logGender(userDetails),
+        _logPlatformType(),
       ]);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
+    }
+  }
+
+  Future<void> _logPlatformType() async {
+    if (Platform.isAndroid) {
+      await logEvent(AnalyticsEvent.androidUser);
+    } else if (Platform.isIOS) {
+      await logEvent(AnalyticsEvent.iosUser);
+    } else {
+      debugPrint('Unknown Platform');
+    }
+  }
+
+  Future<void> _logGender(UserDetails userDetails) async {
+    if (userDetails.title == titleOptions.mr.getValue()) {
+      await logEvent(AnalyticsEvent.maleUser);
+    } else if (userDetails.title == titleOptions.ms.getValue()) {
+      await logEvent(AnalyticsEvent.femaleUser);
+    } else {
+      await logEvent(AnalyticsEvent.undefinedGender);
+    }
+  }
+
+  Future<void> _logNetworkProvider(UserDetails userDetails) async {
+    var carrier = await _apiClient.getCarrier(userDetails.phoneNumber);
+    if (carrier.toLowerCase().contains('airtel')) {
+      await logEvent(AnalyticsEvent.airtelUser);
+    } else if (carrier.toLowerCase().contains('mtn')) {
+      await logEvent(AnalyticsEvent.mtnUser);
+    } else {
+      await logEvent(AnalyticsEvent.otherNetwork);
     }
   }
 
@@ -423,6 +460,9 @@ class AppService {
     var connected = await isConnected();
     if (_customAuth.isLoggedIn() && connected) {
       await _cloudStore.updateKyaProgress(_customAuth.getUserId(), kya);
+      if (kya.progress == kya.lessons.length) {
+        await logEvent(AnalyticsEvent.completeOneKYA);
+      }
     }
   }
 

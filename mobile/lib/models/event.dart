@@ -15,19 +15,22 @@ enum AnalyticsEvent {
   iosUser,
   androidUser,
   rateApp,
+  mtnUser,
+  airtelUser,
+  otherNetwork
 }
 
 extension AnalyticsEventExtension on AnalyticsEvent {
   String getName(String loggedInStatus) {
-    var prefix = 'prod_$loggedInStatus';
+    var prefix = 'prod_';
     if (!kReleaseMode) {
-      prefix = 'stage_$loggedInStatus';
+      prefix = 'stage_';
     }
     switch (this) {
       case AnalyticsEvent.browserAsAppGuest:
         return '${prefix}browser_as_guest';
       case AnalyticsEvent.createUserProfile:
-        return '${prefix}created_a_profile';
+        return '${prefix}created_profile';
       case AnalyticsEvent.rateApp:
         return '${prefix}rate_app';
       case AnalyticsEvent.shareAirQualityInformation:
@@ -39,9 +42,9 @@ extension AnalyticsEventExtension on AnalyticsEvent {
       case AnalyticsEvent.uploadProfilePicture:
         return '${prefix}upload_profile_picture';
       case AnalyticsEvent.completeOneKYA:
-        return '${prefix}complete_one_kya_lesson';
+        return '${prefix}complete_kya_lesson';
       case AnalyticsEvent.savesFiveFavorites:
-        return '${prefix}saves_five_favorite_place';
+        return '${prefix}save_five_favorite_places';
       case AnalyticsEvent.maleUser:
         return '${prefix}male_user';
       case AnalyticsEvent.femaleUser:
@@ -52,6 +55,12 @@ extension AnalyticsEventExtension on AnalyticsEvent {
         return '${prefix}ios_user';
       case AnalyticsEvent.androidUser:
         return '${prefix}android_user';
+      case AnalyticsEvent.mtnUser:
+        return '${prefix}mtn_user';
+      case AnalyticsEvent.airtelUser:
+        return '${prefix}airtel_user';
+      case AnalyticsEvent.otherNetwork:
+        return '${prefix}other_network_user';
       default:
         return '';
     }

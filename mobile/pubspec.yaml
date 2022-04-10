@@ -1,5 +1,5 @@
 name: app
-description: Airqo mobile application.
+description: AirQo mobile application.
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
