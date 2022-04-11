@@ -4,6 +4,8 @@ part 'user_details.g.dart';
 
 enum titleOptions { ms, mr, undefined }
 
+enum gender { male, female, undefined }
+
 extension TitleOptionsExtension on titleOptions {
   String getDisplayName() {
     switch (this) {
@@ -77,6 +79,20 @@ class UserDetails {
     var fullName = '$firstName $lastName'.trim();
 
     return fullName.isEmpty ? 'Hello' : fullName;
+  }
+
+  gender getGender() {
+    if (title
+        .toLowerCase()
+        .contains(titleOptions.mr.getValue().toLowerCase())) {
+      return gender.male;
+    } else if (title
+        .toLowerCase()
+        .contains(titleOptions.ms.getValue().toLowerCase())) {
+      return gender.female;
+    } else {
+      return gender.undefined;
+    }
   }
 
   String getInitials() {

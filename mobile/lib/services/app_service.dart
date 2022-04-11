@@ -69,9 +69,7 @@ class AppService {
     }
 
     if (authSuccessful) {
-      if (procedure == authProcedure.signup) {
-        await postSignUpActions();
-      } else {
+      if (procedure == authProcedure.login) {
         await postLoginActions();
       }
     }
@@ -414,12 +412,19 @@ class AppService {
   }
 
   Future<void> _logGender(UserDetails userDetails) async {
-    if (userDetails.title == titleOptions.mr.getValue()) {
+    if (userDetails.getGender() == gender.male) {
       await logEvent(AnalyticsEvent.maleUser);
-    } else if (userDetails.title == titleOptions.ms.getValue()) {
+    } else if (userDetails.getGender() == gender.female) {
       await logEvent(AnalyticsEvent.femaleUser);
     } else {
       await logEvent(AnalyticsEvent.undefinedGender);
+    }
+  }
+
+  Future<void> _logFavPlaces() async {
+    var favPlaces = await _dbHelper.getFavouritePlaces();
+    if (favPlaces.length >= 5) {
+      await logEvent(AnalyticsEvent.savesFiveFavorites);
     }
   }
 
@@ -451,8 +456,11 @@ class AppService {
       await _cloudStore.removeFavPlace(_customAuth.getUserId(), placeDetails);
     }
 
-    await Provider.of<PlaceDetailsModel>(_context, listen: false)
-        .reloadFavouritePlaces();
+    await Future.wait([
+      Provider.of<PlaceDetailsModel>(_context, listen: false)
+          .reloadFavouritePlaces(),
+      _logFavPlaces(),
+    ]);
   }
 
   Future<void> updateKya(Kya kya) async {

@@ -52,7 +52,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
     Future.delayed(const Duration(seconds: 4), () {
       Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
-        updateOnBoardingPage('home');
+        _updateOnBoardingPage('home');
         return const HomePage();
       }), (r) => false);
     });
@@ -63,7 +63,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
     super.initState();
     _airqoApiClient = AirqoApiClient(context);
     _appService = AppService(context);
-    updateOnBoardingPage('complete');
+    _appService.preferencesHelper.updateOnBoardingPage('complete');
     initialize();
   }
 
@@ -98,8 +98,11 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
     }
   }
 
-  void updateOnBoardingPage(String page) async {
-    await _appService.preferencesHelper.updateOnBoardingPage(page);
+  Future<void> _updateOnBoardingPage(String page) async {
+    await Future.wait([
+      _appService.postSignUpActions(),
+      _appService.preferencesHelper.updateOnBoardingPage(page)
+    ]);
   }
 
   TextStyle? _textStyle() {

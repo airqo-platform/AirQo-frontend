@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
 
 import 'package:app/auth/email_reauthenticate_screen.dart';
 import 'package:app/auth/phone_reauthenticate_screen.dart';
@@ -460,10 +459,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
           _profilePic, _appService.customAuth.getUserId());
 
       if (imageUrl != null) {
-        if (userDetails!.photoUrl == '') {
-          await Isolate.spawn(
-              _appService.logEvent, AnalyticsEvent.uploadProfilePicture);
-        }
+        await _appService.logEvent(AnalyticsEvent.uploadProfilePicture);
         userDetails!.photoUrl = imageUrl;
         await _appService.customAuth.updateProfile(userDetails!);
       }
