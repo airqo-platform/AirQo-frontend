@@ -1,21 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useDispatch } from "react-redux";
-import { isEmpty, isEqual } from "underscore";
 import PropTypes from "prop-types";
 import { useHistory, useParams } from "react-router-dom";
 import { ArrowBackIosRounded } from "@material-ui/icons";
 import { Button, Grid, Paper, TextField } from "@material-ui/core";
-
-import { useSitesData } from "redux/SiteRegistry/selectors";
-import { loadSitesData } from "redux/SiteRegistry/operations";
 import CustomMaterialTable from "../Table/CustomMaterialTable";
 import { useInitScrollTop } from "utils/customHooks";
-import { humanReadableDate } from "utils/dateTime";
-import { useSiteBackUrl } from "redux/Urls/selectors";
-import { updateSiteApi } from "views/apis/deviceRegistry";
 
 import { useAirQloudsData } from "utils/customHooks/AirQloudsHooks";
-import { updateMainAlert } from "redux/MainAlert/operations";
+import { refreshAirQloud } from "redux/AirQloud/operations";
 
 // css
 import "react-leaflet-fullscreen/dist/styles.css";
@@ -24,10 +17,6 @@ import "assets/css/location-registry.css";
 const gridItemStyle = {
   padding: "5px",
   margin: "5px 0",
-};
-
-const Cell = ({ fieldValue }) => {
-  return <div>{fieldValue || "N/A"}</div>;
 };
 
 const AirQloudForm = ({ airqloud }) => {
@@ -43,6 +32,16 @@ const AirQloudForm = ({ airqloud }) => {
         maxWidth: "1500px",
       }}
     >
+      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+        <Button
+          color="primary"
+          onClick={() =>
+            dispatch(refreshAirQloud(airqloud.long_name, airqloud._id))
+          }
+        >
+          Refresh AirQloud
+        </Button>
+      </div>
       <div
         style={{
           display: "flex",
@@ -103,6 +102,15 @@ const AirQloudForm = ({ airqloud }) => {
             label="Is Custom"
             variant="outlined"
             value={(airqloud.isCustom && "Yes") || "No"}
+            fullWidth
+          />
+        </Grid>
+        <Grid items xs={12} sm={6} style={gridItemStyle}>
+          <TextField
+            id="siteCount"
+            label="Site Count"
+            variant="outlined"
+            value={(airqloud.sites && airqloud.sites.length) || 0}
             fullWidth
           />
         </Grid>
