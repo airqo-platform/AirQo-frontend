@@ -33,7 +33,6 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   late AppService _appService;
   bool _showOptions = true;
   final TextEditingController _controller = TextEditingController();
-  final List<String> _titleOptions = ['Ms.', 'Mr.', 'Rather not say'];
   late BuildContext dialogContext;
 
   @override
@@ -152,15 +151,15 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   List<GestureDetector> getTitleOptions() {
     var options = <GestureDetector>[];
 
-    for (var option in _titleOptions) {
+    for (var option in titleOptions.values) {
       options.add(GestureDetector(
         onTap: () {
-          updateTitle(option);
+          updateTitle(option.getValue());
         },
         child: AutoSizeText(
-          option,
+          option.getDisplayName(),
           style: Theme.of(context).textTheme.bodyText1?.copyWith(
-              color: _userDetails.title == option
+              color: _userDetails.title == option.getValue()
                   ? Config.appColorBlack
                   : Config.appColorBlack.withOpacity(0.32)),
         ),
@@ -276,13 +275,14 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
         });
 
         loadingScreen(dialogContext);
-        await _appService.updateProfile(_userDetails).then((value) => {
-              Navigator.pop(dialogContext),
-              Navigator.pushAndRemoveUntil(context,
-                  MaterialPageRoute(builder: (context) {
-                return NotificationsSetupScreen(widget.enableBackButton);
-              }), (r) => false)
-            });
+        var success = await _appService.updateProfile(_userDetails);
+        if (success) {
+          Navigator.pop(dialogContext);
+          await Navigator.pushAndRemoveUntil(context,
+              MaterialPageRoute(builder: (context) {
+            return NotificationsSetupScreen(widget.enableBackButton);
+          }), (r) => false);
+        }
       }
     } on Exception catch (exception, stackTrace) {
       Navigator.pop(dialogContext);

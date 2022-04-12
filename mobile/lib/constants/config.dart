@@ -52,6 +52,8 @@ class Config {
 
   static Color get appTipColor => const Color(0xffD5FFD4);
 
+  static String get carrierSearchApi => dotenv.env['CARRIER_SEARCH_API'] ?? '';
+
   static String get connectionErrorMessage =>
       'No internet connection available';
 

@@ -50,7 +50,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
   late AppService _appService;
   int _codeSentCountDown = 0;
 
-  Future<void> authenticatePhoneNumber(AuthCredential authCredential) async {
+  Future<void> _authenticatePhoneNumber(AuthCredential authCredential) async {
     if (widget.isLogin) {
       var loginSuccessful = await _appService.authenticateUser(
           authCredential, '', '', authMethod.phone, authProcedure.login);
@@ -89,7 +89,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
   }
 
   void autoVerifyPhoneFn(PhoneAuthCredential credential) {
-    authenticatePhoneNumber(credential);
+    _authenticatePhoneNumber(credential);
   }
 
   @override
@@ -706,7 +706,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
         verificationId: _verificationId,
         smsCode: _phoneVerificationCode.join(''));
 
-    await authenticatePhoneNumber(phoneCredential);
+    await _authenticatePhoneNumber(phoneCredential);
   }
 }
 

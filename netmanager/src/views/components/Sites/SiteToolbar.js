@@ -162,24 +162,24 @@ const SiteToolbar = (props) => {
             <TextField
               autoFocus
               margin="dense"
-              label="Longitude"
-              variant="outlined"
-              value={siteData.longitude}
-              onChange={handleSiteDataChange("longitude")}
-              error={!!errors.longitude}
-              helperText={errors.longitude}
-              fullWidth
-              required
-            />
-            <TextField
-              autoFocus
-              margin="dense"
               label="Latitude"
               variant="outlined"
               value={siteData.latitude}
               onChange={handleSiteDataChange("latitude")}
               error={!!errors.latitude}
               helperText={errors.latitude}
+              fullWidth
+              required
+            />
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Longitude"
+              variant="outlined"
+              value={siteData.longitude}
+              onChange={handleSiteDataChange("longitude")}
+              error={!!errors.longitude}
+              helperText={errors.longitude}
               fullWidth
               required
             />

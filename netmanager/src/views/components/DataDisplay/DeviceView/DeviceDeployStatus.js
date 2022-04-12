@@ -679,26 +679,6 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
             />
 
             <TextField
-              label="Longitude"
-              style={{ marginBottom: "15px" }}
-              disabled={!manualCoordinate}
-              variant="outlined"
-              value={longitude}
-              onChange={(event) => {
-                setLongitude(event.target.value);
-                setErrors({
-                  ...errors,
-                  longitude:
-                    event.target.value.length > 0 ? "" : errors.longitude,
-                });
-              }}
-              fullWidth
-              error={!!errors.longitude}
-              helperText={errors.longitude}
-              required
-            />
-
-            <TextField
               label="Latitude"
               disabled={!manualCoordinate}
               style={{ marginBottom: "15px" }}
@@ -717,6 +697,27 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
               helperText={errors.latitude}
               required
             />
+
+            <TextField
+              label="Longitude"
+              style={{ marginBottom: "15px" }}
+              disabled={!manualCoordinate}
+              variant="outlined"
+              value={longitude}
+              onChange={(event) => {
+                setLongitude(event.target.value);
+                setErrors({
+                  ...errors,
+                  longitude:
+                    event.target.value.length > 0 ? "" : errors.longitude,
+                });
+              }}
+              fullWidth
+              error={!!errors.longitude}
+              helperText={errors.longitude}
+              required
+            />
+            
             <span
               style={coordinatesActivateStyles}
               onClick={(event) => setManualCoordinate(!manualCoordinate)}
