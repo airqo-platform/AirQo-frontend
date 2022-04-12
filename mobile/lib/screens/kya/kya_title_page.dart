@@ -40,9 +40,7 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
               image: DecorationImage(
                 fit: BoxFit.cover,
                 image: CachedNetworkImageProvider(
-                  widget.kya.secondaryImageUrl.trim() == ''
-                      ? widget.kya.imageUrl
-                      : widget.kya.secondaryImageUrl,
+                  widget.kya.imageUrl,
                 ),
               ),
             ),
@@ -138,10 +136,9 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
                     GestureDetector(
                       onTap: () {
                         setState(() {
-                          Navigator.push(context,
+                          Navigator.pushReplacement(context,
                               MaterialPageRoute(builder: (context) {
                             return KyaLessonsPage(widget.kya);
-                            // return MyHomePage();
                           }));
                         });
                       },
@@ -172,5 +169,16 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
         color: Config.appColorBlue,
       ),
     );
+  }
+
+  @override
+  void didChangeDependencies() {
+    var futures = <Future>[];
+    for (var lesson in widget.kya.lessons) {
+      futures.add(
+          precacheImage(CachedNetworkImageProvider(lesson.imageUrl), context));
+    }
+    Future.wait(futures);
+    super.didChangeDependencies();
   }
 }

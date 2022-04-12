@@ -1,0 +1,44 @@
+###########################################################
+# Start deployment of platform frontend - staging
+###########################################################
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airqo-stage-calibrate-app
+  namespace: staging
+spec:
+  selector:
+    matchLabels:
+      app: sta-calibrate-app
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: sta-calibrate-app
+    spec:
+      containers:
+        - name: sta-calibrate-app
+          image: us.gcr.io/airqo-250220/airqo-stage-calibrate-app:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              name: sta-calibrate
+          envFrom:
+            - configMapRef:
+                name: env-calibrate-staging
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: airqo-stage-calibrate-app-svc
+  namespace: staging
+spec:
+  selector:
+    app: sta-calibrate-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      nodePort: 31106
+  type: NodePort

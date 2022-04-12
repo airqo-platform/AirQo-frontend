@@ -80,6 +80,8 @@ class _InsightsTabState extends State<InsightsTab> {
     return RefreshIndicator(
       color: Config.appColorBlue,
       onRefresh: _refreshPage,
+      backgroundColor: Config.appBodyColor,
+      displacement: 0,
       child: Container(
           color: Config.appBodyColor,
           child: ListView(

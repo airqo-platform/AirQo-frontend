@@ -1,3 +1,10 @@
 $mainBreakPoint: 580px;
 
 $mainPadding: 160px;
+
+$columnWidth: 1088px;
+
+$maxWidth: 1088px;
+
+//$gridColumn: 2fr repeat(5, 3fr) 2fr;
+$gridColumn: 1fr minmax(0, $maxWidth) 1fr;

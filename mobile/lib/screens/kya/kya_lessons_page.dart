@@ -194,12 +194,12 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
             curve: Curves.easeInOutCubic);
       } else {
         kya.progress = currentIndex;
-        Navigator.pushAndRemoveUntil(context,
+        Navigator.pushReplacement(context,
             MaterialPageRoute(builder: (context) {
           return KyaFinalPage(
             kya: kya,
           );
-        }), (r) => false);
+        }));
       }
     }
 
@@ -260,30 +260,24 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                 Padding(
                   padding: const EdgeInsets.only(left: 8.0, right: 8.0),
                   child: Container(
-                    height: 180,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: index == currentIndex
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: CachedNetworkImage(
-                              fit: BoxFit.fill,
-                              placeholder: (context, url) => SizedBox(
-                                child: containerLoadingAnimation(
-                                    height: 180, radius: 8),
-                              ),
-                              imageUrl: kyaItem.imageUrl,
-                              errorWidget: (context, url, error) => Icon(
-                                Icons.error_outline,
-                                color: Config.red,
-                              ),
-                            ))
-                        : ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: containerLoadingAnimation(
-                                height: 180, radius: 8)),
-                  ),
+                      height: 180,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: CachedNetworkImage(
+                            fit: BoxFit.fill,
+                            placeholder: (context, url) => SizedBox(
+                              child: containerLoadingAnimation(
+                                  height: 180, radius: 8),
+                            ),
+                            imageUrl: kyaItem.imageUrl,
+                            errorWidget: (context, url, error) => Icon(
+                              Icons.error_outline,
+                              color: Config.red,
+                            ),
+                          ))),
                 ),
                 const Spacer(),
                 Padding(
@@ -299,16 +293,14 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                 const SizedBox(
                   height: 8.0,
                 ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 16, right: 16),
-                    child: AutoSizeText(kyaItem.body,
-                        maxLines: 5,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.subtitle1?.copyWith(
-                            color: Config.appColorBlack.withOpacity(0.5))),
-                  ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 16, right: 16),
+                  child: AutoSizeText(kyaItem.body,
+                      maxLines: 5,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                          color: Config.appColorBlack.withOpacity(0.5))),
                 ),
                 const Spacer(),
                 SvgPicture.asset(

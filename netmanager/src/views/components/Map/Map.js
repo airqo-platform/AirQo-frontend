@@ -123,7 +123,8 @@ class Maps extends React.Component {
   // added from locateSave
   onOpenClicked = () => {
     axios
-      .get(GET_LOCATE_MAP + this.props.auth.user._id)
+      .get(GET_LOCATE_MAP + 
+        "?userId=" + this.props.auth.user._id)
       .then((res) => {
         this.setState({ savedPlan: res.data });
         console.log(res.data);
@@ -144,8 +145,8 @@ class Maps extends React.Component {
       .post(
         SAVE_LOCATE_MAP,
         {
-          user_id: this.props.auth.user._id,
-          space_name: this.state.space_name,
+          userId: this.props.auth.user._id,
+          spaceName: this.state.space_name,
           plan: this.state.plan,
         },
         {
@@ -213,8 +214,10 @@ class Maps extends React.Component {
   onUpdatePlanSpace = () => {
     console.log("onUpdate: ", this.state.selected_name);
     axios
-      .post(
-        UPDATE_LOCATE_MAP + this.state.selected_name,
+      .put(
+        UPDATE_LOCATE_MAP + 
+        "?userId=" + this.props.auth.user._id + 
+        "&spaceName=" + this.state.selected_name,
         {
           plan: this.state.selected_plan,
         },
@@ -247,7 +250,9 @@ class Maps extends React.Component {
   onDeletePlanSpace = (name) => {
     console.log("onDelete :", name);
     axios
-      .delete(DELETE_LOCATE_MAP + name)
+      .delete(DELETE_LOCATE_MAP + 
+        "?userId=" + this.props.auth.user._id + 
+        "&spaceName=" + name)
       .then((res) => {
         console.log(res.data);
         this.setState({ confirmDialogMsg: res.data.message });

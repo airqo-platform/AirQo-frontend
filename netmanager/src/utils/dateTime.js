@@ -2,14 +2,8 @@ import moment from "moment-timezone";
 
 export const formatDateString = (
   t,
-  format = "YYYY-MM-DD HH:mm",
-  tz = "Africa/Kampala"
-) => {
-  return moment
-    .utc(t, format)
-    .tz(tz || "Africa/Kampala")
-    .format(format);
-};
+  format = 'YYYY-MM-DD HH:mm'
+) => moment.utc(t).format(format);
 
 export const getElapsedDurationMapper = (dateTimeStr) => {
   let delta =
@@ -62,6 +56,7 @@ export const humanReadableDate = (dateString, options) => {
     month: "long",
     day: "numeric",
   };
+  if (!dateString) return "N/A";
   return new Date(dateString).toLocaleDateString(undefined, format);
 };
 
