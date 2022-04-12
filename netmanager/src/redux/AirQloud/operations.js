@@ -6,15 +6,16 @@ import {
   SET_CURRENT_AIRQLOUD_FAILURE,
 } from "./actions";
 import { isEmpty } from "underscore";
-import { getAirQloudsApi } from "views/apis/deviceRegistry";
+import { getAirQloudsApi, refreshAirQloudApi } from "views/apis/deviceRegistry";
 import { transformArray } from "../utils";
 import { createSiteOptions } from "utils/sites";
+import { updateMainAlert } from "../MainAlert/operations";
 
 const createAirqloudSiteOptions = (airqloud) => {
   return { ...airqloud, siteOptions: createSiteOptions(airqloud.sites || []) };
 };
 
-export const loadAirQloudsData = () => async (dispatch) => {
+export const loadAirQloudsData = (options) => async (dispatch) => {
   return await getAirQloudsApi({})
     .then((resData) => {
       if (isEmpty(resData.airqlouds || [])) return;
@@ -22,12 +23,59 @@ export const loadAirQloudsData = () => async (dispatch) => {
         type: LOAD_ALL_AIRQLOUDS_SUCCESS,
         payload: transformArray(resData.airqlouds, "_id"),
       });
+      if (options && options.callable instanceof Function) options.callable();
     })
     .catch((err) => {
       dispatch({
         type: LOAD_ALL_AIRQLOUDS_FAILURE,
         payload: err,
       });
+      if (options && options.onerror instanceof Function) options.onerror();
+    });
+};
+
+export const refreshAirQloud = (airQloudName, airQloudID) => async (
+  dispatch
+) => {
+  dispatch(
+    updateMainAlert({
+      severity: "info",
+      message: `Refreshing ${airQloudName} AirQloud`,
+      show: true,
+    })
+  );
+  return await refreshAirQloudApi({ id: airQloudID })
+    .then((data) => {
+      dispatch(
+        updateMainAlert({
+          severity: "info",
+          message: `Successfully refreshed ${airQloudName} AirQloud. Re-loading AirQlouds`,
+          show: true,
+        })
+      );
+      dispatch(
+        loadAirQloudsData({
+          callable: () =>
+            dispatch(
+              updateMainAlert({
+                severity: "success",
+                message: "Successfully re-loaded AirQlouds.",
+                show: true,
+              })
+            ),
+        })
+      );
+      return data
+    })
+    .catch((err) => {
+      console.log(err);
+      dispatch(
+        updateMainAlert({
+          severity: "error",
+          message: `Could not refresh ${airQloudName} AirQloud`,
+          show: true,
+        })
+      );
     });
 };
 
