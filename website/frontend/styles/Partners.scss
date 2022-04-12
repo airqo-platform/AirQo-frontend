@@ -35,7 +35,7 @@
                     display:flex;
                     align-items: center;
                     justify-content: center;
-                    border:1px solid $aq-white-2;
+                    border:1px solid $aq-white-4;
                     min-width:230px;
                     height:110px;
                     animation:TranslateWeb 20s;
@@ -67,12 +67,15 @@
                     animation-iteration-count: infinite;
                     mix-blend-mode: multiply;
                     div{
-                        border:1px solid $aq-white-2;
-                        min-width: 130px;
-                        height:70px;
+                        border:1px solid $aq-white-4;
+                        min-width: 140px;
+                        height:80px;
+                        display:flex;
+                        align-items: center;
+                        justify-items: center;
                         svg{
-                            width:128px;
-                            height:60px;
+                            width:130px;
+                            height:70px;
                         }
                     }
                 }
@@ -88,15 +91,15 @@
         transition-delay: 1s ease-in-out;
     }
     30%{
-        transform: translateX(-112%);
+        transform: translateX(-80%);
         transition-duration: 9s ease-in-out;
     }
     70%{
         transform: translateX(30%);
-        transition-duration: 2s ease-out;
+        transition-duration: 2s;
     }
     90%{
-        transform:translateX(108%);
+        transform:translateX(78%);
         transition-duration: 4s;
     }
     100%{
