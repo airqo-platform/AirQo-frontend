@@ -12,32 +12,39 @@
     display: flex;
     flex-direction: row;
 }
-.map-section{
-    margin:6% 0 20% 0;
-    box-sizing: content-box;
-    .backdrop{
-        @include flex-row();
-        justify-content: space-between;
-        background-color: $aq-blue-1;
-        padding:20px;
-        height:auto;
+$h2-font:40px;
+$p-font:18px;
+$pill-font:14px;
 
+.map-section{
+    display:grid;
+    grid-template-columns: $gridColumn;
+    padding: 40px 0 40px 0;
+    background-color: $aq-blue-1;
+    margin:180px 0 250px 0;
+    .backdrop{
+        grid-column: 2 / 3;
+        display:grid;
+        grid-template-columns: 3fr 3fr;
+        grid-gap:50px;
+        padding:5px;
+        height:auto;
         .map-content{
             @include flex-column();
-            margin:6% 0 0 16%;
+            margin:75px 0 0 0;
             #first-pill{
                 @include flex-row();
                 align-items: center;
                 justify-content: center;
-                background-color: $aq-white-1;
-                width:170px;
+                background-color: $aq-white-0;
+                width:190px;
                 height:25px;
                 border-radius:1000px;
                 padding:3px 18px;
                 p{
                     color:$aq-blue-0;
                     padding:10px;
-                    font-size:12.5px;
+                    font-size:$pill-font;
                     font-weight: 700;
                     line-height: 26px;
                     flex-grow:0;
@@ -47,45 +54,48 @@
             .content-h{
                 color:$aq-black-0;
                 font-weight:700;
-                font-size:40px;
+                font-size:$h2-font;
             }
             .content-p{
-                margin:-9% 0 0 0;
+                margin:-5% 0 0 0;
                 p{
                     color:$aq-black-0;
                     font-weight:400;
-                    font-size: 16px;  
-                    line-height:20px; 
+                    font-size: $p-font;  
+                    line-height:24px; 
                 }
             }
             #second-pill{
                 @include flex-row();
                 align-items: center;
+                margin: 20px 0 0 0;
                 p{
                     color:$aq-blue-0;
                     font-weight:600;
-                    font-size:12.5px; 
+                    font-size:$pill-font; 
                     line-height:10px;
                     flex-grow:0;
-                    padding:3px;
-                    margin: 2% 0 0 0;
+                    padding-top: 2px;
                 }
                 i{
                     fill:$aq-blue-0;
-                    width:14px;
+                    width:15px;
                     height:14px;
                     font-weight:600;
-                    margin-left:2px;
+                    margin-left:10px;
                 }
             }
         }
 
         .map-image{
-            padding:0px;
-            margin:0 70px 0 0;
-            width:40%;
-            .map-img{    
-                width:100%;
+            margin: 0;
+            padding:0;
+            display: grid;
+            grid-template-columns: 540px;
+            grid-template-rows: 500px;
+            align-items: center;
+            .map-img{   
+                float:right;
             }
         }
     }
@@ -100,25 +110,23 @@
             align-items: center;
             padding:0;
             .map-content{
-                margin: 20% 5% 0 5%;
+                margin: 100px 20px 0 15px;
                 #first-pill{
-                    width:140px;
-                    height:20px;
+                    width:200px;
+                    height:30px;
                 }
                 .content-h{
-                    font-size: 35px;
+                    font-size: $h2-font;
                 }
             }
             .map-image{
-                width:auto;
-                margin:25px 2% 0 0;
+                margin-top:8px;
                 padding:0px;
+                display: grid;
+                grid-template-columns:1fr;
+                grid-template-rows: 500px;
                 .map-img{
-                    right:0;
-                    width:auto;
-                    padding:0px;
-                    width:98%;
-                    height:auto;
+                    float:none;
                 }
             }
         }
