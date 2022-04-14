@@ -64,7 +64,7 @@ const config = () => {
 
     resolve: {
       modules: [ROOT, 'frontend/src', 'node_modules'],
-      extensions: ['.js', '.jsx', '.ts', '.tsx'],
+      extensions: ['.js', '.jsx', '.ts', '.tsx', '...'],
     },
 
     module: {
@@ -103,13 +103,15 @@ const config = () => {
 
         // Images
         {
-          test: /\.(png|jpg|ico)$/,
+          test: /\.(png|jpe?g|ico)$/i,
           use: compact([
             {
               loader: 'url-loader',
               options: { name: '[path][name].[ext]' },
             },
           ]),
+          // TODO: We are migrating to using asset/resource module
+          // type: 'asset/resource',
         },
       ],
     },

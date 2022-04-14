@@ -8,6 +8,7 @@ import 'package:flutter_svg/svg.dart';
 import '../../services/app_service.dart';
 import '../../themes/light_theme.dart';
 import '../../utils/kya_utils.dart';
+import '../../widgets/custom_shimmer.dart';
 import 'kya_title_page.dart';
 
 class KnowYourAirView extends StatefulWidget {
@@ -26,20 +27,19 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
   Widget build(BuildContext context) {
     return Container(
         color: Config.appBodyColor,
-        child: RefreshIndicator(
-          onRefresh: _refreshKya,
-          child: _kyaCards.isEmpty
-              ? Center(
-                  child: Text(_error),
-                )
-              : ListView.builder(
-                  itemBuilder: (context, index) => Padding(
+        child: _kyaCards.isEmpty
+            ? Center(
+                child: Text(_error),
+              )
+            : refreshIndicator(
+                sliverChildDelegate:
+                    SliverChildBuilderDelegate((context, index) {
+                  return Padding(
                     padding: const EdgeInsets.only(bottom: 10),
                     child: _kyaWidget(_kyaCards[index]),
-                  ),
-                  itemCount: _kyaCards.length,
-                ),
-        ));
+                  );
+                }, childCount: _kyaCards.length),
+                onRefresh: _refreshKya));
   }
 
   @override
