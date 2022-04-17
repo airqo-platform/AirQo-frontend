@@ -192,6 +192,22 @@ class AirqoApiClient {
     return <Insights>[];
   }
 
+  Future<String> getCarrier(String phoneNumber) async {
+    var url = '${AirQoUrls.carrierSearchApi}$phoneNumber';
+    final responseBody = await _performGetRequest({}, url);
+    if (responseBody != null) {
+      try {
+        return responseBody['data']['carrier']['name'];
+      } on Error catch (exception, stackTrace) {
+        await Sentry.captureException(
+          exception,
+          stackTrace: stackTrace,
+        );
+      }
+    }
+    return '';
+  }
+
   Future<String> imageUpload(String file, String? type, String name) async {
     type ??= 'jpeg';
 

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:app/constants/config.dart';
+import 'package:app/models/event.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/user_details.dart';
@@ -27,6 +28,7 @@ class AppService {
   final SharedPreferencesHelper _preferencesHelper = SharedPreferencesHelper();
   final SecureStorage _secureStorage = SecureStorage();
   late AirqoApiClient _apiClient;
+  final CloudAnalytics _cloudAnalytics = CloudAnalytics();
 
   AppService(this._context) {
     _apiClient = AirqoApiClient(_context);
@@ -67,9 +69,7 @@ class AppService {
     }
 
     if (authSuccessful) {
-      if (procedure == authProcedure.signup) {
-        await postSignUpActions();
-      } else {
+      if (procedure == authProcedure.login) {
         await postLoginActions();
       }
     }
@@ -267,6 +267,11 @@ class AppService {
         .loadNotifications();
   }
 
+  Future<void> logEvent(AnalyticsEvent analyticsEvent) async {
+    var loggedIn = isLoggedIn();
+    await _cloudAnalytics.logEvent(analyticsEvent, loggedIn);
+  }
+
   Future<bool> logOut(context) async {
     var hasConnection = await isConnected();
     if (!hasConnection) {
@@ -328,23 +333,26 @@ class AppService {
         await _cloudStore.updateProfileFields(user.uid, {'device': device});
       }
 
-      await _secureStorage.updateUserDetails(userDetails);
-      await _preferencesHelper.updatePreferences(userDetails.preferences);
-      await _cloudStore.getFavPlaces(user.uid).then((value) => {
-            if (value.isNotEmpty)
-              {
-                _dbHelper.setFavouritePlaces(value),
-                Provider.of<PlaceDetailsModel>(_context, listen: false)
-                    .reloadFavouritePlaces(),
-              }
-          });
-      await _cloudStore.getNotifications(user.uid).then((value) => {
-            if (value.isNotEmpty)
-              {
-                Provider.of<NotificationModel>(_context, listen: false)
-                    .addAll(value),
-              }
-          });
+      await Future.wait([
+        _secureStorage.updateUserDetails(userDetails),
+        _preferencesHelper.updatePreferences(userDetails.preferences),
+        _cloudStore.getFavPlaces(user.uid).then((value) => {
+              if (value.isNotEmpty)
+                {
+                  _dbHelper.setFavouritePlaces(value),
+                  Provider.of<PlaceDetailsModel>(_context, listen: false)
+                      .reloadFavouritePlaces(),
+                }
+            }),
+        _cloudStore.getNotifications(user.uid).then((value) => {
+              if (value.isNotEmpty)
+                {
+                  Provider.of<NotificationModel>(_context, listen: false)
+                      .addAll(value),
+                }
+            }),
+        _logPlatformType(),
+      ]);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
@@ -379,11 +387,55 @@ class AppService {
         userDetails.device = device;
       }
 
-      await _cloudStore.updateProfile(userDetails, user.uid);
-      await _secureStorage.updateUserDetails(userDetails);
-      await _preferencesHelper.updatePreferences(userDetails.preferences);
+      await Future.wait([
+        _cloudStore.updateProfile(userDetails, user.uid),
+        _secureStorage.updateUserDetails(userDetails),
+        _preferencesHelper.updatePreferences(userDetails.preferences),
+        logEvent(AnalyticsEvent.createUserProfile),
+        _logNetworkProvider(userDetails),
+        _logGender(userDetails),
+        _logPlatformType(),
+      ]);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
+    }
+  }
+
+  Future<void> _logPlatformType() async {
+    if (Platform.isAndroid) {
+      await logEvent(AnalyticsEvent.androidUser);
+    } else if (Platform.isIOS) {
+      await logEvent(AnalyticsEvent.iosUser);
+    } else {
+      debugPrint('Unknown Platform');
+    }
+  }
+
+  Future<void> _logGender(UserDetails userDetails) async {
+    if (userDetails.getGender() == gender.male) {
+      await logEvent(AnalyticsEvent.maleUser);
+    } else if (userDetails.getGender() == gender.female) {
+      await logEvent(AnalyticsEvent.femaleUser);
+    } else {
+      await logEvent(AnalyticsEvent.undefinedGender);
+    }
+  }
+
+  Future<void> _logFavPlaces() async {
+    var favPlaces = await _dbHelper.getFavouritePlaces();
+    if (favPlaces.length >= 5) {
+      await logEvent(AnalyticsEvent.savesFiveFavorites);
+    }
+  }
+
+  Future<void> _logNetworkProvider(UserDetails userDetails) async {
+    var carrier = await _apiClient.getCarrier(userDetails.phoneNumber);
+    if (carrier.toLowerCase().contains('airtel')) {
+      await logEvent(AnalyticsEvent.airtelUser);
+    } else if (carrier.toLowerCase().contains('mtn')) {
+      await logEvent(AnalyticsEvent.mtnUser);
+    } else {
+      await logEvent(AnalyticsEvent.otherNetwork);
     }
   }
 
@@ -404,8 +456,11 @@ class AppService {
       await _cloudStore.removeFavPlace(_customAuth.getUserId(), placeDetails);
     }
 
-    await Provider.of<PlaceDetailsModel>(_context, listen: false)
-        .reloadFavouritePlaces();
+    await Future.wait([
+      Provider.of<PlaceDetailsModel>(_context, listen: false)
+          .reloadFavouritePlaces(),
+      _logFavPlaces(),
+    ]);
   }
 
   Future<void> updateKya(Kya kya) async {
@@ -413,13 +468,16 @@ class AppService {
     var connected = await isConnected();
     if (_customAuth.isLoggedIn() && connected) {
       await _cloudStore.updateKyaProgress(_customAuth.getUserId(), kya);
+      if (kya.progress == kya.lessons.length) {
+        await logEvent(AnalyticsEvent.completeOneKYA);
+      }
     }
   }
 
-  Future<void> updateProfile(UserDetails userDetails) async {
+  Future<bool> updateProfile(UserDetails userDetails) async {
     var hasConnection = await isConnected();
     if (!hasConnection) {
-      return;
+      return false;
     }
 
     try {
@@ -456,6 +514,7 @@ class AppService {
         };
 
         await _cloudStore.updateProfileFields(firebaseUser.uid, fields);
+        return true;
       }
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
@@ -463,6 +522,7 @@ class AppService {
         exception,
         stackTrace: stackTrace,
       );
+      return false;
     }
   }
 

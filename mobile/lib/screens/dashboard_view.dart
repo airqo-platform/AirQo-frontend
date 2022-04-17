@@ -97,15 +97,15 @@ class _DashboardViewState extends State<DashboardView> {
               ),
               _topTabs(),
               const SizedBox(
-                height: 32,
+                height: 8,
               ),
               Expanded(
                 child: CustomScrollView(
                   physics: const BouncingScrollPhysics(),
                   slivers: [
                     CupertinoSliverRefreshControl(
-                      refreshTriggerPullDistance: 70,
-                      refreshIndicatorExtent: 60,
+                      refreshTriggerPullDistance: 40,
+                      refreshIndicatorExtent: 30,
                       onRefresh: _refresh,
                     ),
                     SliverList(
@@ -160,9 +160,6 @@ class _DashboardViewState extends State<DashboardView> {
 
     setState(() {
       _analyticsCards = [
-        const SizedBox(
-          height: 24,
-        ),
         if (cards.isNotEmpty) cards[0],
         if (cards.isNotEmpty)
           const SizedBox(
@@ -369,6 +366,9 @@ class _DashboardViewState extends State<DashboardView> {
 
   List<Widget> _initializeDashBoardItems() {
     return [
+      const SizedBox(
+        height: 24,
+      ),
       Text(getDateTime(),
           style: Theme.of(context).textTheme.caption?.copyWith(
                 color: Colors.black.withOpacity(0.5),
