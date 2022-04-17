@@ -2,6 +2,7 @@ import 'package:app/constants/config.dart';
 import 'package:app/models/insights.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/suggestion.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:app/utils/pm.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
@@ -80,7 +81,8 @@ Widget aqiContainerString(
         borderRadius: const BorderRadius.all(Radius.circular(40.0)),
         color: pm2_5ToColor(measurement.getPm2_5Value()).withOpacity(0.4),
         border: Border.all(color: Colors.transparent)),
-    child: AutoSizeText(pm2_5ToString(measurement.getPm2_5Value()),
+    child: AutoSizeText(
+        pm2_5ToString(measurement.getPm2_5Value()).trimEllipsis(),
         maxFontSize: 14,
         maxLines: 1,
         textAlign: TextAlign.start,

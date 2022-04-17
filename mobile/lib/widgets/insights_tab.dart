@@ -392,8 +392,9 @@ class _InsightsTabState extends State<InsightsTab> {
                                     }
                                   },
                                   child: _insightsChart(
-                                      _dailyPm2_5ChartData[index],
-                                      _dailyPm10ChartData[index]));
+                                      pm2_5ChartData: _dailyPm2_5ChartData[index],
+                                      cornerRadius: 5,
+                                  pm10ChartData: _dailyPm10ChartData[index]));
                             },
                             itemScrollController: _itemScrollController,
                           ),
@@ -422,8 +423,8 @@ class _InsightsTabState extends State<InsightsTab> {
                                     }
                                   },
                                   child: _insightsChart(
-                                      _hourlyPm2_5ChartData[index],
-                                      _hourlyPm10ChartData[index]));
+                                       pm10ChartData: _hourlyPm10ChartData[index], cornerRadius: 3, pm2_5ChartData: _hourlyPm2_5ChartData[index],)
+                              );
                             },
                             itemScrollController: _itemScrollController,
                           ),
@@ -515,9 +516,9 @@ class _InsightsTabState extends State<InsightsTab> {
                         child: AutoSizeText(
                             _pollutant == 'pm2.5'
                                 ? pm2_5ToString(_selectedMeasurement!
-                                    .getChartValue(_pollutant))
+                                    .getChartValue(_pollutant)).trimEllipsis()
                                 : pm10ToString(_selectedMeasurement!
-                                    .getChartValue(_pollutant)),
+                                    .getChartValue(_pollutant)).trimEllipsis(),
                             maxLines: 1,
                             maxFontSize: 14,
                             textAlign: TextAlign.start,
@@ -811,8 +812,8 @@ class _InsightsTabState extends State<InsightsTab> {
     await _fetchInsights();
   }
 
-  Widget _insightsChart(List<charts.Series<Insights, String>> pm2_5ChartData,
-      List<charts.Series<Insights, String>> pm10ChartData) {
+  Widget _insightsChart({required List<charts.Series<Insights, String>> pm2_5ChartData,
+      required List<charts.Series<Insights, String>> pm10ChartData, required int cornerRadius}) {
     return LayoutBuilder(
         builder: (BuildContext buildContext, BoxConstraints constraints) {
       return SizedBox(
@@ -824,7 +825,7 @@ class _InsightsTabState extends State<InsightsTab> {
           defaultRenderer: charts.BarRendererConfig<String>(
             strokeWidthPx: 20,
             stackedBarPaddingPx: 0,
-            cornerStrategy: const charts.ConstCornerStrategy(10),
+            cornerStrategy: charts.ConstCornerStrategy(cornerRadius),
           ),
           defaultInteractions: true,
           behaviors: [
@@ -874,7 +875,7 @@ class _InsightsTabState extends State<InsightsTab> {
           defaultRenderer: charts.BarRendererConfig<String>(
               strokeWidthPx: 0,
               stackedBarPaddingPx: 0,
-              cornerStrategy: const charts.ConstCornerStrategy(10)),
+              cornerStrategy: const charts.ConstCornerStrategy(3)),
           defaultInteractions: true,
           behaviors: [
             charts.LinePointHighlighter(

@@ -7,6 +7,7 @@ import 'package:app/services/app_service.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/utils/dashboard.dart';
 import 'package:app/utils/date.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/widgets/analytics_card.dart';
 import 'package:app/widgets/custom_shimmer.dart';
@@ -407,7 +408,7 @@ class _DashboardViewState extends State<DashboardView> {
               child: Column(
                 children: [
                   Text(_incompleteKya[0].title,
-                      maxLines: 2,
+                      maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 18,

@@ -50,7 +50,7 @@ String dateToString(String formattedString) {
 
 String getDateTime() {
   var now = DateTime.now();
-  return '${now.getWeekday()} ${DateFormat('d').format(now)}'
+  return '${now.getWeekday()} ${DateFormat('d').format(now)},'
           ' ${DateFormat('MMMM').format(now)}'
       .toUpperCase();
 }

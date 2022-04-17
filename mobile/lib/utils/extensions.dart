@@ -299,6 +299,10 @@ extension StringCasingExtension on String {
     return false;
   }
 
+  String trimEllipsis(){
+    return replaceAll('', '\u{200B}');
+  }
+
   bool isNull() {
     if (isEmpty ||
         length == 0 ||

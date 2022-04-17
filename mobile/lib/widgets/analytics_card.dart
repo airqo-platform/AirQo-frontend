@@ -8,6 +8,7 @@ import 'package:app/services/app_service.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/dialogs.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/widgets/tooltip.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -243,13 +244,13 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  widget.placeDetails.name,
+                                  widget.placeDetails.name.trimEllipsis(),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: CustomTextStyle.headline9(context),
                                 ),
                                 Text(
-                                  widget.placeDetails.location,
+                                  widget.placeDetails.location.trimEllipsis(),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: CustomTextStyle.bodyText4(context)
@@ -283,7 +284,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                                     .width /
                                                 3.2),
                                         child: Text(
-                                          dateToString(widget.measurement.time),
+                                          dateToString(widget.measurement.time).trimEllipsis(),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
@@ -478,7 +479,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      widget.placeDetails.name,
+                                      widget.placeDetails.name.trimEllipsis(),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(
@@ -486,7 +487,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                           fontSize: 20),
                                     ),
                                     Text(
-                                      widget.placeDetails.location,
+                                      widget.placeDetails.location.trimEllipsis(),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
@@ -509,7 +510,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                               color: Colors.transparent)),
                                       child: AutoSizeText(
                                         pm2_5ToString(
-                                            widget.measurement.getPm2_5Value()),
+                                            widget.measurement.getPm2_5Value()).trimEllipsis(),
                                         maxLines: 1,
                                         maxFontSize: 14,
                                         textAlign: TextAlign.start,
@@ -537,7 +538,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                                     3.2),
                                             child: Text(
                                               dateToString(
-                                                  widget.measurement.time),
+                                                  widget.measurement.time).trimEllipsis(),
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
                                               style: TextStyle(
