@@ -27,3 +27,9 @@ spec:
           - backend:
               serviceName: airqo-stage-website-svc
               servicePort: 8000
+    - host: staging.calibrate.airqo.net
+      http:
+        paths:
+          - backend:
+              serviceName: airqo-stage-calibrate-app-svc
+              servicePort: 80
