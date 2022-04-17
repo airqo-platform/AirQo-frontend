@@ -7,36 +7,82 @@
   padding: 80px 16px 16px 16px;
 
   .body-section {
+    display: flex;
+    flex-wrap: wrap;
     .logo {
         width: 44%;
-        height: 100%;
 
         .logo-text {
-          width: 164px;
+          width: 250px;
           height: 56px;
+          font-family: "Inter";
           font-style: normal;
-          font-weight: 700;
+          font-weight: 500;
           font-size: 20px;
           line-height: 28px;
-          color: $aq-black-1;
-          opacity: 0.4;
-          margin-top: 24px;
+          color: $aq-blue-2;
+          margin: 24px 0 32px 0;
         }
 
         .social-links {
           display: flex;
           justify-content: space-between;
-          width: 211px;
+          align-items: center;
+          width: 176px;
           height: 40px;
-          margin-top: 40px;
         }
       }
   }
 
   .content {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 64px;
+
+    .content-tabs {
       display: flex;
       flex-wrap: wrap;
-      margin-top: 64px;
+      margin-bottom: 48px;
+        width: 100%;
+        >span {
+          display: flex;
+          width: 50%;
+          flex: none;
+          order: 0;
+          flex-grow: 1;
+          margin-top: 0;
+          margin-bottom: 16px;
+          font-style: normal;
+          font-weight: 500;
+          font-size: 16px;
+          line-height: 18px;
+          color: $aq-black-0;
+        }
+
+        >div {
+          width: 50%;
+          span {
+            display: flex;
+            align-items: center;
+            flex: none;
+            order: 0;
+            flex-grow: 1;
+            height: 18px;
+            font-style: normal;
+            font-weight: normal;
+            font-size: 14px;
+            line-height: 18px;
+            color: $aq-black-0;
+            margin-bottom: 16px;
+
+            a:link, a:active, a:focus, a:visited {
+              color: inherit;
+              cursor: pointer;
+              text-decoration: none;
+            }
+          }
+        }
+      }
 
       section {
         display: flex;
@@ -133,48 +179,42 @@
 
   .Footer {
     width: 100%;
-    height: 600px;
-    padding: $mainPadding 0 $mainPadding/2 0;
+    height: 687px;
+    padding: 80px 0 0 0;
     background: $aq-white-0;
     font-family: 'Inter', serif;
 
     .body-section {
       display: flex;
-      height: 400px;
+      height: 539px;
 
       .logo {
         width: 44%;
-        height: 100%;
-
-        .logo-text {
-          display: none;
-        }
-
-        .social-links {
-          margin-top: 93px;
-        }
+        min-height: 315px;
       }
 
       .content {
+        justify-content: flex-end;
         width: 56%;
-        height: 100%;
         margin-top: unset;
 
-        section {
-          display: unset;
-          width: 33.3%;
+        .middle-tab {
+          margin: 0 80px;
+        }
 
+        .content-tabs {
+          display: unset;
+          width: unset;
           >span {
             width: unset;
           }
-
-          div {
-            width: unset;
-          span {
-            margin-top: 21px;
-            margin-bottom: unset;
-          }
-
+          >div {
+             width: unset;
+            >span {
+              display: block;
+              margin-top: 21px;
+              margin-bottom: unset;
+            }
           }
         }
       }

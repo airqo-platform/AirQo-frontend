@@ -13,7 +13,7 @@ const Footer = () => (
             <div className="body-section">
                 <div className="logo">
                     <AirQo />
-                    <div className="logo-text">Clean air for<br /> all African cities.</div>
+                    <div className="logo-text">Closing the air quality data gap in Africa.</div>
                     <div className="social-links">
                         <Instagram />
                         <Facebook />
@@ -22,23 +22,23 @@ const Footer = () => (
                     </div>
                 </div>
                 <div className="content">
-                    <section>
+                    <span className="content-tabs">
                         <span>Solutions</span>
                         <div>
                             <span><Link to="/solutions/african-cities/uganda">For African cities</Link></span>
                             <span><Link to="/solutions/communities">For Communities</Link></span>
                             <span><Link to="/solutions/research">For Research</Link></span>
                         </div>
-                    </section>
-                    <section>
+                    </span>
+                    <span className="content-tabs middle-tab">
                         <span>Our Works</span>
                         <div>
                             <span>Air Quality Monitors</span>
                             <span>Air Quality Analytics</span>
                             <span>Air Quality Mobile App</span>
                         </div>
-                    </section>
-                    <section>
+                    </span>
+                    <span className="content-tabs">
                         <span>About</span>
                         <div>
                             <span><Link to="/about-us">About</Link></span>
@@ -53,8 +53,8 @@ const Footer = () => (
                     <div className="text-copyright">© {new Date().getFullYear()} AirQo</div>
                     <div className="terms-section">
                         <span className="text-terms mr-24"><Link to="/terms">Terms of service</Link></span>
-                        <span className="text-terms mr-24">Privacy policy</span>
-                        <span className="text-terms mr-24">Sustainability</span>
+                        {/*<span className="text-terms mr-24">Privacy policy</span>*/}
+                        {/*<span className="text-terms mr-24">Sustainability</span>*/}
                     </div>
                 </div>
                 <div className="project-container mb-24">
