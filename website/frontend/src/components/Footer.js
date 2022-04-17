@@ -6,6 +6,8 @@ import Instagram from 'icons/footer/Instagram';
 import Facebook from 'icons/footer/Facebook';
 import Youtube from 'icons/footer/Youtube';
 import Twitter from 'icons/footer/Twitter';
+import Location from 'icons/footer/Location';
+import ArrowDown from 'icons/footer/ArrowDown';
 
 const Footer = () => (
         <footer className="footer-wrapper">
@@ -45,7 +47,23 @@ const Footer = () => (
                             <span><Link to="/contact">Contact</Link></span>
                             <span><Link to="/press">Press</Link></span>
                         </div>
-                    </section>
+                    </span>
+                </div>
+                <div className="airqlouds-summary">
+                    <div className="airqloud-dropdown">
+                        <Location />
+                        <span>Uganda</span>
+                        <ArrowDown />
+                    </div>
+                    <div className="airqloud-count">
+                        <span className="count-value">
+                            <span>0</span>
+                            <span>1</span>
+                            <span>1</span>
+                            <span>3</span>
+                        </span> {' '}
+                        <span className="count-text">Monitors in Uganda</span>
+                    </div>
                 </div>
             </div>
             <div className="copyright-section">
