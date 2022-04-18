@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:app/constants/config.dart';
 import 'package:app/models/kya.dart';
 import 'package:app/models/measurement.dart';
@@ -7,7 +9,6 @@ import 'package:app/services/app_service.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/utils/dashboard.dart';
 import 'package:app/utils/date.dart';
-import 'package:app/utils/extensions.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/widgets/analytics_card.dart';
 import 'package:app/widgets/custom_shimmer.dart';
@@ -102,6 +103,7 @@ class _DashboardViewState extends State<DashboardView> {
               ),
               Expanded(
                 child: CustomScrollView(
+                  physics: Platform.isAndroid ? const BouncingScrollPhysics() : null,
                   slivers: [
                     CupertinoSliverRefreshControl(
                       refreshTriggerPullDistance: 40,

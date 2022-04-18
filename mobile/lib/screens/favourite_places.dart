@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:app/constants/config.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/screens/search_page.dart';
@@ -32,6 +34,7 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
               }
 
               return CustomScrollView(
+                  physics: Platform.isAndroid ? const BouncingScrollPhysics() : null,
                   slivers: [
                     CupertinoSliverRefreshControl(
                       refreshTriggerPullDistance: 70,

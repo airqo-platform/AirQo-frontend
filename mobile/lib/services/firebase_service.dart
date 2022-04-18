@@ -26,12 +26,10 @@ class CloudAnalytics {
 
   Future<void> logEvent(
       AnalyticsEvent analyticsEvent, bool loggedInUser) async {
-    print("logging ${analyticsEvent.getName('')}");
     await analytics
         .logEvent(
           name: analyticsEvent.getName(''),
-        )
-        .then(print);
+        );
   }
 }
 
