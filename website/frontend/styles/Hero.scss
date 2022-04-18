@@ -67,7 +67,6 @@
   background: $aq-white-0;
   color: $aq-black-1;
   margin: 0 auto;
-  border: 1px solid red;
 
   >span {
     position: relative;
@@ -76,6 +75,10 @@
       width: 360px;
       height: 235px;
        z-index: 5;
+    }
+
+    .air-quality-reading {
+      display: none;
     }
   }
   .hero-title {
@@ -123,6 +126,7 @@
       }
 
       .air-quality-reading {
+        display: block;
         position: absolute;
         width: 470px;
         height: 584px;
@@ -166,6 +170,110 @@
             text-transform: capitalize;
 
             color: $aq-green-5;
+          }
+        }
+
+        .divider {
+          height: 500px;
+        }
+
+        .bottom-reading {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+
+          .category-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            width: 88px;
+            height: 32px;
+
+            background: $aq-green-6;
+            border-radius: 725px;
+
+            .category-indicator {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              width: 18px;
+              height: 18px;
+              border-radius: 50%;
+              border: none;
+              background: $aq-green-7;
+
+              > span {
+                width: 10px;
+                height: 10px;
+                background: $aq-green-9;
+                border-radius: 50%;
+                border: none;
+              }
+            }
+
+            .category-text {
+              font-family: 'Inter';
+              font-style: normal;
+              font-weight: 600;
+              font-size: 16px;
+              line-height: 24px;
+              margin-left: 6px;
+
+              color: $aq-green-4;
+            }
+          }
+
+          .pollutant-wrapper {
+            display: flex;
+
+            .value {
+              font-family: 'Roboto Mono';
+              font-style: normal;
+              font-weight: 700;
+              font-size: 24px;
+              line-height: 24px;
+
+              display: flex;
+              align-items: center;
+              text-align: center;
+              letter-spacing: -0.022em;
+
+              color: $aq-green-4;
+            }
+            .pollutant {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              padding: 0 12px;
+              width: 73px;
+              height: 24px;
+              background: $aq-green-8;
+              border-radius: 4px;
+              margin-left: 17px;
+
+              .text {
+                width: 34px;
+                height: 24px;
+                font-style: normal;
+                font-weight: 500;
+                font-size: 14px;
+                line-height: 24px;
+
+                display: flex;
+                align-items: center;
+                text-align: center;
+                letter-spacing: -0.022em;
+
+                color: $aq-green-4;
+
+                sub {
+                  vertical-align: baseline;
+                  position: relative;
+                  top: 0.6em;
+                }
+              }
+            }
           }
         }
       }
