@@ -20,8 +20,8 @@ const Hero = () => {
                     drive air pollution mitigation actions.
                 </p>
                 <div className="hero-buttons">
-                    <Button label="Request a demo" />
-                    <Button className="button-signin" label="Sign in" />
+                    <Button label="Request demo" />
+                    <Button className="button-get-involved" label="Get Involved" />
                 </div>
                 </div>
             </div>
