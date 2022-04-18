@@ -4,6 +4,7 @@ import HeroCityImg from 'icons/homepage/hero-city.png';
 import HeroCityLargeImg from 'icons/homepage/hero-city-full.png';
 import Location from 'icons/homepage/hero/location.svg';
 import Reload from 'icons/homepage/hero/reload.svg';
+import ArrowDown from 'icons/homepage/hero/arrow-down.svg';
 
 const breakPoint = 580;
 
@@ -27,15 +28,20 @@ const Hero = () => {
                             <Reload />
                         </span>
                     </div>
-                    {/*<div className="bottom-reading">*/}
-                    {/*    <span>*/}
-                    {/*        <span>Good</span>*/}
-                    {/*    </span>*/}
-                    {/*    <span>*/}
-                    {/*        <span></span>*/}
-                    {/*        <span></span>*/}
-                    {/*    </span>*/}
-                    {/*</div>*/}
+                    <div className="divider" />
+                    <div className="bottom-reading">
+                        <span className="category-wrapper">
+                            <div className="category-indicator"><span /></div>
+                            <span className="category-text">Good</span>
+                        </span>
+                        <span className="pollutant-wrapper">
+                            <span className="value">12 <sub> µg/m<sup>3</sup></sub></span>
+                            <span className="pollutant">
+                                <span className="text">PM<sub>2.5</sub></span>
+                                <ArrowDown />
+                            </span>
+                        </span>
+                    </div>
                 </div>
             </span>
             <div className="hero-content">
