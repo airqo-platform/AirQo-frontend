@@ -102,7 +102,6 @@ class _DashboardViewState extends State<DashboardView> {
               ),
               Expanded(
                 child: CustomScrollView(
-                  physics: const BouncingScrollPhysics(),
                   slivers: [
                     CupertinoSliverRefreshControl(
                       refreshTriggerPullDistance: 40,
@@ -301,7 +300,10 @@ class _DashboardViewState extends State<DashboardView> {
     if (!mounted) {
       return;
     }
-    _buildAnalyticsCards(dashboardCards);
+    if(dashboardCards.isNotEmpty){
+      _buildAnalyticsCards(dashboardCards);
+    }
+
   }
 
   void _getKya() async {
