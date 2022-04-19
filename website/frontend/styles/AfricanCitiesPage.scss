@@ -1,0 +1,153 @@
+@import "lib/colors";
+@import "lib/variables";
+
+.AfricanCitiesPage {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  font-style: normal;
+
+  .city-title {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: $aq-blue-3;
+    width: 100%;
+    min-height: 416px;
+    text-align: center;
+
+    .page-nav {
+      max-width: 200px;
+      font-weight: 400;
+      font-size: 14px;
+      line-height: 28px;
+      color: $aq-black-2;
+    }
+
+    .city-main-text {
+      max-width: 800px;
+      min-height: 56px;
+      font-weight: 600;
+      font-size: 48px;
+      line-height: 56px;
+      color: $aq-black-1;
+      margin: 32px 0 16px 0;
+    }
+
+    .city-sub-text {
+      max-width: 720px;
+      font-weight: 400;
+      font-size: 18px;
+      line-height: 28px;
+      color: $aq-black-1;
+    }
+  }
+
+  .city-banner {
+    width: 100%;
+    max-width: $columnWidth;
+    min-height: 144px;
+
+    font-style: normal;
+    font-weight: 400;
+    font-size: 40px;
+    line-height: 48px;
+
+    text-align: center;
+
+    color: $aq-black-2;
+
+    margin: 80px 0 77px 0;
+  }
+
+  .city-tabs-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+
+    .city-tabs {
+      display: flex;
+      flex-wrap: nowrap;
+      width: 100%;
+      max-width: $columnWidth;
+
+      .available {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        padding: 0 20px;
+        cursor: pointer;
+
+        min-width: 144px;
+        height: 56px;
+        background: $aq-blue-3;
+        border-radius: 1000px;
+        border: none;
+        margin-right: 23px;
+        .text {
+          display: flex;
+          align-items: center;
+          min-width: 40px;
+          height: 24px;
+
+          font-style: normal;
+          font-weight: 500;
+          font-size: 16px;
+          line-height: 24px;
+
+          color: $aq-blue-0;
+
+          margin: 0px 11px;
+        }
+      }
+
+      .not-available {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        padding: 0 20px;
+        cursor: not-allowed;
+
+        min-width: 144px;
+        height: 56px;
+        background: $aq-grey-1;
+        border-radius: 1000px;
+        border: none;
+        margin-right: 23px;
+        .text {
+          display: flex;
+          align-items: center;
+
+          min-width: 40px;
+          height: 24px;
+
+          font-style: normal;
+          font-weight: 500;
+          font-size: 16px;
+          line-height: 24px;
+
+          color: rgba(53, 62, 82, 0.5);
+
+          margin: 0px 11px;
+        }
+
+        .text-extended {
+          min-width: 100px;
+        }
+      }
+
+      .extended {
+        min-width: 250px
+      }
+
+      .active {
+        border: 2px solid #135DFF;
+      }
+    }
+  }
+
+}
