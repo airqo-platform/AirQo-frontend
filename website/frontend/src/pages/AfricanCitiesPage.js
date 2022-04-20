@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, Outlet } from 'react-router-dom'
 import Page from "./Page";
 import Uganda from 'icons/africanCities/countries/uganda.svg';
@@ -33,14 +33,30 @@ const CityBanner = () => {
     )
 }
 
-const CityTab = ({className, flag, name, link}) => <Link to={link}><span className={className}>{flag} <span className="text">{name}</span></span></Link>
+const CityTab = ({className, flag, name, link, onClick}) => <Link to={link} onClick={onClick}><span className={className}>{flag} <span className="text">{name}</span></span></Link>
 
 const CityTabs = () => {
+    const [active, setActive] = useState("uganda");
+    const handleClick = (country) => () => setActive(country);
+
+    const markActive = (country) => country === active ? "active" : "";
     return (
         <div className="city-tabs-wrapper">
             <div className="city-tabs">
-                <CityTab className={"available active"} flag={<Uganda />} name="Kampala" link="/solutions/african-cities/uganda" />
-                <CityTab className={"available"} flag={<Kenya />} name="Nairobi" link="/solutions/african-cities/kenya" />
+                <CityTab
+                    className={`available ${markActive("uganda")}`}
+                    flag={<Uganda />}
+                    name="Kampala"
+                    link="/solutions/african-cities/uganda"
+                    onClick={handleClick("uganda")}
+                />
+                <CityTab
+                    className={`available ${markActive("kenya")}`}
+                    flag={<Kenya />}
+                    name="Nairobi"
+                    link="/solutions/african-cities/kenya"
+                    onClick={handleClick("kenya")}
+                />
                 <span className="not-available"><Nigeria /> <span className="text">Lagos</span></span>
                 <span className="not-available"><Ghana /> <span className="text">Accra</span></span>
                 <span className="not-available"><Burundi /> <span className="text">Bujumbura</span></span>
