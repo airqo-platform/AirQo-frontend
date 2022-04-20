@@ -32,12 +32,14 @@ const CityBanner = () => {
     )
 }
 
+const CityTab = ({className, flag, name, link}) => <Link to={link}><span className={className}>{flag} <span className="text">{name}</span></span></Link>
+
 const CityTabs = () => {
     return (
         <div className="city-tabs-wrapper">
             <div className="city-tabs">
-                <span className="available active"><Uganda /> <span className="text">Kampala</span></span>
-                <span className="available"><Kenya /> <span className="text">Nairobi</span></span>
+                <CityTab className={"available active"} flag={<Uganda />} name="Kampala" link="/solutions/african-cities/uganda" />
+                <CityTab className={"available"} flag={<Kenya />} name="Nairobi" link="/solutions/african-cities/kenya" />
                 <span className="not-available"><Nigeria /> <span className="text">Lagos</span></span>
                 <span className="not-available"><Ghana /> <span className="text">Accra</span></span>
                 <span className="not-available"><Burundi /> <span className="text">Bujumbura</span></span>
@@ -50,7 +52,7 @@ const CityTabs = () => {
     )
 }
 
-const ContentKampala = () => {
+export const ContentUganda = () => {
     return (
         <div className="cities-content">
             <div className="ug-container">
@@ -109,6 +111,32 @@ const ContentKampala = () => {
                 </div>
             </div>
 
+            <div className="cities-divider" />
+        </div>
+    )
+}
+
+export const ContentKenya = () => {
+    return (
+        <div className="cities-content">
+            <div className="cities-content">
+                <div className="ke-container">
+                    <div className="consult-text">
+                        <div>
+                            <p>Network deployment in Kenya</p>
+                            <p>Nairobi is located over 600 km from Kampala, Nairobi is the first city outside Uganda to have an AirQo monitor.</p>
+                            <p>We are in advance stages of developing the air quality network in Nairobi and have so far established a collocation installation in Nairobi in partnership with United Nations Environemnt Programme (UNEP).</p>
+                            <p>The collocation will also be an opportunity to support existing initiatives on data quality assurance. for low-cost monitors</p>
+                        </div>
+                    </div>
+                    <div className="consult-images">
+                        <img className="img-small" src={ConsultImg} alt="consult image" />
+                        <img className="img-long" src={ConsultLongImg} alt="consult long image" />
+                        <img className="img-small" src={ConsultImg2} alt="consult image 2" />
+                        <BackgroundShape className="background-shape" />
+                    </div>
+                </div>
+            </div>
             <div className="cities-divider" />
         </div>
     )
