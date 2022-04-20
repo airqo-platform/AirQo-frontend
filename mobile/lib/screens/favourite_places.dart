@@ -106,6 +106,8 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
 
   Future<void> initialize() async {
     await _appService.fetchFavPlacesInsights();
+    await Future.delayed(const Duration(seconds: 1)).then((_) =>
+        _appService.updateFavouritePlacesSites());
   }
 
   @override

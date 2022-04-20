@@ -18,6 +18,7 @@ import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../models/kya.dart';
+import 'native_api.dart';
 
 class AppService {
   final DBHelper _dbHelper = DBHelper();
@@ -29,6 +30,7 @@ class AppService {
   final SecureStorage _secureStorage = SecureStorage();
   late AirqoApiClient _apiClient;
   final CloudAnalytics _cloudAnalytics = CloudAnalytics();
+  final LocationService _locationService = LocationService();
 
   AppService(this._context) {
     _apiClient = AirqoApiClient(_context);
@@ -352,6 +354,7 @@ class AppService {
                 }
             }),
         _logPlatformType(),
+        updateFavouritePlacesSites()
       ]);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
@@ -444,7 +447,7 @@ class AppService {
       fetchLatestMeasurements(),
       fetchKya(),
       loadNotifications(),
-      loadFavPlaces(),
+      updateFavouritePlacesSites(),
     ]);
   }
 
@@ -461,6 +464,19 @@ class AppService {
           .reloadFavouritePlaces(),
       _logFavPlaces(),
     ]);
+  }
+
+  Future<void> updateFavouritePlacesSites() async {
+    var favPlaces = await _dbHelper.getFavouritePlaces();
+    for(var favPlace in favPlaces) {
+      var nearestSite = await _locationService.getNearestSite(favPlace.latitude, favPlace.longitude);
+      if(nearestSite != null){
+        favPlace.siteId = nearestSite.id;
+      }
+      await _dbHelper.updateFavouritePlaceDetails(favPlace);
+    }
+
+    await loadFavPlaces();
   }
 
   Future<void> updateKya(Kya kya) async {

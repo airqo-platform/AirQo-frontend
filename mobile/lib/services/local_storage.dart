@@ -524,6 +524,18 @@ class DBHelper {
     }
   }
 
+  Future<bool> updateFavouritePlaceDetails(PlaceDetails placeDetails) async {
+    final db = await database;
+
+    try {
+      await db.update(PlaceDetails.dbName(), {'siteId': placeDetails.siteId}, whereArgs: [placeDetails.placeId]);
+      return true;
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+    return false;
+  }
+
   Future<void> updateKya(Kya kya) async {
     final db = await database;
 
