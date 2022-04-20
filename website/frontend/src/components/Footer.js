@@ -25,7 +25,7 @@ const Footer = () => (
                     <section>
                         <span>Solutions</span>
                         <div>
-                            <span>For African cities</span>
+                            <span><Link to="/solutions/african-cities/uganda">For African cities</Link></span>
                             <span><Link to="/solutions/communities">For Communities</Link></span>
                             <span><Link to="/solutions/research">For Research</Link></span>
                         </div>
