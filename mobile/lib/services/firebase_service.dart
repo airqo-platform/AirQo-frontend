@@ -19,7 +19,6 @@ import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../models/enum_constants.dart';
-import '../models/event.dart';
 import 'local_storage.dart';
 
 class CloudAnalytics {

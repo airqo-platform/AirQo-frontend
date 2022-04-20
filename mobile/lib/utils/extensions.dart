@@ -5,14 +5,11 @@ import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 
 import '../models/enum_constants.dart';
-import '../models/user_details.dart';
 
 extension AnalyticsEventExtension on AnalyticsEvent {
   String getName(String loggedInStatus) {
-    var prefix = 'prod_';
-    if (!kReleaseMode) {
-      prefix = 'stage_';
-    }
+    var prefix = kReleaseMode ? 'prod_' : 'stage_';
+
     switch (this) {
       case AnalyticsEvent.browserAsAppGuest:
         return '${prefix}browser_as_guest';
@@ -139,42 +136,42 @@ extension DateTimeExtension on DateTime {
 
   String getLongDate() {
     if (day.toString().endsWith('1')) {
-      return '${day}st ${getLongMonthString()}';
+      return '${day}st ${getMonthString(abbreviate: false)}';
     } else if (day.toString().endsWith('2')) {
-      return '${day}st ${getLongMonthString()}';
+      return '${day}st ${getMonthString(abbreviate: false)}';
     } else if (day.toString().endsWith('3')) {
-      return '${day}rd ${getLongMonthString()}';
+      return '${day}rd ${getMonthString(abbreviate: false)}';
     } else {
-      return '${day}th ${getLongMonthString()}';
+      return '${day}th ${getMonthString(abbreviate: false)}';
     }
   }
 
-  String getLongMonthString() {
+  String getMonthString({required bool abbreviate}) {
     switch (month) {
       case 1:
-        return 'January';
+        return abbreviate ? 'Jan' : 'January';
       case 2:
-        return 'February';
+        return abbreviate ? 'Feb' : 'February';
       case 3:
-        return 'March';
+        return abbreviate ? 'Mar' : 'March';
       case 4:
-        return 'April';
+        return abbreviate ? 'Apr' : 'April';
       case 5:
-        return 'May';
+        return abbreviate ? 'May' : 'May';
       case 6:
-        return 'June';
+        return abbreviate ? 'Jun' : 'June';
       case 7:
-        return 'July';
+        return abbreviate ? 'Jul' : 'July';
       case 8:
-        return 'August';
+        return abbreviate ? 'Aug' : 'August';
       case 9:
-        return 'September';
+        return abbreviate ? 'Sept' : 'September';
       case 10:
-        return 'October';
+        return abbreviate ? 'Oct' : 'October';
       case 11:
-        return 'November';
+        return abbreviate ? 'Nov' : 'November';
       case 12:
-        return 'December';
+        return abbreviate ? 'Dec' : 'December';
       default:
         return '';
     }
@@ -190,44 +187,13 @@ extension DateTimeExtension on DateTime {
 
   String getShortDate() {
     if (day.toString().endsWith('1')) {
-      return '${day}st ${getShortMonthString()}';
+      return '${day}st ${getMonthString(abbreviate: true)}';
     } else if (day.toString().endsWith('2')) {
-      return '${day}st ${getShortMonthString()}';
+      return '${day}st ${getMonthString(abbreviate: true)}';
     } else if (day.toString().endsWith('3')) {
-      return '${day}rd ${getShortMonthString()}';
+      return '${day}rd ${getMonthString(abbreviate: true)}';
     } else {
-      return '${day}th ${getShortMonthString()}';
-    }
-  }
-
-  String getShortMonthString() {
-    switch (month) {
-      case 1:
-        return 'Jan';
-      case 2:
-        return 'Feb';
-      case 3:
-        return 'Mar';
-      case 4:
-        return 'Apr';
-      case 5:
-        return 'May';
-      case 6:
-        return 'Jun';
-      case 7:
-        return 'Jul';
-      case 8:
-        return 'Aug';
-      case 9:
-        return 'Sept';
-      case 10:
-        return 'Oct';
-      case 11:
-        return 'Nov';
-      case 12:
-        return 'Dec';
-      default:
-        return '';
+      return '${day}th ${getMonthString(abbreviate: true)}';
     }
   }
 
@@ -322,7 +288,7 @@ extension DateTimeExtension on DateTime {
       }
       return '$hours:$minutes';
     } else {
-      return '$day ${getShortMonthString()}';
+      return '$day ${getMonthString(abbreviate: true)}';
     }
   }
 
@@ -413,9 +379,9 @@ extension PollutantExtension on Pollutant {
   String asString() {
     switch (this) {
       case Pollutant.pm2_5:
-        return 'pm2_5';
+        return 'pm 2.5';
       case Pollutant.pm10:
-        return 'pm10';
+        return 'pm 10';
       default:
         return '';
     }

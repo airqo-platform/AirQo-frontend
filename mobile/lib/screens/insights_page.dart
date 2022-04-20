@@ -1,5 +1,4 @@
 import 'package:app/constants/config.dart';
-import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/widgets/insights_tab.dart';

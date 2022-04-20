@@ -26,7 +26,6 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/enum_constants.dart';
-import '../models/event.dart';
 import '../themes/light_theme.dart';
 import 'firebase_service.dart';
 import 'local_notifications.dart';

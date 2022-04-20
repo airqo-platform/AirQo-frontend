@@ -42,6 +42,7 @@ class _InsightsTabState extends State<InsightsTab> {
   Pollutant _pollutant = Pollutant.pm2_5;
   bool _showHeartAnimation = false;
   List<Recommendation> _recommendations = [];
+
   // final DBHelper _dbHelper = DBHelper();
   final GlobalKey _globalKey = GlobalKey();
   final String _toggleToolTipText = 'Customize your air quality analytics '

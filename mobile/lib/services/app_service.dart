@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:app/constants/config.dart';
-import 'package:app/models/event.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/user_details.dart';
@@ -20,7 +19,6 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import '../models/enum_constants.dart';
 import '../models/insights.dart';
 import '../models/kya.dart';
-import '../models/measurement.dart';
 import 'native_api.dart';
 
 class AppService {

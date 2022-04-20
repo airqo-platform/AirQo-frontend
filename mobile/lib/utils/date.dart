@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../models/enum_constants.dart';
-import '../models/measurement.dart';
 
 String dateToShareString(String formattedString) {
   try {

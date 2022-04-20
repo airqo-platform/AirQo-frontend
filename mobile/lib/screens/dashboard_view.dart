@@ -638,6 +638,7 @@ class _DashboardViewState extends State<DashboardView> {
       _isRefreshing = true;
     });
 
+    _setGreetings();
     await _appService.refreshDashboard();
     _getAnalyticsCards();
     _getKya();
