@@ -12,35 +12,39 @@
     display: flex;
     flex-direction: row;
 }
+$h2-font:40px;
+$p-font:18px;
 
 .get-app{
-    margin:14% 8% 14% 8%;
-    padding:40px;
-    box-sizing: content-box;
-
+    display:grid;
+    grid-template-columns: $gridColumn;
+    padding: 40px 0 70px 0;
     .back-drop{
-        @include flex-row();
-        justify-content: space-between;
+        grid-column: 2 / 3;
+        display:grid;
+        grid-template-columns: 2fr 3fr;
+        grid-gap:30px;
         padding:30px;
-        height:260px;
+        height:320px;
         background-color: $aq-blue-1;
         border-radius: 8px;
 
         .get-content{
             margin-left: 3%;
+            float:left;
             .get-text{
                 padding: 28px 0 0 30px;
-                width:230px;
+                width:auto;
                 h2{
                     color:$aq-blue-0;
                     font-weight: 700;
-                    font-size: 38px;
+                    font-size: $h2-font;
                     line-height: 10px;
                 }
                 span{
                     color:$aq-blue-0;
                     font-weight: 400;
-                    font-size: 16px;
+                    font-size: $p-font;
                     line-height: 10px;
                 }
             }
@@ -128,10 +132,9 @@
         }
         .get-graphics{
             .get-graphics-lg{
-                display:block;
+                float:right;
                 height:auto;
-                margin-top:-52%;
-                margin-left: -20%;
+                margin:-220px 10% 0 0;
                 width:auto;
                 background-color: transparent;
             }
@@ -144,8 +147,8 @@
 
 @media (max-width: $mainBreakPoint){
     .get-app{
-        padding:0;
-        margin:95% 0 22% 0;
+        padding:80px 0 30px 0;
+        margin:280px 0 100px 0;
         .back-drop{
             @include flex-column();
             justify-content: center;
@@ -160,7 +163,7 @@
                 }
                 .get-graphics-sm{
                     display:block;
-                    margin: -100% 0 0 0;
+                    margin: -220px 0 0 0;
                 }
             }
 
@@ -169,8 +172,8 @@
                 @include flex-column();
                 justify-content: center;
                 .get-text{
-                    padding: 20px 0 0 20px;
-                    width:230px;
+                    padding: 10px 0 0 20px;
+                    max-width:270px;
                 }
                 .get-btns{
                     @include flex-column();
