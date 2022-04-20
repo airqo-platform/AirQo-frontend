@@ -11,6 +11,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../models/enum_constants.dart';
 import '../on_boarding/profile_setup_screen.dart';
 import '../themes/light_theme.dart';
 import '../widgets/custom_shimmer.dart';
@@ -53,7 +54,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
   Future<void> _authenticatePhoneNumber(AuthCredential authCredential) async {
     if (widget.isLogin) {
       var loginSuccessful = await _appService.authenticateUser(
-          authCredential, '', '', authMethod.phone, authProcedure.login);
+          authCredential, '', '', AuthMethod.phone, AuthProcedure.login);
       if (loginSuccessful) {
         Navigator.pop(_loadingContext);
         await Navigator.pushAndRemoveUntil(context,
@@ -70,7 +71,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
       }
     } else {
       var signUpSuccessful = await _appService.authenticateUser(
-          authCredential, '', '', authMethod.phone, authProcedure.signup);
+          authCredential, '', '', AuthMethod.phone, AuthProcedure.signup);
       if (signUpSuccessful) {
         Navigator.pop(_loadingContext);
         await Navigator.pushAndRemoveUntil(context,

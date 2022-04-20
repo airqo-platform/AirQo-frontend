@@ -14,7 +14,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../auth/change_email_screen.dart';
 import '../auth/change_phone_screen.dart';
-import '../models/event.dart';
+import '../models/enum_constants.dart';
 import '../services/app_service.dart';
 import '../themes/light_theme.dart';
 import 'home_page.dart';

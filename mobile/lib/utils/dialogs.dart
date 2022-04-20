@@ -122,7 +122,8 @@ void pmInfoDialog(context, double pm2_5) {
                                   text: 'is a complex mixture of extremely'
                                       ' small particles and liquid droplets.',
                                   style: TextStyle(
-                                      color: Config.appColorBlack.withOpacity(0.7),
+                                      color:
+                                          Config.appColorBlack.withOpacity(0.7),
                                       fontSize: 10,
                                       height: 14 / 10),
                                 )
@@ -136,10 +137,12 @@ void pmInfoDialog(context, double pm2_5) {
                             text: TextSpan(
                               children: <TextSpan>[
                                 TextSpan(
-                                  text: 'When measuring particles there are two '
+                                  text:
+                                      'When measuring particles there are two '
                                       'size categories commonly used: ',
                                   style: TextStyle(
-                                      color: Config.appColorBlack.withOpacity(0.7),
+                                      color:
+                                          Config.appColorBlack.withOpacity(0.7),
                                       fontSize: 10,
                                       height: 14 / 10),
                                 ),
@@ -163,7 +166,8 @@ void pmInfoDialog(context, double pm2_5) {
                                   text: ' and ',
                                   style: TextStyle(
                                       fontSize: 10,
-                                      color: Config.appColorBlack.withOpacity(0.7),
+                                      color:
+                                          Config.appColorBlack.withOpacity(0.7),
                                       height: 14 / 10),
                                 ),
                                 TextSpan(
@@ -192,8 +196,8 @@ void pmInfoDialog(context, double pm2_5) {
                             padding: const EdgeInsets.fromLTRB(12, 2.0, 12, 2),
                             decoration: BoxDecoration(
                                 color: pm2_5ToColor(pm2_5).withOpacity(0.4),
-                                borderRadius:
-                                const BorderRadius.all(Radius.circular(537.0))),
+                                borderRadius: const BorderRadius.all(
+                                    Radius.circular(537.0))),
                             child: AutoSizeText(
                               pm2_5ToString(pm2_5).trimEllipsis(),
                               maxLines: 2,
@@ -225,7 +229,8 @@ void pmInfoDialog(context, double pm2_5) {
                                 TextSpan(
                                   text: pmToInfoDialog(pm2_5),
                                   style: TextStyle(
-                                      color: Config.appColorBlack.withOpacity(0.7),
+                                      color:
+                                          Config.appColorBlack.withOpacity(0.7),
                                       fontSize: 10,
                                       height: 14 / 10),
                                 )
@@ -239,8 +244,7 @@ void pmInfoDialog(context, double pm2_5) {
                       height: 16,
                     ),
                   ],
-                ))
-      ),
+                ))),
       );
     },
   );

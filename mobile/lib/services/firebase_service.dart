@@ -18,6 +18,7 @@ import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
+import '../models/enum_constants.dart';
 import '../models/event.dart';
 import 'local_storage.dart';
 
@@ -26,10 +27,9 @@ class CloudAnalytics {
 
   Future<void> logEvent(
       AnalyticsEvent analyticsEvent, bool loggedInUser) async {
-    await analytics
-        .logEvent(
-          name: analyticsEvent.getName(''),
-        );
+    await analytics.logEvent(
+      name: analyticsEvent.getName(''),
+    );
   }
 }
 

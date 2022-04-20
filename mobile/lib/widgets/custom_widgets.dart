@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../models/enum_constants.dart';
 import '../themes/light_theme.dart';
 
 Widget analyticsAvatar(
@@ -81,15 +82,15 @@ Widget aqiContainerString(
         borderRadius: const BorderRadius.all(Radius.circular(40.0)),
         color: pm2_5ToColor(measurement.getPm2_5Value()).withOpacity(0.4),
         border: Border.all(color: Colors.transparent)),
-    child: AutoSizeText(
-        pm2_5ToString(measurement.getPm2_5Value()).trimEllipsis(),
-        maxFontSize: 14,
-        maxLines: 1,
-        textAlign: TextAlign.start,
-        overflow: TextOverflow.ellipsis,
-        style: CustomTextStyle.button2(context)?.copyWith(
-          color: pm2_5TextColor(measurement.getPm2_5Value()),
-        )),
+    child:
+        AutoSizeText(pm2_5ToString(measurement.getPm2_5Value()).trimEllipsis(),
+            maxFontSize: 14,
+            maxLines: 1,
+            textAlign: TextAlign.start,
+            overflow: TextOverflow.ellipsis,
+            style: CustomTextStyle.button2(context)?.copyWith(
+              color: pm2_5TextColor(measurement.getPm2_5Value()),
+            )),
   );
 }
 
@@ -124,7 +125,7 @@ Widget iconTextButton(Widget icon, text) {
 }
 
 Widget insightsTabAvatar(
-    context, Insights measurement, double size, String pollutant) {
+    context, Insights measurement, double size, Pollutant pollutant) {
   if (measurement.empty) {
     return Container(
       height: size,
@@ -138,7 +139,7 @@ Widget insightsTabAvatar(
         children: [
           const Spacer(),
           SvgPicture.asset(
-            pollutant.trim().toLowerCase() == 'pm2.5'
+            pollutant == Pollutant.pm2_5
                 ? 'assets/icon/PM2.5.svg'
                 : 'assets/icon/PM10.svg',
             semanticsLabel: 'Pm2.5',
@@ -175,7 +176,7 @@ Widget insightsTabAvatar(
         shape: BoxShape.circle,
         color: measurement.forecast
             ? Config.appColorPaleBlue
-            : pollutant == 'pm2.5'
+            : pollutant == Pollutant.pm2_5
                 ? pm2_5ToColor(measurement.getChartValue(pollutant))
                 : pm10ToColor(measurement.getChartValue(pollutant)),
         border: Border.all(color: Colors.transparent)),
@@ -184,7 +185,7 @@ Widget insightsTabAvatar(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         SvgPicture.asset(
-          pollutant.trim().toLowerCase() == 'pm2.5'
+          pollutant == Pollutant.pm2_5
               ? 'assets/icon/PM2.5.svg'
               : 'assets/icon/PM10.svg',
           semanticsLabel: 'Pm2.5',
@@ -192,7 +193,7 @@ Widget insightsTabAvatar(
           width: 32.45,
           color: measurement.forecast
               ? Config.appColorBlue
-              : pollutant == 'pm2.5'
+              : pollutant == Pollutant.pm2_5
                   ? pm2_5TextColor(measurement.getChartValue(pollutant))
                   : pm10TextColor(measurement.getChartValue(pollutant)),
         ),
@@ -207,7 +208,7 @@ Widget insightsTabAvatar(
             fontSize: 32,
             color: measurement.forecast
                 ? Config.appColorBlue
-                : pollutant == 'pm2.5'
+                : pollutant == Pollutant.pm2_5
                     ? pm2_5TextColor(measurement.getChartValue(pollutant))
                     : pm10TextColor(measurement.getChartValue(pollutant)),
           ),
@@ -219,7 +220,7 @@ Widget insightsTabAvatar(
           width: 32,
           color: measurement.forecast
               ? Config.appColorBlue
-              : pollutant == 'pm2.5'
+              : pollutant == Pollutant.pm2_5
                   ? pm2_5TextColor(measurement.getChartValue(pollutant))
                   : pm10TextColor(measurement.getChartValue(pollutant)),
         ),

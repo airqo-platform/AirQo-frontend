@@ -1,8 +1,58 @@
 import 'dart:io';
 
 import 'package:app/models/json_parsers.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
+
+import '../models/enum_constants.dart';
+import '../models/user_details.dart';
+
+extension AnalyticsEventExtension on AnalyticsEvent {
+  String getName(String loggedInStatus) {
+    var prefix = 'prod_';
+    if (!kReleaseMode) {
+      prefix = 'stage_';
+    }
+    switch (this) {
+      case AnalyticsEvent.browserAsAppGuest:
+        return '${prefix}browser_as_guest';
+      case AnalyticsEvent.createUserProfile:
+        return '${prefix}created_profile';
+      case AnalyticsEvent.rateApp:
+        return '${prefix}rate_app';
+      case AnalyticsEvent.shareAirQualityInformation:
+        return '${prefix}share_air_quality_information';
+      case AnalyticsEvent.allowLocation:
+        return '${prefix}allow_location';
+      case AnalyticsEvent.allowNotification:
+        return '${prefix}allow_notification';
+      case AnalyticsEvent.uploadProfilePicture:
+        return '${prefix}upload_profile_picture';
+      case AnalyticsEvent.completeOneKYA:
+        return '${prefix}complete_kya_lesson';
+      case AnalyticsEvent.savesFiveFavorites:
+        return '${prefix}save_five_favorite_places';
+      case AnalyticsEvent.maleUser:
+        return '${prefix}male_user';
+      case AnalyticsEvent.femaleUser:
+        return '${prefix}female_user';
+      case AnalyticsEvent.undefinedGender:
+        return '${prefix}undefined_gender';
+      case AnalyticsEvent.iosUser:
+        return '${prefix}ios_user';
+      case AnalyticsEvent.androidUser:
+        return '${prefix}android_user';
+      case AnalyticsEvent.mtnUser:
+        return '${prefix}mtn_user';
+      case AnalyticsEvent.airtelUser:
+        return '${prefix}airtel_user';
+      case AnalyticsEvent.otherNetwork:
+        return '${prefix}other_network_user';
+      default:
+        return '';
+    }
+  }
+}
 
 extension DateTimeExtension on DateTime {
   DateTime getDateOfFirstDayOfWeek() {
@@ -299,7 +349,7 @@ extension StringCasingExtension on String {
     return false;
   }
 
-  String trimEllipsis(){
+  String trimEllipsis() {
     return replaceAll('', '\u{200B}');
   }
 
@@ -344,4 +394,69 @@ extension StringCasingExtension on String {
 
   String toTitleCase() =>
       split(' ').map((str) => str.toCapitalized()).join(' ');
+}
+
+extension FrequencyExtension on Frequency {
+  String asString() {
+    switch (this) {
+      case Frequency.daily:
+        return 'daily';
+      case Frequency.hourly:
+        return 'hourly';
+      default:
+        return '';
+    }
+  }
+}
+
+extension PollutantExtension on Pollutant {
+  String asString() {
+    switch (this) {
+      case Pollutant.pm2_5:
+        return 'pm2_5';
+      case Pollutant.pm10:
+        return 'pm10';
+      default:
+        return '';
+    }
+  }
+
+  String toTitleCase() {
+    switch (this) {
+      case Pollutant.pm2_5:
+        return 'pm2_5'.toTitleCase();
+      case Pollutant.pm10:
+        return 'pm10'.toTitleCase();
+      default:
+        return '';
+    }
+  }
+}
+
+extension TitleOptionsExtension on TitleOptions {
+  String getDisplayName() {
+    switch (this) {
+      case TitleOptions.ms:
+        return 'Ms.';
+      case TitleOptions.mr:
+        return 'Mr.';
+      case TitleOptions.undefined:
+        return 'Rather Not Say';
+      default:
+        return '';
+    }
+  }
+
+  String getValue() {
+    switch (this) {
+      case TitleOptions.ms:
+        return 'Ms';
+      case TitleOptions.mr:
+        return 'Mr';
+      case TitleOptions.undefined:
+        return 'Rather Not Say';
+      default:
+        return '';
+    }
+  }
 }

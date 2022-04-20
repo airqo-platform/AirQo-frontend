@@ -3,12 +3,14 @@ import 'package:app/models/user_details.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/utils/dialogs.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
+import '../models/enum_constants.dart';
 import '../themes/light_theme.dart';
 import 'notifications_setup_screen.dart';
 
@@ -151,7 +153,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   List<GestureDetector> getTitleOptions() {
     var options = <GestureDetector>[];
 
-    for (var option in titleOptions.values) {
+    for (var option in TitleOptions.values) {
       options.add(GestureDetector(
         onTap: () {
           updateTitle(option.getValue());

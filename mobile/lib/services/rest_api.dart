@@ -26,8 +26,9 @@ class AirqoApiClient {
   final httpClient = SentryHttpClient(
       client: http.Client(),
       failedRequestStatusCodes: [
-        SentryStatusCode.range(400, 404),
         SentryStatusCode(500),
+        SentryStatusCode(400),
+        SentryStatusCode(404),
       ],
       captureFailedRequests: true,
       networkTracing: true);
@@ -70,7 +71,7 @@ class AirqoApiClient {
         ..putIfAbsent(
             'startTime',
             () =>
-                '${DateFormat('yyyy-MM-dd').format(DateTime.now().toUtc().subtract(const Duration(days: 1)))}T00:00:00Z')
+                '${DateFormat('yyyy-MM-dd').format(DateTime.now().toUtc().subtract(const Duration(days: 3)))}T00:00:00Z')
         ..putIfAbsent('frequency', () => 'hourly')
         ..putIfAbsent('tenant', () => 'airqo');
 
@@ -91,96 +92,25 @@ class AirqoApiClient {
     return <Measurement>[];
   }
 
-  Future<List<Insights>> fetchSiteInsights(
-      String siteId, bool daily, bool allHourlyData) async {
+  Future<List<Insights>> fetchSitesInsights(String siteIds) async {
     try {
+      var startDateTime =
+          '${DateFormat('yyyy-MM-dd').format(DateTime.now().toUtc().getFirstDateOfCalendarMonth())}T00:00:00Z';
+      var endDateTime =
+          '${DateFormat('yyyy-MM-dd').format(DateTime.now().toUtc().getLastDateOfCalendarMonth())}T23:59:59Z';
+
       var queryParams = <String, dynamic>{}
-        ..putIfAbsent('siteId', () => siteId);
-      // ..putIfAbsent(
-      //     'startTime',
-      //     () =>
-      //         '${DateFormat('yyyy-MM-dd')
-      //         .format(DateTime.now()
-      //         .firstDateOfCalendarMonth())}T00:00:00Z')
-      // ..putIfAbsent(
-      //     'endTime',
-      //     () =>
-      //         '${DateFormat('yyyy-MM-dd')
-      //         .format(DateTime.now()
-      //         .lastDateOfCalendarMonth())}T00:00:00Z');
+        ..putIfAbsent('siteId', () => siteIds)
+        ..putIfAbsent('startDateTime', () => startDateTime)
+        ..putIfAbsent('endDateTime', () => endDateTime);
 
-      if (daily) {
-        queryParams
-          ..putIfAbsent('frequency', () => 'daily')
-          ..putIfAbsent(
-              'startTime',
-              () =>
-                  '${DateFormat('yyyy-MM-dd').format(DateTime.now().getFirstDateOfCalendarMonth())}T00:00:00Z')
-          ..putIfAbsent(
-              'endTime',
-              () =>
-                  '${DateFormat('yyyy-MM-dd').format(DateTime.now().getLastDateOfCalendarMonth())}T23:30:00Z');
-        // ..putIfAbsent('startTime', () => '${DateFormat('yyyy-MM-dd').format(
-        //     DateTime.now().firstDateOfCalendarMonth())}T00:00:00Z')
-        // ..putIfAbsent('endTime', () => '${DateFormat('yyyy-MM-dd').format(
-        //     DateTime.now().lastDateOfCalendarMonth())}T00:00:00Z');
-      } else {
-        queryParams
-          ..putIfAbsent('frequency', () => 'hourly')
-          ..putIfAbsent(
-              'startTime',
-              () =>
-                  '${DateFormat('yyyy-MM-dd').format(DateTime.now().getDateOfFirstDayOfWeek())}T00:00:00Z')
-          ..putIfAbsent(
-              'endTime',
-              () =>
-                  '${DateFormat('yyyy-MM-dd').format(DateTime.now().getDateOfLastDayOfWeek())}T23:30:00Z');
-        if (allHourlyData) {
-          queryParams['startTime'] =
-              '${DateFormat('yyyy-MM-dd').format(DateTime.now().getFirstDateOfCalendarMonth())}T00:00:00Z';
-          queryParams['endTime'] =
-              '${DateFormat('yyyy-MM-dd').format(DateTime.now().getLastDateOfCalendarMonth())}T23:30:00Z';
-        }
-        // ..putIfAbsent('startTime', () => '${DateFormat('yyyy-MM-dd').format(
-        //     DateTime.now().getFirstDateOfMonth())}T00:00:00Z')
-        // ..putIfAbsent('endTime', () => '${DateFormat('yyyy-MM-dd').format(
-        //     DateTime.now().getLastDateOfMonth())}T00:00:00Z');
-      }
+      final body = await _performGetRequest(queryParams, AirQoUrls.insights);
 
-      final responseBody =
-          await _performGetRequest(queryParams, AirQoUrls.insights);
-
-      if (responseBody != null) {
-        return compute(Insights.parseInsights, responseBody['data']);
+      if (body != null) {
+        return compute(Insights.parseInsights, body['data']);
       } else {
         return <Insights>[];
       }
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-    }
-
-    return <Insights>[];
-  }
-
-  Future<List<Insights>> fetchSitesInsights(String siteIds) async {
-    try {
-      var insights = <Insights>[];
-
-      var siteInsights = await Future.wait([
-        fetchSiteInsights(siteIds, true, true),
-        fetchSiteInsights(siteIds, false, true),
-      ]);
-
-      insights.addAll(<Insights>[
-        ...siteInsights[0],
-        ...siteInsights[1],
-      ]);
-
-      return insights;
     } on Error catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(

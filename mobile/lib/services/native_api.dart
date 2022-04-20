@@ -25,6 +25,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../models/enum_constants.dart';
 import '../models/event.dart';
 import '../themes/light_theme.dart';
 import 'firebase_service.dart';
@@ -749,7 +750,7 @@ class ShareService {
 
   void shareMeasurementText(Measurement measurement) {
     var recommendationList =
-        getHealthRecommendations(measurement.getPm2_5Value(), 'pm2.5');
+        getHealthRecommendations(measurement.getPm2_5Value(), Pollutant.pm2_5);
     var recommendations = '';
     for (var value in recommendationList) {
       recommendations = '$recommendations\n- ${value.body}';

@@ -2,6 +2,9 @@ import 'package:app/utils/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../models/enum_constants.dart';
+import '../models/measurement.dart';
+
 String dateToShareString(String formattedString) {
   try {
     var formattedDate = DateTime.parse(formattedString);
@@ -76,9 +79,10 @@ String getGreetings(String name) {
   return 'Hello $name';
 }
 
-String insightsChartTitleDateTimeToString(DateTime dateTime, bool daily) {
+String insightsChartTitleDateTimeToString(
+    DateTime dateTime, Frequency frequency) {
   try {
-    if (daily) {
+    if (frequency == Frequency.daily) {
       var prefix = '';
       var suffix = '${dateTime.getDateOfFirstDayOfWeek().getShortDate()}'
           ' - '

@@ -9,6 +9,7 @@ import 'package:app/models/place_details.dart';
 import 'package:app/models/site.dart';
 import 'package:app/models/user_details.dart';
 import 'package:app/utils/distance.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -16,6 +17,8 @@ import 'package:path/path.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
+
+import '../models/enum_constants.dart';
 
 class DBHelper {
   Database? _database;
@@ -119,13 +122,13 @@ class DBHelper {
     }
   }
 
-  Future<List<Insights>> getInsights(String siteId, String frequency) async {
+  Future<List<Insights>> getInsights(String siteId, Frequency frequency) async {
     try {
       final db = await database;
 
       var res = await db.query(Insights.dbName(),
           where: 'siteId = ? and frequency = ?',
-          whereArgs: [siteId, frequency]);
+          whereArgs: [siteId, frequency.asString()]);
 
       return res.isNotEmpty
           ? List.generate(res.length, (i) {
@@ -359,59 +362,61 @@ class DBHelper {
   }
 
   Future<void> insertInsights(
-      List<Insights> insights, String siteId, String frequency) async {
+      List<Insights> insights, List<String> siteIds) async {
     try {
       final db = await database;
 
       if (insights.isEmpty) {
         return;
       }
+      var batch = db.batch();
 
-      await db.delete(Insights.dbName(),
-          where: 'siteId = ? and frequency = ?',
-          whereArgs: [siteId, frequency]);
+      for (var siteId in siteIds) {
+        batch.delete(Insights.dbName(),
+            where: 'siteId = ?', whereArgs: [siteId]);
+      }
 
       for (var row in insights) {
         try {
           var jsonData = row.toJson();
-          await db.insert(
-            Insights.dbName(),
-            jsonData,
-            conflictAlgorithm: ConflictAlgorithm.replace,
-          );
+          batch.insert(Insights.dbName(), jsonData,
+              conflictAlgorithm: ConflictAlgorithm.replace);
         } catch (exception, stackTrace) {
-          debugPrint(exception.toString());
-          debugPrint(stackTrace.toString());
+          debugPrint('$exception\n$stackTrace');
         }
       }
+      await batch.commit(noResult: true, continueOnError: true);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
   }
 
   Future<void> insertKyas(List<Kya> kyas) async {
-    final db = await database;
+    try {
+      final db = await database;
 
-    if (kyas.isEmpty) {
-      return;
-    }
-    await db.delete(Kya.dbName());
-
-    for (var kya in kyas) {
-      try {
-        var kyaJson = kya.parseKyaToDb();
-        for (var jsonBody in kyaJson) {
-          await db.insert(
-            Kya.dbName(),
-            jsonBody,
-            conflictAlgorithm: ConflictAlgorithm.replace,
-          );
-        }
-      } catch (exception, stackTrace) {
-        debugPrint('$exception\n$stackTrace');
-        await db.execute(Kya.dropTableStmt());
-        await db.execute(Kya.createTableStmt());
+      if (kyas.isEmpty) {
+        return;
       }
+      var batch = db.batch()..delete(Kya.dbName());
+
+      for (var kya in kyas) {
+        try {
+          var kyaJson = kya.parseKyaToDb();
+          for (var jsonBody in kyaJson) {
+            batch.insert(
+              Kya.dbName(),
+              jsonBody,
+              conflictAlgorithm: ConflictAlgorithm.replace,
+            );
+          }
+        } catch (exception, stackTrace) {
+          debugPrint('$exception\n$stackTrace');
+        }
+      }
+      await batch.commit(noResult: true, continueOnError: true);
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
     }
   }
 
@@ -419,13 +424,15 @@ class DBHelper {
     try {
       final db = await database;
 
+      var batch = db.batch();
+
       if (measurements.isNotEmpty) {
-        await db.delete(Measurement.measurementsDb());
+        batch.delete(Measurement.measurementsDb());
 
         for (var measurement in measurements) {
           try {
             var jsonData = Measurement.mapToDb(measurement);
-            await db.insert(
+            batch.insert(
               Measurement.measurementsDb(),
               jsonData,
               conflictAlgorithm: ConflictAlgorithm.replace,
@@ -434,6 +441,8 @@ class DBHelper {
             debugPrint('$exception\n$stackTrace');
           }
         }
+
+        await batch.commit(noResult: true, continueOnError: true);
       }
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
@@ -528,7 +537,8 @@ class DBHelper {
     final db = await database;
 
     try {
-      await db.update(PlaceDetails.dbName(), {'siteId': placeDetails.siteId}, whereArgs: [placeDetails.placeId]);
+      await db.update(PlaceDetails.dbName(), {'siteId': placeDetails.siteId},
+          whereArgs: [placeDetails.placeId]);
       return true;
     } catch (e) {
       debugPrint(e.toString());

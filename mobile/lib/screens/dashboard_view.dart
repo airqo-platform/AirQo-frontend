@@ -23,6 +23,7 @@ import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../models/enum_constants.dart';
 import '../themes/light_theme.dart';
 import '../utils/kya_utils.dart';
 import 'favourite_places.dart';
@@ -103,7 +104,8 @@ class _DashboardViewState extends State<DashboardView> {
               ),
               Expanded(
                 child: CustomScrollView(
-                  physics: Platform.isAndroid ? const BouncingScrollPhysics() : null,
+                  physics:
+                      Platform.isAndroid ? const BouncingScrollPhysics() : null,
                   slivers: [
                     CupertinoSliverRefreshControl(
                       refreshTriggerPullDistance: 40,
@@ -302,10 +304,9 @@ class _DashboardViewState extends State<DashboardView> {
     if (!mounted) {
       return;
     }
-    if(dashboardCards.isNotEmpty){
+    if (dashboardCards.isNotEmpty) {
       _buildAnalyticsCards(dashboardCards);
     }
-
   }
 
   void _getKya() async {
@@ -664,7 +665,7 @@ class _DashboardViewState extends State<DashboardView> {
             child: GestureDetector(
               onTap: () async {
                 if (_favLocations.isEmpty) {
-                  ToolTip(context, toolTipType.favouritePlaces).show(
+                  ToolTip(context, ToolTipType.favouritePlaces).show(
                     widgetKey: _favToolTipKey,
                   );
                   return;
@@ -719,7 +720,7 @@ class _DashboardViewState extends State<DashboardView> {
             child: GestureDetector(
               onTap: () async {
                 if (_completeKya.isEmpty) {
-                  ToolTip(context, toolTipType.forYou).show(
+                  ToolTip(context, ToolTipType.forYou).show(
                     widgetKey: _kyaToolTipKey,
                   );
                   return;

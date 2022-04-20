@@ -12,6 +12,7 @@ import 'package:app/widgets/text_fields.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
+import '../models/enum_constants.dart';
 import '../themes/light_theme.dart';
 import '../widgets/custom_shimmer.dart';
 
@@ -429,10 +430,10 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     bool success;
     if (!widget.isLogin) {
       success = await _appService.authenticateUser(null, _emailAddress,
-          _emailVerificationLink, authMethod.email, authProcedure.signup);
+          _emailVerificationLink, AuthMethod.email, AuthProcedure.signup);
     } else {
       success = await _appService.authenticateUser(null, _emailAddress,
-          _emailVerificationLink, authMethod.email, authProcedure.login);
+          _emailVerificationLink, AuthMethod.email, AuthProcedure.login);
     }
 
     Navigator.pop(loadingContext);

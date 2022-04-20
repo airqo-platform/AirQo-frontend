@@ -34,7 +34,8 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
               }
 
               return CustomScrollView(
-                  physics: Platform.isAndroid ? const BouncingScrollPhysics() : null,
+                  physics:
+                      Platform.isAndroid ? const BouncingScrollPhysics() : null,
                   slivers: [
                     CupertinoSliverRefreshControl(
                       refreshTriggerPullDistance: 70,
@@ -106,8 +107,8 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
 
   Future<void> initialize() async {
     await _appService.fetchFavPlacesInsights();
-    await Future.delayed(const Duration(seconds: 1)).then((_) =>
-        _appService.updateFavouritePlacesSites());
+    await Future.delayed(const Duration(seconds: 1))
+        .then((_) => _appService.updateFavouritePlacesSites());
   }
 
   @override

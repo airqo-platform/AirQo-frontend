@@ -17,6 +17,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
+import '../models/enum_constants.dart';
 import '../themes/light_theme.dart';
 import 'custom_shimmer.dart';
 import 'custom_widgets.dart';
@@ -233,7 +234,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                               child: analyticsAvatar(
                                   widget.measurement, 104, 40, 12),
                               onTap: () {
-                                ToolTip(context, toolTipType.info).show(
+                                ToolTip(context, ToolTipType.info).show(
                                   widgetKey: _infoToolTipKey,
                                 );
                               },
@@ -266,7 +267,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                       measurement: widget.measurement,
                                       context: context),
                                   onTap: () {
-                                    ToolTip(context, toolTipType.info).show(
+                                    ToolTip(context, ToolTipType.info).show(
                                       widgetKey: _infoToolTipKey,
                                     );
                                   },
@@ -284,7 +285,8 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                                     .width /
                                                 3.2),
                                         child: Text(
-                                          dateToString(widget.measurement.time).trimEllipsis(),
+                                          dateToString(widget.measurement.time)
+                                              .trimEllipsis(),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
@@ -487,7 +489,8 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                           fontSize: 20),
                                     ),
                                     Text(
-                                      widget.placeDetails.location.trimEllipsis(),
+                                      widget.placeDetails.location
+                                          .trimEllipsis(),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
@@ -509,8 +512,9 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                           border: Border.all(
                                               color: Colors.transparent)),
                                       child: AutoSizeText(
-                                        pm2_5ToString(
-                                            widget.measurement.getPm2_5Value()).trimEllipsis(),
+                                        pm2_5ToString(widget.measurement
+                                                .getPm2_5Value())
+                                            .trimEllipsis(),
                                         maxLines: 1,
                                         maxFontSize: 14,
                                         textAlign: TextAlign.start,
@@ -538,7 +542,8 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                                     3.2),
                                             child: Text(
                                               dateToString(
-                                                  widget.measurement.time).trimEllipsis(),
+                                                      widget.measurement.time)
+                                                  .trimEllipsis(),
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
                                               style: TextStyle(

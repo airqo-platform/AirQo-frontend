@@ -17,7 +17,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
+import '../models/enum_constants.dart';
+import '../models/insights.dart';
 import '../models/kya.dart';
+import '../models/measurement.dart';
 import 'native_api.dart';
 
 class AppService {
@@ -52,18 +55,18 @@ class AppService {
       AuthCredential? authCredential,
       String emailAddress,
       String emailAuthLink,
-      authMethod method,
-      authProcedure procedure) async {
+      AuthMethod method,
+      AuthProcedure procedure) async {
     var hasConnection = await isConnected();
     if (!hasConnection) {
       return false;
     }
 
     bool authSuccessful;
-    if (method == authMethod.email) {
+    if (method == AuthMethod.email) {
       authSuccessful = await _customAuth.emailAuthentication(
           emailAddress, emailAuthLink, _context);
-    } else if (method == authMethod.phone && authCredential != null) {
+    } else if (method == AuthMethod.phone && authCredential != null) {
       authSuccessful =
           await _customAuth.phoneNumberAuthentication(authCredential, _context);
     } else {
@@ -71,7 +74,7 @@ class AppService {
     }
 
     if (authSuccessful) {
-      if (procedure == authProcedure.login) {
+      if (procedure == AuthProcedure.login) {
         await postLoginActions();
       }
     }
@@ -157,42 +160,41 @@ class AppService {
     ]);
   }
 
+  Future<List<Insights>> fetchInsights(List<String> siteIds,
+      {Frequency? frequency}) async {
+    var insights = <Insights>[];
+    if (siteIds.length > 2) {
+      var futures = <Future>[];
+      for (var siteId in siteIds) {
+        futures.add(_apiClient.fetchSitesInsights(siteId));
+      }
+      var sitesInsights = await Future.wait(futures);
+      for (var result in sitesInsights) {
+        insights.add(result);
+      }
+    } else {
+      insights = await _apiClient.fetchSitesInsights(siteIds.join(','));
+    }
+    var returnInsights = <Insights>[];
+    if (frequency != null) {
+      returnInsights = insights
+          .where((element) => element.frequency == frequency.asString())
+          .toList();
+    }
+
+    await dbHelper.insertInsights(insights, siteIds);
+    return returnInsights.isNotEmpty ? returnInsights : insights;
+  }
+
   Future<void> fetchFavPlacesInsights() async {
     try {
       var favPlaces = await _dbHelper.getFavouritePlaces();
-
-      if (favPlaces.isEmpty) {
-        return;
-      }
-
-      var placeIds = '';
+      var placeIds = <String>[];
 
       for (var favPlace in favPlaces) {
-        if (placeIds.isEmpty) {
-          placeIds = favPlace.siteId;
-        } else {
-          placeIds = '$placeIds,${favPlace.siteId}';
-        }
+        placeIds.add(favPlace.siteId);
       }
-
-      var placesInsights = await _apiClient.fetchSitesInsights(placeIds);
-
-      while (placesInsights.isNotEmpty) {
-        var siteInsight = placesInsights.first;
-
-        var filteredInsights = placesInsights
-            .where((element) =>
-                (element.siteId == siteInsight.siteId) &&
-                (element.frequency == siteInsight.frequency))
-            .toList();
-
-        await _dbHelper.insertInsights(
-            filteredInsights, siteInsight.siteId, siteInsight.frequency);
-
-        placesInsights.removeWhere((element) =>
-            (element.siteId == siteInsight.siteId) &&
-            (element.frequency == siteInsight.frequency));
-      }
+      await fetchInsights(placeIds);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
@@ -415,9 +417,9 @@ class AppService {
   }
 
   Future<void> _logGender(UserDetails userDetails) async {
-    if (userDetails.getGender() == gender.male) {
+    if (userDetails.getGender() == Gender.male) {
       await logEvent(AnalyticsEvent.maleUser);
-    } else if (userDetails.getGender() == gender.female) {
+    } else if (userDetails.getGender() == Gender.female) {
       await logEvent(AnalyticsEvent.femaleUser);
     } else {
       await logEvent(AnalyticsEvent.undefinedGender);
@@ -468,9 +470,10 @@ class AppService {
 
   Future<void> updateFavouritePlacesSites() async {
     var favPlaces = await _dbHelper.getFavouritePlaces();
-    for(var favPlace in favPlaces) {
-      var nearestSite = await _locationService.getNearestSite(favPlace.latitude, favPlace.longitude);
-      if(nearestSite != null){
+    for (var favPlace in favPlaces) {
+      var nearestSite = await _locationService.getNearestSite(
+          favPlace.latitude, favPlace.longitude);
+      if (nearestSite != null) {
         favPlace.siteId = nearestSite.id;
       }
       await _dbHelper.updateFavouritePlaceDetails(favPlace);
@@ -568,7 +571,3 @@ class AppService {
     }
   }
 }
-
-enum authMethod { phone, email }
-
-enum authProcedure { login, signup }
