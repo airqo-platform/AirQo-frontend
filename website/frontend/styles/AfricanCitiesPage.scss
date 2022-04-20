@@ -105,6 +105,12 @@
         }
       }
 
+      a:link, a:active, a:focus, a:visited {
+          color: inherit;
+          cursor: pointer;
+          text-decoration: none;
+        }
+
       .not-available {
         display: flex;
         flex-direction: row;
@@ -153,7 +159,7 @@
 
   .cities-content {
     width: 100%;
-    min-height: 1500px;
+    min-height: 300px;
     padding: 10px;
 
     .content-intro {
@@ -196,7 +202,7 @@
       margin: 80px auto 120px auto;
     }
 
-    .ug-container {
+    .ug-container, .ke-container {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;

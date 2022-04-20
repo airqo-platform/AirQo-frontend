@@ -8,7 +8,7 @@ import CommunityPage from "./src/pages/CommunityPage";
 import AboutUsPage from "./src/pages/AboutUsPage";
 import ContactUsPage from './src/pages/ContactUs/ContactUs';
 import ContactForm from './src/pages/ContactUs/ContactForm';
-import AfricanCitiesPage from "./src/pages/AfricanCitiesPage";
+import AfricanCitiesPage, { ContentUganda, ContentKenya } from "./src/pages/AfricanCitiesPage";
 
 const App = () => (
     <Router>
@@ -16,7 +16,10 @@ const App = () => (
             <Route path="/" element={<HomePage />} />
             <Route path="/solutions/research" element={<ResearchPage />} />
             <Route path="/solutions/communities" element={<CommunityPage />} />
-            <Route path="/solutions/african-cities" element={<AfricanCitiesPage />} />
+            <Route path="/solutions/african-cities" element={<AfricanCitiesPage />}>
+                <Route path="uganda" element={<ContentUganda />} />
+                <Route path="kenya" element={<ContentKenya />} />
+            </Route>
             <Route path="/about-us" element={<AboutUsPage />} />
             <Route path="/press" element={<Press />} />
             <Route path="/terms" element={<Terms />} />

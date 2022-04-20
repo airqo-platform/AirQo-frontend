@@ -1,4 +1,5 @@
 import React from "react";
+import { Link, Outlet } from 'react-router-dom'
 import Page from "./Page";
 import Uganda from 'icons/africanCities/countries/uganda.svg';
 import Kenya from 'icons/africanCities/countries/kenya.svg';
@@ -175,7 +176,7 @@ const AfricanCitiesPage = () => {
                 <CityHeroSection />
                 <CityBanner />
                 <CityTabs />
-                <ContentKampala />
+                <Outlet />
                 <AdvocateSection />
                 <PublicationsSection />
             </div>
