@@ -15,7 +15,10 @@ const AnalyticsSection = () => (
                 
             </div>
         </div>
-        <AnalyticsDashboard className="analytics-img" />
+        <div className="analytics-img">
+            <AnalyticsDashboard />
+        </div>
+        
     </div>
 );
 

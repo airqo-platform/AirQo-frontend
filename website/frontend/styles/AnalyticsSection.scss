@@ -4,6 +4,7 @@
     position: relative;
     background-color: $aq-blue-1;
     height: 1038px;
+    width: 100%;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -15,6 +16,8 @@
         display: flex;
         justify-content: flex-start;
         flex-wrap: wrap;
+        margin-bottom: 64px;
+        margin-top: 120px;
 
         h3 {
             background-color: $aq-white-0;
@@ -55,7 +58,7 @@
                     display: flex;
                     align-items: center;
                     font-size: 14px;
-                    font-weight: 600px;
+                    font-weight: 600;
                     font-style: normal;
                     cursor: pointer;
                 }
@@ -64,10 +67,10 @@
     }
 
     .analytics-img {
-        width: 100%;
         height: 651.24px;
-        object-fit: fill;
-        // max-width: 1247.5px;
+        object-fit: cover;
+        max-width: 1247.5px;
+        margin: 0 auto;
     }
 
     &-icon {
