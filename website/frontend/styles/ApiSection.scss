@@ -1,12 +1,15 @@
 @import "lib/variables";
+@import "lib/colors";
 
 .Apisection {
     display: flex;
+    justify-content: center;
     align-items: center;
-    margin: 58px $mainPadding;
+    max-width: $columnWidth;
+    margin: 168px auto 147.86px auto;
 
     &-details {
-        margin-right: 40px;
+        // margin-right: 40px;
 
         h3 {
             margin-bottom: 24px;
@@ -26,6 +29,7 @@
             font-size: 48px;
             line-height: 56px;
             margin-bottom: 24px;
+            color: $aq-black-1;
         }
 
         p {
@@ -50,8 +54,11 @@
     }
 
     img {
-        width: 520px;
-        height: 584px;
+        width: 757px;
+        height: 584.14px - 32.14px;
+        object-fit: cover;
+        object-position: center center;
+        margin-right: -10%;
     }
 }
 
