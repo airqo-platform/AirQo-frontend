@@ -1,12 +1,14 @@
 import React from 'react';
-import Page from '../Page';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import MonitorImg from 'icons/homepage/monitor.png';
+import { Link } from 'react-router-dom';
+import PageMini from '../PageMini';
+import { useInitScrollTop } from 'utils/customHooks';
 
 const GetInvolved = () => {
-  
+  useInitScrollTop();
   return (
-        <Page>
+        <PageMini>
             <div className="GetInvolved">
                 <div className="section-left">
                     <div className="content-wrapper">
@@ -37,11 +39,11 @@ const GetInvolved = () => {
                             <img src={MonitorImg} />
                             <p>I’m a <b>Collaborator</b>, Interested in environmental activism</p>
                         </div>
-                        <button className="next-btn">Next</button>
+                        <Link to="/get-involved/register"><button className="next-btn">Next</button></Link>
                     </div>
                 </div>
             </div>
-        </Page>
+        </PageMini>
   );
 };
 

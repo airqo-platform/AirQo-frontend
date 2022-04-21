@@ -120,4 +120,94 @@
             cursor: pointer;
         }
     }
+
+    .form-section {
+        max-width: 320px;
+        margin: 0 auto 0 0;
+        margin-left: 159px;
+
+        .progress-bar {
+            display: flex;
+            margin-bottom: 100px;
+
+            .bar {
+                width: 96px;
+                height: 8px;
+                margin-right: 25px;
+                border-radius: 100px;
+            }
+        }
+        
+        .register-form {
+            width: 100%;
+
+            .form-field {
+                display: flex;
+                flex-direction: column;
+                margin-bottom: 24px;
+                width: 100%;
+
+                input[type="text"], input[type="email"] {
+                    width: 320px;
+                    height: 48px;
+                    background-color: #F2F2F2;
+                    margin-top: 12px;
+                    border: 0;
+                    outline: 0;
+                    border-radius: 8px;
+                    padding-left: 12px;
+                }
+            }
+
+            .input-field {
+                display: flex;
+                align-items: center;
+                margin-bottom: 48px;
+
+                input[type="checkbox"] {
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 4px;
+                    margin-right: 16px;
+                    border: 1px solid #D1D3D9;
+                }
+
+                label {
+                    font-size: 10px;
+                    line-height: 22px;
+                    font-weight: 500;
+                    cursor: pointer;
+                }
+            }
+        }
+
+        .register-btn {
+            width: 100%;
+            height: 48px;
+            border-radius: 16px;
+            background-color: $aq-blue-0;
+            color: $aq-white-0;
+            font-size: 16px;
+            line-height: 24px;
+            font-weight: 400;
+            padding: 12px 83px;
+            box-sizing: border-box;
+            outline: 0;
+            border: 0;
+            cursor: pointer;
+        }
+    }
+
+    .img-section {
+        margin: 0 0 0 auto;
+        margin-left: 125px;
+
+        img {
+            width: 388px;
+            height: 388px;
+            border-radius: 194px;
+            object-fit: cover;
+        }
+    }
+
 }

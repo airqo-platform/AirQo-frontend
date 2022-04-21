@@ -2,12 +2,13 @@ import React from 'react';
 import AirQo from 'icons/nav/AirQo';
 import NavTab from './NavTab';
 import MenuIcon from '@mui/icons-material/Menu';
+import { Link } from 'react-router-dom';
 
 const TopBar = () => {
     return(
         <div className="TopBar">
             <div className="wrapper">
-                <AirQo />
+                <Link to="/"><AirQo /></Link>
                 <div className="nav-center">
                     <NavTab className="NavTab__menuItem" text="Solutions" />
                     <NavTab className="NavTab__menuItem" text="Our work" />
