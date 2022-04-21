@@ -30,8 +30,8 @@ const Register = () => {
                     <div className="wrapper">
                         <div className="progress-bar">
                             <LinearProgress variant="determinate" className="bar" value={progress1} />
-                            <LinearProgress variant="determinate" className="bar" value={progress2}/>
-                            <LinearProgress variant="determinate" className="bar" value={progress3}/>
+                            <LinearProgress variant="determinate" className="bar" value={progress2} />
+                            <LinearProgress variant="determinate" className="bar" value={progress3} />
                         </div>
                         <form className="register-form">
                             <div className="form-field">
