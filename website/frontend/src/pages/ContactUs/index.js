@@ -1,9 +1,9 @@
-import React from 'react'
-import Page from '../Page';
+import React from 'react';
+import PageMini from '../PageMini';
 
 const ContactUs = ({ children }) => {
     return (
-        <Page>
+        <PageMini>
             <div className='contact-us'>
                 <div className='left-section'>
                     <div className='section-container'>
@@ -30,7 +30,7 @@ const ContactUs = ({ children }) => {
                     </div>
                 </div>
             </div>
-        </Page>
+        </PageMini>
     )
 }
 
