@@ -1,6 +1,6 @@
 import React from 'react';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import AnalyticsSectionImg from "../../assets/img/analytics-section-img.png";
+import TeamImg from 'assets/img/team.png';
 import PageMini from '../PageMini';
 import { useInitScrollTop } from 'utils/customHooks';
 
@@ -21,7 +21,7 @@ const CheckMail = () => {
                     </div>
                 </div>
                 <div className="img-section">
-                    <img src={AnalyticsSectionImg}/>
+                    <img src={TeamImg}/>
                 </div>
             </div>
         </PageMini>
