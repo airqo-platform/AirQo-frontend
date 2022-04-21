@@ -4,18 +4,28 @@
 $topbar-padding: 80px;
 
 .TopBar {
-  display: flex;
-  align-items: center;
   height: 80px;
   background: $aq-white-0;
-  padding: 0 $topbar-padding;
   box-shadow: 0 0 13px -11px #0000001a;
   border-bottom: 1px solid #1217231a;
+  padding-top: 16px;
+  padding-bottom: 16px;
+  box-sizing: border-box;
 
-  .container {
+  .wrapper {
+    max-width: $columnWidth;
+    margin: 0 auto;
     display: flex;
-    margin-left: 24px;
-    width: 650px !important;
+    justify-content: space-between;
+    align-items: center;
+
+    .nav-center, .nav-right {
+      display: flex;
+    }
+
+    .nav-center {
+      justify-content: space-between;
+    }
   }
 
   .menu-btn {
