@@ -18,27 +18,20 @@ import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
+import '../models/event.dart';
 import 'local_storage.dart';
-
-enum AnalyticsEvent {
-  browserAsAppGuest,
-  createUserProfile,
-  rateApp,
-  shareAirQualityInformation,
-  allowLocation,
-  allowNotification,
-  uploadProfilePic,
-  completeKyaLesson,
-  saveFavoritePlace
-}
 
 class CloudAnalytics {
   final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
 
-  Future<void> logEvent(AnalyticsEvent analyticsEvent) async {
-    await analytics.logEvent(
-      name: analyticsEvent.getString(),
-    );
+  Future<void> logEvent(
+      AnalyticsEvent analyticsEvent, bool loggedInUser) async {
+    print("logging ${analyticsEvent.getName('')}");
+    await analytics
+        .logEvent(
+          name: analyticsEvent.getName(''),
+        )
+        .then(print);
   }
 }
 
@@ -1043,37 +1036,6 @@ class CustomAuth {
         exception,
         stackTrace: stackTrace,
       );
-    }
-  }
-}
-
-extension AnalyticsEventExtension on AnalyticsEvent {
-  String getString() {
-    var prefix = '';
-    if (!kReleaseMode) {
-      prefix = 'stage_';
-    }
-    switch (this) {
-      case AnalyticsEvent.browserAsAppGuest:
-        return '${prefix}browser_as_guest';
-      case AnalyticsEvent.createUserProfile:
-        return '${prefix}created_a_profile';
-      case AnalyticsEvent.rateApp:
-        return '${prefix}rate_app';
-      case AnalyticsEvent.shareAirQualityInformation:
-        return '${prefix}share_air_quality_information';
-      case AnalyticsEvent.allowLocation:
-        return '${prefix}allow_location';
-      case AnalyticsEvent.allowNotification:
-        return '${prefix}allow_notification';
-      case AnalyticsEvent.uploadProfilePic:
-        return '${prefix}upload_profile_pic';
-      case AnalyticsEvent.completeKyaLesson:
-        return '${prefix}complete_kya_lesson';
-      case AnalyticsEvent.saveFavoritePlace:
-        return '${prefix}save_favorite_place';
-      default:
-        return '';
     }
   }
 }
