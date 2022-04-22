@@ -1,0 +1,180 @@
+@import url(https://fonts.googleapis.com/css?family=Open+Sans);
+
+.map-download-search {
+  width: 100%;
+  position: relative;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.map-download-searchTerm {
+  width: 100%;
+  /*border: 3px solid #00B4CC;*/
+  /*border-right: none;*/
+  /*padding: 5px;*/
+  /*height: 20px;*/
+  /*border-radius: 5px 0 0 5px;*/
+  outline: none;
+    margin: 0 !important;
+    /*border: 1px solid red !important;*/
+    height: 31px !important;
+    /*line-height: 20px;*/
+    padding: 2px !important;
+  color: #9DBFAF;
+}
+
+.map-download-searchTerm:focus{
+  /*color: #00B4CC;*/
+  color: #2f67e2;
+    border-bottom: 1px solid #2f67e2 !important;
+}
+
+.map-download-searchButton {
+  position: relative;
+  width: 48px;
+  height: 42px;
+  /*border: 1px solid #00B4CC;*/
+  border: 1.5px solid #bbb;
+  /*background: #00B4CC;*/
+  background: #fff;
+  text-align: center;
+  color: #fff;
+  border-radius: 0 6px 6px 0;
+  cursor: pointer;
+  font-size: 20px;
+  box-shadow: 0px 0px 3px 4px #eee;
+  z-index: 100;
+}
+
+.map-download-searchButton:hover{
+  box-shadow: 0px 0px 2px 4px #ddd;
+  border: 1.5px solid #aaa;
+  width:44px;
+  height: 38px;
+}
+
+.map-download-searchButton:focus{
+  border: 1.8px solid #aaa;
+  background-color: #f4f4f4;
+  transition: .1s ease;
+}
+
+
+/*Resize the wrap to see the search bar change!*/
+.map-download-container {
+    width: 30%;
+    max-width: 400px;
+    position: absolute;
+    bottom: 20px;
+    left: 10px;
+    font-family: 'Open Sans', sans-serif;
+    z-index: 200;
+}
+.map-download-wrapper{
+    font-family: 'Open Sans', sans-serif;
+    background-color: transparent;
+    /*background-color: #ffffff;*/
+    border-radius: 5px;
+}
+
+.dropup {
+  display: inline-block;
+  position: relative;
+  width: 100%;
+}
+
+.du-input {
+  display: none;
+}
+
+.du-menu {
+  position: absolute;
+  bottom: 100%;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 0;
+  margin: 2px 0 0 0;
+  box-shadow: 0 0 6px 0 rgba(0,0,0,0.1);
+  background-color: #ffffff;
+  list-style-type: none;
+  width: 100%;
+  z-index: 2000;
+}
+
+.du-input + .du-menu {
+  display: none;
+}
+
+.du-input:checked + .du-menu {
+  display: block;
+}
+
+.du-menu li {
+  padding: 10px 20px;
+  cursor: pointer;
+  white-space: nowrap;
+  color: #151515;
+}
+
+.du-menu li span {
+  color: green;
+  font-size: 0.6rem;
+}
+
+.du-menu li:hover {
+  background-color: #f6f6f6;
+  color: #646262
+}
+
+.du-menu li a {
+  display: block;
+  margin: -10px -20px;
+  padding: 10px 20px;
+}
+
+.du-menu li.divider{
+  padding: 0;
+  border-bottom: 1px solid #cccccc;
+}
+
+.du-menu li.download {
+  /*cursor: not-allowed;*/
+  display: flex;
+  background-color: #f6f6f6;
+  color: #646262
+}
+
+.du-menu li.download span {
+  display: flex;
+  align-items: center;
+  width: 25%;
+  color: #646262;
+  font-size: 1.1rem;
+  height: 50px;
+}
+
+.du-menu li.download input {
+  width: 75%;
+  height: 50px;
+}
+
+.du-menu .selected {
+  color: #069be5;
+}
+
+.map-download-item {
+  display: grid;
+  grid-template-columns: 40px 1fr 40px;
+  align-content: center;
+  justify-content: space-between;
+  height: 30px;
+  margin: 2px;
+  background-color: #ffffff;
+  border-radius: 2px;
+  cursor: default;
+}
+
+.grid-align-right {
+  justify-self: end;
+  cursor: pointer;
+}
