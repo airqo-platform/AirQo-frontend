@@ -9,6 +9,9 @@ import AboutUsPage from "./src/pages/AboutUsPage";
 import ContactUsPage from './src/pages/ContactUs/ContactUs';
 import ContactForm from './src/pages/ContactUs/ContactForm';
 import AfricanCitiesPage, { ContentUganda, ContentKenya } from "./src/pages/AfricanCitiesPage";
+import GetInvolved from './src/pages/GetInvolved';
+import Register from './src/pages/GetInvolved/Register';
+import CheckMail from './src/pages/GetInvolved/CheckMail';
 
 const App = () => (
     <Router>
@@ -25,6 +28,9 @@ const App = () => (
             <Route path="/terms" element={<Terms />} />
             <Route path="/contact" element={<ContactUsPage />} />
             <Route path="/contact/form" element={<ContactForm />} />
+            <Route path="/get-involved" element={<GetInvolved />} />
+            <Route path="/get-involved/register" element={<Register/>} />
+            <Route path="/get-involved/check-mail" element={<CheckMail />} />
         </Routes>
 
     </Router>
