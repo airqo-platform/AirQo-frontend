@@ -1,13 +1,13 @@
 @import url(https://fonts.googleapis.com/css?family=Open+Sans);
 
-.map-filter-search {
+.map-download-search {
   width: 100%;
   position: relative;
   display: flex;
   justify-content: flex-start;
 }
 
-.map-filter-searchTerm {
+.map-download-searchTerm {
   width: 100%;
   /*border: 3px solid #00B4CC;*/
   /*border-right: none;*/
@@ -23,13 +23,14 @@
   color: #9DBFAF;
 }
 
-.map-filter-searchTerm:focus{
+.map-download-searchTerm:focus{
   /*color: #00B4CC;*/
   color: #2f67e2;
     border-bottom: 1px solid #2f67e2 !important;
 }
 
-.map-filter-searchButton {
+.map-download-searchButton {
+  position: relative;
   width: 48px;
   height: 42px;
   /*border: 1px solid #00B4CC;*/
@@ -42,16 +43,17 @@
   cursor: pointer;
   font-size: 20px;
   box-shadow: 0px 0px 3px 4px #eee;
+  z-index: 100;
 }
 
-.map-filter-searchButton:hover{
+.map-download-searchButton:hover{
   box-shadow: 0px 0px 2px 4px #ddd;
   border: 1.5px solid #aaa;
   width:44px;
   height: 38px;
 }
 
-.map-filter-searchButton:focus{
+.map-download-searchButton:focus{
   border: 1.8px solid #aaa;
   background-color: #f4f4f4;
   transition: .1s ease;
@@ -59,16 +61,16 @@
 
 
 /*Resize the wrap to see the search bar change!*/
-.map-filter-container {
+.map-download-container {
     width: 30%;
-    max-width: 350px;
+    max-width: 400px;
     position: absolute;
-    bottom: 70px;
+    bottom: 20px;
     left: 10px;
     font-family: 'Open Sans', sans-serif;
-    z-index: 20;
+    z-index: 200;
 }
-.map-filter-wrapper{
+.map-download-wrapper{
     font-family: 'Open Sans', sans-serif;
     background-color: transparent;
     /*background-color: #ffffff;*/
@@ -77,6 +79,7 @@
 
 .dropup {
   display: inline-block;
+  position: relative;
   width: 100%;
 }
 
@@ -134,17 +137,32 @@
   border-bottom: 1px solid #cccccc;
 }
 
-.du-menu li.disabled{
-  cursor: not-allowed;
+.du-menu li.download {
+  /*cursor: not-allowed;*/
+  display: flex;
   background-color: #f6f6f6;
   color: #646262
+}
+
+.du-menu li.download span {
+  display: flex;
+  align-items: center;
+  width: 25%;
+  color: #646262;
+  font-size: 1.1rem;
+  height: 50px;
+}
+
+.du-menu li.download input {
+  width: 75%;
+  height: 50px;
 }
 
 .du-menu .selected {
   color: #069be5;
 }
 
-.map-filter-item {
+.map-download-item {
   display: grid;
   grid-template-columns: 40px 1fr 40px;
   align-content: center;
