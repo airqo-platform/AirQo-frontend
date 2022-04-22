@@ -35,7 +35,7 @@ const MapDownload = () => {
 
   const onDownloadClick = () => {
     if (filename) {
-      toggleShow();
+
       const exportFilename = filename.endsWith(".csv")
         ? filename
         : `${filename}.csv`;
@@ -52,11 +52,10 @@ const MapDownload = () => {
         "powerType",
       ];
       const opts = { fields };
-
       try {
         const parser = new Parser(opts);
         const csv = parser.parse(devices);
-
+        toggleShow();
         const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
 
         if (navigator.msSaveBlob) {
@@ -79,6 +78,7 @@ const MapDownload = () => {
       } catch (err) {
         console.error(err);
       }
+      toggleShow();
     }
   };
 
@@ -112,6 +112,11 @@ const MapDownload = () => {
       document.removeEventListener("mousedown", checkIfClickedOutside);
     };
   }, [show]);
+
+  useEffect(() => {
+    setFilename("");
+  }, [show]);
+
   return (
     <div className="map-download-container">
       <label className="dropup" ref={ref}>
@@ -121,6 +126,7 @@ const MapDownload = () => {
             <input
               ref={inputRef}
               onClick={onDownloadClick}
+              value={filename}
               onChange={onChange}
             />
           </li>
