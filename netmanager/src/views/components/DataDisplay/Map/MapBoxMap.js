@@ -3,6 +3,7 @@ import ReactMapGL, { Marker, Popup } from "react-map-gl";
 import { useHistory } from "react-router-dom";
 import { MapKey } from "./MapKey";
 import MapFilter from "./MapFilter";
+import MapDownload from "./MapDownload";
 import { useManagementFilteredDevicesData } from "redux/DeviceManagement/selectors";
 import ErrorBoundary from "views/ErrorBoundary/ErrorBoundary";
 
@@ -116,6 +117,7 @@ const MapBoxMap = () => {
               </div>
             </Popup>
           )}
+          <MapDownload />
           <MapFilter />
           <MapKey />
         </ReactMapGL>
