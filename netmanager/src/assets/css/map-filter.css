@@ -63,7 +63,7 @@
     width: 30%;
     max-width: 350px;
     position: absolute;
-    bottom: 20px;
+    bottom: 70px;
     left: 10px;
     font-family: 'Open Sans', sans-serif;
     z-index: 20;
@@ -77,7 +77,6 @@
 
 .dropup {
   display: inline-block;
-  position: relative;
   width: 100%;
 }
 
