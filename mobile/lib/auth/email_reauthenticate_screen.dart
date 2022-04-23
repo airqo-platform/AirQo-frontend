@@ -1,11 +1,11 @@
 import 'package:app/constants/config.dart';
 import 'package:app/models/user_details.dart';
-import 'package:app/services/firebase_service.dart';
-import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:flutter/material.dart';
+
+import '../services/app_service.dart';
 
 class EmailReAuthenticateScreen extends StatefulWidget {
   final UserDetails userDetails;
@@ -28,9 +28,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
   var _showResendCode = false;
   var _emailVerificationCode = <String>['', '', '', '', '', ''];
   var _nextBtnColor = Config.appColorDisabled;
-
-  final CustomAuth _customAuth = CustomAuth();
-  AirqoApiClient? _airqoApiClient;
+  late AppService _appService;
 
   @override
   Widget build(BuildContext context) {
@@ -143,7 +141,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
   @override
   void initState() {
     super.initState();
-    _airqoApiClient = AirqoApiClient(context);
+    _appService = AppService(context);
     initialize();
     _requestVerification();
   }
@@ -153,7 +151,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
       _isResending = true;
     });
 
-    var emailVerificationResponse = await _airqoApiClient!
+    var emailVerificationResponse = await _appService.apiClient
         .requestEmailVerificationCode(widget.userDetails.emailAddress, true);
 
     if (emailVerificationResponse == null) {
@@ -208,14 +206,14 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
       });
       return;
     }
-    var user = _customAuth.getUser();
+    var user = _appService.customAuth.getUser();
 
     if (user == null) {
       await showSnackBar(context, 'Failed to update email address');
       return;
     }
 
-    var success = await _customAuth.reAuthenticateWithEmailAddress(
+    var success = await _appService.customAuth.reAuthenticateWithEmailAddress(
         widget.userDetails.emailAddress, _emailVerificationLink, context);
     if (success) {
       Navigator.pop(context, true);
@@ -241,7 +239,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
       _isVerifying = true;
     });
 
-    var emailVerificationResponse = await _airqoApiClient!
+    var emailVerificationResponse = await _appService.apiClient
         .requestEmailVerificationCode(widget.userDetails.emailAddress, true);
 
     if (!mounted) {

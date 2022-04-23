@@ -29,13 +29,11 @@ class AppService {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   final SharedPreferencesHelper _preferencesHelper = SharedPreferencesHelper();
   final SecureStorage _secureStorage = SecureStorage();
-  late AirqoApiClient _apiClient;
+  final AirqoApiClient _apiClient = AirqoApiClient();
   final CloudAnalytics _cloudAnalytics = CloudAnalytics();
   final LocationService _locationService = LocationService();
 
-  AppService(this._context) {
-    _apiClient = AirqoApiClient(_context);
-  }
+  AppService(this._context);
 
   AirqoApiClient get apiClient => _apiClient;
 

@@ -22,7 +22,6 @@ import 'package:intl/intl.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 class AirqoApiClient {
-  final BuildContext context;
   final httpClient = SentryHttpClient(
       client: http.Client(),
       failedRequestStatusCodes: [
@@ -34,8 +33,6 @@ class AirqoApiClient {
       networkTracing: true);
   final Map<String, String> headers = HashMap()
     ..putIfAbsent('Authorization', () => 'JWT ${Config.airqoApiToken}');
-
-  AirqoApiClient(this.context);
 
   Future<bool> checkIfUserExists(
       String phoneNumber, String emailAddress) async {
@@ -160,12 +157,6 @@ class AirqoApiClient {
       } else {
         throw Exception('Error');
       }
-    } on SocketException {
-      await showSnackBar(context, Config.connectionErrorMessage);
-      return '';
-    } on TimeoutException {
-      await showSnackBar(context, Config.connectionErrorMessage);
-      return '';
     } on Error catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
@@ -193,10 +184,6 @@ class AirqoApiClient {
 
       return compute(
           EmailAuthModel.parseEmailAuthModel, json.decode(response.body));
-    } on SocketException {
-      await showSnackBar(context, Config.socketErrorMessage);
-    } on TimeoutException {
-      await showSnackBar(context, Config.connectionErrorMessage);
     } on Error catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
@@ -257,10 +244,6 @@ class AirqoApiClient {
 
       await _performPostRequest(
           <String, dynamic>{}, AirQoUrls.welcomeMessage, jsonEncode(body));
-    } on SocketException {
-      await showSnackBar(context, Config.socketErrorMessage);
-    } on TimeoutException {
-      await showSnackBar(context, Config.connectionErrorMessage);
     } on Error catch (exception, stackTrace) {
       await Sentry.captureException(
         exception,
@@ -289,17 +272,12 @@ class AirqoApiClient {
       } else {
         return null;
       }
-    } on SocketException {
-      await showSnackBar(context, Config.socketErrorMessage);
-    } on TimeoutException {
-      await showSnackBar(context, Config.connectionErrorMessage);
     } on Error catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
       );
-      await showSnackBar(context, Config.appErrorMessage);
     }
 
     return null;
@@ -329,19 +307,12 @@ class AirqoApiClient {
       } else {
         return false;
       }
-    } on SocketException {
-      await showSnackBar(context, Config.socketErrorMessage);
-      return false;
-    } on TimeoutException {
-      await showSnackBar(context, Config.connectionErrorMessage);
-      return false;
     } on Error catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(
         exception,
         stackTrace: stackTrace,
       );
-      await showSnackBar(context, Config.appErrorMessage);
       return false;
     }
   }

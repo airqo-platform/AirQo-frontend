@@ -1,12 +1,12 @@
 import 'package:app/constants/config.dart';
-import 'package:app/services/firebase_service.dart';
-import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
+import '../services/app_service.dart';
 
 class ChangeEmailScreen extends StatefulWidget {
   const ChangeEmailScreen({
@@ -29,10 +29,9 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
   var _nextBtnColor = Config.appColorDisabled;
 
   final _emailFormKey = GlobalKey<FormState>();
-  final CustomAuth _customAuth = CustomAuth();
   User? _user;
   final TextEditingController _emailInputController = TextEditingController();
-  AirqoApiClient? _airqoApiClient;
+  late AppService _appService;
 
   @override
   Widget build(BuildContext context) {
@@ -221,7 +220,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
   @override
   void initState() {
     super.initState();
-    _airqoApiClient = AirqoApiClient(context);
+    _appService = AppService(context);
     _initialize();
   }
 
@@ -326,7 +325,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
       _showResendCode = false;
       _emailVerificationCode = <String>['', '', '', '', '', ''];
       _nextBtnColor = Config.appColorDisabled;
-      _user = _customAuth.getUser();
+      _user = _appService.customAuth.getUser();
     });
   }
 
@@ -348,7 +347,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
       _isVerifying = true;
     });
 
-    var emailVerificationResponse = await _airqoApiClient!
+    var emailVerificationResponse = await _appService.apiClient
         .requestEmailVerificationCode(_emailAddress, false);
 
     if (emailVerificationResponse == null) {
@@ -379,7 +378,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
       _isResending = true;
     });
 
-    var emailVerificationResponse = await _airqoApiClient!
+    var emailVerificationResponse = await _appService.apiClient
         .requestEmailVerificationCode(_emailAddress, false);
 
     if (emailVerificationResponse == null) {
@@ -417,14 +416,15 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
       });
       return;
     }
-    var user = _customAuth.getUser();
+    var user = _appService.customAuth.getUser();
 
     if (user == null) {
       await showSnackBar(context, 'Failed to update email address');
       return;
     }
 
-    var success = await _customAuth.updateEmailAddress(_emailAddress, context);
+    var success =
+        await _appService.customAuth.updateEmailAddress(_emailAddress, context);
 
     if (success) {
       Navigator.pop(context, true);

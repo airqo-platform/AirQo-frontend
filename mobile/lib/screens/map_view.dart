@@ -5,7 +5,6 @@ import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/suggestion.dart';
-import 'package:app/services/local_storage.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/themes/dark_theme.dart';
@@ -20,6 +19,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
+
+import '../services/app_service.dart';
 
 class MapView extends StatefulWidget {
   const MapView({Key? key}) : super(key: key);
@@ -39,7 +40,6 @@ class _MapViewState extends State<MapView> {
   final String sessionToken = const Uuid().v4();
   List<Suggestion> _searchSuggestions = [];
   SearchApi? _searchApiClient;
-  final DBHelper _dbHelper = DBHelper();
   final LocationService _locationService = LocationService();
   String _selectedRegion = '';
   final TextEditingController _searchController = TextEditingController();
@@ -49,7 +49,7 @@ class _MapViewState extends State<MapView> {
       const CameraPosition(target: LatLng(1.6183002, 32.504365), zoom: 6.6);
   late GoogleMapController _mapController;
   Map<String, Marker> _markers = {};
-  AirqoApiClient? _airqoApiClient;
+  late AppService _appService;
   double bottomPadding = 0.15;
 
   @override
@@ -277,7 +277,7 @@ class _MapViewState extends State<MapView> {
   @override
   void initState() {
     super.initState();
-    _airqoApiClient = AirqoApiClient(context);
+    _appService = AppService(context);
     _searchApiClient = SearchApi(sessionToken, context);
   }
 
@@ -805,7 +805,7 @@ class _MapViewState extends State<MapView> {
     setState(() {
       _selectedRegion = region;
     });
-    var sites = await _dbHelper.getRegionSites(region);
+    var sites = await _appService.dbHelper.getRegionSites(region);
     setState(() {
       _showLocationDetails = false;
       _displayRegions = false;
@@ -921,7 +921,7 @@ class _MapViewState extends State<MapView> {
   }
 
   Future<void> _getLatestMeasurements() async {
-    var dbMeasurements = await _dbHelper.getLatestMeasurements();
+    var dbMeasurements = await _appService.dbHelper.getLatestMeasurements();
 
     if (dbMeasurements.isNotEmpty && mounted) {
       setState(() {
@@ -930,7 +930,7 @@ class _MapViewState extends State<MapView> {
       await setMarkers(dbMeasurements, false, 6.6);
     }
 
-    var measurements = await _airqoApiClient!.fetchLatestMeasurements();
+    var measurements = await _appService.apiClient.fetchLatestMeasurements();
 
     if (measurements.isNotEmpty && mounted) {
       setState(() {
@@ -939,7 +939,7 @@ class _MapViewState extends State<MapView> {
       await setMarkers(measurements, false, 6.6);
     }
 
-    await _dbHelper.insertLatestMeasurements(measurements);
+    await _appService.dbHelper.insertLatestMeasurements(measurements);
   }
 
   Future<void> _loadTheme() async {
