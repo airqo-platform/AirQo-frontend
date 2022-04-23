@@ -5,8 +5,6 @@ class AirQoUrls {
 
   static String get checkUserExists => Config.airqoApiUserExistsUrl;
 
-  static String get forecast => '${Config.airqoApiUrlV2}predict/';
-
   static String get insights =>
       '${Config.airqoApiUrl}views/measurements/app/insights';
 
@@ -23,11 +21,6 @@ class AirQoUrls {
 
   static String get searchSuggestions =>
       '${Config.placesSearchUrl}autocomplete/json';
-
-  static String get sites => '${Config.airqoApiUrl}devices/sites';
-
-  static String get sitesByGeoCoordinates =>
-      '${Config.airqoApiUrl}devices/sites/nearest';
 
   static String get welcomeMessage =>
       '${Config.airqoApiUrl}notifications/welcomeMessage';

@@ -20,7 +20,7 @@ class SplashScreen extends StatefulWidget {
 class SplashScreenState extends State<SplashScreen> {
   int _widgetId = 0;
   bool _visible = false;
-  late AppService _appService;
+  final AppService _appService = AppService();
 
   @override
   Widget build(BuildContext context) {
@@ -63,17 +63,15 @@ class SplashScreenState extends State<SplashScreen> {
         } else {
           switch (nextPage) {
             case 'signup':
-              return const PhoneSignUpWidget(
-                enableBackButton: false,
-              );
+              return const PhoneSignUpWidget();
             case 'profile':
-              return const ProfileSetupScreen(false);
+              return const ProfileSetupScreen();
             case 'notification':
-              return const NotificationsSetupScreen(false);
+              return const NotificationsSetupScreen();
             case 'location':
-              return const LocationSetupScreen(false);
+              return const LocationSetupScreen();
             case 'complete':
-              return const SetUpCompleteScreen(false);
+              return const SetUpCompleteScreen();
             case 'home':
               return const HomePage();
             default:
@@ -83,13 +81,12 @@ class SplashScreenState extends State<SplashScreen> {
       }), (r) => false);
     });
 
-    await _appService.fetchData();
+    await _appService.fetchData(context);
   }
 
   @override
   void initState() {
     super.initState();
-    _appService = AppService(context);
     initialize();
   }
 

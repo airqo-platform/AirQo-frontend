@@ -31,7 +31,7 @@ class ProfileEditPage extends StatefulWidget {
 class _ProfileEditPageState extends State<ProfileEditPage> {
   final _formKey = GlobalKey<FormState>();
   bool updating = false;
-  late AppService _appService;
+  final AppService _appService = AppService();
   final ImagePicker _imagePicker = ImagePicker();
 
   String _profilePic = '';
@@ -274,7 +274,6 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   @override
   void initState() {
     super.initState();
-    _appService = AppService(context);
     setState(() {
       userDetails = widget.userDetails;
       _phoneEditor.text = widget.userDetails.phoneNumber;

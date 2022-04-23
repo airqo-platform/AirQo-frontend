@@ -5,8 +5,6 @@ import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/suggestion.dart';
-import 'package:app/services/native_api.dart';
-import 'package:app/services/rest_api.dart';
 import 'package:app/themes/dark_theme.dart';
 import 'package:app/themes/light_theme.dart';
 import 'package:app/utils/dialogs.dart';
@@ -39,8 +37,6 @@ class _MapViewState extends State<MapView> {
   List<Measurement> _latestMeasurements = [];
   final String sessionToken = const Uuid().v4();
   List<Suggestion> _searchSuggestions = [];
-  SearchApi? _searchApiClient;
-  final LocationService _locationService = LocationService();
   String _selectedRegion = '';
   final TextEditingController _searchController = TextEditingController();
   PlaceDetails? _locationPlaceMeasurement;
@@ -49,7 +45,7 @@ class _MapViewState extends State<MapView> {
       const CameraPosition(target: LatLng(1.6183002, 32.504365), zoom: 6.6);
   late GoogleMapController _mapController;
   Map<String, Marker> _markers = {};
-  late AppService _appService;
+  final AppService _appService = AppService();
   double bottomPadding = 0.15;
 
   @override
@@ -274,13 +270,6 @@ class _MapViewState extends State<MapView> {
     return emptyView('', 'area', true);
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _appService = AppService(context);
-    _searchApiClient = SearchApi(sessionToken, context);
-  }
-
   Widget locationContent() {
     return Column(
       children: [
@@ -423,19 +412,19 @@ class _MapViewState extends State<MapView> {
     } else {
       setState(() {
         _isSearching = true;
-        _searchSites =
-            _locationService.textSearchNearestSites(text, _latestMeasurements);
+        _searchSites = _appService.locationService
+            .textSearchNearestSites(text, _latestMeasurements);
       });
 
-      _searchApiClient!.fetchSuggestions(text).then((value) => {
+      _appService.searchApi.fetchSuggestions(text).then((value) => {
             setState(() {
               _searchSuggestions = value;
             })
           });
 
       setState(() {
-        _searchSites =
-            _locationService.textSearchNearestSites(text, _latestMeasurements);
+        _searchSites = _appService.locationService
+            .textSearchNearestSites(text, _latestMeasurements);
       });
     }
   }
@@ -822,9 +811,9 @@ class _MapViewState extends State<MapView> {
     setState(() {
       _searchController.text = suggestion.suggestionDetails.mainText;
     });
-    var place = await _searchApiClient!.getPlaceDetails(suggestion.placeId);
+    var place = await _appService.searchApi.getPlaceDetails(suggestion.placeId);
     if (place != null) {
-      var nearestSite = await _locationService.getNearestSite(
+      var nearestSite = await _appService.locationService.getNearestSite(
           place.geometry.location.lat, place.geometry.location.lng);
 
       if (nearestSite == null) {

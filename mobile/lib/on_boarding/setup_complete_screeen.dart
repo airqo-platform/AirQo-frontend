@@ -5,10 +5,7 @@ import 'package:app/utils/dialogs.dart';
 import 'package:flutter/material.dart';
 
 class SetUpCompleteScreen extends StatefulWidget {
-  final bool enableBackButton;
-
-  const SetUpCompleteScreen(this.enableBackButton, {Key? key})
-      : super(key: key);
+  const SetUpCompleteScreen({Key? key}) : super(key: key);
 
   @override
   SetUpCompleteScreenState createState() => SetUpCompleteScreenState();
@@ -16,7 +13,7 @@ class SetUpCompleteScreen extends StatefulWidget {
 
 class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   DateTime? _exitTime;
-  late AppService _appService;
+  final AppService _appService = AppService();
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +53,6 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   @override
   void initState() {
     super.initState();
-    _appService = AppService(context);
     _appService.preferencesHelper.updateOnBoardingPage('complete');
     initialize();
   }
@@ -93,13 +89,6 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
     }
   }
 
-  Future<void> _updateOnBoardingPage(String page) async {
-    await Future.wait([
-      _appService.postSignUpActions(),
-      _appService.preferencesHelper.updateOnBoardingPage(page)
-    ]);
-  }
-
   TextStyle? _textStyle() {
     return Theme.of(context).textTheme.bodyText1?.copyWith(
         fontWeight: FontWeight.bold,
@@ -107,5 +96,12 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
         fontSize: 48,
         height: 56 / 48,
         letterSpacing: 16 * -0.022);
+  }
+
+  Future<void> _updateOnBoardingPage(String page) async {
+    await Future.wait([
+      _appService.postSignUpActions(context),
+      _appService.preferencesHelper.updateOnBoardingPage(page)
+    ]);
   }
 }

@@ -2,15 +2,12 @@ import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/suggestion.dart';
-import 'package:app/services/local_storage.dart';
-import 'package:app/services/native_api.dart';
-import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:uuid/uuid.dart';
 
+import '../services/app_service.dart';
 import '../themes/light_theme.dart';
 import 'insights_page.dart';
 
@@ -29,11 +26,8 @@ class _SearchPageState extends State<SearchPage> {
   bool _isSearching = false;
   bool _emptyView = false;
   bool _hasNearbyLocations = true;
-  SearchApi? _searchApiClient;
 
-  final String _sessionToken = const Uuid().v4();
-  final DBHelper _dbHelper = DBHelper();
-  final LocationService _locationService = LocationService();
+  final AppService _appService = AppService();
   final TextEditingController _textEditingController = TextEditingController();
 
   @override
@@ -80,7 +74,7 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Future<void> getSites() async {
-    await _dbHelper.getLatestMeasurements().then((value) => {
+    await _appService.dbHelper.getLatestMeasurements().then((value) => {
           if (mounted)
             {
               setState(() {
@@ -92,7 +86,7 @@ class _SearchPageState extends State<SearchPage> {
 
   Future<void> getUserLocation() async {
     try {
-      var location = await _locationService.getLocation();
+      var location = await _appService.locationService.getLocation();
       if (location == null) {
         await showSnackBar(context, Config.locationErrorMessage);
         return;
@@ -100,7 +94,7 @@ class _SearchPageState extends State<SearchPage> {
       var latitude = location.latitude;
       var longitude = location.longitude;
       if (longitude != null && latitude != null) {
-        await _locationService
+        await _appService.locationService
             .getNearestSites(latitude, longitude)
             .then((value) => {
                   if (mounted)
@@ -136,7 +130,6 @@ class _SearchPageState extends State<SearchPage> {
   @override
   void initState() {
     super.initState();
-    _searchApiClient = SearchApi(_sessionToken, context);
     getSites();
     getUserLocation();
   }
@@ -423,7 +416,7 @@ class _SearchPageState extends State<SearchPage> {
           ),
           GestureDetector(
             onTap: () {
-              _locationService
+              _appService.locationService
                   .requestLocationAccess()
                   .then((value) => {getUserLocation()});
             },
@@ -467,7 +460,7 @@ class _SearchPageState extends State<SearchPage> {
         _emptyView = false;
       });
 
-      _searchApiClient!.fetchSuggestions(text).then((value) => {
+      _appService.searchApi.fetchSuggestions(text).then((value) => {
             if (mounted)
               {
                 setState(() {
@@ -481,7 +474,8 @@ class _SearchPageState extends State<SearchPage> {
       }
 
       setState(() {
-        _searchSites = _locationService.textSearchNearestSites(text, _allSites);
+        _searchSites =
+            _appService.locationService.textSearchNearestSites(text, _allSites);
       });
     }
   }
@@ -669,9 +663,9 @@ class _SearchPageState extends State<SearchPage> {
     setState(() {
       _textEditingController.text = suggestion.suggestionDetails.mainText;
     });
-    var place = await _searchApiClient!.getPlaceDetails(suggestion.placeId);
+    var place = await _appService.searchApi.getPlaceDetails(suggestion.placeId);
     if (place != null) {
-      var nearestSite = await _locationService.getNearestSite(
+      var nearestSite = await _appService.locationService.getNearestSite(
           place.geometry.location.lat, place.geometry.location.lng);
 
       if (nearestSite == null) {

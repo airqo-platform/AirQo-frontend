@@ -18,13 +18,11 @@ import '../widgets/custom_shimmer.dart';
 
 class PhoneAuthWidget extends StatefulWidget {
   final String phoneNumber;
-  final bool enableBackButton;
   final bool isLogin;
 
   const PhoneAuthWidget({
     Key? key,
     required this.phoneNumber,
-    required this.enableBackButton,
     required this.isLogin,
   }) : super(key: key);
 
@@ -48,46 +46,8 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
 
   late TextEditingController _phoneInputController;
   final _phoneFormKey = GlobalKey<FormState>();
-  late AppService _appService;
+  final AppService _appService = AppService();
   int _codeSentCountDown = 0;
-
-  Future<void> _authenticatePhoneNumber(AuthCredential authCredential) async {
-    if (widget.isLogin) {
-      var loginSuccessful = await _appService.authenticateUser(
-          authCredential, '', '', AuthMethod.phone, AuthProcedure.login);
-      if (loginSuccessful) {
-        Navigator.pop(_loadingContext);
-        await Navigator.pushAndRemoveUntil(context,
-            MaterialPageRoute(builder: (context) {
-          return const HomePage();
-        }), (r) => false);
-      } else {
-        Navigator.pop(_loadingContext);
-        setState(() {
-          _codeSent = true;
-          _nextBtnColor = Config.appColorBlue;
-        });
-        await showSnackBar(context, 'Login failed.');
-      }
-    } else {
-      var signUpSuccessful = await _appService.authenticateUser(
-          authCredential, '', '', AuthMethod.phone, AuthProcedure.signup);
-      if (signUpSuccessful) {
-        Navigator.pop(_loadingContext);
-        await Navigator.pushAndRemoveUntil(context,
-            MaterialPageRoute(builder: (context) {
-          return const ProfileSetupScreen(false);
-        }), (r) => false);
-      } else {
-        Navigator.pop(_loadingContext);
-        setState(() {
-          _codeSent = true;
-          _nextBtnColor = Config.appColorBlue;
-        });
-        await showSnackBar(context, 'Signup failed.');
-      }
-    }
-  }
 
   void autoVerifyPhoneFn(PhoneAuthCredential credential) {
     _authenticatePhoneNumber(credential);
@@ -135,7 +95,6 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
   @override
   void initState() {
     super.initState();
-    _appService = AppService(context);
     _loadingContext = context;
     _initialize();
   }
@@ -301,13 +260,10 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                     pageBuilder: (context, animation, secondaryAnimation) {
                       if (widget.isLogin) {
                         return const EmailLoginWidget(
-                          enableBackButton: false,
                           emailAddress: '',
                         );
                       }
-                      return const EmailSignUpWidget(
-                        enableBackButton: false,
-                      );
+                      return const EmailSignUpWidget();
                     },
                     transitionsBuilder:
                         (context, animation, secondaryAnimation, child) {
@@ -517,6 +473,50 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
     });
   }
 
+  Future<void> _authenticatePhoneNumber(AuthCredential authCredential) async {
+    if (widget.isLogin) {
+      var loginSuccessful = await _appService.authenticateUser(
+          authProcedure: AuthProcedure.login,
+          buildContext: context,
+          authMethod: AuthMethod.phone,
+          authCredential: authCredential);
+      if (loginSuccessful) {
+        Navigator.pop(_loadingContext);
+        await Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (context) {
+          return const HomePage();
+        }), (r) => false);
+      } else {
+        Navigator.pop(_loadingContext);
+        setState(() {
+          _codeSent = true;
+          _nextBtnColor = Config.appColorBlue;
+        });
+        await showSnackBar(context, 'Login failed.');
+      }
+    } else {
+      var signUpSuccessful = await _appService.authenticateUser(
+          authProcedure: AuthProcedure.signup,
+          buildContext: context,
+          authMethod: AuthMethod.phone,
+          authCredential: authCredential);
+      if (signUpSuccessful) {
+        Navigator.pop(_loadingContext);
+        await Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (context) {
+          return const ProfileSetupScreen();
+        }), (r) => false);
+      } else {
+        Navigator.pop(_loadingContext);
+        setState(() {
+          _codeSent = true;
+          _nextBtnColor = Config.appColorBlue;
+        });
+        await showSnackBar(context, 'Signup failed.');
+      }
+    }
+  }
+
   List<Widget> _getColumnWidget() {
     if (_verifyCode) {
       return phoneVerificationWidget();
@@ -551,7 +551,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
   }
 
   Future<void> _requestVerification() async {
-    var connected = await _appService.isConnected();
+    var connected = await _appService.isConnected(context);
     if (!connected) {
       await showSnackBar(context, Config.connectionErrorMessage);
       return;
@@ -566,7 +566,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
       });
       loadingScreen(_loadingContext);
 
-      var hasConnection = await _appService.isConnected();
+      var hasConnection = await _appService.isConnected(context);
       if (!hasConnection) {
         Navigator.pop(_loadingContext);
         setState(() {
@@ -579,7 +579,8 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
       var phoneNumber = '$_countryCode$_phoneNumber';
 
       if (!widget.isLogin) {
-        var phoneNumberTaken = await _appService.doesUserExist(phoneNumber, '');
+        var phoneNumberTaken = await _appService.doesUserExist(
+            phoneNumber: phoneNumber, buildContext: context);
 
         if (phoneNumberTaken) {
           setState(() {
@@ -596,7 +597,6 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                 pageBuilder: (context, animation, secondaryAnimation) =>
                     PhoneLoginWidget(
                   phoneNumber: '$_countryCode.$_phoneNumber',
-                  enableBackButton: false,
                 ),
                 transitionsBuilder:
                     (context, animation, secondaryAnimation, child) {
@@ -631,7 +631,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
   }
 
   Future<void> _resendVerificationCode() async {
-    var connected = await _appService.isConnected();
+    var connected = await _appService.isConnected(context);
     if (!connected) {
       await showSnackBar(context, Config.connectionErrorMessage);
       return;
@@ -682,7 +682,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
   }
 
   Future<void> _verifySentCode() async {
-    var connected = await _appService.isConnected();
+    var connected = await _appService.isConnected(context);
     if (!connected) {
       await showSnackBar(context, Config.connectionErrorMessage);
       return;
@@ -712,13 +712,8 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
 }
 
 class PhoneLoginWidget extends PhoneAuthWidget {
-  const PhoneLoginWidget(
-      {Key? key, required String phoneNumber, required bool enableBackButton})
-      : super(
-            key: key,
-            phoneNumber: phoneNumber,
-            enableBackButton: enableBackButton,
-            isLogin: true);
+  const PhoneLoginWidget({Key? key, required String phoneNumber})
+      : super(key: key, phoneNumber: phoneNumber, isLogin: true);
 
   @override
   PhoneLoginWidgetState createState() => PhoneLoginWidgetState();
@@ -727,12 +722,8 @@ class PhoneLoginWidget extends PhoneAuthWidget {
 class PhoneLoginWidgetState extends PhoneAuthWidgetState<PhoneLoginWidget> {}
 
 class PhoneSignUpWidget extends PhoneAuthWidget {
-  const PhoneSignUpWidget({Key? key, required bool enableBackButton})
-      : super(
-            key: key,
-            phoneNumber: '',
-            enableBackButton: enableBackButton,
-            isLogin: false);
+  const PhoneSignUpWidget({Key? key})
+      : super(key: key, phoneNumber: '', isLogin: false);
 
   @override
   PhoneSignUpWidgetState createState() => PhoneSignUpWidgetState();

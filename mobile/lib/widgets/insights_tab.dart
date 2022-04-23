@@ -2,7 +2,6 @@ import 'package:app/constants/config.dart';
 import 'package:app/models/insights.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/services/app_service.dart';
-import 'package:app/services/native_api.dart';
 import 'package:app/utils/data_formatter.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/dialogs.dart';
@@ -43,14 +42,10 @@ class _InsightsTabState extends State<InsightsTab> {
   bool _showHeartAnimation = false;
   List<Recommendation> _recommendations = [];
 
-  // final DBHelper _dbHelper = DBHelper();
   final GlobalKey _globalKey = GlobalKey();
   final String _toggleToolTipText = 'Customize your air quality analytics '
       'with a single click ';
   int _currentItem = 0;
-
-  late AppService _appService;
-
   Insights? _selectedMeasurement;
   String _lastUpdated = '';
   bool _hasMeasurements = false;
@@ -68,185 +63,13 @@ class _InsightsTabState extends State<InsightsTab> {
   final GlobalKey _forecastToolTipKey = GlobalKey();
   final GlobalKey _infoToolTipKey = GlobalKey();
   final GlobalKey _toggleToolTipKey = GlobalKey();
-  final ShareService _shareSvc = ShareService();
+
   final ItemScrollController _itemScrollController = ItemScrollController();
+  final AppService _appService = AppService();
   String _titleDateTime = '';
 
   Map<String, Widget> miniChartsMap = {};
   String selectedMiniChart = DateFormat('yyyy-MM-dd').format(DateTime.now());
-
-  List<Widget> _pageItems() {
-    return [
-      const SizedBox(
-        height: 28,
-      ),
-      Padding(
-        padding: const EdgeInsets.only(right: 16, left: 16),
-        child: Row(
-          children: [
-            Visibility(
-              visible: _hasMeasurements,
-              child: Text(
-                'AIR QUALITY'.toUpperCase(),
-                style: Theme.of(context)
-                    .textTheme
-                    .caption
-                    ?.copyWith(color: Config.appColorBlack.withOpacity(0.3)),
-              ),
-            ),
-            Visibility(
-              visible: !_hasMeasurements,
-              child: textLoadingAnimation(18, 70),
-            ),
-            const Spacer(),
-            Visibility(
-              visible: !_hasMeasurements,
-              child: sizedContainerLoadingAnimation(32, 32, 8.0),
-            ),
-            Visibility(
-              visible: _hasMeasurements,
-              child: GestureDetector(
-                onTap: togglePollutant,
-                child: Container(
-                  height: 32,
-                  width: 32,
-                  padding: const EdgeInsets.all(6.0),
-                  decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius:
-                          const BorderRadius.all(Radius.circular(8.0)),
-                      border: Border.all(color: Colors.transparent)),
-                  child: SvgPicture.asset(
-                    'assets/icon/toggle_icon.svg',
-                    semanticsLabel: 'Toggle',
-                    height: 16,
-                    width: 20,
-                  ),
-                ),
-              ),
-            )
-          ],
-        ),
-      ),
-      const SizedBox(
-        height: 12,
-      ),
-      Padding(
-        padding: const EdgeInsets.only(right: 16, left: 16),
-        child: RepaintBoundary(
-          key: _globalKey,
-          child: insightsGraph(),
-        ),
-      ),
-      const SizedBox(
-        height: 16,
-      ),
-      Visibility(
-        visible: !_hasMeasurements,
-        child: Padding(
-          padding: const EdgeInsets.only(right: 16, left: 16),
-          child: containerLoadingAnimation(height: 70.0, radius: 8.0),
-        ),
-      ),
-      Visibility(
-        visible: _hasMeasurements,
-        child: Padding(
-          padding: const EdgeInsets.only(right: 16, left: 16),
-          child: Container(
-            padding: const EdgeInsets.all(21.0),
-            decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: const BorderRadius.all(Radius.circular(8.0)),
-                border: Border.all(color: Colors.transparent)),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    _shareSvc.shareGraph(
-                        context, _globalKey, widget.placeDetails);
-                  },
-                  child: iconTextButton(
-                      SvgPicture.asset(
-                        'assets/icon/share_icon.svg',
-                        semanticsLabel: 'Share',
-                        color: Config.greyColor,
-                      ),
-                      'Share'),
-                ),
-                const SizedBox(
-                  width: 60,
-                ),
-                Consumer<PlaceDetailsModel>(
-                  builder: (context, placeDetailsModel, child) {
-                    return GestureDetector(
-                      onTap: () async {
-                        updateFavPlace();
-                      },
-                      child: iconTextButton(getHeartIcon(), 'Favorite'),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-      const SizedBox(
-        height: 32,
-      ),
-      Visibility(
-        visible: _recommendations.isNotEmpty,
-        child: Padding(
-          padding: const EdgeInsets.only(right: 16, left: 16),
-          child: Text(
-            _isTodayHealthTips
-                ? 'Today\'s health tips'
-                : 'Tomorrow\'s health tips',
-            textAlign: TextAlign.left,
-            style: CustomTextStyle.headline7(context),
-          ),
-        ),
-      ),
-      const SizedBox(
-        height: 16,
-      ),
-      Visibility(
-        visible: _recommendations.isNotEmpty,
-        child: SizedBox(
-          height: 128,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemBuilder: (context, index) {
-              if (index == 0) {
-                return Padding(
-                  padding: const EdgeInsets.only(left: 12.0, right: 6.0),
-                  child:
-                      recommendationContainer(_recommendations[index], context),
-                );
-              } else if (index == (_recommendations.length - 1)) {
-                return Padding(
-                  padding: const EdgeInsets.only(left: 6.0, right: 12.0),
-                  child:
-                      recommendationContainer(_recommendations[index], context),
-                );
-              } else {
-                return Padding(
-                  padding: const EdgeInsets.only(left: 6.0, right: 6.0),
-                  child:
-                      recommendationContainer(_recommendations[index], context),
-                );
-              }
-            },
-            itemCount: _recommendations.length,
-          ),
-        ),
-      ),
-      const SizedBox(
-        height: 24,
-      ),
-    ];
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -301,7 +124,6 @@ class _InsightsTabState extends State<InsightsTab> {
   @override
   void initState() {
     super.initState();
-    _appService = AppService(context);
     _initialize();
   }
 
@@ -696,7 +518,7 @@ class _InsightsTabState extends State<InsightsTab> {
         _showHeartAnimation = false;
       });
     });
-    await _appService.updateFavouritePlace(widget.placeDetails);
+    await _appService.updateFavouritePlace(widget.placeDetails, context);
   }
 
   void updateTitleDateTime(List<charts.Series<Insights, String>> data) {
@@ -900,6 +722,179 @@ class _InsightsTabState extends State<InsightsTab> {
         ),
       );
     });
+  }
+
+  List<Widget> _pageItems() {
+    return [
+      const SizedBox(
+        height: 28,
+      ),
+      Padding(
+        padding: const EdgeInsets.only(right: 16, left: 16),
+        child: Row(
+          children: [
+            Visibility(
+              visible: _hasMeasurements,
+              child: Text(
+                'AIR QUALITY'.toUpperCase(),
+                style: Theme.of(context)
+                    .textTheme
+                    .caption
+                    ?.copyWith(color: Config.appColorBlack.withOpacity(0.3)),
+              ),
+            ),
+            Visibility(
+              visible: !_hasMeasurements,
+              child: textLoadingAnimation(18, 70),
+            ),
+            const Spacer(),
+            Visibility(
+              visible: !_hasMeasurements,
+              child: sizedContainerLoadingAnimation(32, 32, 8.0),
+            ),
+            Visibility(
+              visible: _hasMeasurements,
+              child: GestureDetector(
+                onTap: togglePollutant,
+                child: Container(
+                  height: 32,
+                  width: 32,
+                  padding: const EdgeInsets.all(6.0),
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius:
+                          const BorderRadius.all(Radius.circular(8.0)),
+                      border: Border.all(color: Colors.transparent)),
+                  child: SvgPicture.asset(
+                    'assets/icon/toggle_icon.svg',
+                    semanticsLabel: 'Toggle',
+                    height: 16,
+                    width: 20,
+                  ),
+                ),
+              ),
+            )
+          ],
+        ),
+      ),
+      const SizedBox(
+        height: 12,
+      ),
+      Padding(
+        padding: const EdgeInsets.only(right: 16, left: 16),
+        child: RepaintBoundary(
+          key: _globalKey,
+          child: insightsGraph(),
+        ),
+      ),
+      const SizedBox(
+        height: 16,
+      ),
+      Visibility(
+        visible: !_hasMeasurements,
+        child: Padding(
+          padding: const EdgeInsets.only(right: 16, left: 16),
+          child: containerLoadingAnimation(height: 70.0, radius: 8.0),
+        ),
+      ),
+      Visibility(
+        visible: _hasMeasurements,
+        child: Padding(
+          padding: const EdgeInsets.only(right: 16, left: 16),
+          child: Container(
+            padding: const EdgeInsets.all(21.0),
+            decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+                border: Border.all(color: Colors.transparent)),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    _appService.shareService
+                        .shareGraph(context, _globalKey, widget.placeDetails);
+                  },
+                  child: iconTextButton(
+                      SvgPicture.asset(
+                        'assets/icon/share_icon.svg',
+                        semanticsLabel: 'Share',
+                        color: Config.greyColor,
+                      ),
+                      'Share'),
+                ),
+                const SizedBox(
+                  width: 60,
+                ),
+                Consumer<PlaceDetailsModel>(
+                  builder: (context, placeDetailsModel, child) {
+                    return GestureDetector(
+                      onTap: () async {
+                        updateFavPlace();
+                      },
+                      child: iconTextButton(getHeartIcon(), 'Favorite'),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      const SizedBox(
+        height: 32,
+      ),
+      Visibility(
+        visible: _recommendations.isNotEmpty,
+        child: Padding(
+          padding: const EdgeInsets.only(right: 16, left: 16),
+          child: Text(
+            _isTodayHealthTips
+                ? 'Today\'s health tips'
+                : 'Tomorrow\'s health tips',
+            textAlign: TextAlign.left,
+            style: CustomTextStyle.headline7(context),
+          ),
+        ),
+      ),
+      const SizedBox(
+        height: 16,
+      ),
+      Visibility(
+        visible: _recommendations.isNotEmpty,
+        child: SizedBox(
+          height: 128,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemBuilder: (context, index) {
+              if (index == 0) {
+                return Padding(
+                  padding: const EdgeInsets.only(left: 12.0, right: 6.0),
+                  child:
+                      recommendationContainer(_recommendations[index], context),
+                );
+              } else if (index == (_recommendations.length - 1)) {
+                return Padding(
+                  padding: const EdgeInsets.only(left: 6.0, right: 12.0),
+                  child:
+                      recommendationContainer(_recommendations[index], context),
+                );
+              } else {
+                return Padding(
+                  padding: const EdgeInsets.only(left: 6.0, right: 6.0),
+                  child:
+                      recommendationContainer(_recommendations[index], context),
+                );
+              }
+            },
+            itemCount: _recommendations.length,
+          ),
+        ),
+      ),
+      const SizedBox(
+        height: 24,
+      ),
+    ];
   }
 
   Future<void> _refreshPage() async {

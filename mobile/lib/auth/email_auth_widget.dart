@@ -17,15 +17,11 @@ import '../themes/light_theme.dart';
 import '../widgets/custom_shimmer.dart';
 
 class EmailAuthWidget extends StatefulWidget {
-  final bool enableBackButton;
   final bool isLogin;
   final String emailAddress;
 
   const EmailAuthWidget(
-      {Key? key,
-      required this.enableBackButton,
-      required this.isLogin,
-      required this.emailAddress})
+      {Key? key, required this.isLogin, required this.emailAddress})
       : super(key: key);
 
   @override
@@ -41,7 +37,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
   final _emailFormKey = GlobalKey<FormState>();
 
   late TextEditingController _emailInputController;
-  late AppService _appService;
+  final AppService _appService = AppService();
   late String _emailAddress;
   late Color _nextBtnColor;
   DateTime? _exitTime;
@@ -188,11 +184,10 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                   pageBuilder: (context, animation, secondaryAnimation) {
                     if (widget.isLogin) {
                       return const PhoneLoginWidget(
-                        enableBackButton: false,
                         phoneNumber: '',
                       );
                     }
-                    return const PhoneSignUpWidget(enableBackButton: false);
+                    return const PhoneSignUpWidget();
                   },
                   transitionsBuilder:
                       (context, animation, secondaryAnimation, child) {
@@ -358,7 +353,6 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
   @override
   void initState() {
     super.initState();
-    _appService = AppService(context);
     loadingContext = context;
     _initialize();
   }
@@ -400,7 +394,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
   }
 
   Future<void> verifySentCode() async {
-    var connected = await _appService.isConnected();
+    var connected = await _appService.isConnected(context);
     if (!connected) {
       await showSnackBar(context, Config.connectionErrorMessage);
       return;
@@ -429,11 +423,19 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
 
     bool success;
     if (!widget.isLogin) {
-      success = await _appService.authenticateUser(null, _emailAddress,
-          _emailVerificationLink, AuthMethod.email, AuthProcedure.signup);
+      success = await _appService.authenticateUser(
+          emailAuthLink: _emailVerificationLink,
+          emailAddress: _emailAddress,
+          authMethod: AuthMethod.email,
+          authProcedure: AuthProcedure.signup,
+          buildContext: context);
     } else {
-      success = await _appService.authenticateUser(null, _emailAddress,
-          _emailVerificationLink, AuthMethod.email, AuthProcedure.login);
+      success = await _appService.authenticateUser(
+          emailAuthLink: _emailVerificationLink,
+          emailAddress: _emailAddress,
+          authMethod: AuthMethod.email,
+          authProcedure: AuthProcedure.login,
+          buildContext: context);
     }
 
     Navigator.pop(loadingContext);
@@ -442,7 +444,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
       if (!widget.isLogin) {
         await Navigator.pushAndRemoveUntil(context,
             MaterialPageRoute(builder: (context) {
-          return ProfileSetupScreen(widget.enableBackButton);
+          return ProfileSetupScreen();
         }), (r) => false);
       } else {
         await Navigator.pushAndRemoveUntil(context,
@@ -491,7 +493,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
   }
 
   Future<void> _requestVerification() async {
-    var connected = await _appService.isConnected();
+    var connected = await _appService.isConnected(context);
     if (!connected) {
       await showSnackBar(context, Config.connectionErrorMessage);
       return;
@@ -514,7 +516,8 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     loadingScreen(loadingContext);
 
     if (!widget.isLogin) {
-      var emailExists = await _appService.doesUserExist('', _emailAddress);
+      var emailExists = await _appService.doesUserExist(
+          emailAddress: _emailAddress, buildContext: context);
 
       if (emailExists) {
         setState(() {
@@ -529,10 +532,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
             context,
             PageRouteBuilder(
               pageBuilder: (context, animation, secondaryAnimation) =>
-                  EmailLoginWidget(
-                emailAddress: _emailAddress,
-                enableBackButton: false,
-              ),
+                  EmailLoginWidget(emailAddress: _emailAddress),
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) {
                 return FadeTransition(
@@ -571,7 +571,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
   }
 
   Future<void> _resendVerificationCode() async {
-    var connected = await _appService.isConnected();
+    var connected = await _appService.isConnected(context);
     if (!connected) {
       await showSnackBar(context, Config.connectionErrorMessage);
       return;
@@ -619,13 +619,8 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
 }
 
 class EmailLoginWidget extends EmailAuthWidget {
-  const EmailLoginWidget(
-      {Key? key, required String emailAddress, required bool enableBackButton})
-      : super(
-            key: key,
-            emailAddress: emailAddress,
-            enableBackButton: enableBackButton,
-            isLogin: true);
+  const EmailLoginWidget({Key? key, required String emailAddress})
+      : super(key: key, emailAddress: emailAddress, isLogin: true);
 
   @override
   EmailLoginWidgetState createState() => EmailLoginWidgetState();
@@ -634,12 +629,8 @@ class EmailLoginWidget extends EmailAuthWidget {
 class EmailLoginWidgetState extends EmailAuthWidgetState<EmailLoginWidget> {}
 
 class EmailSignUpWidget extends EmailAuthWidget {
-  const EmailSignUpWidget({Key? key, required bool enableBackButton})
-      : super(
-            key: key,
-            emailAddress: '',
-            enableBackButton: enableBackButton,
-            isLogin: false);
+  const EmailSignUpWidget({Key? key})
+      : super(key: key, emailAddress: '', isLogin: false);
 
   @override
   EmailSignUpWidgetState createState() => EmailSignUpWidgetState();

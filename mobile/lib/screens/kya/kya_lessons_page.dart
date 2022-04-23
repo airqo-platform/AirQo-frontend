@@ -8,7 +8,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-import '../../services/native_api.dart';
 import '../../themes/light_theme.dart';
 import '../../widgets/custom_shimmer.dart';
 import 'kya_final_page.dart';
@@ -28,9 +27,8 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   double _tipsProgress = 0.1;
   int currentIndex = 0;
   late Kya kya;
-  late AppService _appService;
+  final AppService _appService = AppService();
   final List<GlobalKey> _globalKeys = <GlobalKey>[];
-  final ShareService _shareService = ShareService();
 
   @override
   Widget build(BuildContext context) {
@@ -69,8 +67,8 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                 GestureDetector(
                   onTap: () async {
                     try {
-                      await _shareService.shareKya(
-                          context, _globalKeys[currentIndex]);
+                      await _appService.shareService
+                          .shareKya(context, _globalKeys[currentIndex]);
                     } catch (exception, stackTrace) {
                       debugPrint('$exception\n$stackTrace');
                       await Sentry.captureException(
@@ -166,7 +164,6 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   @override
   void initState() {
     super.initState();
-    _appService = AppService(context);
     kya = widget.kya;
     currentIndex = 0;
     for (var _ in widget.kya.lessons) {
@@ -222,7 +219,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
     if (kya.progress > kya.lessons.length || kya.progress < 0) {
       kya.progress = kya.lessons.length - 1;
     }
-    _appService.updateKya(kya);
+    _appService.updateKya(kya, context);
   }
 
   Widget _kyaCard(KyaLesson kyaItem, int index) {

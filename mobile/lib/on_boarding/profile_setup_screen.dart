@@ -15,9 +15,7 @@ import '../themes/light_theme.dart';
 import 'notifications_setup_screen.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
-  final bool enableBackButton;
-
-  const ProfileSetupScreen(this.enableBackButton, {Key? key}) : super(key: key);
+  const ProfileSetupScreen({Key? key}) : super(key: key);
 
   @override
   ProfileSetupScreenState createState() => ProfileSetupScreenState();
@@ -32,7 +30,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   late UserDetails _userDetails = UserDetails.initialize();
 
   final _formKey = GlobalKey<FormState>();
-  late AppService _appService;
+  final AppService _appService = AppService();
   bool _showOptions = true;
   final TextEditingController _controller = TextEditingController();
   late BuildContext dialogContext;
@@ -114,7 +112,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   onTap: () {
                     Navigator.pushAndRemoveUntil(context,
                         MaterialPageRoute(builder: (context) {
-                      return NotificationsSetupScreen(widget.enableBackButton);
+                      return NotificationsSetupScreen();
                     }), (r) => false);
                   },
                   child: Center(
@@ -177,7 +175,6 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   @override
   void initState() {
     super.initState();
-    _appService = AppService(context);
     dialogContext = context;
     initialize();
     updateOnBoardingPage();
@@ -277,12 +274,12 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
         });
 
         loadingScreen(dialogContext);
-        var success = await _appService.updateProfile(_userDetails);
+        var success = await _appService.updateProfile(_userDetails, context);
         if (success) {
           Navigator.pop(dialogContext);
           await Navigator.pushAndRemoveUntil(context,
               MaterialPageRoute(builder: (context) {
-            return NotificationsSetupScreen(widget.enableBackButton);
+            return NotificationsSetupScreen();
           }), (r) => false);
         }
       }

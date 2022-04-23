@@ -20,7 +20,7 @@ class KnowYourAirView extends StatefulWidget {
 
 class _KnowYourAirViewState extends State<KnowYourAirView> {
   List<Kya> _kyaCards = [];
-  late AppService _appService;
+  final AppService _appService = AppService();
   String _error = 'You haven\'t completed any lessons';
 
   @override
@@ -45,7 +45,6 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
   @override
   void initState() {
     super.initState();
-    _appService = AppService(context);
     _getKya();
   }
 
@@ -72,7 +71,9 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
         onTap: () async {
           if (kya.progress >= kya.lessons.length) {
             kya.progress = -1;
-            await _appService.updateKya(kya).then((value) => _refreshKya());
+            await _appService
+                .updateKya(kya, context)
+                .then((value) => _refreshKya());
           } else {
             await Navigator.push(context, MaterialPageRoute(builder: (context) {
               return KyaTitlePage(kya);

@@ -5,7 +5,6 @@ import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/screens/insights_page.dart';
 import 'package:app/services/app_service.dart';
-import 'package:app/services/native_api.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/extensions.dart';
@@ -169,11 +168,10 @@ class MapAnalyticsCard extends StatefulWidget {
 }
 
 class _AnalyticsCardState extends State<AnalyticsCard> {
-  AppService? _appService;
+  final AppService _appService = AppService();
   bool _showHeartAnimation = false;
   final GlobalKey _globalKey = GlobalKey();
   final GlobalKey _infoToolTipKey = GlobalKey();
-  final ShareService _shareSvc = ShareService();
 
   @override
   Widget build(BuildContext context) {
@@ -190,7 +188,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
             children: [
               RepaintBoundary(
                   key: _globalKey,
-                  child: _shareSvc.analyticsCardImage(
+                  child: _appService.shareService.analyticsCardImage(
                       widget.measurement, widget.placeDetails, context)),
               Container(
                 padding: const EdgeInsets.only(top: 12, bottom: 12),
@@ -333,7 +331,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                             var shareMeasurement = widget.measurement;
                             shareMeasurement.site.name =
                                 widget.placeDetails.name;
-                            _shareSvc.shareCard(
+                            _appService.shareService.shareCard(
                                 context, _globalKey, shareMeasurement);
                           },
                           child: Padding(
@@ -399,12 +397,6 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _appService = AppService(context);
-  }
-
   void updateFavPlace() async {
     setState(() {
       _showHeartAnimation = true;
@@ -414,15 +406,15 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
         _showHeartAnimation = false;
       });
     });
-    await _appService!.updateFavouritePlace(widget.placeDetails);
+    await _appService.updateFavouritePlace(widget.placeDetails, context);
   }
 }
 
 class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
   bool _showHeartAnimation = false;
   final GlobalKey _globalKey = GlobalKey();
-  final ShareService _shareSvc = ShareService();
-  AppService? _appService;
+
+  final AppService _appService = AppService();
 
   @override
   Widget build(BuildContext context) {
@@ -442,7 +434,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
             children: [
               RepaintBoundary(
                   key: _globalKey,
-                  child: _shareSvc.analyticsCardImage(
+                  child: _appService.shareService.analyticsCardImage(
                       widget.measurement, widget.placeDetails, context)),
               Container(
                 color: Colors.white,
@@ -589,7 +581,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                             var shareMeasurement = widget.measurement;
                             shareMeasurement.site.name =
                                 widget.placeDetails.name;
-                            _shareSvc.shareCard(
+                            _appService.shareService.shareCard(
                                 context, _globalKey, shareMeasurement);
                           },
                           child: iconTextButton(
@@ -650,12 +642,6 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _appService = AppService(context);
-  }
-
   void updateFavPlace() async {
     setState(() {
       _showHeartAnimation = true;
@@ -665,6 +651,6 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
         _showHeartAnimation = false;
       });
     });
-    await _appService!.updateFavouritePlace(widget.placeDetails);
+    await _appService.updateFavouritePlace(widget.placeDetails, context);
   }
 }

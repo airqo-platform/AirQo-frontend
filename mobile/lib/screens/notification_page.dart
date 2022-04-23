@@ -41,11 +41,6 @@ class _NotificationPageState extends State<NotificationPage> {
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-  }
-
   Widget mainSection() {
     if (_notifications.isEmpty) {
       return Container(

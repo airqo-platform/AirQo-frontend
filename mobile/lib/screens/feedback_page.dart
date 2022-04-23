@@ -25,7 +25,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
   String _feedbackType = '';
   String _feedbackChannel = '';
   bool _isSendingFeedback = false;
-  late AppService _appService;
+  final AppService _appService = AppService();
   final TextEditingController _emailInputController = TextEditingController();
   final TextEditingController _emailFeedbackController =
       TextEditingController();
@@ -512,12 +512,6 @@ class _FeedbackPageState extends State<FeedbackPage> {
                 ?.copyWith(color: Config.appColorBlack.withOpacity(0.32)),
           ),
         )));
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _appService = AppService(context);
   }
 
   void openWhatsapp() async {

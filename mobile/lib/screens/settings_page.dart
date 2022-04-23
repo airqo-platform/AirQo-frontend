@@ -1,7 +1,6 @@
 import 'package:app/auth/phone_reauthenticate_screen.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/services/app_service.dart';
-import 'package:app/services/native_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/web_view.dart';
 import 'package:app/widgets/custom_shimmer.dart';
@@ -25,10 +24,8 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   bool _allowNotification = false;
   bool _allowLocation = false;
-  final RateService _rateService = RateService();
-  final LocationService _locationService = LocationService();
-  final NotificationService _notificationService = NotificationService();
-  late AppService _appService;
+
+  final AppService _appService = AppService();
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +57,6 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void initState() {
     super.initState();
-    _appService = AppService(context);
     _initialize();
   }
 
@@ -134,12 +130,12 @@ class _SettingsPageState extends State<SettingsPage> {
     if (authResponse) {
       loadingScreen(dialogContext);
 
-      var success = await _appService.deleteAccount();
+      var success = await _appService.deleteAccount(context);
       if (success) {
         Navigator.pop(dialogContext);
         await Navigator.pushAndRemoveUntil(context,
             MaterialPageRoute(builder: (context) {
-          return const PhoneSignUpWidget(enableBackButton: false);
+          return const PhoneSignUpWidget();
         }), (r) => false);
       } else {
         await showSnackBar(
@@ -177,13 +173,13 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _initialize() async {
-    await _notificationService.checkPermission().then((value) => {
+    await _appService.notificationService.checkPermission().then((value) => {
           setState(() {
             _allowNotification = value;
           }),
         });
 
-    await _locationService.checkPermission().then((value) => {
+    await _appService.locationService.checkPermission().then((value) => {
           setState(() {
             _allowLocation = value;
           }),
@@ -206,17 +202,21 @@ class _SettingsPageState extends State<SettingsPage> {
               activeColor: Config.appColorBlue,
               onChanged: (bool value) {
                 if (value) {
-                  _locationService.allowLocationAccess().then((response) => {
-                        setState(() {
-                          _allowLocation = response;
-                        })
-                      });
+                  _appService.locationService
+                      .allowLocationAccess()
+                      .then((response) => {
+                            setState(() {
+                              _allowLocation = response;
+                            })
+                          });
                 } else {
-                  _locationService.revokePermission().then((response) => {
-                        setState(() {
-                          _allowLocation = response;
-                        })
-                      });
+                  _appService.locationService
+                      .revokePermission()
+                      .then((response) => {
+                            setState(() {
+                              _allowLocation = response;
+                            })
+                          });
                 }
               },
               value: _allowLocation,
@@ -233,17 +233,21 @@ class _SettingsPageState extends State<SettingsPage> {
               activeColor: Config.appColorBlue,
               onChanged: (bool value) {
                 if (value) {
-                  _notificationService.allowNotifications().then((response) => {
-                        setState(() {
-                          _allowNotification = response;
-                        })
-                      });
+                  _appService.notificationService
+                      .allowNotifications()
+                      .then((response) => {
+                            setState(() {
+                              _allowNotification = response;
+                            })
+                          });
                 } else {
-                  _notificationService.revokePermission().then((response) => {
-                        setState(() {
-                          _allowNotification = response;
-                        })
-                      });
+                  _appService.notificationService
+                      .revokePermission()
+                      .then((response) => {
+                            setState(() {
+                              _allowNotification = response;
+                            })
+                          });
                 }
               },
               value: _allowNotification,
@@ -275,7 +279,7 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           GestureDetector(
             onTap: () async {
-              await _rateService.rateApp();
+              await _appService.rateService.rateApp();
             },
             child: _cardSection('Rate the AirQo App'),
           ),

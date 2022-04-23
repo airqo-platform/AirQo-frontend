@@ -54,22 +54,28 @@ class DBHelper {
     var prefs = await SharedPreferences.getInstance();
     var createDatabases = prefs.getBool(Config.prefReLoadDb) ?? true;
 
+    var batch = db.batch();
+
     if (createDatabases) {
-      await db.execute(Measurement.dropTableStmt());
-      await db.execute(Site.dropTableStmt());
-      await db.execute(PlaceDetails.dropTableStmt());
-      await db.execute(UserNotification.dropTableStmt());
-      await db.execute(Insights.dropTableStmt());
-      await db.execute(Kya.dropTableStmt());
+      batch
+        ..execute(Measurement.dropTableStmt())
+        ..execute(Site.dropTableStmt())
+        ..execute(PlaceDetails.dropTableStmt())
+        ..execute(UserNotification.dropTableStmt())
+        ..execute(Insights.dropTableStmt())
+        ..execute(Kya.dropTableStmt());
       await prefs.setBool(Config.prefReLoadDb, false);
     }
 
-    await db.execute(Measurement.createTableStmt());
-    await db.execute(Site.createTableStmt());
-    await db.execute(PlaceDetails.createTableStmt());
-    await db.execute(UserNotification.createTableStmt());
-    await db.execute(Insights.createTableStmt());
-    await db.execute(Kya.createTableStmt());
+    batch
+      ..execute(Measurement.createTableStmt())
+      ..execute(Site.createTableStmt())
+      ..execute(PlaceDetails.createTableStmt())
+      ..execute(UserNotification.createTableStmt())
+      ..execute(Insights.createTableStmt())
+      ..execute(Kya.createTableStmt());
+
+    await batch.commit(noResult: true, continueOnError: true);
   }
 
   Future<void> deleteNonFavPlacesInsights() async {
@@ -290,26 +296,6 @@ class DBHelper {
     }
   }
 
-  Future<List<Site>> getSites() async {
-    try {
-      final db = await database;
-      var res = await db.query(Site.sitesDbName());
-
-      var sites = res.isNotEmpty
-          ? List.generate(res.length, (i) {
-              return Site.fromJson(Site.fromDbMap(res[i]));
-            })
-          : <Site>[]
-        ..sort((siteA, siteB) =>
-            siteA.name.toLowerCase().compareTo(siteB.name.toLowerCase()));
-
-      return sites;
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      return <Site>[];
-    }
-  }
-
   Future<List<UserNotification>> getUserNotifications() async {
     try {
       final db = await database;
@@ -458,16 +444,17 @@ class DBHelper {
         return;
       }
 
-      await db.delete(UserNotification.dbName());
+      var batch = db.batch()..delete(UserNotification.dbName());
 
       for (var notification in notifications) {
         var jsonData = notification.toJson();
-        await db.insert(
+        batch.insert(
           UserNotification.dbName(),
           jsonData,
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
       }
+      await batch.commit(noResult: true, continueOnError: true);
       Provider.of<NotificationModel>(context, listen: false)
           .addAll(notifications);
     } catch (exception, stackTrace) {
@@ -498,12 +485,12 @@ class DBHelper {
       final db = await database;
 
       if (placeDetails.isNotEmpty) {
-        await db.delete(PlaceDetails.dbName());
+        var batch = db.batch()..delete(PlaceDetails.dbName());
 
         for (var place in placeDetails) {
           try {
             var jsonData = place.toJson();
-            await db.insert(
+            batch.insert(
               PlaceDetails.dbName(),
               jsonData,
               conflictAlgorithm: ConflictAlgorithm.replace,
@@ -512,6 +499,7 @@ class DBHelper {
             debugPrint('$exception\n$stackTrace');
           }
         }
+        await batch.commit(noResult: true, continueOnError: true);
       }
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');

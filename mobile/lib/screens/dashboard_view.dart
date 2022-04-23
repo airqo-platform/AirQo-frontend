@@ -6,7 +6,6 @@ import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/screens/search_page.dart';
 import 'package:app/services/app_service.dart';
-import 'package:app/services/native_api.dart';
 import 'package:app/utils/dashboard.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/pm.dart';
@@ -45,14 +44,12 @@ class _DashboardViewState extends State<DashboardView> {
   List<Kya> _completeKya = [];
   List<Kya> _incompleteKya = [];
 
-  late AppService _appService;
+  final AppService _appService = AppService();
   late SharedPreferences _preferences;
 
   final GlobalKey _favToolTipKey = GlobalKey();
   final GlobalKey _kyaToolTipKey = GlobalKey();
   bool _isRefreshing = false;
-
-  final LocationService _locationService = LocationService();
 
   final ScrollController _scrollController = ScrollController();
   List<Widget> _analyticsCards = [
@@ -292,7 +289,7 @@ class _DashboardViewState extends State<DashboardView> {
     }
 
     var locationMeasurements =
-        await _locationService.getNearbyLocationReadings();
+        await _appService.locationService.getNearbyLocationReadings();
 
     for (var location in locationMeasurements) {
       dashboardCards.add(AnalyticsCard(
@@ -323,7 +320,7 @@ class _DashboardViewState extends State<DashboardView> {
   Future<void> _handleKyaOnClick({required Kya kya}) async {
     if (kya.progress >= kya.lessons.length) {
       kya.progress = -1;
-      await _appService.updateKya(kya);
+      await _appService.updateKya(kya, context);
       _getKya();
     } else {
       var returnStatus =
@@ -360,7 +357,6 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   Future<void> _initialize() async {
-    _appService = AppService(context);
     _preferences = await SharedPreferences.getInstance();
     _completeKyaWidgets.add(circularLoadingAnimation(30));
     _buildAnalyticsCards(_analyticsCards);
@@ -639,7 +635,7 @@ class _DashboardViewState extends State<DashboardView> {
     });
 
     _setGreetings();
-    await _appService.refreshDashboard();
+    await _appService.refreshDashboard(context);
     _getAnalyticsCards();
     _getKya();
     _loadFavourites(reload: true);

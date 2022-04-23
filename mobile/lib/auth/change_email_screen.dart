@@ -31,7 +31,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
   final _emailFormKey = GlobalKey<FormState>();
   User? _user;
   final TextEditingController _emailInputController = TextEditingController();
-  late AppService _appService;
+  final AppService _appService = AppService();
 
   @override
   Widget build(BuildContext context) {
@@ -220,7 +220,6 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
   @override
   void initState() {
     super.initState();
-    _appService = AppService(context);
     _initialize();
   }
 

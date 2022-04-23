@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:app/constants/api.dart';
 import 'package:app/constants/config.dart';
@@ -13,13 +12,13 @@ import 'package:app/models/measurement.dart';
 import 'package:app/models/place.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:app/models/user_details.dart';
-import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:uuid/uuid.dart';
 
 class AirqoApiClient {
   final httpClient = SentryHttpClient(
@@ -35,16 +34,16 @@ class AirqoApiClient {
     ..putIfAbsent('Authorization', () => 'JWT ${Config.airqoApiToken}');
 
   Future<bool> checkIfUserExists(
-      String phoneNumber, String emailAddress) async {
+      {String? phoneNumber, String? emailAddress}) async {
     Map<String, String> headers = HashMap()
       ..putIfAbsent('Content-Type', () => 'application/json');
     http.Response response;
 
-    if (phoneNumber.isNotEmpty) {
+    if (phoneNumber != null) {
       var body = {'phoneNumber': phoneNumber};
       response = await httpClient.post(Uri.parse(AirQoUrls.checkUserExists),
           headers: headers, body: jsonEncode(body));
-    } else if (emailAddress.isNotEmpty) {
+    } else if (emailAddress != null) {
       var body = {'emailAddress': emailAddress};
       response = await httpClient.post(Uri.parse(AirQoUrls.checkUserExists),
           headers: headers, body: jsonEncode(body));
@@ -319,11 +318,8 @@ class AirqoApiClient {
 }
 
 class SearchApi {
-  final String sessionToken;
+  final String sessionToken = const Uuid().v4();
   final apiKey = Config.googleApiKey;
-  final BuildContext context;
-
-  SearchApi(this.sessionToken, this.context);
 
   Future<List<Suggestion>> fetchSuggestions(String input) async {
     try {
@@ -399,12 +395,6 @@ class SearchApi {
       } else {
         return null;
       }
-    } on SocketException {
-      await showSnackBar(context, Config.connectionErrorMessage);
-      return null;
-    } on TimeoutException {
-      await showSnackBar(context, Config.connectionErrorMessage);
-      return null;
     } on Error catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(

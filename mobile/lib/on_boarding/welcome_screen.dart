@@ -17,7 +17,7 @@ class WelcomeScreen extends StatefulWidget {
 
 class WelcomeScreenState extends State<WelcomeScreen> {
   DateTime? _exitTime;
-  late AppService _appService;
+  final AppService _appService = AppService();
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +68,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
             onTap: () {
               Navigator.pushAndRemoveUntil(context,
                   MaterialPageRoute(builder: (context) {
-                return const PhoneSignUpWidget(enableBackButton: false);
+                return const PhoneSignUpWidget();
               }), (r) => false);
             },
             child: nextButton('Let\'s go', Config.appColorBlue),
@@ -84,7 +84,6 @@ class WelcomeScreenState extends State<WelcomeScreen> {
   @override
   void initState() {
     super.initState();
-    _appService = AppService(context);
     updateOnBoardingPage();
   }
 

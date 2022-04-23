@@ -15,7 +15,7 @@ class AnalyticsView extends StatefulWidget {
 }
 
 class _AnalyticsViewState extends State<AnalyticsView> {
-  late AppService _appService;
+  final AppService _appService = AppService();
   List<Measurement> _places = [];
 
   @override
@@ -45,7 +45,6 @@ class _AnalyticsViewState extends State<AnalyticsView> {
   @override
   void initState() {
     super.initState();
-    _appService = AppService(context);
     _initialize();
   }
 

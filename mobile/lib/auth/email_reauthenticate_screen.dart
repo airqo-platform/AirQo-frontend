@@ -28,7 +28,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
   var _showResendCode = false;
   var _emailVerificationCode = <String>['', '', '', '', '', ''];
   var _nextBtnColor = Config.appColorDisabled;
-  late AppService _appService;
+  final AppService _appService = AppService();
 
   @override
   Widget build(BuildContext context) {
@@ -141,7 +141,6 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
   @override
   void initState() {
     super.initState();
-    _appService = AppService(context);
     initialize();
     _requestVerification();
   }

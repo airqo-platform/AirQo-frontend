@@ -146,6 +146,14 @@ extension DateTimeExtension on DateTime {
     }
   }
 
+  String getMonth(DateTime? datetime) {
+    var referenceMonth = datetime != null ? datetime.month : month;
+    if (referenceMonth.toString().length > 1) {
+      return referenceMonth.toString();
+    }
+    return '0$referenceMonth';
+  }
+
   String getMonthString({required bool abbreviate}) {
     switch (month) {
       case 1:
@@ -175,14 +183,6 @@ extension DateTimeExtension on DateTime {
       default:
         return '';
     }
-  }
-
-  String getMonth(DateTime? datetime) {
-    var referenceMonth = datetime != null ? datetime.month : month;
-    if (referenceMonth.toString().length > 1) {
-      return referenceMonth.toString();
-    }
-    return '0$referenceMonth';
   }
 
   String getShortDate() {
@@ -307,16 +307,49 @@ extension FileExtenion on File {
   }
 }
 
+extension FrequencyExtension on Frequency {
+  String asString() {
+    switch (this) {
+      case Frequency.daily:
+        return 'daily';
+      case Frequency.hourly:
+        return 'hourly';
+      default:
+        return '';
+    }
+  }
+}
+
+extension PollutantExtension on Pollutant {
+  String asString() {
+    switch (this) {
+      case Pollutant.pm2_5:
+        return 'pm 2.5';
+      case Pollutant.pm10:
+        return 'pm 10';
+      default:
+        return '';
+    }
+  }
+
+  String toTitleCase() {
+    switch (this) {
+      case Pollutant.pm2_5:
+        return 'pm2_5'.toTitleCase();
+      case Pollutant.pm10:
+        return 'pm10'.toTitleCase();
+      default:
+        return '';
+    }
+  }
+}
+
 extension StringCasingExtension on String {
   bool equalsIgnoreCase(String value) {
     if (toLowerCase() == value.toLowerCase()) {
       return true;
     }
     return false;
-  }
-
-  String trimEllipsis() {
-    return replaceAll('', '\u{200B}');
   }
 
   bool isNull() {
@@ -360,42 +393,9 @@ extension StringCasingExtension on String {
 
   String toTitleCase() =>
       split(' ').map((str) => str.toCapitalized()).join(' ');
-}
 
-extension FrequencyExtension on Frequency {
-  String asString() {
-    switch (this) {
-      case Frequency.daily:
-        return 'daily';
-      case Frequency.hourly:
-        return 'hourly';
-      default:
-        return '';
-    }
-  }
-}
-
-extension PollutantExtension on Pollutant {
-  String asString() {
-    switch (this) {
-      case Pollutant.pm2_5:
-        return 'pm 2.5';
-      case Pollutant.pm10:
-        return 'pm 10';
-      default:
-        return '';
-    }
-  }
-
-  String toTitleCase() {
-    switch (this) {
-      case Pollutant.pm2_5:
-        return 'pm2_5'.toTitleCase();
-      case Pollutant.pm10:
-        return 'pm10'.toTitleCase();
-      default:
-        return '';
-    }
+  String trimEllipsis() {
+    return replaceAll('', '\u{200B}');
   }
 }
 

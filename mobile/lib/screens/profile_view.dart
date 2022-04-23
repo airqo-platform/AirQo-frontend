@@ -28,7 +28,7 @@ class ProfileView extends StatefulWidget {
 class _ProfileViewState extends State<ProfileView> {
   UserDetails _userProfile = UserDetails.initialize();
   bool _isLoggedIn = false;
-  late AppService _appService;
+  final AppService _appService = AppService();
 
   Widget appNavBar() {
     return Padding(
@@ -228,7 +228,6 @@ class _ProfileViewState extends State<ProfileView> {
   @override
   void initState() {
     super.initState();
-    _appService = AppService(context);
     initialize();
   }
 
@@ -245,7 +244,7 @@ class _ProfileViewState extends State<ProfileView> {
       Navigator.pop(loadingContext);
       await Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
-        return const PhoneLoginWidget(phoneNumber: '', enableBackButton: false);
+        return const PhoneLoginWidget(phoneNumber: '');
       }), (r) => false);
     } else {
       Navigator.pop(loadingContext);
@@ -470,8 +469,7 @@ class _ProfileViewState extends State<ProfileView> {
             onTap: () async {
               await Navigator.pushAndRemoveUntil(context,
                   MaterialPageRoute(builder: (context) {
-                return const PhoneLoginWidget(
-                    phoneNumber: '', enableBackButton: false);
+                return const PhoneLoginWidget(phoneNumber: '');
               }), (r) => false);
             },
             child: Padding(

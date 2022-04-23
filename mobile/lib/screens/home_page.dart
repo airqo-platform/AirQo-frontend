@@ -27,7 +27,7 @@ class _HomePageState extends State<HomePage> {
     const MapView(),
     const ProfileView(),
   ];
-  late AppService _appService;
+  final AppService _appService = AppService();
 
   @override
   Widget build(BuildContext context) {
@@ -145,14 +145,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> initialize() async {
-    await _appService.fetchData();
+    await _appService.fetchData(context);
     await _getCloudStore();
   }
 
   @override
   void initState() {
     super.initState();
-    _appService = AppService(context);
     initialize();
     updateOnBoardingPage();
   }
