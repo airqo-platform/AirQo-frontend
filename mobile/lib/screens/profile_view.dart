@@ -244,7 +244,7 @@ class _ProfileViewState extends State<ProfileView> {
       Navigator.pop(loadingContext);
       await Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
-        return const PhoneLoginWidget(phoneNumber: '');
+        return const PhoneLoginWidget();
       }), (r) => false);
     } else {
       Navigator.pop(loadingContext);
@@ -469,7 +469,7 @@ class _ProfileViewState extends State<ProfileView> {
             onTap: () async {
               await Navigator.pushAndRemoveUntil(context,
                   MaterialPageRoute(builder: (context) {
-                return const PhoneLoginWidget(phoneNumber: '');
+                return const PhoneLoginWidget();
               }), (r) => false);
             },
             child: Padding(

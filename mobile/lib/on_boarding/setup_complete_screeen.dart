@@ -4,6 +4,8 @@ import 'package:app/services/app_service.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:flutter/material.dart';
 
+import '../models/enum_constants.dart';
+
 class SetUpCompleteScreen extends StatefulWidget {
   const SetUpCompleteScreen({Key? key}) : super(key: key);
 
@@ -44,7 +46,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
     Future.delayed(const Duration(seconds: 4), () {
       Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
-        _updateOnBoardingPage('home');
+        _updateOnBoardingPage(OnBoardingPage.home);
         return const HomePage();
       }), (r) => false);
     });
@@ -53,7 +55,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   @override
   void initState() {
     super.initState();
-    _appService.preferencesHelper.updateOnBoardingPage('complete');
+    _appService.preferencesHelper.updateOnBoardingPage(OnBoardingPage.complete);
     initialize();
   }
 
@@ -98,7 +100,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
         letterSpacing: 16 * -0.022);
   }
 
-  Future<void> _updateOnBoardingPage(String page) async {
+  Future<void> _updateOnBoardingPage(OnBoardingPage page) async {
     await Future.wait([
       _appService.postSignUpActions(context),
       _appService.preferencesHelper.updateOnBoardingPage(page)

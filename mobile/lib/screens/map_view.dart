@@ -8,6 +8,7 @@ import 'package:app/models/suggestion.dart';
 import 'package:app/themes/dark_theme.dart';
 import 'package:app/themes/light_theme.dart';
 import 'package:app/utils/dialogs.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/widgets/analytics_card.dart';
 import 'package:app/widgets/custom_widgets.dart';
@@ -18,6 +19,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
+import '../models/enum_constants.dart';
 import '../services/app_service.dart';
 
 class MapView extends StatefulWidget {
@@ -37,7 +39,7 @@ class _MapViewState extends State<MapView> {
   List<Measurement> _latestMeasurements = [];
   final String sessionToken = const Uuid().v4();
   List<Suggestion> _searchSuggestions = [];
-  String _selectedRegion = '';
+  Region _selectedRegion = Region.central;
   final TextEditingController _searchController = TextEditingController();
   PlaceDetails? _locationPlaceMeasurement;
   Measurement? _locationMeasurement;
@@ -347,10 +349,10 @@ class _MapViewState extends State<MapView> {
             const SizedBox(
               height: 5,
             ),
-            regionTile('Central Region'),
-            regionTile('Western Region'),
-            regionTile('Eastern Region'),
-            regionTile('Northern Region'),
+            regionTile(Region.central),
+            regionTile(Region.western),
+            regionTile(Region.eastern),
+            regionTile(Region.northern),
             SizedBox(
               height: MediaQuery.of(context).size.height,
             ),
@@ -358,15 +360,15 @@ class _MapViewState extends State<MapView> {
         ));
   }
 
-  ListTile regionTile(String name) {
+  ListTile regionTile(Region region) {
     return ListTile(
       contentPadding: const EdgeInsets.only(left: 0.0),
       leading: regionAvatar(),
       onTap: () {
-        showRegionSites(name);
+        showRegionSites(region);
       },
       title: AutoSizeText(
-        name,
+        region.getName(),
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
         style: CustomTextStyle.headline8(context),
@@ -786,7 +788,7 @@ class _MapViewState extends State<MapView> {
     }
   }
 
-  Future<void> showRegionSites(String region) async {
+  Future<void> showRegionSites(Region region) async {
     if (!mounted) {
       return;
     }
@@ -850,7 +852,7 @@ class _MapViewState extends State<MapView> {
             Visibility(
               visible: _regionSites.isNotEmpty,
               child: Text(
-                _selectedRegion,
+                _selectedRegion.getName(),
                 style: CustomTextStyle.overline1(context)
                     ?.copyWith(color: Config.appColorBlack.withOpacity(0.32)),
               ),
@@ -869,7 +871,7 @@ class _MapViewState extends State<MapView> {
                     ))),
             Visibility(
                 visible: _regionSites.isEmpty,
-                child: emptyView(_selectedRegion, 'region', false)),
+                child: emptyView(_selectedRegion.getName(), 'region', false)),
             SizedBox(
               height: MediaQuery.of(context).size.height,
             ),

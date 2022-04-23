@@ -14,7 +14,6 @@ import 'package:app/models/suggestion.dart';
 import 'package:app/models/user_details.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';

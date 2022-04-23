@@ -17,11 +17,11 @@ import '../themes/light_theme.dart';
 import '../widgets/custom_shimmer.dart';
 
 class EmailAuthWidget extends StatefulWidget {
-  final bool isLogin;
-  final String emailAddress;
+  final String? emailAddress;
+  final AuthProcedure authProcedure;
 
   const EmailAuthWidget(
-      {Key? key, required this.isLogin, required this.emailAddress})
+      {Key? key, this.emailAddress, required this.authProcedure})
       : super(key: key);
 
   @override
@@ -182,7 +182,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                 context,
                 PageRouteBuilder(
                   pageBuilder: (context, animation, secondaryAnimation) {
-                    if (widget.isLogin) {
+                    if (widget.authProcedure == AuthProcedure.login) {
                       return const PhoneLoginWidget(
                         phoneNumber: '',
                       );
@@ -217,7 +217,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
       ),
       Visibility(
         visible: _showAuthOptions,
-        child: widget.isLogin
+        child: widget.authProcedure == AuthProcedure.login
             ? loginOptions(context: context)
             : signUpOptions(context: context),
       ),
@@ -422,7 +422,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     loadingScreen(loadingContext);
 
     bool success;
-    if (!widget.isLogin) {
+    if (widget.authProcedure == AuthProcedure.signup) {
       success = await _appService.authenticateUser(
           emailAuthLink: _emailVerificationLink,
           emailAddress: _emailAddress,
@@ -441,10 +441,10 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     Navigator.pop(loadingContext);
 
     if (success) {
-      if (!widget.isLogin) {
+      if (widget.authProcedure == AuthProcedure.signup) {
         await Navigator.pushAndRemoveUntil(context,
             MaterialPageRoute(builder: (context) {
-          return ProfileSetupScreen();
+          return const ProfileSetupScreen();
         }), (r) => false);
       } else {
         await Navigator.pushAndRemoveUntil(context,
@@ -470,8 +470,8 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
 
   void _initialize() {
     setState(() {
-      _emailAddress = widget.emailAddress;
-      _nextBtnColor = widget.emailAddress == ''
+      _emailAddress = widget.emailAddress ?? '';
+      _nextBtnColor = widget.emailAddress == null
           ? Config.appColorDisabled
           : Config.appColorBlue;
       _emailVerificationLink = '';
@@ -483,10 +483,10 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
       _emailInputController = TextEditingController(text: _emailAddress);
 
       _showAuthOptions = true;
-      _authOptionsText = widget.isLogin
+      _authOptionsText = widget.authProcedure == AuthProcedure.login
           ? 'Login with your email or mobile number'
           : 'Sign up with your email or mobile number';
-      _authOptionsButtonText = widget.isLogin
+      _authOptionsButtonText = widget.authProcedure == AuthProcedure.login
           ? 'Login with a mobile number instead'
           : 'Sign up with a mobile number instead';
     });
@@ -515,7 +515,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     });
     loadingScreen(loadingContext);
 
-    if (!widget.isLogin) {
+    if (widget.authProcedure == AuthProcedure.signup) {
       var emailExists = await _appService.doesUserExist(
           emailAddress: _emailAddress, buildContext: context);
 
@@ -619,8 +619,11 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
 }
 
 class EmailLoginWidget extends EmailAuthWidget {
-  const EmailLoginWidget({Key? key, required String emailAddress})
-      : super(key: key, emailAddress: emailAddress, isLogin: true);
+  const EmailLoginWidget({Key? key, String? emailAddress})
+      : super(
+            key: key,
+            emailAddress: emailAddress,
+            authProcedure: AuthProcedure.login);
 
   @override
   EmailLoginWidgetState createState() => EmailLoginWidgetState();
@@ -630,7 +633,7 @@ class EmailLoginWidgetState extends EmailAuthWidgetState<EmailLoginWidget> {}
 
 class EmailSignUpWidget extends EmailAuthWidget {
   const EmailSignUpWidget({Key? key})
-      : super(key: key, emailAddress: '', isLogin: false);
+      : super(key: key, authProcedure: AuthProcedure.signup);
 
   @override
   EmailSignUpWidgetState createState() => EmailSignUpWidgetState();

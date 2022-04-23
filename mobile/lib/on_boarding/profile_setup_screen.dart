@@ -112,7 +112,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   onTap: () {
                     Navigator.pushAndRemoveUntil(context,
                         MaterialPageRoute(builder: (context) {
-                      return NotificationsSetupScreen();
+                      return const NotificationsSetupScreen();
                     }), (r) => false);
                   },
                   child: Center(
@@ -279,7 +279,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
           Navigator.pop(dialogContext);
           await Navigator.pushAndRemoveUntil(context,
               MaterialPageRoute(builder: (context) {
-            return NotificationsSetupScreen();
+            return const NotificationsSetupScreen();
           }), (r) => false);
         }
       }
@@ -325,7 +325,8 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   }
 
   void updateOnBoardingPage() async {
-    await _appService.preferencesHelper.updateOnBoardingPage('profile');
+    await _appService.preferencesHelper
+        .updateOnBoardingPage(OnBoardingPage.profile);
   }
 
   void updateTitle(String text) {

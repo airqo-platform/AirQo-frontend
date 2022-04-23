@@ -278,12 +278,12 @@ class DBHelper {
     }
   }
 
-  Future<List<Measurement>> getRegionSites(String region) async {
+  Future<List<Measurement>> getRegionSites(Region region) async {
     try {
       final db = await database;
 
       var res = await db.query(Measurement.measurementsDb(),
-          where: 'region = ?', whereArgs: [region.trim()]);
+          where: 'region = ?', whereArgs: [region.getName().trim()]);
 
       return res.isNotEmpty
           ? List.generate(res.length, (i) {
@@ -589,12 +589,12 @@ class SharedPreferencesHelper {
     _sharedPreferences = await SharedPreferences.getInstance();
   }
 
-  Future<void> updateOnBoardingPage(String currentPage) async {
+  Future<void> updateOnBoardingPage(OnBoardingPage currentBoardingPage) async {
     if (_sharedPreferences == null) {
       await initialize();
     }
     await _sharedPreferences!
-        .setString(Config.prefOnBoardingPage, currentPage.toLowerCase());
+        .setString(Config.prefOnBoardingPage, currentBoardingPage.getName());
   }
 
   Future<void> updatePreference(String key, dynamic value, String type) async {

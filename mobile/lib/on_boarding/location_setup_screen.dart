@@ -1,4 +1,5 @@
 import 'package:app/constants/config.dart';
+import 'package:app/models/enum_constants.dart';
 import 'package:app/on_boarding/setup_complete_screeen.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/app_service.dart';
@@ -60,13 +61,13 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
                   .then((value) => {
                         Navigator.pushAndRemoveUntil(context,
                             MaterialPageRoute(builder: (context) {
-                          return SetUpCompleteScreen();
+                          return const SetUpCompleteScreen();
                         }), (r) => false)
                       })
                   .whenComplete(() => {
                         Navigator.pushAndRemoveUntil(context,
                             MaterialPageRoute(builder: (context) {
-                          return SetUpCompleteScreen();
+                          return const SetUpCompleteScreen();
                         }), (r) => false)
                       });
             },
@@ -80,7 +81,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
           onTap: () {
             Navigator.pushAndRemoveUntil(context,
                 MaterialPageRoute(builder: (context) {
-              return SetUpCompleteScreen();
+              return const SetUpCompleteScreen();
             }), (r) => false);
           },
           child: Text(
@@ -124,6 +125,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
   }
 
   void updateOnBoardingPage() async {
-    await _appService.preferencesHelper.updateOnBoardingPage('location');
+    await _appService.preferencesHelper
+        .updateOnBoardingPage(OnBoardingPage.location);
   }
 }

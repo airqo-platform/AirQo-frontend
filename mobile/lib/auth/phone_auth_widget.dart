@@ -17,13 +17,13 @@ import '../themes/light_theme.dart';
 import '../widgets/custom_shimmer.dart';
 
 class PhoneAuthWidget extends StatefulWidget {
-  final String phoneNumber;
-  final bool isLogin;
+  final String? phoneNumber;
+  final AuthProcedure authProcedure;
 
   const PhoneAuthWidget({
     Key? key,
-    required this.phoneNumber,
-    required this.isLogin,
+    this.phoneNumber,
+    required this.authProcedure,
   }) : super(key: key);
 
   @override
@@ -258,10 +258,8 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                   context,
                   PageRouteBuilder(
                     pageBuilder: (context, animation, secondaryAnimation) {
-                      if (widget.isLogin) {
-                        return const EmailLoginWidget(
-                          emailAddress: '',
-                        );
+                      if (widget.authProcedure == AuthProcedure.login) {
+                        return const EmailLoginWidget();
                       }
                       return const EmailSignUpWidget();
                     },
@@ -303,7 +301,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
         visible: _showAuthOptions,
         child: Padding(
           padding: const EdgeInsets.only(left: 24, right: 24),
-          child: widget.isLogin
+          child: widget.authProcedure == AuthProcedure.login
               ? loginOptions(context: context)
               : signUpOptions(context: context),
         ),
@@ -474,7 +472,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
   }
 
   Future<void> _authenticatePhoneNumber(AuthCredential authCredential) async {
-    if (widget.isLogin) {
+    if (widget.authProcedure == AuthProcedure.login) {
       var loginSuccessful = await _appService.authenticateUser(
           authProcedure: AuthProcedure.login,
           buildContext: context,
@@ -527,13 +525,14 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
 
   void _initialize() {
     setState(() {
-      _phoneNumber =
-          widget.phoneNumber == '' ? '' : widget.phoneNumber.split('.').last;
-      _countryCode = widget.phoneNumber == ''
+      _phoneNumber = (widget.phoneNumber == null
+          ? ''
+          : widget.phoneNumber?.split('.').last)!;
+      _countryCode = (widget.phoneNumber == null
           ? '+256'
-          : widget.phoneNumber.split('.').first;
+          : widget.phoneNumber?.split('.').first)!;
       _phoneVerificationCode = <String>['', '', '', '', '', ''];
-      _nextBtnColor = widget.phoneNumber == ''
+      _nextBtnColor = widget.phoneNumber == null
           ? Config.appColorDisabled
           : Config.appColorBlue;
       _verifyCode = false;
@@ -541,10 +540,10 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
       _codeSent = false;
       _phoneInputController = TextEditingController(text: _phoneNumber);
       _showAuthOptions = true;
-      _authOptionsText = widget.isLogin
+      _authOptionsText = widget.authProcedure == AuthProcedure.login
           ? 'Login with your mobile number or email'
           : 'Sign up with your mobile number or email';
-      _authOptionsButtonText = widget.isLogin
+      _authOptionsButtonText = widget.authProcedure == AuthProcedure.login
           ? 'Login with an email instead'
           : 'Sign up with an email instead';
     });
@@ -578,7 +577,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
 
       var phoneNumber = '$_countryCode$_phoneNumber';
 
-      if (!widget.isLogin) {
+      if (widget.authProcedure == AuthProcedure.signup) {
         var phoneNumberTaken = await _appService.doesUserExist(
             phoneNumber: phoneNumber, buildContext: context);
 
@@ -712,8 +711,11 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
 }
 
 class PhoneLoginWidget extends PhoneAuthWidget {
-  const PhoneLoginWidget({Key? key, required String phoneNumber})
-      : super(key: key, phoneNumber: phoneNumber, isLogin: true);
+  const PhoneLoginWidget({Key? key, String? phoneNumber})
+      : super(
+            key: key,
+            phoneNumber: phoneNumber,
+            authProcedure: AuthProcedure.login);
 
   @override
   PhoneLoginWidgetState createState() => PhoneLoginWidgetState();
@@ -723,7 +725,7 @@ class PhoneLoginWidgetState extends PhoneAuthWidgetState<PhoneLoginWidget> {}
 
 class PhoneSignUpWidget extends PhoneAuthWidget {
   const PhoneSignUpWidget({Key? key})
-      : super(key: key, phoneNumber: '', isLogin: false);
+      : super(key: key, authProcedure: AuthProcedure.signup);
 
   @override
   PhoneSignUpWidgetState createState() => PhoneSignUpWidgetState();

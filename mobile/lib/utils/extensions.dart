@@ -6,6 +6,42 @@ import 'package:intl/intl.dart';
 
 import '../models/enum_constants.dart';
 
+OnBoardingPage getOnBoardingPageConstant(String value) {
+  switch (value) {
+    case 'signup':
+      return OnBoardingPage.signup;
+    case 'profile':
+      return OnBoardingPage.profile;
+    case 'notification':
+      return OnBoardingPage.notification;
+    case 'location':
+      return OnBoardingPage.location;
+    case 'complete':
+      return OnBoardingPage.complete;
+    case 'home':
+      return OnBoardingPage.home;
+    case 'welcome':
+      return OnBoardingPage.welcome;
+    default:
+      return OnBoardingPage.signup;
+  }
+}
+
+Region getRegionConstant(String value) {
+  switch (value) {
+    case 'central':
+      return Region.central;
+    case 'northern':
+      return Region.northern;
+    case 'eastern':
+      return Region.eastern;
+    case 'western':
+      return Region.western;
+    default:
+      return Region.central;
+  }
+}
+
 extension AnalyticsEventExtension on AnalyticsEvent {
   String getName(String loggedInStatus) {
     var prefix = kReleaseMode ? 'prod_' : 'stage_';
@@ -314,6 +350,46 @@ extension FrequencyExtension on Frequency {
         return 'daily';
       case Frequency.hourly:
         return 'hourly';
+      default:
+        return '';
+    }
+  }
+}
+
+extension RegionExtension on Region {
+  String getName() {
+    switch (this) {
+      case Region.central:
+        return 'Central Region';
+      case Region.eastern:
+        return 'Eastern Region';
+      case Region.western:
+        return 'Western Region';
+      case Region.northern:
+        return 'Northern Region';
+      default:
+        return '';
+    }
+  }
+}
+
+extension OnBoardingPageExtension on OnBoardingPage {
+  String getName() {
+    switch (this) {
+      case OnBoardingPage.signup:
+        return 'signup';
+      case OnBoardingPage.profile:
+        return 'profile';
+      case OnBoardingPage.notification:
+        return 'notification';
+      case OnBoardingPage.location:
+        return 'location';
+      case OnBoardingPage.complete:
+        return 'complete';
+      case OnBoardingPage.home:
+        return 'home';
+      case OnBoardingPage.welcome:
+        return 'welcome';
       default:
         return '';
     }

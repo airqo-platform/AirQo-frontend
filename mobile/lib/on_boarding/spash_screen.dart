@@ -7,8 +7,11 @@ import 'package:app/on_boarding/setup_complete_screeen.dart';
 import 'package:app/on_boarding/welcome_screen.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/app_service.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+
+import '../models/enum_constants.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -49,8 +52,8 @@ class SplashScreenState extends State<SplashScreen> {
 
     var isLoggedIn = _appService.isLoggedIn();
 
-    var nextPage =
-        (await _appService.preferencesHelper.getOnBoardingPage()).toLowerCase();
+    var nextPage = getOnBoardingPageConstant(
+        await _appService.preferencesHelper.getOnBoardingPage());
 
     Future.delayed(const Duration(seconds: 2), _updateWidget);
 
@@ -62,17 +65,17 @@ class SplashScreenState extends State<SplashScreen> {
           return const WelcomeScreen();
         } else {
           switch (nextPage) {
-            case 'signup':
+            case OnBoardingPage.signup:
               return const PhoneSignUpWidget();
-            case 'profile':
+            case OnBoardingPage.profile:
               return const ProfileSetupScreen();
-            case 'notification':
+            case OnBoardingPage.notification:
               return const NotificationsSetupScreen();
-            case 'location':
+            case OnBoardingPage.location:
               return const LocationSetupScreen();
-            case 'complete':
+            case OnBoardingPage.complete:
               return const SetUpCompleteScreen();
-            case 'home':
+            case OnBoardingPage.home:
               return const HomePage();
             default:
               return const WelcomeScreen();

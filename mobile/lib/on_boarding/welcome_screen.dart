@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../auth/phone_auth_widget.dart';
+import '../models/enum_constants.dart';
 import '../themes/light_theme.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -101,7 +102,8 @@ class WelcomeScreenState extends State<WelcomeScreen> {
   }
 
   void updateOnBoardingPage() async {
-    await _appService.preferencesHelper.updateOnBoardingPage('welcome');
+    await _appService.preferencesHelper
+        .updateOnBoardingPage(OnBoardingPage.welcome);
   }
 
   Widget welcomeSection(

@@ -5,6 +5,7 @@ import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:flutter/material.dart';
 
+import '../models/enum_constants.dart';
 import '../themes/light_theme.dart';
 import 'location_setup_screen.dart';
 
@@ -60,7 +61,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
                   .then((value) => {
                         Navigator.pushAndRemoveUntil(context,
                             MaterialPageRoute(builder: (context) {
-                          return LocationSetupScreen();
+                          return const LocationSetupScreen();
                         }), (r) => false)
                       });
             },
@@ -74,7 +75,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
           onTap: () {
             Navigator.pushAndRemoveUntil(context,
                 MaterialPageRoute(builder: (context) {
-              return LocationSetupScreen();
+              return const LocationSetupScreen();
             }), (r) => false);
           },
           child: Text(
@@ -118,6 +119,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
   }
 
   void updateOnBoardingPage() async {
-    await _appService.preferencesHelper.updateOnBoardingPage('notification');
+    await _appService.preferencesHelper
+        .updateOnBoardingPage(OnBoardingPage.notification);
   }
 }

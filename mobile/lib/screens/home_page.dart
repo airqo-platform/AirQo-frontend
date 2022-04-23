@@ -1,5 +1,6 @@
 import 'package:animations/animations.dart';
 import 'package:app/constants/config.dart';
+import 'package:app/models/enum_constants.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/screens/profile_view.dart';
 import 'package:app/services/app_service.dart';
@@ -179,7 +180,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   void updateOnBoardingPage() async {
-    await _appService.preferencesHelper.updateOnBoardingPage('home');
+    await _appService.preferencesHelper
+        .updateOnBoardingPage(OnBoardingPage.home);
   }
 
   Future<void> _getCloudStore() async {
