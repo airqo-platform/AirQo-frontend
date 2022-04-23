@@ -168,7 +168,7 @@ class AppService {
       }
       var sitesInsights = await Future.wait(futures);
       for (var result in sitesInsights) {
-        insights.add(result);
+        insights.addAll(result);
       }
     } else {
       insights = await _apiClient.fetchSitesInsights(siteIds.join(','));

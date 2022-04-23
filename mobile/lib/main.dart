@@ -24,7 +24,7 @@ import 'providers/theme_provider.dart';
 import 'themes/dark_theme.dart';
 import 'themes/light_theme.dart';
 
-Future<void> main() async {
+void main() async {
   HttpOverrides.global = AppHttpOverrides();
   await dotenv.load(fileName: Config.environmentFile);
 

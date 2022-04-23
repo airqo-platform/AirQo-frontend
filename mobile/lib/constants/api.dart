@@ -8,7 +8,7 @@ class AirQoUrls {
   static String get forecast => '${Config.airqoApiUrlV2}predict/';
 
   static String get insights =>
-      '${Config.airqoApiUrl}views/measurements/insights';
+      '${Config.airqoApiUrl}views/measurements/app/insights';
 
   static String get measurements => '${Config.airqoApiUrl}devices/events';
 
