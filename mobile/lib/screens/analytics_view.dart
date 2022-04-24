@@ -43,13 +43,17 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                       child: MiniAnalyticsCard(
                           PlaceDetails.measurementToPLace(_places[index])));
                 }, childCount: _places.length),
-                onRefresh: _initialize));
+                onRefresh: _refresh));
   }
 
   @override
   void initState() {
     super.initState();
     _initialize();
+  }
+
+  Future<void> _refresh() async {
+    await _appService.refreshAnalytics().then((value) => _initialize());
   }
 
   Future<void> _initialize() async {

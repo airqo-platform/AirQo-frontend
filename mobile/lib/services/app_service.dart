@@ -426,6 +426,14 @@ class AppService {
     ]);
   }
 
+  Future<void> refreshAnalytics() async {
+    await Future.wait([
+      fetchLatestMeasurements(),
+      fetchKya(),
+      fetchFavPlacesInsights(),
+    ]);
+  }
+
   Future<void> updateFavouritePlace(
       PlaceDetails placeDetails, BuildContext context) async {
     var isFav = await _dbHelper.updateFavouritePlace(placeDetails);

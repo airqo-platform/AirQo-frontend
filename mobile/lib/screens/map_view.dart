@@ -60,23 +60,6 @@ class _MapViewState extends State<MapView> {
                 bottom: MediaQuery.of(context).size.height * bottomPadding),
             child: mapWidget(),
           ),
-
-          // Visibility(
-          //   visible: false,
-          //   child: DraggableScrollableSheet(
-          //     initialChildSize: _scrollSheetHeight,
-          //     minChildSize: 0.18,
-          //     maxChildSize: 0.92,
-          //     builder:
-          //         (BuildContext context, ScrollController scrollController) {
-          //       return SingleChildScrollView(
-          //         controller: scrollController,
-          //         child: scrollViewContent(),
-          //       );
-          //     },
-          //   ),
-          // ),
-
           Visibility(
             visible: _showLocationDetails,
             child: DraggableScrollableSheet(
@@ -106,7 +89,7 @@ class _MapViewState extends State<MapView> {
                 return cardWidget(
                     SingleChildScrollView(
                       controller: scrollController,
-                      physics: const ScrollPhysics(),
+                      physics: const BouncingScrollPhysics(),
                       child: defaultContent(),
                     ),
                     32);
@@ -292,9 +275,6 @@ class _MapViewState extends State<MapView> {
               controller: ScrollController(),
               children: <Widget>[
                 getLocationDisplay(),
-                SizedBox(
-                  height: MediaQuery.of(context).size.height / 2,
-                ),
               ],
             )),
       ],
@@ -343,8 +323,7 @@ class _MapViewState extends State<MapView> {
         context: context,
         child: ListView(
           shrinkWrap: true,
-          physics: const ScrollPhysics(),
-          controller: ScrollController(),
+          physics: const BouncingScrollPhysics(),
           children: <Widget>[
             const SizedBox(
               height: 5,
@@ -353,9 +332,6 @@ class _MapViewState extends State<MapView> {
             regionTile(Region.western),
             regionTile(Region.eastern),
             regionTile(Region.northern),
-            SizedBox(
-              height: MediaQuery.of(context).size.height,
-            ),
           ],
         ));
   }
@@ -386,25 +362,6 @@ class _MapViewState extends State<MapView> {
       ),
     );
   }
-
-  // Widget scrollViewContent() {
-  //   return Card(
-  //       margin: EdgeInsets.zero,
-  //       elevation: 12.0,
-  //       shape: const RoundedRectangleBorder(
-  //           borderRadius: BorderRadius.only(
-  //               topLeft: Radius.circular(16),
-  //               topRight: Radius.circular(16))),
-  //       child: _showLocationDetails
-  //           ? Container(
-  //               padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 16.0),
-  //               child: locationContent(),
-  //             )
-  //           : Container(
-  //               padding: const EdgeInsets.fromLTRB(32.0, 0, 32.0, 16.0),
-  //               child: defaultContent(),
-  //             ));
-  // }
 
   void searchChanged(String text) {
     if (text.isEmpty) {
@@ -437,50 +394,82 @@ class _MapViewState extends State<MapView> {
         Expanded(
           child: Container(
             height: 32,
+            constraints: const BoxConstraints(minWidth: double.maxFinite),
             decoration: BoxDecoration(
                 color: Config.appBodyColor,
-                borderRadius: BorderRadius.circular(8)),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(10.0, 0, 0, 0),
+                shape: BoxShape.rectangle,
+                borderRadius: const BorderRadius.all(Radius.circular(8.0))),
+            child: TextFormField(
+              controller: _searchController,
+              onChanged: searchChanged,
+              onTap: () {
+                setState(() {
+                  _scrollSheetHeight = 0.7;
+                });
+              },
+              style: Theme.of(context).textTheme.caption?.copyWith(
+                    fontSize: 16,
+                  ),
+              enableSuggestions: true,
+              cursorWidth: 1,
+              autofocus: false,
+              cursorColor: Config.appColorBlack,
+              decoration: InputDecoration(
+                fillColor: Colors.white,
+                prefixIcon: Padding(
+                  padding: const EdgeInsets.only(
+                      right: 0, top: 7, bottom: 7, left: 0),
                   child: SvgPicture.asset(
                     'assets/icon/search.svg',
-                    height: 17,
-                    width: 17,
                     semanticsLabel: 'Search',
                   ),
                 ),
-                searchField(),
-              ],
+                contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                focusedBorder: OutlineInputBorder(
+                  borderSide:
+                      const BorderSide(color: Colors.transparent, width: 1.0),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide:
+                      const BorderSide(color: Colors.transparent, width: 1.0),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                border: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(color: Colors.transparent, width: 1.0),
+                    borderRadius: BorderRadius.circular(8.0)),
+                hintStyle: Theme.of(context).textTheme.caption?.copyWith(
+                      color: Config.appColorBlack.withOpacity(0.32),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                    ),
+              ),
             ),
           ),
         ),
-        // if (_isSearching || _regionSites.isEmpty)
-        if (!_displayRegions)
-          const SizedBox(
-            width: 8.0,
-          ),
-        // if (_isSearching || _regionSites.isEmpty)
-        if (!_displayRegions)
-          Container(
-              height: 32,
-              width: 32,
-              decoration: BoxDecoration(
-                  color: Config.appBodyColor,
-                  borderRadius: const BorderRadius.all(Radius.circular(8.0))),
-              child: Center(
-                child: IconButton(
-                  iconSize: 10,
-                  icon: Icon(
-                    Icons.clear,
-                    color: Config.appBarTitleColor,
-                  ),
-                  onPressed: showRegions,
+        Visibility(
+            visible: !_displayRegions,
+            child: const SizedBox(
+              width: 8.0,
+            )),
+        Visibility(
+            visible: !_displayRegions,
+            child: GestureDetector(
+              onTap: showRegions,
+              child: Container(
+                height: 32,
+                width: 32,
+                decoration: BoxDecoration(
+                    color: Config.appBodyColor,
+                    borderRadius: const BorderRadius.all(Radius.circular(8.0))),
+                child: SvgPicture.asset(
+                  'assets/icon/map_clear_text.svg',
+                  height: 15,
+                  width: 15,
                 ),
-              ))
+              ),
+            )),
       ],
     );
   }
@@ -511,94 +500,95 @@ class _MapViewState extends State<MapView> {
   }
 
   Widget searchResultsList() {
-    return ListView(
-      shrinkWrap: true,
-      children: [
-        Visibility(
-            visible: _searchSites.isEmpty && _searchSuggestions.isEmpty,
-            child: Center(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Stack(
+    return MediaQuery.removePadding(
+        removeTop: true,
+        context: context,
+        child: ListView(
+          shrinkWrap: true,
+          physics: const BouncingScrollPhysics(),
+          children: [
+            Visibility(
+                visible: _searchSites.isEmpty && _searchSuggestions.isEmpty,
+                child: Center(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Image.asset(
-                        'assets/images/world-map.png',
-                        height: 130,
-                        width: 130,
+                      const SizedBox(
+                        height: 10,
                       ),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Config.appColorBlue,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Padding(
-                          padding: EdgeInsets.all(12.0),
-                          child: Icon(
-                            Icons.map_outlined,
-                            size: 30,
-                            color: Colors.white,
+                      Stack(
+                        children: [
+                          Image.asset(
+                            'assets/images/world-map.png',
+                            height: 130,
+                            width: 130,
                           ),
-                        ),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Config.appColorBlue,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Padding(
+                              padding: EdgeInsets.all(12.0),
+                              child: Icon(
+                                Icons.map_outlined,
+                                size: 30,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(
+                        height: 52,
+                      ),
+                      const Text(
+                        'Not found',
+                        textAlign: TextAlign.start,
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(
+                        height: 52,
                       ),
                     ],
                   ),
-                  const SizedBox(
-                    height: 52,
-                  ),
-                  const Text(
-                    'Not found',
-                    textAlign: TextAlign.start,
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(
-                    height: 52,
-                  ),
-                ],
-              ),
-            )),
-        Visibility(
-            visible: _searchSites.isNotEmpty && _searchSuggestions.isEmpty,
-            child: Center(
-              child: MediaQuery.removePadding(
-                  context: context,
-                  removeTop: true,
-                  child: ListView.builder(
-                    physics: const ScrollPhysics(),
-                    controller: ScrollController(),
-                    shrinkWrap: true,
-                    itemBuilder: (context, index) =>
-                        siteTile(_searchSites[index]),
-                    itemCount: _searchSites.length,
-                  )),
-            )),
-        Visibility(
-            visible: _searchSuggestions.isNotEmpty,
-            child: Center(
-              child: MediaQuery.removePadding(
-                  context: context,
-                  removeTop: true,
-                  removeLeft: true,
-                  child: ListView.builder(
-                    controller: ScrollController(),
-                    shrinkWrap: true,
-                    itemBuilder: (context, index) =>
-                        searchTile(_searchSuggestions[index]),
-                    itemCount: _searchSuggestions.length,
-                  )),
-            )),
-        const SizedBox(
-          height: 8,
-        ),
-        SizedBox(
-          height: MediaQuery.of(context).size.height,
-        ),
-      ],
-    );
+                )),
+            Visibility(
+                visible: _searchSites.isNotEmpty && _searchSuggestions.isEmpty,
+                child: Center(
+                  child: MediaQuery.removePadding(
+                      context: context,
+                      removeTop: true,
+                      child: ListView.builder(
+                        physics: const BouncingScrollPhysics(),
+                        shrinkWrap: true,
+                        itemBuilder: (context, index) =>
+                            siteTile(_searchSites[index]),
+                        itemCount: _searchSites.length,
+                      )),
+                )),
+            Visibility(
+                visible: _searchSuggestions.isNotEmpty,
+                child: Center(
+                  child: MediaQuery.removePadding(
+                      context: context,
+                      removeTop: true,
+                      removeLeft: true,
+                      child: ListView.builder(
+                        physics: const BouncingScrollPhysics(),
+                        shrinkWrap: true,
+                        itemBuilder: (context, index) =>
+                            searchTile(_searchSuggestions[index]),
+                        itemCount: _searchSuggestions.length,
+                      )),
+                )),
+            const SizedBox(
+              height: 8,
+            ),
+          ],
+        ));
   }
 
   ListTile searchTile(Suggestion suggestion) {
@@ -609,13 +599,16 @@ class _MapViewState extends State<MapView> {
         showSuggestionReadings(suggestion);
       },
       title: AutoSizeText(
-        suggestion.suggestionDetails.mainText,
+        suggestion.suggestionDetails.mainText.trimEllipsis(),
         maxLines: 1,
+        minFontSize: 16.0,
         overflow: TextOverflow.ellipsis,
         style: CustomTextStyle.headline8(context),
       ),
-      subtitle: AutoSizeText(suggestion.suggestionDetails.secondaryText,
+      subtitle: AutoSizeText(
+          suggestion.suggestionDetails.secondaryText.trimEllipsis(),
           maxLines: 1,
+          minFontSize: 14.0,
           overflow: TextOverflow.ellipsis,
           style: CustomTextStyle.bodyText4(context)
               ?.copyWith(color: Config.appColorBlack.withOpacity(0.3))),
@@ -843,8 +836,7 @@ class _MapViewState extends State<MapView> {
         context: context,
         child: ListView(
           shrinkWrap: true,
-          physics: const ScrollPhysics(),
-          controller: ScrollController(),
+          physics: const BouncingScrollPhysics(),
           children: [
             const SizedBox(
               height: 10,
@@ -872,9 +864,6 @@ class _MapViewState extends State<MapView> {
             Visibility(
                 visible: _regionSites.isEmpty,
                 child: emptyView(_selectedRegion.getName(), 'region', false)),
-            SizedBox(
-              height: MediaQuery.of(context).size.height,
-            ),
           ],
         ));
   }
@@ -892,13 +881,15 @@ class _MapViewState extends State<MapView> {
         showLocationContent(measurement, null);
       },
       title: AutoSizeText(
-        measurement.site.name,
+        measurement.site.name.trimEllipsis(),
         maxLines: 1,
+        minFontSize: 16.0,
         overflow: TextOverflow.ellipsis,
         style: CustomTextStyle.headline8(context),
       ),
-      subtitle: AutoSizeText(measurement.site.location,
+      subtitle: AutoSizeText(measurement.site.location.trimEllipsis(),
           maxLines: 1,
+          minFontSize: 14.0,
           style: CustomTextStyle.bodyText4(context)
               ?.copyWith(color: Config.appColorBlack.withOpacity(0.4))),
       trailing: SvgPicture.asset(
