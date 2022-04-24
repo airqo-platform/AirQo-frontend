@@ -38,8 +38,9 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
                       Platform.isAndroid ? const BouncingScrollPhysics() : null,
                   slivers: [
                     CupertinoSliverRefreshControl(
-                      refreshTriggerPullDistance: 70,
-                      refreshIndicatorExtent: 60,
+                      refreshTriggerPullDistance:
+                          Config.refreshTriggerPullDistance,
+                      refreshIndicatorExtent: Config.refreshIndicatorExtent,
                       onRefresh: refreshData,
                     ),
                     SliverList(

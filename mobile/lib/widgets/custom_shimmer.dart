@@ -55,8 +55,8 @@ Widget refreshIndicator(
     physics: const BouncingScrollPhysics(),
     slivers: [
       CupertinoSliverRefreshControl(
-        refreshTriggerPullDistance: 70,
-        refreshIndicatorExtent: 60,
+        refreshTriggerPullDistance: Config.refreshTriggerPullDistance,
+        refreshIndicatorExtent: Config.refreshIndicatorExtent,
         onRefresh: onRefresh,
       ),
       SliverList(

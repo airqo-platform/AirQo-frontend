@@ -134,7 +134,7 @@ class DBHelper {
 
       var res = await db.query(Insights.dbName(),
           where: 'siteId = ? and frequency = ?',
-          whereArgs: [siteId, frequency.asString()]);
+          whereArgs: [siteId, frequency.getName()]);
 
       return res.isNotEmpty
           ? List.generate(res.length, (i) {

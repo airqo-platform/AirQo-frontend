@@ -344,7 +344,7 @@ extension FileExtenion on File {
 }
 
 extension FrequencyExtension on Frequency {
-  String asString() {
+  String getName() {
     switch (this) {
       case Frequency.daily:
         return 'daily';

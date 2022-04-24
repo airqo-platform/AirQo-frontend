@@ -167,4 +167,8 @@ class Config {
       dotenv.env['USERS_PROFILE_PICTURE_COLLECTION'] ?? '';
 
   static Color get yellow => const Color(0xffFFFF35);
+
+  static double get refreshTriggerPullDistance => 40;
+
+  static double get refreshIndicatorExtent => 30;
 }

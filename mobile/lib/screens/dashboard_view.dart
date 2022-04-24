@@ -105,8 +105,9 @@ class _DashboardViewState extends State<DashboardView> {
                       Platform.isAndroid ? const BouncingScrollPhysics() : null,
                   slivers: [
                     CupertinoSliverRefreshControl(
-                      refreshTriggerPullDistance: 40,
-                      refreshIndicatorExtent: 30,
+                      refreshTriggerPullDistance:
+                          Config.refreshTriggerPullDistance,
+                      refreshIndicatorExtent: Config.refreshIndicatorExtent,
                       onRefresh: _refresh,
                     ),
                     SliverList(

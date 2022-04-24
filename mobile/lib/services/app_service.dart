@@ -218,7 +218,7 @@ class AppService {
     if (frequency != null) {
       var frequencyInsights = <Insights>[];
       frequencyInsights = insights
-          .where((element) => element.frequency == frequency.asString())
+          .where((element) => element.frequency == frequency.getName())
           .toList();
       return frequencyInsights;
     }

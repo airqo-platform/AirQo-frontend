@@ -77,8 +77,8 @@ class _InsightsTabState extends State<InsightsTab> {
       physics: const BouncingScrollPhysics(),
       slivers: [
         CupertinoSliverRefreshControl(
-          refreshTriggerPullDistance: 50,
-          refreshIndicatorExtent: 10,
+          refreshTriggerPullDistance: Config.refreshTriggerPullDistance,
+          refreshIndicatorExtent: Config.refreshIndicatorExtent,
           onRefresh: _refreshPage,
         ),
         SliverList(
@@ -206,7 +206,7 @@ class _InsightsTabState extends State<InsightsTab> {
                                       setState(() {
                                         _currentItem = index;
                                       });
-                                      scrollToItem(
+                                      scrollToChart(
                                           _itemScrollController,
                                           _currentItem,
                                           _dailyPm2_5ChartData,
@@ -239,7 +239,7 @@ class _InsightsTabState extends State<InsightsTab> {
                                       setState(() {
                                         _currentItem = index;
                                       });
-                                      scrollToItem(
+                                      scrollToChart(
                                           _itemScrollController,
                                           _currentItem,
                                           _hourlyPm2_5ChartData,
@@ -477,7 +477,7 @@ class _InsightsTabState extends State<InsightsTab> {
     }
   }
 
-  Future<void> scrollToItem(
+  Future<void> scrollToChart(
       ItemScrollController controller,
       int index,
       List<List<charts.Series<Insights, String>>> data,
@@ -912,95 +912,50 @@ class _InsightsTabState extends State<InsightsTab> {
     }
 
     if (widget.frequency == Frequency.daily) {
-      var firstDay = DateTime.now()
-          .getFirstDateOfCalendarMonth()
-          .getDateOfFirstHourOfDay();
-      var lastDay =
-          DateTime.now().getLastDateOfCalendarMonth().getDateOfLastHourOfDay();
-
-      var dailyInsights = insightsData.where((element) {
-        var date = element.time;
-        if (date == firstDay ||
-            date == lastDay ||
-            (date.isAfter(firstDay) & date.isBefore(lastDay))) {
-          return true;
-        }
-        return false;
-      }).toList();
-
-      var data = dailyInsights
-          .where((element) => element.frequency.equalsIgnoreCase('daily'))
-          .toList();
-
       setState(() {
         _dailyPm2_5ChartData = insightsChartData(
-            List.from(data), Pollutant.pm2_5, Frequency.daily);
-        _dailyPm10ChartData =
-            insightsChartData(List.from(data), Pollutant.pm10, Frequency.daily);
+            List.from(insightsData), Pollutant.pm2_5, Frequency.daily);
+        _dailyPm10ChartData = insightsChartData(
+            List.from(insightsData), Pollutant.pm10, Frequency.daily);
         _selectedMeasurement = _dailyPm2_5ChartData.first.first.data.first;
         _hasMeasurements = true;
       });
 
-      for (var element in _dailyPm2_5ChartData) {
-        if (element.first.data.first.time.day == DateTime.now().day &&
-            element.first.data.first.time.month == DateTime.now().month) {
-          setState(() {
-            _selectedMeasurement = element.first.data.last;
-          });
-
-          await scrollToItem(
-              _itemScrollController,
-              _dailyPm2_5ChartData.indexOf(element),
-              _dailyPm2_5ChartData,
-              const Duration(microseconds: 1));
-          break;
-        }
-      }
-
+      await scrollToTodayChart();
       await loadMiniCharts(DateTime.now());
     } else {
-      var firstDay =
-          DateTime.now().getDateOfFirstDayOfWeek().getDateOfFirstHourOfDay();
-      var lastDay =
-          DateTime.now().getDateOfLastDayOfWeek().getDateOfLastHourOfDay();
-
-      var hourlyInsights = insightsData.where((element) {
-        var date = element.time;
-        if (date == firstDay ||
-            date == lastDay ||
-            (date.isAfter(firstDay) & date.isBefore(lastDay))) {
-          return true;
-        }
-        return false;
-      }).toList();
-
-      var data = hourlyInsights
-          .where((element) => element.frequency.equalsIgnoreCase('hourly'))
-          .toList();
-
       setState(() {
         _hourlyPm2_5ChartData =
-            insightsChartData(data, Pollutant.pm2_5, Frequency.hourly).toList();
+            insightsChartData(insightsData, Pollutant.pm2_5, Frequency.hourly)
+                .toList();
         _hourlyPm10ChartData =
-            insightsChartData(data, Pollutant.pm10, Frequency.hourly).toList();
+            insightsChartData(insightsData, Pollutant.pm10, Frequency.hourly)
+                .toList();
         _selectedMeasurement = _hourlyPm2_5ChartData.first.first.data.first;
         _hasMeasurements = true;
       });
 
-      for (var element in _hourlyPm2_5ChartData) {
-        if (element.first.data.first.time.day == DateTime.now().day &&
-            element.first.data.first.time.month == DateTime.now().month) {
-          setState(() {
-            _selectedMeasurement = element.first.data.last;
-          });
+      await scrollToTodayChart();
+    }
+  }
 
-          await scrollToItem(
-              _itemScrollController,
-              _hourlyPm2_5ChartData.indexOf(element),
-              _hourlyPm2_5ChartData,
-              const Duration(microseconds: 1));
-          break;
-        }
+  Future<void> scrollToTodayChart() async {
+    var referenceDate = widget.frequency == Frequency.daily
+        ? DateTime.now().getDateOfFirstDayOfWeek()
+        : DateTime.now();
+    var data = widget.frequency == Frequency.daily
+        ? _dailyPm2_5ChartData
+        : _hourlyPm2_5ChartData;
+    for (var element in data) {
+      if (element.first.data.first.time.day == referenceDate.day &&
+          element.first.data.first.time.month == referenceDate.month) {
+        setState(() {
+          _selectedMeasurement = element.first.data.last;
+        });
+
+        await scrollToChart(_itemScrollController, data.indexOf(element), data,
+            const Duration(microseconds: 1));
+        break;
       }
     }
   }
