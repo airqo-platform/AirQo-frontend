@@ -9,6 +9,20 @@ class Config {
 
   static String get airqoApiUrl => dotenv.env['AIRQO_API_URL'] ?? '';
 
+  static String get airqoSupportEmail => 'support@airqo.net';
+
+  static String get airqoSupportUsername => 'AirQo Support';
+
+  static String get airqoDataProductsEmail =>
+      dotenv.env['AIRQO_DATA_PRODUCTS_EMAIL'] ?? '';
+
+  static String get defaultFeedbackUserName => 'AirQo App User';
+
+  static String get emailFeedbackUrl => dotenv.env['EMAIL_FEEDBACK_URL'] ?? '';
+
+  static String get emailFeedbackAPIKey =>
+      dotenv.env['EMAIL_FEEDBACK_API_KEY'] ?? '';
+
   static String get airqoApiUserExistsUrl =>
       dotenv.env['AIRQO_API_USER_EXISTS_URL'] ?? '';
 

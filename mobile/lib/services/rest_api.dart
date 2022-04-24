@@ -194,27 +194,61 @@ class AirqoApiClient {
 
   Future<bool> sendFeedback(UserFeedback feedback) async {
     try {
-      var body = {
-        'text': {'type': 'mrkdwn', 'text': '@channel, Mobile App feedback'},
-        'attachments': [
+      var body = jsonEncode({
+        'personalizations': [
           {
-            'fallback': 'Mobile App feedback',
-            'color': '#3067e2',
-            'title': 'Mobile App feedback',
-            'fields': [
+            'to': [
               {
-                'title': feedback.contactDetails,
-              },
-              {'title': feedback.feedbackType, 'value': feedback.message},
+                'email': Config.airqoSupportEmail,
+                'name': Config.airqoSupportUsername
+              }
             ],
-            'footer': 'AirQo Mobile App'
+            'cc': [
+              {
+                'email': feedback.contactDetails,
+                'name': Config.defaultFeedbackUserName
+              }
+            ],
+            'subject': feedback.feedbackType
           }
-        ]
-      };
+        ],
+        'content': [
+          {'type': 'text/plain', 'value': feedback.message}
+        ],
+        'from': {
+          'email': Config.airqoDataProductsEmail,
+          'name': Config.defaultFeedbackUserName
+        },
+        'reply_to': {
+          'email': feedback.contactDetails,
+          'name': Config.defaultFeedbackUserName
+        }
+      });
 
-      final response = await _performPostRequest(
-          <String, dynamic>{}, Config.feedbackWebhook, jsonEncode(body));
-      return response;
+      try {
+        Map<String, String> headers = HashMap()
+          ..putIfAbsent('Content-Type', () => 'application/json')
+          ..putIfAbsent(
+              'Authorization', () => 'Bearer ${Config.emailFeedbackAPIKey}');
+
+        final response = await httpClient.post(
+            Uri.parse(Config.emailFeedbackUrl),
+            headers: headers,
+            body: body);
+
+        if (response.statusCode == 200 || response.statusCode == 202) {
+          return true;
+        } else {
+          return false;
+        }
+      } on Error catch (exception, stackTrace) {
+        debugPrint('$exception\n$stackTrace');
+        await Sentry.captureException(
+          exception,
+          stackTrace: stackTrace,
+        );
+        return false;
+      }
     } on Error catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
       await Sentry.captureException(

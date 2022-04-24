@@ -589,7 +589,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
           await showSnackBar(
               context,
               'You already have an '
-              'account with ths phone number');
+              'account with this phone number');
           await Navigator.pushAndRemoveUntil(
               context,
               PageRouteBuilder(

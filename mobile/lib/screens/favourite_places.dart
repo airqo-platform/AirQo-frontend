@@ -45,8 +45,9 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
                     ),
                     SliverList(
                       delegate: SliverChildBuilderDelegate((context, index) {
+                        var topPadding = index == 0 ? 16.0 : 0.0;
                         return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            padding: EdgeInsets.fromLTRB(16, topPadding, 16, 0),
                             child: MiniAnalyticsCard(
                                 placeDetailsModel.favouritePlaces[index]));
                       }, childCount: placeDetailsModel.favouritePlaces.length),

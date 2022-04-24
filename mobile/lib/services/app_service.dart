@@ -140,21 +140,6 @@ class AppService {
       }
       return _apiClient.checkIfUserExists(
           phoneNumber: phoneNumber, emailAddress: emailAddress);
-
-      // var callable = FirebaseFunctions.instance.httpsCallable(
-      //   'airqo-app-check-user',
-      //   options: HttpsCallableOptions(
-      //     timeout: const Duration(seconds: 60),
-      //   ),
-      // );
-      //
-      // final resp = await callable.call(<String, dynamic>{
-      //   'phoneNumber': phoneNumber,
-      //   'emailAddress': emailAddress,
-      // });
-      //
-      // print("result: ${resp}");
-      // return true;
     } catch (exception, stackTrace) {
       debugPrint('$exception \n $stackTrace');
       await Sentry.captureException(
