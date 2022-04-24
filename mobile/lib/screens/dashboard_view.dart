@@ -322,20 +322,12 @@ class _DashboardViewState extends State<DashboardView> {
     if (kya.progress >= kya.lessons.length) {
       kya.progress = -1;
       await _appService.updateKya(kya, context);
-      _getKya();
     } else {
-      var returnStatus =
-          await Navigator.push(context, MaterialPageRoute(builder: (context) {
+      await Navigator.push(context, MaterialPageRoute(builder: (context) {
         return KyaTitlePage(kya);
       }));
-      if (returnStatus) {
-        Future.delayed(const Duration(seconds: 500), () {
-          if (mounted) {
-            _getKya();
-          }
-        });
-      }
     }
+    await _refresh();
   }
 
   void _handleScroll() async {
@@ -725,7 +717,7 @@ class _DashboardViewState extends State<DashboardView> {
                 }
                 await Navigator.push(context,
                     MaterialPageRoute(builder: (context) {
-                  return const ForYouPage();
+                  return ForYouPage(analytics: false);
                 }));
               },
               child: Container(

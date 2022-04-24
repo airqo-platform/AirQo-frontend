@@ -7,7 +7,8 @@ import 'analytics_view.dart';
 import 'kya/know_your_air_view.dart';
 
 class ForYouPage extends StatefulWidget {
-  const ForYouPage({Key? key}) : super(key: key);
+  bool? analytics;
+  ForYouPage({Key? key, this.analytics}) : super(key: key);
 
   @override
   _ForYouPageState createState() => _ForYouPageState();
@@ -16,7 +17,7 @@ class ForYouPage extends StatefulWidget {
 class _ForYouPageState extends State<ForYouPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  bool analytics = true;
+  late bool _analytics;
 
   @override
   Widget build(BuildContext context) {
@@ -42,11 +43,11 @@ class _ForYouPageState extends State<ForYouPage>
                     onTap: (value) {
                       if (value == 0) {
                         setState(() {
-                          analytics = true;
+                          _analytics = true;
                         });
                       } else {
                         setState(() {
-                          analytics = false;
+                          _analytics = false;
                         });
                       }
                     },
@@ -80,7 +81,9 @@ class _ForYouPageState extends State<ForYouPage>
   @override
   void initState() {
     super.initState();
+    _analytics = widget.analytics ?? true;
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.animateTo(_analytics ? 0 : 1);
   }
 
   Widget tabButton({required String text}) {
@@ -89,10 +92,10 @@ class _ForYouPageState extends State<ForYouPage>
           const BoxConstraints(minWidth: double.infinity, maxHeight: 32),
       decoration: BoxDecoration(
           color: text.toLowerCase() == 'analytics'
-              ? analytics
+              ? _analytics
                   ? Config.appColorBlue
                   : Colors.white
-              : analytics
+              : _analytics
                   ? Colors.white
                   : Config.appColorBlue,
           borderRadius: const BorderRadius.all(Radius.circular(4.0))),
@@ -100,10 +103,10 @@ class _ForYouPageState extends State<ForYouPage>
           child: Text(text,
               style: CustomTextStyle.button1(context)?.copyWith(
                 color: text.toLowerCase() == 'analytics'
-                    ? analytics
+                    ? _analytics
                         ? Colors.white
                         : Config.appColorBlue
-                    : analytics
+                    : _analytics
                         ? Config.appColorBlue
                         : Colors.white,
               ))),
@@ -115,13 +118,13 @@ class _ForYouPageState extends State<ForYouPage>
       constraints:
           const BoxConstraints(minWidth: double.infinity, maxHeight: 32),
       decoration: BoxDecoration(
-          color: analytics ? Config.appColorBlue : Colors.white,
+          color: _analytics ? Config.appColorBlue : Colors.white,
           borderRadius: const BorderRadius.all(Radius.circular(5.0))),
       child: Tab(
           child: Text(
         text,
         style: TextStyle(
-          color: analytics ? Colors.white : Colors.black,
+          color: _analytics ? Colors.white : Colors.black,
         ),
       )),
     );

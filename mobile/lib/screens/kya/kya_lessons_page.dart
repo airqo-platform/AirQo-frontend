@@ -23,6 +23,8 @@ class KyaLessonsPage extends StatefulWidget {
 
 class _KyaLessonsPageState extends State<KyaLessonsPage> {
   final ItemScrollController itemScrollController = ItemScrollController();
+  final ItemPositionsListener itemPositionsListener =
+      ItemPositionsListener.create();
 
   double _tipsProgress = 0.1;
   int currentIndex = 0;
@@ -101,6 +103,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                     child: ScrollablePositionedList.builder(
                       scrollDirection: Axis.horizontal,
                       itemCount: kya.lessons.length,
+                      physics: const NeverScrollableScrollPhysics(),
                       itemBuilder: (context, index) {
                         return Padding(
                           padding: const EdgeInsets.only(
@@ -110,6 +113,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                               child: _kyaCard(kya.lessons[index], index)),
                         );
                       },
+                      itemPositionsListener: itemPositionsListener,
                       itemScrollController: itemScrollController,
                     ),
                   ),
@@ -169,6 +173,17 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
     for (var _ in widget.kya.lessons) {
       _globalKeys.add(GlobalKey());
     }
+    itemPositionsListener.itemPositions.addListener(scrollListener);
+  }
+
+  void scrollListener() {
+    Future.delayed(const Duration(milliseconds: 500), setTipsProgress);
+  }
+
+  @override
+  void dispose() {
+    itemPositionsListener.itemPositions.removeListener(scrollListener);
+    super.dispose();
   }
 
   void scrollToCard({required int direction}) {
@@ -178,7 +193,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
       });
       itemScrollController.scrollTo(
           index: currentIndex,
-          duration: const Duration(seconds: 1),
+          duration: const Duration(milliseconds: 500),
           curve: Curves.easeInOutCubic);
     } else {
       setState(() {
@@ -187,7 +202,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
       if (currentIndex < kya.lessons.length) {
         itemScrollController.scrollTo(
             index: currentIndex,
-            duration: const Duration(seconds: 1),
+            duration: const Duration(milliseconds: 500),
             curve: Curves.easeInOutCubic);
       } else {
         kya.progress = currentIndex;
@@ -199,8 +214,6 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
         }));
       }
     }
-
-    Future.delayed(const Duration(milliseconds: 500), setTipsProgress);
   }
 
   void setTipsProgress() {
