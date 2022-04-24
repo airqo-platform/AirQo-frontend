@@ -518,14 +518,15 @@ class RateService {
   final CloudAnalytics _cloudAnalytics = CloudAnalytics();
   final InAppReview _inAppReview = InAppReview.instance;
 
-  Future<void> rateApp() async {
+  Future<void> rateApp({bool inApp = false}) async {
     if (await _inAppReview.isAvailable()) {
-      // await _inAppReview.requestReview();
-      await _inAppReview
-          .openStoreListing(
-            appStoreId: Config.iosStoreId,
-          )
-          .then((value) => _logAppRating);
+      inApp
+          ? await _inAppReview.requestReview()
+          : await _inAppReview
+              .openStoreListing(
+                appStoreId: Config.iosStoreId,
+              )
+              .then((value) => _logAppRating);
     } else {
       if (Platform.isIOS || Platform.isMacOS) {
         try {

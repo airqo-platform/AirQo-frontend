@@ -60,44 +60,6 @@ class CloudStore {
     }
   }
 
-  Future<bool> credentialsExist(String? phoneNumber, String? email) async {
-    var hasConnection = await isConnected();
-    if (!hasConnection) {
-      return false;
-    }
-
-    try {
-      var users =
-          await _firebaseFirestore.collection(Config.usersCollection).get();
-      for (var doc in users.docs) {
-        try {
-          if (phoneNumber != null && doc.data()['phoneNumber'] == phoneNumber) {
-            return true;
-          }
-          if (email != null && doc.data()['emailAddress'] == email) {
-            return true;
-          }
-        } on Error catch (exception, stackTrace) {
-          debugPrint(exception.toString());
-          debugPrint(stackTrace.toString());
-          await Sentry.captureException(
-            exception,
-            stackTrace: stackTrace,
-          );
-          continue;
-        }
-      }
-      return false;
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-    }
-    return false;
-  }
-
   Future<void> deleteAccount(id) async {
     var hasConnection = await isConnected();
     if (!hasConnection) {
@@ -408,15 +370,16 @@ class CloudStore {
     if (!hasConnection || userId.trim().isEmpty) {
       return;
     }
+    var batch = _firebaseFirestore.batch();
 
     for (var place in favPlaces) {
       try {
-        await _firebaseFirestore
+        var document = _firebaseFirestore
             .collection(Config.favPlacesCollection)
             .doc(userId)
             .collection(userId)
-            .doc(place.placeId)
-            .set(place.toJson());
+            .doc(place.placeId);
+        batch.set(document, place.toJson());
       } catch (exception, stackTrace) {
         debugPrint('$exception\n$stackTrace');
         await Sentry.captureException(
@@ -425,6 +388,7 @@ class CloudStore {
         );
       }
     }
+    return batch.commit();
   }
 
   Future<void> updateKyaProgress(String userId, Kya kya) async {

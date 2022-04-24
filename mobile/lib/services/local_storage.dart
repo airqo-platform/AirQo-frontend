@@ -521,12 +521,16 @@ class DBHelper {
     }
   }
 
-  Future<bool> updateFavouritePlaceDetails(PlaceDetails placeDetails) async {
+  Future<bool> updateFavouritePlacesDetails(
+      List<PlaceDetails> placesDetails) async {
     final db = await database;
-
+    var batch = db.batch();
     try {
-      await db.update(PlaceDetails.dbName(), {'siteId': placeDetails.siteId},
-          whereArgs: [placeDetails.placeId]);
+      for (var favPlace in placesDetails) {
+        batch.update(PlaceDetails.dbName(), {'siteId': favPlace.siteId},
+            whereArgs: [favPlace.placeId]);
+      }
+      await batch.commit(continueOnError: true, noResult: true);
       return true;
     } catch (e) {
       debugPrint(e.toString());

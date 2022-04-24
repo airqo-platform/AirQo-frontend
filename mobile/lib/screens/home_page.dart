@@ -13,7 +13,8 @@ import 'dashboard_view.dart';
 import 'map_view.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  bool? refresh;
+  HomePage({Key? key, this.refresh}) : super(key: key);
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -22,6 +23,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   DateTime? _exitTime;
   int _selectedIndex = 0;
+  late bool refresh;
 
   final List<Widget> _widgetOptions = <Widget>[
     const DashboardView(),
@@ -146,13 +148,16 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> initialize() async {
-    await _appService.fetchData(context);
+    if (refresh) {
+      await _appService.fetchData(context);
+    }
     await _getCloudStore();
   }
 
   @override
   void initState() {
     super.initState();
+    refresh = widget.refresh ?? true;
     initialize();
     updateOnBoardingPage();
   }

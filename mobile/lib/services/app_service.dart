@@ -12,6 +12,7 @@ import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -168,11 +169,13 @@ class AppService {
 
   Future<void> fetchData(BuildContext buildContext) async {
     await Future.wait([
+      isConnected(buildContext),
       fetchLatestMeasurements(),
       fetchKya(),
       loadNotifications(buildContext),
       loadFavPlaces(buildContext),
       fetchFavPlacesInsights(),
+      updateFavouritePlacesSites(buildContext)
     ]);
   }
 
@@ -193,27 +196,34 @@ class AppService {
   Future<List<Insights>> fetchInsights(List<String> siteIds,
       {Frequency? frequency}) async {
     var insights = <Insights>[];
-    if (siteIds.length > 2) {
-      var futures = <Future>[];
-      for (var siteId in siteIds) {
-        futures.add(_apiClient.fetchSitesInsights(siteId));
+    var futures = <Future>[];
+
+    for (var i = 0; i < siteIds.length; i = i + 2) {
+      var site1 = siteIds[i];
+      try {
+        var site2 = siteIds[i + 1];
+        futures.add(_apiClient.fetchSitesInsights('$site1,$site2'));
+      } catch (e) {
+        futures.add(_apiClient.fetchSitesInsights(site1));
       }
-      var sitesInsights = await Future.wait(futures);
-      for (var result in sitesInsights) {
-        insights.addAll(result);
-      }
-    } else {
-      insights = await _apiClient.fetchSitesInsights(siteIds.join(','));
     }
-    var returnInsights = <Insights>[];
-    if (frequency != null) {
-      returnInsights = insights
-          .where((element) => element.frequency == frequency.asString())
-          .toList();
+
+    var sitesInsights = await Future.wait(futures);
+    for (var result in sitesInsights) {
+      insights.addAll(result);
     }
 
     await dbHelper.insertInsights(insights, siteIds);
-    return returnInsights.isNotEmpty ? returnInsights : insights;
+
+    if (frequency != null) {
+      var frequencyInsights = <Insights>[];
+      frequencyInsights = insights
+          .where((element) => element.frequency == frequency.asString())
+          .toList();
+      return frequencyInsights;
+    }
+
+    return insights;
   }
 
   Future<void> fetchKya() async {
@@ -269,13 +279,13 @@ class AppService {
       }
 
       var favPlaces = [..._offlineFavPlaces, ..._cloudFavPlaces];
-
-      await _dbHelper.setFavouritePlaces(favPlaces).then((value) => {
-            Provider.of<PlaceDetailsModel>(buildContext, listen: false)
-                .reloadFavouritePlaces(),
-          });
-
-      await _cloudStore.updateFavPlaces(_customAuth.getUserId(), favPlaces);
+      await Future.wait([
+        _dbHelper.setFavouritePlaces(favPlaces).then((value) => {
+              Provider.of<PlaceDetailsModel>(buildContext, listen: false)
+                  .reloadFavouritePlaces(),
+            }),
+        _cloudStore.updateFavPlaces(_customAuth.getUserId(), favPlaces)
+      ]);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
@@ -449,16 +459,18 @@ class AppService {
 
   Future<void> updateFavouritePlacesSites(BuildContext buildContext) async {
     var favPlaces = await _dbHelper.getFavouritePlaces();
+    var updatedFavPlaces = <PlaceDetails>[];
     for (var favPlace in favPlaces) {
       var nearestSite = await _locationService.getNearestSite(
           favPlace.latitude, favPlace.longitude);
       if (nearestSite != null) {
         favPlace.siteId = nearestSite.id;
       }
-      await _dbHelper.updateFavouritePlaceDetails(favPlace);
+      updatedFavPlaces.add(favPlace);
     }
-
-    await loadFavPlaces(buildContext);
+    await _dbHelper
+        .updateFavouritePlacesDetails(updatedFavPlaces)
+        .then((value) => loadFavPlaces(buildContext));
   }
 
   Future<void> updateKya(Kya kya, BuildContext buildContext) async {

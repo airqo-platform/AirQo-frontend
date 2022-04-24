@@ -371,7 +371,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     Navigator.pop(loadingContext);
 
     Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) {
-      return const HomePage();
+      return HomePage();
     }), (r) => false);
 
     return Future.value(false);
@@ -449,7 +449,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
       } else {
         await Navigator.pushAndRemoveUntil(context,
             MaterialPageRoute(builder: (context) {
-          return const HomePage();
+          return HomePage();
         }), (r) => false);
       }
     } else {

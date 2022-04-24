@@ -200,7 +200,7 @@ Widget proceedAsGuest({required BuildContext context}) {
       CloudAnalytics().logEvent(AnalyticsEvent.browserAsAppGuest, false);
       Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
-        return const HomePage();
+        return HomePage();
       }), (r) => false);
     },
     child: Row(

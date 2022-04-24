@@ -47,7 +47,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
       Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
         _updateOnBoardingPage(OnBoardingPage.home);
-        return const HomePage();
+        return HomePage();
       }), (r) => false);
     });
   }
@@ -71,7 +71,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
     }
 
     Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) {
-      return const HomePage();
+      return HomePage();
     }), (r) => false);
 
     return Future.value(false);

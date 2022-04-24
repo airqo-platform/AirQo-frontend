@@ -112,7 +112,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
     }
 
     Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) {
-      return const HomePage();
+      return HomePage();
     }), (r) => false);
 
     return Future.value(false);

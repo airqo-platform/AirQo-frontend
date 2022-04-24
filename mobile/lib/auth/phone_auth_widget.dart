@@ -113,7 +113,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
     Navigator.pop(_loadingContext);
 
     Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) {
-      return const HomePage();
+      return HomePage();
     }), (r) => false);
 
     return Future.value(false);
@@ -482,7 +482,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
         Navigator.pop(_loadingContext);
         await Navigator.pushAndRemoveUntil(context,
             MaterialPageRoute(builder: (context) {
-          return const HomePage();
+          return HomePage();
         }), (r) => false);
       } else {
         Navigator.pop(_loadingContext);
