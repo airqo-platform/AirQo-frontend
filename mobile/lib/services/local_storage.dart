@@ -528,7 +528,7 @@ class DBHelper {
     try {
       for (var favPlace in placesDetails) {
         batch.update(PlaceDetails.dbName(), {'siteId': favPlace.siteId},
-            whereArgs: [favPlace.placeId]);
+            where: 'placeId = ?', whereArgs: [favPlace.placeId]);
       }
       await batch.commit(continueOnError: true, noResult: true);
       return true;

@@ -13,8 +13,8 @@ import 'dashboard_view.dart';
 import 'map_view.dart';
 
 class HomePage extends StatefulWidget {
-  bool? refresh;
-  HomePage({Key? key, this.refresh}) : super(key: key);
+  final bool? refresh;
+  const HomePage({Key? key, this.refresh}) : super(key: key);
 
   @override
   _HomePageState createState() => _HomePageState();

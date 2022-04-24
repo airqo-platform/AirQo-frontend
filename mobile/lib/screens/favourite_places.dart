@@ -1,12 +1,9 @@
-import 'dart:io';
-
 import 'package:app/constants/config.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/screens/search_page.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/widgets/favourite_place_card.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
@@ -33,26 +30,16 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
                 return emptyPlaces();
               }
 
-              return CustomScrollView(
-                  physics:
-                      Platform.isAndroid ? const BouncingScrollPhysics() : null,
-                  slivers: [
-                    CupertinoSliverRefreshControl(
-                      refreshTriggerPullDistance:
-                          Config.refreshTriggerPullDistance,
-                      refreshIndicatorExtent: Config.refreshIndicatorExtent,
-                      onRefresh: refreshData,
-                    ),
-                    SliverList(
-                      delegate: SliverChildBuilderDelegate((context, index) {
-                        var topPadding = index == 0 ? 16.0 : 0.0;
-                        return Padding(
-                            padding: EdgeInsets.fromLTRB(16, topPadding, 16, 0),
-                            child: MiniAnalyticsCard(
-                                placeDetailsModel.favouritePlaces[index]));
-                      }, childCount: placeDetailsModel.favouritePlaces.length),
-                    )
-                  ]);
+              return refreshIndicator(
+                  sliverChildDelegate:
+                      SliverChildBuilderDelegate((context, index) {
+                    return Padding(
+                        padding: EdgeInsets.fromLTRB(
+                            16, Config.refreshIndicatorPadding(index), 16, 0),
+                        child: MiniAnalyticsCard(
+                            placeDetailsModel.favouritePlaces[index]));
+                  }, childCount: placeDetailsModel.favouritePlaces.length),
+                  onRefresh: refreshData);
             },
           )),
     );
@@ -108,9 +95,10 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
   }
 
   Future<void> initialize() async {
-    await _appService.fetchFavPlacesInsights();
-    await Future.delayed(const Duration(seconds: 1))
-        .then((_) => _appService.updateFavouritePlacesSites(context));
+    await Future.wait([
+      _appService.fetchFavPlacesInsights(),
+      _appService.updateFavouritePlacesSites(context)
+    ]);
   }
 
   @override

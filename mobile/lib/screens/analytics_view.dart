@@ -6,6 +6,7 @@ import 'package:app/widgets/favourite_place_card.dart';
 import 'package:flutter/cupertino.dart';
 
 import '../services/app_service.dart';
+import '../widgets/custom_widgets.dart';
 
 class AnalyticsView extends StatefulWidget {
   const AnalyticsView({Key? key}) : super(key: key);
@@ -36,8 +37,11 @@ class _AnalyticsViewState extends State<AnalyticsView> {
             : refreshIndicator(
                 sliverChildDelegate:
                     SliverChildBuilderDelegate((context, index) {
-                  return MiniAnalyticsCard(
-                      PlaceDetails.measurementToPLace(_places[index]));
+                  return Padding(
+                      padding: EdgeInsets.only(
+                          top: Config.refreshIndicatorPadding(index)),
+                      child: MiniAnalyticsCard(
+                          PlaceDetails.measurementToPLace(_places[index])));
                 }, childCount: _places.length),
                 onRefresh: _initialize));
   }

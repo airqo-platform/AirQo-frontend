@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:app/constants/config.dart';
 import 'package:app/models/kya.dart';
 import 'package:app/models/measurement.dart';
@@ -14,7 +12,6 @@ import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/tooltip.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/svg.dart';
@@ -25,6 +22,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/enum_constants.dart';
 import '../themes/light_theme.dart';
 import '../utils/kya_utils.dart';
+import '../widgets/custom_widgets.dart';
 import 'favourite_places.dart';
 import 'for_you_page.dart';
 import 'kya/kya_title_page.dart';
@@ -100,23 +98,12 @@ class _DashboardViewState extends State<DashboardView> {
                 height: 8,
               ),
               Expanded(
-                child: CustomScrollView(
-                  physics:
-                      Platform.isAndroid ? const BouncingScrollPhysics() : null,
-                  slivers: [
-                    CupertinoSliverRefreshControl(
-                      refreshTriggerPullDistance:
-                          Config.refreshTriggerPullDistance,
-                      refreshIndicatorExtent: Config.refreshIndicatorExtent,
-                      onRefresh: _refresh,
-                    ),
-                    SliverList(
-                      delegate: SliverChildBuilderDelegate((context, index) {
-                        return _dashBoardItems[index];
-                      }, childCount: _dashBoardItems.length),
-                    ),
-                  ],
-                ),
+                child: refreshIndicator(
+                    sliverChildDelegate:
+                        SliverChildBuilderDelegate((context, index) {
+                      return _dashBoardItems[index];
+                    }, childCount: _dashBoardItems.length),
+                    onRefresh: _refresh),
               ),
             ],
           )),
@@ -125,7 +112,7 @@ class _DashboardViewState extends State<DashboardView> {
 
   @override
   void dispose() {
-    _scrollController.removeListener(() {});
+    _scrollController.removeListener(_scrollListener);
     super.dispose();
   }
 
@@ -330,23 +317,20 @@ class _DashboardViewState extends State<DashboardView> {
     await _refresh();
   }
 
+  void _scrollListener() {
+    if (mounted) {
+      if (_scrollController.position.userScrollDirection ==
+          ScrollDirection.reverse) {
+      } else if (_scrollController.position.userScrollDirection ==
+          ScrollDirection.forward) {
+      } else {
+        return;
+      }
+    }
+  }
+
   void _handleScroll() async {
-    _scrollController.addListener(() {
-      if (_scrollController.position.userScrollDirection ==
-              ScrollDirection.reverse &&
-          mounted) {
-        // setState(() {
-        //   _showName = false;
-        // });
-      }
-      if (_scrollController.position.userScrollDirection ==
-              ScrollDirection.forward &&
-          mounted) {
-        // setState(() {
-        //   _showName = true;
-        // });
-      }
-    });
+    _scrollController.addListener(_scrollListener);
   }
 
   Future<void> _initialize() async {
@@ -548,10 +532,6 @@ class _DashboardViewState extends State<DashboardView> {
           } else {
             widgets.add(_emptyAvatar(7));
           }
-
-          // widgets
-          //   ..add(favPlaceAvatar(0, favouritePlaces[0]))
-          //   ..add(favPlaceAvatar(7, favouritePlaces[1]));
         } else if (favouritePlaces.length >= 3) {
           if (measurements.isNotEmpty) {
             widgets.add(_favPlaceAvatar(0, measurements[0]));
@@ -717,7 +697,7 @@ class _DashboardViewState extends State<DashboardView> {
                 }
                 await Navigator.push(context,
                     MaterialPageRoute(builder: (context) {
-                  return ForYouPage(analytics: false);
+                  return const ForYouPage(analytics: false);
                 }));
               },
               child: Container(

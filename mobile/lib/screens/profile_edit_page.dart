@@ -441,7 +441,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                   updating = false,
                   Navigator.pushAndRemoveUntil(context,
                       MaterialPageRoute(builder: (context) {
-                    return HomePage();
+                    return const HomePage();
                   }), (r) => false)
                 })
           });

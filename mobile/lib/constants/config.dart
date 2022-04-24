@@ -185,4 +185,8 @@ class Config {
   static double get refreshTriggerPullDistance => 40;
 
   static double get refreshIndicatorExtent => 30;
+
+  static double refreshIndicatorPadding(int index) {
+    return index == 0 ? 16.0 : 0.0;
+  }
 }

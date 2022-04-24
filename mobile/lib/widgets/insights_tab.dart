@@ -11,7 +11,6 @@ import 'package:app/widgets/recommendation.dart';
 import 'package:app/widgets/tooltip.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
@@ -73,21 +72,11 @@ class _InsightsTabState extends State<InsightsTab> {
 
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      physics: const BouncingScrollPhysics(),
-      slivers: [
-        CupertinoSliverRefreshControl(
-          refreshTriggerPullDistance: Config.refreshTriggerPullDistance,
-          refreshIndicatorExtent: Config.refreshIndicatorExtent,
-          onRefresh: _refreshPage,
-        ),
-        SliverList(
-          delegate: SliverChildBuilderDelegate((context, index) {
-            return _pageItems()[index];
-          }, childCount: _pageItems().length),
-        ),
-      ],
-    );
+    return refreshIndicator(
+        sliverChildDelegate: SliverChildBuilderDelegate((context, index) {
+          return _pageItems()[index];
+        }, childCount: _pageItems().length),
+        onRefresh: _refreshPage);
   }
 
   Widget getHeartIcon() {

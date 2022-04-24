@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:app/constants/config.dart';
 import 'package:app/models/insights.dart';
 import 'package:app/models/measurement.dart';
@@ -5,12 +7,31 @@ import 'package:app/models/suggestion.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/utils/pm.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../models/enum_constants.dart';
 import '../themes/light_theme.dart';
+
+Widget refreshIndicator(
+    {required SliverChildDelegate sliverChildDelegate,
+    Future Function()? onRefresh}) {
+  return CustomScrollView(
+    physics: Platform.isAndroid ? const BouncingScrollPhysics() : null,
+    slivers: [
+      CupertinoSliverRefreshControl(
+        refreshTriggerPullDistance: Config.refreshTriggerPullDistance,
+        refreshIndicatorExtent: Config.refreshIndicatorExtent,
+        onRefresh: onRefresh,
+      ),
+      SliverList(
+        delegate: sliverChildDelegate,
+      ),
+    ],
+  );
+}
 
 Widget analyticsAvatar(
     Measurement measurement, double size, double fontSize, double iconHeight) {

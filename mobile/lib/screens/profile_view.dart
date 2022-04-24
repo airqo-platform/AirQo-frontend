@@ -202,7 +202,7 @@ class _ProfileViewState extends State<ProfileView> {
 
   Future<void> forYou() async {
     await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return ForYouPage();
+      return const ForYouPage();
     }));
   }
 

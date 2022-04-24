@@ -76,7 +76,7 @@ class SplashScreenState extends State<SplashScreen> {
             case OnBoardingPage.complete:
               return const SetUpCompleteScreen();
             case OnBoardingPage.home:
-              return HomePage(refresh: false);
+              return const HomePage(refresh: false);
             default:
               return const WelcomeScreen();
           }
