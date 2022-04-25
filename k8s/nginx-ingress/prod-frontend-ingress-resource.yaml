@@ -11,3 +11,9 @@ spec:
           - backend:
               serviceName: airqo-platform-svc
               servicePort: 80
+    - host: calibrate.airqo.net
+      http:
+        paths:
+          - backend:
+              serviceName: airqo-calibrate-app-svc
+              servicePort: 80

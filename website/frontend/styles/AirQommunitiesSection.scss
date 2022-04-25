@@ -1,0 +1,69 @@
+@import "lib/variables";
+
+.AirQommunitiesSection {
+    display: flex;
+    align-items: center;
+    height: 800px;
+    width: 100%;
+    margin-top: 30%;
+    background-color: $aq-orange-0;
+
+    &-img {
+        flex: 0.5;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center center;
+    }
+
+    .wrapper {
+        flex: 0.5;
+        max-width: 480px;
+        margin-left: 72px;
+
+        h3 {
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 26px;
+            color: $aq-blue-4;
+            background-color: $aq-white-0;
+            border-radius: 1000px;
+            margin-bottom: 24px;
+            width: 140px;
+            text-align: center;
+            padding: 4px 16px;
+            box-sizing: content-box;
+        }
+    }
+
+    &-info {
+        h1 {
+            font-size: 48px;
+            font-weight: 600;
+            line-height: 56px;
+            margin-bottom: 24px;
+            color: $aq-black-1;
+        }
+
+        p {
+            font-size: 20px;
+            font-weight: 400;
+            line-height: 28px;
+            color: $aq-black-1;
+            margin-bottom: 48px;
+        }
+    }
+
+    &-btn {
+        display: flex;
+        align-items: center;
+        color: $aq-blue-4;
+        font-weight: 500;
+        font-size: 16px;
+        line-height: 24px;
+    }
+
+    &-icon {
+        margin-left: 4px;
+    }
+}

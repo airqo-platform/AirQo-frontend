@@ -1,9 +1,12 @@
 import React, { useRef, useState, useEffect } from "react";
+import ReloadIcon from "@material-ui/icons/Replay";
+import { Tooltip } from "@material-ui/core";
 import { useDispatch } from "react-redux";
 import { useAirQloudsData } from "utils/customHooks/AirQloudsHooks";
 import { useCurrentAirQloudData } from "redux/AirQloud/selectors";
 import { setCurrentAirQloudData } from "redux/AirQloud/operations";
 import { resetDefaultGraphData } from "redux/Dashboard/operations";
+import { refreshAirQloud } from "redux/AirQloud/operations";
 
 // styles
 import "assets/css/dropdown.css";
@@ -28,6 +31,14 @@ const AirQloudDropDown = () => {
     toggleShow();
     await dispatch(setCurrentAirQloudData(airqloud));
     dispatch(resetDefaultGraphData());
+  };
+
+  const handleAirQloudRefresh = (airQloud) => async () => {
+    const data = await dispatch(
+      refreshAirQloud(airQloud.long_name, airQloud._id)
+    );
+    if (data && data.refreshed_airqloud)
+      setCurrentAirQloudData(data.refreshed_airqloud);
   };
 
   useEffect(() => {
@@ -67,6 +78,14 @@ const AirQloudDropDown = () => {
             )
         )}
       </ul>
+      <Tooltip title="Refresh AirQloud">
+        <div
+          className="dd-reload"
+          onClick={handleAirQloudRefresh(currentAirqQloud)}
+        >
+          <ReloadIcon />
+        </div>
+      </Tooltip>
     </label>
   );
 };
