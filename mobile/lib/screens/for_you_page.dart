@@ -22,7 +22,7 @@ class _ForYouPageState extends State<ForYouPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: appTopBar(context, 'For You'),
+      appBar: appTopBar(context: context, title: 'For You'),
       body: Container(
         padding: const EdgeInsets.only(right: 16, left: 16),
         color: Config.appBodyColor,

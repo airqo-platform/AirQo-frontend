@@ -11,7 +11,7 @@ Widget countryPickerField(String placeholder, valueChange, context) {
         color: const Color(0xff8D8D8D).withOpacity(0.1),
         borderRadius: const BorderRadius.all(Radius.circular(10.0))),
     child: CountryListPick(
-      appBar: appTopBar(context, 'Select Country'),
+      appBar: appTopBar(context: context, title: 'Select Country'),
       theme: CountryTheme(
         isShowFlag: true,
         isShowTitle: false,

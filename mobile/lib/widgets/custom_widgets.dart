@@ -78,21 +78,27 @@ Widget analyticsAvatar(
   );
 }
 
-PreferredSizeWidget appTopBar(context, String title) {
+PreferredSizeWidget appTopBar(
+    {required BuildContext context,
+    required String title,
+    List<Widget>? actions,
+    bool? centerTitle}) {
   return AppBar(
-      toolbarHeight: 72,
-      centerTitle: true,
-      elevation: 0,
-      backgroundColor: Config.appBodyColor,
-      automaticallyImplyLeading: false,
-      leading: Padding(
-        padding: const EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
-        child: backButton(context),
-      ),
-      title: Text(
-        title,
-        style: CustomTextStyle.headline8(context),
-      ));
+    toolbarHeight: 72,
+    centerTitle: centerTitle ?? true,
+    elevation: 0,
+    backgroundColor: Config.appBodyColor,
+    automaticallyImplyLeading: false,
+    leading: Padding(
+      padding: const EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
+      child: backButton(context),
+    ),
+    title: Text(
+      title,
+      style: CustomTextStyle.headline8(context),
+    ),
+    actions: actions,
+  );
 }
 
 Widget aqiContainerString(

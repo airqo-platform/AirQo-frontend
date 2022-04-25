@@ -2,7 +2,7 @@ import 'package:app/auth/phone_reauthenticate_screen.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/utils/dialogs.dart';
-import 'package:app/utils/web_view.dart';
+import 'package:app/screens/web_view_page.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -30,7 +30,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: appTopBar(context, 'Settings'),
+        appBar: appTopBar(context: context, title: 'Settings'),
         body: Container(
             color: Config.appBodyColor,
             padding:
@@ -258,7 +258,13 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           GestureDetector(
             onTap: () async {
-              openUrl(Config.faqsUrl);
+              await Navigator.push(context,
+                  MaterialPageRoute(builder: (context) {
+                return WebViewScreen(
+                  url: Config.faqsUrl,
+                  title: 'AirQo FAQs',
+                );
+              }));
             },
             child: _cardSection('FAQs'),
           ),
