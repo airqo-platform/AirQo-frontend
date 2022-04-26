@@ -9,7 +9,6 @@ import 'package:flutter_svg/svg.dart';
 
 import '../services/app_service.dart';
 import '../themes/light_theme.dart';
-import '../widgets/text_fields.dart';
 import 'insights_page.dart';
 
 class SearchPage extends StatefulWidget {

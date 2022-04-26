@@ -21,12 +21,12 @@ import 'package:geolocator/geolocator.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:location/location.dart' as locate_api;
 import 'package:path_provider/path_provider.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/enum_constants.dart';
 import '../themes/light_theme.dart';
+import '../utils/exception.dart';
 import 'firebase_service.dart';
 import 'local_notifications.dart';
 
@@ -437,11 +437,7 @@ class NotificationService {
       var token = await _firebaseMessaging.getToken();
       return token;
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
     }
 
     return null;
@@ -469,11 +465,7 @@ class NotificationService {
       }
       return status;
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
     }
 
     return false;

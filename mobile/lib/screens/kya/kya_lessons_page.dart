@@ -6,9 +6,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../themes/light_theme.dart';
+import '../../utils/exception.dart';
 import '../../widgets/custom_shimmer.dart';
 import 'kya_final_page.dart';
 
@@ -72,11 +72,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                       await _appService.shareService
                           .shareKya(context, _globalKeys[currentIndex]);
                     } catch (exception, stackTrace) {
-                      debugPrint('$exception\n$stackTrace');
-                      await Sentry.captureException(
-                        exception,
-                        stackTrace: stackTrace,
-                      );
+                      await logException(exception, stackTrace);
                     }
                   },
                   child: Padding(

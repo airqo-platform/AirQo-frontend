@@ -20,6 +20,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import '../models/enum_constants.dart';
 import '../models/insights.dart';
 import '../models/kya.dart';
+import '../utils/exception.dart';
 import 'native_api.dart';
 
 class AppService {
@@ -118,11 +119,7 @@ class AppService {
 
       await currentUser.delete();
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
       return false;
     }
     return true;
@@ -142,10 +139,7 @@ class AppService {
           phoneNumber: phoneNumber, emailAddress: emailAddress);
     } catch (exception, stackTrace) {
       debugPrint('$exception \n $stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
       await showSnackBar(
           buildContext, 'Failed to perform action. Try again later');
       return true;
@@ -309,11 +303,7 @@ class AppService {
           });
       await _customAuth.logOut(buildContext);
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
     }
     return true;
   }
@@ -521,11 +511,7 @@ class AppService {
         return true;
       }
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
       return false;
     }
   }
@@ -587,11 +573,7 @@ class AppService {
         await _secureStorage.updateUserDetailsField('emailAddress', email);
       }
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
     }
   }
 }

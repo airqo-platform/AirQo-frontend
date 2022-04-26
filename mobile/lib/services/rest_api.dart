@@ -19,6 +19,20 @@ import 'package:intl/intl.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
 
+import '../utils/exception.dart';
+
+String addQueryParameters(Map<String, dynamic> queryParams, String url) {
+  if (queryParams.isNotEmpty) {
+    url = '$url?';
+    queryParams.forEach((key, value) {
+      url = queryParams.keys.elementAt(0).compareTo(key) == 0
+          ? '$url$key=$value'
+          : '$url&$key=$value';
+    });
+  }
+  return url;
+}
+
 class AirqoApiClient {
   final httpClient = SentryHttpClient(
       client: http.Client(),
@@ -66,7 +80,7 @@ class AirqoApiClient {
         ..putIfAbsent(
             'startTime',
             () =>
-                '${DateFormat('yyyy-MM-dd').format(DateTime.now().toUtc().subtract(const Duration(days: 3)))}T00:00:00Z')
+                '${DateFormat('yyyy-MM-dd').format(DateTime.now().toUtc().subtract(const Duration(days: 1)))}T00:00:00Z')
         ..putIfAbsent('frequency', () => 'hourly')
         ..putIfAbsent('tenant', () => 'airqo');
 
@@ -77,11 +91,8 @@ class AirqoApiClient {
       } else {
         return <Measurement>[];
       }
-    } on Error catch (exception, stackTrace) {
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
     }
 
     return <Measurement>[];
@@ -106,12 +117,8 @@ class AirqoApiClient {
       } else {
         return <Insights>[];
       }
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
     }
 
     return <Insights>[];
@@ -123,11 +130,8 @@ class AirqoApiClient {
     if (responseBody != null) {
       try {
         return responseBody['data']['carrier']['name'];
-      } on Error catch (exception, stackTrace) {
-        await Sentry.captureException(
-          exception,
-          stackTrace: stackTrace,
-        );
+      } catch (exception, stackTrace) {
+        await logException(exception, stackTrace);
       }
     }
     return '';
@@ -155,12 +159,8 @@ class AirqoApiClient {
       } else {
         throw Exception('Error');
       }
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
       return '';
     }
   }
@@ -182,79 +182,58 @@ class AirqoApiClient {
 
       return compute(
           EmailAuthModel.parseEmailAuthModel, json.decode(response.body));
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
     }
     return null;
   }
 
   Future<bool> sendFeedback(UserFeedback feedback) async {
-    try {
-      var body = jsonEncode({
-        'personalizations': [
-          {
-            'to': [
-              {
-                'email': Config.airqoSupportEmail,
-                'name': Config.airqoSupportUsername
-              }
-            ],
-            'cc': [
-              {
-                'email': feedback.contactDetails,
-                'name': Config.defaultFeedbackUserName
-              }
-            ],
-            'subject': feedback.feedbackType
-          }
-        ],
-        'content': [
-          {'type': 'text/plain', 'value': feedback.message}
-        ],
-        'from': {
-          'email': Config.airqoDataProductsEmail,
-          'name': Config.defaultFeedbackUserName
-        },
-        'reply_to': {
-          'email': feedback.contactDetails,
-          'name': Config.defaultFeedbackUserName
+    var body = jsonEncode({
+      'personalizations': [
+        {
+          'to': [
+            {
+              'email': Config.airqoSupportEmail,
+              'name': Config.airqoSupportUsername
+            }
+          ],
+          'cc': [
+            {
+              'email': feedback.contactDetails,
+              'name': Config.defaultFeedbackUserName
+            }
+          ],
+          'subject': feedback.feedbackType
         }
-      });
-
-      try {
-        Map<String, String> headers = HashMap()
-          ..putIfAbsent('Content-Type', () => 'application/json')
-          ..putIfAbsent(
-              'Authorization', () => 'Bearer ${Config.emailFeedbackAPIKey}');
-
-        final response = await httpClient.post(
-            Uri.parse(Config.emailFeedbackUrl),
-            headers: headers,
-            body: body);
-
-        if (response.statusCode == 200 || response.statusCode == 202) {
-          return true;
-        } else {
-          return false;
-        }
-      } on Error catch (exception, stackTrace) {
-        debugPrint('$exception\n$stackTrace');
-        await Sentry.captureException(
-          exception,
-          stackTrace: stackTrace,
-        );
-        return false;
+      ],
+      'content': [
+        {'type': 'text/plain', 'value': feedback.message}
+      ],
+      'from': {
+        'email': Config.airqoDataProductsEmail,
+        'name': Config.defaultFeedbackUserName
+      },
+      'reply_to': {
+        'email': feedback.contactDetails,
+        'name': Config.defaultFeedbackUserName
       }
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+    });
+
+    try {
+      Map<String, String> headers = HashMap()
+        ..putIfAbsent('Content-Type', () => 'application/json')
+        ..putIfAbsent(
+            'Authorization', () => 'Bearer ${Config.emailFeedbackAPIKey}');
+
+      final response = await httpClient.post(Uri.parse(Config.emailFeedbackUrl),
+          headers: headers, body: body);
+
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        return true;
+      }
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
     }
 
     return false;
@@ -276,40 +255,21 @@ class AirqoApiClient {
 
       await _performPostRequest(
           <String, dynamic>{}, AirQoUrls.welcomeMessage, jsonEncode(body));
-    } on Error catch (exception, stackTrace) {
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
     }
   }
 
   Future<dynamic> _performGetRequest(
       Map<String, dynamic> queryParams, String url) async {
     try {
-      if (queryParams.isNotEmpty) {
-        url = '$url?';
-        queryParams.forEach((key, value) {
-          if (queryParams.keys.elementAt(0).compareTo(key) == 0) {
-            url = '$url$key=$value';
-          } else {
-            url = '$url&$key=$value';
-          }
-        });
-      }
-
+      url = addQueryParameters(queryParams, url);
       final response = await httpClient.get(Uri.parse(url), headers: headers);
       if (response.statusCode == 200) {
         return json.decode(response.body);
-      } else {
-        return null;
       }
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
     }
 
     return null;
@@ -318,35 +278,18 @@ class AirqoApiClient {
   Future<bool> _performPostRequest(
       Map<String, dynamic> queryParams, String url, dynamic body) async {
     try {
-      if (queryParams.isNotEmpty) {
-        url = '$url?';
-        queryParams.forEach((key, value) {
-          if (queryParams.keys.elementAt(0).compareTo(key) == 0) {
-            url = '$url$key=$value';
-          } else {
-            url = '$url&$key=$value';
-          }
-        });
-      }
-
-      Map<String, String> headers = HashMap()
-        ..putIfAbsent('Content-Type', () => 'application/json');
+      url = addQueryParameters(queryParams, url);
+      headers.putIfAbsent('Content-Type', () => 'application/json');
 
       final response =
           await httpClient.post(Uri.parse(url), headers: headers, body: body);
       if (response.statusCode == 200) {
         return true;
-      } else {
-        return false;
       }
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-      return false;
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
     }
+    return false;
   }
 }
 
@@ -365,18 +308,11 @@ class SearchApi {
       final responseBody =
           await _performGetRequest(queryParams, AirQoUrls.searchSuggestions);
 
-      if (responseBody == null) {
-        return [];
-      }
-      if (responseBody['status'] == 'OK') {
+      if (responseBody != null && responseBody['status'] == 'OK') {
         return compute(Suggestion.parseSuggestions, responseBody);
       }
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
     }
 
     return [];
@@ -396,12 +332,8 @@ class SearchApi {
       var place = Place.fromJson(responseBody['result']);
 
       return place;
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
     }
 
     return null;
@@ -410,31 +342,16 @@ class SearchApi {
   Future<dynamic> _performGetRequest(
       Map<String, dynamic> queryParams, String url) async {
     try {
-      if (queryParams.isNotEmpty) {
-        url = '$url?';
-        queryParams.forEach((key, value) {
-          if (queryParams.keys.elementAt(0).compareTo(key) == 0) {
-            url = '$url$key=$value';
-          } else {
-            url = '$url&$key=$value';
-          }
-        });
-      }
-
+      url = addQueryParameters(queryParams, url);
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
         return json.decode(response.body);
-      } else {
-        return null;
       }
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-      return null;
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
     }
+
+    return null;
   }
 }

@@ -157,7 +157,7 @@ class Config {
 
   static int get searchRadius => int.parse('${dotenv.env['SEARCH_RADIUS']}');
 
-  static String get sentryUrl => dotenv.env['SENTRY_URL'] ?? '';
+  static String get sentryDsn => dotenv.env['SENTRY_DSN'] ?? '';
 
   static int get smartNotificationId => 4877231;
 

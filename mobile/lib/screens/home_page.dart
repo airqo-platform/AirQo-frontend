@@ -14,6 +14,7 @@ import 'map_view.dart';
 
 class HomePage extends StatefulWidget {
   final bool? refresh;
+
   const HomePage({Key? key, this.refresh}) : super(key: key);
 
   @override

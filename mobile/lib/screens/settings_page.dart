@@ -1,8 +1,8 @@
 import 'package:app/auth/phone_reauthenticate_screen.dart';
 import 'package:app/constants/config.dart';
+import 'package:app/screens/web_view_page.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/utils/dialogs.dart';
-import 'package:app/screens/web_view_page.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';

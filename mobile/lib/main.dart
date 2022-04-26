@@ -59,7 +59,8 @@ void main() async {
     await SentryFlutter.init(
       (options) {
         options
-          ..dsn = Config.sentryUrl
+          ..dsn = Config.sentryDsn
+          ..enableOutOfMemoryTracking = true
           ..tracesSampleRate = 1.0;
       },
       appRunner: () => runApp(AirQoApp(themeController: themeController)),

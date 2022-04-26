@@ -16,11 +16,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/enum_constants.dart';
 import '../themes/light_theme.dart';
+import '../utils/exception.dart';
 import '../utils/kya_utils.dart';
 import '../widgets/custom_widgets.dart';
 import 'favourite_places.dart';
@@ -474,12 +474,8 @@ class _DashboardViewState extends State<DashboardView> {
             ..add(kyaAvatar(7, completeKya[1]))
             ..add(kyaAvatar(14, completeKya[2]));
         } else {}
-      } on Error catch (exception, stackTrace) {
-        debugPrint('$exception\n$stackTrace');
-        await Sentry.captureException(
-          exception,
-          stackTrace: stackTrace,
-        );
+      } catch (exception, stackTrace) {
+        await logException(exception, stackTrace);
       }
     }
 

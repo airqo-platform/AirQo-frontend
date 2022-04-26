@@ -661,7 +661,7 @@ class _InsightsTabState extends State<InsightsTab> {
                   if (value != null) {
                     _updateUI(model.selectedSeries[0].data[value]);
                   }
-                } on Error catch (exception, stackTrace) {
+                } catch (exception, stackTrace) {
                   debugPrint(
                       '${exception.toString()}\n${stackTrace.toString()}');
                 }

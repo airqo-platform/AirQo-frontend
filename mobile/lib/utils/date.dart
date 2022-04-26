@@ -9,7 +9,7 @@ String dateToShareString(String formattedString) {
     var formattedDate = DateTime.parse(formattedString);
     var dateFormatter = DateFormat('EEE, d MMM yyyy hh:mm a');
     return dateFormatter.format(formattedDate);
-  } on Error catch (exception, stackTrace) {
+  } catch (exception, stackTrace) {
     debugPrint('$exception\n$stackTrace');
     return dateToString(formattedString);
   }
@@ -44,7 +44,7 @@ String dateToString(String formattedString) {
         }
       }
     }
-  } on Error catch (exception, stackTrace) {
+  } catch (exception, stackTrace) {
     debugPrint('$exception\n$stackTrace');
     return formattedString;
   }
@@ -114,7 +114,7 @@ String insightsChartTitleDateTimeToString(
 
       return prefix == '' ? suffix : '$prefix, $suffix';
     }
-  } on Error catch (exception, stackTrace) {
+  } catch (exception, stackTrace) {
     debugPrint('$exception\n$stackTrace');
     return dateTime.toString();
   }

@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ import '../widgets/custom_widgets.dart';
 class WebViewScreen extends StatefulWidget {
   final String url;
   final String title;
+
   const WebViewScreen({Key? key, required this.url, required this.title})
       : super(key: key);
 

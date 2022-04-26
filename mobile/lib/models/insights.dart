@@ -1,7 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
+import '../utils/exception.dart';
 import 'enum_constants.dart';
 import 'json_parsers.dart';
 
@@ -80,11 +79,7 @@ class Insights {
 
         insights.add(insight);
       } catch (exception, stackTrace) {
-        debugPrint('$exception\n$stackTrace');
-        Sentry.captureException(
-          exception,
-          stackTrace: stackTrace,
-        );
+        logException(exception, stackTrace);
       }
     }
 
