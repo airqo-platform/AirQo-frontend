@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:app/constants/config.dart';
 import 'package:app/models/feedback.dart';
-import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/buttons.dart';
@@ -11,6 +10,7 @@ import 'package:app/widgets/text_fields.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../services/app_service.dart';
 import '../themes/light_theme.dart';
 
 class FeedbackPage extends StatefulWidget {
@@ -25,16 +25,16 @@ class _FeedbackPageState extends State<FeedbackPage> {
   String _feedbackType = '';
   String _feedbackChannel = '';
   bool _isSendingFeedback = false;
+  final AppService _appService = AppService();
   final TextEditingController _emailInputController = TextEditingController();
   final TextEditingController _emailFeedbackController =
       TextEditingController();
-  AirqoApiClient? _airqoApiClient;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         resizeToAvoidBottomInset: false,
-        appBar: appTopBar(context, 'Send Feedback'),
+        appBar: appTopBar(context: context, title: 'Send Feedback'),
         body: Container(
             padding: const EdgeInsets.only(left: 16, right: 16),
             color: Config.appBodyColor,
@@ -243,7 +243,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                   setState(() {
                                     _isSendingFeedback = true;
                                   });
-                                  await _airqoApiClient!
+                                  await _appService.apiClient
                                       .sendFeedback(feedback)
                                       .then((value) => {
                                             if (value)
@@ -345,7 +345,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                               setState(() {
                                 _isSendingFeedback = true;
                               });
-                              await _airqoApiClient!
+                              await _appService.apiClient
                                   .sendFeedback(feedback)
                                   .then((value) => {
                                         if (value)
@@ -512,12 +512,6 @@ class _FeedbackPageState extends State<FeedbackPage> {
                 ?.copyWith(color: Config.appColorBlack.withOpacity(0.32)),
           ),
         )));
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _airqoApiClient = AirqoApiClient(context);
   }
 
   void openWhatsapp() async {

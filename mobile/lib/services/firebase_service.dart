@@ -16,9 +16,9 @@ import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
-import '../models/event.dart';
+import '../models/enum_constants.dart';
+import '../utils/exception.dart';
 import 'local_storage.dart';
 
 class CloudAnalytics {
@@ -26,12 +26,9 @@ class CloudAnalytics {
 
   Future<void> logEvent(
       AnalyticsEvent analyticsEvent, bool loggedInUser) async {
-    print("logging ${analyticsEvent.getName('')}");
-    await analytics
-        .logEvent(
-          name: analyticsEvent.getName(''),
-        )
-        .then(print);
+    await analytics.logEvent(
+      name: analyticsEvent.getName(''),
+    );
   }
 }
 
@@ -55,50 +52,8 @@ class CloudStore {
           .doc(placeDetails.placeId)
           .set(placeDetails.toJson());
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
     }
-  }
-
-  Future<bool> credentialsExist(String? phoneNumber, String? email) async {
-    var hasConnection = await isConnected();
-    if (!hasConnection) {
-      return false;
-    }
-
-    try {
-      var users =
-          await _firebaseFirestore.collection(Config.usersCollection).get();
-      for (var doc in users.docs) {
-        try {
-          if (phoneNumber != null && doc.data()['phoneNumber'] == phoneNumber) {
-            return true;
-          }
-          if (email != null && doc.data()['emailAddress'] == email) {
-            return true;
-          }
-        } on Error catch (exception, stackTrace) {
-          debugPrint(exception.toString());
-          debugPrint(stackTrace.toString());
-          await Sentry.captureException(
-            exception,
-            stackTrace: stackTrace,
-          );
-          continue;
-        }
-      }
-      return false;
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-    }
-    return false;
   }
 
   Future<void> deleteAccount(id) async {
@@ -114,12 +69,8 @@ class CloudStore {
           .collection(Config.usersCollection)
           .doc(id)
           .delete();
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
     }
   }
 
@@ -152,12 +103,8 @@ class CloudStore {
         }
       }
       return favPlaces;
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
     }
 
     return [];
@@ -251,12 +198,8 @@ class CloudStore {
       }
 
       return notifications;
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
     }
 
     return [];
@@ -278,12 +221,8 @@ class CloudStore {
           .doc(id)
           .get();
       return await compute(UserDetails.parseUserDetails, userJson.data());
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
     }
 
     return null;
@@ -318,12 +257,8 @@ class CloudStore {
           .update({'isNew': false}).then((value) => {updated = true});
 
       return updated;
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
     }
 
     return false;
@@ -352,11 +287,7 @@ class CloudStore {
         }
       });
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
     }
   }
 
@@ -374,11 +305,7 @@ class CloudStore {
           .get();
       return data.exists;
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
     }
 
     return false;
@@ -397,11 +324,7 @@ class CloudStore {
           .doc(placeDetails.placeId)
           .delete();
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
     }
   }
 
@@ -411,23 +334,21 @@ class CloudStore {
     if (!hasConnection || userId.trim().isEmpty) {
       return;
     }
+    var batch = _firebaseFirestore.batch();
 
     for (var place in favPlaces) {
       try {
-        await _firebaseFirestore
+        var document = _firebaseFirestore
             .collection(Config.favPlacesCollection)
             .doc(userId)
             .collection(userId)
-            .doc(place.placeId)
-            .set(place.toJson());
+            .doc(place.placeId);
+        batch.set(document, place.toJson());
       } catch (exception, stackTrace) {
-        debugPrint('$exception\n$stackTrace');
-        await Sentry.captureException(
-          exception,
-          stackTrace: stackTrace,
-        );
+        await logException(exception, stackTrace);
       }
     }
+    return batch.commit();
   }
 
   Future<void> updateKyaProgress(String userId, Kya kya) async {
@@ -451,18 +372,10 @@ class CloudStore {
             .doc(kya.id)
             .set({'progress': kya.progress, 'id': kya.id});
       } else {
-        debugPrint('$exception\n$stackTrace');
-        await Sentry.captureException(
-          exception,
-          stackTrace: stackTrace,
-        );
+        await logException(exception, stackTrace);
       }
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
     }
   }
 
@@ -498,11 +411,7 @@ class CloudStore {
             .update(userJson);
       }
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
     }
   }
 
@@ -526,11 +435,7 @@ class CloudStore {
             .set(_userJson);
       }
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
     }
   }
 
@@ -553,11 +458,7 @@ class CloudStore {
             .doc(id)
             .set(fields);
       }
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
     }
   }
 
@@ -576,11 +477,7 @@ class CloudStore {
 
       return downloadURL;
     } on Exception catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
     }
 
     return null;
@@ -624,11 +521,7 @@ class CustomAuth {
         return userDetails;
       }
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
     }
     return null;
   }
@@ -653,10 +546,7 @@ class CustomAuth {
       }
       debugPrint('$exception\n$stackTrace');
       if (!['invalid-email', 'expired-action-code'].contains(exception.code)) {
-        await Sentry.captureException(
-          exception,
-          stackTrace: stackTrace,
-        );
+        await logException(exception, stackTrace);
       }
       return false;
     }
@@ -711,11 +601,7 @@ class CustomAuth {
       }
       return false;
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
     }
     return false;
   }
@@ -724,11 +610,7 @@ class CustomAuth {
     try {
       await _firebaseAuth.signOut();
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
     }
   }
 
@@ -760,10 +642,7 @@ class CustomAuth {
         'invalid-verification-code',
         'account-exists-with-different-credential'
       ].contains(exception.code)) {
-        await Sentry.captureException(
-          exception,
-          stackTrace: stackTrace,
-        );
+        await logException(exception, stackTrace);
       }
       return false;
     }
@@ -782,11 +661,7 @@ class CustomAuth {
 
       return userCredential.user != null;
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
     }
     return false;
   }
@@ -817,11 +692,7 @@ class CustomAuth {
             ' another verification code');
       }
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
     }
     return false;
   }
@@ -862,11 +733,7 @@ class CustomAuth {
           timeout: const Duration(minutes: 2));
       return true;
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
       return false;
     }
   }
@@ -888,11 +755,7 @@ class CustomAuth {
         await _secureStorage.updateUserDetailsField('emailAddress', email);
       }
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
     }
   }
 
@@ -916,11 +779,7 @@ class CustomAuth {
         return false;
       }
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
     }
 
     return false;
@@ -952,11 +811,7 @@ class CustomAuth {
         return false;
       }
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
     }
 
     return false;
@@ -1004,11 +859,7 @@ class CustomAuth {
         await _cloudStore.updateProfileFields(firebaseUser.uid, fields);
       }
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
     }
   }
 
@@ -1031,11 +882,7 @@ class CustomAuth {
         await firebaseUser.updatePhotoURL(userDetails.photoUrl);
       }
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
     }
   }
 }

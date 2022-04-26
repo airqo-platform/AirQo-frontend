@@ -27,7 +27,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
   bool showHeartAnimation = false;
   bool isNull = true;
 
-  late AppService _appService;
+  final AppService _appService = AppService();
 
   @override
   Widget build(BuildContext context) {
@@ -205,7 +205,6 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
   @override
   void initState() {
     super.initState();
-    _appService = AppService(context);
     getMeasurement();
   }
 
@@ -219,6 +218,6 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
       });
     });
 
-    await _appService.updateFavouritePlace(widget.placeDetails);
+    await _appService.updateFavouritePlace(widget.placeDetails, context);
   }
 }

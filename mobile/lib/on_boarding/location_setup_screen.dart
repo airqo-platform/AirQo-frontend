@@ -1,8 +1,8 @@
 import 'package:app/constants/config.dart';
+import 'package:app/models/enum_constants.dart';
 import 'package:app/on_boarding/setup_complete_screeen.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/app_service.dart';
-import 'package:app/services/native_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:flutter/material.dart';
@@ -10,10 +10,7 @@ import 'package:flutter/material.dart';
 import '../themes/light_theme.dart';
 
 class LocationSetupScreen extends StatefulWidget {
-  final bool enableBackButton;
-
-  const LocationSetupScreen(this.enableBackButton, {Key? key})
-      : super(key: key);
+  const LocationSetupScreen({Key? key}) : super(key: key);
 
   @override
   LocationSetupScreenState createState() => LocationSetupScreenState();
@@ -21,8 +18,7 @@ class LocationSetupScreen extends StatefulWidget {
 
 class LocationSetupScreenState extends State<LocationSetupScreen> {
   DateTime? exitTime;
-  final LocationService _locationService = LocationService();
-  late AppService _appService;
+  final AppService _appService = AppService();
 
   @override
   Widget build(BuildContext context) {
@@ -60,18 +56,18 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
           padding: const EdgeInsets.only(left: 24, right: 24),
           child: GestureDetector(
             onTap: () {
-              _locationService
+              _appService.locationService
                   .allowLocationAccess()
                   .then((value) => {
                         Navigator.pushAndRemoveUntil(context,
                             MaterialPageRoute(builder: (context) {
-                          return SetUpCompleteScreen(widget.enableBackButton);
+                          return const SetUpCompleteScreen();
                         }), (r) => false)
                       })
                   .whenComplete(() => {
                         Navigator.pushAndRemoveUntil(context,
                             MaterialPageRoute(builder: (context) {
-                          return SetUpCompleteScreen(widget.enableBackButton);
+                          return const SetUpCompleteScreen();
                         }), (r) => false)
                       });
             },
@@ -85,7 +81,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
           onTap: () {
             Navigator.pushAndRemoveUntil(context,
                 MaterialPageRoute(builder: (context) {
-              return SetUpCompleteScreen(widget.enableBackButton);
+              return const SetUpCompleteScreen();
             }), (r) => false);
           },
           child: Text(
@@ -107,7 +103,6 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
   @override
   void initState() {
     super.initState();
-    _appService = AppService(context);
     updateOnBoardingPage();
   }
 
@@ -130,6 +125,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
   }
 
   void updateOnBoardingPage() async {
-    await _appService.preferencesHelper.updateOnBoardingPage('location');
+    await _appService.preferencesHelper
+        .updateOnBoardingPage(OnBoardingPage.location);
   }
 }

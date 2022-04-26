@@ -6,7 +6,10 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-List<Recommendation> getHealthRecommendations(double pm2_5, String pollutant) {
+import '../models/enum_constants.dart';
+
+List<Recommendation> getHealthRecommendations(
+    double pm2_5, Pollutant pollutant) {
   // TODO add recommendations for pm10
   var recommendations = <Recommendation>[];
   if (pm2_5 <= 12.09) {
@@ -316,8 +319,8 @@ String pm2_5ToString(double pm2_5) {
   }
 }
 
-charts.Color pmToChartColor(double value, String pollutant) {
-  if (pollutant.trim().toLowerCase() == 'pm2.5') {
+charts.Color pmToChartColor(double value, Pollutant pollutant) {
+  if (pollutant == Pollutant.pm2_5) {
     if (value <= 12.09) {
       //good
       return charts.ColorUtil.fromDartColor(Config.green);

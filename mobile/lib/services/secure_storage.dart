@@ -1,6 +1,7 @@
 import 'package:app/models/user_details.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
+
+import '../utils/exception.dart';
 
 class SecureStorage {
   final _secureStorage = const FlutterSecureStorage();
@@ -37,22 +38,16 @@ class SecureStorage {
           key: 'emailAddress', value: userDetails.emailAddress);
       await _secureStorage.write(
           key: 'phoneNumber', value: userDetails.phoneNumber);
-    } on Error catch (exception, stackTrace) {
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
     }
   }
 
   Future<void> updateUserDetailsField(String key, String value) async {
     try {
       await _secureStorage.write(key: key, value: value);
-    } on Error catch (exception, stackTrace) {
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
     }
   }
 }

@@ -5,6 +5,7 @@ import 'package:app/constants/config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../models/enum_constants.dart';
 import '../themes/light_theme.dart';
 
 class ToolTip {
@@ -16,7 +17,7 @@ class ToolTip {
 
   bool _isVisible = false;
 
-  final toolTipType _tipType;
+  final ToolTipType _tipType;
 
   late OverlayEntry _entry;
   late Offset _offset;
@@ -114,7 +115,7 @@ class ToolTip {
   // TODO: change forecast wording
   RichText getToolTipText() {
     switch (_tipType) {
-      case toolTipType.favouritePlaces:
+      case ToolTipType.favouritePlaces:
         return RichText(
             text: TextSpan(children: [
           TextSpan(text: 'Tap the ', style: CustomTextStyle.overline1(context)),
@@ -130,12 +131,12 @@ class ToolTip {
                   'to save them here for later.',
               style: CustomTextStyle.overline1(context)),
         ]));
-      case toolTipType.forYou:
+      case ToolTipType.forYou:
         return RichText(
             text: TextSpan(
                 text: 'All your complete tasks will show up here',
                 style: CustomTextStyle.overline1(context)));
-      case toolTipType.info:
+      case ToolTipType.info:
         return RichText(
             text: TextSpan(children: [
           TextSpan(
@@ -152,7 +153,7 @@ class ToolTip {
                   'air quality analytics mean.',
               style: CustomTextStyle.overline1(context)),
         ]));
-      case toolTipType.forecast:
+      case ToolTipType.forecast:
         return RichText(
             text: TextSpan(
                 text: 'Tap Forecast to view air quality analytics '
@@ -209,8 +210,8 @@ class ToolTip {
 
     var dy = _showRect.top - _popupHeight;
 
-    if (_tipType == toolTipType.favouritePlaces ||
-        _tipType == toolTipType.forYou) {
+    if (_tipType == ToolTipType.favouritePlaces ||
+        _tipType == ToolTipType.forYou) {
       dy = arrowHeight + _showRect.height + _showRect.top;
       _isDownArrow = false;
     } else if (dy <= MediaQuery.of(context).padding.top + 10) {
@@ -236,8 +237,6 @@ class ToolTip {
         offset.dx, offset.dy, renderBox.size.width, renderBox.size.height);
   }
 }
-
-enum toolTipType { favouritePlaces, info, forYou, forecast }
 
 class TrianglePainter extends CustomPainter {
   bool isDownArrow;

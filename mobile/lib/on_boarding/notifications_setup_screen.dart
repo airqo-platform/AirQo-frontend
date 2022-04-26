@@ -1,19 +1,16 @@
 import 'package:app/constants/config.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/app_service.dart';
-import 'package:app/services/native_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:flutter/material.dart';
 
+import '../models/enum_constants.dart';
 import '../themes/light_theme.dart';
 import 'location_setup_screen.dart';
 
 class NotificationsSetupScreen extends StatefulWidget {
-  final bool enableBackButton;
-
-  const NotificationsSetupScreen(this.enableBackButton, {Key? key})
-      : super(key: key);
+  const NotificationsSetupScreen({Key? key}) : super(key: key);
 
   @override
   NotificationsSetupScreenState createState() =>
@@ -22,8 +19,8 @@ class NotificationsSetupScreen extends StatefulWidget {
 
 class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
   DateTime? exitTime;
-  final NotificationService _notificationService = NotificationService();
-  late AppService _appService;
+
+  final AppService _appService = AppService();
 
   @override
   Widget build(BuildContext context) {
@@ -59,12 +56,14 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
           padding: const EdgeInsets.only(left: 24, right: 24),
           child: GestureDetector(
             onTap: () {
-              _notificationService.allowNotifications().then((value) => {
-                    Navigator.pushAndRemoveUntil(context,
-                        MaterialPageRoute(builder: (context) {
-                      return LocationSetupScreen(widget.enableBackButton);
-                    }), (r) => false)
-                  });
+              _appService.notificationService
+                  .allowNotifications()
+                  .then((value) => {
+                        Navigator.pushAndRemoveUntil(context,
+                            MaterialPageRoute(builder: (context) {
+                          return const LocationSetupScreen();
+                        }), (r) => false)
+                      });
             },
             child: nextButton('Yes, keep me updated', Config.appColorBlue),
           ),
@@ -76,7 +75,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
           onTap: () {
             Navigator.pushAndRemoveUntil(context,
                 MaterialPageRoute(builder: (context) {
-              return LocationSetupScreen(widget.enableBackButton);
+              return const LocationSetupScreen();
             }), (r) => false);
           },
           child: Text(
@@ -98,7 +97,6 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
   @override
   void initState() {
     super.initState();
-    _appService = AppService(context);
     updateOnBoardingPage();
   }
 
@@ -121,6 +119,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
   }
 
   void updateOnBoardingPage() async {
-    await _appService.preferencesHelper.updateOnBoardingPage('notification');
+    await _appService.preferencesHelper
+        .updateOnBoardingPage(OnBoardingPage.notification);
   }
 }

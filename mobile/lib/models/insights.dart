@@ -1,7 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
+import '../utils/exception.dart';
+import 'enum_constants.dart';
 import 'json_parsers.dart';
 
 part 'insights.g.dart';
@@ -26,8 +26,8 @@ class Insights {
   factory Insights.fromJson(Map<String, dynamic> json) =>
       _$InsightsFromJson(json);
 
-  double getChartValue(String pollutant) {
-    return pollutant == 'pm2.5'
+  double getChartValue(Pollutant pollutant) {
+    return pollutant == Pollutant.pm2_5
         ? double.parse(pm2_5.toStringAsFixed(2))
         : double.parse(pm10.toStringAsFixed(2));
   }
@@ -48,9 +48,9 @@ class Insights {
 
   static String dropTableStmt() => 'DROP TABLE IF EXISTS ${dbName()}';
 
-  static List<Insights> formatData(List<Insights> data, String frequency) {
+  static List<Insights> formatData(List<Insights> data, Frequency frequency) {
     data.sort((x, y) {
-      if (frequency == 'daily') {
+      if (frequency == Frequency.daily) {
         return x.time.weekday.compareTo(y.time.weekday);
       }
       return x.time.compareTo(y.time);
@@ -79,11 +79,7 @@ class Insights {
 
         insights.add(insight);
       } catch (exception, stackTrace) {
-        debugPrint('$exception\n$stackTrace');
-        Sentry.captureException(
-          exception,
-          stackTrace: stackTrace,
-        );
+        logException(exception, stackTrace);
       }
     }
 

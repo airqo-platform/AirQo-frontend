@@ -1,38 +1,9 @@
+import 'package:app/utils/extensions.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import 'enum_constants.dart';
+
 part 'user_details.g.dart';
-
-enum titleOptions { ms, mr, undefined }
-
-enum gender { male, female, undefined }
-
-extension TitleOptionsExtension on titleOptions {
-  String getDisplayName() {
-    switch (this) {
-      case titleOptions.ms:
-        return 'Ms.';
-      case titleOptions.mr:
-        return 'Mr.';
-      case titleOptions.undefined:
-        return 'Rather Not Say';
-      default:
-        return '';
-    }
-  }
-
-  String getValue() {
-    switch (this) {
-      case titleOptions.ms:
-        return 'Ms';
-      case titleOptions.mr:
-        return 'Mr';
-      case titleOptions.undefined:
-        return 'Rather Not Say';
-      default:
-        return '';
-    }
-  }
-}
 
 @JsonSerializable(explicitToJson: true)
 class UserDetails {
@@ -81,17 +52,17 @@ class UserDetails {
     return fullName.isEmpty ? 'Hello' : fullName;
   }
 
-  gender getGender() {
+  Gender getGender() {
     if (title
         .toLowerCase()
-        .contains(titleOptions.mr.getValue().toLowerCase())) {
-      return gender.male;
+        .contains(TitleOptions.mr.getValue().toLowerCase())) {
+      return Gender.male;
     } else if (title
         .toLowerCase()
-        .contains(titleOptions.ms.getValue().toLowerCase())) {
-      return gender.female;
+        .contains(TitleOptions.ms.getValue().toLowerCase())) {
+      return Gender.female;
     } else {
-      return gender.undefined;
+      return Gender.undefined;
     }
   }
 

@@ -1,8 +1,91 @@
 import 'dart:io';
 
 import 'package:app/models/json_parsers.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
+
+import '../models/enum_constants.dart';
+
+OnBoardingPage getOnBoardingPageConstant(String value) {
+  switch (value) {
+    case 'signup':
+      return OnBoardingPage.signup;
+    case 'profile':
+      return OnBoardingPage.profile;
+    case 'notification':
+      return OnBoardingPage.notification;
+    case 'location':
+      return OnBoardingPage.location;
+    case 'complete':
+      return OnBoardingPage.complete;
+    case 'home':
+      return OnBoardingPage.home;
+    case 'welcome':
+      return OnBoardingPage.welcome;
+    default:
+      return OnBoardingPage.signup;
+  }
+}
+
+Region getRegionConstant(String value) {
+  switch (value) {
+    case 'central':
+      return Region.central;
+    case 'northern':
+      return Region.northern;
+    case 'eastern':
+      return Region.eastern;
+    case 'western':
+      return Region.western;
+    default:
+      return Region.central;
+  }
+}
+
+extension AnalyticsEventExtension on AnalyticsEvent {
+  String getName(String loggedInStatus) {
+    var prefix = kReleaseMode ? 'prod_' : 'stage_';
+
+    switch (this) {
+      case AnalyticsEvent.browserAsAppGuest:
+        return '${prefix}browser_as_guest';
+      case AnalyticsEvent.createUserProfile:
+        return '${prefix}created_profile';
+      case AnalyticsEvent.rateApp:
+        return '${prefix}rate_app';
+      case AnalyticsEvent.shareAirQualityInformation:
+        return '${prefix}share_air_quality_information';
+      case AnalyticsEvent.allowLocation:
+        return '${prefix}allow_location';
+      case AnalyticsEvent.allowNotification:
+        return '${prefix}allow_notification';
+      case AnalyticsEvent.uploadProfilePicture:
+        return '${prefix}upload_profile_picture';
+      case AnalyticsEvent.completeOneKYA:
+        return '${prefix}complete_kya_lesson';
+      case AnalyticsEvent.savesFiveFavorites:
+        return '${prefix}save_five_favorite_places';
+      case AnalyticsEvent.maleUser:
+        return '${prefix}male_user';
+      case AnalyticsEvent.femaleUser:
+        return '${prefix}female_user';
+      case AnalyticsEvent.undefinedGender:
+        return '${prefix}undefined_gender';
+      case AnalyticsEvent.iosUser:
+        return '${prefix}ios_user';
+      case AnalyticsEvent.androidUser:
+        return '${prefix}android_user';
+      case AnalyticsEvent.mtnUser:
+        return '${prefix}mtn_user';
+      case AnalyticsEvent.airtelUser:
+        return '${prefix}airtel_user';
+      case AnalyticsEvent.otherNetwork:
+        return '${prefix}other_network_user';
+      default:
+        return '';
+    }
+  }
+}
 
 extension DateTimeExtension on DateTime {
   DateTime getDateOfFirstDayOfWeek() {
@@ -89,44 +172,13 @@ extension DateTimeExtension on DateTime {
 
   String getLongDate() {
     if (day.toString().endsWith('1')) {
-      return '${day}st ${getLongMonthString()}';
+      return '${day}st ${getMonthString(abbreviate: false)}';
     } else if (day.toString().endsWith('2')) {
-      return '${day}st ${getLongMonthString()}';
+      return '${day}st ${getMonthString(abbreviate: false)}';
     } else if (day.toString().endsWith('3')) {
-      return '${day}rd ${getLongMonthString()}';
+      return '${day}rd ${getMonthString(abbreviate: false)}';
     } else {
-      return '${day}th ${getLongMonthString()}';
-    }
-  }
-
-  String getLongMonthString() {
-    switch (month) {
-      case 1:
-        return 'January';
-      case 2:
-        return 'February';
-      case 3:
-        return 'March';
-      case 4:
-        return 'April';
-      case 5:
-        return 'May';
-      case 6:
-        return 'June';
-      case 7:
-        return 'July';
-      case 8:
-        return 'August';
-      case 9:
-        return 'September';
-      case 10:
-        return 'October';
-      case 11:
-        return 'November';
-      case 12:
-        return 'December';
-      default:
-        return '';
+      return '${day}th ${getMonthString(abbreviate: false)}';
     }
   }
 
@@ -138,46 +190,46 @@ extension DateTimeExtension on DateTime {
     return '0$referenceMonth';
   }
 
-  String getShortDate() {
-    if (day.toString().endsWith('1')) {
-      return '${day}st ${getShortMonthString()}';
-    } else if (day.toString().endsWith('2')) {
-      return '${day}st ${getShortMonthString()}';
-    } else if (day.toString().endsWith('3')) {
-      return '${day}rd ${getShortMonthString()}';
-    } else {
-      return '${day}th ${getShortMonthString()}';
+  String getMonthString({required bool abbreviate}) {
+    switch (month) {
+      case 1:
+        return abbreviate ? 'Jan' : 'January';
+      case 2:
+        return abbreviate ? 'Feb' : 'February';
+      case 3:
+        return abbreviate ? 'Mar' : 'March';
+      case 4:
+        return abbreviate ? 'Apr' : 'April';
+      case 5:
+        return abbreviate ? 'May' : 'May';
+      case 6:
+        return abbreviate ? 'Jun' : 'June';
+      case 7:
+        return abbreviate ? 'Jul' : 'July';
+      case 8:
+        return abbreviate ? 'Aug' : 'August';
+      case 9:
+        return abbreviate ? 'Sept' : 'September';
+      case 10:
+        return abbreviate ? 'Oct' : 'October';
+      case 11:
+        return abbreviate ? 'Nov' : 'November';
+      case 12:
+        return abbreviate ? 'Dec' : 'December';
+      default:
+        return '';
     }
   }
 
-  String getShortMonthString() {
-    switch (month) {
-      case 1:
-        return 'Jan';
-      case 2:
-        return 'Feb';
-      case 3:
-        return 'Mar';
-      case 4:
-        return 'Apr';
-      case 5:
-        return 'May';
-      case 6:
-        return 'Jun';
-      case 7:
-        return 'Jul';
-      case 8:
-        return 'Aug';
-      case 9:
-        return 'Sept';
-      case 10:
-        return 'Oct';
-      case 11:
-        return 'Nov';
-      case 12:
-        return 'Dec';
-      default:
-        return '';
+  String getShortDate() {
+    if (day.toString().endsWith('1')) {
+      return '${day}st ${getMonthString(abbreviate: true)}';
+    } else if (day.toString().endsWith('2')) {
+      return '${day}st ${getMonthString(abbreviate: true)}';
+    } else if (day.toString().endsWith('3')) {
+      return '${day}rd ${getMonthString(abbreviate: true)}';
+    } else {
+      return '${day}th ${getMonthString(abbreviate: true)}';
     }
   }
 
@@ -272,7 +324,7 @@ extension DateTimeExtension on DateTime {
       }
       return '$hours:$minutes';
     } else {
-      return '$day ${getShortMonthString()}';
+      return '$day ${getMonthString(abbreviate: true)}';
     }
   }
 
@@ -288,6 +340,83 @@ extension DateTimeExtension on DateTime {
 extension FileExtenion on File {
   String getExtension() {
     return path.substring(path.lastIndexOf('.'));
+  }
+}
+
+extension FrequencyExtension on Frequency {
+  String getName() {
+    switch (this) {
+      case Frequency.daily:
+        return 'daily';
+      case Frequency.hourly:
+        return 'hourly';
+      default:
+        return '';
+    }
+  }
+}
+
+extension RegionExtension on Region {
+  String getName() {
+    switch (this) {
+      case Region.central:
+        return 'Central Region';
+      case Region.eastern:
+        return 'Eastern Region';
+      case Region.western:
+        return 'Western Region';
+      case Region.northern:
+        return 'Northern Region';
+      default:
+        return '';
+    }
+  }
+}
+
+extension OnBoardingPageExtension on OnBoardingPage {
+  String getName() {
+    switch (this) {
+      case OnBoardingPage.signup:
+        return 'signup';
+      case OnBoardingPage.profile:
+        return 'profile';
+      case OnBoardingPage.notification:
+        return 'notification';
+      case OnBoardingPage.location:
+        return 'location';
+      case OnBoardingPage.complete:
+        return 'complete';
+      case OnBoardingPage.home:
+        return 'home';
+      case OnBoardingPage.welcome:
+        return 'welcome';
+      default:
+        return '';
+    }
+  }
+}
+
+extension PollutantExtension on Pollutant {
+  String asString() {
+    switch (this) {
+      case Pollutant.pm2_5:
+        return 'pm 2.5';
+      case Pollutant.pm10:
+        return 'pm 10';
+      default:
+        return '';
+    }
+  }
+
+  String toTitleCase() {
+    switch (this) {
+      case Pollutant.pm2_5:
+        return 'pm2_5'.toTitleCase();
+      case Pollutant.pm10:
+        return 'pm10'.toTitleCase();
+      default:
+        return '';
+    }
   }
 }
 
@@ -340,4 +469,36 @@ extension StringCasingExtension on String {
 
   String toTitleCase() =>
       split(' ').map((str) => str.toCapitalized()).join(' ');
+
+  String trimEllipsis() {
+    return replaceAll('', '\u{200B}');
+  }
+}
+
+extension TitleOptionsExtension on TitleOptions {
+  String getDisplayName() {
+    switch (this) {
+      case TitleOptions.ms:
+        return 'Ms.';
+      case TitleOptions.mr:
+        return 'Mr.';
+      case TitleOptions.undefined:
+        return 'Rather Not Say';
+      default:
+        return '';
+    }
+  }
+
+  String getValue() {
+    switch (this) {
+      case TitleOptions.ms:
+        return 'Ms';
+      case TitleOptions.mr:
+        return 'Mr';
+      case TitleOptions.undefined:
+        return 'Rather Not Say';
+      default:
+        return '';
+    }
+  }
 }

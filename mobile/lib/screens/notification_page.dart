@@ -30,7 +30,7 @@ class _NotificationPageState extends State<NotificationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: appTopBar(context, 'Notifications'),
+      appBar: appTopBar(context: context, title: 'Notifications'),
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 500),
         transitionBuilder: (Widget child, Animation<double> animation) {
@@ -39,11 +39,6 @@ class _NotificationPageState extends State<NotificationPage> {
         child: _renderWidget(),
       ),
     );
-  }
-
-  @override
-  void initState() {
-    super.initState();
   }
 
   Widget mainSection() {
