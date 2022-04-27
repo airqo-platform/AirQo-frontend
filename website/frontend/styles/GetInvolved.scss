@@ -89,7 +89,6 @@
             margin-bottom: 24px;
 
             img {
-                margin-bottom: 20px;
                 width: 106px;
                 height: 106px;
                 border-radius: 53px;
@@ -125,18 +124,6 @@
         max-width: 320px;
         margin: 0 auto 0 0;
         margin-left: 159px;
-
-        .progress-bar {
-            display: flex;
-            margin-bottom: 100px;
-
-            .bar {
-                width: 96px;
-                height: 8px;
-                margin-right: 25px;
-                border-radius: 100px;
-            }
-        }
         
         .register-form {
             width: 100%;
@@ -181,20 +168,33 @@
             }
         }
 
+        .section-button-row {
+            display: flex;
+            justify-content: space-between;
+
+            .back-btn, .register-btn {
+                height: 48px;
+                border-radius: 16px;
+                background-color: $aq-blue-0;
+                color: $aq-white-0;
+                font-size: 16px;
+                line-height: 24px;
+                font-weight: 400;
+                box-sizing: border-box;
+                outline: 0;
+                border: 0;
+                cursor: pointer;
+            }
+        }
+
+        .back-btn {
+            width: 91px;
+            padding: 12px 27px;
+        }
+
         .register-btn {
-            width: 100%;
-            height: 48px;
-            border-radius: 16px;
-            background-color: $aq-blue-0;
-            color: $aq-white-0;
-            font-size: 16px;
-            line-height: 24px;
-            font-weight: 400;
-            padding: 12px 83px;
-            box-sizing: border-box;
-            outline: 0;
-            border: 0;
-            cursor: pointer;
+            width: 198px;
+            padding: 12px 22px;
         }
     }
 
@@ -210,4 +210,121 @@
         }
     }
 
+}
+
+@media(max-width: $mainBreakPoint) {
+    .GetInvolved {
+        flex-direction: column;
+        align-items: center;
+        height: 100%;
+        
+        .section-left {
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: flex-start;
+            flex-wrap: nowrap;
+            padding: 0;
+            padding-top: 48px;
+            padding-bottom: 64px;
+            margin: 0;
+
+            .content-wrapper {
+                width: 100%;
+                margin: 0 auto;
+            }
+        }
+
+        .section-right, .form-section {
+            padding-top: 64px;
+            width: 100%;
+            margin: 0;
+            height: 100%;
+            flex-direction: column;
+
+            .wrapper {
+                width: 100%;
+                margin: 0 auto;
+                // justify-content: space-evenly;
+            }
+
+            .card-item {
+                height: 100%;
+                width: 42%;
+                padding: 21px 8px 14px 8px;
+                box-sizing: border-box;
+
+                p{
+                    font-size: 12px;
+                }
+            }
+
+            .section-button {
+                width: 100%;
+                text-decoration: none;
+            }
+
+            .next-btn, .register-btn {
+                width: 100%;
+                margin-bottom: 88px;
+                padding: 16px;
+                text-align: center;
+                box-sizing: border-box;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            
+        }
+
+        .img-section {
+            margin: 0;
+            margin-bottom: 100px;
+
+            img {
+                width: 292px;
+                height: 292px;
+                border-radius: 146px;
+            }
+        }
+    }
+}
+
+@media(max-width: 360px) {
+    .GetInvolved {
+        .section-left, .section-right {
+            padding: 0 16px;
+        }
+        
+        .section-right {
+            width: 100%;
+            margin: 0;
+            height: 100%;
+            flex-direction: column;
+
+            .wrapper {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .card-item {
+                width: 154px;
+                box-sizing: border-box;
+
+                img {
+                    width: 56px;
+                    height: 56px;
+                    border-radius: 28px;
+                    object-fit: fill;
+                    margin-bottom: 11px;
+                }
+            }
+
+            .section-button {
+                padding: 0;
+            }
+
+        }
+    }
 }
