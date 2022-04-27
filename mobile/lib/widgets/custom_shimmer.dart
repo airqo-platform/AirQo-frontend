@@ -1,5 +1,4 @@
 import 'package:app/constants/config.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -46,24 +45,6 @@ void loadingScreen(BuildContext _context) async {
               child: CircularProgressIndicator(
             color: Config.appColorBlue,
           ))));
-}
-
-Widget refreshIndicator(
-    {required SliverChildDelegate sliverChildDelegate,
-    Future Function()? onRefresh}) {
-  return CustomScrollView(
-    physics: const BouncingScrollPhysics(),
-    slivers: [
-      CupertinoSliverRefreshControl(
-        refreshTriggerPullDistance: 70,
-        refreshIndicatorExtent: 60,
-        onRefresh: onRefresh,
-      ),
-      SliverList(
-        delegate: sliverChildDelegate,
-      ),
-    ],
-  );
 }
 
 Widget sizedContainerLoadingAnimation(

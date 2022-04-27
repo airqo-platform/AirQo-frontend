@@ -4,7 +4,6 @@ import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/screens/search_page.dart';
 import 'package:app/services/app_service.dart';
-import 'package:app/services/native_api.dart';
 import 'package:app/utils/dashboard.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/pm.dart';
@@ -13,16 +12,17 @@ import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/tooltip.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../models/enum_constants.dart';
 import '../themes/light_theme.dart';
+import '../utils/exception.dart';
 import '../utils/kya_utils.dart';
+import '../widgets/custom_widgets.dart';
 import 'favourite_places.dart';
 import 'for_you_page.dart';
 import 'kya/kya_title_page.dart';
@@ -42,14 +42,12 @@ class _DashboardViewState extends State<DashboardView> {
   List<Kya> _completeKya = [];
   List<Kya> _incompleteKya = [];
 
-  late AppService _appService;
+  final AppService _appService = AppService();
   late SharedPreferences _preferences;
 
   final GlobalKey _favToolTipKey = GlobalKey();
   final GlobalKey _kyaToolTipKey = GlobalKey();
   bool _isRefreshing = false;
-
-  final LocationService _locationService = LocationService();
 
   final ScrollController _scrollController = ScrollController();
   List<Widget> _analyticsCards = [
@@ -97,24 +95,15 @@ class _DashboardViewState extends State<DashboardView> {
               ),
               _topTabs(),
               const SizedBox(
-                height: 32,
+                height: 8,
               ),
               Expanded(
-                child: CustomScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  slivers: [
-                    CupertinoSliverRefreshControl(
-                      refreshTriggerPullDistance: 70,
-                      refreshIndicatorExtent: 60,
-                      onRefresh: _refresh,
-                    ),
-                    SliverList(
-                      delegate: SliverChildBuilderDelegate((context, index) {
-                        return _dashBoardItems[index];
-                      }, childCount: _dashBoardItems.length),
-                    ),
-                  ],
-                ),
+                child: refreshIndicator(
+                    sliverChildDelegate:
+                        SliverChildBuilderDelegate((context, index) {
+                      return _dashBoardItems[index];
+                    }, childCount: _dashBoardItems.length),
+                    onRefresh: _refresh),
               ),
             ],
           )),
@@ -123,7 +112,7 @@ class _DashboardViewState extends State<DashboardView> {
 
   @override
   void dispose() {
-    _scrollController.removeListener(() {});
+    _scrollController.removeListener(_scrollListener);
     super.dispose();
   }
 
@@ -160,9 +149,6 @@ class _DashboardViewState extends State<DashboardView> {
 
     setState(() {
       _analyticsCards = [
-        const SizedBox(
-          height: 24,
-        ),
         if (cards.isNotEmpty) cards[0],
         if (cards.isNotEmpty)
           const SizedBox(
@@ -291,7 +277,7 @@ class _DashboardViewState extends State<DashboardView> {
     }
 
     var locationMeasurements =
-        await _locationService.getNearbyLocationReadings();
+        await _appService.locationService.getNearbyLocationReadings();
 
     for (var location in locationMeasurements) {
       dashboardCards.add(AnalyticsCard(
@@ -303,7 +289,9 @@ class _DashboardViewState extends State<DashboardView> {
     if (!mounted) {
       return;
     }
-    _buildAnalyticsCards(dashboardCards);
+    if (dashboardCards.isNotEmpty) {
+      _buildAnalyticsCards(dashboardCards);
+    }
   }
 
   void _getKya() async {
@@ -320,44 +308,32 @@ class _DashboardViewState extends State<DashboardView> {
   Future<void> _handleKyaOnClick({required Kya kya}) async {
     if (kya.progress >= kya.lessons.length) {
       kya.progress = -1;
-      await _appService.updateKya(kya);
-      _getKya();
+      await _appService.updateKya(kya, context);
     } else {
-      var returnStatus =
-          await Navigator.push(context, MaterialPageRoute(builder: (context) {
+      await Navigator.push(context, MaterialPageRoute(builder: (context) {
         return KyaTitlePage(kya);
       }));
-      if (returnStatus) {
-        Future.delayed(const Duration(seconds: 500), () {
-          if (mounted) {
-            _getKya();
-          }
-        });
+    }
+    await _refresh();
+  }
+
+  void _scrollListener() {
+    if (mounted) {
+      if (_scrollController.position.userScrollDirection ==
+          ScrollDirection.reverse) {
+      } else if (_scrollController.position.userScrollDirection ==
+          ScrollDirection.forward) {
+      } else {
+        return;
       }
     }
   }
 
   void _handleScroll() async {
-    _scrollController.addListener(() {
-      if (_scrollController.position.userScrollDirection ==
-              ScrollDirection.reverse &&
-          mounted) {
-        // setState(() {
-        //   _showName = false;
-        // });
-      }
-      if (_scrollController.position.userScrollDirection ==
-              ScrollDirection.forward &&
-          mounted) {
-        // setState(() {
-        //   _showName = true;
-        // });
-      }
-    });
+    _scrollController.addListener(_scrollListener);
   }
 
   Future<void> _initialize() async {
-    _appService = AppService(context);
     _preferences = await SharedPreferences.getInstance();
     _completeKyaWidgets.add(circularLoadingAnimation(30));
     _buildAnalyticsCards(_analyticsCards);
@@ -369,6 +345,9 @@ class _DashboardViewState extends State<DashboardView> {
 
   List<Widget> _initializeDashBoardItems() {
     return [
+      const SizedBox(
+        height: 24,
+      ),
       Text(getDateTime(),
           style: Theme.of(context).textTheme.caption?.copyWith(
                 color: Colors.black.withOpacity(0.5),
@@ -407,7 +386,7 @@ class _DashboardViewState extends State<DashboardView> {
               child: Column(
                 children: [
                   Text(_incompleteKya[0].title,
-                      maxLines: 2,
+                      maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 18,
@@ -495,12 +474,8 @@ class _DashboardViewState extends State<DashboardView> {
             ..add(kyaAvatar(7, completeKya[1]))
             ..add(kyaAvatar(14, completeKya[2]));
         } else {}
-      } on Error catch (exception, stackTrace) {
-        debugPrint('$exception\n$stackTrace');
-        await Sentry.captureException(
-          exception,
-          stackTrace: stackTrace,
-        );
+      } catch (exception, stackTrace) {
+        await logException(exception, stackTrace);
       }
     }
 
@@ -553,10 +528,6 @@ class _DashboardViewState extends State<DashboardView> {
           } else {
             widgets.add(_emptyAvatar(7));
           }
-
-          // widgets
-          //   ..add(favPlaceAvatar(0, favouritePlaces[0]))
-          //   ..add(favPlaceAvatar(7, favouritePlaces[1]));
         } else if (favouritePlaces.length >= 3) {
           if (measurements.isNotEmpty) {
             widgets.add(_favPlaceAvatar(0, measurements[0]));
@@ -632,7 +603,8 @@ class _DashboardViewState extends State<DashboardView> {
       _isRefreshing = true;
     });
 
-    await _appService.refreshDashboard();
+    _setGreetings();
+    await _appService.refreshDashboard(context);
     _getAnalyticsCards();
     _getKya();
     _loadFavourites(reload: true);
@@ -659,7 +631,7 @@ class _DashboardViewState extends State<DashboardView> {
             child: GestureDetector(
               onTap: () async {
                 if (_favLocations.isEmpty) {
-                  ToolTip(context, toolTipType.favouritePlaces).show(
+                  ToolTip(context, ToolTipType.favouritePlaces).show(
                     widgetKey: _favToolTipKey,
                   );
                   return;
@@ -714,14 +686,14 @@ class _DashboardViewState extends State<DashboardView> {
             child: GestureDetector(
               onTap: () async {
                 if (_completeKya.isEmpty) {
-                  ToolTip(context, toolTipType.forYou).show(
+                  ToolTip(context, ToolTipType.forYou).show(
                     widgetKey: _kyaToolTipKey,
                   );
                   return;
                 }
                 await Navigator.push(context,
                     MaterialPageRoute(builder: (context) {
-                  return const ForYouPage();
+                  return const ForYouPage(analytics: false);
                 }));
               },
               child: Container(

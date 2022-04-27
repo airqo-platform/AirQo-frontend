@@ -1,16 +1,13 @@
 import 'package:app/constants/config.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/app_service.dart';
-import 'package:app/services/firebase_service.dart';
-import 'package:app/services/rest_api.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:flutter/material.dart';
 
-class SetUpCompleteScreen extends StatefulWidget {
-  final bool enableBackButton;
+import '../models/enum_constants.dart';
 
-  const SetUpCompleteScreen(this.enableBackButton, {Key? key})
-      : super(key: key);
+class SetUpCompleteScreen extends StatefulWidget {
+  const SetUpCompleteScreen({Key? key}) : super(key: key);
 
   @override
   SetUpCompleteScreenState createState() => SetUpCompleteScreenState();
@@ -18,10 +15,7 @@ class SetUpCompleteScreen extends StatefulWidget {
 
 class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   DateTime? _exitTime;
-  AirqoApiClient? _airqoApiClient;
-  final CustomAuth _customAuth = CustomAuth();
-  final CloudStore _cloudStore = CloudStore();
-  late AppService _appService;
+  final AppService _appService = AppService();
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +46,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
     Future.delayed(const Duration(seconds: 4), () {
       Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
-        updateOnBoardingPage('home');
+        _updateOnBoardingPage(OnBoardingPage.home);
         return const HomePage();
       }), (r) => false);
     });
@@ -61,9 +55,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   @override
   void initState() {
     super.initState();
-    _airqoApiClient = AirqoApiClient(context);
-    _appService = AppService(context);
-    updateOnBoardingPage('complete');
+    _appService.preferencesHelper.updateOnBoardingPage(OnBoardingPage.complete);
     initialize();
   }
 
@@ -88,18 +80,15 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   @Deprecated('Functionality has been transferred to the backend')
   Future<void> sendWelcomeEmail() async {
     try {
-      var userDetails = await _cloudStore.getProfile(_customAuth.getUserId());
+      var userDetails = await _appService.cloudStore
+          .getProfile(_appService.customAuth.getUserId());
       if (userDetails == null) {
         return;
       }
-      await _airqoApiClient!.sendWelcomeMessage(userDetails);
+      await _appService.apiClient.sendWelcomeMessage(userDetails);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
-  }
-
-  void updateOnBoardingPage(String page) async {
-    await _appService.preferencesHelper.updateOnBoardingPage(page);
   }
 
   TextStyle? _textStyle() {
@@ -109,5 +98,12 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
         fontSize: 48,
         height: 56 / 48,
         letterSpacing: 16 * -0.022);
+  }
+
+  Future<void> _updateOnBoardingPage(OnBoardingPage page) async {
+    await Future.wait([
+      _appService.postSignUpActions(context),
+      _appService.preferencesHelper.updateOnBoardingPage(page)
+    ]);
   }
 }

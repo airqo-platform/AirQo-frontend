@@ -2,12 +2,14 @@ import 'package:app/utils/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../models/enum_constants.dart';
+
 String dateToShareString(String formattedString) {
   try {
     var formattedDate = DateTime.parse(formattedString);
     var dateFormatter = DateFormat('EEE, d MMM yyyy hh:mm a');
     return dateFormatter.format(formattedDate);
-  } on Error catch (exception, stackTrace) {
+  } catch (exception, stackTrace) {
     debugPrint('$exception\n$stackTrace');
     return dateToString(formattedString);
   }
@@ -42,7 +44,7 @@ String dateToString(String formattedString) {
         }
       }
     }
-  } on Error catch (exception, stackTrace) {
+  } catch (exception, stackTrace) {
     debugPrint('$exception\n$stackTrace');
     return formattedString;
   }
@@ -50,7 +52,7 @@ String dateToString(String formattedString) {
 
 String getDateTime() {
   var now = DateTime.now();
-  return '${now.getWeekday()} ${DateFormat('d').format(now)}'
+  return '${now.getWeekday()} ${DateFormat('d').format(now)},'
           ' ${DateFormat('MMMM').format(now)}'
       .toUpperCase();
 }
@@ -76,9 +78,10 @@ String getGreetings(String name) {
   return 'Hello $name';
 }
 
-String insightsChartTitleDateTimeToString(DateTime dateTime, bool daily) {
+String insightsChartTitleDateTimeToString(
+    DateTime dateTime, Frequency frequency) {
   try {
-    if (daily) {
+    if (frequency == Frequency.daily) {
       var prefix = '';
       var suffix = '${dateTime.getDateOfFirstDayOfWeek().getShortDate()}'
           ' - '
@@ -111,7 +114,7 @@ String insightsChartTitleDateTimeToString(DateTime dateTime, bool daily) {
 
       return prefix == '' ? suffix : '$prefix, $suffix';
     }
-  } on Error catch (exception, stackTrace) {
+  } catch (exception, stackTrace) {
     debugPrint('$exception\n$stackTrace');
     return dateTime.toString();
   }

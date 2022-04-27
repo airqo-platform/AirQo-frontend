@@ -21,11 +21,12 @@ import 'package:geolocator/geolocator.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:location/location.dart' as locate_api;
 import 'package:path_provider/path_provider.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../models/enum_constants.dart';
 import '../themes/light_theme.dart';
+import '../utils/exception.dart';
 import 'firebase_service.dart';
 import 'local_notifications.dart';
 
@@ -39,7 +40,7 @@ class LocationService {
   Future<bool> allowLocationAccess() async {
     var enabled = await requestLocationAccess();
     if (enabled) {
-      await _cloudAnalytics.logEvent(AnalyticsEvent.allowLocation);
+      await _cloudAnalytics.logEvent(AnalyticsEvent.allowLocation, true);
     }
     return requestLocationAccess();
   }
@@ -412,7 +413,7 @@ class NotificationService {
   Future<bool> allowNotifications() async {
     var enabled = await requestPermission();
     if (enabled) {
-      await _cloudAnalytics.logEvent(AnalyticsEvent.allowNotification);
+      await _cloudAnalytics.logEvent(AnalyticsEvent.allowNotification, true);
     }
     return enabled;
   }
@@ -436,11 +437,7 @@ class NotificationService {
       var token = await _firebaseMessaging.getToken();
       return token;
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
     }
 
     return null;
@@ -468,11 +465,7 @@ class NotificationService {
       }
       return status;
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
     }
 
     return false;
@@ -517,14 +510,15 @@ class RateService {
   final CloudAnalytics _cloudAnalytics = CloudAnalytics();
   final InAppReview _inAppReview = InAppReview.instance;
 
-  Future<void> rateApp() async {
+  Future<void> rateApp({bool inApp = false}) async {
     if (await _inAppReview.isAvailable()) {
-      // await _inAppReview.requestReview();
-      await _inAppReview
-          .openStoreListing(
-            appStoreId: Config.iosStoreId,
-          )
-          .then((value) => _logAppRating);
+      inApp
+          ? await _inAppReview.requestReview()
+          : await _inAppReview
+              .openStoreListing(
+                appStoreId: Config.iosStoreId,
+              )
+              .then((value) => _logAppRating);
     } else {
       if (Platform.isIOS || Platform.isMacOS) {
         try {
@@ -543,7 +537,7 @@ class RateService {
   }
 
   Future<void> _logAppRating() async {
-    await _cloudAnalytics.logEvent(AnalyticsEvent.rateApp);
+    await _cloudAnalytics.logEvent(AnalyticsEvent.rateApp, true);
   }
 }
 
@@ -661,59 +655,22 @@ class ShareService {
 
   Future<void> shareCard(BuildContext buildContext, GlobalKey globalKey,
       Measurement measurement) async {
-    var boundary =
-        globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-    var image = await boundary.toImage(pixelRatio: 10.0);
-    var byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    var pngBytes = byteData!.buffer.asUint8List();
+    try {
+      var boundary =
+          globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      var image = await boundary.toImage(pixelRatio: 10.0);
+      var byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      var pngBytes = byteData!.buffer.asUint8List();
 
-    final directory = (await getApplicationDocumentsDirectory()).path;
-    var imgFile = File('$directory/airqo_analytics_card.png');
-    await imgFile.writeAsBytes(pngBytes);
+      final directory = (await getApplicationDocumentsDirectory()).path;
+      var imgFile = File('$directory/airqo_analytics_card.png');
+      await imgFile.writeAsBytes(pngBytes);
 
-    await Share.shareFiles([imgFile.path], text: getShareMessage())
-        .then((value) => {_updateUserShares()});
-
-    /// Temporarily disabled sharing text
-    // var dialogResponse = await showDialog<String>(
-    //   context: buildContext,
-    //   builder: (BuildContext context) => AlertDialog(
-    //     title: const Text('Sharing Options'),
-    //     content: const Text('Share via'),
-    //     actions: <Widget>[
-    //       TextButton(
-    //         onPressed: () => Navigator.pop(context, 'image'),
-    //         child: const Text('Image'),
-    //       ),
-    //       TextButton(
-    //         onPressed: () => Navigator.pop(context, 'text'),
-    //         child: const Text('Text'),
-    //       ),
-    //     ],
-    //   ),
-    // );
-    //
-    // if (dialogResponse == 'image') {
-    //   var boundary =
-    //       globalKey.currentContext!.findRenderObject() as
-    //       RenderRepaintBoundary;
-    //   var image = await boundary.toImage(pixelRatio: 10.0);
-    //   var byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    //   var pngBytes = byteData!.buffer.asUint8List();
-    //
-    //   final directory = (await getApplicationDocumentsDirectory()).path;
-    //   var imgFile = File('$directory/airqo_analytics_card.png');
-    //   await imgFile.writeAsBytes(pngBytes);
-    //
-    //   var message = '${measurement.site.name}, Current Air Quality. \n\n'
-    //       'Source: AirQo App';
-    //   await Share.shareFiles([imgFile.path], text: message)
-    //       .then((value) => {_updateUserShares()});
-    // } else if (dialogResponse == 'text') {
-    //   shareMeasurementText(measurement);
-    // } else {
-    //   return;
-    // }
+      await Share.shareFiles([imgFile.path], text: getShareMessage())
+          .then((value) => {_updateUserShares()});
+    } catch (e) {
+      debugPrint('$e');
+    }
   }
 
   Future<void> shareGraph(BuildContext buildContext, GlobalKey globalKey,
@@ -748,7 +705,7 @@ class ShareService {
 
   void shareMeasurementText(Measurement measurement) {
     var recommendationList =
-        getHealthRecommendations(measurement.getPm2_5Value(), 'pm2.5');
+        getHealthRecommendations(measurement.getPm2_5Value(), Pollutant.pm2_5);
     var recommendations = '';
     for (var value in recommendationList) {
       recommendations = '$recommendations\n- ${value.body}';
@@ -774,7 +731,8 @@ class ShareService {
     }
 
     if (value >= 5) {
-      await _cloudAnalytics.logEvent(AnalyticsEvent.shareAirQualityInformation);
+      await _cloudAnalytics.logEvent(
+          AnalyticsEvent.shareAirQualityInformation, true);
     }
   }
 }

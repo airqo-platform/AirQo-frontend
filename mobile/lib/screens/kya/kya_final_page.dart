@@ -16,7 +16,7 @@ class KyaFinalPage extends StatefulWidget {
 }
 
 class _KyaFinalPageState extends State<KyaFinalPage> {
-  late AppService _appService;
+  final AppService _appService = AppService();
   late Kya kya;
 
   @override
@@ -74,8 +74,8 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
   @override
   void initState() {
     super.initState();
-    _appService = AppService(context);
-    kya = widget.kya..progress = widget.kya.lessons.length;
+    kya = widget.kya
+      ..progress = widget.kya.progress == -1 ? -1 : widget.kya.lessons.length;
     _initialize();
   }
 
@@ -83,7 +83,7 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
     Future.delayed(const Duration(seconds: 4), () {
       Navigator.pop(context);
     });
-    await _appService.updateKya(kya);
+    await _appService.updateKya(kya, context);
   }
 
   Future<bool> _onWillPop() {

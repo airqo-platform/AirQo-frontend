@@ -1,14 +1,37 @@
+import 'dart:io';
+
 import 'package:app/constants/config.dart';
 import 'package:app/models/insights.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/suggestion.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:app/utils/pm.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../models/enum_constants.dart';
 import '../themes/light_theme.dart';
+
+Widget refreshIndicator(
+    {required SliverChildDelegate sliverChildDelegate,
+    Future Function()? onRefresh}) {
+  return CustomScrollView(
+    physics: Platform.isAndroid ? const BouncingScrollPhysics() : null,
+    slivers: [
+      CupertinoSliverRefreshControl(
+        refreshTriggerPullDistance: Config.refreshTriggerPullDistance,
+        refreshIndicatorExtent: Config.refreshIndicatorExtent,
+        onRefresh: onRefresh,
+      ),
+      SliverList(
+        delegate: sliverChildDelegate,
+      ),
+    ],
+  );
+}
 
 Widget analyticsAvatar(
     Measurement measurement, double size, double fontSize, double iconHeight) {
@@ -55,21 +78,27 @@ Widget analyticsAvatar(
   );
 }
 
-PreferredSizeWidget appTopBar(context, String title) {
+PreferredSizeWidget appTopBar(
+    {required BuildContext context,
+    required String title,
+    List<Widget>? actions,
+    bool? centerTitle}) {
   return AppBar(
-      toolbarHeight: 72,
-      centerTitle: true,
-      elevation: 0,
-      backgroundColor: Config.appBodyColor,
-      automaticallyImplyLeading: false,
-      leading: Padding(
-        padding: const EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
-        child: backButton(context),
-      ),
-      title: Text(
-        title,
-        style: CustomTextStyle.headline8(context),
-      ));
+    toolbarHeight: 72,
+    centerTitle: centerTitle ?? true,
+    elevation: 0,
+    backgroundColor: Config.appBodyColor,
+    automaticallyImplyLeading: false,
+    leading: Padding(
+      padding: const EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
+      child: backButton(context),
+    ),
+    title: Text(
+      title,
+      style: CustomTextStyle.headline8(context),
+    ),
+    actions: actions,
+  );
 }
 
 Widget aqiContainerString(
@@ -80,14 +109,15 @@ Widget aqiContainerString(
         borderRadius: const BorderRadius.all(Radius.circular(40.0)),
         color: pm2_5ToColor(measurement.getPm2_5Value()).withOpacity(0.4),
         border: Border.all(color: Colors.transparent)),
-    child: AutoSizeText(pm2_5ToString(measurement.getPm2_5Value()),
-        maxFontSize: 14,
-        maxLines: 1,
-        textAlign: TextAlign.start,
-        overflow: TextOverflow.ellipsis,
-        style: CustomTextStyle.button2(context)?.copyWith(
-          color: pm2_5TextColor(measurement.getPm2_5Value()),
-        )),
+    child:
+        AutoSizeText(pm2_5ToString(measurement.getPm2_5Value()).trimEllipsis(),
+            maxFontSize: 14,
+            maxLines: 1,
+            textAlign: TextAlign.start,
+            overflow: TextOverflow.ellipsis,
+            style: CustomTextStyle.button2(context)?.copyWith(
+              color: pm2_5TextColor(measurement.getPm2_5Value()),
+            )),
   );
 }
 
@@ -122,7 +152,7 @@ Widget iconTextButton(Widget icon, text) {
 }
 
 Widget insightsTabAvatar(
-    context, Insights measurement, double size, String pollutant) {
+    context, Insights measurement, double size, Pollutant pollutant) {
   if (measurement.empty) {
     return Container(
       height: size,
@@ -136,7 +166,7 @@ Widget insightsTabAvatar(
         children: [
           const Spacer(),
           SvgPicture.asset(
-            pollutant.trim().toLowerCase() == 'pm2.5'
+            pollutant == Pollutant.pm2_5
                 ? 'assets/icon/PM2.5.svg'
                 : 'assets/icon/PM10.svg',
             semanticsLabel: 'Pm2.5',
@@ -173,7 +203,7 @@ Widget insightsTabAvatar(
         shape: BoxShape.circle,
         color: measurement.forecast
             ? Config.appColorPaleBlue
-            : pollutant == 'pm2.5'
+            : pollutant == Pollutant.pm2_5
                 ? pm2_5ToColor(measurement.getChartValue(pollutant))
                 : pm10ToColor(measurement.getChartValue(pollutant)),
         border: Border.all(color: Colors.transparent)),
@@ -182,7 +212,7 @@ Widget insightsTabAvatar(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         SvgPicture.asset(
-          pollutant.trim().toLowerCase() == 'pm2.5'
+          pollutant == Pollutant.pm2_5
               ? 'assets/icon/PM2.5.svg'
               : 'assets/icon/PM10.svg',
           semanticsLabel: 'Pm2.5',
@@ -190,7 +220,7 @@ Widget insightsTabAvatar(
           width: 32.45,
           color: measurement.forecast
               ? Config.appColorBlue
-              : pollutant == 'pm2.5'
+              : pollutant == Pollutant.pm2_5
                   ? pm2_5TextColor(measurement.getChartValue(pollutant))
                   : pm10TextColor(measurement.getChartValue(pollutant)),
         ),
@@ -205,7 +235,7 @@ Widget insightsTabAvatar(
             fontSize: 32,
             color: measurement.forecast
                 ? Config.appColorBlue
-                : pollutant == 'pm2.5'
+                : pollutant == Pollutant.pm2_5
                     ? pm2_5TextColor(measurement.getChartValue(pollutant))
                     : pm10TextColor(measurement.getChartValue(pollutant)),
           ),
@@ -217,7 +247,7 @@ Widget insightsTabAvatar(
           width: 32,
           color: measurement.forecast
               ? Config.appColorBlue
-              : pollutant == 'pm2.5'
+              : pollutant == Pollutant.pm2_5
                   ? pm2_5TextColor(measurement.getChartValue(pollutant))
                   : pm10TextColor(measurement.getChartValue(pollutant)),
         ),

@@ -188,7 +188,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
     mimeType ??= 'jpeg';
 
     await File(widget.imagePath).readAsBytes().then((value) => {
-          AirqoApiClient(context)
+          AirqoApiClient()
               .imageUpload(base64Encode(value), mimeType, '')
               .whenComplete(() => {uploadCompeteHandler()})
               .catchError(uploadFailureHandler)

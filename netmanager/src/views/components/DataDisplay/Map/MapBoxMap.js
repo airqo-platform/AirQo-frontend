@@ -3,6 +3,7 @@ import ReactMapGL, { Marker, Popup } from "react-map-gl";
 import { useHistory } from "react-router-dom";
 import { MapKey } from "./MapKey";
 import MapFilter from "./MapFilter";
+import MapDownload from "./MapDownload";
 import { useManagementFilteredDevicesData } from "redux/DeviceManagement/selectors";
 import ErrorBoundary from "views/ErrorBoundary/ErrorBoundary";
 
@@ -58,10 +59,9 @@ const MapBoxMap = () => {
           mapStyle={"mapbox://styles/mapbox/streets-v11"}
           mapboxApiAccessToken={process.env.REACT_APP_MAPBOX_TOKEN}
         >
-          {devices.map(
-            (device) =>
-              device.latitude &&
-              device.longitude && (
+          {devices.map((device) => {
+            if (device.latitude && device.longitude) {
+              return (
                 <Marker
                   key={device.name}
                   longitude={parseFloat(device.longitude)}
@@ -74,8 +74,9 @@ const MapBoxMap = () => {
                     )} ${maintenanceClassGenerator(device.maintenance_status)}`}
                   />
                 </Marker>
-              )
-          )}
+              );
+            }
+          })}
           {selectedDevice && (
             <Popup
               longitude={parseFloat(selectedDevice.longitude)}
@@ -116,6 +117,7 @@ const MapBoxMap = () => {
               </div>
             </Popup>
           )}
+          <MapDownload />
           <MapFilter />
           <MapKey />
         </ReactMapGL>

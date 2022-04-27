@@ -1,26 +1,27 @@
 import 'package:app/constants/config.dart';
+import 'package:app/models/enum_constants.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-String getNextDashboardRegion(SharedPreferences sharedPreferences) {
-  var currentRegion = sharedPreferences.getString(Config.prefDashboardRegion);
+Region getNextDashboardRegion(SharedPreferences sharedPreferences) {
+  var currentRegion = getRegionConstant(
+      sharedPreferences.getString(Config.prefDashboardRegion) ?? '');
 
-  if (currentRegion == null) {
-    sharedPreferences.setString(Config.prefDashboardRegion, 'Central Region');
-    return 'Central Region';
-  }
-
-  if (currentRegion.equalsIgnoreCase('central region')) {
-    sharedPreferences.setString(Config.prefDashboardRegion, 'Eastern Region');
-    return 'Eastern Region';
-  } else if (currentRegion.equalsIgnoreCase('eastern region')) {
-    sharedPreferences.setString(Config.prefDashboardRegion, 'Western Region');
-    return 'Western Region';
-  } else if (currentRegion.equalsIgnoreCase('western region')) {
-    sharedPreferences.setString(Config.prefDashboardRegion, 'Central Region');
-    return 'Central Region';
+  if (currentRegion == Region.central) {
+    sharedPreferences.setString(
+        Config.prefDashboardRegion, Region.eastern.getName());
+    return Region.eastern;
+  } else if (currentRegion == Region.eastern) {
+    sharedPreferences.setString(
+        Config.prefDashboardRegion, Region.western.getName());
+    return Region.western;
+  } else if (currentRegion == Region.western) {
+    sharedPreferences.setString(
+        Config.prefDashboardRegion, Region.central.getName());
+    return Region.central;
   } else {
-    sharedPreferences.setString(Config.prefDashboardRegion, 'Central Region');
-    return 'Central Region';
+    sharedPreferences.setString(
+        Config.prefDashboardRegion, Region.central.getName());
+    return Region.central;
   }
 }

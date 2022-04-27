@@ -6,10 +6,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
-import '../../services/native_api.dart';
 import '../../themes/light_theme.dart';
+import '../../utils/exception.dart';
 import '../../widgets/custom_shimmer.dart';
 import 'kya_final_page.dart';
 
@@ -24,13 +23,14 @@ class KyaLessonsPage extends StatefulWidget {
 
 class _KyaLessonsPageState extends State<KyaLessonsPage> {
   final ItemScrollController itemScrollController = ItemScrollController();
+  final ItemPositionsListener itemPositionsListener =
+      ItemPositionsListener.create();
 
   double _tipsProgress = 0.1;
   int currentIndex = 0;
   late Kya kya;
-  late AppService _appService;
+  final AppService _appService = AppService();
   final List<GlobalKey> _globalKeys = <GlobalKey>[];
-  final ShareService _shareService = ShareService();
 
   @override
   Widget build(BuildContext context) {
@@ -69,14 +69,10 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                 GestureDetector(
                   onTap: () async {
                     try {
-                      await _shareService.shareKya(
-                          context, _globalKeys[currentIndex]);
+                      await _appService.shareService
+                          .shareKya(context, _globalKeys[currentIndex]);
                     } catch (exception, stackTrace) {
-                      debugPrint('$exception\n$stackTrace');
-                      await Sentry.captureException(
-                        exception,
-                        stackTrace: stackTrace,
-                      );
+                      await logException(exception, stackTrace);
                     }
                   },
                   child: Padding(
@@ -103,6 +99,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                     child: ScrollablePositionedList.builder(
                       scrollDirection: Axis.horizontal,
                       itemCount: kya.lessons.length,
+                      physics: const NeverScrollableScrollPhysics(),
                       itemBuilder: (context, index) {
                         return Padding(
                           padding: const EdgeInsets.only(
@@ -112,6 +109,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                               child: _kyaCard(kya.lessons[index], index)),
                         );
                       },
+                      itemPositionsListener: itemPositionsListener,
                       itemScrollController: itemScrollController,
                     ),
                   ),
@@ -166,12 +164,22 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   @override
   void initState() {
     super.initState();
-    _appService = AppService(context);
     kya = widget.kya;
     currentIndex = 0;
     for (var _ in widget.kya.lessons) {
       _globalKeys.add(GlobalKey());
     }
+    itemPositionsListener.itemPositions.addListener(scrollListener);
+  }
+
+  void scrollListener() {
+    Future.delayed(const Duration(milliseconds: 500), setTipsProgress);
+  }
+
+  @override
+  void dispose() {
+    itemPositionsListener.itemPositions.removeListener(scrollListener);
+    super.dispose();
   }
 
   void scrollToCard({required int direction}) {
@@ -181,7 +189,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
       });
       itemScrollController.scrollTo(
           index: currentIndex,
-          duration: const Duration(seconds: 1),
+          duration: const Duration(milliseconds: 500),
           curve: Curves.easeInOutCubic);
     } else {
       setState(() {
@@ -190,7 +198,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
       if (currentIndex < kya.lessons.length) {
         itemScrollController.scrollTo(
             index: currentIndex,
-            duration: const Duration(seconds: 1),
+            duration: const Duration(milliseconds: 500),
             curve: Curves.easeInOutCubic);
       } else {
         kya.progress = currentIndex;
@@ -202,8 +210,6 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
         }));
       }
     }
-
-    Future.delayed(const Duration(milliseconds: 500), setTipsProgress);
   }
 
   void setTipsProgress() {
@@ -222,7 +228,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
     if (kya.progress > kya.lessons.length || kya.progress < 0) {
       kya.progress = kya.lessons.length - 1;
     }
-    _appService.updateKya(kya);
+    _appService.updateKya(kya, context);
   }
 
   Widget _kyaCard(KyaLesson kyaItem, int index) {

@@ -1,4 +1,7 @@
+import 'package:app/utils/extensions.dart';
 import 'package:json_annotation/json_annotation.dart';
+
+import 'enum_constants.dart';
 
 part 'user_details.g.dart';
 
@@ -47,6 +50,20 @@ class UserDetails {
     var fullName = '$firstName $lastName'.trim();
 
     return fullName.isEmpty ? 'Hello' : fullName;
+  }
+
+  Gender getGender() {
+    if (title
+        .toLowerCase()
+        .contains(TitleOptions.mr.getValue().toLowerCase())) {
+      return Gender.male;
+    } else if (title
+        .toLowerCase()
+        .contains(TitleOptions.ms.getValue().toLowerCase())) {
+      return Gender.female;
+    } else {
+      return Gender.undefined;
+    }
   }
 
   String getInitials() {

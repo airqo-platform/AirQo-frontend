@@ -1,5 +1,6 @@
 import 'package:animations/animations.dart';
 import 'package:app/constants/config.dart';
+import 'package:app/models/enum_constants.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/screens/profile_view.dart';
 import 'package:app/services/app_service.dart';
@@ -12,7 +13,9 @@ import 'dashboard_view.dart';
 import 'map_view.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  final bool? refresh;
+
+  const HomePage({Key? key, this.refresh}) : super(key: key);
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -21,13 +24,14 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   DateTime? _exitTime;
   int _selectedIndex = 0;
+  late bool refresh;
 
   final List<Widget> _widgetOptions = <Widget>[
     const DashboardView(),
     const MapView(),
     const ProfileView(),
   ];
-  late AppService _appService;
+  final AppService _appService = AppService();
 
   @override
   Widget build(BuildContext context) {
@@ -145,14 +149,16 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> initialize() async {
-    await _appService.fetchData();
+    if (refresh) {
+      await _appService.fetchData(context);
+    }
     await _getCloudStore();
   }
 
   @override
   void initState() {
     super.initState();
-    _appService = AppService(context);
+    refresh = widget.refresh ?? true;
     initialize();
     updateOnBoardingPage();
   }
@@ -180,7 +186,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   void updateOnBoardingPage() async {
-    await _appService.preferencesHelper.updateOnBoardingPage('home');
+    await _appService.preferencesHelper
+        .updateOnBoardingPage(OnBoardingPage.home);
   }
 
   Future<void> _getCloudStore() async {
