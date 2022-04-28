@@ -69,6 +69,7 @@ const config = () => {
       headers: { 'Access-Control-Allow-Origin': '*' },
       compress: true,
       hot: true,
+      historyApiFallback: true,
       static: {
         directory: './static',
       },
