@@ -134,7 +134,7 @@ USE_TZ = True
 
 # Static
 # Default to using webpack-dev-server on port 8081
-STATIC_HOST = config('WEB_STATIC_HOST', default='http://localhost:8081/')
+STATIC_HOST = config('REACT_WEB_STATIC_HOST', default='http://localhost:8081/')
 
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
