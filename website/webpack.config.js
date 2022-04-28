@@ -1,5 +1,4 @@
 const path = require('path');
-const dotenv = require('dotenv');
 const webpack = require('webpack');
 // const autoprefixer = require('autoprefixer');
 // const webpack = require('webpack');
@@ -38,9 +37,7 @@ function removeTrailingSlash(str) {
 const config = () => {
   const NODE_ENV = process.env.NODE_ENV || 'local';
 
-  const env = dotenv.config().parsed;
-
-  const STATIC_URL = removeTrailingSlash(env.REACT_WEB_STATIC_HOST);
+  const STATIC_URL = removeTrailingSlash(process.env.REACT_WEB_STATIC_HOST);
 
   const PUBLIC_PATH = `${STATIC_URL}/static/frontend/`;
 
@@ -48,9 +45,9 @@ const config = () => {
 
   const DIST_DIR = path.resolve(__dirname, STATIC_DIR);
 
-  const envKeys = Object.keys(env).reduce((prev, next) => {
+  const envKeys = Object.keys(process.env).reduce((prev, next) => {
     if (next.startsWith('REACT_')) {
-      prev[`process.env.${next}`] = JSON.stringify(env[next]);
+      prev[`process.env.${next}`] = JSON.stringify(process.env[next]);
     }
 
     return prev;
