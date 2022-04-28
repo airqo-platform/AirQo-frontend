@@ -38,8 +38,6 @@ const config = () => {
 
   const DIST_DIR = path.resolve(__dirname, STATIC_DIR);
 
-  const env = dotenv.config().parsed;
-
   const envKeys = Object.keys(env).reduce((prev, next) => {
     if (next.startsWith('REACT_')) {
       prev[`process.env.${next}`] = JSON.stringify(env[next]);
@@ -117,14 +115,7 @@ const config = () => {
         // Images
         {
           test: /\.(png|jpe?g|ico)$/i,
-          use: compact([
-            {
-              loader: 'url-loader',
-              options: { name: '[path][name].[ext]' },
-            },
-          ]),
-          // TODO: We are migrating to using asset/resource module
-          // type: 'asset/resource',
+          type: 'asset/resource',
         },
       ],
     },
