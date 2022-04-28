@@ -1,4 +1,6 @@
 const path = require('path');
+const dotenv = require('dotenv');
+const webpack = require('webpack');
 // const autoprefixer = require('autoprefixer');
 // const webpack = require('webpack');
 // const TerserPlugin = require('terser-webpack-plugin');
@@ -35,6 +37,16 @@ const config = () => {
   const STATIC_DIR = 'frontend/static/frontend';
 
   const DIST_DIR = path.resolve(__dirname, STATIC_DIR);
+
+  const env = dotenv.config().parsed;
+
+  const envKeys = Object.keys(env).reduce((prev, next) => {
+    if (next.startsWith('REACT_')) {
+      prev[`process.env.${next}`] = JSON.stringify(env[next]);
+    }
+
+    return prev;
+  }, {});
 
   function prodOnly(x) {
     return NODE_ENV === 'production' ? x : undefined;
@@ -116,7 +128,9 @@ const config = () => {
       ],
     },
 
-    plugins: [],
+    plugins: [
+      new webpack.DefinePlugin(envKeys),
+    ],
   };
 };
 
