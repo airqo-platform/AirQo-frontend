@@ -31,8 +31,18 @@ function postCSSLoader() {
   };
 }
 
+function removeTrailingSlash(str) {
+  return str.replace(/\/+$/, '');
+}
+
 const config = () => {
   const NODE_ENV = process.env.NODE_ENV || 'local';
+
+  const env = dotenv.config().parsed;
+
+  const STATIC_URL = removeTrailingSlash(env.REACT_WEB_STATIC_HOST);
+
+  const PUBLIC_PATH = `${STATIC_URL}/static/frontend/`;
 
   const STATIC_DIR = 'frontend/static/frontend';
 
@@ -58,7 +68,7 @@ const config = () => {
     output: {
       path: DIST_DIR,
       filename: '[name].bundle.js',
-      publicPath: `/${STATIC_DIR}/`,
+      publicPath: PUBLIC_PATH,
     },
 
     // webpack 5 comes with devServer which loads in development mode
