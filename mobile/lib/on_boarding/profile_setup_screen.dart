@@ -3,19 +3,19 @@ import 'package:app/models/user_details.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/utils/dialogs.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
+import '../models/enum_constants.dart';
 import '../themes/light_theme.dart';
 import 'notifications_setup_screen.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
-  final bool enableBackButton;
-
-  const ProfileSetupScreen(this.enableBackButton, {Key? key}) : super(key: key);
+  const ProfileSetupScreen({Key? key}) : super(key: key);
 
   @override
   ProfileSetupScreenState createState() => ProfileSetupScreenState();
@@ -30,10 +30,9 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   late UserDetails _userDetails = UserDetails.initialize();
 
   final _formKey = GlobalKey<FormState>();
-  late AppService _appService;
+  final AppService _appService = AppService();
   bool _showOptions = true;
   final TextEditingController _controller = TextEditingController();
-  final List<String> _titleOptions = ['Ms.', 'Mr.', 'Rather not say'];
   late BuildContext dialogContext;
 
   @override
@@ -113,7 +112,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   onTap: () {
                     Navigator.pushAndRemoveUntil(context,
                         MaterialPageRoute(builder: (context) {
-                      return NotificationsSetupScreen(widget.enableBackButton);
+                      return const NotificationsSetupScreen();
                     }), (r) => false);
                   },
                   child: Center(
@@ -152,15 +151,15 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   List<GestureDetector> getTitleOptions() {
     var options = <GestureDetector>[];
 
-    for (var option in _titleOptions) {
+    for (var option in TitleOptions.values) {
       options.add(GestureDetector(
         onTap: () {
-          updateTitle(option);
+          updateTitle(option.getValue());
         },
         child: AutoSizeText(
-          option,
+          option.getDisplayName(),
           style: Theme.of(context).textTheme.bodyText1?.copyWith(
-              color: _userDetails.title == option
+              color: _userDetails.title == option.getValue()
                   ? Config.appColorBlack
                   : Config.appColorBlack.withOpacity(0.32)),
         ),
@@ -176,7 +175,6 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   @override
   void initState() {
     super.initState();
-    _appService = AppService(context);
     dialogContext = context;
     initialize();
     updateOnBoardingPage();
@@ -276,13 +274,14 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
         });
 
         loadingScreen(dialogContext);
-        await _appService.updateProfile(_userDetails).then((value) => {
-              Navigator.pop(dialogContext),
-              Navigator.pushAndRemoveUntil(context,
-                  MaterialPageRoute(builder: (context) {
-                return NotificationsSetupScreen(widget.enableBackButton);
-              }), (r) => false)
-            });
+        var success = await _appService.updateProfile(_userDetails, context);
+        if (success) {
+          Navigator.pop(dialogContext);
+          await Navigator.pushAndRemoveUntil(context,
+              MaterialPageRoute(builder: (context) {
+            return const NotificationsSetupScreen();
+          }), (r) => false);
+        }
       }
     } on Exception catch (exception, stackTrace) {
       Navigator.pop(dialogContext);
@@ -326,7 +325,8 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   }
 
   void updateOnBoardingPage() async {
-    await _appService.preferencesHelper.updateOnBoardingPage('profile');
+    await _appService.preferencesHelper
+        .updateOnBoardingPage(OnBoardingPage.profile);
   }
 
   void updateTitle(String text) {

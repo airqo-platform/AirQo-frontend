@@ -5,9 +5,9 @@ import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/screens/insights_page.dart';
 import 'package:app/services/app_service.dart';
-import 'package:app/services/native_api.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/dialogs.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/widgets/tooltip.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -16,6 +16,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
+import '../models/enum_constants.dart';
 import '../themes/light_theme.dart';
 import 'custom_shimmer.dart';
 import 'custom_widgets.dart';
@@ -167,11 +168,10 @@ class MapAnalyticsCard extends StatefulWidget {
 }
 
 class _AnalyticsCardState extends State<AnalyticsCard> {
-  AppService? _appService;
+  final AppService _appService = AppService();
   bool _showHeartAnimation = false;
   final GlobalKey _globalKey = GlobalKey();
   final GlobalKey _infoToolTipKey = GlobalKey();
-  final ShareService _shareSvc = ShareService();
 
   @override
   Widget build(BuildContext context) {
@@ -188,7 +188,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
             children: [
               RepaintBoundary(
                   key: _globalKey,
-                  child: _shareSvc.analyticsCardImage(
+                  child: _appService.shareService.analyticsCardImage(
                       widget.measurement, widget.placeDetails, context)),
               Container(
                 padding: const EdgeInsets.only(top: 12, bottom: 12),
@@ -232,7 +232,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                               child: analyticsAvatar(
                                   widget.measurement, 104, 40, 12),
                               onTap: () {
-                                ToolTip(context, toolTipType.info).show(
+                                ToolTip(context, ToolTipType.info).show(
                                   widgetKey: _infoToolTipKey,
                                 );
                               },
@@ -243,13 +243,13 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  widget.placeDetails.name,
+                                  widget.placeDetails.name.trimEllipsis(),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: CustomTextStyle.headline9(context),
                                 ),
                                 Text(
-                                  widget.placeDetails.location,
+                                  widget.placeDetails.location.trimEllipsis(),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: CustomTextStyle.bodyText4(context)
@@ -265,7 +265,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                       measurement: widget.measurement,
                                       context: context),
                                   onTap: () {
-                                    ToolTip(context, toolTipType.info).show(
+                                    ToolTip(context, ToolTipType.info).show(
                                       widgetKey: _infoToolTipKey,
                                     );
                                   },
@@ -283,7 +283,8 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                                     .width /
                                                 3.2),
                                         child: Text(
-                                          dateToString(widget.measurement.time),
+                                          dateToString(widget.measurement.time)
+                                              .trimEllipsis(),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
@@ -330,7 +331,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                             var shareMeasurement = widget.measurement;
                             shareMeasurement.site.name =
                                 widget.placeDetails.name;
-                            _shareSvc.shareCard(
+                            _appService.shareService.shareCard(
                                 context, _globalKey, shareMeasurement);
                           },
                           child: Padding(
@@ -396,12 +397,6 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _appService = AppService(context);
-  }
-
   void updateFavPlace() async {
     setState(() {
       _showHeartAnimation = true;
@@ -411,15 +406,15 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
         _showHeartAnimation = false;
       });
     });
-    await _appService!.updateFavouritePlace(widget.placeDetails);
+    await _appService.updateFavouritePlace(widget.placeDetails, context);
   }
 }
 
 class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
   bool _showHeartAnimation = false;
   final GlobalKey _globalKey = GlobalKey();
-  final ShareService _shareSvc = ShareService();
-  AppService? _appService;
+
+  final AppService _appService = AppService();
 
   @override
   Widget build(BuildContext context) {
@@ -439,7 +434,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
             children: [
               RepaintBoundary(
                   key: _globalKey,
-                  child: _shareSvc.analyticsCardImage(
+                  child: _appService.shareService.analyticsCardImage(
                       widget.measurement, widget.placeDetails, context)),
               Container(
                 color: Colors.white,
@@ -478,7 +473,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      widget.placeDetails.name,
+                                      widget.placeDetails.name.trimEllipsis(),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(
@@ -486,7 +481,8 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                           fontSize: 20),
                                     ),
                                     Text(
-                                      widget.placeDetails.location,
+                                      widget.placeDetails.location
+                                          .trimEllipsis(),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
@@ -508,8 +504,9 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                           border: Border.all(
                                               color: Colors.transparent)),
                                       child: AutoSizeText(
-                                        pm2_5ToString(
-                                            widget.measurement.getPm2_5Value()),
+                                        pm2_5ToString(widget.measurement
+                                                .getPm2_5Value())
+                                            .trimEllipsis(),
                                         maxLines: 1,
                                         maxFontSize: 14,
                                         textAlign: TextAlign.start,
@@ -537,7 +534,8 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                                     3.2),
                                             child: Text(
                                               dateToString(
-                                                  widget.measurement.time),
+                                                      widget.measurement.time)
+                                                  .trimEllipsis(),
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
                                               style: TextStyle(
@@ -583,7 +581,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                             var shareMeasurement = widget.measurement;
                             shareMeasurement.site.name =
                                 widget.placeDetails.name;
-                            _shareSvc.shareCard(
+                            _appService.shareService.shareCard(
                                 context, _globalKey, shareMeasurement);
                           },
                           child: iconTextButton(
@@ -644,12 +642,6 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _appService = AppService(context);
-  }
-
   void updateFavPlace() async {
     setState(() {
       _showHeartAnimation = true;
@@ -659,6 +651,6 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
         _showHeartAnimation = false;
       });
     });
-    await _appService!.updateFavouritePlace(widget.placeDetails);
+    await _appService.updateFavouritePlace(widget.placeDetails, context);
   }
 }

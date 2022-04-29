@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../auth/phone_auth_widget.dart';
+import '../models/enum_constants.dart';
 
 Widget cancelOption(BuildContext context) {
   return GestureDetector(
@@ -77,7 +78,6 @@ Widget containerNextButton(String text, Color buttonColor) {
 }
 
 Widget loginOptions({required BuildContext context}) {
-  var cloudAnalytics = CloudAnalytics();
   var tween = Tween<double>(begin: 0, end: 1);
   return Column(
     children: [
@@ -87,7 +87,7 @@ Widget loginOptions({required BuildContext context}) {
               context,
               PageRouteBuilder(
                 pageBuilder: (context, animation, secondaryAnimation) =>
-                    const PhoneSignUpWidget(enableBackButton: false),
+                    const PhoneSignUpWidget(),
                 transitionsBuilder:
                     (context, animation, secondaryAnimation, child) {
                   return FadeTransition(
@@ -122,35 +122,7 @@ Widget loginOptions({required BuildContext context}) {
       const SizedBox(
         height: 8,
       ),
-      GestureDetector(
-        onTap: () {
-          cloudAnalytics.logEvent(AnalyticsEvent.browserAsAppGuest);
-          Navigator.pushAndRemoveUntil(context,
-              MaterialPageRoute(builder: (context) {
-            return const HomePage();
-          }), (r) => false);
-        },
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('Proceed as',
-                textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .caption
-                    ?.copyWith(color: Config.appColorBlack.withOpacity(0.6))),
-            const SizedBox(
-              width: 2,
-            ),
-            Text('Guest',
-                textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .caption
-                    ?.copyWith(color: Config.appColorBlue))
-          ],
-        ),
-      ),
+      proceedAsGuest(context: context),
     ],
   );
 }
@@ -222,6 +194,38 @@ Widget onBoardingNotificationIcon() {
   );
 }
 
+Widget proceedAsGuest({required BuildContext context}) {
+  return GestureDetector(
+    onTap: () {
+      CloudAnalytics().logEvent(AnalyticsEvent.browserAsAppGuest, false);
+      Navigator.pushAndRemoveUntil(context,
+          MaterialPageRoute(builder: (context) {
+        return const HomePage();
+      }), (r) => false);
+    },
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text('Proceed as',
+            textAlign: TextAlign.center,
+            style: Theme.of(context)
+                .textTheme
+                .caption
+                ?.copyWith(color: Config.appColorBlack.withOpacity(0.6))),
+        const SizedBox(
+          width: 2,
+        ),
+        Text('Guest',
+            textAlign: TextAlign.center,
+            style: Theme.of(context)
+                .textTheme
+                .caption
+                ?.copyWith(color: Config.appColorBlue))
+      ],
+    ),
+  );
+}
+
 Widget signButton({required String text, required BuildContext context}) {
   return Container(
       height: 48,
@@ -243,7 +247,6 @@ Widget signButton({required String text, required BuildContext context}) {
 }
 
 Widget signUpOptions({required BuildContext context}) {
-  var cloudAnalytics = CloudAnalytics();
   var tween = Tween<double>(begin: 0, end: 1);
   return Column(
     children: [
@@ -254,7 +257,6 @@ Widget signUpOptions({required BuildContext context}) {
               PageRouteBuilder(
                 pageBuilder: (context, animation, secondaryAnimation) =>
                     const PhoneLoginWidget(
-                  enableBackButton: false,
                   phoneNumber: '',
                 ),
                 transitionsBuilder:
@@ -291,35 +293,7 @@ Widget signUpOptions({required BuildContext context}) {
       const SizedBox(
         height: 8,
       ),
-      GestureDetector(
-        onTap: () {
-          cloudAnalytics.logEvent(AnalyticsEvent.browserAsAppGuest);
-          Navigator.pushAndRemoveUntil(context,
-              MaterialPageRoute(builder: (context) {
-            return const HomePage();
-          }), (r) => false);
-        },
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('Proceed as',
-                textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .caption
-                    ?.copyWith(color: Config.appColorBlack.withOpacity(0.6))),
-            const SizedBox(
-              width: 2,
-            ),
-            Text('Guest',
-                textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .caption
-                    ?.copyWith(color: Config.appColorBlue))
-          ],
-        ),
-      ),
+      proceedAsGuest(context: context),
     ],
   );
 }

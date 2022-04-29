@@ -1,0 +1,69 @@
+###########################################################
+# Start deployment of calibrate app - production
+###########################################################
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airqo-calibrate-app
+  namespace: production
+spec:
+  selector:
+    matchLabels:
+      app: prod-calibrate-app
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: prod-calibrate-app
+    spec:
+      containers:
+        - name: prod-calibrate-app
+          image: us.gcr.io/airqo-250220/airqo-calibrate-app:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              name: prod-calibrate
+          resources:
+            limits:
+              cpu: 250m
+            requests:
+              cpu: 100m
+          envFrom:
+            - configMapRef:
+                name: env-calibrate-prod
+
+---
+kind: HorizontalPodAutoscaler
+apiVersion: autoscaling/v2beta2
+metadata:
+  name: airqo-calibrate-app 
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: airqo-calibrate-app 
+  minReplicas: 1
+  maxReplicas: 2
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: airqo-calibrate-app-svc
+  namespace: production
+spec:
+  selector:
+    app: prod-calibrate-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      nodePort: 30106
+  type: NodePort

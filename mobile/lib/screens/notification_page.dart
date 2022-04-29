@@ -22,7 +22,6 @@ class NotificationPage extends StatefulWidget {
 class _NotificationPageState extends State<NotificationPage> {
   List<UserNotification> _notifications = [];
   bool _isViewNotification = false;
-  bool _isLoading = false;
   UserNotification? _selectedNotification;
   final CloudStore _cloudStore = CloudStore();
   final CustomAuth _customAuth = CustomAuth();
@@ -31,7 +30,7 @@ class _NotificationPageState extends State<NotificationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: appTopBar(context, 'Notifications'),
+      appBar: appTopBar(context: context, title: 'Notifications'),
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 500),
         transitionBuilder: (Widget child, Animation<double> animation) {
@@ -42,24 +41,7 @@ class _NotificationPageState extends State<NotificationPage> {
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _getNotifications(false);
-  }
-
   Widget mainSection() {
-    if (_isLoading) {
-      return Container(
-          color: Config.appBodyColor,
-          child: ListView.builder(
-            itemBuilder: (BuildContext context, int index) {
-              return placeHolder();
-            },
-            itemCount: 7,
-          ));
-    }
-
     if (_notifications.isEmpty) {
       return Container(
         color: Config.appBodyColor,
@@ -75,19 +57,17 @@ class _NotificationPageState extends State<NotificationPage> {
 
     return Container(
         color: Config.appBodyColor,
-        child: RefreshIndicator(
-          color: Config.appColorBlue,
-          onRefresh: () async {
-            await _getNotifications(true);
-          },
-          child: ListView.builder(
-            itemBuilder: (context, index) => Padding(
-              padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
-              child: notificationCard(_notifications[index]),
-            ),
-            itemCount: _notifications.length,
-          ),
-        ));
+        child: refreshIndicator(
+            sliverChildDelegate: SliverChildBuilderDelegate((context, index) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                  child: notificationCard(_notifications[index]),
+                ),
+              );
+            }, childCount: _notifications.length),
+            onRefresh: _getNotifications));
   }
 
   Widget notificationCard(UserNotification notification) {
@@ -292,16 +272,10 @@ class _NotificationPageState extends State<NotificationPage> {
     Provider.of<NotificationModel>(context, listen: false).removeAll();
     await _cloudStore.markNotificationAsRead(
         _customAuth.getUserId(), notification.id);
-    await _getNotifications(false);
+    await _getNotifications();
   }
 
-  Future<void> _getNotifications(bool reload) async {
-    if (reload) {
-      setState(() {
-        _isLoading = true;
-      });
-    }
-
+  Future<void> _getNotifications() async {
     var offlineData = await _dbHelper.getUserNotifications();
 
     if (offlineData.isNotEmpty && mounted) {
@@ -312,17 +286,11 @@ class _NotificationPageState extends State<NotificationPage> {
 
     var notifies = await _cloudStore.getNotifications(_customAuth.getUserId());
     if (notifies.isEmpty) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
       return;
     }
 
     if (mounted) {
       setState(() {
-        _isLoading = false;
         _notifications = UserNotification.reorderNotifications(notifies);
       });
     }

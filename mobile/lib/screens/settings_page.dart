@@ -1,9 +1,8 @@
 import 'package:app/auth/phone_reauthenticate_screen.dart';
 import 'package:app/constants/config.dart';
+import 'package:app/screens/web_view_page.dart';
 import 'package:app/services/app_service.dart';
-import 'package:app/services/native_api.dart';
 import 'package:app/utils/dialogs.dart';
-import 'package:app/utils/web_view.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -25,43 +24,70 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   bool _allowNotification = false;
   bool _allowLocation = false;
-  final RateService _rateService = RateService();
-  final LocationService _locationService = LocationService();
-  final NotificationService _notificationService = NotificationService();
-  late AppService _appService;
+
+  final AppService _appService = AppService();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: appTopBar(context, 'Settings'),
+        appBar: appTopBar(context: context, title: 'Settings'),
         body: Container(
             color: Config.appBodyColor,
-            child: RefreshIndicator(
-                onRefresh: initialize,
-                color: Config.appColorBlue,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      const SizedBox(
-                        height: 31,
-                      ),
-                      settingsSection(),
-                      const Spacer(),
-                      Visibility(
-                        visible: _appService.isLoggedIn(),
-                        child: deleteAccountSection(),
-                      ),
-                      const SizedBox(
-                        height: 32,
-                      ),
-                    ],
-                  ),
-                ))));
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                const SizedBox(
+                  height: 31,
+                ),
+                _settingsSection(),
+                const Spacer(),
+                Visibility(
+                  visible: _appService.isLoggedIn(),
+                  child: _deleteAccountSection(),
+                ),
+                const SizedBox(
+                  height: 32,
+                ),
+              ],
+            )));
   }
 
-  Widget cardSection(String text) {
+  @override
+  void initState() {
+    super.initState();
+    _initialize();
+  }
+
+  void showConfirmationDialog(BuildContext context) {
+    Widget okButton = TextButton(
+      child: const Text('Yes'),
+      onPressed: _deleteAccount,
+    );
+
+    Widget cancelButton = TextButton(
+      child: const Text('No'),
+      onPressed: () {
+        Navigator.of(context).pop();
+      },
+    );
+
+    var alert = AlertDialog(
+      title: const Text('Delete Account'),
+      content: const Text('Are you sure toy want to delete your account ? '),
+      actions: [okButton, cancelButton],
+    );
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+
+  Widget _cardSection(String text) {
     return Container(
         height: 56,
         decoration: const BoxDecoration(
@@ -74,7 +100,7 @@ class _SettingsPageState extends State<SettingsPage> {
         ));
   }
 
-  Future<void> deleteAccount() async {
+  Future<void> _deleteAccount() async {
     var user = _appService.customAuth.getUser();
     var dialogContext = context;
 
@@ -104,12 +130,12 @@ class _SettingsPageState extends State<SettingsPage> {
     if (authResponse) {
       loadingScreen(dialogContext);
 
-      var success = await _appService.deleteAccount();
+      var success = await _appService.deleteAccount(context);
       if (success) {
         Navigator.pop(dialogContext);
         await Navigator.pushAndRemoveUntil(context,
             MaterialPageRoute(builder: (context) {
-          return const PhoneSignUpWidget(enableBackButton: false);
+          return const PhoneSignUpWidget();
         }), (r) => false);
       } else {
         await showSnackBar(
@@ -125,9 +151,9 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  Widget deleteAccountSection() {
+  Widget _deleteAccountSection() {
     return GestureDetector(
-      onTap: deleteAccount,
+      onTap: _deleteAccount,
       child: Container(
           height: 56,
           decoration: const BoxDecoration(
@@ -146,28 +172,21 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Future<void> initialize() async {
-    await _notificationService.checkPermission().then((value) => {
+  Future<void> _initialize() async {
+    await _appService.notificationService.checkPermission().then((value) => {
           setState(() {
             _allowNotification = value;
           }),
         });
 
-    await _locationService.checkPermission().then((value) => {
+    await _appService.locationService.checkPermission().then((value) => {
           setState(() {
             _allowLocation = value;
           }),
         });
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _appService = AppService(context);
-    initialize();
-  }
-
-  Widget settingsSection() {
+  Widget _settingsSection() {
     return Container(
       padding: const EdgeInsets.only(top: 10, bottom: 10),
       decoration: const BoxDecoration(
@@ -183,17 +202,21 @@ class _SettingsPageState extends State<SettingsPage> {
               activeColor: Config.appColorBlue,
               onChanged: (bool value) {
                 if (value) {
-                  _locationService.allowLocationAccess().then((response) => {
-                        setState(() {
-                          _allowLocation = response;
-                        })
-                      });
+                  _appService.locationService
+                      .allowLocationAccess()
+                      .then((response) => {
+                            setState(() {
+                              _allowLocation = response;
+                            })
+                          });
                 } else {
-                  _locationService.revokePermission().then((response) => {
-                        setState(() {
-                          _allowLocation = response;
-                        })
-                      });
+                  _appService.locationService
+                      .revokePermission()
+                      .then((response) => {
+                            setState(() {
+                              _allowLocation = response;
+                            })
+                          });
                 }
               },
               value: _allowLocation,
@@ -210,17 +233,21 @@ class _SettingsPageState extends State<SettingsPage> {
               activeColor: Config.appColorBlue,
               onChanged: (bool value) {
                 if (value) {
-                  _notificationService.allowNotifications().then((response) => {
-                        setState(() {
-                          _allowNotification = response;
-                        })
-                      });
+                  _appService.notificationService
+                      .allowNotifications()
+                      .then((response) => {
+                            setState(() {
+                              _allowNotification = response;
+                            })
+                          });
                 } else {
-                  _notificationService.revokePermission().then((response) => {
-                        setState(() {
-                          _allowNotification = response;
-                        })
-                      });
+                  _appService.notificationService
+                      .revokePermission()
+                      .then((response) => {
+                            setState(() {
+                              _allowNotification = response;
+                            })
+                          });
                 }
               },
               value: _allowNotification,
@@ -231,9 +258,15 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           GestureDetector(
             onTap: () async {
-              openUrl(Config.faqsUrl);
+              await Navigator.push(context,
+                  MaterialPageRoute(builder: (context) {
+                return WebViewScreen(
+                  url: Config.faqsUrl,
+                  title: 'AirQo FAQs',
+                );
+              }));
             },
-            child: cardSection('FAQs'),
+            child: _cardSection('FAQs'),
           ),
           Divider(
             color: Config.appBodyColor,
@@ -245,16 +278,16 @@ class _SettingsPageState extends State<SettingsPage> {
                 return const FeedbackPage();
               }));
             },
-            child: cardSection('Send feedback'),
+            child: _cardSection('Send feedback'),
           ),
           Divider(
             color: Config.appBodyColor,
           ),
           GestureDetector(
             onTap: () async {
-              await _rateService.rateApp();
+              await _appService.rateService.rateApp();
             },
-            child: cardSection('Rate the AirQo App'),
+            child: _cardSection('Rate the AirQo App'),
           ),
           Divider(
             color: Config.appBodyColor,
@@ -266,37 +299,10 @@ class _SettingsPageState extends State<SettingsPage> {
                 return const AboutAirQo();
               }));
             },
-            child: cardSection('About'),
+            child: _cardSection('About'),
           ),
         ],
       ),
-    );
-  }
-
-  void showConfirmationDialog(BuildContext context) {
-    Widget okButton = TextButton(
-      child: const Text('Yes'),
-      onPressed: deleteAccount,
-    );
-
-    Widget cancelButton = TextButton(
-      child: const Text('No'),
-      onPressed: () {
-        Navigator.of(context).pop();
-      },
-    );
-
-    var alert = AlertDialog(
-      title: const Text('Delete Account'),
-      content: const Text('Are you sure toy want to delete your account ? '),
-      actions: [okButton, cancelButton],
-    );
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return alert;
-      },
     );
   }
 }

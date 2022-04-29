@@ -16,12 +16,12 @@ class FavouritePlaces extends StatefulWidget {
 }
 
 class _FavouritePlacesState extends State<FavouritePlaces> {
-  late AppService _appService;
+  final AppService _appService = AppService();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: appTopBar(context, 'Favorites'),
+      appBar: appTopBar(context: context, title: 'Favorites'),
       body: Container(
           color: Config.appBodyColor,
           child: Consumer<PlaceDetailsModel>(
@@ -30,18 +30,16 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
                 return emptyPlaces();
               }
 
-              return RefreshIndicator(
-                color: Config.appColorBlue,
-                onRefresh: refreshData,
-                child: ListView.builder(
-                  itemBuilder: (context, index) => Padding(
-                    padding: const EdgeInsets.only(left: 16, right: 16),
-                    child: MiniAnalyticsCard(
-                        placeDetailsModel.favouritePlaces[index]),
-                  ),
-                  itemCount: placeDetailsModel.favouritePlaces.length,
-                ),
-              );
+              return refreshIndicator(
+                  sliverChildDelegate:
+                      SliverChildBuilderDelegate((context, index) {
+                    return Padding(
+                        padding: EdgeInsets.fromLTRB(
+                            16, Config.refreshIndicatorPadding(index), 16, 0),
+                        child: MiniAnalyticsCard(
+                            placeDetailsModel.favouritePlaces[index]));
+                  }, childCount: placeDetailsModel.favouritePlaces.length),
+                  onRefresh: refreshData);
             },
           )),
     );
@@ -97,13 +95,15 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
   }
 
   Future<void> initialize() async {
-    await _appService.fetchFavPlacesInsights();
+    await Future.wait([
+      _appService.fetchFavPlacesInsights(),
+      _appService.updateFavouritePlacesSites(context)
+    ]);
   }
 
   @override
   void initState() {
     super.initState();
-    _appService = AppService(context);
     initialize();
   }
 

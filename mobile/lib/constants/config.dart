@@ -9,7 +9,19 @@ class Config {
 
   static String get airqoApiUrl => dotenv.env['AIRQO_API_URL'] ?? '';
 
-  static String get airqoApiUrlV2 => dotenv.env['AIRQO_API_URL_V2'] ?? '';
+  static String get airqoSupportEmail => 'support@airqo.net';
+
+  static String get airqoSupportUsername => 'AirQo Support';
+
+  static String get airqoDataProductsEmail =>
+      dotenv.env['AIRQO_DATA_PRODUCTS_EMAIL'] ?? '';
+
+  static String get defaultFeedbackUserName => 'AirQo App User';
+
+  static String get emailFeedbackUrl => dotenv.env['EMAIL_FEEDBACK_URL'] ?? '';
+
+  static String get emailFeedbackAPIKey =>
+      dotenv.env['EMAIL_FEEDBACK_API_KEY'] ?? '';
 
   static String get airqoApiUserExistsUrl =>
       dotenv.env['AIRQO_API_USER_EXISTS_URL'] ?? '';
@@ -51,6 +63,8 @@ class Config {
   static String get appStoreUrl => dotenv.env['APP_STORE_URL'] ?? '';
 
   static Color get appTipColor => const Color(0xffD5FFD4);
+
+  static String get carrierSearchApi => dotenv.env['CARRIER_SEARCH_API'] ?? '';
 
   static String get connectionErrorMessage =>
       'No internet connection available';
@@ -143,7 +157,7 @@ class Config {
 
   static int get searchRadius => int.parse('${dotenv.env['SEARCH_RADIUS']}');
 
-  static String get sentryUrl => dotenv.env['SENTRY_URL'] ?? '';
+  static String get sentryDsn => dotenv.env['SENTRY_DSN'] ?? '';
 
   static int get smartNotificationId => 4877231;
 
@@ -167,4 +181,12 @@ class Config {
       dotenv.env['USERS_PROFILE_PICTURE_COLLECTION'] ?? '';
 
   static Color get yellow => const Color(0xffFFFF35);
+
+  static double get refreshTriggerPullDistance => 40;
+
+  static double get refreshIndicatorExtent => 30;
+
+  static double refreshIndicatorPadding(int index) {
+    return index == 0 ? 16.0 : 0.0;
+  }
 }

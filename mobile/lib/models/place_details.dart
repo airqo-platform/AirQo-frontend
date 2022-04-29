@@ -5,9 +5,9 @@ import 'package:app/services/local_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
 
+import '../utils/exception.dart';
 import 'measurement.dart';
 
 part 'place_details.g.dart';
@@ -118,11 +118,7 @@ class PlaceDetailsModel extends ChangeNotifier {
       await _dbHelper.clearFavouritePlaces();
       notifyListeners();
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
     }
   }
 
@@ -133,11 +129,7 @@ class PlaceDetailsModel extends ChangeNotifier {
       _favouritePlaces.addAll(favPlaces);
       notifyListeners();
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
     }
   }
 }

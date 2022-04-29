@@ -1,7 +1,7 @@
 import React from 'react'
 import Ios from '../../icons/getapp/ios'
 import Play from '../../icons/getapp/play'
-import GetappImg from '../../assets/img/get-app.png'
+import GetappImg from '../../assets/svg/get-app.svg'
 import GetappImgSm from '../../assets/img/get-app-sm.png'
 
 const GetApp = () => {
@@ -19,7 +19,7 @@ const GetApp = () => {
                     </div>
                 </div>
                 <div className='get-graphics'>
-                    <img src={GetappImg} className="get-graphics-lg"/>
+                    <div className='get-graphics-lg'><GetappImg/> </div>
                     <img src={GetappImgSm} className="get-graphics-sm" />
                 </div>
             </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import ApiSectionImg from "../../assets/img/api-section-img.png";
+import ApiSectionImg from "../../assets/img/api-img.png";
 
 const ApiSection = () => (
     <div className="Apisection">

@@ -63,9 +63,10 @@
     width: 30%;
     max-width: 350px;
     position: absolute;
-    bottom:60px;
-    left:10px;
+    bottom: 70px;
+    left: 10px;
     font-family: 'Open Sans', sans-serif;
+    z-index: 20;
 }
 .map-filter-wrapper{
     font-family: 'Open Sans', sans-serif;
@@ -76,7 +77,6 @@
 
 .dropup {
   display: inline-block;
-  position: relative;
   width: 100%;
 }
 

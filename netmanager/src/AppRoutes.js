@@ -29,6 +29,8 @@ const CandidateList = lazy(() => import("./views/pages/CandidateList"));
 const Settings = lazy(() => import("./views/pages/Settings"));
 const SiteRegistry = lazy(() => import("./views/components/Sites/SiteRegistry"));
 const SiteView = lazy(() => import("./views/components/Sites/SiteView"));
+const AirQloudRegistry = lazy(() => import("./views/components/AirQlouds/AirQloudRegistry"));
+const AirQloudView = lazy(() => import("./views/components/AirQlouds/AirQloudView"));
 
 const AppRoutes = () => {
   useJiraHelpDesk();
@@ -124,6 +126,18 @@ const AppRoutes = () => {
             exact
             path="/sites/:id"
             component={SiteView}
+            layout={MainLayout}
+          />
+          <PrivateRoute
+            exact
+            path="/airqlouds"
+            component={AirQloudRegistry}
+            layout={MainLayout}
+          />
+          <PrivateRoute
+            exact
+            path="/airqlouds/:id"
+            component={AirQloudView}
             layout={MainLayout}
           />
         </Suspense>

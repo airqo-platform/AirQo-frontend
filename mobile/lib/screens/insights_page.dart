@@ -1,11 +1,10 @@
 import 'package:app/constants/config.dart';
 import 'package:app/models/place_details.dart';
-import 'package:app/services/local_storage.dart';
-import 'package:app/services/rest_api.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/widgets/insights_tab.dart';
 import 'package:flutter/material.dart';
 
+import '../models/enum_constants.dart';
 import '../themes/light_theme.dart';
 
 class InsightsPage extends StatefulWidget {
@@ -20,9 +19,7 @@ class InsightsPage extends StatefulWidget {
 class _InsightsPageState extends State<InsightsPage>
     with AutomaticKeepAliveClientMixin, TickerProviderStateMixin {
   TabController? _tabController;
-  bool _isWeekly = true;
-  AirqoApiClient? _airqoApiClient;
-  final DBHelper _dbHelper = DBHelper();
+  Frequency frequency = Frequency.hourly;
 
   @override
   bool get wantKeepAlive => true;
@@ -31,7 +28,7 @@ class _InsightsPageState extends State<InsightsPage>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      appBar: appTopBar(context, 'More Insights'),
+      appBar: appTopBar(context: context, title: 'More Insights'),
       body: Container(
         padding: const EdgeInsets.only(right: 0, left: 0),
         color: Config.appBodyColor,
@@ -52,11 +49,11 @@ class _InsightsPageState extends State<InsightsPage>
                     onTap: (value) {
                       if (value == 0) {
                         setState(() {
-                          _isWeekly = true;
+                          frequency = Frequency.hourly;
                         });
                       } else {
                         setState(() {
-                          _isWeekly = false;
+                          frequency = Frequency.daily;
                         });
                       }
                     },
@@ -71,8 +68,8 @@ class _InsightsPageState extends State<InsightsPage>
               controller: _tabController,
               physics: const NeverScrollableScrollPhysics(),
               children: <Widget>[
-                InsightsTab(widget.placeDetails, false),
-                InsightsTab(widget.placeDetails, true),
+                InsightsTab(widget.placeDetails, Frequency.hourly),
+                InsightsTab(widget.placeDetails, Frequency.daily),
                 // MonthlyView(site),
               ],
             )),
@@ -92,9 +89,6 @@ class _InsightsPageState extends State<InsightsPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _airqoApiClient = AirqoApiClient(context);
-    _fetchAllHourlyInsights();
-    _fetchDailyInsights();
   }
 
   Widget tabButton({required String text}) {
@@ -103,10 +97,10 @@ class _InsightsPageState extends State<InsightsPage>
           const BoxConstraints(minWidth: double.infinity, maxHeight: 32),
       decoration: BoxDecoration(
           color: text.toLowerCase() == 'day'
-              ? _isWeekly
+              ? frequency == Frequency.hourly
                   ? Config.appColorBlue
                   : Colors.white
-              : _isWeekly
+              : frequency == Frequency.hourly
                   ? Colors.white
                   : Config.appColorBlue,
           borderRadius: const BorderRadius.all(Radius.circular(4.0))),
@@ -114,33 +108,13 @@ class _InsightsPageState extends State<InsightsPage>
           child: Text(text,
               style: CustomTextStyle.button1(context)?.copyWith(
                 color: text.toLowerCase() == 'day'
-                    ? _isWeekly
+                    ? frequency == Frequency.hourly
                         ? Colors.white
                         : Config.appColorBlue
-                    : _isWeekly
+                    : frequency == Frequency.hourly
                         ? Config.appColorBlue
                         : Colors.white,
               ))),
     );
-  }
-
-  void _fetchAllHourlyInsights() async {
-    var hourlyInsights = await _airqoApiClient!
-        .fetchSiteInsights(widget.placeDetails.siteId, false, true);
-
-    if (hourlyInsights.isNotEmpty) {
-      await _dbHelper.insertInsights(
-          hourlyInsights, widget.placeDetails.siteId, 'hourly');
-    }
-  }
-
-  void _fetchDailyInsights() async {
-    var dailyInsights = await _airqoApiClient!
-        .fetchSiteInsights(widget.placeDetails.siteId, true, false);
-
-    if (dailyInsights.isNotEmpty) {
-      await _dbHelper.insertInsights(
-          dailyInsights, widget.placeDetails.siteId, 'daily');
-    }
   }
 }

@@ -1,5 +1,5 @@
 import 'package:app/constants/config.dart';
-import 'package:app/utils/web_view.dart';
+import 'package:app/screens/web_view_page.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -26,7 +26,7 @@ class _AboutAirQoState extends State<AboutAirQo> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: appTopBar(context, 'About'),
+        appBar: appTopBar(context: context, title: 'About'),
         body: Container(
             color: Config.appBodyColor,
             child: Center(
@@ -58,8 +58,14 @@ class _AboutAirQoState extends State<AboutAirQo> {
                   ),
                   const Spacer(),
                   GestureDetector(
-                    onTap: () {
-                      openUrl(Config.termsUrl);
+                    onTap: () async {
+                      await Navigator.push(context,
+                          MaterialPageRoute(builder: (context) {
+                        return WebViewScreen(
+                          url: Config.termsUrl,
+                          title: 'Terms & Privacy Policy',
+                        );
+                      }));
                     },
                     child: Text(
                       'Terms & Privacy Policy',
