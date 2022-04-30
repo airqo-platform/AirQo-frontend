@@ -118,6 +118,10 @@
             box-sizing: border-box;
             cursor: pointer;
         }
+
+        .next-btn:hover {
+            background-color: $aq-blue-6;
+        }
     }
 
     .form-section {
@@ -175,8 +179,7 @@
             .back-btn, .register-btn {
                 height: 48px;
                 border-radius: 16px;
-                background-color: $aq-blue-0;
-                
+                background: #353E5214;
                 font-size: 16px;
                 line-height: 24px;
                 font-weight: 400;
@@ -190,13 +193,22 @@
         .back-btn {
             width: 91px;
             padding: 12px 27px;
-            color: #135DFF;
+            color: $aq-blue-4;
         }
 
         .register-btn {
             width: 198px;
             padding: 12px 22px;
             color: #353e5247;
+        }
+
+        .back-btn:hover {
+            background-color: $aq-blue-7;
+        }
+
+        .register-btn:hover {
+            color: $aq-blue-4;
+            background-color: $aq-blue-7;
         }
     }
 
@@ -247,7 +259,7 @@
                 width: 100%;
                 .back-btn, .register-btn {
                     border-radius: 16px;
-                    background: #353E5214;
+                    
                 }
             }
     
