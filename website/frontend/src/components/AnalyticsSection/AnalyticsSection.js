@@ -1,6 +1,6 @@
 import React from 'react';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import AnalyticsSectionImg from "../../assets/img/analytics-section-img.png";
+import AnalyticsDashboard from "../../assets/img/analytics dashboard.svg";
 
 const AnalyticsSection = () => (
     <div className="AnalyticsSection">
@@ -15,7 +15,10 @@ const AnalyticsSection = () => (
                 
             </div>
         </div>
-        <img src={AnalyticsSectionImg} alt="Analytics section image" />
+        <div className="analytics-img">
+            <AnalyticsDashboard />
+        </div>
+        
     </div>
 );
 

@@ -1,0 +1,127 @@
+@import "lib/colors";
+@import "lib/variables";
+
+@mixin flex-column{
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+}
+@mixin flex-row{
+    display: flex;
+    flex-direction: row;
+}
+
+$h2-text:42px;
+$p-text:16px;
+
+.contact-us{
+    display:grid;
+    grid-template-columns: 3fr 5fr;
+    grid-template-rows: max-content;
+    justify-items: center;
+    .section-container{
+        display:grid;
+        grid-template-columns: $gridColumn;
+        justify-items: center;
+        padding-top:70px;
+        padding-bottom:90px;
+        .content{
+            grid-column: 2/4;
+        }
+    }
+    .left-section{
+        background-color: $aq-grey-1;
+        .content{
+            padding-top: 60px;
+            padding-right: 50px;
+            justify-self: end;
+        }
+        h2{
+            font-size: $h2-text;
+            line-height: 28px;
+        }
+        p{
+            font-size: $p-text;
+            line-height: 20px;
+        }
+        #_1{
+            p{
+                padding-top: 20px;
+            }
+        }
+    }
+    .right-section{
+        background-color: $aq-white-0;
+        .content{
+            justify-self: center;
+        }
+        .cards{
+            display:grid;
+            grid-template-columns: 2fr 2fr;
+            grid-template-rows: 240px;
+            grid-gap: 40px;
+            align-items: end;
+        }
+
+        form{
+            padding-top:30px;
+            div{
+                padding:12px 0;
+            }
+            label{
+                font-size: 13px;
+            }
+            input{
+                outline: none;
+                border:none;
+                border-radius: 8px;
+                background-color: $aq-white-3;
+                width:290px;
+                height:43px;
+                margin-top: 6px;
+                padding:2px 4px;
+            }
+            textarea{
+                outline: none;
+                border: none;
+                border-radius: 8px;
+                background-color: $aq-white-3;
+                overflow-y: scroll;
+                margin-top: 6px;
+                padding:2px 4px;
+            }
+            .submit-button{
+                margin-top:38px;
+                background-color: $aq-blue-0;
+                border-radius: 16px;
+                padding:12px 32px;
+                color:$aq-white-0;
+                text-align:center;
+            }
+        }
+    }
+    .contact-card{
+        @include flex-column();
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        border:1px solid $aq-white-4;
+        border-radius:8px;
+        width:240px;
+        height:220px;
+        div:first-child{
+            border-radius:50%;
+            width:90px;
+            height:90px;
+            background-color: $aq-white-4;
+        }
+        div:last-child{
+            p{
+                font-size: 14px;
+                line-height: 18px;
+                text-align: center;
+                font-weight: 400;
+            }
+        }
+    }
+}

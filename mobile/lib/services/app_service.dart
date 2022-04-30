@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:app/constants/config.dart';
-import 'package:app/models/event.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/user_details.dart';
@@ -13,26 +12,31 @@ import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
+import '../models/enum_constants.dart';
+import '../models/insights.dart';
 import '../models/kya.dart';
+import '../utils/exception.dart';
+import 'native_api.dart';
 
 class AppService {
   final DBHelper _dbHelper = DBHelper();
-  final BuildContext _context;
   final CloudStore _cloudStore = CloudStore();
   final CustomAuth _customAuth = CustomAuth();
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   final SharedPreferencesHelper _preferencesHelper = SharedPreferencesHelper();
   final SecureStorage _secureStorage = SecureStorage();
-  late AirqoApiClient _apiClient;
+  final AirqoApiClient _apiClient = AirqoApiClient();
   final CloudAnalytics _cloudAnalytics = CloudAnalytics();
-
-  AppService(this._context) {
-    _apiClient = AirqoApiClient(_context);
-  }
+  final LocationService _locationService = LocationService();
+  final RateService _rateService = RateService();
+  final ShareService _shareService = ShareService();
+  final NotificationService _notificationService = NotificationService();
+  final SearchApi _searchApi = SearchApi();
 
   AirqoApiClient get apiClient => _apiClient;
 
@@ -42,44 +46,58 @@ class AppService {
 
   DBHelper get dbHelper => _dbHelper;
 
+  LocationService get locationService => _locationService;
+
+  NotificationService get notificationService => _notificationService;
+
   SharedPreferencesHelper get preferencesHelper => _preferencesHelper;
+
+  RateService get rateService => _rateService;
+
+  SearchApi get searchApi => _searchApi;
 
   SecureStorage get secureStorage => _secureStorage;
 
-  Future<bool> authenticateUser(
-      AuthCredential? authCredential,
-      String emailAddress,
-      String emailAuthLink,
-      authMethod method,
-      authProcedure procedure) async {
-    var hasConnection = await isConnected();
+  ShareService get shareService => _shareService;
+
+  Future<bool> authenticateUser({
+    required AuthMethod authMethod,
+    required AuthProcedure authProcedure,
+    required BuildContext buildContext,
+    String? emailAddress,
+    String? emailAuthLink,
+    AuthCredential? authCredential,
+  }) async {
+    var hasConnection = await isConnected(buildContext);
     if (!hasConnection) {
       return false;
     }
 
     bool authSuccessful;
-    if (method == authMethod.email) {
+    if (authMethod == AuthMethod.email &&
+        emailAddress != null &&
+        emailAuthLink != null) {
       authSuccessful = await _customAuth.emailAuthentication(
-          emailAddress, emailAuthLink, _context);
-    } else if (method == authMethod.phone && authCredential != null) {
-      authSuccessful =
-          await _customAuth.phoneNumberAuthentication(authCredential, _context);
+          emailAddress, emailAuthLink, buildContext);
+    } else if (authMethod == AuthMethod.phone && authCredential != null) {
+      authSuccessful = await _customAuth.phoneNumberAuthentication(
+          authCredential, buildContext);
     } else {
       authSuccessful = false;
     }
 
     if (authSuccessful) {
-      if (procedure == authProcedure.login) {
-        await postLoginActions();
+      if (authProcedure == AuthProcedure.login) {
+        await postLoginActions(buildContext);
       }
     }
 
     return authSuccessful;
   }
 
-  Future<bool> deleteAccount() async {
+  Future<bool> deleteAccount(BuildContext buildContext) async {
     var currentUser = _customAuth.getUser();
-    var hasConnection = await isConnected();
+    var hasConnection = await isConnected(buildContext);
     if (currentUser == null || !hasConnection) {
       ///TODO
       /// notify user
@@ -93,107 +111,98 @@ class AppService {
       await _preferencesHelper.clearPreferences();
       await _cloudStore.deleteAccount(id);
       await _dbHelper.clearAccount().then((value) => {
-            Provider.of<PlaceDetailsModel>(_context, listen: false)
+            Provider.of<PlaceDetailsModel>(buildContext, listen: false)
                 .reloadFavouritePlaces(),
-            Provider.of<NotificationModel>(_context, listen: false)
+            Provider.of<NotificationModel>(buildContext, listen: false)
                 .loadNotifications()
           });
 
       await currentUser.delete();
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
       return false;
     }
     return true;
   }
 
-  Future<bool> doesUserExist(String phoneNumber, String emailAddress) async {
+  Future<bool> doesUserExist(
+      {String? phoneNumber,
+      String? emailAddress,
+      required BuildContext buildContext}) async {
     try {
-      if (emailAddress.isNotEmpty) {
+      if (emailAddress != null) {
         var methods = await _customAuth.firebaseAuth
             .fetchSignInMethodsForEmail(emailAddress);
         return methods.isNotEmpty;
       }
-      return _apiClient.checkIfUserExists(phoneNumber, emailAddress);
-
-      // var callable = FirebaseFunctions.instance.httpsCallable(
-      //   'airqo-app-check-user',
-      //   options: HttpsCallableOptions(
-      //     timeout: const Duration(seconds: 60),
-      //   ),
-      // );
-      //
-      // final resp = await callable.call(<String, dynamic>{
-      //   'phoneNumber': phoneNumber,
-      //   'emailAddress': emailAddress,
-      // });
-      //
-      // print("result: ${resp}");
-      // return true;
+      return _apiClient.checkIfUserExists(
+          phoneNumber: phoneNumber, emailAddress: emailAddress);
     } catch (exception, stackTrace) {
       debugPrint('$exception \n $stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
-      await showSnackBar(_context, 'Failed to perform action. Try again later');
+      await logException(exception, stackTrace);
+      await showSnackBar(
+          buildContext, 'Failed to perform action. Try again later');
       return true;
     }
   }
 
-  Future<void> fetchData() async {
+  Future<void> fetchData(BuildContext buildContext) async {
     await Future.wait([
+      isConnected(buildContext),
       fetchLatestMeasurements(),
       fetchKya(),
-      loadNotifications(),
-      loadFavPlaces(),
+      loadNotifications(buildContext),
+      loadFavPlaces(buildContext),
       fetchFavPlacesInsights(),
+      updateFavouritePlacesSites(buildContext)
     ]);
   }
 
   Future<void> fetchFavPlacesInsights() async {
     try {
       var favPlaces = await _dbHelper.getFavouritePlaces();
-
-      if (favPlaces.isEmpty) {
-        return;
-      }
-
-      var placeIds = '';
+      var placeIds = <String>[];
 
       for (var favPlace in favPlaces) {
-        if (placeIds.isEmpty) {
-          placeIds = favPlace.siteId;
-        } else {
-          placeIds = '$placeIds,${favPlace.siteId}';
-        }
+        placeIds.add(favPlace.siteId);
       }
-
-      var placesInsights = await _apiClient.fetchSitesInsights(placeIds);
-
-      while (placesInsights.isNotEmpty) {
-        var siteInsight = placesInsights.first;
-
-        var filteredInsights = placesInsights
-            .where((element) =>
-                (element.siteId == siteInsight.siteId) &&
-                (element.frequency == siteInsight.frequency))
-            .toList();
-
-        await _dbHelper.insertInsights(
-            filteredInsights, siteInsight.siteId, siteInsight.frequency);
-
-        placesInsights.removeWhere((element) =>
-            (element.siteId == siteInsight.siteId) &&
-            (element.frequency == siteInsight.frequency));
-      }
+      await fetchInsights(placeIds);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
+  }
+
+  Future<List<Insights>> fetchInsights(List<String> siteIds,
+      {Frequency? frequency}) async {
+    var insights = <Insights>[];
+    var futures = <Future>[];
+
+    for (var i = 0; i < siteIds.length; i = i + 2) {
+      var site1 = siteIds[i];
+      try {
+        var site2 = siteIds[i + 1];
+        futures.add(_apiClient.fetchSitesInsights('$site1,$site2'));
+      } catch (e) {
+        futures.add(_apiClient.fetchSitesInsights(site1));
+      }
+    }
+
+    var sitesInsights = await Future.wait(futures);
+    for (var result in sitesInsights) {
+      insights.addAll(result);
+    }
+
+    await dbHelper.insertInsights(insights, siteIds);
+
+    if (frequency != null) {
+      var frequencyInsights = <Insights>[];
+      frequencyInsights = insights
+          .where((element) => element.frequency == frequency.getName())
+          .toList();
+      return frequencyInsights;
+    }
+
+    return insights;
   }
 
   Future<void> fetchKya() async {
@@ -221,7 +230,7 @@ class AppService {
     return userDetails;
   }
 
-  Future<bool> isConnected() async {
+  Future<bool> isConnected(BuildContext buildContext) async {
     try {
       final result = await InternetAddress.lookup('firebase.google.com');
       if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
@@ -229,7 +238,7 @@ class AppService {
       }
     } catch (_) {}
 
-    await showSnackBar(_context, Config.connectionErrorMessage);
+    await showSnackBar(buildContext, Config.connectionErrorMessage);
     return false;
   }
 
@@ -237,7 +246,7 @@ class AppService {
     return _customAuth.isLoggedIn();
   }
 
-  Future<void> loadFavPlaces() async {
+  Future<void> loadFavPlaces(BuildContext buildContext) async {
     try {
       var _offlineFavPlaces = await _dbHelper.getFavouritePlaces();
       var _cloudFavPlaces =
@@ -249,21 +258,21 @@ class AppService {
       }
 
       var favPlaces = [..._offlineFavPlaces, ..._cloudFavPlaces];
-
-      await _dbHelper.setFavouritePlaces(favPlaces).then((value) => {
-            Provider.of<PlaceDetailsModel>(_context, listen: false)
-                .reloadFavouritePlaces(),
-          });
-
-      await _cloudStore.updateFavPlaces(_customAuth.getUserId(), favPlaces);
+      await Future.wait([
+        _dbHelper.setFavouritePlaces(favPlaces).then((value) => {
+              Provider.of<PlaceDetailsModel>(buildContext, listen: false)
+                  .reloadFavouritePlaces(),
+            }),
+        _cloudStore.updateFavPlaces(_customAuth.getUserId(), favPlaces)
+      ]);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
   }
 
-  Future<void> loadNotifications() async {
+  Future<void> loadNotifications(BuildContext buildContext) async {
     // TODO IMPLEMENT GET NOTIFICATIONS
-    await Provider.of<NotificationModel>(_context, listen: false)
+    await Provider.of<NotificationModel>(buildContext, listen: false)
         .loadNotifications();
   }
 
@@ -272,10 +281,10 @@ class AppService {
     await _cloudAnalytics.logEvent(analyticsEvent, loggedIn);
   }
 
-  Future<bool> logOut(context) async {
-    var hasConnection = await isConnected();
+  Future<bool> logOut(buildContext) async {
+    var hasConnection = await isConnected(buildContext);
     if (!hasConnection) {
-      await showSnackBar(_context, Config.connectionErrorMessage);
+      await showSnackBar(buildContext, Config.connectionErrorMessage);
       return false;
     }
 
@@ -287,23 +296,19 @@ class AppService {
       await _secureStorage.clearUserDetails();
       await _preferencesHelper.clearPreferences();
       await _dbHelper.clearAccount().then((value) => {
-            Provider.of<NotificationModel>(context, listen: false)
+            Provider.of<NotificationModel>(buildContext, listen: false)
                 .loadNotifications(),
-            Provider.of<PlaceDetailsModel>(context, listen: false)
+            Provider.of<PlaceDetailsModel>(buildContext, listen: false)
                 .reloadFavouritePlaces()
           });
-      await _customAuth.logOut(_context);
+      await _customAuth.logOut(buildContext);
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
     }
     return true;
   }
 
-  Future<void> postLoginActions() async {
+  Future<void> postLoginActions(BuildContext buildContext) async {
     try {
       var user = _customAuth.getUser();
       if (user == null) {
@@ -315,9 +320,9 @@ class AppService {
             scope.user = SentryUser(id: user.uid, email: user.email ?? ''),
       );
 
-      var hasConnection = await isConnected();
+      var hasConnection = await isConnected(buildContext);
       if (!hasConnection) {
-        await showSnackBar(_context, Config.connectionErrorMessage);
+        await showSnackBar(buildContext, Config.connectionErrorMessage);
         return;
       }
 
@@ -343,25 +348,26 @@ class AppService {
               if (value.isNotEmpty)
                 {
                   _dbHelper.setFavouritePlaces(value),
-                  Provider.of<PlaceDetailsModel>(_context, listen: false)
+                  Provider.of<PlaceDetailsModel>(buildContext, listen: false)
                       .reloadFavouritePlaces(),
                 }
             }),
         _cloudStore.getNotifications(user.uid).then((value) => {
               if (value.isNotEmpty)
                 {
-                  Provider.of<NotificationModel>(_context, listen: false)
+                  Provider.of<NotificationModel>(buildContext, listen: false)
                       .addAll(value),
                 }
             }),
         _logPlatformType(),
+        updateFavouritePlacesSites(buildContext)
       ]);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
   }
 
-  Future<void> postSignUpActions() async {
+  Future<void> postSignUpActions(BuildContext buildContext) async {
     try {
       var user = _customAuth.getUser();
       if (user == null) {
@@ -373,9 +379,9 @@ class AppService {
             scope.user = SentryUser(id: user.uid, email: user.email ?? ''),
       );
 
-      var hasConnection = await isConnected();
+      var hasConnection = await isConnected(buildContext);
       if (!hasConnection) {
-        await showSnackBar(_context, Config.connectionErrorMessage);
+        await showSnackBar(buildContext, Config.connectionErrorMessage);
         return;
       }
 
@@ -404,54 +410,25 @@ class AppService {
     }
   }
 
-  Future<void> _logPlatformType() async {
-    if (Platform.isAndroid) {
-      await logEvent(AnalyticsEvent.androidUser);
-    } else if (Platform.isIOS) {
-      await logEvent(AnalyticsEvent.iosUser);
-    } else {
-      debugPrint('Unknown Platform');
-    }
-  }
-
-  Future<void> _logGender(UserDetails userDetails) async {
-    if (userDetails.getGender() == gender.male) {
-      await logEvent(AnalyticsEvent.maleUser);
-    } else if (userDetails.getGender() == gender.female) {
-      await logEvent(AnalyticsEvent.femaleUser);
-    } else {
-      await logEvent(AnalyticsEvent.undefinedGender);
-    }
-  }
-
-  Future<void> _logFavPlaces() async {
-    var favPlaces = await _dbHelper.getFavouritePlaces();
-    if (favPlaces.length >= 5) {
-      await logEvent(AnalyticsEvent.savesFiveFavorites);
-    }
-  }
-
-  Future<void> _logNetworkProvider(UserDetails userDetails) async {
-    var carrier = await _apiClient.getCarrier(userDetails.phoneNumber);
-    if (carrier.toLowerCase().contains('airtel')) {
-      await logEvent(AnalyticsEvent.airtelUser);
-    } else if (carrier.toLowerCase().contains('mtn')) {
-      await logEvent(AnalyticsEvent.mtnUser);
-    } else {
-      await logEvent(AnalyticsEvent.otherNetwork);
-    }
-  }
-
-  Future<void> refreshDashboard() async {
+  Future<void> refreshDashboard(BuildContext buildContext) async {
     await Future.wait([
       fetchLatestMeasurements(),
       fetchKya(),
-      loadNotifications(),
-      loadFavPlaces(),
+      loadNotifications(buildContext),
+      updateFavouritePlacesSites(buildContext),
     ]);
   }
 
-  Future<void> updateFavouritePlace(PlaceDetails placeDetails) async {
+  Future<void> refreshAnalytics() async {
+    await Future.wait([
+      fetchLatestMeasurements(),
+      fetchKya(),
+      fetchFavPlacesInsights(),
+    ]);
+  }
+
+  Future<void> updateFavouritePlace(
+      PlaceDetails placeDetails, BuildContext context) async {
     var isFav = await _dbHelper.updateFavouritePlace(placeDetails);
     if (isFav) {
       await _cloudStore.addFavPlace(_customAuth.getUserId(), placeDetails);
@@ -460,15 +437,31 @@ class AppService {
     }
 
     await Future.wait([
-      Provider.of<PlaceDetailsModel>(_context, listen: false)
+      Provider.of<PlaceDetailsModel>(context, listen: false)
           .reloadFavouritePlaces(),
       _logFavPlaces(),
     ]);
   }
 
-  Future<void> updateKya(Kya kya) async {
+  Future<void> updateFavouritePlacesSites(BuildContext buildContext) async {
+    var favPlaces = await _dbHelper.getFavouritePlaces();
+    var updatedFavPlaces = <PlaceDetails>[];
+    for (var favPlace in favPlaces) {
+      var nearestSite = await _locationService.getNearestSite(
+          favPlace.latitude, favPlace.longitude);
+      if (nearestSite != null) {
+        favPlace.siteId = nearestSite.id;
+      }
+      updatedFavPlaces.add(favPlace);
+    }
+    await _dbHelper
+        .updateFavouritePlacesDetails(updatedFavPlaces)
+        .then((value) => loadFavPlaces(buildContext));
+  }
+
+  Future<void> updateKya(Kya kya, BuildContext buildContext) async {
     await _dbHelper.updateKya(kya);
-    var connected = await isConnected();
+    var connected = await isConnected(buildContext);
     if (_customAuth.isLoggedIn() && connected) {
       await _cloudStore.updateKyaProgress(_customAuth.getUserId(), kya);
       if (kya.progress == kya.lessons.length) {
@@ -477,8 +470,9 @@ class AppService {
     }
   }
 
-  Future<bool> updateProfile(UserDetails userDetails) async {
-    var hasConnection = await isConnected();
+  Future<bool> updateProfile(
+      UserDetails userDetails, BuildContext buildContext) async {
+    var hasConnection = await isConnected(buildContext);
     if (!hasConnection) {
       return false;
     }
@@ -520,18 +514,53 @@ class AppService {
         return true;
       }
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
       return false;
     }
   }
 
+  Future<void> _logFavPlaces() async {
+    var favPlaces = await _dbHelper.getFavouritePlaces();
+    if (favPlaces.length >= 5) {
+      await logEvent(AnalyticsEvent.savesFiveFavorites);
+    }
+  }
+
+  Future<void> _logGender(UserDetails userDetails) async {
+    if (userDetails.getGender() == Gender.male) {
+      await logEvent(AnalyticsEvent.maleUser);
+    } else if (userDetails.getGender() == Gender.female) {
+      await logEvent(AnalyticsEvent.femaleUser);
+    } else {
+      await logEvent(AnalyticsEvent.undefinedGender);
+    }
+  }
+
+  Future<void> _logNetworkProvider(UserDetails userDetails) async {
+    var carrier = await _apiClient.getCarrier(userDetails.phoneNumber);
+    if (carrier.toLowerCase().contains('airtel')) {
+      await logEvent(AnalyticsEvent.airtelUser);
+    } else if (carrier.toLowerCase().contains('mtn')) {
+      await logEvent(AnalyticsEvent.mtnUser);
+    } else {
+      await logEvent(AnalyticsEvent.otherNetwork);
+    }
+  }
+
+  Future<void> _logPlatformType() async {
+    if (Platform.isAndroid) {
+      await logEvent(AnalyticsEvent.androidUser);
+    } else if (Platform.isIOS) {
+      await logEvent(AnalyticsEvent.iosUser);
+    } else {
+      debugPrint('Unknown Platform');
+    }
+  }
+
   /// TODO utilise this method
-  Future<void> _updateCredentials(String? phone, String? email) async {
-    var hasConnection = await isConnected();
+  Future<void> _updateCredentials(
+      String? phone, String? email, BuildContext buildContext) async {
+    var hasConnection = await isConnected(buildContext);
     if (!hasConnection) {
       return;
     }
@@ -547,15 +576,7 @@ class AppService {
         await _secureStorage.updateUserDetailsField('emailAddress', email);
       }
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      await logException(exception, stackTrace);
     }
   }
 }
-
-enum authMethod { phone, email }
-
-enum authProcedure { login, signup }
