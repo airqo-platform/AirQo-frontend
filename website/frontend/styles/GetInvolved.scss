@@ -142,7 +142,6 @@
                     border: 0;
                     outline: 0;
                     border-radius: 8px;
-                    padding-left: 12px;
                 }
             }
 
@@ -171,12 +170,13 @@
         .section-button-row {
             display: flex;
             justify-content: space-between;
+            width: 100%;
 
             .back-btn, .register-btn {
                 height: 48px;
                 border-radius: 16px;
                 background-color: $aq-blue-0;
-                color: $aq-white-0;
+                
                 font-size: 16px;
                 line-height: 24px;
                 font-weight: 400;
@@ -190,11 +190,13 @@
         .back-btn {
             width: 91px;
             padding: 12px 27px;
+            color: #135DFF;
         }
 
         .register-btn {
             width: 198px;
             padding: 12px 22px;
+            color: #353e5247;
         }
     }
 
@@ -225,23 +227,51 @@
             align-items: flex-start;
             justify-content: flex-start;
             flex-wrap: nowrap;
-            padding: 0;
+            padding-right: 16px;
+            padding-left: 16px;
             padding-top: 48px;
             padding-bottom: 64px;
             margin: 0;
 
             .content-wrapper {
                 width: 100%;
-                margin: 0 auto;
+                margin: 0;
             }
         }
 
-        .section-right, .form-section {
+        .form-section {
+            width: 100%;
+            margin: 64px 16px;
+
+            .section-button-row {
+                width: 100%;
+                .back-btn, .register-btn {
+                    border-radius: 16px;
+                    background: #353E5214;
+                }
+            }
+    
+            .back-btn {
+                width: 86px;
+                padding: 12px 24px;
+                
+            }
+    
+            .register-btn {
+                width: 202px;
+                padding: 12px 24px;
+                
+            }
+        }
+
+        .section-right {
             padding-top: 64px;
             width: 100%;
             margin: 0;
             height: 100%;
             flex-direction: column;
+            padding-right: 16px;
+            padding-left: 16px;
 
             .wrapper {
                 width: 100%;
@@ -293,9 +323,6 @@
 
 @media(max-width: 360px) {
     .GetInvolved {
-        .section-left, .section-right {
-            padding: 0 16px;
-        }
         
         .section-right {
             width: 100%;
