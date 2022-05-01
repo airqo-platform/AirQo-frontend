@@ -6,6 +6,7 @@ import Blob from 'assets/img/community/AirQo_blob_fill.svg';
 import AssetImg1 from 'assets/img/community/Rectangle 406.png';
 import AssetImg2 from 'assets/img/community/Rectangle 408-1.png';
 import AssetImg3 from 'assets/img/community/Rectangle 409.png';
+import CommunityStar from 'assets/img/community/Communities Star.svg';
 import AirQoArrowLeft from 'assets/img/community/AirQo_arrow_left.svg';
 import AirQoQuotes from 'assets/img/community/AirQo_quotes.png';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -23,7 +24,6 @@ const CommunityPage = () => {
                         <ArrowForwardIosIcon className="arrow-forward" />
                         <h6>For Communities</h6>
                     </div>
-
                     <h1 className="header-2">Communities with AirQo</h1>
                     <h3 className="header-3">We empower communities across Africa with accurate, hyperlocal, and timely air quality data to drive actions to reduce air pollution.</h3>
                 </div>
@@ -32,13 +32,19 @@ const CommunityPage = () => {
                     <div className="blob">
                         <img src={AirQommunities} className="blob-img" />
                     </div>
-
                     <div className="section-1">
                         <div className="layer-1">
                             <div className="text">
-                                <h1>AirQommunity champions and AirQo hosts</h1>
-                                <p>Recruiting and creating community groups we call AirQommunity. Through these groups, we encourage individuals to share pictures of air pollution practices around their neighbourhoods — information we leverage in building air pollution case studies.</p>
-                                <p>Collaboration with locals, locals volunteer to host the installation of air quality monitoring devices at either their places of work or homes. This goes a long way in enforcing the participatory approach in collecting air quality data — involving communities at every step of the journey.</p>
+                                <div className="row">
+                                    <div className="img-star">
+                                        <CommunityStar />
+                                    </div>
+                                    
+                                    <h1>AirQommunity champions</h1>
+                                </div>
+                                
+                                <p>AirQommunity champions and ambassadors are individuals who are part of a growing network of change makers dedicated to improving air quality at the grassroots level.</p>
+                                <p>They use air quality data to create positive change in the fight against air inequality while contributing insights and ideas on major issues and potential solutions to air quality challenges in their communities.</p>
                             </div>
                             <div className="img-stack">
                                 <div className="stack-1">
@@ -56,22 +62,22 @@ const CommunityPage = () => {
                     <div className="strip">
                         <div className="left-strip">
                             <span>
-                                <h3>0113</h3>
+                                <h3>300</h3>
                                 <AirQoArrowLeft className="left-strip-arrow" />
                             </span>
-                            <h3>AirQo Hosts</h3>
+                            <h3>AirQocommunity champions</h3>
                         </div>
                         <div className="right-strip">
-                            <h3>AirQo Host are individuals we work with to install air quality monitors.</h3>
+                            <h3>Gerald has been an air quality community champion for over a year now. <u>Read story</u></h3>
                         </div>
                     </div>
 
                     <div className="section-1">
                         <div className="layer-1">
                             <div className="text">
-                                <h1>Community trainings and awareness workshops </h1>
-                                <p>Focusing on high risk areas, we use the exiciting air quality data as evidence to raise awareness. Collaborating with industrial businesses, and vehicles repair business on how to improve the quality of air they breath.</p>
-                                <p>Training local leaders and students. The AirQo dashboard is a great tool to track air pollution across Africa. We conduct How-to training and workshops to equip local leaders with skils on how to read and interpret air quality analytics.</p>
+                                <h1>Facilitating access to air quality information</h1>
+                                <p>Access to air quality data is one of the biggest challenges in tackling air pollution in Africa. We close the air quality data gaps by training and giving free access to real-time data on air quality across Africa, from our open-air quality monitoring platform.</p>
+                                <p>Through building and ensuring access to digital platforms that help us know the pattern or behavior of air quality, we are facilitating evidence-based decision-making in air quality.</p>
                             </div>
                             <div className="img-stack">
                                 <div className="stack-1">
