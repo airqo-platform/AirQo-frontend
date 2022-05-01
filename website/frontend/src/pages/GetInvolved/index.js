@@ -39,7 +39,7 @@ const GetInvolved = () => {
                             <img src={MonitorImg} />
                             <p>I’m a <b>Collaborator</b>, Interested in environmental activism</p>
                         </div>
-                        <Link to="/get-involved/register"><button className="next-btn">Next</button></Link>
+                        <Link to="/get-involved/register" className="section-button"><button className="next-btn">Next</button></Link>
                     </div>
                 </div>
             </div>
