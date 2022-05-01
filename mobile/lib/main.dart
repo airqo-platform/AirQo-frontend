@@ -55,7 +55,6 @@ void main() async {
 
   FirebaseMessaging.onBackgroundMessage(
       NotificationService.notificationHandler);
-  FirebaseMessaging.onMessage.listen(NotificationService.notificationHandler);
 
   final prefs = await SharedPreferences.getInstance();
   final themeController = ThemeController(prefs);

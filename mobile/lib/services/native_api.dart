@@ -26,6 +26,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/enum_constants.dart';
+import '../screens/favourite_places.dart';
 import '../themes/light_theme.dart';
 import '../utils/exception.dart';
 import 'firebase_service.dart';
@@ -496,6 +497,7 @@ class NotificationService {
   }
 
   static Future<void> notificationHandler(RemoteMessage message) async {
+    // TODO: LOG EVENT
     try {
       const channel = AndroidNotificationChannel(
         'high_importance_channel',
@@ -527,8 +529,8 @@ class NotificationService {
                     presentSound: true,
                     presentBadge: true)));
       }
-    } catch (e) {
-      print(e);
+    } catch (e, s) {
+      debugPrint('${e.toString()} ${s.toString()}');
     }
   }
 }

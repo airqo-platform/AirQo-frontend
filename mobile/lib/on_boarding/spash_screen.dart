@@ -7,11 +7,14 @@ import 'package:app/on_boarding/setup_complete_screeen.dart';
 import 'package:app/on_boarding/welcome_screen.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/app_service.dart';
+import 'package:app/services/native_api.dart';
 import 'package:app/utils/extensions.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../models/enum_constants.dart';
+import '../screens/favourite_places.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -47,7 +50,7 @@ class SplashScreenState extends State<SplashScreen> {
     );
   }
 
-  Future<void> initialize() async {
+  Future<void> _initialize() async {
     await _appService.dbHelper.deleteNonFavPlacesInsights();
 
     var isLoggedIn = _appService.isLoggedIn();
@@ -90,7 +93,20 @@ class SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    initialize();
+    _initialize();
+    _initNotifications();
+  }
+
+  void _initNotifications() {
+    FirebaseMessaging.onMessage.listen(NotificationService.notificationHandler);
+    FirebaseMessaging.onMessageOpenedApp.listen((message) {
+      // TODO: LOG EVENT
+      var type = message.data['type'] ?? '';
+      if (type == 'update') {
+        // TODO: NAVIGATE TO FAV PLACES
+        // TODO: LOG EVENT
+      }
+    });
   }
 
   Widget logoWidget() {

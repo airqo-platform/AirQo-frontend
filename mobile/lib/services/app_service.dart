@@ -154,7 +154,8 @@ class AppService {
       loadNotifications(buildContext),
       loadFavPlaces(buildContext),
       fetchFavPlacesInsights(),
-      updateFavouritePlacesSites(buildContext)
+      updateFavouritePlacesSites(buildContext),
+      updateNotificationSettings(buildContext)
     ]);
   }
 
@@ -306,6 +307,26 @@ class AppService {
       await logException(exception, stackTrace);
     }
     return true;
+  }
+
+  Future<void> updateNotificationSettings(BuildContext buildContext) async {
+    try {
+      var user = _customAuth.getUser();
+      if (user == null) {
+        return;
+      }
+
+      var device = await _firebaseMessaging.getToken();
+      var utcOffset = DateTime.now().getUtcOffset();
+      debugPrint('deice token : $device');
+
+      if (device != null) {
+        await _cloudStore.updateProfileFields(
+            user.uid, {'device': device, 'utcOffset': utcOffset});
+      }
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+    }
   }
 
   Future<void> postLoginActions(BuildContext buildContext) async {
