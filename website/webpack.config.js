@@ -31,6 +31,7 @@ function postCSSLoader() {
 }
 
 function removeTrailingSlash(str) {
+  if(str === undefined) return "";
   return str.replace(/\/+$/, '');
 }
 

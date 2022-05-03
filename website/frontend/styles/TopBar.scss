@@ -1,6 +1,11 @@
 @import "lib/colors";
 @import "lib/variables";
 
+h3, h4 {
+  margin: 0;
+  padding: 0;
+}
+
 .TopBar {
   position: sticky;
   top: 0;
@@ -21,42 +26,184 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-
+    
     .nav-center, .nav-right {
       display: flex;
     }
 
     .nav-center {
       justify-content: space-between;
+
+      .nav-dropdown-item {
+        .dropdown {
+          margin-top: 13px;
+          margin-left: 24px;
+          position: absolute;
+          width: 674px;
+          height: 274px;
+          border-radius: 8px;
+          background-color: $aq-white-0;
+          box-shadow: 0px 8px 16px #cccccc40;
+          box-sizing: border-box;
+
+          .title {
+            font-size: 16px;
+            line-height: 22px;
+            font-weight: 400;
+            color: $aq-blue-2;
+            padding-bottom: 20px;
+            padding-top: 44px;
+            padding-left: 40px;
+            opacity: 0.4;
+          }
+
+          .dropdown-list {
+            display: flex;
+            flex-wrap: wrap;
+            margin-left: 24px;
+            
+            .dropdown-list-item {
+              margin-bottom: 22px;
+              margin-right: 20px;
+              width: 281px;
+              padding: 8px 16px;
+              cursor: pointer;
+
+              h3 {
+                font-weight: 500;
+                font-size: 16px;
+                color: $aq-blue-2;
+              }
+
+              h4 {
+                font-weight: 400;
+                font-size: 14px;
+                line-height: 20px;
+                color: $aq-blue-2;
+                letter-spacing: -0.022em;
+              }
+            }
+
+            .dropdown-list-item:hover {
+              background-color: $aq-blue-5;
+              border-radius: 8px;
+
+              h3, h4 {
+                color: $aq-blue-4;
+              }
+            }
+          }
+        }
+
+        #african-cities-dropdown.dropdown, #our-work-dropdown.dropdown {
+          display: none;
+        }
+
+        #african-cities-dropdown.toggle_dropdown, #our-work-dropdown.toggle_dropdown {
+          display: block;
+        }
+      }
     }
   }
 
-  .menu-btn {
+  .menu-btn, .close-menu-btn {
     display: none;
+  }
+
+}
+
+@media(max-width: 1024px) {
+  .TopBar {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 32px;
+    box-sizing: border-box;
+    height: 80px;
+    width: 100%;
+
+    .wrapper {
+      width: 100%;
+      height: auto;
+      margin: 0;
+      position: absolute;
+      top: 80px;
+      margin-left: -32px;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: flex-start;
+      background-color: $aq-white-0;
+      transition: all 0.5s ease;
+      
+      .logo {
+        position: absolute;
+        top: -68px;
+        left: 32px;
+      }
+
+      #nav-center.nav-center, #nav-right.nav-right {
+        display: none;
+      }
+
+      #nav-center.toggle_nav_center, #nav-right.toggle_nav_right {
+        display: block;
+      }
+
+      .nav-center {
+        padding-top: 64px;
+        margin-bottom: 44px;
+
+        .nav-dropdown-item {
+          .dropdown {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            margin-left: 0;
+            box-shadow: none;
+            height: 100%;
+
+            .title {
+              display: none;
+            }
+          }
+        }
+        
+      }
+    }
+
+    #menu.toggle_menu_btn {
+      display: none;
+    }
+
+    #close-menu.toggle_close_menu_btn {
+      display: block;
+      cursor: pointer;
+      transition: all 0.5s ease;
+      align-self: flex-end;
+      position: absolute;
+      right: 32px;
+    }
+
+    .menu-btn {
+      display: block;
+      cursor: pointer;
+      transition: all 0.5s ease;
+      position: absolute;
+      right: 32px;
+    }
   }
 }
 
 @media(max-width: $mainBreakPoint){
   .TopBar {
-    justify-content: space-between;
-    padding: 20px 16px;
-
-    .container {
-      display: none;
-      width: 0;
-      margin-left: 0;
+    .dropdown-list {
+      flex-direction: column;
+      flex-wrap: nowrap;
+      margin-left: 24px;
     }
-
-    .menu-btn {
-      display: block;
-      background-color: #8d8d8d14;
-      border-radius: 2px;
-      box-sizing: content-box;
-      padding: 8px 16px;
-      width: 25px;
-      height: 25px;
-      cursor: pointer;
-    }
-  }
   
+  }
 }
