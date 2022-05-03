@@ -200,7 +200,7 @@ extension DateTimeExtension on DateTime {
     } else if (day.toString().endsWith('3')) {
       return '${day}rd';
     } else {
-      return '${day}th ${getMonthString(abbreviate: true)}';
+      return '${day}th';
     }
   }
 

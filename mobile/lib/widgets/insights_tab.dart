@@ -195,7 +195,7 @@ class _InsightsTabState extends State<InsightsTab> {
                                       setState(() {
                                         _currentItem = index;
                                       });
-                                      scrollToChart(
+                                      _scrollToChart(
                                           _itemScrollController,
                                           _currentItem,
                                           _dailyPm2_5ChartData,
@@ -228,7 +228,7 @@ class _InsightsTabState extends State<InsightsTab> {
                                       setState(() {
                                         _currentItem = index;
                                       });
-                                      scrollToChart(
+                                      _scrollToChart(
                                           _itemScrollController,
                                           _currentItem,
                                           _hourlyPm2_5ChartData,
@@ -444,16 +444,15 @@ class _InsightsTabState extends State<InsightsTab> {
 
         var pm2_5ChartData =
             insightsChartData(relatedDates, Pollutant.pm2_5, Frequency.hourly)
-                .toList()
                 .first;
 
         var pm10ChartData =
             insightsChartData(relatedDates, Pollutant.pm10, Frequency.hourly)
-                .toList()
                 .first;
 
         miniChartsMap[DateFormat('yyyy-MM-dd').format(randomValue.time)] =
-            _miniInsightsChart(pm2_5ChartData, pm10ChartData);
+            _insightsChart(pm10ChartData: pm10ChartData,
+                pm2_5ChartData: pm2_5ChartData, cornerRadius: 3);
 
         hourlyInsights.removeWhere((element) =>
             element.time.day == randomValue.time.day &&
@@ -466,7 +465,7 @@ class _InsightsTabState extends State<InsightsTab> {
     }
   }
 
-  Future<void> scrollToChart(
+  Future<void> _scrollToChart(
       ItemScrollController controller,
       int index,
       List<List<charts.Series<Insights, String>>> data,
@@ -725,7 +724,7 @@ class _InsightsTabState extends State<InsightsTab> {
             Visibility(
               visible: _hasMeasurements,
               child: Text(
-                'AIR QUALITY'.toUpperCase(),
+                'AIR QUALITY',
                 style: Theme.of(context)
                     .textTheme
                     .caption
@@ -902,33 +901,31 @@ class _InsightsTabState extends State<InsightsTab> {
 
     if (widget.frequency == Frequency.daily) {
       setState(() {
-        _dailyPm2_5ChartData = insightsChartData(
-            List.from(insightsData), Pollutant.pm2_5, Frequency.daily);
-        _dailyPm10ChartData = insightsChartData(
-            List.from(insightsData), Pollutant.pm10, Frequency.daily);
+        _dailyPm2_5ChartData =
+            insightsChartData(insightsData, Pollutant.pm2_5, Frequency.daily);
+        _dailyPm10ChartData =
+            insightsChartData(insightsData, Pollutant.pm10, Frequency.daily);
         _selectedMeasurement = _dailyPm2_5ChartData.first.first.data.first;
         _hasMeasurements = true;
       });
 
-      await scrollToTodayChart();
+      await _scrollToTodayChart();
       await loadMiniCharts(DateTime.now());
     } else {
       setState(() {
         _hourlyPm2_5ChartData =
-            insightsChartData(insightsData, Pollutant.pm2_5, Frequency.hourly)
-                .toList();
+            insightsChartData(insightsData, Pollutant.pm2_5, Frequency.hourly);
         _hourlyPm10ChartData =
-            insightsChartData(insightsData, Pollutant.pm10, Frequency.hourly)
-                .toList();
+            insightsChartData(insightsData, Pollutant.pm10, Frequency.hourly);
         _selectedMeasurement = _hourlyPm2_5ChartData.first.first.data.first;
         _hasMeasurements = true;
       });
 
-      await scrollToTodayChart();
+      await _scrollToTodayChart();
     }
   }
 
-  Future<void> scrollToTodayChart() async {
+  Future<void> _scrollToTodayChart() async {
     var referenceDate = widget.frequency == Frequency.daily
         ? DateTime.now().getDateOfFirstDayOfWeek()
         : DateTime.now();
@@ -942,7 +939,7 @@ class _InsightsTabState extends State<InsightsTab> {
           _selectedMeasurement = element.first.data.last;
         });
 
-        await scrollToChart(_itemScrollController, data.indexOf(element), data,
+        await _scrollToChart(_itemScrollController, data.indexOf(element), data,
             const Duration(microseconds: 1));
         break;
       }
