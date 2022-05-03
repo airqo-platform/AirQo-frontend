@@ -81,6 +81,8 @@ extension AnalyticsEventExtension on AnalyticsEvent {
         return '${prefix}airtel_user';
       case AnalyticsEvent.otherNetwork:
         return '${prefix}other_network_user';
+      case AnalyticsEvent.deletedAccount:
+        return '${prefix}deleted_account';
       default:
         return '';
     }

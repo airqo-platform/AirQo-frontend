@@ -107,17 +107,18 @@ class AppService {
 
     try {
       var id = currentUser.uid;
-      await _secureStorage.clearUserDetails();
-      await _preferencesHelper.clearPreferences();
-      await _cloudStore.deleteAccount(id);
-      await _dbHelper.clearAccount().then((value) => {
-            Provider.of<PlaceDetailsModel>(buildContext, listen: false)
-                .reloadFavouritePlaces(),
-            Provider.of<NotificationModel>(buildContext, listen: false)
-                .loadNotifications()
-          });
-
-      await currentUser.delete();
+      await Future.wait([
+        _secureStorage.clearUserDetails(),
+        _preferencesHelper.clearPreferences(),
+        _cloudStore.deleteAccount(id),
+        logEvent(AnalyticsEvent.deletedAccount),
+        _dbHelper.clearAccount().then((value) => {
+              Provider.of<PlaceDetailsModel>(buildContext, listen: false)
+                  .reloadFavouritePlaces(),
+              Provider.of<NotificationModel>(buildContext, listen: false)
+                  .loadNotifications()
+            })
+      ]).then((value) => currentUser.delete());
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
       return false;
@@ -149,10 +150,10 @@ class AppService {
   Future<void> fetchData(BuildContext buildContext) async {
     await Future.wait([
       isConnected(buildContext),
-      fetchLatestMeasurements(),
-      fetchKya(),
-      loadNotifications(buildContext),
-      loadFavPlaces(buildContext),
+      _fetchLatestMeasurements(),
+      _fetchKya(),
+      _loadNotifications(buildContext),
+      _loadFavPlaces(buildContext),
       fetchFavPlacesInsights(),
       updateFavouritePlacesSites(buildContext)
     ]);
@@ -166,14 +167,14 @@ class AppService {
       for (var favPlace in favPlaces) {
         placeIds.add(favPlace.siteId);
       }
-      await fetchInsights(placeIds);
+      await fetchInsights(placeIds, reloadDatabase: true);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
   }
 
   Future<List<Insights>> fetchInsights(List<String> siteIds,
-      {Frequency? frequency}) async {
+      {Frequency? frequency, bool reloadDatabase = false}) async {
     var insights = <Insights>[];
     var futures = <Future>[];
 
@@ -192,7 +193,8 @@ class AppService {
       insights.addAll(result);
     }
 
-    await dbHelper.insertInsights(insights, siteIds);
+    await dbHelper.insertInsights(insights, siteIds,
+        reloadDatabase: reloadDatabase);
 
     if (frequency != null) {
       var frequencyInsights = <Insights>[];
@@ -205,7 +207,7 @@ class AppService {
     return insights;
   }
 
-  Future<void> fetchKya() async {
+  Future<void> _fetchKya() async {
     try {
       var kyas = await _cloudStore.getKya(_customAuth.getUserId());
       await _dbHelper.insertKyas(kyas);
@@ -214,7 +216,7 @@ class AppService {
     }
   }
 
-  Future<void> fetchLatestMeasurements() async {
+  Future<void> _fetchLatestMeasurements() async {
     try {
       var measurements = await _apiClient.fetchLatestMeasurements();
       if (measurements.isNotEmpty) {
@@ -246,7 +248,7 @@ class AppService {
     return _customAuth.isLoggedIn();
   }
 
-  Future<void> loadFavPlaces(BuildContext buildContext) async {
+  Future<void> _loadFavPlaces(BuildContext buildContext) async {
     try {
       var _offlineFavPlaces = await _dbHelper.getFavouritePlaces();
       var _cloudFavPlaces =
@@ -270,7 +272,7 @@ class AppService {
     }
   }
 
-  Future<void> loadNotifications(BuildContext buildContext) async {
+  Future<void> _loadNotifications(BuildContext buildContext) async {
     // TODO IMPLEMENT GET NOTIFICATIONS
     await Provider.of<NotificationModel>(buildContext, listen: false)
         .loadNotifications();
@@ -290,18 +292,21 @@ class AppService {
 
     try {
       var userId = _customAuth.getUserId();
-      var favPlaces = await _dbHelper.getFavouritePlaces();
-      await _cloudStore.updateProfileFields(userId, {'device': ''});
-      await _cloudStore.updateFavPlaces(userId, favPlaces);
-      await _secureStorage.clearUserDetails();
-      await _preferencesHelper.clearPreferences();
-      await _dbHelper.clearAccount().then((value) => {
-            Provider.of<NotificationModel>(buildContext, listen: false)
-                .loadNotifications(),
-            Provider.of<PlaceDetailsModel>(buildContext, listen: false)
-                .reloadFavouritePlaces()
-          });
-      await _customAuth.logOut(buildContext);
+
+      await Future.wait([
+        _dbHelper
+            .getFavouritePlaces()
+            .then((value) => _cloudStore.updateFavPlaces(userId, value)),
+        _cloudStore.updateProfileFields(userId, {'device': ''}),
+        _secureStorage.clearUserDetails(),
+        _preferencesHelper.clearPreferences(),
+        _dbHelper.clearAccount().then((value) => {
+              Provider.of<NotificationModel>(buildContext, listen: false)
+                  .loadNotifications(),
+              Provider.of<PlaceDetailsModel>(buildContext, listen: false)
+                  .reloadFavouritePlaces()
+            })
+      ]).then((value) => _customAuth.logOut(buildContext));
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
     }
@@ -410,9 +415,9 @@ class AppService {
   Future<void> refreshDashboard(BuildContext buildContext) async {
     await Future.wait([
       isConnected(buildContext),
-      fetchLatestMeasurements(),
-      fetchKya(),
-      loadNotifications(buildContext),
+      _fetchLatestMeasurements(),
+      _fetchKya(),
+      _loadNotifications(buildContext),
       updateFavouritePlacesSites(buildContext),
     ]);
   }
@@ -420,8 +425,8 @@ class AppService {
   Future<void> refreshAnalytics(BuildContext buildContext) async {
     await Future.wait([
       isConnected(buildContext),
-      fetchLatestMeasurements(),
-      fetchKya(),
+      _fetchLatestMeasurements(),
+      _fetchKya(),
       fetchFavPlacesInsights(),
     ]);
   }
@@ -429,7 +434,7 @@ class AppService {
   Future<void> refreshKyaView(BuildContext buildContext) async {
     await Future.wait([
       isConnected(buildContext),
-      fetchKya(),
+      _fetchKya(),
     ]);
   }
 
@@ -470,7 +475,7 @@ class AppService {
     }
     await _dbHelper
         .updateFavouritePlacesDetails(updatedFavPlaces)
-        .then((value) => loadFavPlaces(buildContext));
+        .then((value) => _loadFavPlaces(buildContext));
   }
 
   Future<void> updateKya(Kya kya, BuildContext buildContext) async {
@@ -512,8 +517,10 @@ class AppService {
           ..phoneNumber = _customAuth.getUser()?.phoneNumber ?? ''
           ..emailAddress = _customAuth.getUser()?.email ?? '';
 
-        await _customAuth.updateUserProfile(userDetails);
-        await _secureStorage.updateUserDetails(userDetails);
+        await Future.wait([
+          _customAuth.updateUserProfile(userDetails),
+          _secureStorage.updateUserDetails(userDetails)
+        ]);
 
         var fields = {
           'title': userDetails.title,

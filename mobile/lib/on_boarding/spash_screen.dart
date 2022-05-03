@@ -48,8 +48,6 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> initialize() async {
-    await _appService.dbHelper.deleteNonFavPlacesInsights();
-
     var isLoggedIn = _appService.isLoggedIn();
 
     var nextPage = getOnBoardingPageConstant(
