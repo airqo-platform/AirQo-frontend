@@ -451,8 +451,10 @@ class _InsightsTabState extends State<InsightsTab> {
                 .first;
 
         miniChartsMap[DateFormat('yyyy-MM-dd').format(randomValue.time)] =
-            _insightsChart(pm10ChartData: pm10ChartData,
-                pm2_5ChartData: pm2_5ChartData, cornerRadius: 3);
+            _insightsChart(
+                pm10ChartData: pm10ChartData,
+                pm2_5ChartData: pm2_5ChartData,
+                cornerRadius: 3);
 
         hourlyInsights.removeWhere((element) =>
             element.time.day == randomValue.time.day &&
@@ -676,42 +678,6 @@ class _InsightsTabState extends State<InsightsTab> {
     });
   }
 
-  Widget _miniInsightsChart(List<charts.Series<Insights, String>> pm2_5Data,
-      List<charts.Series<Insights, String>> pm10Data) {
-    return LayoutBuilder(
-        builder: (BuildContext buildContext, BoxConstraints constraints) {
-      return SizedBox(
-        width: MediaQuery.of(buildContext).size.width - 50,
-        height: 150,
-        child: charts.BarChart(
-          _pollutant == Pollutant.pm2_5 ? pm2_5Data : pm10Data,
-          animate: true,
-          defaultRenderer: charts.BarRendererConfig<String>(
-              strokeWidthPx: 0,
-              stackedBarPaddingPx: 0,
-              cornerStrategy: const charts.ConstCornerStrategy(3)),
-          defaultInteractions: true,
-          behaviors: [
-            charts.LinePointHighlighter(
-                showHorizontalFollowLine:
-                    charts.LinePointHighlighterFollowLineType.none,
-                showVerticalFollowLine:
-                    charts.LinePointHighlighterFollowLineType.nearest),
-            charts.DomainHighlighter(),
-            charts.SelectNearest(
-                eventTrigger: charts.SelectionTrigger.tapAndDrag),
-          ],
-          selectionModels: [
-            charts.SelectionModelConfig(
-                changedListener: (charts.SelectionModel model) {})
-          ],
-          domainAxis: _yAxisScale(_hourlyStaticTicks),
-          primaryMeasureAxis: _xAxisScale(),
-        ),
-      );
-    });
-  }
-
   List<Widget> _pageItems() {
     return [
       const SizedBox(
@@ -912,11 +878,26 @@ class _InsightsTabState extends State<InsightsTab> {
       await _scrollToTodayChart();
       await loadMiniCharts(DateTime.now());
     } else {
+      var firstDay =
+          DateTime.now().getDateOfFirstDayOfWeek().getDateOfFirstHourOfDay();
+      var lastDay =
+          DateTime.now().getDateOfLastDayOfWeek().getDateOfLastHourOfDay();
+
+      var hourlyInsights = insightsData.where((element) {
+        var date = element.time;
+        if (date == firstDay ||
+            date == lastDay ||
+            (date.isAfter(firstDay) & date.isBefore(lastDay))) {
+          return true;
+        }
+        return false;
+      }).toList();
+
       setState(() {
-        _hourlyPm2_5ChartData =
-            insightsChartData(insightsData, Pollutant.pm2_5, Frequency.hourly);
+        _hourlyPm2_5ChartData = insightsChartData(
+            hourlyInsights, Pollutant.pm2_5, Frequency.hourly);
         _hourlyPm10ChartData =
-            insightsChartData(insightsData, Pollutant.pm10, Frequency.hourly);
+            insightsChartData(hourlyInsights, Pollutant.pm10, Frequency.hourly);
         _selectedMeasurement = _hourlyPm2_5ChartData.first.first.data.first;
         _hasMeasurements = true;
       });
