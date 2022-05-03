@@ -30,8 +30,13 @@ function postCSSLoader() {
   };
 }
 
+function strToBool(str) {
+  const truthy = ['true', '0', 'yes', 'y'];
+  return truthy.includes((str || '').toLowerCase());
+}
+
 function removeTrailingSlash(str) {
-  if(str === undefined) return "";
+  if (str === undefined) return '';
   return str.replace(/\/+$/, '');
 }
 
@@ -40,7 +45,7 @@ const config = () => {
 
   const STATIC_URL = removeTrailingSlash(process.env.REACT_WEB_STATIC_HOST);
 
-  const PUBLIC_PATH = `${STATIC_URL}/static/frontend/`;
+  const PUBLIC_PATH = strToBool(process.env.DEBUG) ? `${STATIC_URL}/static/frontend/` : `${STATIC_URL}/frontend/`;
 
   const STATIC_DIR = 'frontend/static/frontend';
 

@@ -146,12 +146,13 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # From Django's perspective, this is the input location.
 STATICFILES_DIRS = []
 
+STATIC_URL = STATIC_HOST + 'static/'
+
 if not DEBUG:
+    STATIC_URL = STATIC_HOST
     DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
     GS_BUCKET_NAME = config('GS_BUCKET_NAME')
     STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-
-STATIC_URL = STATIC_HOST + 'static/'
 
 # Configure cloudinary
 cloudinary.config(
