@@ -67,24 +67,31 @@ const TopBar = () => {
                             <h3 className="title">Solutions</h3>
                             <div className="dropdown-list">
                                 <div className="dropdown-list-item">
-                                    <h3>For African Cities</h3>
-                                    <h4>Air quality analytics for city councils</h4>
+                                    <Link to="/solutions/african-cities/uganda" style={{textDecoration:"none"}}>
+                                        <h3>For African Cities</h3>
+                                        <h4>Air quality analytics for city councils</h4>
+                                    </Link>
+                                    
                                 </div>
                                 <div className="dropdown-list-item">
-                                    <h3>For Communities</h3>
-                                    <h4>Recruiting locals to drive awareness</h4>
+                                    <Link to="/solutions/communities" style={{textDecoration:"none"}}>
+                                        <h3>For Communities</h3>
+                                        <h4>Recruiting locals to drive awareness</h4>
+                                    </Link>
                                 </div>
                                 <div className="dropdown-list-item">
-                                    <h3>For Research</h3>
-                                    <h4>Free access to air quality analytics</h4>
+                                    <Link to="/solutions/research" style={{textDecoration:"none"}}>
+                                        <h3>For Research</h3>
+                                        <h4>Free access to air quality analytics</h4>
+                                    </Link>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div className="nav-dropdown-item">
-                        <NavTab  
+                        {/* <NavTab  
                             text="Our work" 
-                            onClick={toggleDropdown("our-work-dropdown")} />
+                            onClick={toggleDropdown("our-work-dropdown")} /> */}
                         <div className="dropdown" id="our-work-dropdown">
                             <h3 className="title">Our Work</h3>
                             <div className="dropdown-list">
