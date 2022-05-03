@@ -572,27 +572,27 @@ class _DashboardViewState extends State<DashboardView> {
             semanticsLabel: 'AirQo',
           ),
           const Spacer(),
-          Container(
-            height: 40,
-            width: 40,
-            padding: const EdgeInsets.all(10),
-            decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.rectangle,
-                borderRadius: BorderRadius.all(Radius.circular(10.0))),
-            child: GestureDetector(
-              onTap: () async {
-                await Navigator.push(context,
-                    MaterialPageRoute(builder: (context) {
-                  return const SearchPage();
-                }));
-              },
+          GestureDetector(
+            onTap: () async {
+              await Navigator.push(context,
+                  MaterialPageRoute(builder: (context) {
+                return const SearchPage();
+              }));
+            },
+            child: Container(
+              height: 40,
+              width: 40,
+              padding: const EdgeInsets.all(10),
+              decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.rectangle,
+                  borderRadius: BorderRadius.all(Radius.circular(10.0))),
               child: SvgPicture.asset(
                 'assets/icon/search.svg',
                 semanticsLabel: 'Search',
               ),
             ),
-          )
+          ),
         ],
       ),
     );

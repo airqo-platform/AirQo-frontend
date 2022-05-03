@@ -852,6 +852,7 @@ class _InsightsTabState extends State<InsightsTab> {
   }
 
   Future<void> _refreshPage() async {
+    await _appService.isConnected(context);
     var insights = await _appService.fetchInsights([widget.placeDetails.siteId],
         frequency: widget.frequency);
 
@@ -866,11 +867,27 @@ class _InsightsTabState extends State<InsightsTab> {
     }
 
     if (widget.frequency == Frequency.daily) {
+      var firstDay = DateTime.now()
+          .getFirstDateOfCalendarMonth()
+          .getDateOfFirstHourOfDay();
+      var lastDay =
+          DateTime.now().getLastDateOfCalendarMonth().getDateOfLastHourOfDay();
+
+      var dailyInsights = insightsData.where((element) {
+        var date = element.time;
+        if (date == firstDay ||
+            date == lastDay ||
+            (date.isAfter(firstDay) & date.isBefore(lastDay))) {
+          return true;
+        }
+        return false;
+      }).toList();
+
       setState(() {
         _dailyPm2_5ChartData =
-            insightsChartData(insightsData, Pollutant.pm2_5, Frequency.daily);
+            insightsChartData(dailyInsights, Pollutant.pm2_5, Frequency.daily);
         _dailyPm10ChartData =
-            insightsChartData(insightsData, Pollutant.pm10, Frequency.daily);
+            insightsChartData(dailyInsights, Pollutant.pm10, Frequency.daily);
         _selectedMeasurement = _dailyPm2_5ChartData.first.first.data.first;
         _hasMeasurements = true;
       });

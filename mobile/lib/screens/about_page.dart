@@ -52,7 +52,7 @@ class _AboutAirQoState extends State<AboutAirQo> {
                     height: 12,
                   ),
                   Text(
-                    '${_packageInfo.version}(${_packageInfo.buildNumber})',
+                    _packageInfo.version,
                     style: Theme.of(context).textTheme.subtitle1?.copyWith(
                         color: Config.appColorBlack.withOpacity(0.5)),
                   ),
