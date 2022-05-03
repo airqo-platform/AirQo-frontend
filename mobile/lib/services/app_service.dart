@@ -409,6 +409,7 @@ class AppService {
 
   Future<void> refreshDashboard(BuildContext buildContext) async {
     await Future.wait([
+      isConnected(buildContext),
       fetchLatestMeasurements(),
       fetchKya(),
       loadNotifications(buildContext),
@@ -416,11 +417,27 @@ class AppService {
     ]);
   }
 
-  Future<void> refreshAnalytics() async {
+  Future<void> refreshAnalytics(BuildContext buildContext) async {
     await Future.wait([
+      isConnected(buildContext),
       fetchLatestMeasurements(),
       fetchKya(),
       fetchFavPlacesInsights(),
+    ]);
+  }
+
+  Future<void> refreshKyaView(BuildContext buildContext) async {
+    await Future.wait([
+      isConnected(buildContext),
+      fetchKya(),
+    ]);
+  }
+
+  Future<void> refreshFavouritePlaces(BuildContext buildContext) async {
+    await Future.wait([
+      isConnected(buildContext),
+      fetchFavPlacesInsights(),
+      updateFavouritePlacesSites(buildContext)
     ]);
   }
 

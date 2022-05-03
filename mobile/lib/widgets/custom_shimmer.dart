@@ -45,8 +45,7 @@ void loadingScreen(BuildContext _context) async {
           child: CupertinoActivityIndicator(
             radius: 20,
             color: Config.appColorBlue,
-          )
-  ));
+          )));
 }
 
 Widget sizedContainerLoadingAnimation(
