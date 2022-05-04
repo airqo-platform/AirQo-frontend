@@ -53,7 +53,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
   }
 
   Future<void> _refresh() async {
-    await _appService.refreshAnalytics().then((value) => _initialize());
+    await _appService.refreshAnalytics(context).then((value) => _initialize());
   }
 
   Future<void> _initialize() async {

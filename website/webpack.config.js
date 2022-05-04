@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 // const autoprefixer = require('autoprefixer');
 // const webpack = require('webpack');
 // const TerserPlugin = require('terser-webpack-plugin');
@@ -29,12 +30,34 @@ function postCSSLoader() {
   };
 }
 
+function strToBool(str) {
+  const truthy = ['true', '0', 'yes', 'y'];
+  return truthy.includes((str || '').toLowerCase());
+}
+
+function removeTrailingSlash(str) {
+  if (str === undefined) return '';
+  return str.replace(/\/+$/, '');
+}
+
 const config = () => {
   const NODE_ENV = process.env.NODE_ENV || 'local';
+
+  const STATIC_URL = removeTrailingSlash(process.env.REACT_WEB_STATIC_HOST);
+
+  const PUBLIC_PATH = strToBool(process.env.DEBUG) ? `${STATIC_URL}/static/frontend/` : `${STATIC_URL}/frontend/`;
 
   const STATIC_DIR = 'frontend/static/frontend';
 
   const DIST_DIR = path.resolve(__dirname, STATIC_DIR);
+
+  const envKeys = Object.keys(process.env).reduce((prev, next) => {
+    if (next.startsWith('REACT_')) {
+      prev[`process.env.${next}`] = JSON.stringify(process.env[next]);
+    }
+
+    return prev;
+  }, {});
 
   function prodOnly(x) {
     return NODE_ENV === 'production' ? x : undefined;
@@ -48,7 +71,7 @@ const config = () => {
     output: {
       path: DIST_DIR,
       filename: '[name].bundle.js',
-      publicPath: `/${STATIC_DIR}/`,
+      publicPath: PUBLIC_PATH,
     },
 
     // webpack 5 comes with devServer which loads in development mode
@@ -57,6 +80,7 @@ const config = () => {
       headers: { 'Access-Control-Allow-Origin': '*' },
       compress: true,
       hot: true,
+      historyApiFallback: true,
       static: {
         directory: './static',
       },
@@ -104,19 +128,14 @@ const config = () => {
         // Images
         {
           test: /\.(png|jpe?g|ico)$/i,
-          use: compact([
-            {
-              loader: 'url-loader',
-              options: { name: '[path][name].[ext]' },
-            },
-          ]),
-          // TODO: We are migrating to using asset/resource module
-          // type: 'asset/resource',
+          type: 'asset/resource',
         },
       ],
     },
 
-    plugins: [],
+    plugins: [
+      new webpack.DefinePlugin(envKeys),
+    ],
   };
 };
 

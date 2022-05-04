@@ -1,15 +1,13 @@
 @import "lib/colors";
 @import "lib/variables";
 
-$banner-padding: 16px;
-
 .NotificationBanner {
   display: flex;
   align-items: center;
   width: 100%;
   height: 40px;
   background: $aq-blue-0;
-  padding: 0 $banner-padding;
+  padding: 0 32px;
 
   .wrapper {
     display: flex;
@@ -30,7 +28,6 @@ $banner-padding: 16px;
     line-height: 17px;
     /* identical to box height */
     color: $aq-white-0;
-    margin-right: 42px;
   }
 
 }

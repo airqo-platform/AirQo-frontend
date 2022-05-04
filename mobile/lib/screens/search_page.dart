@@ -496,7 +496,7 @@ class _SearchPageState extends State<SearchPage> {
             ),
         enableSuggestions: true,
         cursorWidth: 1,
-        autofocus: true,
+        autofocus: false,
         cursorColor: Config.appColorBlack,
         decoration: InputDecoration(
           fillColor: Colors.white,

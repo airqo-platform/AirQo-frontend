@@ -3,6 +3,9 @@ FROM node:12-slim as build
 
 WORKDIR /app
 
+ARG REACT_WEB_STATIC_HOST
+ENV REACT_WEB_STATIC_HOST=$REACT_WEB_STATIC_HOST
+
 COPY ./package.json ./package-lock.json /app/
 RUN npm ci --silent
 

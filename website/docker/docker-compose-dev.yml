@@ -8,6 +8,8 @@ services:
       context: ../
       dockerfile: ./docker/Dockerfile
       target: development
+      args:
+        REACT_WEB_STATIC_HOST: ${REACT_WEB_STATIC_HOST}
     entrypoint: /app/wsgi-entrypoint.sh    
     ports:
       - 8000:8000
