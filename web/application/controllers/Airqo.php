@@ -233,7 +233,7 @@ class Airqo extends CI_Controller
     
     public function CareerDetails1($slug)
 	{
-		$data['title'] = "Digital Communications Officer (Deadline: 11th May 2021 EAT)";
+		$data['title'] = "Visiting Fellowship programme";
 		$data['contact'] = $this->AirqoModel->get_contact_details();
 		$this->logVisitedPage($data['title']);
 
