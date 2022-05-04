@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:app/services/app_service.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +23,7 @@ class WebViewScreen extends StatefulWidget {
 class _WebViewScreenState extends State<WebViewScreen> {
   final controller = Completer<WebViewController>();
   var loadingPercentage = 0;
+  final AppService _appService = AppService();
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +38,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
         body: Stack(
           children: [
             WebView(
+              backgroundColor: Config.appBodyColor,
               initialUrl: widget.url,
               onWebViewCreated: controller.complete,
               javascriptMode: JavascriptMode.unrestricted,
@@ -63,6 +66,12 @@ class _WebViewScreenState extends State<WebViewScreen> {
               ),
           ],
         ));
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _appService.isConnected(context);
   }
 }
 

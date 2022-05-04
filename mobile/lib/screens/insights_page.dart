@@ -70,7 +70,6 @@ class _InsightsPageState extends State<InsightsPage>
               children: <Widget>[
                 InsightsTab(widget.placeDetails, Frequency.hourly),
                 InsightsTab(widget.placeDetails, Frequency.daily),
-                // MonthlyView(site),
               ],
             )),
           ],

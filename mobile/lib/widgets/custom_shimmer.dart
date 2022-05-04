@@ -1,4 +1,5 @@
 import 'package:app/constants/config.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -40,11 +41,11 @@ void loadingScreen(BuildContext _context) async {
       barrierDismissible: false,
       builder: (ctx) => Container(
           decoration:
-              BoxDecoration(color: Config.appColorBlue.withOpacity(0.05)),
-          child: Center(
-              child: CircularProgressIndicator(
+              BoxDecoration(color: Config.appColorBlue.withOpacity(0.005)),
+          child: CupertinoActivityIndicator(
+            radius: 20,
             color: Config.appColorBlue,
-          ))));
+          )));
 }
 
 Widget sizedContainerLoadingAnimation(
