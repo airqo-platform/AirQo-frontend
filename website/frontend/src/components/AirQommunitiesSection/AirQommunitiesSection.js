@@ -1,10 +1,14 @@
 import React from 'react';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import AirQommunities from "assets/img/air-qommunity.svg";
+import AirQommunitiesSm from "assets/img/AirQommunities_mobile.svg";
 
 const AirQommunitiesSection = () => (
     <div className="AirQommunitiesSection">
         <AirQommunities className="AirQommunitiesSection-img"/>
+        <div className="img-mobile">
+            <AirQommunitiesSm width={"100%"} height={"400px"} />
+        </div>
         <div className="wrapper">
             <h3>AirQommunities</h3>
             <div className="AirQommunitiesSection-info">
