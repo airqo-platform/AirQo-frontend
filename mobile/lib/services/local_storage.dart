@@ -78,38 +78,6 @@ class DBHelper {
     await batch.commit(noResult: true, continueOnError: true);
   }
 
-  Future<void> deleteNonFavPlacesInsights() async {
-    try {
-      final db = await database;
-
-      var resFavPlaces = await db.query(PlaceDetails.dbName());
-
-      var favPlaces = resFavPlaces.isNotEmpty
-          ? List.generate(resFavPlaces.length, (i) {
-              return PlaceDetails.fromJson(resFavPlaces[i]).siteId;
-            })
-          : <String>[];
-
-      var resInsights = await db.query(Insights.dbName());
-
-      var insights = resInsights.isNotEmpty
-          ? List.generate(resInsights.length, (i) {
-              return Insights.fromJson(resInsights[i]).siteId;
-            }).toSet()
-          : <String>[];
-
-      var nonFavPlaces =
-          insights.where((element) => !favPlaces.contains(element));
-
-      for (var nonFavPlace in nonFavPlaces) {
-        await db.delete(Insights.dbName(),
-            where: 'siteId = ?', whereArgs: [nonFavPlace]);
-      }
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-  }
-
   Future<List<PlaceDetails>> getFavouritePlaces() async {
     try {
       final db = await database;
@@ -347,8 +315,8 @@ class DBHelper {
     }
   }
 
-  Future<void> insertInsights(
-      List<Insights> insights, List<String> siteIds) async {
+  Future<void> insertInsights(List<Insights> insights, List<String> siteIds,
+      {bool reloadDatabase = false}) async {
     try {
       final db = await database;
 
@@ -357,9 +325,13 @@ class DBHelper {
       }
       var batch = db.batch();
 
-      for (var siteId in siteIds) {
-        batch.delete(Insights.dbName(),
-            where: 'siteId = ?', whereArgs: [siteId]);
+      if (reloadDatabase) {
+        batch.delete(Insights.dbName());
+      } else {
+        for (var siteId in siteIds) {
+          batch.delete(Insights.dbName(),
+              where: 'siteId = ?', whereArgs: [siteId]);
+        }
       }
 
       for (var row in insights) {

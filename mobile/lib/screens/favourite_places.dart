@@ -27,7 +27,7 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
           child: Consumer<PlaceDetailsModel>(
             builder: (context, placeDetailsModel, child) {
               if (placeDetailsModel.favouritePlaces.isEmpty) {
-                return emptyPlaces();
+                return _emptyPlaces();
               }
 
               return refreshIndicator(
@@ -39,13 +39,13 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
                         child: MiniAnalyticsCard(
                             placeDetailsModel.favouritePlaces[index]));
                   }, childCount: placeDetailsModel.favouritePlaces.length),
-                  onRefresh: refreshData);
+                  onRefresh: _refreshPage);
             },
           )),
     );
   }
 
-  Widget emptyPlaces() {
+  Widget _emptyPlaces() {
     return Container(
       color: Config.appBodyColor,
       padding: const EdgeInsets.all(40.0),
@@ -94,22 +94,9 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
     );
   }
 
-  Future<void> initialize() async {
-    await Future.wait([
-      _appService.fetchFavPlacesInsights(),
-      _appService.updateFavouritePlacesSites(context)
-    ]);
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    initialize();
-  }
-
-  Future<void> refreshData() async {
+  Future<void> _refreshPage() async {
     await Provider.of<PlaceDetailsModel>(context, listen: false)
         .reloadFavouritePlaces();
-    await initialize();
+    await _appService.refreshFavouritePlaces(context);
   }
 }

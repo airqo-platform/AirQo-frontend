@@ -152,6 +152,6 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
   }
 
   Future<void> _refreshKya() async {
-    await _appService.fetchKya().then((_) => _getKya());
+    await _appService.refreshKyaView(context).then((_) => _getKya());
   }
 }

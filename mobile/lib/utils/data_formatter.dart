@@ -4,19 +4,18 @@ import 'package:app/utils/extensions.dart';
 import 'package:app/utils/pm.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
 
 import '../models/enum_constants.dart';
 
 charts.Color insightsChartBarColor(Insights series, Pollutant pollutant) {
   if (series.empty) {
     return charts.ColorUtil.fromDartColor(Config.greyColor);
-  }
-
-  if (series.forecast) {
+  } else if (series.forecast) {
     return charts.ColorUtil.fromDartColor(Config.appColorPaleBlue);
+  } else {
+    return pmToChartColor(series.getChartValue(pollutant), pollutant);
   }
-
-  return pmToChartColor(series.getChartValue(pollutant), pollutant);
 }
 
 List<List<charts.Series<Insights, String>>> insightsChartData(
@@ -44,7 +43,7 @@ List<List<charts.Series<Insights, String>>> insightsChartData(
 
       insightsGraphs.add([
         charts.Series<Insights, String>(
-          id: 'Insights ${pollutant.toTitleCase()} Chart data',
+          id: '${const Uuid().v4()}-${earliestDate.day}',
           colorFn: (Insights series, _) =>
               insightsChartBarColor(series, pollutant),
           domainFn: (Insights data, _) {
@@ -85,7 +84,7 @@ List<List<charts.Series<Insights, String>>> insightsChartData(
 
       insightsGraphs.add([
         charts.Series<Insights, String>(
-          id: 'Insights ${pollutant.toTitleCase()} Chart data',
+          id: '${const Uuid().v4()}-${earliestDate.weekday}',
           colorFn: (Insights series, _) =>
               insightsChartBarColor(series, pollutant),
           domainFn: (Insights data, _) => DateFormat('EEE').format(data.time),

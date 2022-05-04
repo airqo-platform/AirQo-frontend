@@ -81,6 +81,8 @@ extension AnalyticsEventExtension on AnalyticsEvent {
         return '${prefix}airtel_user';
       case AnalyticsEvent.otherNetwork:
         return '${prefix}other_network_user';
+      case AnalyticsEvent.deletedAccount:
+        return '${prefix}deleted_account';
       default:
         return '';
     }
@@ -172,13 +174,13 @@ extension DateTimeExtension on DateTime {
 
   String getLongDate() {
     if (day.toString().endsWith('1')) {
-      return '${day}st ${getMonthString(abbreviate: false)}';
+      return '${getDayPostfix()} ${getMonthString(abbreviate: false)}';
     } else if (day.toString().endsWith('2')) {
-      return '${day}st ${getMonthString(abbreviate: false)}';
+      return '${getDayPostfix()} ${getMonthString(abbreviate: false)}';
     } else if (day.toString().endsWith('3')) {
-      return '${day}rd ${getMonthString(abbreviate: false)}';
+      return '${getDayPostfix()} ${getMonthString(abbreviate: false)}';
     } else {
-      return '${day}th ${getMonthString(abbreviate: false)}';
+      return '${getDayPostfix()} ${getMonthString(abbreviate: false)}';
     }
   }
 
@@ -188,6 +190,18 @@ extension DateTimeExtension on DateTime {
       return referenceMonth.toString();
     }
     return '0$referenceMonth';
+  }
+
+  String getDayPostfix() {
+    if (day.toString().endsWith('1')) {
+      return '${day}st';
+    } else if (day.toString().endsWith('2')) {
+      return '${day}nd';
+    } else if (day.toString().endsWith('3')) {
+      return '${day}rd';
+    } else {
+      return '${day}th';
+    }
   }
 
   String getMonthString({required bool abbreviate}) {
@@ -223,13 +237,13 @@ extension DateTimeExtension on DateTime {
 
   String getShortDate() {
     if (day.toString().endsWith('1')) {
-      return '${day}st ${getMonthString(abbreviate: true)}';
+      return '${getDayPostfix()} ${getMonthString(abbreviate: true)}';
     } else if (day.toString().endsWith('2')) {
-      return '${day}st ${getMonthString(abbreviate: true)}';
+      return '${getDayPostfix()} ${getMonthString(abbreviate: true)}';
     } else if (day.toString().endsWith('3')) {
-      return '${day}rd ${getMonthString(abbreviate: true)}';
+      return '${getDayPostfix()} ${getMonthString(abbreviate: true)}';
     } else {
-      return '${day}th ${getMonthString(abbreviate: true)}';
+      return '${getDayPostfix()} ${getMonthString(abbreviate: true)}';
     }
   }
 

@@ -15,7 +15,8 @@ enum AnalyticsEvent {
   rateApp,
   mtnUser,
   airtelUser,
-  otherNetwork
+  otherNetwork,
+  deletedAccount
 }
 
 enum Region {

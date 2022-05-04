@@ -85,7 +85,7 @@
 
 				<div class="col-md-4 features15-col-text">
 					<div class="features15-para" style="border-left: 2px solid #3067e2; padding: 2em;">
-						<p style="font-size:1.5em; line-height: normal;"><a href="<?= site_url('careers/visiting-fellows-program'); ?>">AirQo Visiting Fellows program</a></p>
+						<p style="font-size:1.5em; line-height: normal;"><a href="<?= site_url('careers/visiting-fellows-program'); ?>">Visiting Fellowship programme</a></p>
 					</div>
 				</div>
 
