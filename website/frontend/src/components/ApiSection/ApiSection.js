@@ -1,6 +1,7 @@
 import React from 'react';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import ApiSectionImg from "../../assets/img/api-img.png";
+import ApiSectionImg from "assets/img/api-img.png";
+import ApiSectionSm from "assets/img/api_section_mobile.svg";
 
 const ApiSection = () => (
     <div className="Apisection">
@@ -11,6 +12,9 @@ const ApiSection = () => (
             <div className="Apisection-details-btn">Read doc <ArrowForwardIcon className="Apisection-icon"/></div>
         </div>
         <img src={ApiSectionImg} alt="API section image" />
+        <div className="api-section-mobile">
+            <ApiSectionSm width={"100%"} />
+        </div>
     </div>
 );
 
