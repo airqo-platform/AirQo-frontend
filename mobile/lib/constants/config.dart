@@ -66,8 +66,7 @@ class Config {
 
   static String get carrierSearchApi => dotenv.env['CARRIER_SEARCH_API'] ?? '';
 
-  static String get connectionErrorMessage =>
-      'No internet connection';
+  static String get connectionErrorMessage => 'No internet connection';
 
   static Color get darkGreyColor => const Color(0xffADAFB6);
 
