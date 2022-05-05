@@ -90,6 +90,19 @@
                 .text {
                     flex: 0.5;
 
+                    .row {
+                        display: flex;
+                        align-items: center;
+
+                        .img-star {
+                            box-sizing: border-box;
+                            padding: 18px;
+                            border-radius: 54px;
+                            background-color: #145DFF14;
+                            margin-right: 24px;
+                        }
+                    }
+
                     h1 {
                         font-size: 40px;
                         font-weight: 500;
@@ -162,22 +175,22 @@
             width: 100%;
 
             .left-strip {
-                width: 299px;
+                width: 361px;
+                height: 238px;
+                padding: 59px 39px 56px 64px;
                 border-top-left-radius: 1000px;
                 border-bottom-left-radius: 1000px;
                 background-color: $aq-orange-0;
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
-                align-items: center;
-                margin-right: 23px;
+                margin-right: 32px;
+                box-sizing: border-box;
 
                 
                 >span {
                     display: flex;
                     align-items: center;
-                    justify-content: center;
-                    padding-top: 43px;
 
                     h3 {                      
                         font-family: 'DM Mono', monospace;
@@ -201,7 +214,6 @@
                     font-size: 32.22px;
                     line-height: 37.59px;
                     color: $aq-black-2;
-                    padding-bottom: 39.53px;
                 }
             }
 
@@ -209,15 +221,17 @@
                 border-top-right-radius: 1000px;
                 border-bottom-right-radius: 1000px;
                 background-color: $aq-orange-0;
+                padding: 49px 59px;
+                box-sizing: border-box;
+                width: 655px;
+                height: 238px;
 
                 h3 {
                     font-size: 32px;
                     font-weight: 300;
                     line-height: 40px;
                     color: $aq-black-2;
-                    text-align: center;
-                    width: 726px;
-                    padding: 44px 68px 48px 69px;
+                    width: 557px;
                 }
                 
             }
@@ -271,6 +285,155 @@
                 line-height: 26px;
                 font-weight: 400;
                 cursor: pointer;
+            }
+        }
+    }
+}
+
+@media(max-width: $mainBreakPoint) {
+    .CommunityPage {
+        position: relative;
+        
+        .hero {
+            height: 100%;
+            padding: 64px 16px 80px 16px;
+            position: relative;
+            
+            .header-1 {
+                justify-content: flex-start;
+                padding: 0;
+                margin-bottom: 16px;
+            }
+
+            .header-2 {
+                margin: 0 0 16px 0;
+                text-align: left;
+            }
+
+            .header-3 {
+                text-align: left;
+                width: 100%;
+            }
+        }
+
+        .wrapper {
+            width: 100%;
+            position: relative;
+
+            .blob-img {
+                display: none;
+            }
+
+            .section-1 {
+                position: relative;
+                flex-direction: column;
+                padding: 80px 16px;
+                margin: 0;
+
+                .layer-1 {
+                    flex-direction: column;
+                    height: 100%;
+
+                    .text {
+                        p {
+                            width: 100%;
+                        }
+
+                        .row {
+                            flex-direction: column;
+                            align-items: flex-start;
+    
+                            .img-star {
+                                margin-bottom: 20px;
+                            }
+                        }
+                    }
+
+                    .img-stack {
+                        width: 100%;
+                        justify-content: flex-start;
+                        flex-direction: column;
+                        
+                        .stack-1 {
+                            width: 100%;
+                            img {
+                                width: 100%;
+                                object-fit: cover;
+                                margin-bottom: 24px;
+                            }
+                        }
+
+                        .layer-2 {
+                            display: none;
+                        }
+
+                        .stack-2 {
+                            display: none;
+                        }
+                    }
+                }
+            }
+
+            .strip {
+                flex-direction: column;
+                justify-content: space-between;
+                align-items: flex-start;
+                position: relative;
+                height: 100%;
+                margin-bottom: 0;
+
+                .left-strip {
+                    margin-bottom: 39px;
+                    margin-right: 0;
+                    align-self: flex-end;
+                    width: 327px;
+                    height: 254px;
+                    align-items: flex-start;
+                    padding: 71px 41px 83px 67px;
+                    box-sizing: border-box;
+                    
+
+                    >h3 {
+                        font-size: 28px;
+                        line-height: 30.54px;
+                    }
+                }
+                .right-strip {
+                    margin-top: 78px;
+                    width: 326px;
+                    height: auto;
+                    padding: 39px 63px 39px 59px;
+                    box-sizing: border-box;
+                    align-self: flex-start;
+
+                    h3 {
+                        font-size: 24px;
+                        text-align: left;
+                        width: 100%;
+                        line-height: 29.25px;
+                        padding: 0;
+                        margin: 0;
+                    }
+                }
+            }
+
+            .lower-banner {
+                margin: 0 16px;
+                padding: 40px 32px;
+                h2 {
+                    font-size: 28px;
+                    line-height: 36px;
+                }
+
+                h3 {
+                    font-size: 20px;
+                    line-height: 28px;
+                }
+
+                h6 {
+                    font-size: 16px;
+                    line-height: 24px;
+                }
             }
         }
     }

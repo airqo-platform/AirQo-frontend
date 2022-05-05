@@ -24,7 +24,7 @@ const Footer = () => (
                     </div>
                 </div>
                 <div className="content">
-                    <span className="content-tabs">
+                    <span className="content-tabs middle-tab">
                         <span>Solutions</span>
                         <div>
                             <span><Link to="/solutions/african-cities/uganda">For African cities</Link></span>
@@ -32,14 +32,14 @@ const Footer = () => (
                             <span><Link to="/solutions/research">For Research</Link></span>
                         </div>
                     </span>
-                    <span className="content-tabs middle-tab">
-                        <span>Our Works</span>
-                        <div>
-                            <span>Air Quality Monitors</span>
-                            <span>Air Quality Analytics</span>
-                            <span>Air Quality Mobile App</span>
-                        </div>
-                    </span>
+                    {/*<span className="content-tabs middle-tab">*/}
+                    {/*    <span>Our Works</span>*/}
+                    {/*    <div>*/}
+                    {/*        <span>Air Quality Monitors</span>*/}
+                    {/*        <span>Air Quality Analytics</span>*/}
+                    {/*        <span>Air Quality Mobile App</span>*/}
+                    {/*    </div>*/}
+                    {/*</span>*/}
                     <span className="content-tabs">
                         <span>About</span>
                         <div>

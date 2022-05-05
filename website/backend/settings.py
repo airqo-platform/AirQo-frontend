@@ -134,7 +134,7 @@ USE_TZ = True
 
 # Static
 # Default to using webpack-dev-server on port 8081
-STATIC_HOST = config('WEB_STATIC_HOST', default='http://localhost:8081/')
+STATIC_HOST = config('REACT_WEB_STATIC_HOST', default='http://localhost:8081/')
 
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
@@ -146,12 +146,13 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # From Django's perspective, this is the input location.
 STATICFILES_DIRS = []
 
+STATIC_URL = STATIC_HOST + 'static/'
+
 if not DEBUG:
+    STATIC_URL = STATIC_HOST
     DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
     GS_BUCKET_NAME = config('GS_BUCKET_NAME')
     STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-
-STATIC_URL = STATIC_HOST + 'static/'
 
 # Configure cloudinary
 cloudinary.config(

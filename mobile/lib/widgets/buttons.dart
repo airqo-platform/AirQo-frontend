@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../auth/phone_auth_widget.dart';
-import '../models/event.dart';
+import '../models/enum_constants.dart';
 
 Widget cancelOption(BuildContext context) {
   return GestureDetector(
@@ -87,7 +87,7 @@ Widget loginOptions({required BuildContext context}) {
               context,
               PageRouteBuilder(
                 pageBuilder: (context, animation, secondaryAnimation) =>
-                    const PhoneSignUpWidget(enableBackButton: false),
+                    const PhoneSignUpWidget(),
                 transitionsBuilder:
                     (context, animation, secondaryAnimation, child) {
                   return FadeTransition(
@@ -257,7 +257,6 @@ Widget signUpOptions({required BuildContext context}) {
               PageRouteBuilder(
                 pageBuilder: (context, animation, secondaryAnimation) =>
                     const PhoneLoginWidget(
-                  enableBackButton: false,
                   phoneNumber: '',
                 ),
                 transitionsBuilder:

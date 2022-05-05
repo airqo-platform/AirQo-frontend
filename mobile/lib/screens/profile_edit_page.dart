@@ -14,7 +14,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../auth/change_email_screen.dart';
 import '../auth/change_phone_screen.dart';
-import '../models/event.dart';
+import '../models/enum_constants.dart';
 import '../services/app_service.dart';
 import '../themes/light_theme.dart';
 import 'home_page.dart';
@@ -31,7 +31,7 @@ class ProfileEditPage extends StatefulWidget {
 class _ProfileEditPageState extends State<ProfileEditPage> {
   final _formKey = GlobalKey<FormState>();
   bool updating = false;
-  late AppService _appService;
+  final AppService _appService = AppService();
   final ImagePicker _imagePicker = ImagePicker();
 
   String _profilePic = '';
@@ -274,7 +274,6 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   @override
   void initState() {
     super.initState();
-    _appService = AppService(context);
     setState(() {
       userDetails = widget.userDetails;
       _phoneEditor.text = widget.userDetails.phoneNumber;

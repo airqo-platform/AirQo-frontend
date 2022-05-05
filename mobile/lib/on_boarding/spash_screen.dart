@@ -7,8 +7,11 @@ import 'package:app/on_boarding/setup_complete_screeen.dart';
 import 'package:app/on_boarding/welcome_screen.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/app_service.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+
+import '../models/enum_constants.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -20,7 +23,7 @@ class SplashScreen extends StatefulWidget {
 class SplashScreenState extends State<SplashScreen> {
   int _widgetId = 0;
   bool _visible = false;
-  late AppService _appService;
+  final AppService _appService = AppService();
 
   @override
   Widget build(BuildContext context) {
@@ -45,37 +48,33 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> initialize() async {
-    await _appService.dbHelper.deleteNonFavPlacesInsights();
-
     var isLoggedIn = _appService.isLoggedIn();
 
-    var nextPage =
-        (await _appService.preferencesHelper.getOnBoardingPage()).toLowerCase();
+    var nextPage = getOnBoardingPageConstant(
+        await _appService.preferencesHelper.getOnBoardingPage());
 
-    Future.delayed(const Duration(seconds: 2), _updateWidget);
+    Future.delayed(const Duration(seconds: 1), _updateWidget);
 
     /// TODO add loading indicator to all onboarding pages
-    Future.delayed(const Duration(seconds: 6), () {
+    Future.delayed(const Duration(seconds: 5), () {
       Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
         if (!isLoggedIn) {
           return const WelcomeScreen();
         } else {
           switch (nextPage) {
-            case 'signup':
-              return const PhoneSignUpWidget(
-                enableBackButton: false,
-              );
-            case 'profile':
-              return const ProfileSetupScreen(false);
-            case 'notification':
-              return const NotificationsSetupScreen(false);
-            case 'location':
-              return const LocationSetupScreen(false);
-            case 'complete':
-              return const SetUpCompleteScreen(false);
-            case 'home':
-              return const HomePage();
+            case OnBoardingPage.signup:
+              return const PhoneSignUpWidget();
+            case OnBoardingPage.profile:
+              return const ProfileSetupScreen();
+            case OnBoardingPage.notification:
+              return const NotificationsSetupScreen();
+            case OnBoardingPage.location:
+              return const LocationSetupScreen();
+            case OnBoardingPage.complete:
+              return const SetUpCompleteScreen();
+            case OnBoardingPage.home:
+              return const HomePage(refresh: false);
             default:
               return const WelcomeScreen();
           }
@@ -83,13 +82,12 @@ class SplashScreenState extends State<SplashScreen> {
       }), (r) => false);
     });
 
-    await _appService.fetchData();
+    await _appService.fetchData(context);
   }
 
   @override
   void initState() {
     super.initState();
-    _appService = AppService(context);
     initialize();
   }
 

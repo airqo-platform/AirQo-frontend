@@ -4,30 +4,27 @@ import 'package:app/utils/extensions.dart';
 import 'package:app/utils/pm.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
 
-charts.Color insightsChartBarColor(Insights series, String pollutant) {
+import '../models/enum_constants.dart';
+
+charts.Color insightsChartBarColor(Insights series, Pollutant pollutant) {
   if (series.empty) {
     return charts.ColorUtil.fromDartColor(Config.greyColor);
-  }
-
-  if (series.forecast) {
+  } else if (series.forecast) {
     return charts.ColorUtil.fromDartColor(Config.appColorPaleBlue);
+  } else {
+    return pmToChartColor(series.getChartValue(pollutant), pollutant);
   }
-
-  return pmToChartColor(series.getChartValue(pollutant), pollutant);
 }
 
 List<List<charts.Series<Insights, String>>> insightsChartData(
-    List<Insights> insights, String pollutant, String frequency) {
+    List<Insights> insights, Pollutant pollutant, Frequency frequency) {
   var data = <Insights>[...insights];
 
   var insightsGraphs = <List<charts.Series<Insights, String>>>[];
 
-  if (frequency == 'hourly') {
-    // if (data.length <= 167) {
-    //   data = patchMissingData(data, frequency, true);
-    // }
-
+  if (frequency == Frequency.hourly) {
     while (data.isNotEmpty) {
       var earliestDate = data.reduce((value, element) {
         if (value.time.isBefore(element.time)) {
@@ -46,7 +43,7 @@ List<List<charts.Series<Insights, String>>> insightsChartData(
 
       insightsGraphs.add([
         charts.Series<Insights, String>(
-          id: 'Insights ${pollutant.toTitleCase()} Chart data',
+          id: '${const Uuid().v4()}-${earliestDate.day}',
           colorFn: (Insights series, _) =>
               insightsChartBarColor(series, pollutant),
           domainFn: (Insights data, _) {
@@ -60,10 +57,6 @@ List<List<charts.Series<Insights, String>>> insightsChartData(
       data.removeWhere((element) => element.time.day == earliestDate.day);
     }
   } else {
-    // if (data.length <= 41) {
-    //   data = patchMissingData(data, frequency, true);
-    // }
-
     while (data.isNotEmpty) {
       var earliestDate = data.reduce((value, element) {
         if (value.time.isBefore(element.time)) {
@@ -91,7 +84,7 @@ List<List<charts.Series<Insights, String>>> insightsChartData(
 
       insightsGraphs.add([
         charts.Series<Insights, String>(
-          id: 'Insights ${pollutant.toTitleCase()} Chart data',
+          id: '${const Uuid().v4()}-${earliestDate.weekday}',
           colorFn: (Insights series, _) =>
               insightsChartBarColor(series, pollutant),
           domainFn: (Insights data, _) => DateFormat('EEE').format(data.time),
@@ -106,9 +99,9 @@ List<List<charts.Series<Insights, String>>> insightsChartData(
 }
 
 List<Insights> patchMissingData(
-    List<Insights> data, String frequency, bool full) {
+    List<Insights> data, Frequency frequency, bool full) {
   var insights = <Insights>[...data];
-  if (frequency == 'daily' && full) {
+  if (frequency == Frequency.daily && full) {
     var referenceInsight = data.first;
 
     var startDate = DateTime.now().getFirstDateOfCalendarMonth();
@@ -134,7 +127,7 @@ List<Insights> patchMissingData(
 
       startDate = startDate.add(const Duration(days: 1));
     }
-  } else if (frequency == 'hourly' && full) {
+  } else if (frequency == Frequency.hourly && full) {
     var referenceInsight = data.first;
 
     var startDate = referenceInsight.time
@@ -163,7 +156,7 @@ List<Insights> patchMissingData(
 
       startDate = startDate.add(const Duration(hours: 1));
     }
-  } else if (frequency == 'hourly' && !full) {
+  } else if (frequency == Frequency.hourly && !full) {
     var referenceInsight = data.first;
 
     var startDate = referenceInsight.time.getDateOfFirstHourOfDay();
@@ -189,7 +182,7 @@ List<Insights> patchMissingData(
 
       startDate = startDate.add(const Duration(hours: 1));
     }
-  } else if (frequency == 'daily' && !full) {
+  } else if (frequency == Frequency.daily && !full) {
     var referenceInsight = data.first;
 
     var startDate = referenceInsight.time.getDateOfFirstDayOfWeek();

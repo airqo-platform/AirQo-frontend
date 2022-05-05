@@ -81,6 +81,16 @@
 						<p style="font-size:1.5em; line-height: normal;"><a href="<?= site_url('careerr/digital-communucations-officer'); ?>">Digital Communications Officer</a><small> (Deadline: 11th May 2021 EAT)</small></p>
 					</div>
 				</div> -->
+
+
+				<div class="col-md-4 features15-col-text">
+					<div class="features15-para" style="border-left: 2px solid #3067e2; padding: 2em;">
+						<p style="font-size:1.5em; line-height: normal;"><a href="<?= site_url('careers/visiting-fellows-program'); ?>">Visiting Fellowship programme</a></p>
+					</div>
+				</div>
+
+
+                <!--
 				<?php
 				if ($careers != null) {
 					foreach ($careers as $career) {
@@ -96,12 +106,15 @@
                     ?>
                     <div class="col-md-4 features15-col-text">
                         <div class="features15-para" style="border-left: 2px solid #3067e2; padding: 2em;">
-                            <p style="font-size:1.5em; line-height: normal;">No Jobs Available</p>
+                            <p style="font-size:1.5em; line-height: normal;">No Jobs Available xxxx</p>
                         </div>
                     </div>
                     <?php
                 }
 				?>
+				-->
+
+
 			</div>
 			<p>&nbsp;</p>
 			<p>&nbsp;</p>

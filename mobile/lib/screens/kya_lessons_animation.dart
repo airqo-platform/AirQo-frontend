@@ -231,7 +231,7 @@ class _KyaLessonAnimationState extends State<KyaLessonAnimation>
   Future<void> _swipeAnimationRight() async {
     try {
       await _animationController.forward();
-    } on Error catch (exception, stackTrace) {
+    } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
   }

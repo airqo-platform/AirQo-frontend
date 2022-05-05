@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:app/models/notification.dart';
 import 'package:app/providers/locale_provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
@@ -24,7 +23,7 @@ import 'providers/theme_provider.dart';
 import 'themes/dark_theme.dart';
 import 'themes/light_theme.dart';
 
-Future<void> main() async {
+void main() async {
   HttpOverrides.global = AppHttpOverrides();
   await dotenv.load(fileName: Config.environmentFile);
 
@@ -33,9 +32,6 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-
-  FirebaseFirestore.instance.settings =
-      const Settings(persistenceEnabled: true);
 
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
@@ -63,7 +59,8 @@ Future<void> main() async {
     await SentryFlutter.init(
       (options) {
         options
-          ..dsn = Config.sentryUrl
+          ..dsn = Config.sentryDsn
+          ..enableOutOfMemoryTracking = true
           ..tracesSampleRate = 1.0;
       },
       appRunner: () => runApp(AirQoApp(themeController: themeController)),

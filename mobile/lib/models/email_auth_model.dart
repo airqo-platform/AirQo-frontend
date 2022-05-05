@@ -1,6 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
+
+import '../utils/exception.dart';
 
 part 'email_auth_model.g.dart';
 
@@ -30,11 +30,7 @@ class EmailAuthModel {
       var emailSignupModel = EmailAuthModel.fromJson(jsonBody);
       return emailSignupModel;
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+      logException(exception, stackTrace);
     }
 
     return null;
