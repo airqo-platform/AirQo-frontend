@@ -115,12 +115,14 @@ h3, h4 {
 @media(max-width: 1024px) {
   .TopBar {
     position: sticky;
-    top: 0;
+    top: -1px;
+    right: 0;
+    left: 0;
     width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 32px;
+    padding: 20px 16px;
     box-sizing: border-box;
     height: 80px;
     width: 100%;
@@ -131,7 +133,9 @@ h3, h4 {
       margin: 0;
       position: absolute;
       top: 80px;
-      margin-left: -32px;
+      left: 0;
+      right: 0;
+      // margin-left: -32px;
       flex-direction: column;
       justify-content: flex-end;
       align-items: flex-start;
@@ -141,7 +145,7 @@ h3, h4 {
       .logo {
         position: absolute;
         top: -68px;
-        left: 32px;
+        left: 16px;;
       }
 
       #nav-center.nav-center, #nav-right.nav-right {
