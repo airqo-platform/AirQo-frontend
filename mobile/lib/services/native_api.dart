@@ -3,7 +3,6 @@ import 'dart:ui' as ui;
 
 import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
-import 'package:app/models/notification.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/site.dart';
 import 'package:app/services/firebase_service.dart';
@@ -26,11 +25,9 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/enum_constants.dart';
-import '../screens/favourite_places.dart';
 import '../themes/light_theme.dart';
 import '../utils/exception.dart';
 import 'firebase_service.dart';
-import 'local_notifications.dart';
 
 class LocationService {
   final locate_api.Location _location = locate_api.Location();
@@ -482,18 +479,6 @@ class NotificationService {
           id, 'notifications', false, 'bool');
     }
     return false;
-  }
-
-  static Future<void> backgroundNotificationHandler(
-      RemoteMessage message) async {
-    try {
-      var notificationMessage = UserNotification.composeNotification(message);
-      if (notificationMessage != null) {
-        await LocalNotifications().showAlertNotification(notificationMessage);
-      }
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
   }
 
   static Future<void> notificationHandler(RemoteMessage message) async {
