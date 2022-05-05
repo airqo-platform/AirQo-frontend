@@ -194,14 +194,19 @@ const Calibrate = () => {
     setLoading(true);
     const filename = "calibrated_data.csv";
 
+    const formData = new FormData();
+    for (let key in data) {
+      formData.append(key, data[key]);
+    }
+
     if (checkHasReference()) {
-      const responseData = await trainAndCalibrateDataApi({
-        ...data,
-        ...refData,
-      });
+      for (let key in refData) {
+        formData.append(key, refData[key]);
+      }
+      const responseData = await trainAndCalibrateDataApi(formData);
       downloadCSVData(filename, responseData);
     } else {
-      const responseData = await calibrateDataApi(data);
+      const responseData = await calibrateDataApi(formData);
       downloadCSVData(filename, responseData);
     }
 
