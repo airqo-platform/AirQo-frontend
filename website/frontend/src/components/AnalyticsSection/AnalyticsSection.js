@@ -1,6 +1,7 @@
 import React from 'react';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import AnalyticsDashboard from "../../assets/img/analytics dashboard.svg";
+import AnalyticsDashboard from "assets/img/analytics dashboard.svg";
+import AnalyticsMobile from "assets/img/analytics_dashboard_mob.svg";
 
 const AnalyticsSection = () => (
     <div className="AnalyticsSection">
@@ -17,6 +18,9 @@ const AnalyticsSection = () => (
         </div>
         <div className="analytics-img">
             <AnalyticsDashboard />
+        </div>
+        <div className="analytics-img-sm">
+            <AnalyticsMobile width={"100%"} />
         </div>
         
     </div>
