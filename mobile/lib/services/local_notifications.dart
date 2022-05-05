@@ -15,7 +15,7 @@ class LocalNotifications {
 
   void initNotifications() async {
     const initializationSettingsAndroid =
-        AndroidInitializationSettings('notification_icon');
+        AndroidInitializationSettings('launcher_icon');
     const initializationSettingsIOS =
         IOSInitializationSettings(onDidReceiveLocalNotification: null);
     const initializationSettingsMacOS = MacOSInitializationSettings();

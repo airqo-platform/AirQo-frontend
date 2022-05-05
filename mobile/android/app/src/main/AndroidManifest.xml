@@ -60,12 +60,12 @@
            android:name="com.google.firebase.messaging.default_notification_channel_id"
            android:value="high_importance_channel" />
 
-<!--       <receiver android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />-->
-<!--       <receiver android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">-->
-<!--           <intent-filter>-->
-<!--               <action android:name="android.intent.action.BOOT_COMPLETED" />-->
-<!--           </intent-filter>-->
-<!--       </receiver>-->
+       <receiver android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
+       <receiver android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
+           <intent-filter>
+               <action android:name="android.intent.action.BOOT_COMPLETED" />
+           </intent-filter>
+       </receiver>
 
     </application>
 </manifest>

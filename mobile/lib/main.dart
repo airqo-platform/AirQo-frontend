@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:app/models/notification.dart';
 import 'package:app/providers/locale_provider.dart';
 import 'package:app/services/native_api.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -47,14 +46,17 @@ void main() async {
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
       overlays: [SystemUiOverlay.bottom, SystemUiOverlay.top]);
 
-  await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
-    alert: true,
-    badge: true,
-    sound: true,
-  );
+  if (Platform.isIOS) {
+    await FirebaseMessaging.instance
+        .setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
 
-  FirebaseMessaging.onBackgroundMessage(
-      NotificationService.notificationHandler);
+    FirebaseMessaging.onBackgroundMessage(
+        NotificationService.notificationHandler);
+  }
 
   final prefs = await SharedPreferences.getInstance();
   final themeController = ThemeController(prefs);

@@ -7,7 +7,8 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 Future<void> logException(exception, stackTrace) async {
   final unHandledSentryExceptions = [SocketException, TimeoutException];
   debugPrint('$exception\n$stackTrace');
-  if (!unHandledSentryExceptions.contains(exception.runtimeType)) {
+  if (kReleaseMode &&
+      !unHandledSentryExceptions.contains(exception.runtimeType)) {
     await Sentry.captureException(
       exception,
       stackTrace: stackTrace,

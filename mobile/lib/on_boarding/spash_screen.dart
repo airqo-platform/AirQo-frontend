@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:animations/animations.dart';
 import 'package:app/auth/phone_auth_widget.dart';
 import 'package:app/on_boarding/location_setup_screen.dart';
@@ -14,7 +16,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../models/enum_constants.dart';
-import '../screens/favourite_places.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -50,7 +51,7 @@ class SplashScreenState extends State<SplashScreen> {
     );
   }
 
-  Future<void> initialize() async {
+  Future<void> _initialize() async {
     var isLoggedIn = _appService.isLoggedIn();
 
     var nextPage = getOnBoardingPageConstant(
@@ -96,15 +97,18 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   void _initNotifications() {
-    FirebaseMessaging.onMessage.listen(NotificationService.notificationHandler);
-    FirebaseMessaging.onMessageOpenedApp.listen((message) {
-      // TODO: LOG EVENT
-      var type = message.data['type'] ?? '';
-      if (type == 'update') {
-        // TODO: NAVIGATE TO FAV PLACES
+    if (Platform.isIOS) {
+      FirebaseMessaging.onMessage
+          .listen(NotificationService.notificationHandler);
+      FirebaseMessaging.onMessageOpenedApp.listen((message) {
         // TODO: LOG EVENT
-      }
-    });
+        var type = message.data['type'] ?? '';
+        if (type == 'update') {
+          // TODO: NAVIGATE TO FAV PLACES
+          // TODO: LOG EVENT
+        }
+      });
+    }
   }
 
   Widget logoWidget() {
