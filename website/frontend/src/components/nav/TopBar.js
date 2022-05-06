@@ -56,7 +56,7 @@ const TopBar = () => {
         <div className="TopBar">
             <div className="wrapper">
                 <div className="logo">
-                    <Link to="/"><AirQo /></Link>
+                    <Link to="/"><AirQo height={"100%"} /></Link>
                 </div>
                 <div className="nav-center" id="nav-center">
                     <div className="nav-dropdown-item">
@@ -114,8 +114,8 @@ const TopBar = () => {
                     <NavTab text="Get involved" path="/get-involved" hideArrow />
                 </div>
                 <div className="nav-right" id="nav-right">
-                    <NavTab text="Request a demo"  hideArrow filled />
                     <NavTab text="Sign In"  hideArrow colored />
+                    <NavTab text="Request a demo"  hideArrow filled />
                 </div>
             </div>
             <MenuIcon className="menu-btn" id="menu" onClick={toggleMenu} />

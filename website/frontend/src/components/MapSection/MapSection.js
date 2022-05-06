@@ -12,7 +12,7 @@ const MapSection = () => {
                 <span className='content-p'>
                     <p>A better way to visualize hourly air quality information with a single click over our growing network across African cities</p>
                 </span>
-                <span id='second-pill'><p>Learn more</p> <i> <ArrowRight/> </i></span>
+                {/* <span id='second-pill'><p>Learn more</p> <i> <ArrowRight/> </i></span> */}
             </div>
             <div className='map-image'>
                 <img className='map-img' src={HomePageMap}/>

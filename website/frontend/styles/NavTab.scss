@@ -9,6 +9,7 @@
   box-sizing: border-box;
   flex-wrap: nowrap;
   cursor: pointer;
+  color: $aq-blue-2;
 
   span {
     font-family: 'Inter', serif;
@@ -30,13 +31,13 @@
   color: $aq-blue-0;
   background-color: $aq-blue-5;
   border-radius: 16px;
+  margin-right: 16px;
 }
 
 .filled {
   color: $aq-white-0;
   background: $aq-blue-0;
   border-radius: 16px;
-  margin-right: 16px;
 }
 
 @media(max-width: 1024px){
