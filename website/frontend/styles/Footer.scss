@@ -1,10 +1,169 @@
 @import "lib/variables";
 @import "lib/colors";
 
+ .modal {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+   width: 100%;
+    max-width: 720px;
+    min-height: 604px;
+    background: #FFFFFF;
+    border-radius: 16px;
+    padding: 12px 26px;
+
+   .modal-title {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     >span {
+       height: 40px;
+       font-style: normal;
+       font-weight: 500;
+       font-size: 18px;
+       line-height: 40px;
+       /* identical to box height, or 222% */
+
+       color: #353E52;
+     }
+   }
+
+   .divider {
+     margin: 12px 0 16px 0;
+     border: 1px solid rgba(53, 62, 82, 0.08);
+   }
+
+   .title {
+     min-height: 40px;
+     font-style: normal;
+     font-weight: 500;
+     font-size: 32px;
+     line-height: 40px;
+     /* identical to box height, or 125% */
+
+     color: #353E52;
+   }
+
+   .sub-title {
+     font-style: normal;
+     font-weight: 400;
+     font-size: 20px;
+     line-height: 32px;
+     /* identical to box height, or 160% */
+
+     color: #353E52;
+     margin: 4px 0 40px 0;
+   }
+
+   .category-label {
+     font-style: normal;
+     font-weight: 500;
+     font-size: 14px;
+     line-height: 20px;
+     /* identical to box height, or 143% */
+
+     text-transform: uppercase;
+
+     color: rgba(53, 62, 82, 0.5);
+   }
+
+   .tab {
+     display: flex;
+     align-items: center;
+     width: 168px;
+     height: 40px;
+     padding: 0 15px;
+
+     >span {
+       color: #353E52;
+       margin-left: 15px;
+     }
+   }
+
+   .tab:hover {
+     cursor: pointer;
+     background: #F2F1F6;
+     border-radius: 8px;
+   }
+
+   .tab-selected {
+     background: #F2F1F6;
+     border-radius: 8px;
+   }
+   .tab-margin {
+     margin: 12px 0 40px 0;
+   }
+
+   .tab-margin-sm {
+     margin: 12px 0 10px 0;
+   }
+   .tab-mb {
+     margin-bottom: 0;
+   }
+
+   .countries {
+     display: flex;
+     flex-wrap: wrap;
+     justify-content: space-between;
+   }
+
+   .btns {
+     display: flex;
+     flex-wrap: wrap;
+     justify-content: flex-end;
+   }
+
+   .save-btn {
+     height: 48px;
+     width: 86px;
+     display: flex;
+     justify-content: center;
+     align-items: center;
+     padding: 12px 24px;
+
+     background: #135DFF;
+     border-radius: 16px;
+
+     font-style: normal;
+     font-weight: 500;
+     font-size: 16px;
+     line-height: 24px;
+
+     color: #FFFFFF;
+
+     text-transform: capitalize;
+   }
+   .cancel-btn {
+     width: 101px;
+     height: 48px;
+     display: flex;
+     flex-direction: row;
+     justify-content: center;
+     align-items: center;
+     padding: 12px 24px;
+
+     background: rgba(19, 93, 255, 0.06);
+     border-radius: 16px;
+
+     font-style: normal;
+     font-weight: 500;
+     font-size: 16px;
+     line-height: 24px;
+
+     color: #135DFF;
+
+     text-transform: capitalize;
+
+     margin-right: 20px;
+   }
+  }
 
 .Footer {
   width: 100%;
   padding: 80px 16px 16px 16px;
+
+
 
   .body-section {
     display: flex;

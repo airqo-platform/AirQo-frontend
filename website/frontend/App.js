@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import HomePage from 'src/pages/HomePage';
 import ResearchPage from 'src/pages/ResearchPage';
 import Press from 'src/pages/Press/Press';
+import { loadAirQloudSummaryData } from 'reduxStore/AirQlouds/operations';
 import Terms from './src/pages/Legal/Terms';
 import CommunityPage from './src/pages/CommunityPage';
 import AboutUsPage from './src/pages/AboutUsPage';
@@ -14,7 +15,6 @@ import GetInvolved from './src/pages/GetInvolved';
 import Register from './src/pages/GetInvolved/Register';
 import CheckMail from './src/pages/GetInvolved/CheckMail';
 import store from './store';
-import { loadAirQloudSummaryData } from "reduxStore/AirQlouds/operations";
 
 store.dispatch(loadAirQloudSummaryData());
 
