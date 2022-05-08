@@ -12,7 +12,6 @@ import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -22,6 +21,7 @@ import '../models/insights.dart';
 import '../models/kya.dart';
 import '../utils/exception.dart';
 import 'native_api.dart';
+import 'notifications_svc.dart';
 
 class AppService {
   final DBHelper _dbHelper = DBHelper();
@@ -155,8 +155,7 @@ class AppService {
       _loadNotifications(buildContext),
       _loadFavPlaces(buildContext),
       fetchFavPlacesInsights(),
-      updateFavouritePlacesSites(buildContext),
-      updateNotificationSettings(buildContext)
+      updateFavouritePlacesSites(buildContext)
     ]);
   }
 
@@ -312,26 +311,6 @@ class AppService {
       await logException(exception, stackTrace);
     }
     return true;
-  }
-
-  Future<void> updateNotificationSettings(BuildContext buildContext) async {
-    try {
-      var user = _customAuth.getUser();
-      if (user == null) {
-        return;
-      }
-
-      var device = await _firebaseMessaging.getToken();
-      var utcOffset = DateTime.now().getUtcOffset();
-      debugPrint('deice token : $device');
-
-      if (device != null) {
-        await _cloudStore.updateProfileFields(
-            user.uid, {'device': device, 'utcOffset': utcOffset});
-      }
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
   }
 
   Future<void> postLoginActions(BuildContext buildContext) async {

@@ -234,7 +234,7 @@ class _SettingsPageState extends State<SettingsPage> {
               onChanged: (bool value) {
                 if (value) {
                   _appService.notificationService
-                      .allowNotifications()
+                      .requestPermission()
                       .then((response) => {
                             setState(() {
                               _allowNotification = response;

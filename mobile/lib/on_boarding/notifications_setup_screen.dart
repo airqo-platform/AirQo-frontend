@@ -57,7 +57,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
           child: GestureDetector(
             onTap: () {
               _appService.notificationService
-                  .allowNotifications()
+                  .requestPermission()
                   .then((value) => {
                         Navigator.pushAndRemoveUntil(context,
                             MaterialPageRoute(builder: (context) {

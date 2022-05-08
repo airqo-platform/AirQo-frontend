@@ -12,10 +12,9 @@ import 'package:app/utils/distance.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter/services.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:in_app_review/in_app_review.dart';
@@ -26,7 +25,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../models/enum_constants.dart';
 import '../themes/light_theme.dart';
-import '../utils/exception.dart';
 import 'firebase_service.dart';
 
 class LocationService {
@@ -403,120 +401,18 @@ class LocationService {
   }
 }
 
-class NotificationService {
-  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
-  final CustomAuth _customAuth = CustomAuth();
-  final CloudStore _cloudStore = CloudStore();
-  final CloudAnalytics _cloudAnalytics = CloudAnalytics();
+class SystemProperties {
+  static Future<void> setDefault() async {
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+    ));
 
-  Future<bool> allowNotifications() async {
-    var enabled = await requestPermission();
-    if (enabled) {
-      await _cloudAnalytics.logEvent(AnalyticsEvent.allowNotification, true);
-    }
-    return enabled;
-  }
+    await SystemChrome.setPreferredOrientations(
+        [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
 
-  Future<bool> checkPermission() async {
-    try {
-      var settings = await _firebaseMessaging.getNotificationSettings();
-
-      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-        return true;
-      }
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-
-    return false;
-  }
-
-  Future<String?> getToken() async {
-    try {
-      var token = await _firebaseMessaging.getToken();
-      return token;
-    } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
-    }
-
-    return null;
-  }
-
-  Future<bool> requestPermission() async {
-    try {
-      var settings = await _firebaseMessaging.requestPermission(
-        alert: true,
-        announcement: false,
-        badge: true,
-        carPlay: false,
-        criticalAlert: false,
-        provisional: false,
-        sound: true,
-      );
-      var status =
-          settings.authorizationStatus == AuthorizationStatus.authorized;
-
-      var id = _customAuth.getUserId();
-
-      if (id != '') {
-        await _cloudStore.updatePreferenceFields(
-            id, 'notifications', status, 'bool');
-      }
-      return status;
-    } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
-    }
-
-    return false;
-  }
-
-  Future<bool> revokePermission() async {
-    // TODO: implement revoke permission
-    var id = _customAuth.getUserId();
-
-    if (id != '') {
-      await _cloudStore.updatePreferenceFields(
-          id, 'notifications', false, 'bool');
-    }
-    return false;
-  }
-
-  static Future<void> notificationHandler(RemoteMessage message) async {
-    // TODO: LOG EVENT
-    try {
-      const channel = AndroidNotificationChannel(
-        'high_importance_channel',
-        'High Importance Notifications',
-        description: 'This channel is used for important notifications.',
-        importance: Importance.max,
-      );
-
-      final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-
-      await flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
-          ?.createNotificationChannel(channel);
-
-      var notification = message.notification;
-
-      if (notification != null) {
-        await flutterLocalNotificationsPlugin.show(
-            notification.hashCode,
-            notification.title,
-            notification.body,
-            NotificationDetails(
-                android: AndroidNotificationDetails(channel.id, channel.name,
-                    channelDescription: channel.description,
-                    icon: 'notification_icon'),
-                iOS: const IOSNotificationDetails(
-                    presentAlert: true,
-                    presentSound: true,
-                    presentBadge: true)));
-      }
-    } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
-    }
+    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+        overlays: [SystemUiOverlay.bottom, SystemUiOverlay.top]);
   }
 }
 

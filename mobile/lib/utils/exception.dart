@@ -11,7 +11,7 @@ Future<void> logException(exception, stackTrace) async {
       !unHandledSentryExceptions.contains(exception.runtimeType)) {
     await Sentry.captureException(
       exception,
-      stackTrace: stackTrace,
+      stackTrace: stackTrace ?? '',
     );
   }
 }
