@@ -2,3 +2,5 @@
 import { useSelector } from 'react-redux';
 
 export const useAirqloudSummaryData = () => useSelector((state) => state.airqlouds.summary);
+
+export const useCurrentAirqloudData = () => useSelector((state) => state.airqlouds.currentAirqloud);
