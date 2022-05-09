@@ -2,9 +2,9 @@ import React from 'react';
 import { Link } from 'react-scroll';
 
 // image imports
-import KitengiImg from 'assets/img/about-us-kitenge.png';
+// import KitengiImg from 'assets/img/about-us-kitenge.png';
 import TeamImg from 'assets/img/team.png';
-import Vector1 from 'assets/img/about-us-vector-1.png';
+import Vector1 from 'assets/img/about_us_vector_3.png';
 import Vector2 from 'assets/img/about-us-vector-2.png';
 import ProfileImg1 from 'assets/img/profile-pics/profile (1).png';
 import ProfileImg2 from 'assets/img/profile-pics/profile (2).png';
@@ -127,7 +127,7 @@ const AboutUsPage = () => {
                             </li>
                         </ul>
                     </div>
-                    <img src={KitengiImg} alt="African Kitengi" />
+                    {/* <img src={KitengiImg} alt="African Kitengi" /> */}
                 </div>
 
                 <div className="wrapper">
