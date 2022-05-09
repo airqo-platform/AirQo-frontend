@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { Modal, Box } from '@mui/material';
 import MakText from 'icons/nav/MakText';
@@ -21,6 +22,7 @@ import Senegal from 'icons/africanCities/countries/senegal.svg';
 import Mozambique from 'icons/africanCities/countries/mozambique.svg';
 
 import { useAirqloudSummaryData, useCurrentAirqloudData } from 'reduxStore/AirQlouds/selectors';
+import { setCurrentAirQloudData } from 'reduxStore/AirQlouds/operations';
 
 const style = {
   position: 'absolute',
@@ -36,25 +38,56 @@ const style = {
   // p: 4,
 };
 
-const CountryTab = ({ className, flag, name }) => (
-        <div className={className}>{flag} <span>{name}</span></div>
+const flagMapper = {
+  uganda: <Uganda />,
+  kenya: <Kenya />,
+  nigeria: <Nigeria />,
+  ghana: <Ghana />,
+  burundi: <Burundi />,
+  senegal: <Senegal />,
+  mozambique: <Mozambique />,
+};
+
+const CountryTab = ({
+  className, flag, name, onClick,
+}) => (
+        <div className={className} onClick={onClick}>{flag} <span>{name}</span></div>
 );
 
 const Footer = () => {
+  const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState('');
 
   const airqloudSummaries = useAirqloudSummaryData();
   const currentAirqloud = useCurrentAirqloudData();
 
   const currentAirqloudData = airqloudSummaries[currentAirqloud] || { numberOfSites: 0 };
 
-  console.log('data', currentAirqloudData);
   const explodeSummaryCount = (numberOfSites) => {
     const paddedCount = numberOfSites.toString().padStart(4, '0');
     return paddedCount.split('');
   };
 
   const toggleOpen = () => setOpen(!open);
+
+  const active = (country) => (country === selectedCountry ? 'tab-selected' : '');
+
+  const onTabClick = (country) => () => setSelectedCountry(country);
+
+  const onCancel = () => {
+    setSelectedCountry(currentAirqloud);
+    setOpen(false);
+  };
+
+  const onSave = () => {
+    dispatch(setCurrentAirQloudData(selectedCountry));
+    setOpen(false);
+  };
+
+  useEffect(() => {
+    setSelectedCountry(currentAirqloud);
+  }, [currentAirqloud]);
   return (
         <footer className="footer-wrapper">
             <div className="Footer">
@@ -141,21 +174,60 @@ const Footer = () => {
                         <div className="title">Our growing network in Africa</div>
                         <div className="sub-title">View AirQo developments in your country</div>
                         <div className="category-label">Selected country</div>
-                        <CountryTab className="tab tab-selected tab-margin" flag={<Uganda />} name="Uganda" />
+                        <CountryTab
+                          className="tab tab-selected tab-margin"
+                          flag={flagMapper[currentAirqloud.toLowerCase()]}
+                          name={currentAirqloud}
+                        />
                         <div className="category-label">Select country</div>
                         <div className="countries">
-                            <CountryTab className="tab tab-selected tab-margin-sm" flag={<Uganda />} name="Uganda" />
-                            <CountryTab className="tab tab-margin-sm" flag={<Kenya />} name="Kenya" />
-                            <CountryTab className="tab tab-margin-sm" flag={<Nigeria />} name="Nigeria" />
-                            <CountryTab className="tab tab-margin-sm" flag={<Ghana />} name="Ghana" />
-                            <CountryTab className="tab tab-margin-sm" flag={<Burundi />} name="Burundi" />
-                            <CountryTab className="tab tab-margin-sm" flag={<Senegal />} name="Senegal" />
-                            <CountryTab className="tab tab-margin-sm tab-mb" flag={<Mozambique />} name="Mozambique" />
+                            <CountryTab
+                              className={`tab tab-margin-sm ${active('Uganda')}`}
+                              flag={<Uganda />}
+                              name="Uganda"
+                              onClick={onTabClick('Uganda')}
+                            />
+                            <CountryTab
+                              className={`tab tab-margin-sm ${active('Kenya')}`}
+                              flag={<Kenya />}
+                              name="Kenya"
+                              onClick={onTabClick('Kenya')}
+                            />
+                            <CountryTab
+                              className={`tab tab-margin-sm ${active('Nigeria')}`}
+                              flag={<Nigeria />}
+                              name="Nigeria"
+                              onClick={onTabClick('Nigeria')}
+                            />
+                            <CountryTab
+                              className={`tab tab-margin-sm ${active('Ghana')}`}
+                              flag={<Ghana />}
+                              name="Ghana"
+                              onClick={onTabClick('Ghana')}
+                            />
+                            <CountryTab
+                              className={`tab tab-margin-sm ${active('Burundi')}`}
+                              flag={<Burundi />}
+                              name="Burundi"
+                              onClick={onTabClick('Burundi')}
+                            />
+                            <CountryTab
+                              className={`tab tab-margin-sm ${active('Senegal')}`}
+                              flag={<Senegal />}
+                              name="Senegal"
+                              onClick={onTabClick('Senegal')}
+                            />
+                            <CountryTab
+                              className={`tab tab-margin-sm ${active('Mozambique')}`}
+                              flag={<Mozambique />}
+                              name="Mozambique"
+                              onClick={onTabClick('Mozambique')}
+                            />
                         </div>
                         <div className="divider" />
                         <div className="btns">
-                            <div className="cancel-btn">cancel</div>
-                            <div className="save-btn">save</div>
+                            <div className="cancel-btn" onClick={onCancel}>cancel</div>
+                            <div className="save-btn" onClick={onSave}>save</div>
                         </div>
                     </div>
                 </Box>
