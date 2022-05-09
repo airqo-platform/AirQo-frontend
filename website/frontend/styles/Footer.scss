@@ -157,6 +157,10 @@
 
      margin-right: 20px;
    }
+
+   .modal-cancel:hover {
+     cursor: pointer
+   }
   }
 
 .Footer {
@@ -225,6 +229,10 @@
           line-height: 20px;
           color: $aq-black-2;
         }
+      }
+
+      .airqloud-dropdown:hover {
+        cursor: pointer;
       }
 
       .airqloud-count {
