@@ -1,8 +1,8 @@
-import React from 'react'
-import Ios from '../../icons/getapp/ios'
-import Play from '../../icons/getapp/play'
-import GetappImg from '../../assets/svg/get-app.svg'
-import GetappImgSm from '../../assets/img/get-app-sm.png'
+import React from 'react';
+import GetappImg from '../../assets/svg/get-app.svg';
+import GetappImgSm from '../../assets/img/get-app-sm.png';
+import AppleStore from 'assets/svg/apple_app_store.svg';
+import AndroidStore from 'assets/svg/android_play_store.svg';
 
 const GetApp = () => {
     return (
@@ -10,12 +10,17 @@ const GetApp = () => {
             <div className='back-drop'>
                 <div className='get-content'>
                     <div className='get-text'>
-                        <h2>Get the App</h2>
+                        <h2>Get the app</h2>
                         <span>Discover the quality of the air you are breathing</span>
                     </div>
                     <div className='get-btns'>
-                        <a><button className='get-btn get-ios'><i><Ios /></i><div><small>Download on the</small><span>App Store</span></div></button></a>
-                        <a><button className='get-btn get-android'><i><Play /></i><div><small>Get it on</small><div className='google-play'><span id="google">Google</span><span id="play">play</span></div></div></button></a>
+                        <button className='get-btn get-ios'>
+                            <AppleStore />
+                        </button>
+
+                        <button className='get-btn get-android'>
+                            <AndroidStore />
+                        </button>
                     </div>
                 </div>
                 <div className='get-graphics'>
