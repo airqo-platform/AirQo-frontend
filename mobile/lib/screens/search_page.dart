@@ -33,26 +33,26 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        toolbarHeight: 72,
+        elevation: 0,
+        backgroundColor: Config.appBodyColor,
+        automaticallyImplyLeading: false,
+        leading: Padding(
+          padding: const EdgeInsets.only(top: 5, bottom: 6.5, left: 16),
+          child: backButton(context),
+        ),
+        title: Padding(
+          padding: const EdgeInsets.only(top: 0),
+          child: searchInputField(),
+        ),
+      ),
       body: Container(
-        padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 40),
+        padding: const EdgeInsets.only(left: 16.0, right: 16.0),
         color: Config.appBodyColor,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(
-              height: 24,
-            ),
-            Row(
-              children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.only(right: 16.0),
-                  child: backButton(context),
-                ),
-                Expanded(
-                  child: searchInputField(),
-                )
-              ],
-            ),
             const SizedBox(
               height: 20,
             ),
