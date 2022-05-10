@@ -6,7 +6,7 @@ import NewsletterSection from "src/components/NewsletterSection/NewsletterSectio
 
 const Page = ({ children }) => (
         <div className="Page">
-            <NotificationBanner />
+            {/* <NotificationBanner /> */}
             <TopBar />
             {children}
             <NewsletterSection />

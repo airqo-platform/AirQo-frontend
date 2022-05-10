@@ -5,7 +5,7 @@ import TopBar from 'src/components/nav/TopBar';
 const PageMini = ({ children }) => {
     return (
         <div className='Page-mini'>
-            <NotificationBanner />
+            {/* <NotificationBanner /> */}
             <TopBar />
             {children}
         </div>

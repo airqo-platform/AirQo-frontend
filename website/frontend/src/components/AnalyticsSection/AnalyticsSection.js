@@ -11,7 +11,7 @@ const AnalyticsSection = () => (
                 <h1>An intuitive air quality analytics dashboard</h1>
                 <div className="AnalyticsSection-info-aside">
                     <p>Access real-time and historical air quality information across Africa through our easy-to-use air quality analytics dashboard</p>
-                    <div className="AnalyticsSection-info-aside-btn">Learn more <ArrowForwardIcon className="AnalyticsSection-icon"/></div>
+                    {/* <div className="AnalyticsSection-info-aside-btn">Learn more <ArrowForwardIcon className="AnalyticsSection-icon"/></div> */}
                 </div>
                 
             </div>

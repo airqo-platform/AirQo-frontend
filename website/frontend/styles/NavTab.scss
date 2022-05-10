@@ -9,6 +9,7 @@
   box-sizing: border-box;
   flex-wrap: nowrap;
   cursor: pointer;
+  color: $aq-blue-2;
 
   span {
     font-family: 'Inter', serif;
@@ -36,7 +37,7 @@
   color: $aq-white-0;
   background: $aq-blue-0;
   border-radius: 16px;
-  margin-right: 16px;
+  margin-left: 16px;
 }
 
 @media(max-width: 1024px){
@@ -83,6 +84,30 @@
     margin-left: 24px;
     margin-bottom: 44px;
     padding: 12px 26%;
+    width: 312px;
+    height: 48px;
+    box-sizing: border-box;
+  }
+}
+
+@media(max-width: $mainBreakPoint){
+  .NavTab {
+    margin-left: 0;
+  }
+
+  .colored {
+    display: flex;
+    justify-content: center;
+    padding: 12px auto;
+    width: 312px;
+    height: 48px;
+    box-sizing: border-box;
+  }
+
+  .filled {
+    display: flex;
+    justify-content: center;
+    padding: 12px auto;
     width: 312px;
     height: 48px;
     box-sizing: border-box;

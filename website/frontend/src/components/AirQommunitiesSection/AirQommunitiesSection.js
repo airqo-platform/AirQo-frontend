@@ -2,6 +2,7 @@ import React from 'react';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import AirQommunities from "assets/img/air-qommunity.svg";
 import AirQommunitiesSm from "assets/img/AirQommunities_mobile.svg";
+import { Link } from 'react-router-dom';
 
 const AirQommunitiesSection = () => (
     <div className="AirQommunitiesSection">
@@ -14,7 +15,7 @@ const AirQommunitiesSection = () => (
             <div className="AirQommunitiesSection-info">
                 <h1>Community awareness and engagements</h1>
                 <p>Empowering communities across Africa with accurate, hyperlocal and timely air quality data to drive air pollution mitigation actions</p>
-                <div className="AirQommunitiesSection-btn">Community Stories <ArrowForwardIcon className="AirQommunitiesSection-icon"/></div>
+                <Link style={{ textDecoration:"none" }} to="/solutions/communities"><div className="AirQommunitiesSection-btn">Community Stories <ArrowForwardIcon className="AirQommunitiesSection-icon"/></div></Link>
             </div>
         </div>
     </div>
