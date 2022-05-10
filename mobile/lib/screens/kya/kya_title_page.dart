@@ -25,7 +25,7 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: knowYourAirAppBar(context, 'Know Your Air'),
-      body: Stack(children: [
+      body: Stack(fit: StackFit.expand, children: [
         Container(
           color: Config.appBodyColor,
           height: double.infinity,
@@ -45,9 +45,26 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
             ),
           )),
         ),
+        Align(
+          alignment: AlignmentDirectional.bottomCenter,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 24, right: 24, bottom: 32),
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (context) {
+                    return KyaLessonsPage(widget.kya);
+                  }));
+                });
+              },
+              child: nextButton('Begin', Config.appColorBlue),
+            ),
+          ),
+        ),
         Positioned.fill(
           child: Align(
-              alignment: Alignment.bottomCenter,
+              alignment: Alignment.center,
               child: Padding(
                 padding: const EdgeInsets.only(left: 24, right: 24),
                 child: Column(
@@ -87,14 +104,12 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
                               ),
                               Padding(
                                 padding:
-                                    const EdgeInsets.only(left: 16, right: 16),
-                                child: AutoSizeText(
+                                    const EdgeInsets.symmetric(horizontal: 40),
+                                child: Text(
                                   widget.kya.title,
                                   textAlign: TextAlign.center,
-                                  maxLines: 3,
-                                  overflow: TextOverflow.ellipsis,
-                                  maxFontSize: 28,
-                                  style: CustomTextStyle.headline11(context),
+                                  style: CustomTextStyle.headline11(context)
+                                      ?.copyWith(color: Config.appColorBlack),
                                 ),
                               ),
                               const SizedBox(
@@ -103,23 +118,7 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
                             ],
                           ),
                         )),
-                    const SizedBox(
-                      height: 16,
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          Navigator.pushReplacement(context,
-                              MaterialPageRoute(builder: (context) {
-                            return KyaLessonsPage(widget.kya);
-                          }));
-                        });
-                      },
-                      child: nextButton('Begin', Config.appColorBlue),
-                    ),
-                    const SizedBox(
-                      height: 32,
-                    ),
+                    const Spacer(),
                   ],
                 ),
               )),
