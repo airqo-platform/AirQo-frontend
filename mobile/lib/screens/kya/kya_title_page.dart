@@ -36,41 +36,14 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
           widthFactor: 1.0,
           heightFactor: 0.4,
           child: Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                fit: BoxFit.cover,
-                image: CachedNetworkImageProvider(
-                  widget.kya.imageUrl,
-                ),
+              decoration: BoxDecoration(
+            image: DecorationImage(
+              fit: BoxFit.cover,
+              image: CachedNetworkImageProvider(
+                widget.kya.imageUrl,
               ),
             ),
-            child: Container(
-              color: Config.appColorBlue.withOpacity(0.4),
-            ),
-          ),
-          //   child: Stack(
-          //     children: [
-          //       CachedNetworkImage(
-          //         fit: BoxFit.contain,
-          //         placeholder: (context, url) => SizedBox(
-          //           child: containerLoadingAnimation(
-          //               height:
-          //               double.infinity,
-          //               radius: 0),
-          //         ),
-          //         imageUrl: widget.kya.secondaryImageUrl.trim() == ''
-          //             ? widget.kya.imageUrl
-          //             : widget.kya.secondaryImageUrl,
-          //         errorWidget: (context, url, error) => Icon(
-          //           Icons.error_outline,
-          //           color: Config.red,
-          //         ),
-          //       ),
-          //       Container(
-          //         color: Config.appColorBlue.withOpacity(0.4),
-          //       ),
-          //     ],
-          //   )
+          )),
         ),
         Positioned.fill(
           child: Align(
