@@ -1,7 +1,7 @@
 import React from 'react';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ApiSectionImg from "assets/img/api-img.png";
-import ApiSectionSm from "assets/img/api_section_mobile.svg";
+// import ApiSectionSm from "assets/img/api_section_mobile.svg";
 
 const ApiSection = () => (
     <div className="Apisection">
@@ -13,7 +13,7 @@ const ApiSection = () => (
         </div>
         <img src={ApiSectionImg} width={"100%"} height={"100%"} alt="API section image" />
         <div className="api-section-mobile">
-            <ApiSectionSm width={"100%"} />
+            {/* <ApiSectionSm width={"100%"} /> */}
         </div>
     </div>
 );
