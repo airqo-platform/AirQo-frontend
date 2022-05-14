@@ -6,6 +6,7 @@ import 'package:app/utils/data_formatter.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/extensions.dart';
+import 'package:app/utils/network.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/widgets/recommendation.dart';
 import 'package:app/widgets/tooltip.dart';
@@ -853,7 +854,7 @@ class _InsightsTabState extends State<InsightsTab> {
   }
 
   Future<void> _refreshPage() async {
-    await _appService.isConnected(context);
+    await checkNetworkConnection(context);
     var insights = await _appService.fetchInsights([widget.placeDetails.siteId],
         frequency: widget.frequency);
 

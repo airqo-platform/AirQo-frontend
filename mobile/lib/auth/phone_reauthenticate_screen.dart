@@ -176,7 +176,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
   }
 
   Future<void> _requestVerification() async {
-    var connected = await hasFirebaseConnection();
+    var connected = await hasNetworkConnection();
     if (!connected) {
       await showSnackBar(context, Config.connectionErrorMessage);
       return;
@@ -203,7 +203,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
   }
 
   Future<void> _resendVerificationCode() async {
-    var connected = await hasFirebaseConnection();
+    var connected = await hasNetworkConnection();
     if (!connected) {
       await showSnackBar(context, Config.connectionErrorMessage);
       return;
@@ -232,7 +232,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
   }
 
   Future<void> _verifySentCode() async {
-    var connected = await hasFirebaseConnection();
+    var connected = await hasNetworkConnection();
     if (!connected) {
       await showSnackBar(context, Config.connectionErrorMessage);
       return;

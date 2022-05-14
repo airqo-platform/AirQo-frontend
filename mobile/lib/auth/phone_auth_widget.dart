@@ -15,6 +15,7 @@ import '../models/enum_constants.dart';
 import '../on_boarding/profile_setup_screen.dart';
 import '../services/firebase_service.dart';
 import '../themes/light_theme.dart';
+import '../utils/network.dart';
 import '../widgets/custom_shimmer.dart';
 
 class PhoneAuthWidget extends StatefulWidget {
@@ -551,9 +552,8 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
   }
 
   Future<void> _requestVerification() async {
-    var connected = await _appService.isConnected(context);
+    var connected = await checkNetworkConnection(context);
     if (!connected) {
-      await showSnackBar(context, Config.connectionErrorMessage);
       return;
     }
 
@@ -566,13 +566,12 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
       });
       loadingScreen(_loadingContext);
 
-      var hasConnection = await _appService.isConnected(context);
-      if (!hasConnection) {
+      var connected = await checkNetworkConnection(context);
+      if (!connected) {
         Navigator.pop(_loadingContext);
         setState(() {
           _codeSent = true;
         });
-        await showSnackBar(context, 'Check your internet connection');
         return;
       }
 
@@ -631,9 +630,8 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
   }
 
   Future<void> _resendVerificationCode() async {
-    var connected = await _appService.isConnected(context);
+    var connected = await checkNetworkConnection(context);
     if (!connected) {
-      await showSnackBar(context, Config.connectionErrorMessage);
       return;
     }
 
@@ -682,9 +680,8 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
   }
 
   Future<void> _verifySentCode() async {
-    var connected = await _appService.isConnected(context);
+    var connected = await checkNetworkConnection(context);
     if (!connected) {
-      await showSnackBar(context, Config.connectionErrorMessage);
       return;
     }
 

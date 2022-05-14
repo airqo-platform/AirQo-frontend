@@ -60,8 +60,6 @@ class DBHelper {
         ..execute(Measurement.dropTableStmt())
         ..execute(Site.dropTableStmt())
         ..execute(PlaceDetails.dropTableStmt())
-        // TODO - fix functionality
-        //   ..execute(AppNotification.dropTableStmt())
         ..execute(Insights.dropTableStmt())
         ..execute(Kya.dropTableStmt());
       await prefs.setBool(Config.prefReLoadDb, false);
@@ -71,8 +69,6 @@ class DBHelper {
       ..execute(Measurement.createTableStmt())
       ..execute(Site.createTableStmt())
       ..execute(PlaceDetails.createTableStmt())
-      // TODO - fix functionality
-      //   ..execute(AppNotification.createTableStmt())
       ..execute(Insights.createTableStmt())
       ..execute(Kya.createTableStmt());
 

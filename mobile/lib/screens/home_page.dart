@@ -1,11 +1,13 @@
 import 'package:animations/animations.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/enum_constants.dart';
-import 'package:app/screens/profile_view.dart';
+import 'package:app/models/notification.dart';
+import 'package:app/screens/profile/profile_view.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 import '../services/local_storage.dart';
 import 'dashboard_view.dart';
@@ -31,6 +33,7 @@ class _HomePageState extends State<HomePage> {
     const ProfileView(),
   ];
   final AppService _appService = AppService();
+  List<AppNotification> _unreadAppNotifications = <AppNotification>[];
 
   @override
   Widget build(BuildContext context) {
@@ -104,6 +107,17 @@ class _HomePageState extends State<HomePage> {
                         : Config.appColorBlack.withOpacity(0.3),
                     semanticsLabel: 'Search',
                   ),
+                  Visibility(
+                      visible: _unreadAppNotifications.isNotEmpty,
+                      child: Positioned(
+                        right: 0.0,
+                        child: Container(
+                          height: 4,
+                          width: 4,
+                          decoration: BoxDecoration(
+                              shape: BoxShape.circle, color: Config.red),
+                        ),
+                      )),
                   // TODO - fix functionality
                   // Positioned(
                   //   right: 0.0,
@@ -152,6 +166,7 @@ class _HomePageState extends State<HomePage> {
     if (refresh) {
       await _appService.fetchData(context);
     }
+    await Future.wait([_updateOnBoardingPage(), _getNotifications()]);
     await _getCloudStore();
   }
 
@@ -160,7 +175,6 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     refresh = widget.refresh ?? true;
     initialize();
-    updateOnBoardingPage();
   }
 
   Future<bool> onWillPop() {
@@ -185,12 +199,33 @@ class _HomePageState extends State<HomePage> {
     return Future.value(true);
   }
 
-  void updateOnBoardingPage() async {
+  Future<void> _updateOnBoardingPage() async {
     await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.home);
+  }
+
+  Future<void> _getNotifications() async {
+    setState(() => _unreadAppNotifications =
+        Hive.box<AppNotification>(HiveBox.appNotifications)
+            .values
+            .where((element) => !element.read)
+            .toList()
+            .cast<AppNotification>());
+
+    // TODO - fix functionality
+    // notificationsBox.watch().listen((event) {
+    //   print(event.value);
+    // });
+    // if (_appService.customAuth.isLoggedIn()) {
+    //   await _appService.cloudStore
+    //       .monitorNotifications(context, _appService.customAuth.getUserId());
+    // }
   }
 
   Future<void> _getCloudStore() async {
     // TODO - fix functionality
+    // notificationsBox.watch().listen((event) {
+    //   print(event.value);
+    // });
     // if (_appService.customAuth.isLoggedIn()) {
     //   await _appService.cloudStore
     //       .monitorNotifications(context, _appService.customAuth.getUserId());

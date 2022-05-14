@@ -355,7 +355,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
   }
 
   Future<void> requestVerification() async {
-    var connected = await hasFirebaseConnection();
+    var connected = await hasNetworkConnection();
     if (!connected) {
       await showSnackBar(context, Config.connectionErrorMessage);
       return;
@@ -389,7 +389,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
   }
 
   Future<void> resendVerificationCode() async {
-    var connected = await hasFirebaseConnection();
+    var connected = await hasNetworkConnection();
     if (!connected) {
       await showSnackBar(context, Config.connectionErrorMessage);
       return;
@@ -447,7 +447,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
   }
 
   Future<void> verifySentCode() async {
-    var connected = await hasFirebaseConnection();
+    var connected = await hasNetworkConnection();
     if (!connected) {
       await showSnackBar(context, Config.connectionErrorMessage);
       return;

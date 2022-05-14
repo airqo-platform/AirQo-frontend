@@ -15,7 +15,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 import '../models/enum_constants.dart';
 import '../utils/exception.dart';
@@ -34,7 +34,7 @@ class CloudAnalytics {
 class CloudStore {
   static Future<void> addFavPlace(
       String userId, PlaceDetails placeDetails) async {
-    var hasConnection = await hasFirebaseConnection();
+    var hasConnection = await hasNetworkConnection();
     if (!hasConnection || userId.trim().isEmpty) {
       return;
     }
@@ -52,7 +52,7 @@ class CloudStore {
   }
 
   static Future<void> deleteAccount(id) async {
-    var hasConnection = await hasFirebaseConnection();
+    var hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return;
     }
@@ -74,7 +74,7 @@ class CloudStore {
       return [];
     }
 
-    var hasConnection = await hasFirebaseConnection();
+    var hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return [];
     }
@@ -212,23 +212,22 @@ class CloudStore {
 
   static Future<void> getNotifications() async {
     try {
-      final uuid = CloudStore.getUserId();
+      final uid = CloudStore.getUserId();
       var notificationsJson = await FirebaseFirestore.instance
-          .collection('${Config.notificationCollection}/$uuid/$uuid')
+          .collection('${Config.notificationCollection}/$uid/$uid')
           .get();
 
-      final notifications = {};
+      final notifications = <dynamic, AppNotification>{};
 
-      var notificationDocs = notificationsJson.docs;
-      for (var doc in notificationDocs) {
+      for (var doc in notificationsJson.docs) {
         var notification = AppNotification.parseAppNotification(doc.data());
         if (notification != null) {
           notifications[notification.id] = notification;
         }
       }
 
-      var box = Hive.box(HiveBox.appNotifications);
-      await box.putAll(notifications);
+      await Hive.box<AppNotification>(HiveBox.appNotifications)
+          .putAll(notifications);
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
     }
@@ -262,7 +261,7 @@ class CloudStore {
       return false;
     }
 
-    var hasConnection = await hasFirebaseConnection();
+    var hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return false;
     }
@@ -313,7 +312,7 @@ class CloudStore {
 
   static Future<void> removeFavPlace(
       String userId, PlaceDetails placeDetails) async {
-    var hasConnection = await hasFirebaseConnection();
+    var hasConnection = await hasNetworkConnection();
     if (!hasConnection || userId.trim().isEmpty) {
       return;
     }
@@ -331,7 +330,7 @@ class CloudStore {
 
   static Future<void> updateFavPlaces(
       String userId, List<PlaceDetails> favPlaces) async {
-    var hasConnection = await hasFirebaseConnection();
+    var hasConnection = await hasNetworkConnection();
     if (!hasConnection || userId.trim().isEmpty) {
       return;
     }
@@ -383,7 +382,7 @@ class CloudStore {
   static Future<void> updatePreferenceFields(
       String id, String field, dynamic value, String type) async {
     await SharedPreferencesHelper.updatePreference(field, value, type);
-    var hasConnection = await hasFirebaseConnection();
+    var hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return;
     }
@@ -417,7 +416,7 @@ class CloudStore {
   }
 
   static Future<void> updateProfile(UserDetails userDetails, String id) async {
-    var hasConnection = await hasFirebaseConnection();
+    var hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return;
     }
@@ -442,7 +441,7 @@ class CloudStore {
 
   static Future<void> updateProfileFields(
       String id, Map<String, Object?> fields) async {
-    var hasConnection = await hasFirebaseConnection();
+    var hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return;
     }
@@ -495,7 +494,7 @@ class CloudMessaging {
 
 class CustomAuth {
   static Future<UserDetails?> createProfile() async {
-    var hasConnection = await hasFirebaseConnection();
+    var hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return null;
     }
@@ -637,7 +636,7 @@ class CustomAuth {
 
   static Future<bool> reAuthenticateWithEmailAddress(
       String emailAddress, String link, BuildContext context) async {
-    var hasConnection = await hasFirebaseConnection();
+    var hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return false;
     }
@@ -655,7 +654,7 @@ class CustomAuth {
 
   static Future<bool> reAuthenticateWithPhoneNumber(
       AuthCredential authCredential, BuildContext context) async {
-    var hasConnection = await hasFirebaseConnection();
+    var hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return false;
     }
@@ -687,7 +686,7 @@ class CustomAuth {
   @Deprecated('To be replaced with functionality in the app service')
   static Future<bool> requestPhoneVerification(
       phoneNumber, context, callBackFn, autoVerificationFn) async {
-    var hasConnection = await hasFirebaseConnection();
+    var hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       await showSnackBar(context, Config.connectionErrorMessage);
       return false;
@@ -726,7 +725,7 @@ class CustomAuth {
   }
 
   static Future<void> updateCredentials(String? phone, String? email) async {
-    var hasConnection = await hasFirebaseConnection();
+    var hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return;
     }
@@ -748,7 +747,7 @@ class CustomAuth {
 
   static Future<bool> updateEmailAddress(
       String emailAddress, BuildContext context) async {
-    var hasConnection = await hasFirebaseConnection();
+    var hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return false;
     }
@@ -774,7 +773,7 @@ class CustomAuth {
 
   static Future<bool> updatePhoneNumber(
       PhoneAuthCredential authCredential, BuildContext context) async {
-    var hasConnection = await hasFirebaseConnection();
+    var hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return false;
     }
@@ -805,7 +804,7 @@ class CustomAuth {
   }
 
   static Future<void> updateProfile(UserDetails userDetails) async {
-    var hasConnection = await hasFirebaseConnection();
+    var hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return;
     }
@@ -851,7 +850,7 @@ class CustomAuth {
   }
 
   static Future<void> updateUserProfile(UserDetails userDetails) async {
-    var hasConnection = await hasFirebaseConnection();
+    var hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return;
     }

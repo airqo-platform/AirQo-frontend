@@ -7,6 +7,7 @@ import 'package:app/screens/home_page.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/extensions.dart';
+import 'package:app/utils/network.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -392,9 +393,8 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
   }
 
   Future<void> verifySentCode() async {
-    var connected = await _appService.isConnected(context);
+    var connected = await checkNetworkConnection(context);
     if (!connected) {
-      await showSnackBar(context, Config.connectionErrorMessage);
       return;
     }
 
@@ -491,9 +491,8 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
   }
 
   Future<void> _requestVerification() async {
-    var connected = await _appService.isConnected(context);
+    var connected = await checkNetworkConnection(context);
     if (!connected) {
-      await showSnackBar(context, Config.connectionErrorMessage);
       return;
     }
 
@@ -569,9 +568,8 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
   }
 
   Future<void> _resendVerificationCode() async {
-    var connected = await _appService.isConnected(context);
+    var connected = await checkNetworkConnection(context);
     if (!connected) {
-      await showSnackBar(context, Config.connectionErrorMessage);
       return;
     }
 

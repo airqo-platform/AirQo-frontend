@@ -9,6 +9,7 @@ import 'package:app/services/rest_api.dart';
 import 'package:app/services/secure_storage.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/extensions.dart';
+import 'package:app/utils/network.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -42,7 +43,7 @@ class AppService {
     String? emailAuthLink,
     AuthCredential? authCredential,
   }) async {
-    var hasConnection = await isConnected(buildContext);
+    var hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return false;
     }
@@ -71,7 +72,7 @@ class AppService {
 
   Future<bool> deleteAccount(BuildContext buildContext) async {
     var currentUser = CustomAuth.getUser();
-    var hasConnection = await isConnected(buildContext);
+    var hasConnection = await hasNetworkConnection();
     if (currentUser == null || !hasConnection) {
       ///TODO
       /// notify user
@@ -124,10 +125,10 @@ class AppService {
 
   Future<void> fetchData(BuildContext buildContext) async {
     await Future.wait([
-      isConnected(buildContext),
+      checkNetworkConnection(buildContext),
       _fetchLatestMeasurements(),
       _fetchKya(),
-      _loadNotifications(buildContext),
+      _loadNotifications(),
       _loadFavPlaces(buildContext),
       fetchFavPlacesInsights(),
       updateFavouritePlacesSites(buildContext)
@@ -207,18 +208,6 @@ class AppService {
     return userDetails;
   }
 
-  Future<bool> isConnected(BuildContext buildContext) async {
-    try {
-      final result = await InternetAddress.lookup('firebase.google.com');
-      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-        return true;
-      }
-    } catch (_) {}
-
-    await showSnackBar(buildContext, Config.connectionErrorMessage);
-    return false;
-  }
-
   bool isLoggedIn() {
     return CustomAuth.isLoggedIn();
   }
@@ -247,7 +236,7 @@ class AppService {
     }
   }
 
-  Future<void> _loadNotifications(BuildContext buildContext) async {
+  Future<void> _loadNotifications() async {
     // TODO IMPLEMENT GET NOTIFICATIONS
     // TODO - fix functionality
 
@@ -261,7 +250,7 @@ class AppService {
   }
 
   Future<bool> logOut(buildContext) async {
-    var hasConnection = await isConnected(buildContext);
+    var hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       await showSnackBar(buildContext, Config.connectionErrorMessage);
       return false;
@@ -303,7 +292,7 @@ class AppService {
             scope.user = SentryUser(id: user.uid, email: user.email ?? ''),
       );
 
-      var hasConnection = await isConnected(buildContext);
+      var hasConnection = await hasNetworkConnection();
       if (!hasConnection) {
         await showSnackBar(buildContext, Config.connectionErrorMessage);
         return;
@@ -356,7 +345,7 @@ class AppService {
             scope.user = SentryUser(id: user.uid, email: user.email ?? ''),
       );
 
-      var hasConnection = await isConnected(buildContext);
+      var hasConnection = await hasNetworkConnection();
       if (!hasConnection) {
         await showSnackBar(buildContext, Config.connectionErrorMessage);
         return;
@@ -389,17 +378,17 @@ class AppService {
 
   Future<void> refreshDashboard(BuildContext buildContext) async {
     await Future.wait([
-      isConnected(buildContext),
+      checkNetworkConnection(buildContext),
       _fetchLatestMeasurements(),
       _fetchKya(),
-      _loadNotifications(buildContext),
+      _loadNotifications(),
       updateFavouritePlacesSites(buildContext),
     ]);
   }
 
   Future<void> refreshAnalytics(BuildContext buildContext) async {
     await Future.wait([
-      isConnected(buildContext),
+      checkNetworkConnection(buildContext),
       _fetchLatestMeasurements(),
       _fetchKya(),
       fetchFavPlacesInsights(),
@@ -408,14 +397,14 @@ class AppService {
 
   Future<void> refreshKyaView(BuildContext buildContext) async {
     await Future.wait([
-      isConnected(buildContext),
+      checkNetworkConnection(buildContext),
       _fetchKya(),
     ]);
   }
 
   Future<void> refreshFavouritePlaces(BuildContext buildContext) async {
     await Future.wait([
-      isConnected(buildContext),
+      checkNetworkConnection(buildContext),
       fetchFavPlacesInsights(),
       updateFavouritePlacesSites(buildContext)
     ]);
@@ -459,7 +448,7 @@ class AppService {
 
   Future<void> updateKya(Kya kya, BuildContext buildContext) async {
     await _dbHelper.updateKya(kya);
-    var connected = await isConnected(buildContext);
+    var connected = await hasNetworkConnection();
     if (CustomAuth.isLoggedIn() && connected) {
       await CloudStore.updateKyaProgress(CustomAuth.getUserId(), kya);
       if (kya.progress == kya.lessons.length) {
@@ -470,7 +459,7 @@ class AppService {
 
   Future<bool> updateProfile(
       UserDetails userDetails, BuildContext buildContext) async {
-    var hasConnection = await isConnected(buildContext);
+    var hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return false;
     }
@@ -560,7 +549,7 @@ class AppService {
   /// TODO utilise this method
   Future<void> updateCredentials(
       String? phone, String? email, BuildContext buildContext) async {
-    var hasConnection = await isConnected(buildContext);
+    var hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return;
     }

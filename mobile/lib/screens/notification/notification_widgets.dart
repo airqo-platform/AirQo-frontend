@@ -8,11 +8,16 @@ import 'package:flutter_svg/svg.dart';
 
 import '../../themes/light_theme.dart';
 
-class NotificationView extends StatelessWidget {
+class NotificationView extends StatefulWidget {
   final AppNotification appNotification;
   const NotificationView({Key? key, required this.appNotification})
       : super(key: key);
 
+  @override
+  State<NotificationView> createState() => _NotificationViewState();
+}
+
+class _NotificationViewState extends State<NotificationView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,7 +71,7 @@ class NotificationView extends StatelessWidget {
                               Container(
                                 padding: const EdgeInsets.all(15.0),
                                 decoration: BoxDecoration(
-                                  color: Config.appColorPaleBlue,
+                                  color: Config.appColorBlue.withOpacity(0.1),
                                   shape: BoxShape.circle,
                                 ),
                                 child: SvgPicture.asset(
@@ -79,7 +84,7 @@ class NotificationView extends StatelessWidget {
                                 height: 17,
                               ),
                               AutoSizeText(
-                                appNotification.title,
+                                widget.appNotification.title,
                                 textAlign: TextAlign.center,
                                 style: CustomTextStyle.headline10(context),
                               ),
@@ -87,7 +92,7 @@ class NotificationView extends StatelessWidget {
                                 height: 8.0,
                               ),
                               AutoSizeText(
-                                appNotification.body,
+                                widget.appNotification.body,
                                 textAlign: TextAlign.center,
                                 maxLines: 4,
                                 style: Theme.of(context)
@@ -109,6 +114,18 @@ class NotificationView extends StatelessWidget {
       ),
     );
   }
+
+  @override
+  void initState() {
+    super.initState();
+    _updateNotification(widget.appNotification);
+  }
+
+  void _updateNotification(AppNotification appNotification) {
+    appNotification
+      ..read = true
+      ..save();
+  }
 }
 
 class NotificationCard extends StatelessWidget {
@@ -123,73 +140,85 @@ class NotificationCard extends StatelessWidget {
       decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.all(Radius.circular(16.0))),
-      child: ListTile(
-        horizontalTitleGap: 12,
-        contentPadding: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        tileColor: Colors.white,
-        leading: Container(
-          padding: const EdgeInsets.all(10.0),
-          decoration: BoxDecoration(
-            color: Config.appColorPaleBlue,
-            shape: BoxShape.circle,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10.0),
+            decoration: BoxDecoration(
+              color: Config.appColorBlue.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: SvgPicture.asset(
+              'assets/icon/airqo_home.svg',
+              height: 16,
+              width: 24,
+              semanticsLabel: 'home_icon',
+            ),
           ),
-          child: SvgPicture.asset(
-            'assets/icon/airqo_home.svg',
-            height: 16,
-            width: 24,
-            semanticsLabel: 'Search',
+          const SizedBox(
+            width: 12,
           ),
-        ),
-        trailing: appNotification.read
-            ? Container(
-                padding: const EdgeInsets.fromLTRB(8.0, 1.0, 8.0, 1.0),
-                constraints: const BoxConstraints(
-                  maxHeight: 16,
-                  maxWidth: 43.35,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AutoSizeText(
+                  appNotification.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: CustomTextStyle.button2(context),
                 ),
-                decoration: BoxDecoration(
-                    color: Config.appColorPaleBlue,
-                    borderRadius:
-                        const BorderRadius.all(Radius.circular(535.87))),
-                child: Column(
-                  children: [
-                    Text(
-                      'New',
-                      style:
-                          TextStyle(fontSize: 10, color: Config.appColorBlue),
-                    ),
-                  ],
-                ))
-            : Container(
-                constraints: const BoxConstraints(
-                  maxHeight: 16,
-                  maxWidth: 43.35,
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      appNotification.dateTime.notificationDisplayDate(),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style:
-                          TextStyle(fontSize: 10, color: Config.appColorBlack),
-                    ),
-                  ],
-                )),
-        title: AutoSizeText(
-          appNotification.title,
-          style: CustomTextStyle.button2(context),
-        ),
-        subtitle: AutoSizeText(
-          appNotification.body,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: Theme.of(context)
-              .textTheme
-              .caption
-              ?.copyWith(color: Config.appColorBlack.withOpacity(0.4)),
-        ),
+                AutoSizeText(
+                  appNotification.subTitle,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context)
+                      .textTheme
+                      .caption
+                      ?.copyWith(color: Config.appColorBlack.withOpacity(0.4)),
+                )
+              ],
+            ),
+          ),
+          const SizedBox(
+            width: 12,
+          ),
+          Visibility(
+              visible: appNotification.read,
+              child: Container(
+                  padding: const EdgeInsets.fromLTRB(8.0, 1.0, 8.0, 1.0),
+                  constraints: const BoxConstraints(
+                    maxHeight: 16,
+                    maxWidth: 43.35,
+                  ),
+                  decoration: BoxDecoration(
+                      color: Config.appColorBlue.withOpacity(0.1),
+                      borderRadius:
+                          const BorderRadius.all(Radius.circular(535.87))),
+                  child: Text(
+                    'New',
+                    style: CustomTextStyle.newNotification(context),
+                  ))),
+          Visibility(
+              visible: !appNotification.read,
+              child: Container(
+                  constraints: const BoxConstraints(
+                    maxHeight: 16,
+                    maxWidth: 43.35,
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        appNotification.dateTime.notificationDisplayDate(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            fontSize: 10, color: Config.appColorBlack),
+                      ),
+                    ],
+                  )))
+        ],
       ),
     );
   }
