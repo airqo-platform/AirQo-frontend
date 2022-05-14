@@ -2,15 +2,16 @@ import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/suggestion.dart';
+import 'package:app/screens/search/search_widgets.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../services/app_service.dart';
-import '../services/native_api.dart';
-import '../themes/light_theme.dart';
-import 'insights_page.dart';
+import '../../services/app_service.dart';
+import '../../services/native_api.dart';
+import '../../themes/light_theme.dart';
+import '../insights/insights_page.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({Key? key}) : super(key: key);
@@ -39,13 +40,16 @@ class _SearchPageState extends State<SearchPage> {
         elevation: 0,
         backgroundColor: Config.appBodyColor,
         automaticallyImplyLeading: false,
-        leading: Padding(
-          padding: const EdgeInsets.only(top: 5, bottom: 6.5, left: 16),
-          child: backButton(context),
+        leading: const Padding(
+          padding: EdgeInsets.only(top: 5, bottom: 6.5, left: 16),
+          child: AppBackButton(),
         ),
         title: Padding(
           padding: const EdgeInsets.only(top: 0),
-          child: searchInputField(),
+          child: SearchInputField(
+            textEditingController: _textEditingController,
+            searchChanged: _searchChanged,
+          ),
         ),
       ),
       body: Container(
@@ -236,8 +240,8 @@ class _SearchPageState extends State<SearchPage> {
     return Expanded(
       child: ListView(
         shrinkWrap: true,
-        children: [
-          noNearbyLocations(),
+        children: const [
+          NoNearbyLocations(),
         ],
       ),
     );
@@ -272,8 +276,8 @@ class _SearchPageState extends State<SearchPage> {
                       },
                       child: Padding(
                         padding: const EdgeInsets.only(bottom: 10),
-                        child: searchLocationTile(
-                            measurement: _nearbySites[index], context: context),
+                        child: SearchLocationTile(
+                            measurement: _nearbySites[index]),
                       )),
                   itemCount: _nearbySites.length,
                   // separatorBuilder: (BuildContext context, int index) {
@@ -284,63 +288,6 @@ class _SearchPageState extends State<SearchPage> {
                   //   );
                   // }
                 ))),
-      ],
-    );
-  }
-
-  Widget noNearbyLocations() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(40.0),
-          decoration: const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.rectangle,
-              borderRadius: BorderRadius.all(Radius.circular(10.0))),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(
-                height: 84,
-              ),
-              Stack(
-                children: [
-                  Image.asset(
-                    'assets/images/world-map.png',
-                    height: 130,
-                    width: 130,
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Config.appColorBlue,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Padding(
-                      padding: EdgeInsets.all(12.0),
-                      child: Icon(
-                        Icons.map_outlined,
-                        size: 30,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(
-                height: 52,
-              ),
-              const Text(
-                'You don\'t have nearby air quality stations',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(
-                height: 40,
-              ),
-            ],
-          ),
-        )
       ],
     );
   }
@@ -447,7 +394,7 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  void searchChanged(String text) {
+  void _searchChanged(String text) {
     if (text.isEmpty) {
       setState(() {
         _isSearching = false;
@@ -476,60 +423,6 @@ class _SearchPageState extends State<SearchPage> {
         _searchSites = LocationService.textSearchNearestSites(text, _allSites);
       });
     }
-  }
-
-  Widget searchInputField() {
-    return Container(
-      height: 40,
-      constraints: const BoxConstraints(minWidth: double.maxFinite),
-      decoration: const BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.rectangle,
-          borderRadius: BorderRadius.all(Radius.circular(10.0))),
-      child: TextFormField(
-        controller: _textEditingController,
-        onChanged: searchChanged,
-        style: Theme.of(context).textTheme.caption?.copyWith(
-              fontSize: 16,
-            ),
-        enableSuggestions: true,
-        cursorWidth: 1,
-        autofocus: false,
-        cursorColor: Config.appColorBlack,
-        decoration: InputDecoration(
-          fillColor: Colors.white,
-          prefixIcon: Padding(
-            padding:
-                const EdgeInsets.only(right: 7, top: 7, bottom: 7, left: 7),
-            child: SvgPicture.asset(
-              'assets/icon/search.svg',
-              height: 14.38,
-              width: 14.38,
-              semanticsLabel: 'Search',
-            ),
-          ),
-          contentPadding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-          focusedBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Colors.transparent, width: 1.0),
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Colors.transparent, width: 1.0),
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-          border: OutlineInputBorder(
-              borderSide:
-                  const BorderSide(color: Colors.transparent, width: 1.0),
-              borderRadius: BorderRadius.circular(8.0)),
-          hintText: 'Search locations',
-          hintStyle: Theme.of(context).textTheme.caption?.copyWith(
-                color: Config.appColorBlack.withOpacity(0.32),
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-              ),
-        ),
-      ),
-    );
   }
 
   Widget searchLocations() {
@@ -602,9 +495,8 @@ class _SearchPageState extends State<SearchPage> {
                         },
                         child: Padding(
                           padding: const EdgeInsets.only(bottom: 10),
-                          child: searchLocationTile(
-                              measurement: _searchSites[index],
-                              context: context),
+                          child: SearchLocationTile(
+                              measurement: _searchSites[index]),
                         )),
                     itemCount: _searchSites.length,
                   )),
@@ -624,8 +516,7 @@ class _SearchPageState extends State<SearchPage> {
                         },
                         child: Padding(
                           padding: const EdgeInsets.only(bottom: 10),
-                          child: searchPlaceTile(
-                              context: context,
+                          child: SearchPlaceTile(
                               searchSuggestion: _searchSuggestions[index]),
                         )),
                     itemCount: _searchSuggestions.length,

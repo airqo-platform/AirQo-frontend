@@ -291,7 +291,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
         automaticallyImplyLeading: false,
         title: Row(
           children: [
-            backButton(context),
+            const AppBackButton(),
             const Spacer(),
             Text(
               'Edit Profile',

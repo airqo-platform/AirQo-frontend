@@ -20,11 +20,12 @@ import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
-import '../models/enum_constants.dart';
-import '../services/native_api.dart';
-import '../themes/light_theme.dart';
-import 'custom_shimmer.dart';
-import 'custom_widgets.dart';
+import '../../models/enum_constants.dart';
+import '../../services/native_api.dart';
+import '../../themes/light_theme.dart';
+import '../../widgets/custom_shimmer.dart';
+import '../../widgets/custom_widgets.dart';
+import 'insights_widgets.dart';
 
 class InsightsTab extends StatefulWidget {
   final PlaceDetails placeDetails;
@@ -57,8 +58,6 @@ class _InsightsTabState extends State<InsightsTab> {
   List<List<charts.Series<Insights, String>>> _dailyPm10ChartData = [];
   List<List<charts.Series<Insights, String>>> _hourlyPm10ChartData = [];
 
-  List<charts.TickSpec<String>> _hourlyStaticTicks = [];
-  List<charts.TickSpec<String>> _dailyStaticTicks = [];
   bool scrolling = false;
 
   final GlobalKey _forecastToolTipKey = GlobalKey();
@@ -175,8 +174,11 @@ class _InsightsTabState extends State<InsightsTab> {
                             widgetKey: _infoToolTipKey,
                           );
                         },
-                        child: insightsTabAvatar(
-                            context, _selectedMeasurement!, 64, _pollutant),
+                        child: InsightsAvatar(
+                          measurement: _selectedMeasurement!,
+                          size: 64,
+                          pollutant: _pollutant,
+                        ),
                       )
                     ],
                   ),
@@ -204,12 +206,14 @@ class _InsightsTabState extends State<InsightsTab> {
                                           null);
                                     }
                                   },
-                                  child: _insightsChart(
-                                      pm2_5ChartData:
-                                          _dailyPm2_5ChartData[index],
-                                      cornerRadius: 5,
-                                      pm10ChartData:
-                                          _dailyPm10ChartData[index]));
+                                  child: InsightsGraph(
+                                    pm2_5ChartData: _dailyPm2_5ChartData[index],
+                                    cornerRadius: 5,
+                                    pm10ChartData: _dailyPm10ChartData[index],
+                                    onBarSelection: _updateUI,
+                                    pollutant: _pollutant,
+                                    frequency: widget.frequency,
+                                  ));
                             },
                             itemScrollController: _itemScrollController,
                           ),
@@ -237,11 +241,14 @@ class _InsightsTabState extends State<InsightsTab> {
                                           null);
                                     }
                                   },
-                                  child: _insightsChart(
+                                  child: InsightsGraph(
                                     pm10ChartData: _hourlyPm10ChartData[index],
                                     cornerRadius: 3,
                                     pm2_5ChartData:
                                         _hourlyPm2_5ChartData[index],
+                                    frequency: widget.frequency,
+                                    onBarSelection: _updateUI,
+                                    pollutant: _pollutant,
                                   ));
                             },
                             itemScrollController: _itemScrollController,
@@ -431,7 +438,7 @@ class _InsightsTabState extends State<InsightsTab> {
         ));
   }
 
-  Future<void> loadMiniCharts(DateTime defaultSelection) async {
+  Future<void> _loadMiniCharts(DateTime defaultSelection) async {
     var hourlyInsights = await _appService.dbHelper
         .getInsights(widget.placeDetails.siteId, Frequency.hourly);
 
@@ -453,10 +460,13 @@ class _InsightsTabState extends State<InsightsTab> {
                 .first;
 
         miniChartsMap[DateFormat('yyyy-MM-dd').format(randomValue.time)] =
-            _insightsChart(
+            InsightsGraph(
                 pm10ChartData: pm10ChartData,
                 pm2_5ChartData: pm2_5ChartData,
-                cornerRadius: 3);
+                cornerRadius: 3,
+                onBarSelection: _updateUI,
+                pollutant: _pollutant,
+                frequency: widget.frequency);
 
         hourlyInsights.removeWhere((element) =>
             element.time.day == randomValue.time.day &&
@@ -565,46 +575,6 @@ class _InsightsTabState extends State<InsightsTab> {
     });
   }
 
-  void _createChartTicks() {
-    setState(() {
-      _hourlyStaticTicks = [];
-      _dailyStaticTicks = [];
-    });
-
-    var hourlyTicks = <charts.TickSpec<String>>[];
-    var labels = <int>[0, 6, 12, 18];
-
-    for (var i = 0; i <= 24; i++) {
-      if (labels.contains(i)) {
-        hourlyTicks.add(charts.TickSpec(i.toString().length == 1 ? '0$i' : '$i',
-            label: i.toString().length == 1 ? '0$i' : '$i',
-            style: charts.TextStyleSpec(
-                color: charts.ColorUtil.fromDartColor(Config.greyColor))));
-      } else {
-        hourlyTicks.add(charts.TickSpec(i.toString().length == 1 ? '0$i' : '$i',
-            label: i.toString().length == 1 ? '0$i' : '$i',
-            style: charts.TextStyleSpec(
-                color: charts.ColorUtil.fromDartColor(Colors.transparent))));
-      }
-    }
-    setState(() {
-      _hourlyStaticTicks = hourlyTicks;
-    });
-
-    var dailyTicks = <charts.TickSpec<String>>[];
-    var daysList = <String>['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
-    for (var day in daysList) {
-      dailyTicks.add(charts.TickSpec(day,
-          label: day,
-          style: charts.TextStyleSpec(
-              color: charts.ColorUtil.fromDartColor(Config.greyColor))));
-    }
-    setState(() {
-      _dailyStaticTicks = dailyTicks;
-    });
-  }
-
   Future<void> _fetchDBInsights() async {
     var insights = await _appService.dbHelper
         .getInsights(widget.placeDetails.siteId, widget.frequency);
@@ -623,61 +593,7 @@ class _InsightsTabState extends State<InsightsTab> {
   }
 
   Future<void> _initialize() async {
-    _createChartTicks();
     await Future.wait([_fetchDBInsights(), _fetchInsights()]);
-  }
-
-  Widget _insightsChart(
-      {required List<charts.Series<Insights, String>> pm2_5ChartData,
-      required List<charts.Series<Insights, String>> pm10ChartData,
-      required int cornerRadius}) {
-    return LayoutBuilder(
-        builder: (BuildContext buildContext, BoxConstraints constraints) {
-      return SizedBox(
-        width: MediaQuery.of(buildContext).size.width - 50,
-        height: 150,
-        child: charts.BarChart(
-          _pollutant == Pollutant.pm2_5 ? pm2_5ChartData : pm10ChartData,
-          animate: true,
-          defaultRenderer: charts.BarRendererConfig<String>(
-            strokeWidthPx: 20,
-            stackedBarPaddingPx: 0,
-            cornerStrategy: charts.ConstCornerStrategy(cornerRadius),
-          ),
-          defaultInteractions: true,
-          behaviors: [
-            charts.LinePointHighlighter(
-                showHorizontalFollowLine:
-                    charts.LinePointHighlighterFollowLineType.none,
-                showVerticalFollowLine:
-                    charts.LinePointHighlighterFollowLineType.nearest),
-            charts.DomainHighlighter(),
-            charts.SelectNearest(
-                eventTrigger: charts.SelectionTrigger.tapAndDrag),
-          ],
-          selectionModels: [
-            charts.SelectionModelConfig(
-                changedListener: (charts.SelectionModel model) {
-              if (model.hasDatumSelection) {
-                try {
-                  var value = model.selectedDatum[0].index;
-                  if (value != null) {
-                    _updateUI(model.selectedSeries[0].data[value]);
-                  }
-                } catch (exception, stackTrace) {
-                  debugPrint(
-                      '${exception.toString()}\n${stackTrace.toString()}');
-                }
-              }
-            })
-          ],
-          domainAxis: _yAxisScale(widget.frequency == Frequency.daily
-              ? _dailyStaticTicks
-              : _hourlyStaticTicks),
-          primaryMeasureAxis: _xAxisScale(),
-        ),
-      );
-    });
   }
 
   List<Widget> _pageItems() {
@@ -895,7 +811,7 @@ class _InsightsTabState extends State<InsightsTab> {
       });
 
       await _scrollToTodayChart();
-      await loadMiniCharts(DateTime.now());
+      await _loadMiniCharts(DateTime.now());
     } else {
       var firstDay =
           DateTime.now().getDateOfFirstDayOfWeek().getDateOfFirstHourOfDay();
@@ -952,7 +868,7 @@ class _InsightsTabState extends State<InsightsTab> {
     });
 
     if (miniChartsMap[selectedMiniChart] == null) {
-      await loadMiniCharts(insight.time);
+      await _loadMiniCharts(insight.time);
     }
   }
 
@@ -978,34 +894,5 @@ class _InsightsTabState extends State<InsightsTab> {
             : 'Updated ${DateFormat('hh:mm a').format(insight.time)}';
       });
     }
-  }
-
-  charts.NumericAxisSpec _xAxisScale() {
-    return charts.NumericAxisSpec(
-      tickProviderSpec: charts.StaticNumericTickProviderSpec(
-        <charts.TickSpec<double>>[
-          charts.TickSpec<double>(0,
-              style: charts.TextStyleSpec(
-                  color: charts.ColorUtil.fromDartColor(Config.greyColor))),
-          charts.TickSpec<double>(125,
-              style: charts.TextStyleSpec(
-                  color: charts.ColorUtil.fromDartColor(Config.greyColor))),
-          charts.TickSpec<double>(250,
-              style: charts.TextStyleSpec(
-                  color: charts.ColorUtil.fromDartColor(Config.greyColor))),
-          charts.TickSpec<double>(375,
-              style: charts.TextStyleSpec(
-                  color: charts.ColorUtil.fromDartColor(Config.greyColor))),
-          charts.TickSpec<double>(500,
-              style: charts.TextStyleSpec(
-                  color: charts.ColorUtil.fromDartColor(Config.greyColor))),
-        ],
-      ),
-    );
-  }
-
-  charts.OrdinalAxisSpec _yAxisScale(List<charts.TickSpec<String>> ticks) {
-    return charts.OrdinalAxisSpec(
-        tickProviderSpec: charts.StaticOrdinalTickProviderSpec(ticks));
   }
 }

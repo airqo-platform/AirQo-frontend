@@ -2,7 +2,7 @@ import 'package:app/constants/config.dart';
 import 'package:app/models/kya.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
-import 'package:app/screens/search_page.dart';
+import 'package:app/screens/search/search_page.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/utils/dashboard.dart';
 import 'package:app/utils/date.dart';
@@ -23,11 +23,11 @@ import '../services/firebase_service.dart';
 import '../services/native_api.dart';
 import '../themes/light_theme.dart';
 import '../utils/exception.dart';
-import 'kya/kya_widgets.dart';
 import '../widgets/custom_widgets.dart';
 import 'favourite_places.dart';
 import 'for_you_page.dart';
 import 'kya/kya_title_page.dart';
+import 'kya/kya_widgets.dart';
 
 class DashboardView extends StatefulWidget {
   const DashboardView({Key? key}) : super(key: key);

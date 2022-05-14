@@ -899,7 +899,7 @@ class _MapViewState extends State<MapView> {
         height: 6.99,
         width: 4,
       ),
-      leading: miniAnalyticsAvatar(measurement: measurement),
+      leading: MiniAnalyticsAvatar(measurement: measurement),
     );
   }
 

@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
-import 'package:app/screens/insights_page.dart';
+import 'package:app/screens/insights/insights_page.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/dialogs.dart';

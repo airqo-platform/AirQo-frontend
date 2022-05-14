@@ -1,7 +1,7 @@
 import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
-import 'package:app/screens/insights_page.dart';
+import 'package:app/screens/insights/insights_page.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -54,7 +54,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                   child: Row(
                     children: [
                       if (!isNull)
-                        miniAnalyticsAvatar(measurement: measurement),
+                        MiniAnalyticsAvatar(measurement: measurement),
                       if (isNull) circularLoadingAnimation(40),
                       const SizedBox(
                         width: 12,

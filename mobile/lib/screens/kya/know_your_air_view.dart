@@ -7,9 +7,9 @@ import 'package:flutter_svg/svg.dart';
 
 import '../../services/app_service.dart';
 import '../../themes/light_theme.dart';
-import 'kya_widgets.dart';
 import '../../widgets/custom_widgets.dart';
 import 'kya_title_page.dart';
+import 'kya_widgets.dart';
 
 class KnowYourAirView extends StatefulWidget {
   const KnowYourAirView({Key? key}) : super(key: key);

@@ -1,6 +1,6 @@
 import 'package:app/constants/config.dart';
 import 'package:app/models/place_details.dart';
-import 'package:app/screens/search_page.dart';
+import 'package:app/screens/search/search_page.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/widgets/favourite_place_card.dart';
