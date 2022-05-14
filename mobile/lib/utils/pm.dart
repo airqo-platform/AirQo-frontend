@@ -247,7 +247,7 @@ String pm10ToString(double pm10) {
   }
 }
 
-Color pm2_5TextColor(double pm2_5) {
+Color pm2_5TextColor(double pm2_5, {bool? graph}) {
   if (pm2_5 <= 12.09) {
     //good
     return const Color(0xff03B600);
@@ -265,6 +265,9 @@ Color pm2_5TextColor(double pm2_5) {
     return const Color(0xff8E00AC);
   } else if (pm2_5 >= 250.5) {
     // hazardous
+    if (graph != null && graph) {
+      return Config.maroon;
+    }
     return const Color(0xffDBA5B2);
   } else {
     return Config.appColor;
