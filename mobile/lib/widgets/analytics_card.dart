@@ -17,6 +17,7 @@ import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
 import '../models/enum_constants.dart';
+import '../services/native_api.dart';
 import '../themes/light_theme.dart';
 import 'custom_shimmer.dart';
 import 'custom_widgets.dart';
@@ -188,7 +189,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
             children: [
               RepaintBoundary(
                   key: _globalKey,
-                  child: _appService.shareService.analyticsCardImage(
+                  child: ShareService.analyticsCardImage(
                       widget.measurement, widget.placeDetails, context)),
               Container(
                 padding: const EdgeInsets.only(top: 12, bottom: 12),
@@ -331,7 +332,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                             var shareMeasurement = widget.measurement;
                             shareMeasurement.site.name =
                                 widget.placeDetails.name;
-                            _appService.shareService.shareCard(
+                            ShareService.shareCard(
                                 context, _globalKey, shareMeasurement);
                           },
                           child: Padding(
@@ -434,7 +435,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
             children: [
               RepaintBoundary(
                   key: _globalKey,
-                  child: _appService.shareService.analyticsCardImage(
+                  child: ShareService.analyticsCardImage(
                       widget.measurement, widget.placeDetails, context)),
               Container(
                 color: Colors.white,
@@ -582,7 +583,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                             var shareMeasurement = widget.measurement;
                             shareMeasurement.site.name =
                                 widget.placeDetails.name;
-                            _appService.shareService.shareCard(
+                            ShareService.shareCard(
                                 context, _globalKey, shareMeasurement);
                           },
                           child: iconTextButton(

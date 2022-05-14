@@ -19,6 +19,8 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/enum_constants.dart';
+import '../services/firebase_service.dart';
+import '../services/native_api.dart';
 import '../themes/light_theme.dart';
 import '../utils/exception.dart';
 import '../utils/kya_utils.dart';
@@ -277,7 +279,7 @@ class _DashboardViewState extends State<DashboardView> {
     }
 
     var locationMeasurements =
-        await _appService.locationService.getNearbyLocationReadings();
+        await LocationService.getNearbyLocationReadings();
 
     for (var location in locationMeasurements) {
       dashboardCards.add(AnalyticsCard(
@@ -617,7 +619,7 @@ class _DashboardViewState extends State<DashboardView> {
   void _setGreetings() {
     if (mounted) {
       setState(() {
-        _greetings = getGreetings(_appService.customAuth.getDisplayName());
+        _greetings = getGreetings(CustomAuth.getDisplayName());
       });
     }
   }

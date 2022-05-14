@@ -2,11 +2,12 @@ import 'package:app/constants/config.dart';
 import 'package:app/models/enum_constants.dart';
 import 'package:app/on_boarding/setup_complete_screeen.dart';
 import 'package:app/screens/home_page.dart';
-import 'package:app/services/app_service.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:flutter/material.dart';
 
+import '../services/local_storage.dart';
+import '../services/native_api.dart';
 import '../themes/light_theme.dart';
 
 class LocationSetupScreen extends StatefulWidget {
@@ -18,7 +19,6 @@ class LocationSetupScreen extends StatefulWidget {
 
 class LocationSetupScreenState extends State<LocationSetupScreen> {
   DateTime? exitTime;
-  final AppService _appService = AppService();
 
   @override
   Widget build(BuildContext context) {
@@ -56,8 +56,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
           padding: const EdgeInsets.only(left: 24, right: 24),
           child: GestureDetector(
             onTap: () {
-              _appService.locationService
-                  .allowLocationAccess()
+              LocationService.allowLocationAccess()
                   .then((value) => {
                         Navigator.pushAndRemoveUntil(context,
                             MaterialPageRoute(builder: (context) {
@@ -125,7 +124,6 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
   }
 
   void updateOnBoardingPage() async {
-    await _appService.preferencesHelper
-        .updateOnBoardingPage(OnBoardingPage.location);
+    await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.location);
   }
 }

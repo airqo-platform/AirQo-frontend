@@ -1,108 +1,118 @@
-import 'dart:collection';
-
-import 'package:app/services/local_storage.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import 'json_parsers.dart';
+import 'enum_constants.dart';
 
 part 'notification.g.dart';
-
-class NotificationModel extends ChangeNotifier {
-  final List<UserNotification> _notifications = [];
-  bool _navBarNotification = true;
-  final DBHelper _dbHelper = DBHelper();
-
-  bool get navBarNotification {
-    return _navBarNotification && hasNotifications();
-  }
-
-  UnmodifiableListView<UserNotification> get notifications =>
-      UnmodifiableListView(_notifications);
-
-  void add(UserNotification notification) {
-    _notifications.add(notification);
-    notifyListeners();
-  }
-
-  void addAll(List<UserNotification> notifications) {
-    _notifications
-      ..clear()
-      ..addAll(notifications);
-    notifyListeners();
-  }
-
-  bool hasNotifications() {
-    return _notifications.where((element) => element.isNew).toList().isNotEmpty;
-  }
-
-  Future<void> loadNotifications() async {
-    var notifications = await _dbHelper.getUserNotifications();
-    _notifications
-      ..clear()
-      ..addAll(notifications);
-    notifyListeners();
-  }
-
-  void removeAll() {
-    _notifications.clear();
-    _navBarNotification = false;
-    notifyListeners();
-  }
-
-  void removeNavBarNotification() {
-    _navBarNotification = false;
-    notifyListeners();
-  }
-}
+//
+// class NotificationModel extends ChangeNotifier {
+//   final List<AppNotification> _notifications = [];
+//   bool _navBarNotification = true;
+//   final DBHelper _dbHelper = DBHelper();
+//
+//   bool get navBarNotification {
+//     return _navBarNotification && hasNotifications();
+//   }
+//
+//   UnmodifiableListView<AppNotification> get notifications =>
+//       UnmodifiableListView(_notifications);
+//
+//   void add(AppNotification notification) {
+//     _notifications.add(notification);
+//     notifyListeners();
+//   }
+//
+//   void addAll(List<AppNotification> notifications) {
+//     _notifications
+//       ..clear()
+//       ..addAll(notifications);
+//     notifyListeners();
+//   }
+//
+//   bool hasNotifications() {
+//     return _notifications.where((element) => element.isNew).toList().isNotEmpty;
+//   }
+//
+//   Future<void> loadNotifications() async {
+//     var notifications = await _dbHelper.getAppNotifications();
+//     _notifications
+//       ..clear()
+//       ..addAll(notifications);
+//     notifyListeners();
+//   }
+//
+//   void removeAll() {
+//     _notifications.clear();
+//     _navBarNotification = false;
+//     notifyListeners();
+//   }
+//
+//   void removeNavBarNotification() {
+//     _navBarNotification = false;
+//     notifyListeners();
+//   }
+// }
 
 @JsonSerializable()
-class UserNotification {
+@HiveType(typeId: 10, adapterName: 'AppNotificationAdapter')
+class AppNotification extends HiveObject {
+  @HiveField(1)
   String id;
+
+  @HiveField(2)
   String title;
+
+  @HiveField(3)
+  String subTitle;
+
+  @HiveField(4)
+  String link;
+
+  @HiveField(5)
+  String icon;
+
+  @HiveField(6)
+  String image;
+
+  @HiveField(7)
   String body;
-  String time;
 
-  @JsonKey(fromJson: boolFromJson, toJson: boolToJson)
-  bool isNew = true;
+  @HiveField(8)
+  DateTime dateTime;
 
-  UserNotification(this.id, this.title, this.body, this.isNew, this.time);
+  @HiveField(9)
+  bool read;
 
-  factory UserNotification.fromJson(Map<String, dynamic> json) =>
-      _$UserNotificationFromJson(json);
+  @HiveField(10)
+  AppNotificationType type;
+
+  AppNotification(this.id, this.title, this.subTitle, this.link, this.icon,
+      this.image, this.body, this.dateTime, this.read, this.type);
+
+  factory AppNotification.fromJson(Map<String, dynamic> json) =>
+      _$AppNotificationFromJson(json);
 
   void setHasNotification() {}
 
-  Map<String, dynamic> toJson() => _$UserNotificationToJson(this);
+  Map<String, dynamic> toJson() => _$AppNotificationToJson(this);
 
-  static UserNotification? composeNotification(RemoteMessage message) {
+  static AppNotification? composeAppNotification(RemoteMessage message) {
     debugPrint('Message data: ${message.data}');
 
     var data = message.data;
 
     if (data.isNotEmpty) {
-      return UserNotification(message.hashCode.toString(), data['message'],
-          data['message'], true, DateTime.now().toUtc().toString());
+      return null;
     }
 
     return null;
   }
 
-  static String createTableStmt() => 'CREATE TABLE IF NOT EXISTS ${dbName()}('
-      'id TEXT PRIMARY KEY, '
-      'title TEXT, '
-      'body TEXT, '
-      'time TEXT, '
-      'isNew TEXT )';
-
-  static String dbName() => 'notifications_table';
-
-  static String dropTableStmt() => 'DROP TABLE IF EXISTS ${dbName()}';
-
-  static UserNotification? parseNotification(dynamic jsonBody) {
+  static AppNotification? parseAppNotification(dynamic jsonBody) {
     try {
-      var notification = UserNotification.fromJson(jsonBody);
+      var notification = AppNotification.fromJson(jsonBody);
       return notification;
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
@@ -111,12 +121,12 @@ class UserNotification {
     return null;
   }
 
-  static List<UserNotification> parseNotifications(dynamic jsonBody) {
-    var notifications = <UserNotification>[];
+  static List<AppNotification> parseNotifications(dynamic jsonBody) {
+    var notifications = <AppNotification>[];
 
     for (var jsonElement in jsonBody) {
       try {
-        var measurement = UserNotification.fromJson(jsonElement);
+        var measurement = AppNotification.fromJson(jsonElement);
         notifications.add(measurement);
       } catch (exception, stackTrace) {
         debugPrint('$exception\n$stackTrace');
@@ -125,10 +135,10 @@ class UserNotification {
     return notifications;
   }
 
-  static List<UserNotification> reorderNotifications(
-      List<UserNotification> notificationList) {
+  static List<AppNotification> reorderNotifications(
+      List<AppNotification> notificationList) {
     notificationList.sort((x, y) {
-      return -(DateTime.parse(x.time).compareTo(DateTime.parse(y.time)));
+      return -x.dateTime.compareTo(y.dateTime);
     });
     return notificationList;
   }

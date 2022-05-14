@@ -7,6 +7,8 @@ import 'package:app/widgets/text_fields.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../utils/network.dart';
+
 class PhoneReAuthenticateScreen extends StatefulWidget {
   final UserDetails userDetails;
 
@@ -27,11 +29,9 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
   List<String> _phoneVerificationCode = <String>['', '', '', '', '', ''];
   Color _nextBtnColor = Config.appColorDisabled;
 
-  final CustomAuth _customAuth = CustomAuth();
-
   Future<void> autoVerifyPhoneFn(PhoneAuthCredential credential) async {
     var success =
-        await _customAuth.reAuthenticateWithPhoneNumber(credential, context);
+        await CustomAuth.reAuthenticateWithPhoneNumber(credential, context);
     if (success) {
       Navigator.pop(context, true);
     } else {
@@ -176,7 +176,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
   }
 
   Future<void> _requestVerification() async {
-    var connected = await _customAuth.isConnected();
+    var connected = await hasFirebaseConnection();
     if (!connected) {
       await showSnackBar(context, Config.connectionErrorMessage);
       return;
@@ -187,7 +187,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
       _codeSent = false;
     });
 
-    await _customAuth.requestPhoneVerification(widget.userDetails.phoneNumber,
+    await CustomAuth.requestPhoneVerification(widget.userDetails.phoneNumber,
         context, verifyPhoneFn, autoVerifyPhoneFn);
 
     if (!mounted) {
@@ -203,7 +203,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
   }
 
   Future<void> _resendVerificationCode() async {
-    var connected = await _customAuth.isConnected();
+    var connected = await hasFirebaseConnection();
     if (!connected) {
       await showSnackBar(context, Config.connectionErrorMessage);
       return;
@@ -217,9 +217,8 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
       _isResending = true;
     });
 
-    await _customAuth
-        .requestPhoneVerification(widget.userDetails.phoneNumber, context,
-            verifyPhoneFn, autoVerifyPhoneFn)
+    await CustomAuth.requestPhoneVerification(widget.userDetails.phoneNumber,
+            context, verifyPhoneFn, autoVerifyPhoneFn)
         .then((value) => {
               setState(() {
                 _isResending = false;
@@ -233,7 +232,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
   }
 
   Future<void> _verifySentCode() async {
-    var connected = await _customAuth.isConnected();
+    var connected = await hasFirebaseConnection();
     if (!connected) {
       await showSnackBar(context, Config.connectionErrorMessage);
       return;
@@ -260,7 +259,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
         smsCode: _phoneVerificationCode.join(''));
     try {
       var success =
-          await _customAuth.reAuthenticateWithPhoneNumber(credential, context);
+          await CustomAuth.reAuthenticateWithPhoneNumber(credential, context);
       if (success) {
         Navigator.pop(context, true);
       } else {
@@ -283,7 +282,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
         });
       }
       if (exception.code == 'session-expired') {
-        await _customAuth.requestPhoneVerification(
+        await CustomAuth.requestPhoneVerification(
             widget.userDetails.phoneNumber,
             context,
             verifyPhoneFn,

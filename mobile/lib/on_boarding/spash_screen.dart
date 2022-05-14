@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../models/enum_constants.dart';
+import '../services/local_storage.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -51,7 +52,7 @@ class SplashScreenState extends State<SplashScreen> {
     var isLoggedIn = _appService.isLoggedIn();
 
     var nextPage = getOnBoardingPageConstant(
-        await _appService.preferencesHelper.getOnBoardingPage());
+        await SharedPreferencesHelper.getOnBoardingPage());
 
     Future.delayed(const Duration(seconds: 1), _updateWidget);
 

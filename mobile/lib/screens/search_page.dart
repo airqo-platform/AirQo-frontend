@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../services/app_service.dart';
+import '../services/native_api.dart';
 import '../themes/light_theme.dart';
 import 'insights_page.dart';
 
@@ -86,7 +87,7 @@ class _SearchPageState extends State<SearchPage> {
 
   Future<void> getUserLocation() async {
     try {
-      var location = await _appService.locationService.getLocation();
+      var location = await LocationService.getLocation();
       if (location == null) {
         await showSnackBar(context, Config.locationErrorMessage);
         return;
@@ -94,8 +95,7 @@ class _SearchPageState extends State<SearchPage> {
       var latitude = location.latitude;
       var longitude = location.longitude;
       if (longitude != null && latitude != null) {
-        await _appService.locationService
-            .getNearestSites(latitude, longitude)
+        await LocationService.getNearestSites(latitude, longitude)
             .then((value) => {
                   if (mounted)
                     {
@@ -416,8 +416,7 @@ class _SearchPageState extends State<SearchPage> {
           ),
           GestureDetector(
             onTap: () {
-              _appService.locationService
-                  .requestLocationAccess()
+              LocationService.requestLocationAccess()
                   .then((value) => {getUserLocation()});
             },
             child: Container(
@@ -474,8 +473,7 @@ class _SearchPageState extends State<SearchPage> {
       }
 
       setState(() {
-        _searchSites =
-            _appService.locationService.textSearchNearestSites(text, _allSites);
+        _searchSites = LocationService.textSearchNearestSites(text, _allSites);
       });
     }
   }
@@ -649,7 +647,7 @@ class _SearchPageState extends State<SearchPage> {
     });
     var place = await _appService.searchApi.getPlaceDetails(suggestion.placeId);
     if (place != null) {
-      var nearestSite = await _appService.locationService.getNearestSite(
+      var nearestSite = await LocationService.getNearestSite(
           place.geometry.location.lat, place.geometry.location.lng);
 
       if (nearestSite == null) {

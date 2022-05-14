@@ -5,6 +5,8 @@ import 'package:app/utils/dialogs.dart';
 import 'package:flutter/material.dart';
 
 import '../models/enum_constants.dart';
+import '../services/firebase_service.dart';
+import '../services/local_storage.dart';
 
 class SetUpCompleteScreen extends StatefulWidget {
   const SetUpCompleteScreen({Key? key}) : super(key: key);
@@ -55,7 +57,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   @override
   void initState() {
     super.initState();
-    _appService.preferencesHelper.updateOnBoardingPage(OnBoardingPage.complete);
+    SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.complete);
     initialize();
   }
 
@@ -80,11 +82,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   @Deprecated('Functionality has been transferred to the backend')
   Future<void> sendWelcomeEmail() async {
     try {
-      var userDetails = await _appService.cloudStore
-          .getProfile(_appService.customAuth.getUserId());
-      if (userDetails == null) {
-        return;
-      }
+      var userDetails = await CloudStore.getProfile();
       await _appService.apiClient.sendWelcomeMessage(userDetails);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
@@ -103,7 +101,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   Future<void> _updateOnBoardingPage(OnBoardingPage page) async {
     await Future.wait([
       _appService.postSignUpActions(context),
-      _appService.preferencesHelper.updateOnBoardingPage(page)
+      SharedPreferencesHelper.updateOnBoardingPage(page)
     ]);
   }
 }

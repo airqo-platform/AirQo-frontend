@@ -21,6 +21,7 @@ import 'package:uuid/uuid.dart';
 
 import '../models/enum_constants.dart';
 import '../services/app_service.dart';
+import '../services/native_api.dart';
 
 class MapView extends StatefulWidget {
   const MapView({Key? key}) : super(key: key);
@@ -371,8 +372,8 @@ class _MapViewState extends State<MapView> {
     } else {
       setState(() {
         _isSearching = true;
-        _searchSites = _appService.locationService
-            .textSearchNearestSites(text, _latestMeasurements);
+        _searchSites =
+            LocationService.textSearchNearestSites(text, _latestMeasurements);
       });
 
       _appService.searchApi.fetchSuggestions(text).then((value) => {
@@ -382,8 +383,8 @@ class _MapViewState extends State<MapView> {
           });
 
       setState(() {
-        _searchSites = _appService.locationService
-            .textSearchNearestSites(text, _latestMeasurements);
+        _searchSites =
+            LocationService.textSearchNearestSites(text, _latestMeasurements);
       });
     }
   }
@@ -808,7 +809,7 @@ class _MapViewState extends State<MapView> {
     });
     var place = await _appService.searchApi.getPlaceDetails(suggestion.placeId);
     if (place != null) {
-      var nearestSite = await _appService.locationService.getNearestSite(
+      var nearestSite = await LocationService.getNearestSite(
           place.geometry.location.lat, place.geometry.location.lng);
 
       if (nearestSite == null) {

@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../services/app_service.dart';
+import '../services/firebase_service.dart';
 
 class ChangeEmailScreen extends StatefulWidget {
   const ChangeEmailScreen({
@@ -324,7 +325,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
       _showResendCode = false;
       _emailVerificationCode = <String>['', '', '', '', '', ''];
       _nextBtnColor = Config.appColorDisabled;
-      _user = _appService.customAuth.getUser();
+      _user = CustomAuth.getUser();
     });
   }
 
@@ -415,15 +416,14 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
       });
       return;
     }
-    var user = _appService.customAuth.getUser();
+    var user = CustomAuth.getUser();
 
     if (user == null) {
       await showSnackBar(context, 'Failed to update email address');
       return;
     }
 
-    var success =
-        await _appService.customAuth.updateEmailAddress(_emailAddress, context);
+    var success = await CustomAuth.updateEmailAddress(_emailAddress, context);
 
     if (success) {
       Navigator.pop(context, true);

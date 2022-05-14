@@ -11,6 +11,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
 import '../models/enum_constants.dart';
+import '../services/local_storage.dart';
 import '../themes/light_theme.dart';
 import 'notifications_setup_screen.dart';
 
@@ -325,8 +326,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   }
 
   void updateOnBoardingPage() async {
-    await _appService.preferencesHelper
-        .updateOnBoardingPage(OnBoardingPage.profile);
+    await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.profile);
   }
 
   void updateTitle(String text) {

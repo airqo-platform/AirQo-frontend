@@ -189,3 +189,7 @@ class Config {
     return index == 0 ? 16.0 : 0.0;
   }
 }
+
+class HiveBox {
+  static String get notifications => 'notifications';
+}

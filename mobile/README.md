@@ -31,6 +31,7 @@ flutter run
 
 ```bash
 flutter pub run build_runner build --delete-conflicting-outputs
+flutter packages pub run build_runner build
 flutter build appbundle [--analyze-size]
 flutter build ipa
 dart fix --dry-run

@@ -16,6 +16,7 @@ import '../auth/change_email_screen.dart';
 import '../auth/change_phone_screen.dart';
 import '../models/enum_constants.dart';
 import '../services/app_service.dart';
+import '../services/firebase_service.dart';
 import '../themes/light_theme.dart';
 import 'home_page.dart';
 
@@ -435,7 +436,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       setState(() {
         updating = true;
       });
-      await _appService.customAuth.updateProfile(userDetails!).then((value) => {
+      await CustomAuth.updateProfile(userDetails!).then((value) => {
             uploadPicture().then((_) => {
                   Navigator.pop(dialogContext),
                   updating = false,
@@ -454,13 +455,13 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     }
 
     try {
-      var imageUrl = await _appService.cloudStore.uploadProfilePicture(
-          _profilePic, _appService.customAuth.getUserId());
+      var imageUrl = await CloudStore.uploadProfilePicture(
+          _profilePic, CustomAuth.getUserId());
 
       if (imageUrl != null) {
         await _appService.logEvent(AnalyticsEvent.uploadProfilePicture);
         userDetails!.photoUrl = imageUrl;
-        await _appService.customAuth.updateProfile(userDetails!);
+        await CustomAuth.updateProfile(userDetails!);
       }
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');

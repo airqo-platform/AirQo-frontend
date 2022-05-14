@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
+import '../../services/native_api.dart';
 import '../../themes/light_theme.dart';
 import '../../utils/exception.dart';
 import '../../widgets/custom_shimmer.dart';
@@ -69,8 +70,8 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                 GestureDetector(
                   onTap: () async {
                     try {
-                      await _appService.shareService
-                          .shareKya(context, _globalKeys[currentIndex]);
+                      await ShareService.shareKya(
+                          context, _globalKeys[currentIndex]);
                     } catch (exception, stackTrace) {
                       await logException(exception, stackTrace);
                     }

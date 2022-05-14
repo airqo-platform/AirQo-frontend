@@ -15,37 +15,32 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:provider/provider.dart';
+import 'package:hive/hive.dart';
 
 import '../models/enum_constants.dart';
 import '../utils/exception.dart';
+import '../utils/network.dart';
 import 'local_storage.dart';
 
 class CloudAnalytics {
-  final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
-
-  Future<void> logEvent(
+  static Future<void> logEvent(
       AnalyticsEvent analyticsEvent, bool loggedInUser) async {
-    await analytics.logEvent(
+    await FirebaseAnalytics.instance.logEvent(
       name: analyticsEvent.getName(''),
     );
   }
 }
 
 class CloudStore {
-  final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
-  final SharedPreferencesHelper _preferencesHelper = SharedPreferencesHelper();
-  final firebase_storage.FirebaseStorage storage =
-      firebase_storage.FirebaseStorage.instance;
-
-  Future<void> addFavPlace(String userId, PlaceDetails placeDetails) async {
-    var hasConnection = await isConnected();
+  static Future<void> addFavPlace(
+      String userId, PlaceDetails placeDetails) async {
+    var hasConnection = await hasFirebaseConnection();
     if (!hasConnection || userId.trim().isEmpty) {
       return;
     }
 
     try {
-      await _firebaseFirestore
+      await FirebaseFirestore.instance
           .collection(Config.favPlacesCollection)
           .doc(userId)
           .collection(userId)
@@ -56,8 +51,8 @@ class CloudStore {
     }
   }
 
-  Future<void> deleteAccount(id) async {
-    var hasConnection = await isConnected();
+  static Future<void> deleteAccount(id) async {
+    var hasConnection = await hasFirebaseConnection();
     if (!hasConnection) {
       return;
     }
@@ -65,7 +60,7 @@ class CloudStore {
     /// TODO IMPLEMENT DELETE NOTIFICATIONS
     /// TODO IMPLEMENT DELETE KYA
     try {
-      await _firebaseFirestore
+      await FirebaseFirestore.instance
           .collection(Config.usersCollection)
           .doc(id)
           .delete();
@@ -74,18 +69,18 @@ class CloudStore {
     }
   }
 
-  Future<List<PlaceDetails>> getFavPlaces(String userId) async {
+  static Future<List<PlaceDetails>> getFavPlaces(String userId) async {
     if (userId == '') {
       return [];
     }
 
-    var hasConnection = await isConnected();
+    var hasConnection = await hasFirebaseConnection();
     if (!hasConnection) {
       return [];
     }
 
     try {
-      var placesJson = await _firebaseFirestore
+      var placesJson = await FirebaseFirestore.instance
           .collection('${Config.favPlacesCollection}/$userId/$userId')
           .get();
 
@@ -110,14 +105,15 @@ class CloudStore {
     return [];
   }
 
-  Future<List<Kya>> getKya(String userId) async {
+  static Future<List<Kya>> getKya(String userId) async {
     try {
-      var kyasJson =
-          await _firebaseFirestore.collection(Config.kyaCollection).get();
+      var kyasJson = await FirebaseFirestore.instance
+          .collection(Config.kyaCollection)
+          .get();
       var userKyas = <UserKya>[];
 
       if (userId.isNotEmpty && userId.trim() != '') {
-        var userKyaJson = await _firebaseFirestore
+        var userKyaJson = await FirebaseFirestore.instance
             .collection(Config.usersKyaCollection)
             .doc(userId)
             .collection(userId)
@@ -171,87 +167,109 @@ class CloudStore {
     return [];
   }
 
-  Future<List<UserNotification>> getNotifications(String id) async {
-    if (id == '') {
-      return [];
-    }
+  // TODO - fix functionality
+  // Future<List<AppNotification>> getNotifications(String id) async {
+  //   if (id == '') {
+  //     return [];
+  //   }
+  //
+  //   var hasConnection = await isConnected();
+  //   if (!hasConnection) {
+  //     return [];
+  //   }
+  //
+  //   try {
+  //     var notificationsJson = await _firebaseFirestore
+  //         .collection('${Config.notificationCollection}/$id/$id')
+  //         .get();
+  //
+  //     var notifications = <AppNotification>[];
+  //
+  //     var notificationDocs = notificationsJson.docs;
+  //     for (var doc in notificationDocs) {
+  //       var notification =
+  //           await compute(AppNotification.parseNotification, doc.data());
+  //       if (notification != null) {
+  //         notifications.add(notification);
+  //       }
+  //     }
+  //
+  //     return notifications;
+  //   } catch (exception, stackTrace) {
+  //     await logException(exception, stackTrace);
+  //   }
+  //
+  //   return [];
+  // }
 
-    var hasConnection = await isConnected();
-    if (!hasConnection) {
-      return [];
+  static String getUserId() {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null || uid.isEmpty) {
+      throw UserException('Missing uuid');
     }
+    return uid;
+  }
 
+  static Future<void> getNotifications() async {
     try {
-      var notificationsJson = await _firebaseFirestore
-          .collection('${Config.notificationCollection}/$id/$id')
+      final uuid = CloudStore.getUserId();
+      var notificationsJson = await FirebaseFirestore.instance
+          .collection('${Config.notificationCollection}/$uuid/$uuid')
           .get();
 
-      var notifications = <UserNotification>[];
+      final notifications = {};
 
       var notificationDocs = notificationsJson.docs;
       for (var doc in notificationDocs) {
-        var notification =
-            await compute(UserNotification.parseNotification, doc.data());
+        var notification = AppNotification.parseAppNotification(doc.data());
         if (notification != null) {
-          notifications.add(notification);
+          notifications[notification.id] = notification;
         }
       }
 
-      return notifications;
+      var box = Hive.box(HiveBox.notifications);
+      await box.putAll(notifications);
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
     }
-
-    return [];
   }
 
-  Future<UserDetails?> getProfile(String id) async {
-    if (id == '') {
-      return null;
-    }
-
-    var hasConnection = await isConnected();
-    if (!hasConnection) {
-      return UserDetails.initialize();
-    }
-
+  static Future<UserDetails> getProfile() async {
     try {
-      var userJson = await _firebaseFirestore
+      final uuid = CloudStore.getUserId();
+
+      var userJson = await FirebaseFirestore.instance
           .collection(Config.usersCollection)
-          .doc(id)
+          .doc(uuid)
           .get();
       return await compute(UserDetails.parseUserDetails, userJson.data());
+    } on FirebaseException catch (exception, _) {
+      if (exception.code == 'not-found') {
+        await CustomAuth.createProfile();
+      } else {
+        rethrow;
+      }
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
     }
 
-    return null;
+    return UserDetails.initialize();
   }
 
-  Future<bool> isConnected() async {
-    try {
-      final result = await InternetAddress.lookup('firebase.google.com');
-      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-        return true;
-      }
-    } on Exception catch (_) {}
-    return false;
-  }
-
-  Future<bool> markNotificationAsRead(
+  static Future<bool> markNotificationAsRead(
       String userId, String notificationId) async {
     if (userId == '' || notificationId == '') {
       return false;
     }
 
-    var hasConnection = await isConnected();
+    var hasConnection = await hasFirebaseConnection();
     if (!hasConnection) {
       return false;
     }
 
     try {
       var updated = false;
-      await _firebaseFirestore
+      await FirebaseFirestore.instance
           .collection('${Config.notificationCollection}/$userId/$userId')
           .doc(notificationId)
           .update({'isNew': false}).then((value) => {updated = true});
@@ -264,60 +282,43 @@ class CloudStore {
     return false;
   }
 
-  Future<void> monitorNotifications(context, String id) async {
-    var notifications = await getNotifications(id);
+  // TODO - fix functionality
+  // Future<void> monitorNotifications(context, String id) async {
+  //   var notifications = await getNotifications(id);
+  //
+  //   if (notifications.isEmpty) {
+  //     return;
+  //   }
+  //
+  //   try {
+  //     _firebaseFirestore
+  //         .collection('${Config.notificationCollection}/$id/$id')
+  //         .where('isNew', isEqualTo: true)
+  //         .snapshots()
+  //         .listen((result) async {
+  //       for (var result in result.docs) {
+  //         var notification =
+  //             await compute(AppNotification.parseNotification,
+  //             result.data());
+  //         if (notification != null) {
+  //           Provider.of<NotificationModel>(context, listen: false)
+  //               .add(notification);
+  //         }
+  //       }
+  //     });
+  //   } catch (exception, stackTrace) {
+  //     await logException(exception, stackTrace);
+  //   }
+  // }
 
-    if (notifications.isEmpty) {
-      return;
-    }
-
-    try {
-      _firebaseFirestore
-          .collection('${Config.notificationCollection}/$id/$id')
-          .where('isNew', isEqualTo: true)
-          .snapshots()
-          .listen((result) async {
-        for (var result in result.docs) {
-          var notification =
-              await compute(UserNotification.parseNotification, result.data());
-          if (notification != null) {
-            Provider.of<NotificationModel>(context, listen: false)
-                .add(notification);
-          }
-        }
-      });
-    } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
-    }
-  }
-
-  Future<bool> profileExists(String id) async {
-    var hasConnection = await isConnected();
-
-    if (!hasConnection) {
-      return false;
-    }
-
-    try {
-      var data = await _firebaseFirestore
-          .collection(Config.usersCollection)
-          .doc(id)
-          .get();
-      return data.exists;
-    } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
-    }
-
-    return false;
-  }
-
-  Future<void> removeFavPlace(String userId, PlaceDetails placeDetails) async {
-    var hasConnection = await isConnected();
+  static Future<void> removeFavPlace(
+      String userId, PlaceDetails placeDetails) async {
+    var hasConnection = await hasFirebaseConnection();
     if (!hasConnection || userId.trim().isEmpty) {
       return;
     }
     try {
-      await _firebaseFirestore
+      await FirebaseFirestore.instance
           .collection(Config.favPlacesCollection)
           .doc(userId)
           .collection(userId)
@@ -328,17 +329,17 @@ class CloudStore {
     }
   }
 
-  Future<void> updateFavPlaces(
+  static Future<void> updateFavPlaces(
       String userId, List<PlaceDetails> favPlaces) async {
-    var hasConnection = await isConnected();
+    var hasConnection = await hasFirebaseConnection();
     if (!hasConnection || userId.trim().isEmpty) {
       return;
     }
-    var batch = _firebaseFirestore.batch();
+    var batch = FirebaseFirestore.instance.batch();
 
     for (var place in favPlaces) {
       try {
-        var document = _firebaseFirestore
+        var document = FirebaseFirestore.instance
             .collection(Config.favPlacesCollection)
             .doc(userId)
             .collection(userId)
@@ -351,13 +352,13 @@ class CloudStore {
     return batch.commit();
   }
 
-  Future<void> updateKyaProgress(String userId, Kya kya) async {
+  static Future<void> updateKyaProgress(String userId, Kya kya) async {
     if (userId.isEmpty || userId.trim() == '') {
       return;
     }
 
     try {
-      await _firebaseFirestore
+      await FirebaseFirestore.instance
           .collection(Config.usersKyaCollection)
           .doc(userId)
           .collection(userId)
@@ -365,7 +366,7 @@ class CloudStore {
           .update({'progress': kya.progress});
     } on FirebaseException catch (exception, stackTrace) {
       if (exception.code == 'not-found') {
-        await _firebaseFirestore
+        await FirebaseFirestore.instance
             .collection(Config.usersKyaCollection)
             .doc(userId)
             .collection(userId)
@@ -379,16 +380,16 @@ class CloudStore {
     }
   }
 
-  Future<void> updatePreferenceFields(
+  static Future<void> updatePreferenceFields(
       String id, String field, dynamic value, String type) async {
-    await _preferencesHelper.updatePreference(field, value, type);
-    var hasConnection = await isConnected();
+    await SharedPreferencesHelper.updatePreference(field, value, type);
+    var hasConnection = await hasFirebaseConnection();
     if (!hasConnection) {
       return;
     }
 
     try {
-      DocumentSnapshot userDoc = await _firebaseFirestore
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
           .collection(Config.usersCollection)
           .doc(id)
           .get();
@@ -405,7 +406,7 @@ class CloudStore {
         }
         var userJson = userDetails.toJson();
 
-        await _firebaseFirestore
+        await FirebaseFirestore.instance
             .collection(Config.usersCollection)
             .doc(id)
             .update(userJson);
@@ -415,8 +416,8 @@ class CloudStore {
     }
   }
 
-  Future<void> updateProfile(UserDetails userDetails, String id) async {
-    var hasConnection = await isConnected();
+  static Future<void> updateProfile(UserDetails userDetails, String id) async {
+    var hasConnection = await hasFirebaseConnection();
     if (!hasConnection) {
       return;
     }
@@ -424,12 +425,12 @@ class CloudStore {
     try {
       var _userJson = userDetails.toJson();
       try {
-        await _firebaseFirestore
+        await FirebaseFirestore.instance
             .collection(Config.usersCollection)
             .doc(id)
             .update(_userJson);
       } catch (exception) {
-        await _firebaseFirestore
+        await FirebaseFirestore.instance
             .collection(Config.usersCollection)
             .doc(id)
             .set(_userJson);
@@ -439,21 +440,21 @@ class CloudStore {
     }
   }
 
-  Future<void> updateProfileFields(
+  static Future<void> updateProfileFields(
       String id, Map<String, Object?> fields) async {
-    var hasConnection = await isConnected();
+    var hasConnection = await hasFirebaseConnection();
     if (!hasConnection) {
       return;
     }
 
     try {
-      await _firebaseFirestore
+      await FirebaseFirestore.instance
           .collection(Config.usersCollection)
           .doc(id)
           .update(fields);
     } catch (exception, stackTrace) {
       if (exception.toString().contains('not-found')) {
-        await _firebaseFirestore
+        await FirebaseFirestore.instance
             .collection(Config.usersCollection)
             .doc(id)
             .set(fields);
@@ -462,7 +463,8 @@ class CloudStore {
     }
   }
 
-  Future<String?> uploadProfilePicture(String filePath, String userId) async {
+  static Future<String?> uploadProfilePicture(
+      String filePath, String userId) async {
     try {
       var file = File(filePath);
 
@@ -484,26 +486,26 @@ class CloudStore {
   }
 }
 
+class CloudMessaging {
+  static Future<String?> getDeviceToken() async {
+    var token = await FirebaseMessaging.instance.getToken();
+    return token;
+  }
+}
+
 class CustomAuth {
-  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-  final CloudStore _cloudStore = CloudStore();
-  final SecureStorage _secureStorage = SecureStorage();
-  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
-
-  FirebaseAuth get firebaseAuth => _firebaseAuth;
-
-  Future<UserDetails?> createProfile() async {
-    var hasConnection = await isConnected();
+  static Future<UserDetails?> createProfile() async {
+    var hasConnection = await hasFirebaseConnection();
     if (!hasConnection) {
       return null;
     }
 
     try {
-      var firebaseUser = _firebaseAuth.currentUser;
+      var firebaseUser = FirebaseAuth.instance.currentUser;
       if (firebaseUser != null) {
         var userDetails = UserDetails.initialize();
 
-        var device = await getDeviceToken() ?? '';
+        var device = await CloudMessaging.getDeviceToken() ?? '';
         userDetails
           ..device = device
           ..userId = firebaseUser.uid;
@@ -526,11 +528,11 @@ class CustomAuth {
     return null;
   }
 
-  Future<bool> emailAuthentication(
+  static Future<bool> emailAuthentication(
       String emailAddress, String link, BuildContext context) async {
     try {
-      var userCredential = await _firebaseAuth.signInWithEmailLink(
-          emailLink: link, email: emailAddress);
+      var userCredential = await FirebaseAuth.instance
+          .signInWithEmailLink(emailLink: link, email: emailAddress);
       return userCredential.user != null;
     } on FirebaseAuthException catch (exception, stackTrace) {
       if (exception.code == 'invalid-email') {
@@ -552,46 +554,31 @@ class CustomAuth {
     }
   }
 
-  Future<String?> getDeviceToken() async {
-    var token = await _firebaseMessaging.getToken();
-    return token;
-  }
+  static String getDisplayName() {
+    var authInstance = FirebaseAuth.instance;
 
-  String getDisplayName() {
-    if (_firebaseAuth.currentUser == null) {
+    if (authInstance.currentUser == null) {
       return '';
     }
-    return _firebaseAuth.currentUser!.displayName ?? 'Guest';
+    return authInstance.currentUser!.displayName ?? 'Guest';
   }
 
-  User? getUser() {
-    return _firebaseAuth.currentUser;
+  static User? getUser() {
+    return FirebaseAuth.instance.currentUser;
   }
 
-  String getUserId() {
+  static String getUserId() {
     if (!isLoggedIn()) {
       return '';
     }
-    return _firebaseAuth.currentUser!.uid;
+    return FirebaseAuth.instance.currentUser!.uid;
   }
 
-  Future<bool> isConnected() async {
-    try {
-      final result = await InternetAddress.lookup('firebase.google.com');
-      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-        return true;
-      }
-      return false;
-    } catch (_) {}
-
-    return false;
+  static bool isLoggedIn() {
+    return FirebaseAuth.instance.currentUser != null;
   }
 
-  bool isLoggedIn() {
-    return _firebaseAuth.currentUser != null;
-  }
-
-  Future<bool> isValidEmailCode(
+  static Future<bool> isValidEmailCode(
       String subjectCode, String verificationLink) async {
     try {
       final signInLink = Uri.parse(verificationLink);
@@ -606,19 +593,19 @@ class CustomAuth {
     return false;
   }
 
-  Future<void> logOut(context) async {
+  static Future<void> logOut(context) async {
     try {
-      await _firebaseAuth.signOut();
+      await FirebaseAuth.instance.signOut();
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
     }
   }
 
-  Future<bool> phoneNumberAuthentication(
+  static Future<bool> phoneNumberAuthentication(
       AuthCredential authCredential, BuildContext context) async {
     try {
       var userCredential =
-          await _firebaseAuth.signInWithCredential(authCredential);
+          await FirebaseAuth.instance.signInWithCredential(authCredential);
       return userCredential.user != null;
     } on FirebaseAuthException catch (exception, stackTrace) {
       if (exception.code == 'invalid-verification-code') {
@@ -648,16 +635,16 @@ class CustomAuth {
     }
   }
 
-  Future<bool> reAuthenticateWithEmailAddress(
+  static Future<bool> reAuthenticateWithEmailAddress(
       String emailAddress, String link, BuildContext context) async {
-    var hasConnection = await isConnected();
+    var hasConnection = await hasFirebaseConnection();
     if (!hasConnection) {
       return false;
     }
 
     try {
-      var userCredential = await _firebaseAuth.signInWithEmailLink(
-          emailLink: link, email: emailAddress);
+      var userCredential = await FirebaseAuth.instance
+          .signInWithEmailLink(emailLink: link, email: emailAddress);
 
       return userCredential.user != null;
     } catch (exception, stackTrace) {
@@ -666,15 +653,15 @@ class CustomAuth {
     return false;
   }
 
-  Future<bool> reAuthenticateWithPhoneNumber(
+  static Future<bool> reAuthenticateWithPhoneNumber(
       AuthCredential authCredential, BuildContext context) async {
-    var hasConnection = await isConnected();
+    var hasConnection = await hasFirebaseConnection();
     if (!hasConnection) {
       return false;
     }
 
     try {
-      var userCredentials = await _firebaseAuth.currentUser!
+      var userCredentials = await FirebaseAuth.instance.currentUser!
           .reauthenticateWithCredential(authCredential);
 
       // var userCredential =
@@ -698,16 +685,16 @@ class CustomAuth {
   }
 
   @Deprecated('To be replaced with functionality in the app service')
-  Future<bool> requestPhoneVerification(
+  static Future<bool> requestPhoneVerification(
       phoneNumber, context, callBackFn, autoVerificationFn) async {
-    var hasConnection = await isConnected();
+    var hasConnection = await hasFirebaseConnection();
     if (!hasConnection) {
       await showSnackBar(context, Config.connectionErrorMessage);
       return false;
     }
 
     try {
-      await _firebaseAuth.verifyPhoneNumber(
+      await FirebaseAuth.instance.verifyPhoneNumber(
           phoneNumber: phoneNumber,
           verificationCompleted: (PhoneAuthCredential credential) {
             autoVerificationFn(credential);
@@ -738,8 +725,8 @@ class CustomAuth {
     }
   }
 
-  Future<void> updateCredentials(String? phone, String? email) async {
-    var hasConnection = await isConnected();
+  static Future<void> updateCredentials(String? phone, String? email) async {
+    var hasConnection = await hasFirebaseConnection();
     if (!hasConnection) {
       return;
     }
@@ -747,21 +734,21 @@ class CustomAuth {
     try {
       var id = getUserId();
       if (phone != null) {
-        await _cloudStore.updateProfileFields(id, {'phoneNumber': phone});
-        await _secureStorage.updateUserDetailsField('phoneNumber', phone);
+        await CloudStore.updateProfileFields(id, {'phoneNumber': phone});
+        await SecureStorage().updateUserDetailsField('phoneNumber', phone);
       }
       if (email != null) {
-        await _cloudStore.updateProfileFields(id, {'emailAddress': email});
-        await _secureStorage.updateUserDetailsField('emailAddress', email);
+        await CloudStore.updateProfileFields(id, {'emailAddress': email});
+        await SecureStorage().updateUserDetailsField('emailAddress', email);
       }
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
     }
   }
 
-  Future<bool> updateEmailAddress(
+  static Future<bool> updateEmailAddress(
       String emailAddress, BuildContext context) async {
-    var hasConnection = await isConnected();
+    var hasConnection = await hasFirebaseConnection();
     if (!hasConnection) {
       return false;
     }
@@ -785,9 +772,9 @@ class CustomAuth {
     return false;
   }
 
-  Future<bool> updatePhoneNumber(
+  static Future<bool> updatePhoneNumber(
       PhoneAuthCredential authCredential, BuildContext context) async {
-    var hasConnection = await isConnected();
+    var hasConnection = await hasFirebaseConnection();
     if (!hasConnection) {
       return false;
     }
@@ -817,14 +804,14 @@ class CustomAuth {
     return false;
   }
 
-  Future<void> updateProfile(UserDetails userDetails) async {
-    var hasConnection = await isConnected();
+  static Future<void> updateProfile(UserDetails userDetails) async {
+    var hasConnection = await hasFirebaseConnection();
     if (!hasConnection) {
       return;
     }
 
     try {
-      var firebaseUser = _firebaseAuth.currentUser;
+      var firebaseUser = FirebaseAuth.instance.currentUser;
       if (firebaseUser == null) {
         throw Exception('You are not signed in');
       } else {
@@ -845,7 +832,7 @@ class CustomAuth {
           userDetails.emailAddress = firebaseUser.email ?? '';
         }
 
-        await _secureStorage.updateUserDetails(userDetails);
+        await SecureStorage().updateUserDetails(userDetails);
 
         var fields = {
           'title': userDetails.title,
@@ -856,21 +843,21 @@ class CustomAuth {
           'phoneNumber': userDetails.phoneNumber,
         };
 
-        await _cloudStore.updateProfileFields(firebaseUser.uid, fields);
+        await CloudStore.updateProfileFields(firebaseUser.uid, fields);
       }
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
     }
   }
 
-  Future<void> updateUserProfile(UserDetails userDetails) async {
-    var hasConnection = await isConnected();
+  static Future<void> updateUserProfile(UserDetails userDetails) async {
+    var hasConnection = await hasFirebaseConnection();
     if (!hasConnection) {
       return;
     }
 
     try {
-      var firebaseUser = _firebaseAuth.currentUser;
+      var firebaseUser = FirebaseAuth.instance.currentUser;
       if (firebaseUser == null) {
         throw Exception('You are not signed in');
       } else {

@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -24,6 +25,11 @@ void main() async {
   await dotenv.load(fileName: Config.environmentFile);
 
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Hive.initFlutter();
+  await Hive.openBox(HiveBox.notifications);
+
+  Hive.registerAdapter(AppNotificationAdapter());
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -81,7 +87,8 @@ class AirQoApp extends StatelessWidget {
           controller: themeController,
           child: MultiProvider(
             providers: [
-              ChangeNotifierProvider(create: (context) => NotificationModel()),
+              // TODO - fix functionality
+              // ChangeNotifierProvider(create: (context) => NotificationModel()),
               ChangeNotifierProvider(create: (context) => PlaceDetailsModel()),
             ],
             builder: (context, child) {

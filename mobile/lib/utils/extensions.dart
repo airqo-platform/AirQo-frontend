@@ -419,6 +419,19 @@ extension PollutantExtension on Pollutant {
 }
 
 extension StringCasingExtension on String {
+  bool inStatement(String statement) {
+    var terms = toLowerCase().split(' ');
+    var words = statement.toLowerCase().split(' ');
+    for (var word in words) {
+      for (var term in terms) {
+        if (term == word.trim()) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   bool equalsIgnoreCase(String value) {
     if (toLowerCase() == value.toLowerCase()) {
       return true;

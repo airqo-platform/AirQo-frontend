@@ -1,6 +1,5 @@
 import 'package:app/auth/phone_auth_widget.dart';
 import 'package:app/constants/config.dart';
-import 'package:app/models/notification.dart';
 import 'package:app/models/user_details.dart';
 import 'package:app/screens/profile_edit_page.dart';
 import 'package:app/screens/settings_page.dart';
@@ -11,12 +10,11 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:provider/provider.dart';
 
+import '../services/firebase_service.dart';
 import '../themes/light_theme.dart';
 import 'favourite_places.dart';
 import 'for_you_page.dart';
-import 'notification_page.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({Key? key}) : super(key: key);
@@ -40,33 +38,34 @@ class _ProfileViewState extends State<ProfileView> {
           profilePicWidget(
               40, 40, 10, 12, 17.0, _userProfile.photoUrl, 27.0, false),
           const Spacer(),
-          GestureDetector(
-            onTap: notifications,
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              height: 40,
-              width: 40,
-              decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.all(Radius.circular(8.0))),
-              child: Consumer<NotificationModel>(
-                builder: (context, notifications, child) {
-                  if (notifications.hasNotifications()) {
-                    return SvgPicture.asset(
-                      'assets/icon/has_notifications.svg',
-                      height: 20,
-                      width: 16,
-                    );
-                  }
-                  return SvgPicture.asset(
-                    'assets/icon/empty_notifications.svg',
-                    height: 20,
-                    width: 16,
-                  );
-                },
-              ),
-            ),
-          ),
+          // TODO - fix functionality
+          // GestureDetector(
+          //   onTap: notifications,
+          //   child: Container(
+          //     padding: const EdgeInsets.all(10),
+          //     height: 40,
+          //     width: 40,
+          //     decoration: const BoxDecoration(
+          //         color: Colors.white,
+          //         borderRadius: BorderRadius.all(Radius.circular(8.0))),
+          //     child: Consumer<NotificationModel>(
+          //       builder: (context, notifications, child) {
+          //         if (notifications.hasNotifications()) {
+          //           return SvgPicture.asset(
+          //             'assets/icon/has_notifications.svg',
+          //             height: 20,
+          //             width: 16,
+          //           );
+          //         }
+          //         return SvgPicture.asset(
+          //           'assets/icon/empty_notifications.svg',
+          //           height: 20,
+          //           width: 16,
+          //         );
+          //       },
+          //     ),
+          //   ),
+          // ),
         ],
       ),
     );
@@ -208,7 +207,7 @@ class _ProfileViewState extends State<ProfileView> {
 
   Future<void> initialize() async {
     setState(() {
-      _isLoggedIn = _appService.customAuth.isLoggedIn();
+      _isLoggedIn = CustomAuth.isLoggedIn();
     });
 
     if (_isLoggedIn) {
@@ -283,42 +282,44 @@ class _ProfileViewState extends State<ProfileView> {
             profilePicWidget(
                 40, 40, 10, 12, 17.0, _userProfile.photoUrl, 27.0, false),
             const Spacer(),
-            GestureDetector(
-              onTap: notifications,
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                height: 40,
-                width: 40,
-                decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.all(Radius.circular(8.0))),
-                child: Consumer<NotificationModel>(
-                  builder: (context, notifications, child) {
-                    if (notifications.hasNotifications()) {
-                      return SvgPicture.asset(
-                        'assets/icon/has_notifications.svg',
-                        height: 20,
-                        width: 16,
-                      );
-                    }
-                    return SvgPicture.asset(
-                      'assets/icon/empty_notifications.svg',
-                      height: 20,
-                      width: 16,
-                    );
-                  },
-                ),
-              ),
-            ),
+            // TODO - fix functionality
+            // GestureDetector(
+            //   onTap: notifications,
+            //   child: Container(
+            //     padding: const EdgeInsets.all(10),
+            //     height: 40,
+            //     width: 40,
+            //     decoration: const BoxDecoration(
+            //         color: Colors.white,
+            //         borderRadius: BorderRadius.all(Radius.circular(8.0))),
+            //     child: Consumer<NotificationModel>(
+            //       builder: (context, notifications, child) {
+            //         if (notifications.hasNotifications()) {
+            //           return SvgPicture.asset(
+            //             'assets/icon/has_notifications.svg',
+            //             height: 20,
+            //             width: 16,
+            //           );
+            //         }
+            //         return SvgPicture.asset(
+            //           'assets/icon/empty_notifications.svg',
+            //           height: 20,
+            //           width: 16,
+            //         );
+            //       },
+            //     ),
+            //   ),
+            // ),
           ],
         ));
   }
 
   Future<void> notifications() async {
-    Provider.of<NotificationModel>(context, listen: false).removeAll();
-    await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return const NotificationPage();
-    }));
+    // TODO - fix functionality
+    // Provider.of<NotificationModel>(context, listen: false).removeAll();
+    // await Navigator.push(context, MaterialPageRoute(builder: (context) {
+    //   return const NotificationPage();
+    // }));
   }
 
   Widget profilePicWidget(double height, double width, double iconSize,

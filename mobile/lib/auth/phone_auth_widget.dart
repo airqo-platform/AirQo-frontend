@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 
 import '../models/enum_constants.dart';
 import '../on_boarding/profile_setup_screen.dart';
+import '../services/firebase_service.dart';
 import '../themes/light_theme.dart';
 import '../widgets/custom_shimmer.dart';
 
@@ -610,7 +611,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
         }
       }
 
-      var success = await _appService.customAuth.requestPhoneVerification(
+      var success = await CustomAuth.requestPhoneVerification(
           phoneNumber, context, verifyPhoneFn, autoVerifyPhoneFn);
 
       Navigator.pop(_loadingContext);
@@ -638,7 +639,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
 
     loadingScreen(_loadingContext);
 
-    var success = await _appService.customAuth.requestPhoneVerification(
+    var success = await CustomAuth.requestPhoneVerification(
         '$_countryCode$_phoneNumber',
         context,
         verifyPhoneFn,

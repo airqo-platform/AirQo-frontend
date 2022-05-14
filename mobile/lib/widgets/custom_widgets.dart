@@ -101,6 +101,28 @@ PreferredSizeWidget appTopBar(
   );
 }
 
+PreferredSizeWidget appIconTopBar(
+    {required BuildContext context, List<Widget>? actions}) {
+  return AppBar(
+    toolbarHeight: 72,
+    centerTitle: true,
+    elevation: 0,
+    backgroundColor: Config.appBodyColor,
+    automaticallyImplyLeading: false,
+    leading: Padding(
+      padding: const EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
+      child: backButton(context),
+    ),
+    title: SvgPicture.asset(
+      'assets/icon/airqo_home.svg',
+      height: 40,
+      width: 58,
+      semanticsLabel: 'AirQo',
+    ),
+    actions: actions,
+  );
+}
+
 Widget aqiContainerString(
     {required Measurement measurement, required BuildContext context}) {
   return Container(

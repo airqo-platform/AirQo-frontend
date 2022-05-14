@@ -19,6 +19,12 @@ enum AnalyticsEvent {
   deletedAccount
 }
 
+enum AppNotificationType {
+  appUpdate,
+  reminder,
+  welcomeMessage,
+}
+
 enum Region {
   central,
   eastern,

@@ -518,16 +518,16 @@ class _FeedbackPageState extends State<FeedbackPage> {
     var androidUrl = '${Config.appAndroidWhatsappUrl}$_feedbackType';
     var iosUrl = '${Config.appIOSWhatsappUrl}${Uri.parse(_feedbackType)}';
     if (Platform.isIOS) {
-      if (await canLaunch(iosUrl)) {
-        await launch(iosUrl, forceSafariVC: false);
+      if (await canLaunchUrl(Uri.parse(iosUrl))) {
+        await launchUrl(Uri.parse(iosUrl));
       } else {
-        await showSnackBar(context, 'Whatsapp is not installed');
+        await showSnackBar(context, 'Failed to open Whatsapp. Try again later');
       }
     } else {
-      if (await canLaunch(androidUrl)) {
-        await launch(androidUrl);
+      if (await canLaunchUrl(Uri.parse(androidUrl))) {
+        await launchUrl(Uri.parse(androidUrl));
       } else {
-        await showSnackBar(context, 'Whatsapp is not installed');
+        await showSnackBar(context, 'Failed to open Whatsapp. Try again later');
       }
     }
   }

@@ -11,6 +11,8 @@ import 'package:flutter/material.dart';
 
 import '../auth/email_reauthenticate_screen.dart';
 import '../auth/phone_auth_widget.dart';
+import '../services/firebase_service.dart';
+import '../services/native_api.dart';
 import 'about_page.dart';
 import 'feedback_page.dart';
 
@@ -101,7 +103,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _deleteAccount() async {
-    var user = _appService.customAuth.getUser();
+    var user = CustomAuth.getUser();
     var dialogContext = context;
 
     if (user == null) {
@@ -173,13 +175,13 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _initialize() async {
-    await _appService.notificationService.checkPermission().then((value) => {
+    await NotificationService.checkPermission().then((value) => {
           setState(() {
             _allowNotification = value;
           }),
         });
 
-    await _appService.locationService.checkPermission().then((value) => {
+    await LocationService.checkPermission().then((value) => {
           setState(() {
             _allowLocation = value;
           }),
@@ -202,21 +204,17 @@ class _SettingsPageState extends State<SettingsPage> {
               activeColor: Config.appColorBlue,
               onChanged: (bool value) {
                 if (value) {
-                  _appService.locationService
-                      .allowLocationAccess()
-                      .then((response) => {
-                            setState(() {
-                              _allowLocation = response;
-                            })
-                          });
+                  LocationService.allowLocationAccess().then((response) => {
+                        setState(() {
+                          _allowLocation = response;
+                        })
+                      });
                 } else {
-                  _appService.locationService
-                      .revokePermission()
-                      .then((response) => {
-                            setState(() {
-                              _allowLocation = response;
-                            })
-                          });
+                  LocationService.revokePermission().then((response) => {
+                        setState(() {
+                          _allowLocation = response;
+                        })
+                      });
                 }
               },
               value: _allowLocation,
@@ -233,21 +231,17 @@ class _SettingsPageState extends State<SettingsPage> {
               activeColor: Config.appColorBlue,
               onChanged: (bool value) {
                 if (value) {
-                  _appService.notificationService
-                      .allowNotifications()
-                      .then((response) => {
-                            setState(() {
-                              _allowNotification = response;
-                            })
-                          });
+                  NotificationService.allowNotifications().then((response) => {
+                        setState(() {
+                          _allowNotification = response;
+                        })
+                      });
                 } else {
-                  _appService.notificationService
-                      .revokePermission()
-                      .then((response) => {
-                            setState(() {
-                              _allowNotification = response;
-                            })
-                          });
+                  NotificationService.revokePermission().then((response) => {
+                        setState(() {
+                          _allowNotification = response;
+                        })
+                      });
                 }
               },
               value: _allowNotification,
@@ -285,7 +279,7 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           GestureDetector(
             onTap: () async {
-              await _appService.rateService.rateApp();
+              await RateService.rateApp();
             },
             child: _cardSection('Rate the AirQo App'),
           ),

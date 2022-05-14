@@ -1,5 +1,4 @@
 import 'package:app/constants/config.dart';
-import 'package:app/services/app_service.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +6,7 @@ import 'package:flutter_svg/svg.dart';
 
 import '../auth/phone_auth_widget.dart';
 import '../models/enum_constants.dart';
+import '../services/local_storage.dart';
 import '../themes/light_theme.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -18,7 +18,6 @@ class WelcomeScreen extends StatefulWidget {
 
 class WelcomeScreenState extends State<WelcomeScreen> {
   DateTime? _exitTime;
-  final AppService _appService = AppService();
 
   @override
   Widget build(BuildContext context) {
@@ -102,8 +101,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
   }
 
   void updateOnBoardingPage() async {
-    await _appService.preferencesHelper
-        .updateOnBoardingPage(OnBoardingPage.welcome);
+    await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.welcome);
   }
 
   Widget welcomeSection(

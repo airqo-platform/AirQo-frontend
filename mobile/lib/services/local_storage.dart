@@ -4,7 +4,6 @@ import 'package:app/constants/config.dart';
 import 'package:app/models/insights.dart';
 import 'package:app/models/kya.dart';
 import 'package:app/models/measurement.dart';
-import 'package:app/models/notification.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/site.dart';
 import 'package:app/models/user_details.dart';
@@ -14,7 +13,6 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:path/path.dart';
-import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -34,7 +32,8 @@ class DBHelper {
     try {
       final db = await database;
       await db.delete(Kya.dbName());
-      await db.delete(UserNotification.dbName());
+      // TODO - fix functionality
+      // await db.delete(AppNotification.dbName());
       await db.delete(PlaceDetails.dbName());
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
@@ -61,7 +60,8 @@ class DBHelper {
         ..execute(Measurement.dropTableStmt())
         ..execute(Site.dropTableStmt())
         ..execute(PlaceDetails.dropTableStmt())
-        ..execute(UserNotification.dropTableStmt())
+        // TODO - fix functionality
+        //   ..execute(AppNotification.dropTableStmt())
         ..execute(Insights.dropTableStmt())
         ..execute(Kya.dropTableStmt());
       await prefs.setBool(Config.prefReLoadDb, false);
@@ -71,7 +71,8 @@ class DBHelper {
       ..execute(Measurement.createTableStmt())
       ..execute(Site.createTableStmt())
       ..execute(PlaceDetails.createTableStmt())
-      ..execute(UserNotification.createTableStmt())
+      // TODO - fix functionality
+      //   ..execute(AppNotification.createTableStmt())
       ..execute(Insights.createTableStmt())
       ..execute(Kya.createTableStmt());
 
@@ -264,24 +265,26 @@ class DBHelper {
     }
   }
 
-  Future<List<UserNotification>> getUserNotifications() async {
-    try {
-      final db = await database;
-
-      var res = await db.query(UserNotification.dbName());
-
-      return res.isNotEmpty
-          ? List.generate(res.length, (i) {
-              return UserNotification.fromJson(res[i]);
-            })
-          : <UserNotification>[]
-        ..sort(
-            (x, y) => DateTime.parse(x.time).compareTo(DateTime.parse(y.time)));
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      return <UserNotification>[];
-    }
-  }
+  // TODO - fix functionality
+  // Future<List<AppNotification>> getAppNotifications() async {
+  //   try {
+  //     final db = await database;
+  //
+  //     var res = await db.query(AppNotification.dbName());
+  //
+  //     return res.isNotEmpty
+  //         ? List.generate(res.length, (i) {
+  //             return AppNotification.fromJson(res[i]);
+  //           })
+  //         : <AppNotification>[]
+  //       ..sort(
+  //           (x, y) => DateTime.parse(x.time)
+  //           .compareTo(DateTime.parse(y.time)));
+  //   } catch (exception, stackTrace) {
+  //     debugPrint('$exception\n$stackTrace');
+  //     return <AppNotification>[];
+  //   }
+  // }
 
   Future<Database> initDB() async {
     return await openDatabase(
@@ -407,32 +410,33 @@ class DBHelper {
     }
   }
 
-  Future<void> insertUserNotifications(
-      List<UserNotification> notifications, BuildContext context) async {
-    try {
-      final db = await database;
-
-      if (notifications.isEmpty) {
-        return;
-      }
-
-      var batch = db.batch()..delete(UserNotification.dbName());
-
-      for (var notification in notifications) {
-        var jsonData = notification.toJson();
-        batch.insert(
-          UserNotification.dbName(),
-          jsonData,
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
-      }
-      await batch.commit(noResult: true, continueOnError: true);
-      Provider.of<NotificationModel>(context, listen: false)
-          .addAll(notifications);
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-  }
+  // TODO - fix functionality
+  // Future<void> insertAppNotifications(
+  //     List<AppNotification> notifications, BuildContext context) async {
+  //   try {
+  //     final db = await database;
+  //
+  //     if (notifications.isEmpty) {
+  //       return;
+  //     }
+  //
+  //     var batch = db.batch()..delete(AppNotification.dbName());
+  //
+  //     for (var notification in notifications) {
+  //       var jsonData = notification.toJson();
+  //       batch.insert(
+  //         AppNotification.dbName(),
+  //         jsonData,
+  //         conflictAlgorithm: ConflictAlgorithm.replace,
+  //       );
+  //     }
+  //     await batch.commit(noResult: true, continueOnError: true);
+  //     Provider.of<NotificationModel>(context, listen: false)
+  //         .addAll(notifications);
+  //   } catch (exception, stackTrace) {
+  //     debugPrint('$exception\n$stackTrace');
+  //   }
+  // }
 
   Future<void> removeFavPlace(PlaceDetails placeDetails) async {
     try {
@@ -519,87 +523,71 @@ class DBHelper {
 }
 
 class SharedPreferencesHelper {
-  SharedPreferences? _sharedPreferences;
-
-  Future<void> clearPreferences() async {
-    if (_sharedPreferences == null) {
-      await initialize();
+  static Future<void> clearPreferences() async {
+    var sharedPreferences = await SharedPreferences.getInstance();
+    if (sharedPreferences.containsKey('notifications')) {
+      await sharedPreferences.remove('notifications');
     }
-    if (_sharedPreferences!.containsKey('notifications')) {
-      await _sharedPreferences!.remove('notifications');
+    if (sharedPreferences.containsKey('aqShares')) {
+      await sharedPreferences.remove('aqShares');
     }
-    if (_sharedPreferences!.containsKey('aqShares')) {
-      await _sharedPreferences!.remove('aqShares');
+    if (sharedPreferences.containsKey('location')) {
+      await sharedPreferences.remove('location');
     }
-    if (_sharedPreferences!.containsKey('location')) {
-      await _sharedPreferences!.remove('location');
-    }
-    if (_sharedPreferences!.containsKey('alerts')) {
-      await _sharedPreferences!.remove('alerts');
+    if (sharedPreferences.containsKey('alerts')) {
+      await sharedPreferences.remove('alerts');
     }
   }
 
-  Future<String> getOnBoardingPage() async {
-    if (_sharedPreferences == null) {
-      await initialize();
-    }
+  static Future<String> getOnBoardingPage() async {
+    var sharedPreferences = await SharedPreferences.getInstance();
     var page =
-        _sharedPreferences!.getString(Config.prefOnBoardingPage) ?? 'welcome';
+        sharedPreferences.getString(Config.prefOnBoardingPage) ?? 'welcome';
 
     return page;
   }
 
-  Future<UserPreferences> getPreferences() async {
-    if (_sharedPreferences == null) {
-      await initialize();
-    }
-    var notifications = _sharedPreferences!.getBool('notifications') ?? false;
-    var location = _sharedPreferences!.getBool('location') ?? false;
-    var alerts = _sharedPreferences!.getBool('alerts') ?? false;
-    var aqShares = _sharedPreferences!.getInt('aqShares') ?? 0;
+  static Future<UserPreferences> getPreferences() async {
+    var sharedPreferences = await SharedPreferences.getInstance();
+    var notifications = sharedPreferences.getBool('notifications') ?? false;
+    var location = sharedPreferences.getBool('location') ?? false;
+    var alerts = sharedPreferences.getBool('alerts') ?? false;
+    var aqShares = sharedPreferences.getInt('aqShares') ?? 0;
 
     return UserPreferences(notifications, location, alerts, aqShares);
   }
 
-  Future<void> initialize() async {
-    _sharedPreferences = await SharedPreferences.getInstance();
+  static Future<void> updateOnBoardingPage(
+      OnBoardingPage currentBoardingPage) async {
+    var sharedPreferences = await SharedPreferences.getInstance();
+    await sharedPreferences.setString(
+        Config.prefOnBoardingPage, currentBoardingPage.getName());
   }
 
-  Future<void> updateOnBoardingPage(OnBoardingPage currentBoardingPage) async {
-    if (_sharedPreferences == null) {
-      await initialize();
-    }
-    await _sharedPreferences!
-        .setString(Config.prefOnBoardingPage, currentBoardingPage.getName());
-  }
-
-  Future<void> updatePreference(String key, dynamic value, String type) async {
+  static Future<void> updatePreference(
+      String key, dynamic value, String type) async {
     try {
-      if (_sharedPreferences == null) {
-        await initialize();
-      }
+      var sharedPreferences = await SharedPreferences.getInstance();
       if (type == 'bool') {
-        await _sharedPreferences!.setBool(key, value);
+        await sharedPreferences.setBool(key, value);
       } else if (type == 'double') {
-        await _sharedPreferences!.setDouble(key, value);
+        await sharedPreferences.setDouble(key, value);
       } else if (type == 'int') {
-        await _sharedPreferences!.setInt(key, value);
+        await sharedPreferences.setInt(key, value);
       } else {
-        await _sharedPreferences!.setString(key, value);
+        await sharedPreferences.setString(key, value);
       }
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
   }
 
-  Future<void> updatePreferences(UserPreferences userPreferences) async {
-    if (_sharedPreferences == null) {
-      await initialize();
-    }
-    await _sharedPreferences!
-        .setBool('notifications', userPreferences.notifications);
-    await _sharedPreferences!.setBool('location', userPreferences.location);
-    await _sharedPreferences!.setBool('alerts', userPreferences.alerts);
-    await _sharedPreferences!.setInt('aqShares', userPreferences.aqShares);
+  static Future<void> updatePreferences(UserPreferences userPreferences) async {
+    var sharedPreferences = await SharedPreferences.getInstance();
+    await sharedPreferences.setBool(
+        'notifications', userPreferences.notifications);
+    await sharedPreferences.setBool('location', userPreferences.location);
+    await sharedPreferences.setBool('alerts', userPreferences.alerts);
+    await sharedPreferences.setInt('aqShares', userPreferences.aqShares);
   }
 }

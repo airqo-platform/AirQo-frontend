@@ -1,14 +1,13 @@
 import 'package:animations/animations.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/enum_constants.dart';
-import 'package:app/models/notification.dart';
 import 'package:app/screens/profile_view.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:provider/provider.dart';
 
+import '../services/local_storage.dart';
 import 'dashboard_view.dart';
 import 'map_view.dart';
 
@@ -105,28 +104,29 @@ class _HomePageState extends State<HomePage> {
                         : Config.appColorBlack.withOpacity(0.3),
                     semanticsLabel: 'Search',
                   ),
-                  Positioned(
-                    right: 0.0,
-                    child: Consumer<NotificationModel>(
-                      builder: (context, notificationModel, child) {
-                        if (notificationModel.navBarNotification) {
-                          return Container(
-                            height: 4,
-                            width: 4,
-                            decoration: BoxDecoration(
-                                shape: BoxShape.circle, color: Config.red),
-                          );
-                        }
-                        return Container(
-                          height: 0.1,
-                          width: 0.1,
-                          decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.transparent),
-                        );
-                      },
-                    ),
-                  ),
+                  // TODO - fix functionality
+                  // Positioned(
+                  //   right: 0.0,
+                  //   child: Consumer<NotificationModel>(
+                  //     builder: (context, notificationModel, child) {
+                  //       if (notificationModel.navBarNotification) {
+                  //         return Container(
+                  //           height: 4,
+                  //           width: 4,
+                  //           decoration: BoxDecoration(
+                  //               shape: BoxShape.circle, color: Config.red),
+                  //         );
+                  //       }
+                  //       return Container(
+                  //         height: 0.1,
+                  //         width: 0.1,
+                  //         decoration: const BoxDecoration(
+                  //             shape: BoxShape.circle,
+                  //             color: Colors.transparent),
+                  //       );
+                  //     },
+                  //   ),
+                  // ),
                 ],
               ),
               label: 'Profile',
@@ -186,15 +186,15 @@ class _HomePageState extends State<HomePage> {
   }
 
   void updateOnBoardingPage() async {
-    await _appService.preferencesHelper
-        .updateOnBoardingPage(OnBoardingPage.home);
+    await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.home);
   }
 
   Future<void> _getCloudStore() async {
-    if (_appService.customAuth.isLoggedIn()) {
-      await _appService.cloudStore
-          .monitorNotifications(context, _appService.customAuth.getUserId());
-    }
+    // TODO - fix functionality
+    // if (_appService.customAuth.isLoggedIn()) {
+    //   await _appService.cloudStore
+    //       .monitorNotifications(context, _appService.customAuth.getUserId());
+    // }
   }
 
   void _onItemTapped(int index) {
@@ -202,9 +202,10 @@ class _HomePageState extends State<HomePage> {
       _selectedIndex = index;
     });
 
-    if (index == 2) {
-      Provider.of<NotificationModel>(context, listen: false)
-          .removeNavBarNotification();
-    }
+    // TODO - fix functionality
+    // if (index == 2) {
+    //   Provider.of<NotificationModel>(context, listen: false)
+    //       .removeNavBarNotification();
+    // }
   }
 }

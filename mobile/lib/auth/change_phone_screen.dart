@@ -1,6 +1,7 @@
 import 'package:app/constants/config.dart';
 import 'package:app/services/firebase_service.dart';
 import 'package:app/utils/dialogs.dart';
+import 'package:app/utils/network.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -27,13 +28,12 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
   List<String> _phoneVerificationCode = <String>['', '', '', '', '', ''];
   Color _nextBtnColor = Config.appColorDisabled;
 
-  final CustomAuth _customAuth = CustomAuth();
   final TextEditingController _phoneInputController = TextEditingController();
   final _phoneFormKey = GlobalKey<FormState>();
   User? _user;
 
   Future<void> autoVerifyPhoneFn(PhoneAuthCredential credential) async {
-    var success = await _customAuth.updatePhoneNumber(credential, context);
+    var success = await CustomAuth.updatePhoneNumber(credential, context);
 
     if (success) {
       Navigator.pop(context, true);
@@ -285,7 +285,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
       _countryCode = '+256';
       _phoneVerificationCode = <String>['', '', '', '', '', ''];
       _nextBtnColor = Config.appColorDisabled;
-      _user = _customAuth.getUser();
+      _user = CustomAuth.getUser();
     });
   }
 
@@ -355,7 +355,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
   }
 
   Future<void> requestVerification() async {
-    var connected = await _customAuth.isConnected();
+    var connected = await hasFirebaseConnection();
     if (!connected) {
       await showSnackBar(context, Config.connectionErrorMessage);
       return;
@@ -377,7 +377,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
       _codeSent = false;
     });
 
-    await _customAuth.requestPhoneVerification('$_countryCode$_phoneNumber',
+    await CustomAuth.requestPhoneVerification('$_countryCode$_phoneNumber',
         context, verifyPhoneFn, autoVerifyPhoneFn);
 
     Future.delayed(const Duration(seconds: 5), () {
@@ -389,7 +389,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
   }
 
   Future<void> resendVerificationCode() async {
-    var connected = await _customAuth.isConnected();
+    var connected = await hasFirebaseConnection();
     if (!connected) {
       await showSnackBar(context, Config.connectionErrorMessage);
       return;
@@ -403,9 +403,8 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
       _isResending = true;
     });
 
-    await _customAuth
-        .requestPhoneVerification('$_countryCode$_phoneNumber', context,
-            verifyPhoneFn, autoVerifyPhoneFn)
+    await CustomAuth.requestPhoneVerification('$_countryCode$_phoneNumber',
+            context, verifyPhoneFn, autoVerifyPhoneFn)
         .then((value) => {
               setState(() {
                 _isResending = false;
@@ -448,7 +447,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
   }
 
   Future<void> verifySentCode() async {
-    var connected = await _customAuth.isConnected();
+    var connected = await hasFirebaseConnection();
     if (!connected) {
       await showSnackBar(context, Config.connectionErrorMessage);
       return;
@@ -474,7 +473,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
         verificationId: _verificationId,
         smsCode: _phoneVerificationCode.join(''));
     try {
-      var success = await _customAuth.updatePhoneNumber(credential, context);
+      var success = await CustomAuth.updatePhoneNumber(credential, context);
 
       if (success) {
         Navigator.pop(context, true);
@@ -495,7 +494,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
         });
       }
       if (exception.code == 'session-expired') {
-        await _customAuth.requestPhoneVerification('$_countryCode$_phoneNumber',
+        await CustomAuth.requestPhoneVerification('$_countryCode$_phoneNumber',
             context, verifyPhoneFn, autoVerifyPhoneFn);
         await showSnackBar(
             context,

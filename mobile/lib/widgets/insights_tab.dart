@@ -20,6 +20,7 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 import '../models/enum_constants.dart';
+import '../services/native_api.dart';
 import '../themes/light_theme.dart';
 import 'custom_shimmer.dart';
 import 'custom_widgets.dart';
@@ -766,8 +767,8 @@ class _InsightsTabState extends State<InsightsTab> {
               children: [
                 GestureDetector(
                   onTap: () {
-                    _appService.shareService
-                        .shareGraph(context, _globalKey, widget.placeDetails);
+                    ShareService.shareGraph(
+                        context, _globalKey, widget.placeDetails);
                   },
                   child: iconTextButton(
                       SvgPicture.asset(
