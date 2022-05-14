@@ -1,22 +1,18 @@
 import 'dart:io';
 
 import 'package:app/models/notification.dart';
-import 'package:app/providers/locale_provider.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'constants/config.dart';
 import 'firebase_options.dart';
-import 'languages/custom_localizations.dart';
-import 'languages/lg_intl.dart';
 import 'models/place_details.dart';
 import 'on_boarding/spash_screen.dart';
 import 'providers/theme_provider.dart';
@@ -85,28 +81,16 @@ class AirQoApp extends StatelessWidget {
           controller: themeController,
           child: MultiProvider(
             providers: [
-              ChangeNotifierProvider(create: (_) => LocaleProvider()),
               ChangeNotifierProvider(create: (context) => NotificationModel()),
               ChangeNotifierProvider(create: (context) => PlaceDetailsModel()),
             ],
             builder: (context, child) {
-              final provider = Provider.of<LocaleProvider>(context);
-
               return MaterialApp(
                 debugShowCheckedModeBanner: false,
                 navigatorObservers: [
                   FirebaseAnalyticsObserver(analytics: analytics),
                   SentryNavigatorObserver(),
                 ],
-                localizationsDelegates: const [
-                  CustomLocalizations.delegate,
-                  GlobalMaterialLocalizations.delegate,
-                  GlobalWidgetsLocalizations.delegate,
-                  GlobalCupertinoLocalizations.delegate,
-                  LgMaterialLocalizations.delegate,
-                ],
-                supportedLocales: const [Locale('en'), Locale('lg')],
-                locale: provider.locale,
                 title: Config.appName,
                 theme: _buildCurrentTheme(),
                 home: const SplashScreen(),
