@@ -23,7 +23,7 @@ import '../services/firebase_service.dart';
 import '../services/native_api.dart';
 import '../themes/light_theme.dart';
 import '../utils/exception.dart';
-import '../utils/kya_utils.dart';
+import 'kya/kya_widgets.dart';
 import '../widgets/custom_widgets.dart';
 import 'favourite_places.dart';
 import 'for_you_page.dart';
@@ -401,8 +401,9 @@ class _DashboardViewState extends State<DashboardView> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      getKyaMessageWidget(
-                          kya: _incompleteKya[0], context: context),
+                      KyaMessage(
+                        kya: _incompleteKya[0],
+                      ),
                       const SizedBox(
                         width: 6,
                       ),
@@ -421,7 +422,7 @@ class _DashboardViewState extends State<DashboardView> {
                             ? 2
                             : 0,
                   ),
-                  kyaProgressBar(kya: _incompleteKya[0]),
+                  KyaProgressBar(kya: _incompleteKya[0]),
                 ],
               ),
             ),

@@ -96,7 +96,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                 children: [
                   const Spacer(),
                   SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.75,
+                    height: MediaQuery.of(context).size.height * 0.65,
                     child: ScrollablePositionedList.builder(
                       scrollDirection: Axis.horizontal,
                       itemCount: kya.lessons.length,

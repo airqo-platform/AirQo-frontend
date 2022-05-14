@@ -7,7 +7,7 @@ import 'package:flutter_svg/svg.dart';
 
 import '../../services/app_service.dart';
 import '../../themes/light_theme.dart';
-import '../../utils/kya_utils.dart';
+import 'kya_widgets.dart';
 import '../../widgets/custom_widgets.dart';
 import 'kya_title_page.dart';
 
@@ -107,7 +107,9 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          getKyaMessageWidget(kya: kya, context: context),
+                          KyaMessage(
+                            kya: kya,
+                          ),
                           const SizedBox(
                             width: 6,
                           ),
@@ -125,7 +127,7 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
                                 ? 2
                                 : 0,
                       ),
-                      kyaProgressBar(kya: kya),
+                      KyaProgressBar(kya: kya),
                     ],
                   ),
                 ),
