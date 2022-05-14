@@ -61,35 +61,45 @@ class AppNotification extends HiveObject {
   @HiveField(1)
   String id;
 
-  @HiveField(2)
+  @HiveField(2, defaultValue: '')
   String title;
 
-  @HiveField(3)
+  @HiveField(3, defaultValue: '')
   String subTitle;
 
-  @HiveField(4)
+  @HiveField(4, defaultValue: '')
   String link;
 
-  @HiveField(5)
+  @HiveField(5, defaultValue: '')
   String icon;
 
-  @HiveField(6)
+  @HiveField(6, defaultValue: '')
   String image;
 
-  @HiveField(7)
+  @HiveField(7, defaultValue: '')
   String body;
 
   @HiveField(8)
   DateTime dateTime;
 
-  @HiveField(9)
+  @HiveField(9, defaultValue: false)
   bool read;
 
-  @HiveField(10)
+  @HiveField(10, defaultValue: AppNotificationType.welcomeMessage)
   AppNotificationType type;
 
-  AppNotification(this.id, this.title, this.subTitle, this.link, this.icon,
-      this.image, this.body, this.dateTime, this.read, this.type);
+  AppNotification(
+      {required this.id,
+      required this.title,
+      required this.subTitle,
+      required this.link,
+      required this.icon,
+      required this.image,
+      required this.body,
+      required this.read,
+      required this.type,
+      DateTime? dateTime})
+      : dateTime = dateTime ?? DateTime.now();
 
   factory AppNotification.fromJson(Map<String, dynamic> json) =>
       _$AppNotificationFromJson(json);

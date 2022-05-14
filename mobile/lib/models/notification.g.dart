@@ -17,16 +17,18 @@ class AppNotificationAdapter extends TypeAdapter<AppNotification> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return AppNotification(
-      fields[1] as String,
-      fields[2] as String,
-      fields[3] as String,
-      fields[4] as String,
-      fields[5] as String,
-      fields[6] as String,
-      fields[7] as String,
-      fields[8] as DateTime,
-      fields[9] as bool,
-      fields[10] as AppNotificationType,
+      id: fields[1] as String,
+      title: fields[2] == null ? '' : fields[2] as String,
+      subTitle: fields[3] == null ? '' : fields[3] as String,
+      link: fields[4] == null ? '' : fields[4] as String,
+      icon: fields[5] == null ? '' : fields[5] as String,
+      image: fields[6] == null ? '' : fields[6] as String,
+      body: fields[7] == null ? '' : fields[7] as String,
+      read: fields[9] == null ? false : fields[9] as bool,
+      type: fields[10] == null
+          ? AppNotificationType.welcomeMessage
+          : fields[10] as AppNotificationType,
+      dateTime: fields[8] as DateTime?,
     );
   }
 
@@ -73,16 +75,18 @@ class AppNotificationAdapter extends TypeAdapter<AppNotification> {
 
 AppNotification _$AppNotificationFromJson(Map<String, dynamic> json) =>
     AppNotification(
-      json['id'] as String,
-      json['title'] as String,
-      json['subTitle'] as String,
-      json['link'] as String,
-      json['icon'] as String,
-      json['image'] as String,
-      json['body'] as String,
-      DateTime.parse(json['dateTime'] as String),
-      json['read'] as bool,
-      $enumDecode(_$AppNotificationTypeEnumMap, json['type']),
+      id: json['id'] as String,
+      title: json['title'] as String,
+      subTitle: json['subTitle'] as String,
+      link: json['link'] as String,
+      icon: json['icon'] as String,
+      image: json['image'] as String,
+      body: json['body'] as String,
+      read: json['read'] as bool,
+      type: $enumDecode(_$AppNotificationTypeEnumMap, json['type']),
+      dateTime: json['dateTime'] == null
+          ? null
+          : DateTime.parse(json['dateTime'] as String),
     );
 
 Map<String, dynamic> _$AppNotificationToJson(AppNotification instance) =>

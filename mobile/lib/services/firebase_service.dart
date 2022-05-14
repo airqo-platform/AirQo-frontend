@@ -227,7 +227,7 @@ class CloudStore {
         }
       }
 
-      var box = Hive.box(HiveBox.notifications);
+      var box = Hive.box(HiveBox.appNotifications);
       await box.putAll(notifications);
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);

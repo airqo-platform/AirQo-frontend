@@ -191,5 +191,5 @@ class Config {
 }
 
 class HiveBox {
-  static String get notifications => 'notifications';
+  static String get appNotifications => 'appNotifications';
 }

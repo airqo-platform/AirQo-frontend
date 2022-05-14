@@ -63,16 +63,15 @@ class _NotificationPageState extends State<NotificationPage> {
   }
 
   void _loadNotifications() {
-    var box = Hive.box(HiveBox.notifications);
+    var box = Hive.box(HiveBox.appNotifications);
     var notifies = box.values.toList().cast<AppNotification>();
     setState(() => _notifications = notifies);
   }
 
   void _updateNotification(AppNotification appNotification) {
-    var box = Hive.box(HiveBox.notifications);
-    var notification = box.get(appNotification.id) as AppNotification
-      ..read = true;
-    box.put(notification.id, notification);
+    appNotification
+      ..read = true
+      ..save();
   }
 
   Future<void> _refreshNotifications() async {
