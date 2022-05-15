@@ -63,6 +63,12 @@ body {
   overflow-x: hidden;
 }
 
+a, a:hover{
+  text-decoration: none;
+  color:inherit;
+  text-decoration-color: none;
+}
+
 .Page {
   width: 100%;
   margin: auto;

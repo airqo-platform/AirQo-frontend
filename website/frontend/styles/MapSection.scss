@@ -12,9 +12,10 @@
     display: flex;
     flex-direction: row;
 }
-$h2-font:40px;
-$p-font:18px;
-$pill-font:14px;
+
+$h2-font:$headingFont;
+$p-font:$subTextFont;
+$pill-font:$pillFont;
 
 .map-section{
     display:grid;
@@ -44,7 +45,7 @@ $pill-font:14px;
                 border-radius:1000px;
                 margin-bottom: 24px;
                 p{
-                    color:$aq-blue-0;
+                    color:$aq-blue-2;
                     font-size: $pill-font;
                     font-weight: 500;
                     line-height: 26px;
@@ -53,18 +54,18 @@ $pill-font:14px;
             }
             .content-h{
                 color:$aq-black-0;
-                font-weight:700;
+                font-weight:500;
                 font-size:$h2-font;
                 margin-bottom: 24px;
                 padding: 0;
             }
             .content-p{
-                margin-bottom: 40px;
+                margin-bottom: 48px;
                 p{
                     color:$aq-black-0;
                     font-weight:400;
                     font-size: $p-font;  
-                    line-height:24px; 
+                    line-height:28px; 
                     margin: 0;
                 }
             }
@@ -74,9 +75,9 @@ $pill-font:14px;
                 align-items: center;
                 p{
                     color:$aq-blue-0;
-                    font-weight:600;
-                    font-size:$pill-font; 
-                    line-height:10px;
+                    font-weight:500;
+                    font-size:$p-font; 
+                    line-height:24px;
                     flex-grow:0;
                     margin: 0;
                     padding: 0;
@@ -84,8 +85,8 @@ $pill-font:14px;
                 i{
                     fill:$aq-blue-0;
                     width:15px;
-                    height:14px;
-                    font-weight:600;
+                    height:$p-font;
+                    font-weight:500;
                     margin-left:10px;
                     margin-top: -4px;
                 }
