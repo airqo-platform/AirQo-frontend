@@ -5,8 +5,8 @@ import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:flutter/material.dart';
 
-import '../services/app_service.dart';
-import '../services/firebase_service.dart';
+import '../../services/app_service.dart';
+import '../../services/firebase_service.dart';
 
 class EmailReAuthenticateScreen extends StatefulWidget {
   final UserDetails userDetails;

@@ -4,9 +4,9 @@ import 'package:app/services/app_service.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:flutter/material.dart';
 
-import '../models/enum_constants.dart';
-import '../services/firebase_service.dart';
-import '../services/local_storage.dart';
+import '../../models/enum_constants.dart';
+import '../../services/firebase_service.dart';
+import '../../services/local_storage.dart';
 
 class SetUpCompleteScreen extends StatefulWidget {
   const SetUpCompleteScreen({Key? key}) : super(key: key);

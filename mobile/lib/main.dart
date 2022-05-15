@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:app/screens/on_boarding/spash_screen.dart';
 import 'package:app/services/hive_service.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -14,7 +15,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'constants/config.dart';
 import 'firebase_options.dart';
 import 'models/place_details.dart';
-import 'on_boarding/spash_screen.dart';
 import 'providers/theme_provider.dart';
 import 'themes/dark_theme.dart';
 import 'themes/light_theme.dart';

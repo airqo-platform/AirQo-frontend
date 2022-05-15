@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:app/auth/email_reauthenticate_screen.dart';
-import 'package:app/auth/phone_reauthenticate_screen.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/user_details.dart';
 import 'package:app/widgets/custom_shimmer.dart';
@@ -12,12 +10,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../auth/change_email_screen.dart';
-import '../../auth/change_phone_screen.dart';
 import '../../models/enum_constants.dart';
 import '../../services/app_service.dart';
 import '../../services/firebase_service.dart';
 import '../../themes/light_theme.dart';
+import '../auth/change_email_screen.dart';
+import '../auth/change_phone_screen.dart';
+import '../auth/email_reauthenticate_screen.dart';
+import '../auth/phone_reauthenticate_screen.dart';
 import '../home_page.dart';
 
 class ProfileEditPage extends StatefulWidget {

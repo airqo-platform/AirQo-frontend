@@ -1,9 +1,7 @@
 import 'dart:io';
 
 import 'package:app/constants/config.dart';
-import 'package:app/models/insights.dart';
 import 'package:app/models/measurement.dart';
-import 'package:app/models/suggestion.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/utils/pm.dart';
 import 'package:auto_size_text/auto_size_text.dart';

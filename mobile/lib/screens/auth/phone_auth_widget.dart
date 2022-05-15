@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:app/auth/email_auth_widget.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/app_service.dart';
@@ -11,12 +10,13 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../models/enum_constants.dart';
+import '../../models/enum_constants.dart';
+import '../../services/firebase_service.dart';
+import '../../themes/light_theme.dart';
+import '../../utils/network.dart';
+import '../../widgets/custom_shimmer.dart';
 import '../on_boarding/profile_setup_screen.dart';
-import '../services/firebase_service.dart';
-import '../themes/light_theme.dart';
-import '../utils/network.dart';
-import '../widgets/custom_shimmer.dart';
+import 'email_auth_widget.dart';
 
 class PhoneAuthWidget extends StatefulWidget {
   final String? phoneNumber;

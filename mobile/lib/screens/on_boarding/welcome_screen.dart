@@ -4,10 +4,10 @@ import 'package:app/widgets/buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../models/enum_constants.dart';
+import '../../services/local_storage.dart';
+import '../../themes/light_theme.dart';
 import '../auth/phone_auth_widget.dart';
-import '../models/enum_constants.dart';
-import '../services/local_storage.dart';
-import '../themes/light_theme.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({Key? key}) : super(key: key);

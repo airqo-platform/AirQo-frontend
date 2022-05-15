@@ -3,11 +3,10 @@ import 'package:app/screens/home_page.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:flutter/material.dart';
-
-import '../models/enum_constants.dart';
-import '../services/local_storage.dart';
-import '../services/native_api.dart';
-import '../themes/light_theme.dart';
+import '../../models/enum_constants.dart';
+import '../../services/local_storage.dart';
+import '../../services/native_api.dart';
+import '../../themes/light_theme.dart';
 import 'location_setup_screen.dart';
 
 class NotificationsSetupScreen extends StatefulWidget {

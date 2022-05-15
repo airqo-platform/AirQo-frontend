@@ -4,14 +4,14 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../auth/phone_auth_widget.dart';
 import '../../constants/config.dart';
 import '../../models/user_details.dart';
 import '../../themes/light_theme.dart';
 import '../../widgets/custom_shimmer.dart';
-import '../favourite_places.dart';
+import '../auth/phone_auth_widget.dart';
+import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
-import '../settings_page.dart';
+import '../settings/settings_page.dart';
 
 class LogoutButton extends StatelessWidget {
   const LogoutButton({Key? key}) : super(key: key);

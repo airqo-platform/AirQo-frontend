@@ -1,8 +1,7 @@
 import 'dart:async';
 
-import 'package:app/auth/phone_auth_widget.dart';
 import 'package:app/constants/config.dart';
-import 'package:app/on_boarding/profile_setup_screen.dart';
+import 'package:app/screens/auth/phone_auth_widget.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/utils/dialogs.dart';
@@ -13,9 +12,10 @@ import 'package:app/widgets/text_fields.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
-import '../models/enum_constants.dart';
-import '../themes/light_theme.dart';
-import '../widgets/custom_shimmer.dart';
+import '../../models/enum_constants.dart';
+import '../../themes/light_theme.dart';
+import '../../widgets/custom_shimmer.dart';
+import '../on_boarding/profile_setup_screen.dart';
 
 class EmailAuthWidget extends StatefulWidget {
   final String? emailAddress;

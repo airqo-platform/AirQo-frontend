@@ -1,4 +1,3 @@
-import 'package:app/auth/phone_auth_widget.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/user_details.dart';
 import 'package:app/screens/profile/profile_edit_page.dart';
@@ -15,6 +14,7 @@ import 'package:hive/hive.dart';
 import '../../models/notification.dart';
 import '../../services/firebase_service.dart';
 import '../../themes/light_theme.dart';
+import '../auth/phone_auth_widget.dart';
 import '../notification/notification_page.dart';
 
 class ProfileView extends StatefulWidget {

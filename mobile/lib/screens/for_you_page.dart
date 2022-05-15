@@ -113,21 +113,4 @@ class _ForYouPageState extends State<ForYouPage>
               ))),
     );
   }
-
-  Widget topTabBar(text) {
-    return Container(
-      constraints:
-          const BoxConstraints(minWidth: double.infinity, maxHeight: 32),
-      decoration: BoxDecoration(
-          color: _analytics ? Config.appColorBlue : Colors.white,
-          borderRadius: const BorderRadius.all(Radius.circular(5.0))),
-      child: Tab(
-          child: Text(
-        text,
-        style: TextStyle(
-          color: _analytics ? Colors.white : Colors.black,
-        ),
-      )),
-    );
-  }
 }

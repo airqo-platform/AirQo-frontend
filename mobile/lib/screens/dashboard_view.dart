@@ -24,7 +24,7 @@ import '../services/native_api.dart';
 import '../themes/light_theme.dart';
 import '../utils/exception.dart';
 import '../widgets/custom_widgets.dart';
-import 'favourite_places.dart';
+import 'favourite_places/favourite_places_page.dart';
 import 'for_you_page.dart';
 import 'kya/kya_title_page.dart';
 import 'kya/kya_widgets.dart';

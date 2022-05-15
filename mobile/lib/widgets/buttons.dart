@@ -5,8 +5,8 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../auth/phone_auth_widget.dart';
 import '../models/enum_constants.dart';
+import '../screens/auth/phone_auth_widget.dart';
 
 Widget cancelOption(BuildContext context) {
   return GestureDetector(
