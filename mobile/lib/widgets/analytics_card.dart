@@ -230,8 +230,8 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                         child: Row(
                           children: [
                             GestureDetector(
-                              child: analyticsAvatar(
-                                  widget.measurement, 104, 40, 12),
+                              child: AnalyticsAvatar(
+                                  measurement: widget.measurement),
                               onTap: () {
                                 ToolTip(context, ToolTipType.info).show(
                                   widgetKey: _infoToolTipKey,
@@ -262,9 +262,8 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                   height: 12,
                                 ),
                                 GestureDetector(
-                                  child: aqiContainerString(
-                                      measurement: widget.measurement,
-                                      context: context),
+                                  child: AqiStringContainer(
+                                      measurement: widget.measurement),
                                   onTap: () {
                                     ToolTip(context, ToolTipType.info).show(
                                       widgetKey: _infoToolTipKey,
@@ -337,15 +336,16 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                           },
                           child: Padding(
                             padding: const EdgeInsets.only(top: 17),
-                            child: iconTextButton(
-                                SvgPicture.asset(
-                                  'assets/icon/share_icon.svg',
-                                  semanticsLabel: 'Share',
-                                  color: Config.greyColor,
-                                  height: 16,
-                                  width: 16,
-                                ),
-                                'Share'),
+                            child: IconTextButton(
+                              iconWidget: SvgPicture.asset(
+                                'assets/icon/share_icon.svg',
+                                semanticsLabel: 'Share',
+                                color: Config.greyColor,
+                                height: 16,
+                                width: 16,
+                              ),
+                              text: 'Share',
+                            ),
                           ),
                         ),
                         GestureDetector(
@@ -354,7 +354,8 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                             },
                             child: Padding(
                               padding: const EdgeInsets.only(top: 17),
-                              child: iconTextButton(getHeartIcon(), 'Favorite'),
+                              child: IconTextButton(
+                                  iconWidget: getHeartIcon(), text: 'Favorite'),
                             )),
                       ],
                     ),
@@ -467,7 +468,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                           padding: const EdgeInsets.only(left: 20, right: 20),
                           child: Row(
                             children: [
-                              analyticsAvatar(widget.measurement, 104, 40, 12),
+                              AnalyticsAvatar(measurement: widget.measurement),
                               const SizedBox(width: 16.0),
                               Expanded(
                                 child: Column(
@@ -499,14 +500,18 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                       decoration: BoxDecoration(
                                           borderRadius: const BorderRadius.all(
                                               Radius.circular(40.0)),
-                                          color: pm2_5ToColor(widget.measurement
-                                                  .getPm2_5Value())
+                                          color: pollutantValueColor(
+                                                  value: widget.measurement
+                                                      .getPm2_5Value(),
+                                                  pollutant: Pollutant.pm2_5)
                                               .withOpacity(0.4),
                                           border: Border.all(
                                               color: Colors.transparent)),
                                       child: AutoSizeText(
-                                        pm2_5ToString(widget.measurement
-                                                .getPm2_5Value())
+                                        pollutantValueString(
+                                                value: widget.measurement
+                                                    .getPm2_5Value(),
+                                                pollutant: Pollutant.pm2_5)
                                             .trimEllipsis(),
                                         maxLines: 1,
                                         maxFontSize: 14,
@@ -514,9 +519,10 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
                                           fontSize: 14,
-                                          color: pm2_5TextColor(
-                                              widget.measurement
+                                          color: pollutantTextColor(
+                                              value: widget.measurement
                                                   .getPm2_5Value(),
+                                              pollutant: Pollutant.pm2_5,
                                               graph: true),
                                         ),
                                       ),
@@ -586,19 +592,20 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                             ShareService.shareCard(
                                 context, _globalKey, shareMeasurement);
                           },
-                          child: iconTextButton(
-                              SvgPicture.asset(
+                          child: IconTextButton(
+                              iconWidget: SvgPicture.asset(
                                 'assets/icon/share_icon.svg',
                                 color: Config.greyColor,
                                 semanticsLabel: 'Share',
                               ),
-                              'Share'),
+                              text: 'Share'),
                         ),
                         GestureDetector(
                           onTap: () async {
                             updateFavPlace();
                           },
-                          child: iconTextButton(getHeartIcon(), 'Favorite'),
+                          child: IconTextButton(
+                              iconWidget: getHeartIcon(), text: 'Favorite'),
                         ),
                       ],
                     ),

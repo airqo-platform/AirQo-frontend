@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../models/enum_constants.dart';
 import '../themes/light_theme.dart';
 
 Widget refreshIndicator(
@@ -30,49 +31,60 @@ Widget refreshIndicator(
   );
 }
 
-Widget analyticsAvatar(
-    Measurement measurement, double size, double fontSize, double iconHeight) {
-  return Container(
-    height: size,
-    width: size,
-    decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: pm2_5ToColor(measurement.getPm2_5Value()),
-        border: Border.all(color: Colors.transparent)),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        const Spacer(),
-        SvgPicture.asset(
-          'assets/icon/PM2.5.svg',
-          semanticsLabel: 'Pm2.5',
-          height: iconHeight,
-          width: 32.45,
-          color: pm2_5TextColor(measurement.getPm2_5Value()),
-        ),
-        Text(
-          measurement.getPm2_5Value().toStringAsFixed(0),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.robotoMono(
-              color: pm2_5TextColor(measurement.getPm2_5Value()),
-              fontStyle: FontStyle.normal,
-              fontSize: fontSize,
-              fontWeight: FontWeight.bold,
-              height: 48 / fontSize,
-              letterSpacing: 16 * -0.022),
-        ),
-        SvgPicture.asset(
-          'assets/icon/unit.svg',
-          semanticsLabel: 'Unit',
-          height: iconHeight,
-          width: 32,
-          color: pm2_5TextColor(measurement.getPm2_5Value()),
-        ),
-        const Spacer(),
-      ],
-    ),
-  );
+class AnalyticsAvatar extends StatelessWidget {
+  final Measurement measurement;
+  const AnalyticsAvatar({Key? key, required this.measurement})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 104,
+      width: 104,
+      decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: pollutantValueColor(
+              value: measurement.getPm2_5Value(), pollutant: Pollutant.pm2_5),
+          border: Border.all(color: Colors.transparent)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Spacer(),
+          SvgPicture.asset(
+            'assets/icon/PM2.5.svg',
+            semanticsLabel: 'Pm2.5',
+            height: 20,
+            width: 32.45,
+            color: pollutantTextColor(
+                value: measurement.getPm2_5Value(), pollutant: Pollutant.pm2_5),
+          ),
+          Text(
+            measurement.getPm2_5Value().toStringAsFixed(0),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.robotoMono(
+                color: pollutantTextColor(
+                    value: measurement.getPm2_5Value(),
+                    pollutant: Pollutant.pm2_5),
+                fontStyle: FontStyle.normal,
+                fontSize: 40,
+                fontWeight: FontWeight.bold,
+                height: 48 / 40,
+                letterSpacing: 16 * -0.022),
+          ),
+          SvgPicture.asset(
+            'assets/icon/unit.svg',
+            semanticsLabel: 'Unit',
+            height: 20,
+            width: 32,
+            color: pollutantTextColor(
+                value: measurement.getPm2_5Value(), pollutant: Pollutant.pm2_5),
+          ),
+          const Spacer(),
+        ],
+      ),
+    );
+  }
 }
 
 PreferredSizeWidget appTopBar(
@@ -120,24 +132,39 @@ PreferredSizeWidget appIconTopBar(
   );
 }
 
-Widget aqiContainerString(
-    {required Measurement measurement, required BuildContext context}) {
-  return Container(
-    padding: const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
-    decoration: BoxDecoration(
-        borderRadius: const BorderRadius.all(Radius.circular(40.0)),
-        color: pm2_5ToColor(measurement.getPm2_5Value()).withOpacity(0.4),
-        border: Border.all(color: Colors.transparent)),
-    child:
-        AutoSizeText(pm2_5ToString(measurement.getPm2_5Value()).trimEllipsis(),
-            maxFontSize: 14,
-            maxLines: 1,
-            textAlign: TextAlign.start,
-            overflow: TextOverflow.ellipsis,
-            style: CustomTextStyle.button2(context)?.copyWith(
-              color: pm2_5TextColor(measurement.getPm2_5Value(), graph: true),
-            )),
-  );
+class AqiStringContainer extends StatelessWidget {
+  final Measurement measurement;
+  const AqiStringContainer({Key? key, required this.measurement})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
+      decoration: BoxDecoration(
+          borderRadius: const BorderRadius.all(Radius.circular(40.0)),
+          color: pollutantValueColor(
+                  value: measurement.getPm2_5Value(),
+                  pollutant: Pollutant.pm2_5)
+              .withOpacity(0.4),
+          border: Border.all(color: Colors.transparent)),
+      child: AutoSizeText(
+          pollutantValueString(
+                  value: measurement.getPm2_5Value(),
+                  pollutant: Pollutant.pm2_5)
+              .trimEllipsis(),
+          maxFontSize: 14,
+          maxLines: 1,
+          textAlign: TextAlign.start,
+          overflow: TextOverflow.ellipsis,
+          style: CustomTextStyle.button2(context)?.copyWith(
+            color: pollutantTextColor(
+                value: measurement.getPm2_5Value(),
+                pollutant: Pollutant.pm2_5,
+                graph: true),
+          )),
+    );
+  }
 }
 
 class AppBackButton extends StatelessWidget {
@@ -159,20 +186,28 @@ class AppBackButton extends StatelessWidget {
   }
 }
 
-Widget iconTextButton(Widget icon, text) {
-  return Row(
-    children: [
-      icon,
-      const SizedBox(
-        width: 10,
-      ),
-      Text(
-        text,
-        style: TextStyle(
-            fontSize: 14, color: Config.appColorBlack, height: 18 / 14),
-      )
-    ],
-  );
+class IconTextButton extends StatelessWidget {
+  final Widget iconWidget;
+  final String text;
+  const IconTextButton({Key? key, required this.iconWidget, required this.text})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        iconWidget,
+        const SizedBox(
+          width: 10,
+        ),
+        Text(
+          text,
+          style: TextStyle(
+              fontSize: 14, color: Config.appColorBlack, height: 18 / 14),
+        )
+      ],
+    );
+  }
 }
 
 PreferredSizeWidget knowYourAirAppBar(context, title) {
@@ -207,7 +242,8 @@ class MiniAnalyticsAvatar extends StatelessWidget {
       width: 40,
       decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: pm2_5ToColor(measurement.getPm2_5Value()),
+          color: pollutantValueColor(
+              value: measurement.getPm2_5Value(), pollutant: Pollutant.pm2_5),
           border: Border.all(color: Colors.transparent)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -218,14 +254,17 @@ class MiniAnalyticsAvatar extends StatelessWidget {
             semanticsLabel: 'Pm2.5',
             height: 5,
             width: 32.45,
-            color: pm2_5TextColor(measurement.getPm2_5Value()),
+            color: pollutantTextColor(
+                value: measurement.getPm2_5Value(), pollutant: Pollutant.pm2_5),
           ),
           Text(
             measurement.getPm2_5Value().toStringAsFixed(0),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: GoogleFonts.robotoMono(
-                color: pm2_5TextColor(measurement.getPm2_5Value()),
+                color: pollutantTextColor(
+                    value: measurement.getPm2_5Value(),
+                    pollutant: Pollutant.pm2_5),
                 fontStyle: FontStyle.normal,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -237,7 +276,8 @@ class MiniAnalyticsAvatar extends StatelessWidget {
             semanticsLabel: 'Unit',
             height: 5,
             width: 32,
-            color: pm2_5TextColor(measurement.getPm2_5Value()),
+            color: pollutantTextColor(
+                value: measurement.getPm2_5Value(), pollutant: Pollutant.pm2_5),
           ),
           const Spacer(),
         ],

@@ -5,6 +5,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../models/enum_constants.dart';
 import '../themes/light_theme.dart';
 
 void pmInfoDialog(context, double pm2_5) {
@@ -195,18 +196,24 @@ void pmInfoDialog(context, double pm2_5) {
                           Container(
                             padding: const EdgeInsets.fromLTRB(12, 2.0, 12, 2),
                             decoration: BoxDecoration(
-                                color: pm2_5ToColor(pm2_5).withOpacity(0.4),
+                                color: pollutantValueColor(
+                                        value: pm2_5,
+                                        pollutant: Pollutant.pm2_5)
+                                    .withOpacity(0.4),
                                 borderRadius: const BorderRadius.all(
                                     Radius.circular(537.0))),
                             child: AutoSizeText(
-                              pm2_5ToString(pm2_5).trimEllipsis(),
+                              pollutantValueString(
+                                      value: pm2_5, pollutant: Pollutant.pm2_5)
+                                  .trimEllipsis(),
                               maxLines: 2,
                               minFontSize: 10,
                               maxFontSize: 10,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                   fontSize: 10,
-                                  color: pm2_5TextColor(pm2_5),
+                                  color: pollutantTextColor(
+                                      value: pm2_5, pollutant: Pollutant.pm2_5),
                                   height: 14 / 10,
                                   fontWeight: FontWeight.w500),
                             ),
@@ -218,7 +225,8 @@ void pmInfoDialog(context, double pm2_5) {
                             text: TextSpan(
                               children: [
                                 TextSpan(
-                                  text: '${pmToLongString(pm2_5)}'
+                                  text:
+                                      '${pollutantValueString(value: pm2_5, pollutant: Pollutant.pm2_5)}'
                                       ' means; ',
                                   style: TextStyle(
                                       fontSize: 10,

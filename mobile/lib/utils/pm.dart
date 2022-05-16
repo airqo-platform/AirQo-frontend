@@ -1,7 +1,6 @@
 import 'dart:ui';
 
 import 'package:app/constants/config.dart';
-import 'package:app/models/measurement.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -141,188 +140,163 @@ List<Recommendation> getHealthRecommendations(
   return recommendations;
 }
 
-Widget mapSection(Measurement measurement) {
-  final _markers = <String, Marker>{};
-
-  final marker = Marker(
-    markerId: MarkerId(measurement.site.toString()),
-    icon: pmToMarkerPoint(measurement.getPm2_5Value()),
-    position: LatLng((measurement.site.latitude), measurement.site.longitude),
-  );
-  _markers[measurement.site.toString()] = marker;
-
-  return Padding(
-      padding: const EdgeInsets.fromLTRB(0.0, 2.0, 0.0, 2.0),
-      child: Card(
-          elevation: 20,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: GoogleMap(
-            compassEnabled: false,
-            mapType: MapType.normal,
-            myLocationButtonEnabled: false,
-            myLocationEnabled: false,
-            rotateGesturesEnabled: false,
-            tiltGesturesEnabled: false,
-            mapToolbarEnabled: false,
-            initialCameraPosition: CameraPosition(
-              target:
-                  LatLng(measurement.site.latitude, measurement.site.longitude),
-              zoom: 13,
-            ),
-            markers: _markers.values.toSet(),
-          )));
-}
-
-Color pm10TextColor(double pm10) {
-  if (pm10 <= 50.99) {
-    //good
-    return const Color(0xff03B600);
-  } else if (pm10 >= 51.00 && pm10 <= 100.99) {
-    //moderate
-    return const Color(0xffA8A800);
-  } else if (pm10 >= 101.00 && pm10 <= 250.99) {
-    //sensitive
-    return const Color(0xffB86000);
-  } else if (pm10 >= 251.00 && pm10 <= 350.99) {
-    // unhealthy
-    return const Color(0xffB80B00);
-  } else if (pm10 >= 351.00 && pm10 <= 430.99) {
-    // very unhealthy
-    return const Color(0xff8E00AC);
-  } else if (pm10 >= 431.00) {
-    // hazardous
-    return const Color(0xffDBA5B2);
-  } else {
-    return Config.appColor;
+Color pollutantTextColor(
+    {required double value, required Pollutant pollutant, bool? graph}) {
+  switch (pollutant) {
+    case Pollutant.pm2_5:
+      if (value <= 12.09) {
+        //good
+        return const Color(0xff03B600);
+      } else if (value >= 12.1 && value <= 35.49) {
+        //moderate
+        return const Color(0xffA8A800);
+      } else if (value >= 35.5 && value <= 55.49) {
+        //sensitive
+        return const Color(0xffB86000);
+      } else if (value >= 55.5 && value <= 150.49) {
+        // unhealthy
+        return const Color(0xffB80B00);
+      } else if (value >= 150.5 && value <= 250.49) {
+        // very unhealthy
+        return const Color(0xff8E00AC);
+      } else if (value >= 250.5) {
+        // hazardous
+        if (graph != null && graph) {
+          return Config.maroon;
+        }
+        return const Color(0xffDBA5B2);
+      } else {
+        return Config.appColor;
+      }
+    case Pollutant.pm10:
+      if (value <= 50.99) {
+        //good
+        return const Color(0xff03B600);
+      } else if (value >= 51.00 && value <= 100.99) {
+        //moderate
+        return const Color(0xffA8A800);
+      } else if (value >= 101.00 && value <= 250.99) {
+        //sensitive
+        return const Color(0xffB86000);
+      } else if (value >= 251.00 && value <= 350.99) {
+        // unhealthy
+        return const Color(0xffB80B00);
+      } else if (value >= 351.00 && value <= 430.99) {
+        // very unhealthy
+        return const Color(0xff8E00AC);
+      } else if (value >= 431.00) {
+        // hazardous
+        if (graph != null && graph) {
+          return Config.maroon;
+        }
+        return const Color(0xffDBA5B2);
+      } else {
+        return Config.appColor;
+      }
   }
 }
 
-Color pm10ToColor(double pm10) {
-  if (pm10 <= 50.99) {
-    //good
-    return Config.green;
-  } else if (pm10 >= 51.00 && pm10 <= 100.99) {
-    //moderate
-    return Config.yellow;
-  } else if (pm10 >= 101.00 && pm10 <= 250.99) {
-    //sensitive
-    return Config.orange;
-  } else if (pm10 >= 251.00 && pm10 <= 350.99) {
-    // unhealthy
-    return Config.red;
-  } else if (pm10 >= 351.00 && pm10 <= 430.99) {
-    // very unhealthy
-    return Config.purple;
-  } else if (pm10 >= 431.00) {
-    // hazardous
-    return Config.maroon;
-  } else {
-    return Config.appColor;
+Color pollutantValueColor(
+    {required double value, required Pollutant pollutant}) {
+  switch (pollutant) {
+    case Pollutant.pm2_5:
+      if (value <= 12.09) {
+        //good
+        return Config.green;
+      } else if (value >= 12.1 && value <= 35.49) {
+        //moderate
+        return Config.yellow;
+      } else if (value >= 35.5 && value <= 55.49) {
+        //sensitive
+        return Config.orange;
+      } else if (value >= 55.5 && value <= 150.49) {
+        // unhealthy
+        return Config.red;
+      } else if (value >= 150.5 && value <= 250.49) {
+        // very unhealthy
+        return Config.purple;
+      } else if (value >= 250.5) {
+        // hazardous
+        return Config.maroon;
+      } else {
+        return Config.appColor;
+      }
+    case Pollutant.pm10:
+      if (value <= 50.99) {
+        //good
+        return Config.green;
+      } else if (value >= 51.00 && value <= 100.99) {
+        //moderate
+        return Config.yellow;
+      } else if (value >= 101.00 && value <= 250.99) {
+        //sensitive
+        return Config.orange;
+      } else if (value >= 251.00 && value <= 350.99) {
+        // unhealthy
+        return Config.red;
+      } else if (value >= 351.00 && value <= 430.99) {
+        // very unhealthy
+        return Config.purple;
+      } else if (value >= 431.00) {
+        // hazardous
+        return Config.maroon;
+      } else {
+        return Config.appColor;
+      }
   }
 }
 
-String pm10ToString(double pm10) {
-  if (pm10 <= 50.99) {
-    //good
-    return 'Good';
-  } else if (pm10 >= 51.00 && pm10 <= 100.99) {
-    //moderate
-    return 'Moderate';
-  } else if (pm10 >= 101.00 && pm10 <= 250.99) {
-    //sensitive
-    return 'Unhealthy FSGs';
-  } else if (pm10 >= 251.00 && pm10 <= 350.99) {
-    // unhealthy
-    return 'Unhealthy';
-  } else if (pm10 >= 351.00 && pm10 <= 430.99) {
-    // very unhealthy
-    return 'Very Unhealthy';
-  } else if (pm10 >= 431.00) {
-    // hazardous
-    return 'Hazardous';
-  } else {
-    return '';
+String pollutantValueString(
+    {required double value, required Pollutant pollutant}) {
+  switch (pollutant) {
+    case Pollutant.pm2_5:
+      if (value <= 12.09) {
+        //good
+        return 'Good';
+      } else if (value >= 12.1 && value <= 35.49) {
+        //moderate
+        return 'Moderate';
+      } else if (value >= 35.5 && value <= 55.49) {
+        //sensitive
+        return 'Unhealthy For Sensitive Groups';
+      } else if (value >= 55.5 && value <= 150.49) {
+        // unhealthy
+        return 'Unhealthy';
+      } else if (value >= 150.5 && value <= 250.49) {
+        // very unhealthy
+        return 'Very Unhealthy';
+      } else if (value >= 250.5) {
+        // hazardous
+        return 'Hazardous';
+      } else {
+        return '';
+      }
+    case Pollutant.pm10:
+      if (value <= 50.99) {
+        //good
+        return 'Good';
+      } else if (value >= 51.00 && value <= 100.99) {
+        //moderate
+        return 'Moderate';
+      } else if (value >= 101.00 && value <= 250.99) {
+        //sensitive
+        return 'Unhealthy For Sensitive Groups';
+      } else if (value >= 251.00 && value <= 350.99) {
+        // unhealthy
+        return 'Unhealthy';
+      } else if (value >= 351.00 && value <= 430.99) {
+        // very unhealthy
+        return 'Very Unhealthy';
+      } else if (value >= 431.00) {
+        // hazardous
+        return 'Hazardous';
+      } else {
+        return '';
+      }
   }
 }
 
-Color pm2_5TextColor(double pm2_5, {bool? graph}) {
-  if (pm2_5 <= 12.09) {
-    //good
-    return const Color(0xff03B600);
-  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
-    //moderate
-    return const Color(0xffA8A800);
-  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
-    //sensitive
-    return const Color(0xffB86000);
-  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
-    // unhealthy
-    return const Color(0xffB80B00);
-  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
-    // very unhealthy
-    return const Color(0xff8E00AC);
-  } else if (pm2_5 >= 250.5) {
-    // hazardous
-    if (graph != null && graph) {
-      return Config.maroon;
-    }
-    return const Color(0xffDBA5B2);
-  } else {
-    return Config.appColor;
-  }
-}
-
-Color pm2_5ToColor(double pm2_5) {
-  if (pm2_5 <= 12.09) {
-    //good
-    return Config.green;
-  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
-    //moderate
-    return Config.yellow;
-  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
-    //sensitive
-    return Config.orange;
-  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
-    // unhealthy
-    return Config.red;
-  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
-    // very unhealthy
-    return Config.purple;
-  } else if (pm2_5 >= 250.5) {
-    // hazardous
-    return Config.maroon;
-  } else {
-    return Config.appColor;
-  }
-}
-
-String pm2_5ToString(double pm2_5) {
-  if (pm2_5 <= 12.09) {
-    //good
-    return 'Good';
-  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
-    //moderate
-    return 'Moderate';
-  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
-    //sensitive
-    return 'Unhealthy For Sensitive Groups';
-  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
-    // unhealthy
-    return 'Unhealthy';
-  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
-    // very unhealthy
-    return 'Very Unhealthy';
-  } else if (pm2_5 >= 250.5) {
-    // hazardous
-    return 'Hazardous';
-  } else {
-    return '';
-  }
-}
-
-charts.Color pmToChartColor(double value, Pollutant pollutant) {
+charts.Color pollutantChartValueColor(double value, Pollutant pollutant) {
   if (pollutant == Pollutant.pm2_5) {
     if (value <= 12.09) {
       //good
@@ -405,35 +379,11 @@ String pmToInfoDialog(double pm2_5) {
   }
 }
 
-String pmToLongString(double pm2_5) {
-  if (pm2_5 <= 12.09) {
-    //good
-    return 'Good';
-  } else if (pm2_5 >= 12.1 && pm2_5 <= 35.49) {
-    //moderate
-    return 'Moderate';
-  } else if (pm2_5 >= 35.5 && pm2_5 <= 55.49) {
-    //sensitive
-    return 'Unhealthy for Sensitive Groups';
-  } else if (pm2_5 >= 55.5 && pm2_5 <= 150.49) {
-    // unhealthy
-    return 'Unhealthy';
-  } else if (pm2_5 >= 150.5 && pm2_5 <= 250.49) {
-    // very unhealthy
-    return 'Very Unhealthy';
-  } else if (pm2_5 >= 250.5) {
-    // hazardous
-    return 'Hazardous';
-  } else {
-    return '';
-  }
-}
-
 Future<BitmapDescriptor> pmToMarker(double pm2_5) async {
   var width = 80;
   var value = pm2_5;
-  var bgColor = pm2_5ToColor(pm2_5);
-  var textColor = pm2_5TextColor(pm2_5);
+  var bgColor = pollutantValueColor(value: pm2_5, pollutant: Pollutant.pm2_5);
+  var textColor = pollutantTextColor(value: pm2_5, pollutant: Pollutant.pm2_5);
 
   final pictureRecorder = PictureRecorder();
   final canvas = Canvas(pictureRecorder);
@@ -505,7 +455,7 @@ BitmapDescriptor pmToMarkerPoint(double pm2_5) {
 
 Future<BitmapDescriptor> pmToSmallMarker(double pm2_5) async {
   var width = 20;
-  var bgColor = pm2_5ToColor(pm2_5);
+  var bgColor = pollutantValueColor(value: pm2_5, pollutant: Pollutant.pm2_5);
 
   final pictureRecorder = PictureRecorder();
   final canvas = Canvas(pictureRecorder);

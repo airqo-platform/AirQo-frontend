@@ -234,7 +234,8 @@ class _DashboardViewState extends State<DashboardView> {
           padding: const EdgeInsets.all(2.0),
           decoration: BoxDecoration(
             border: Border.all(color: Config.appBodyColor, width: 2),
-            color: pm2_5ToColor(measurement.getPm2_5Value()),
+            color: pollutantValueColor(
+                value: measurement.getPm2_5Value(), pollutant: Pollutant.pm2_5),
             shape: BoxShape.circle,
           ),
           child: Center(
@@ -242,7 +243,9 @@ class _DashboardViewState extends State<DashboardView> {
               '${measurement.getPm2_5Value()}',
               style: TextStyle(
                   fontSize: 7,
-                  color: pm2_5TextColor(measurement.getPm2_5Value())),
+                  color: pollutantTextColor(
+                      value: measurement.getPm2_5Value(),
+                      pollutant: Pollutant.pm2_5)),
             ),
           ),
         ));

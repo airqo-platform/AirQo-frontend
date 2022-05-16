@@ -528,7 +528,7 @@ class ShareService {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              analyticsAvatar(measurement, 104, 40, 12),
+              AnalyticsAvatar(measurement: measurement),
               const SizedBox(width: 10.0),
               Flexible(
                 child: Column(
@@ -557,17 +557,23 @@ class ShareService {
                       decoration: BoxDecoration(
                           borderRadius:
                               const BorderRadius.all(Radius.circular(40.0)),
-                          color: pm2_5ToColor(measurement.getPm2_5Value())
+                          color: pollutantValueColor(
+                                  value: measurement.getPm2_5Value(),
+                                  pollutant: Pollutant.pm2_5)
                               .withOpacity(0.4),
                           border: Border.all(color: Colors.transparent)),
                       child: AutoSizeText(
-                        pm2_5ToString(measurement.getPm2_5Value()),
+                        pollutantValueString(
+                            value: measurement.getPm2_5Value(),
+                            pollutant: Pollutant.pm2_5),
                         maxLines: 2,
                         textAlign: TextAlign.start,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 12,
-                          color: pm2_5TextColor(measurement.getPm2_5Value()),
+                          color: pollutantTextColor(
+                              value: measurement.getPm2_5Value(),
+                              pollutant: Pollutant.pm2_5),
                         ),
                       ),
                     ),
@@ -679,7 +685,7 @@ class ShareService {
     }
     Share.share(
             '${measurement.site.name}, Current Air Quality. \n\n'
-            'PM2.5 : ${measurement.getPm2_5Value().toStringAsFixed(2)} µg/m\u00B3 (${pm2_5ToString(measurement.getPm2_5Value())}) \n'
+            'PM2.5 : ${measurement.getPm2_5Value().toStringAsFixed(2)} µg/m\u00B3 (${pollutantValueString(value: measurement.getPm2_5Value(), pollutant: Pollutant.pm2_5)}) \n'
             'PM10 : ${measurement.getPm10Value().toStringAsFixed(2)} µg/m\u00B3 \n'
             '$recommendations\n\n'
             'Source: AirQo App',

@@ -1,4 +1,3 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -104,21 +103,7 @@ class AppNotification extends HiveObject {
   factory AppNotification.fromJson(Map<String, dynamic> json) =>
       _$AppNotificationFromJson(json);
 
-  void setHasNotification() {}
-
   Map<String, dynamic> toJson() => _$AppNotificationToJson(this);
-
-  static AppNotification? composeAppNotification(RemoteMessage message) {
-    debugPrint('Message data: ${message.data}');
-
-    var data = message.data;
-
-    if (data.isNotEmpty) {
-      return null;
-    }
-
-    return null;
-  }
 
   static AppNotification? parseAppNotification(dynamic jsonBody) {
     try {

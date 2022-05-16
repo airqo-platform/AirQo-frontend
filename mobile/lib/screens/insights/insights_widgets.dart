@@ -242,8 +242,12 @@ class InsightsAvatar extends StatelessWidget {
           color: measurement.forecast
               ? Config.appColorPaleBlue
               : pollutant == Pollutant.pm2_5
-                  ? pm2_5ToColor(measurement.getChartValue(pollutant))
-                  : pm10ToColor(measurement.getChartValue(pollutant)),
+                  ? pollutantValueColor(
+                      value: measurement.getChartValue(pollutant),
+                      pollutant: Pollutant.pm2_5)
+                  : pollutantValueColor(
+                      value: measurement.getChartValue(pollutant),
+                      pollutant: Pollutant.pm10),
           border: Border.all(color: Colors.transparent)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -259,8 +263,12 @@ class InsightsAvatar extends StatelessWidget {
             color: measurement.forecast
                 ? Config.appColorBlue
                 : pollutant == Pollutant.pm2_5
-                    ? pm2_5TextColor(measurement.getChartValue(pollutant))
-                    : pm10TextColor(measurement.getChartValue(pollutant)),
+                    ? pollutantTextColor(
+                        value: measurement.getChartValue(pollutant),
+                        pollutant: Pollutant.pm2_5)
+                    : pollutantTextColor(
+                        value: measurement.getChartValue(pollutant),
+                        pollutant: Pollutant.pm10),
           ),
           Text(
             measurement.getChartValue(pollutant).toStringAsFixed(0),
@@ -274,8 +282,12 @@ class InsightsAvatar extends StatelessWidget {
               color: measurement.forecast
                   ? Config.appColorBlue
                   : pollutant == Pollutant.pm2_5
-                      ? pm2_5TextColor(measurement.getChartValue(pollutant))
-                      : pm10TextColor(measurement.getChartValue(pollutant)),
+                      ? pollutantTextColor(
+                          value: measurement.getChartValue(pollutant),
+                          pollutant: Pollutant.pm2_5)
+                      : pollutantTextColor(
+                          value: measurement.getChartValue(pollutant),
+                          pollutant: Pollutant.pm10),
             ),
           ),
           SvgPicture.asset(
@@ -286,8 +298,12 @@ class InsightsAvatar extends StatelessWidget {
             color: measurement.forecast
                 ? Config.appColorBlue
                 : pollutant == Pollutant.pm2_5
-                    ? pm2_5TextColor(measurement.getChartValue(pollutant))
-                    : pm10TextColor(measurement.getChartValue(pollutant)),
+                    ? pollutantTextColor(
+                        value: measurement.getChartValue(pollutant),
+                        pollutant: Pollutant.pm2_5)
+                    : pollutantTextColor(
+                        value: measurement.getChartValue(pollutant),
+                        pollutant: Pollutant.pm10),
           ),
         ],
       ),

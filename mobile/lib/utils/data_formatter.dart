@@ -14,7 +14,7 @@ charts.Color insightsChartBarColor(Insights series, Pollutant pollutant) {
   } else if (series.forecast) {
     return charts.ColorUtil.fromDartColor(Config.appColorPaleBlue);
   } else {
-    return pmToChartColor(series.getChartValue(pollutant), pollutant);
+    return pollutantChartValueColor(series.getChartValue(pollutant), pollutant);
   }
 }
 

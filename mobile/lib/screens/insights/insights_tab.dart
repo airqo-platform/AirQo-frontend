@@ -331,20 +331,28 @@ class _InsightsTabState extends State<InsightsTab> {
                             color: _selectedMeasurement!.forecast
                                 ? Config.appColorPaleBlue
                                 : _pollutant == Pollutant.pm2_5
-                                    ? pm2_5ToColor(_selectedMeasurement!
-                                            .getChartValue(_pollutant))
+                                    ? pollutantValueColor(
+                                            value: _selectedMeasurement!
+                                                .getChartValue(_pollutant),
+                                            pollutant: Pollutant.pm2_5)
                                         .withOpacity(0.4)
-                                    : pm10ToColor(_selectedMeasurement!
-                                            .getChartValue(_pollutant))
+                                    : pollutantValueColor(
+                                            value: _selectedMeasurement!
+                                                .getChartValue(_pollutant),
+                                            pollutant: Pollutant.pm10)
                                         .withOpacity(0.4),
                             border: Border.all(color: Colors.transparent)),
                         child: AutoSizeText(
                             _pollutant == Pollutant.pm2_5
-                                ? pm2_5ToString(_selectedMeasurement!
-                                        .getChartValue(_pollutant))
+                                ? pollutantValueString(
+                                        value: _selectedMeasurement!
+                                            .getChartValue(_pollutant),
+                                        pollutant: Pollutant.pm2_5)
                                     .trimEllipsis()
-                                : pm10ToString(_selectedMeasurement!
-                                        .getChartValue(_pollutant))
+                                : pollutantValueString(
+                                        value: _selectedMeasurement!
+                                            .getChartValue(_pollutant),
+                                        pollutant: Pollutant.pm10)
                                     .trimEllipsis(),
                             maxLines: 1,
                             maxFontSize: 14,
@@ -354,10 +362,16 @@ class _InsightsTabState extends State<InsightsTab> {
                               color: _selectedMeasurement!.forecast
                                   ? Config.appColorBlue
                                   : _pollutant == Pollutant.pm2_5
-                                      ? pm2_5TextColor(_selectedMeasurement!
-                                          .getChartValue(_pollutant))
-                                      : pm10TextColor(_selectedMeasurement!
-                                          .getChartValue(_pollutant)),
+                                      ? pollutantTextColor(
+                                          value: _selectedMeasurement!
+                                              .getChartValue(_pollutant),
+                                          pollutant: Pollutant.pm2_5,
+                                          graph: true)
+                                      : pollutantTextColor(
+                                          value: _selectedMeasurement!
+                                              .getChartValue(_pollutant),
+                                          pollutant: Pollutant.pm10,
+                                          graph: true),
                             )),
                       ),
                     ),
@@ -687,13 +701,13 @@ class _InsightsTabState extends State<InsightsTab> {
                     ShareService.shareGraph(
                         context, _globalKey, widget.placeDetails);
                   },
-                  child: iconTextButton(
-                      SvgPicture.asset(
+                  child: IconTextButton(
+                      iconWidget: SvgPicture.asset(
                         'assets/icon/share_icon.svg',
                         semanticsLabel: 'Share',
                         color: Config.greyColor,
                       ),
-                      'Share'),
+                      text: 'Share'),
                 ),
                 const SizedBox(
                   width: 60,
@@ -704,7 +718,8 @@ class _InsightsTabState extends State<InsightsTab> {
                       onTap: () async {
                         updateFavPlace();
                       },
-                      child: iconTextButton(getHeartIcon(), 'Favorite'),
+                      child: IconTextButton(
+                          iconWidget: getHeartIcon(), text: 'Favorite'),
                     );
                   },
                 ),
