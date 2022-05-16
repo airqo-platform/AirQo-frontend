@@ -17,7 +17,7 @@
 
   font-style: normal;
   font-weight: 500;
-  font-size: 14px;
+  font-size: $buttonFont;
   line-height: 24px;
   color: $aq-white-0;
 }
@@ -37,7 +37,7 @@
 
   font-style: normal;
   font-weight: 500;
-  font-size: 16px;
+  font-size: $buttonFont;
   line-height: 24px;
 
   color: $aq-blue-0;
@@ -48,7 +48,7 @@
 .button-signin {
   font-style: normal;
   font-weight: 400;
-  font-size: 16px;
+  font-size: $buttonFont;
   line-height: 24px;
   color: $aq-blue-0;
   margin-left: 42px;
@@ -97,7 +97,7 @@
     min-height: 84px;
     font-style: normal;
     font-weight: 400;
-    font-size: 20px;
+    font-size: $subTextFont;
     line-height: 28px;
     margin: 0;
   }

@@ -12,20 +12,22 @@
     display: flex;
     flex-direction: row;
 }
-$h2-font:40px;
-$p-font:18px;
+
+$h2-font:$headingFont;
+$p-font:$subTextFont;
 
 .get-app{
     display:grid;
     grid-template-columns: $gridColumn;
-    padding: 40px 0 70px 0;
+    padding: 80px 0 136px 0;
+    margin-bottom: 260px;
     .back-drop{
         grid-column: 2 / 3;
         display:grid;
         grid-template-columns: 2fr 3fr;
         grid-gap:30px;
         padding:30px;
-        height:320px;
+        height:400px;
         background-color: $aq-blue-1;
         border-radius: 8px;
 
@@ -37,14 +39,14 @@ $p-font:18px;
                 width:auto;
                 h2{
                     color:$aq-blue-0;
-                    font-weight: 700;
+                    font-weight: 600;
                     font-size: $h2-font;
                     line-height: 10px;
                 }
                 span{
                     color: $aq-blue-2;
                     font-weight: 400;
-                    font-size: 20px;
+                    font-size: $p-font;
                     line-height: 28px;
                     width: 269px;
                 }
@@ -92,7 +94,7 @@ $p-font:18px;
             .get-graphics-lg{
                 float:right;
                 height:auto;
-                margin:-220px 10% 0 0;
+                margin:-190px 10% 0 0;
                 width:auto;
                 background-color: transparent;
             }

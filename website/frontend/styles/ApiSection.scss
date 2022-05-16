@@ -11,6 +11,7 @@
 
     &-details {
         // margin-right: 40px;
+        width:520px;
 
         h3 {
             margin-bottom: 24px;
@@ -18,33 +19,35 @@
             color: $aq-blue-0;
             width: 148px;
             height: 34px;
-            font-size: 14px;
-            font-weight: bold;
+            font-size: $pillFont;
+            font-weight: 500;
             display: flex;
             justify-content: center;
             align-items: center;
             border-radius: 1000px;
         }
-
+        
         h1 {
-            font-size: 48px;
+            font-size: $headingFont;
             line-height: 56px;
             margin-bottom: 24px;
             color: $aq-black-1;
+            font-weight: 500;
         }
 
         p {
-            font-size: 18px;
-            line-height: 26px;
+            font-size: $subTextFont;
+            line-height: 28px;
             margin-bottom: 32px;
+            font-weight: 400;
         }
 
         &-btn {
             color: $aq-blue-0;
             display: flex;
             align-items: center;
-            font-size: 14px;
-            font-weight: 600px;
+            font-size: $linkFont;
+            font-weight: 500px;
             font-style: normal;
             cursor: pointer;
         }
