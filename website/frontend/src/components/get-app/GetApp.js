@@ -1,6 +1,6 @@
 import React from 'react';
-import GetappImg from '../../assets/svg/get-app.svg';
-import GetappImgSm from '../../assets/img/get-app-sm.png';
+import GetappImg from 'assets/img/get-app.png';
+import GetappImgSm from 'assets/img/get-app-sm.png';
 import AppleStore from 'assets/svg/apple_app_store.svg';
 import AndroidStore from 'assets/svg/android_play_store.svg';
 
@@ -24,7 +24,9 @@ const GetApp = () => {
                     </div>
                 </div>
                 <div className='get-graphics'>
-                    <div className='get-graphics-lg'><GetappImg/> </div>
+                    <div className='get-graphics-lg'>
+                        <img src={GetappImg} alt="GetAppImage"/>
+                    </div>
                     <img src={GetappImgSm} className="get-graphics-sm" />
                 </div>
             </div>

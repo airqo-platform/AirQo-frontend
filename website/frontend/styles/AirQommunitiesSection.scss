@@ -5,7 +5,8 @@
     align-items: center;
     height: 800px;
     width: 100%;
-    margin-top: 20%;
+    margin-top: 217px;
+    margin-bottom: 160px;
     background-color: $aq-orange-0;
 
     &-img {
@@ -26,10 +27,10 @@
         margin-left: 72px;
 
         h3 {
-            font-size: 14px;
+            font-size: $pillFont;
             font-weight: 500;
             line-height: 26px;
-            color: $aq-blue-4;
+            color: $aq-blue-2;
             background-color: $aq-white-0;
             border-radius: 1000px;
             margin-bottom: 24px;
@@ -42,15 +43,15 @@
 
     &-info {
         h1 {
-            font-size: 48px;
-            font-weight: 600;
+            font-size: $headingFont;
+            font-weight: 500;
             line-height: 56px;
             margin-bottom: 24px;
             color: $aq-black-1;
         }
 
         p {
-            font-size: 20px;
+            font-size: $subTextFont;
             font-weight: 400;
             line-height: 28px;
             color: $aq-black-1;
@@ -63,7 +64,7 @@
         align-items: center;
         color: $aq-blue-4;
         font-weight: 500;
-        font-size: 16px;
+        font-size: $linkFont;
         line-height: 24px;
         cursor: pointer;
     }

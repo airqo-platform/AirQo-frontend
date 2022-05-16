@@ -15,7 +15,7 @@ const Footer = () => (
             <div className="body-section">
                 <div className="logo">
                     <AirQo />
-                    <div className="logo-text">Closing the air quality data gap in Africa.</div>
+                    <div className="logo-text">Clean air for all <br/> African Cities!</div>
                     <div className="social-links">
                         <Instagram />
                         <Facebook />

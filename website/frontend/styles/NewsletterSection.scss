@@ -13,16 +13,16 @@
     h3 {
         margin: 0 auto;
         font-style: normal;
-        font-weight: bold;
-        font-size: 40px;
+        font-weight: 600;
+        font-size: $miniHeadingFont;
         line-height: 48px;
         color: $aq-blue-0;
     }
 
     p {
         font-style: normal;
-        font-weight: normal;
-        font-size: 18px;
+        font-weight: 400;
+        font-size: $subTextFont;
         line-height: 26px;
         color: $aq-blue-0;
         margin: 16px auto 40px auto;
@@ -39,7 +39,7 @@
         &-input, &-btn {
             outline: 0;
             border: 0;
-            font-size: 14px;
+            font-size: $buttonFont;
         }
 
         &-input {
