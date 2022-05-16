@@ -94,7 +94,7 @@ class AirQoApp extends StatelessWidget {
                   FirebaseAnalyticsObserver(analytics: analytics),
                   SentryNavigatorObserver(),
                 ],
-                title: Config.appName,
+                title: 'AirQo',
                 theme: _buildCurrentTheme(),
                 home: const SplashScreen(),
               );

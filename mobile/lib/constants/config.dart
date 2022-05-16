@@ -31,12 +31,6 @@ class Config {
   static String get appAndroidWhatsappUrl =>
       dotenv.env['ANDROID_WHATSAPP_URL'] ?? '';
 
-  static Color get appBarBgColor => const Color(0xffF2F1F6);
-
-  static Color get appBarTitleColor => appColor;
-
-  static Color get appBgColor => const Color(0xffEBEBEB);
-
   static Color get appBodyColor => const Color(0xffF2F1F6);
 
   static Color get appColor => Colors.black;
@@ -55,8 +49,6 @@ class Config {
   static String get appIOSWhatsappUrl => dotenv.env['IOS_WHATSAPP_URL'] ?? '';
 
   static Color get appLoadingColor => const Color(0xffEBEAEF);
-
-  static String get appName => dotenv.env['APP_NAME'] ?? 'AirQo';
 
   static Color get appPicColor => const Color(0xffFF79C1);
 

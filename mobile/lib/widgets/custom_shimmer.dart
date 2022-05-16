@@ -52,15 +52,13 @@ class ContainerLoadingAnimation extends StatelessWidget {
 
 void loadingScreen(BuildContext _context) async {
   await showDialog(
+      barrierColor: Colors.transparent,
       context: _context,
       barrierDismissible: false,
-      builder: (ctx) => Container(
-          decoration:
-              BoxDecoration(color: Config.appColorBlue.withOpacity(0.005)),
-          child: CupertinoActivityIndicator(
+      builder: (ctx) => CupertinoActivityIndicator(
             radius: 20,
             color: Config.appColorBlue,
-          )));
+          ));
 }
 
 class SizedContainerLoadingAnimation extends StatelessWidget {

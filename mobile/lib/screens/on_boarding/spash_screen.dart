@@ -8,6 +8,7 @@ import 'package:app/utils/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../constants/config.dart';
 import '../../models/enum_constants.dart';
 import '../../services/local_storage.dart';
 import '../auth/phone_auth_widget.dart';
@@ -29,6 +30,7 @@ class SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Config.appBodyColor,
       body: PageTransitionSwitcher(
         duration: const Duration(seconds: 3),
         transitionBuilder: (

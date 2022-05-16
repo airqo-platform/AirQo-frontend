@@ -22,26 +22,27 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        backgroundColor: Config.appBodyColor,
         body: WillPopScope(
-      onWillPop: onWillPop,
-      child: Center(
-        child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                'All Set!',
-                textAlign: TextAlign.center,
-                style: _textStyle(),
-              ),
-              Text(
-                'Breathe',
-                textAlign: TextAlign.center,
-                style: _textStyle()?.copyWith(color: Config.appColorBlue),
-              ),
-            ]),
-      ),
-    ));
+          onWillPop: onWillPop,
+          child: Center(
+            child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    'All Set!',
+                    textAlign: TextAlign.center,
+                    style: _textStyle(),
+                  ),
+                  Text(
+                    'Breathe',
+                    textAlign: TextAlign.center,
+                    style: _textStyle()?.copyWith(color: Config.appColorBlue),
+                  ),
+                ]),
+          ),
+        ));
   }
 
   Future<void> initialize() async {

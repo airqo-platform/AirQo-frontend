@@ -10,6 +10,7 @@ import '../themes/light_theme.dart';
 
 void pmInfoDialog(context, double pm2_5) {
   showGeneralDialog(
+    barrierColor: Colors.transparent,
     context: context,
     barrierDismissible: false,
     transitionDuration: const Duration(milliseconds: 250),

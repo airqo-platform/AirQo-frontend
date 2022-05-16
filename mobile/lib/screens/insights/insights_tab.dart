@@ -481,7 +481,7 @@ class _InsightsTabState extends State<InsightsTab> {
                 cornerRadius: 3,
                 onBarSelection: _updateUI,
                 pollutant: _pollutant,
-                frequency: widget.frequency);
+                frequency: Frequency.hourly);
 
         hourlyInsights.removeWhere((element) =>
             element.time.day == randomValue.time.day &&

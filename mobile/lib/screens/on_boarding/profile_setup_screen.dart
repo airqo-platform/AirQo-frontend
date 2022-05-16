@@ -39,104 +39,105 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        backgroundColor: Config.appBodyColor,
         body: WillPopScope(
-      onWillPop: onWillPop,
-      child: Container(
-        padding: const EdgeInsets.only(left: 24, right: 24),
-        child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              const SizedBox(
-                height: 56,
-              ),
-              Center(
-                child: Text(
-                  'Great!\nPlease enter your name?',
-                  textAlign: TextAlign.center,
-                  style: CustomTextStyle.headline7(context),
-                ),
-              ),
-              const SizedBox(
-                height: 32,
-              ),
-              SizedBox(
-                height: 48,
-                child: Row(
-                  children: <Widget>[
-                    titleDropdown(),
-                    const SizedBox(
-                      width: 16,
-                    ),
-                    Form(
-                      key: _formKey,
-                      child: Flexible(
-                        child: nameInputField(),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(
-                height: 8,
-              ),
-              Visibility(
-                visible: _showDropDown,
-                child: Container(
-                    padding: const EdgeInsets.only(left: 10, right: 10),
-                    decoration: BoxDecoration(
-                        color: const Color(0xffF4F4F4),
-                        borderRadius: BorderRadius.circular(8)),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 12, horizontal: 12),
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.max,
-                          children: getTitleOptions()),
-                    )),
-              ),
-              const Spacer(),
-              GestureDetector(
-                onTap: () async {
-                  await saveName();
-                },
-                child: NextButton(buttonColor: nextBtnColor),
-              ),
-              SizedBox(
-                height: _showOptions ? 16 : 12,
-              ),
-              Visibility(
-                visible: _showOptions,
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.pushAndRemoveUntil(context,
-                        MaterialPageRoute(builder: (context) {
-                      return const NotificationsSetupScreen();
-                    }), (r) => false);
-                  },
-                  child: Center(
+          onWillPop: onWillPop,
+          child: Container(
+            padding: const EdgeInsets.only(left: 24, right: 24),
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  const SizedBox(
+                    height: 56,
+                  ),
+                  Center(
                     child: Text(
-                      'No, thanks',
+                      'Great!\nPlease enter your name?',
                       textAlign: TextAlign.center,
-                      style: Theme.of(context)
-                          .textTheme
-                          .caption
-                          ?.copyWith(color: Config.appColorBlue),
+                      style: CustomTextStyle.headline7(context),
                     ),
                   ),
-                ),
-              ),
-              Visibility(
-                visible: _showOptions,
-                child: const SizedBox(
-                  height: 40,
-                ),
-              ),
-            ]),
-      ),
-    ));
+                  const SizedBox(
+                    height: 32,
+                  ),
+                  SizedBox(
+                    height: 48,
+                    child: Row(
+                      children: <Widget>[
+                        titleDropdown(),
+                        const SizedBox(
+                          width: 16,
+                        ),
+                        Form(
+                          key: _formKey,
+                          child: Flexible(
+                            child: nameInputField(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 8,
+                  ),
+                  Visibility(
+                    visible: _showDropDown,
+                    child: Container(
+                        padding: const EdgeInsets.only(left: 10, right: 10),
+                        decoration: BoxDecoration(
+                            color: const Color(0xffF4F4F4),
+                            borderRadius: BorderRadius.circular(8)),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 12, horizontal: 12),
+                          child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.max,
+                              children: getTitleOptions()),
+                        )),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () async {
+                      await saveName();
+                    },
+                    child: NextButton(buttonColor: nextBtnColor),
+                  ),
+                  SizedBox(
+                    height: _showOptions ? 16 : 12,
+                  ),
+                  Visibility(
+                    visible: _showOptions,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.pushAndRemoveUntil(context,
+                            MaterialPageRoute(builder: (context) {
+                          return const NotificationsSetupScreen();
+                        }), (r) => false);
+                      },
+                      child: Center(
+                        child: Text(
+                          'No, thanks',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context)
+                              .textTheme
+                              .caption
+                              ?.copyWith(color: Config.appColorBlue),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Visibility(
+                    visible: _showOptions,
+                    child: const SizedBox(
+                      height: 40,
+                    ),
+                  ),
+                ]),
+          ),
+        ));
   }
 
   void clearNameCallBack() {

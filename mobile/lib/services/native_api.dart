@@ -689,7 +689,7 @@ class ShareService {
             'PM10 : ${measurement.getPm10Value().toStringAsFixed(2)} µg/m\u00B3 \n'
             '$recommendations\n\n'
             'Source: AirQo App',
-            subject: '${Config.appName}, ${measurement.site.name}!')
+            subject: 'AirQo, ${measurement.site.name}!')
         .then((value) => {updateUserShares()});
   }
 

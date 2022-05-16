@@ -13,9 +13,9 @@ class ProceedAsGuest extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        CloudAnalytics.logEvent(AnalyticsEvent.browserAsAppGuest, false);
-        Navigator.pushAndRemoveUntil(context,
+      onTap: () async {
+        await CloudAnalytics.logEvent(AnalyticsEvent.browserAsAppGuest, false);
+        await Navigator.pushAndRemoveUntil(context,
             MaterialPageRoute(builder: (context) {
           return const HomePage();
         }), (r) => false);

@@ -206,7 +206,7 @@ class EmptyView extends StatelessWidget {
                         iconSize: 10,
                         icon: Icon(
                           Icons.clear,
-                          color: Config.appBarTitleColor,
+                          color: Config.appColor,
                         ),
                         onPressed: showRegions,
                       ),
