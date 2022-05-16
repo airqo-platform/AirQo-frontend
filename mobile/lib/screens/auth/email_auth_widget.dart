@@ -16,6 +16,7 @@ import '../../models/enum_constants.dart';
 import '../../themes/light_theme.dart';
 import '../../widgets/custom_shimmer.dart';
 import '../on_boarding/profile_setup_screen.dart';
+import 'auth_widgets.dart';
 
 class EmailAuthWidget extends StatefulWidget {
   final String? emailAddress;
@@ -134,7 +135,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
             ?.copyWith(color: Config.appColorBlack.withOpacity(0.32)),
         suffixIcon: GestureDetector(
           onTap: clearEmailCallBack,
-          child: textInputCloseButton(),
+          child: const TextInputCloseButton(),
         ),
         errorStyle: const TextStyle(
           fontSize: 0,
@@ -199,7 +200,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                 (r) => false);
           });
         },
-        child: signButton(text: _authOptionsButtonText, context: context),
+        child: SignUpButton(text: _authOptionsButtonText),
       ),
       const Spacer(),
       GestureDetector(
@@ -217,8 +218,8 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
       Visibility(
         visible: _showAuthOptions,
         child: widget.authProcedure == AuthProcedure.login
-            ? loginOptions(context: context)
-            : signUpOptions(context: context),
+            ? const LoginOptions()
+            : const SignUpOptions(),
       ),
       SizedBox(
         height: _showAuthOptions ? 40 : 12,

@@ -3,36 +3,51 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
-Widget circularLoadingAnimation(double size) {
-  return SizedBox(
-      height: size,
-      width: size,
+class CircularLoadingAnimation extends StatelessWidget {
+  final double size;
+  const CircularLoadingAnimation({Key? key, required this.size})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+        height: size,
+        width: size,
+        child: Shimmer.fromColors(
+          baseColor: Config.appLoadingColor,
+          highlightColor: Colors.white,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Config.appLoadingColor,
+              shape: BoxShape.circle,
+            ),
+          ),
+        ));
+  }
+}
+
+class ContainerLoadingAnimation extends StatelessWidget {
+  final double radius;
+  final double height;
+  const ContainerLoadingAnimation(
+      {Key? key, required this.radius, required this.height})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: height,
       child: Shimmer.fromColors(
         baseColor: Config.appLoadingColor,
         highlightColor: Colors.white,
         child: Container(
-          decoration: BoxDecoration(
-            color: Config.appLoadingColor,
-            shape: BoxShape.circle,
-          ),
-        ),
-      ));
-}
-
-Widget containerLoadingAnimation(
-    {required double height, required double radius}) {
-  return SizedBox(
-    height: height,
-    child: Shimmer.fromColors(
-      baseColor: Config.appLoadingColor,
-      highlightColor: Colors.white,
-      child: Container(
-          constraints: BoxConstraints(minHeight: height, maxHeight: height),
-          decoration: BoxDecoration(
-              color: Config.appLoadingColor,
-              borderRadius: BorderRadius.all(Radius.circular(radius)))),
-    ),
-  );
+            constraints: BoxConstraints(minHeight: height, maxHeight: height),
+            decoration: BoxDecoration(
+                color: Config.appLoadingColor,
+                borderRadius: BorderRadius.all(Radius.circular(radius)))),
+      ),
+    );
+  }
 }
 
 void loadingScreen(BuildContext _context) async {
@@ -48,72 +63,64 @@ void loadingScreen(BuildContext _context) async {
           )));
 }
 
-Widget sizedContainerLoadingAnimation(
-    double height, double width, double radius) {
-  return SizedBox(
-    height: height,
-    width: width,
-    child: Shimmer.fromColors(
-      baseColor: Config.appLoadingColor,
-      highlightColor: Colors.white,
-      child: Container(
-          constraints: BoxConstraints(
-              minWidth: width,
-              minHeight: height,
-              maxWidth: width,
-              maxHeight: height),
-          decoration: BoxDecoration(
-              color: Config.appLoadingColor,
-              borderRadius: BorderRadius.all(Radius.circular(radius)))),
-    ),
-  );
+class SizedContainerLoadingAnimation extends StatelessWidget {
+  final double height;
+  final double width;
+  final double radius;
+  const SizedContainerLoadingAnimation(
+      {Key? key,
+      required this.height,
+      required this.width,
+      required this.radius})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: height,
+      width: width,
+      child: Shimmer.fromColors(
+        baseColor: Config.appLoadingColor,
+        highlightColor: Colors.white,
+        child: Container(
+            constraints: BoxConstraints(
+                minWidth: width,
+                minHeight: height,
+                maxWidth: width,
+                maxHeight: height),
+            decoration: BoxDecoration(
+                color: Config.appLoadingColor,
+                borderRadius: BorderRadius.all(Radius.circular(radius)))),
+      ),
+    );
+  }
 }
 
-Widget textLoadingAnimation(double height, double width) {
-  return SizedBox(
-    height: height,
-    width: width,
-    child: Shimmer.fromColors(
-      baseColor: Config.appLoadingColor,
-      highlightColor: Colors.white,
-      child: Container(
-          constraints: BoxConstraints(
-              minWidth: width,
-              minHeight: height,
-              maxWidth: width,
-              maxHeight: height),
-          decoration: BoxDecoration(
-              color: Config.appLoadingColor,
-              borderRadius: const BorderRadius.all(Radius.circular(2)))),
-    ),
-  );
-}
+class TextLoadingAnimation extends StatelessWidget {
+  final double height;
+  final double width;
+  const TextLoadingAnimation(
+      {Key? key, required this.height, required this.width})
+      : super(key: key);
 
-class LoadingOverlay {
-  BuildContext _context;
-
-  factory LoadingOverlay.of(BuildContext context) {
-    return LoadingOverlay._create(context);
-  }
-
-  LoadingOverlay._create(this._context);
-
-  Future<T> during<T>(Future<T> future) {
-    show();
-    return future.whenComplete(hide);
-  }
-
-  void hide() {
-    Navigator.of(_context).pop();
-  }
-
-  void show() {
-    showDialog(
-        context: _context,
-        barrierDismissible: false,
-        builder: (ctx) => Container(
-            decoration:
-                const BoxDecoration(color: Color.fromRGBO(0, 0, 0, 0.5)),
-            child: const Center(child: CircularProgressIndicator())));
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: height,
+      width: width,
+      child: Shimmer.fromColors(
+        baseColor: Config.appLoadingColor,
+        highlightColor: Colors.white,
+        child: Container(
+            constraints: BoxConstraints(
+                minWidth: width,
+                minHeight: height,
+                maxWidth: width,
+                maxHeight: height),
+            decoration: BoxDecoration(
+                color: Config.appLoadingColor,
+                borderRadius: const BorderRadius.all(Radius.circular(2)))),
+      ),
+    );
   }
 }

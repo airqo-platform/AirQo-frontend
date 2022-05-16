@@ -145,22 +145,27 @@ Widget tabLayout(String day, date, Color background, Color foreground) {
   );
 }
 
-Widget textInputCloseButton() {
-  return Padding(
-    padding: const EdgeInsets.all(15),
-    child: Container(
-      decoration: BoxDecoration(
-          color: Config.greyColor.withOpacity(0.7),
-          borderRadius: const BorderRadius.all(Radius.circular(5.0))),
-      height: 15,
-      width: 15,
-      child: const Center(
-        child: Icon(
-          Icons.clear,
-          size: 12,
-          color: Colors.white,
+class TextInputCloseButton extends StatelessWidget {
+  const TextInputCloseButton({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(15),
+      child: Container(
+        decoration: BoxDecoration(
+            color: Config.greyColor.withOpacity(0.7),
+            borderRadius: const BorderRadius.all(Radius.circular(5.0))),
+        height: 15,
+        width: 15,
+        child: const Center(
+          child: Icon(
+            Icons.clear,
+            size: 12,
+            color: Colors.white,
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }

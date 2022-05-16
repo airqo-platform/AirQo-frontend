@@ -12,6 +12,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../models/enum_constants.dart';
 import '../themes/light_theme.dart';
+import 'buttons.dart';
 
 Widget refreshIndicator(
     {required SliverChildDelegate sliverChildDelegate,
@@ -163,49 +164,6 @@ class AqiStringContainer extends StatelessWidget {
                 pollutant: Pollutant.pm2_5,
                 graph: true),
           )),
-    );
-  }
-}
-
-class AppBackButton extends StatelessWidget {
-  const AppBackButton({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.pop(context);
-      },
-      child: SvgPicture.asset(
-        'assets/icon/back_button.svg',
-        semanticsLabel: 'more',
-        height: 40,
-        width: 40,
-      ),
-    );
-  }
-}
-
-class IconTextButton extends StatelessWidget {
-  final Widget iconWidget;
-  final String text;
-  const IconTextButton({Key? key, required this.iconWidget, required this.text})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        iconWidget,
-        const SizedBox(
-          width: 10,
-        ),
-        Text(
-          text,
-          style: TextStyle(
-              fontSize: 14, color: Config.appColorBlack, height: 18 / 14),
-        )
-      ],
     );
   }
 }

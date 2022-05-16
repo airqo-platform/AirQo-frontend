@@ -19,6 +19,7 @@ import 'package:provider/provider.dart';
 import '../models/enum_constants.dart';
 import '../services/native_api.dart';
 import '../themes/light_theme.dart';
+import 'buttons.dart';
 import 'custom_shimmer.dart';
 import 'custom_widgets.dart';
 
@@ -40,21 +41,24 @@ Widget analyticsCardLoading() {
           padding: const EdgeInsets.only(left: 24, right: 24),
           child: Row(
             children: [
-              circularLoadingAnimation(104),
+              const CircularLoadingAnimation(size: 104),
               const SizedBox(width: 16.0),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    sizedContainerLoadingAnimation(15, 139, 1000),
-                    const SizedBox(
+                  children: const [
+                    SizedContainerLoadingAnimation(
+                        height: 15, width: 139, radius: 1000),
+                    SizedBox(
                       height: 9,
                     ),
-                    sizedContainerLoadingAnimation(10, 115, 1000),
-                    const SizedBox(
+                    SizedContainerLoadingAnimation(
+                        height: 10, width: 115, radius: 1000),
+                    SizedBox(
                       height: 12,
                     ),
-                    sizedContainerLoadingAnimation(24, 115, 1000),
+                    SizedContainerLoadingAnimation(
+                        height: 24, width: 115, radius: 1000),
                   ],
                 ),
               )
@@ -62,9 +66,9 @@ Widget analyticsCardLoading() {
           ),
         ),
         const SizedBox(height: 20),
-        Padding(
-          padding: const EdgeInsets.only(left: 24, right: 24),
-          child: containerLoadingAnimation(height: 9, radius: 1000),
+        const Padding(
+          padding: EdgeInsets.only(left: 24, right: 24),
+          child: ContainerLoadingAnimation(height: 9, radius: 1000),
         ),
         const Divider(color: Color(0xffC4C4C4)),
         const SizedBox(
@@ -72,9 +76,11 @@ Widget analyticsCardLoading() {
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            sizedContainerLoadingAnimation(20, 105, 1000),
-            sizedContainerLoadingAnimation(20, 105, 1000),
+          children: const [
+            SizedContainerLoadingAnimation(
+                height: 20, width: 105, radius: 1000),
+            SizedContainerLoadingAnimation(
+                height: 20, width: 105, radius: 1000),
           ],
         ),
       ],

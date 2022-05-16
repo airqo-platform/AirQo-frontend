@@ -275,8 +275,8 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                           borderRadius: BorderRadius.circular(8),
                           child: CachedNetworkImage(
                             fit: BoxFit.fill,
-                            placeholder: (context, url) => SizedBox(
-                              child: containerLoadingAnimation(
+                            placeholder: (context, url) => const SizedBox(
+                              child: ContainerLoadingAnimation(
                                   height: 180, radius: 8),
                             ),
                             imageUrl: kyaItem.imageUrl,
@@ -352,9 +352,9 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                       borderRadius: BorderRadius.circular(8),
                       child: CachedNetworkImage(
                         fit: BoxFit.fill,
-                        placeholder: (context, url) => SizedBox(
+                        placeholder: (context, url) => const SizedBox(
                           child:
-                              containerLoadingAnimation(height: 180, radius: 8),
+                              ContainerLoadingAnimation(height: 180, radius: 8),
                         ),
                         imageUrl: kyaItem.imageUrl,
                         errorWidget: (context, url, error) => Icon(
@@ -364,7 +364,8 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                       ))
                   : ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: containerLoadingAnimation(height: 180, radius: 8)),
+                      child: const ContainerLoadingAnimation(
+                          height: 180, radius: 8)),
             ),
           ),
           const Spacer(),

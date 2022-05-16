@@ -11,6 +11,7 @@ import 'package:flutter_svg/svg.dart';
 import '../../services/app_service.dart';
 import '../../services/native_api.dart';
 import '../../themes/light_theme.dart';
+import '../../widgets/buttons.dart';
 import '../insights/insights_page.dart';
 
 class SearchPage extends StatefulWidget {

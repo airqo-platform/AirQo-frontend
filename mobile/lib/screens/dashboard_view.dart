@@ -340,7 +340,7 @@ class _DashboardViewState extends State<DashboardView> {
 
   Future<void> _initialize() async {
     _preferences = await SharedPreferences.getInstance();
-    _completeKyaWidgets.add(circularLoadingAnimation(30));
+    _completeKyaWidgets.add(const CircularLoadingAnimation(size: 30));
     _buildAnalyticsCards(_analyticsCards);
     _setGreetings();
     _getAnalyticsCards();
@@ -438,10 +438,10 @@ class _DashboardViewState extends State<DashboardView> {
                 fit: BoxFit.cover,
                 width: 104,
                 height: 104,
-                placeholder: (context, url) => SizedBox(
+                placeholder: (context, url) => const SizedBox(
                   width: 104,
                   height: 104,
-                  child: containerLoadingAnimation(height: 104, radius: 8),
+                  child: ContainerLoadingAnimation(height: 104, radius: 8),
                 ),
                 imageUrl: _incompleteKya[0].imageUrl,
                 errorWidget: (context, url, error) => Icon(

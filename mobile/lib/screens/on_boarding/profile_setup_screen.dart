@@ -230,7 +230,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
             _controller.text = '';
             clearNameCallBack();
           },
-          child: textInputCloseButton(),
+          child: const TextInputCloseButton(),
         ),
       ),
     );

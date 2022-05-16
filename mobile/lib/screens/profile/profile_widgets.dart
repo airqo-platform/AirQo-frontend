@@ -196,7 +196,7 @@ class ProfilePicture extends StatelessWidget {
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
             ),
-            child: circularLoadingAnimation(40),
+            child: const CircularLoadingAnimation(size: 40),
           ),
         if (userDetails.photoUrl != '')
           CircleAvatar(

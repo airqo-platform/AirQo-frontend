@@ -10,8 +10,9 @@ import 'package:app/widgets/text_fields.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../services/app_service.dart';
-import '../themes/light_theme.dart';
+import '../../services/app_service.dart';
+import '../../themes/light_theme.dart';
+import 'feedback_page_widgets.dart';
 
 class FeedbackPage extends StatefulWidget {
   const FeedbackPage({Key? key}) : super(key: key);
@@ -202,8 +203,9 @@ class _FeedbackPageState extends State<FeedbackPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           GestureDetector(
-                            child: containerBackButton(
-                                'Back', Config.appColorPaleBlue),
+                            child: FeedbackBackButton(
+                                text: 'Back',
+                                buttonColor: Config.appColorPaleBlue),
                             onTap: () {
                               setState(() {
                                 _index = _index - 1;
@@ -271,13 +273,14 @@ class _FeedbackPageState extends State<FeedbackPage> {
                               }
                             },
                             child: _index == 2 || _feedbackChannel == 'WhatsApp'
-                                ? containerNextButton(
-                                    'Send',
-                                    _isSendingFeedback
+                                ? FeedbackNextButton(
+                                    text: 'Send',
+                                    buttonColor: _isSendingFeedback
                                         ? Config.appColorPaleBlue
                                         : Config.appColorBlue)
-                                : containerNextButton(
-                                    'Next', Config.appColorBlue),
+                                : FeedbackNextButton(
+                                    text: 'Next',
+                                    buttonColor: Config.appColorBlue),
                           )
                         ],
                       ),
@@ -306,8 +309,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       GestureDetector(
-                        child: containerBackButton(
-                            'Back', Config.appColorPaleBlue),
+                        child: FeedbackBackButton(
+                            text: 'Back', buttonColor: Config.appColorPaleBlue),
                         onTap: () {
                           setState(() {
                             _index = _index - 1;
@@ -373,12 +376,13 @@ class _FeedbackPageState extends State<FeedbackPage> {
                           }
                         },
                         child: _index == 2 || _feedbackChannel == 'WhatsApp'
-                            ? containerNextButton(
-                                'Send',
-                                _isSendingFeedback
+                            ? FeedbackNextButton(
+                                text: 'Send',
+                                buttonColor: _isSendingFeedback
                                     ? Config.appColorPaleBlue
                                     : Config.appColorBlue)
-                            : containerNextButton('Next', Config.appColorBlue),
+                            : FeedbackNextButton(
+                                text: 'Next', buttonColor: Config.appColorBlue),
                       )
                     ],
                   ),
@@ -504,7 +508,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                   onTap: () {
                     _emailInputController.text = '';
                   },
-                  child: textInputCloseButton(),
+                  child: const TextInputCloseButton(),
                 )),
             hintStyle: Theme.of(context)
                 .textTheme

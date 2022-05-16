@@ -8,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../utils/network.dart';
+import 'auth_widgets.dart';
 
 class PhoneReAuthenticateScreen extends StatefulWidget {
   final UserDetails userDetails;
@@ -120,7 +121,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
         const SizedBox(
           height: 20,
         ),
-        cancelOption(context),
+        const CancelOption(),
         const SizedBox(
           height: 36,
         ),

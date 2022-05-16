@@ -7,6 +7,8 @@ import 'package:app/widgets/text_fields.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import 'auth_widgets.dart';
+
 class ChangePhoneScreen extends StatefulWidget {
   const ChangePhoneScreen({Key? key}) : super(key: key);
 
@@ -247,7 +249,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
           const SizedBox(
             height: 20,
           ),
-          cancelOption(context),
+          const CancelOption(),
           const SizedBox(
             height: 36,
           ),
@@ -332,7 +334,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
             hintText: '701000000',
             suffixIcon: GestureDetector(
               onTap: clearPhoneCallBack,
-              child: textInputCloseButton(),
+              child: const TextInputCloseButton(),
             ),
           ),
         )));

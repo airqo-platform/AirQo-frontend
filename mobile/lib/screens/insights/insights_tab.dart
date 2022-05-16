@@ -23,6 +23,7 @@ import 'package:visibility_detector/visibility_detector.dart';
 import '../../models/enum_constants.dart';
 import '../../services/native_api.dart';
 import '../../themes/light_theme.dart';
+import '../../widgets/buttons.dart';
 import '../../widgets/custom_shimmer.dart';
 import '../../widgets/custom_widgets.dart';
 import 'insights_widgets.dart';
@@ -119,7 +120,7 @@ class _InsightsTabState extends State<InsightsTab> {
 
   Widget insightsGraph() {
     if (!_hasMeasurements) {
-      return containerLoadingAnimation(height: 290.0, radius: 8.0);
+      return const ContainerLoadingAnimation(height: 290.0, radius: 8.0);
     }
     return Container(
         padding: const EdgeInsets.only(top: 12, bottom: 12),
@@ -631,12 +632,13 @@ class _InsightsTabState extends State<InsightsTab> {
             ),
             Visibility(
               visible: !_hasMeasurements,
-              child: textLoadingAnimation(18, 70),
+              child: const TextLoadingAnimation(height: 18, width: 70),
             ),
             const Spacer(),
             Visibility(
               visible: !_hasMeasurements,
-              child: sizedContainerLoadingAnimation(32, 32, 8.0),
+              child: const SizedContainerLoadingAnimation(
+                  height: 32, width: 32, radius: 8.0),
             ),
             Visibility(
               visible: _hasMeasurements,
@@ -678,9 +680,9 @@ class _InsightsTabState extends State<InsightsTab> {
       ),
       Visibility(
         visible: !_hasMeasurements,
-        child: Padding(
-          padding: const EdgeInsets.only(right: 16, left: 16),
-          child: containerLoadingAnimation(height: 70.0, radius: 8.0),
+        child: const Padding(
+          padding: EdgeInsets.only(right: 16, left: 16),
+          child: ContainerLoadingAnimation(height: 70.0, radius: 8.0),
         ),
       ),
       Visibility(
@@ -757,20 +759,17 @@ class _InsightsTabState extends State<InsightsTab> {
               if (index == 0) {
                 return Padding(
                   padding: const EdgeInsets.only(left: 12.0, right: 6.0),
-                  child:
-                      recommendationContainer(_recommendations[index], context),
+                  child: RecommendationContainer(_recommendations[index]),
                 );
               } else if (index == (_recommendations.length - 1)) {
                 return Padding(
                   padding: const EdgeInsets.only(left: 6.0, right: 12.0),
-                  child:
-                      recommendationContainer(_recommendations[index], context),
+                  child: RecommendationContainer(_recommendations[index]),
                 );
               } else {
                 return Padding(
                   padding: const EdgeInsets.only(left: 6.0, right: 6.0),
-                  child:
-                      recommendationContainer(_recommendations[index], context),
+                  child: RecommendationContainer(_recommendations[index]),
                 );
               }
             },

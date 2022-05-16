@@ -55,7 +55,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                     children: [
                       if (!isNull)
                         MiniAnalyticsAvatar(measurement: measurement),
-                      if (isNull) circularLoadingAnimation(40),
+                      if (isNull) const CircularLoadingAnimation(size: 40),
                       const SizedBox(
                         width: 12,
                       ),

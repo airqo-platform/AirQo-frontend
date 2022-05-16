@@ -14,7 +14,7 @@ import '../about_page.dart';
 import '../auth/email_reauthenticate_screen.dart';
 import '../auth/phone_auth_widget.dart';
 import '../auth/phone_reauthenticate_screen.dart';
-import '../feedback_page.dart';
+import '../feedback/feedback_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({Key? key}) : super(key: key);

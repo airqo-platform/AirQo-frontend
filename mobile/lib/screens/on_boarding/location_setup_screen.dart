@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import '../../services/local_storage.dart';
 import '../../services/native_api.dart';
 import '../../themes/light_theme.dart';
+import 'on_boarding_widgets.dart';
 
 class LocationSetupScreen extends StatefulWidget {
   const LocationSetupScreen({Key? key}) : super(key: key);
@@ -27,7 +28,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
       onWillPop: onWillPop,
       child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
         const Spacer(),
-        onBoardingLocationIcon(),
+        const OnBoardingLocationIcon(),
         const SizedBox(
           height: 26,
         ),

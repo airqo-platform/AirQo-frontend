@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 
 import '../../services/app_service.dart';
 import '../../services/firebase_service.dart';
+import 'auth_widgets.dart';
 
 class ChangeEmailScreen extends StatefulWidget {
   const ChangeEmailScreen({
@@ -210,7 +211,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
         const SizedBox(
           height: 20,
         ),
-        cancelOption(context),
+        const CancelOption(),
         const SizedBox(
           height: 20,
         ),
@@ -294,7 +295,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
                   _emailInputController.text = '';
                   _clearEmailCallBack();
                 },
-                child: textInputCloseButton()),
+                child: const TextInputCloseButton()),
           ),
         )));
   }

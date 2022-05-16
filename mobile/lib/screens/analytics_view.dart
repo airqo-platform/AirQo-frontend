@@ -26,10 +26,10 @@ class _AnalyticsViewState extends State<AnalyticsView> {
         child: _places.isEmpty
             ? ListView.builder(
                 itemBuilder: (BuildContext context, int index) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 15),
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 15),
                     child:
-                        containerLoadingAnimation(height: 120.0, radius: 16.0),
+                        ContainerLoadingAnimation(height: 120.0, radius: 16.0),
                   );
                 },
                 itemCount: 5,

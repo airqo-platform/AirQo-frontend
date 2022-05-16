@@ -16,6 +16,7 @@ import '../../themes/light_theme.dart';
 import '../../utils/network.dart';
 import '../../widgets/custom_shimmer.dart';
 import '../on_boarding/profile_setup_screen.dart';
+import 'auth_widgets.dart';
 import 'email_auth_widget.dart';
 
 class PhoneAuthWidget extends StatefulWidget {
@@ -183,7 +184,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
             ?.copyWith(color: Config.appColorBlack.withOpacity(0.32)),
         suffixIcon: GestureDetector(
           onTap: clearPhoneCallBack,
-          child: textInputCloseButton(),
+          child: const TextInputCloseButton(),
         ),
         errorStyle: const TextStyle(
           fontSize: 0,
@@ -277,7 +278,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                   (r) => false);
             });
           },
-          child: signButton(text: _authOptionsButtonText, context: context),
+          child: SignUpButton(text: _authOptionsButtonText),
         ),
       ),
       const Spacer(),
@@ -304,8 +305,8 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
         child: Padding(
           padding: const EdgeInsets.only(left: 24, right: 24),
           child: widget.authProcedure == AuthProcedure.login
-              ? loginOptions(context: context)
-              : signUpOptions(context: context),
+              ? const LoginOptions()
+              : const SignUpOptions(),
         ),
       ),
       SizedBox(
