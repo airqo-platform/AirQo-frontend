@@ -2,10 +2,10 @@ import 'package:app/constants/config.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/widgets/custom_widgets.dart';
-import 'package:app/widgets/favourite_place_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../widgets/analytics_card.dart';
 import 'favourite_places_widgets.dart';
 
 class FavouritePlaces extends StatefulWidget {

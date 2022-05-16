@@ -102,7 +102,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 onTap: () async {
                   await saveName();
                 },
-                child: nextButton('Next', nextBtnColor),
+                child: NextButton(buttonColor: nextBtnColor),
               ),
               SizedBox(
                 height: _showOptions ? 16 : 12,

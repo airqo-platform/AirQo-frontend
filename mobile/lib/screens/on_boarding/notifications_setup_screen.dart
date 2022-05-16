@@ -62,7 +62,8 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
                     }), (r) => false)
                   });
             },
-            child: nextButton('Yes, keep me updated', Config.appColorBlue),
+            child: NextButton(
+                text: 'Yes, keep me updated', buttonColor: Config.appColorBlue),
           ),
         ),
         const SizedBox(

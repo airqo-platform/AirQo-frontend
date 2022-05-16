@@ -2,10 +2,10 @@ import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/widgets/custom_shimmer.dart';
-import 'package:app/widgets/favourite_place_card.dart';
 import 'package:flutter/cupertino.dart';
 
 import '../services/app_service.dart';
+import '../widgets/analytics_card.dart';
 import '../widgets/custom_widgets.dart';
 
 class AnalyticsView extends StatefulWidget {

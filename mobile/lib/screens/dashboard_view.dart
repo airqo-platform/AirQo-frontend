@@ -53,12 +53,12 @@ class _DashboardViewState extends State<DashboardView> {
 
   final ScrollController _scrollController = ScrollController();
   List<Widget> _analyticsCards = [
-    analyticsCardLoading(),
-    analyticsCardLoading(),
-    analyticsCardLoading(),
-    analyticsCardLoading(),
-    analyticsCardLoading(),
-    analyticsCardLoading()
+    const AnalyticsCardLoading(),
+    const AnalyticsCardLoading(),
+    const AnalyticsCardLoading(),
+    const AnalyticsCardLoading(),
+    const AnalyticsCardLoading(),
+    const AnalyticsCardLoading()
   ];
 
   List<Widget> _dashBoardItems = [];

@@ -71,7 +71,10 @@ class WelcomeScreenState extends State<WelcomeScreen> {
                 return const PhoneSignUpWidget();
               }), (r) => false);
             },
-            child: nextButton('Let\'s go', Config.appColorBlue),
+            child: NextButton(
+              text: 'Let\'s go',
+              buttonColor: Config.appColorBlue,
+            ),
           ),
           const SizedBox(
             height: 40,

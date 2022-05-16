@@ -71,7 +71,8 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
                         }), (r) => false)
                       });
             },
-            child: nextButton('Yes, keep me safe', Config.appColorBlue),
+            child: NextButton(
+                text: 'Yes, keep me safe', buttonColor: Config.appColorBlue),
           ),
         ),
         const SizedBox(

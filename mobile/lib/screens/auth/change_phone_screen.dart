@@ -234,7 +234,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
               onTap: () async {
                 await verifySentCode();
               },
-              child: nextButton('Next', _nextBtnColor),
+              child: NextButton(buttonColor: _nextBtnColor),
             ),
           ),
           Visibility(
@@ -243,7 +243,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
               onTap: () async {
                 await requestVerification();
               },
-              child: nextButton('Next', _nextBtnColor),
+              child: NextButton(buttonColor: _nextBtnColor),
             ),
           ),
           const SizedBox(

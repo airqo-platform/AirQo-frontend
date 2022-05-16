@@ -54,7 +54,7 @@ class AnalyticsAvatar extends StatelessWidget {
           SvgPicture.asset(
             'assets/icon/PM2.5.svg',
             semanticsLabel: 'Pm2.5',
-            height: 20,
+            height: 9.7,
             width: 32.45,
             color: pollutantTextColor(
                 value: measurement.getPm2_5Value(), pollutant: Pollutant.pm2_5),
@@ -76,8 +76,8 @@ class AnalyticsAvatar extends StatelessWidget {
           SvgPicture.asset(
             'assets/icon/unit.svg',
             semanticsLabel: 'Unit',
-            height: 20,
-            width: 32,
+            height: 12.14,
+            width: 32.45,
             color: pollutantTextColor(
                 value: measurement.getPm2_5Value(), pollutant: Pollutant.pm2_5),
           ),

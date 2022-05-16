@@ -57,7 +57,8 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
                   }));
                 });
               },
-              child: nextButton('Begin', Config.appColorBlue),
+              child:
+                  NextButton(text: 'Begin', buttonColor: Config.appColorBlue),
             ),
           ),
         ),

@@ -288,7 +288,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
           onTap: () async {
             await _requestVerification();
           },
-          child: nextButton('Next', _nextBtnColor),
+          child: NextButton(buttonColor: _nextBtnColor),
         ),
       ),
       Visibility(
@@ -442,7 +442,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
           onTap: () async {
             await _verifySentCode();
           },
-          child: nextButton('Next', _nextBtnColor),
+          child: NextButton(buttonColor: _nextBtnColor),
         ),
       ),
       const SizedBox(

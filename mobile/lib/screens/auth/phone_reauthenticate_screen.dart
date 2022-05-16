@@ -116,7 +116,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
           onTap: () async {
             await _verifySentCode();
           },
-          child: nextButton('Verify', _nextBtnColor),
+          child: NextButton(text: 'Verify', buttonColor: _nextBtnColor),
         ),
         const SizedBox(
           height: 20,

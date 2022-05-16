@@ -192,8 +192,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
                           }
                         },
                         child: _feedbackType == ''
-                            ? nextButton('Next', Config.appColorPaleBlue)
-                            : nextButton('Next', Config.appColorBlue),
+                            ? NextButton(buttonColor: Config.appColorPaleBlue)
+                            : NextButton(buttonColor: Config.appColorBlue),
                       ),
                     ),
 
@@ -203,9 +203,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           GestureDetector(
-                            child: FeedbackBackButton(
-                                text: 'Back',
-                                buttonColor: Config.appColorPaleBlue),
+                            child: const FeedbackBackButton(),
                             onTap: () {
                               setState(() {
                                 _index = _index - 1;
@@ -299,8 +297,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
                       }
                     },
                     child: _feedbackType == ''
-                        ? nextButton('Next', Config.appColorPaleBlue)
-                        : nextButton('Next', Config.appColorBlue),
+                        ? NextButton(buttonColor: Config.appColorPaleBlue)
+                        : NextButton(buttonColor: Config.appColorBlue),
                   ),
                 ),
                 Visibility(
@@ -309,8 +307,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       GestureDetector(
-                        child: FeedbackBackButton(
-                            text: 'Back', buttonColor: Config.appColorPaleBlue),
+                        child: const FeedbackBackButton(),
                         onTap: () {
                           setState(() {
                             _index = _index - 1;

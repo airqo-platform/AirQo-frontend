@@ -4,11 +4,9 @@ import 'package:flutter_svg/svg.dart';
 import '../../constants/config.dart';
 
 class FeedbackBackButton extends StatelessWidget {
-  final String text;
-  final Color buttonColor;
-  const FeedbackBackButton(
-      {Key? key, required this.text, required this.buttonColor})
-      : super(key: key);
+  const FeedbackBackButton({
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -17,14 +15,14 @@ class FeedbackBackButton extends StatelessWidget {
       width: 120,
       padding: const EdgeInsets.all(13),
       decoration: BoxDecoration(
-          color: buttonColor,
+          color: Config.appColorBlue.withOpacity(0.1),
           borderRadius: const BorderRadius.all(Radius.circular(8.0))),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            text,
+            'Back',
             textAlign: TextAlign.center,
             style: TextStyle(color: Config.appColorBlue, fontSize: 14),
           ),

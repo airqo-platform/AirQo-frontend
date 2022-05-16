@@ -98,7 +98,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
           onTap: () async {
             await verifySentCode();
           },
-          child: nextButton('Verify', _nextBtnColor),
+          child: NextButton(text: 'Verify', buttonColor: _nextBtnColor),
         ),
         const SizedBox(
           height: 20,

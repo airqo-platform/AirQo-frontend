@@ -207,7 +207,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
         onTap: () async {
           await _requestVerification();
         },
-        child: nextButton('Next', _nextBtnColor),
+        child: NextButton(buttonColor: _nextBtnColor),
       ),
       Visibility(
         visible: _showAuthOptions,
@@ -342,7 +342,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
         onTap: () async {
           await verifySentCode();
         },
-        child: nextButton('Next', _nextBtnColor),
+        child: NextButton(buttonColor: _nextBtnColor),
       ),
       const SizedBox(
         height: 12,
