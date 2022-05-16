@@ -513,9 +513,10 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
                                           fontSize: 14,
-                                          color: pm2_5TextColor(widget
-                                              .measurement
-                                              .getPm2_5Value()),
+                                          color: pm2_5TextColor(
+                                              widget.measurement
+                                                  .getPm2_5Value(),
+                                              graph: true),
                                         ),
                                       ),
                                     ),
