@@ -71,7 +71,7 @@ const teamMembers = [
   { name: 'Busigu Faith Daka', title: 'Frontend Engineering Intern', img: FaithImg },
   { name: 'Wabinyai Fidel Raja', title: 'Data Scientist', img: FidelImg },
   { name: 'Belinda Marion Kobusingye', title: 'Frontend Engineering Intern', img: BelindaImg },
-  { name: 'Mike', title: 'Devops Engineering Intern', img: MikeImg },
+  { name: 'Mike Mwanje', title: 'Devops Engineering Intern', img: MikeImg },
 ];
 
 const AboutUsPage = () => {
