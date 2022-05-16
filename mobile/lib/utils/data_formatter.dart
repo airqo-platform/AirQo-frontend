@@ -12,7 +12,7 @@ charts.Color insightsChartBarColor(Insights series, Pollutant pollutant) {
   if (series.empty) {
     return charts.ColorUtil.fromDartColor(Config.greyColor);
   } else if (series.forecast) {
-    return charts.ColorUtil.fromDartColor(Config.appColorPaleBlue);
+    return charts.ColorUtil.fromDartColor(Config.appColorBlue.withOpacity(0.5));
   } else {
     return pollutantChartValueColor(series.getChartValue(pollutant), pollutant);
   }

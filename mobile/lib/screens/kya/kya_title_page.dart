@@ -133,7 +133,7 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
       width: 48,
       padding: const EdgeInsets.all(15.0),
       decoration: BoxDecoration(
-        color: Config.appColorPaleBlue,
+        color: Config.appColorBlue.withOpacity(0.24),
         shape: BoxShape.circle,
       ),
       child: SvgPicture.asset(

@@ -742,7 +742,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                         width: 16,
                         padding: const EdgeInsets.all(5),
                         decoration: BoxDecoration(
-                            color: Config.appColorPaleBlue,
+                            color: Config.appColorBlue.withOpacity(0.24),
                             borderRadius:
                                 const BorderRadius.all(Radius.circular(3.0)),
                             border: Border.all(color: Colors.transparent)),

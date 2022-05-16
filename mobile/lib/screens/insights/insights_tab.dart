@@ -209,7 +209,6 @@ class _InsightsTabState extends State<InsightsTab> {
                                   },
                                   child: InsightsGraph(
                                     pm2_5ChartData: _dailyPm2_5ChartData[index],
-                                    cornerRadius: 5,
                                     pm10ChartData: _dailyPm10ChartData[index],
                                     onBarSelection: _updateUI,
                                     pollutant: _pollutant,
@@ -244,7 +243,6 @@ class _InsightsTabState extends State<InsightsTab> {
                                   },
                                   child: InsightsGraph(
                                     pm10ChartData: _hourlyPm10ChartData[index],
-                                    cornerRadius: 3,
                                     pm2_5ChartData:
                                         _hourlyPm2_5ChartData[index],
                                     frequency: widget.frequency,
@@ -330,7 +328,7 @@ class _InsightsTabState extends State<InsightsTab> {
                             borderRadius:
                                 const BorderRadius.all(Radius.circular(40.0)),
                             color: _selectedMeasurement!.forecast
-                                ? Config.appColorPaleBlue
+                                ? Config.appColorBlue.withOpacity(0.24)
                                 : _pollutant == Pollutant.pm2_5
                                     ? pollutantValueColor(
                                             value: _selectedMeasurement!
@@ -427,7 +425,7 @@ class _InsightsTabState extends State<InsightsTab> {
                               shape: BoxShape.circle,
                               color: _selectedMeasurement!.forecast
                                   ? Config.appColorBlue
-                                  : Config.appColorPaleBlue,
+                                  : Config.appColorBlue.withOpacity(0.24),
                               border: Border.all(color: Colors.transparent))),
                       const SizedBox(
                         width: 8.0,
@@ -478,7 +476,6 @@ class _InsightsTabState extends State<InsightsTab> {
             InsightsGraph(
                 pm10ChartData: pm10ChartData,
                 pm2_5ChartData: pm2_5ChartData,
-                cornerRadius: 3,
                 onBarSelection: _updateUI,
                 pollutant: _pollutant,
                 frequency: Frequency.hourly);
@@ -756,22 +753,12 @@ class _InsightsTabState extends State<InsightsTab> {
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemBuilder: (context, index) {
-              if (index == 0) {
-                return Padding(
-                  padding: const EdgeInsets.only(left: 12.0, right: 6.0),
-                  child: RecommendationContainer(_recommendations[index]),
-                );
-              } else if (index == (_recommendations.length - 1)) {
-                return Padding(
-                  padding: const EdgeInsets.only(left: 6.0, right: 12.0),
-                  child: RecommendationContainer(_recommendations[index]),
-                );
-              } else {
-                return Padding(
-                  padding: const EdgeInsets.only(left: 6.0, right: 6.0),
-                  child: RecommendationContainer(_recommendations[index]),
-                );
-              }
+              return Padding(
+                padding: EdgeInsets.only(
+                    left: index == 0 ? 12.0 : 6.0,
+                    right: index == (_recommendations.length - 1) ? 12.0 : 6.0),
+                child: RecommendationContainer(_recommendations[index]),
+              );
             },
             itemCount: _recommendations.length,
           ),

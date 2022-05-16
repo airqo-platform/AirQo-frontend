@@ -12,7 +12,6 @@ import '../../utils/pm.dart';
 class InsightsGraph extends StatelessWidget {
   final List<charts.Series<Insights, String>> pm2_5ChartData;
   final List<charts.Series<Insights, String>> pm10ChartData;
-  final int cornerRadius;
   final Pollutant pollutant;
   final Frequency frequency;
   final Function(Insights) onBarSelection;
@@ -20,7 +19,6 @@ class InsightsGraph extends StatelessWidget {
       {Key? key,
       required this.pm2_5ChartData,
       required this.pm10ChartData,
-      required this.cornerRadius,
       required this.pollutant,
       required this.frequency,
       required this.onBarSelection})
@@ -39,7 +37,8 @@ class InsightsGraph extends StatelessWidget {
           defaultRenderer: charts.BarRendererConfig<String>(
             strokeWidthPx: 20,
             stackedBarPaddingPx: 0,
-            cornerStrategy: charts.ConstCornerStrategy(cornerRadius),
+            cornerStrategy: charts.ConstCornerStrategy(
+                frequency == Frequency.daily ? 5 : 3),
           ),
           defaultInteractions: true,
           behaviors: [
@@ -240,7 +239,7 @@ class InsightsAvatar extends StatelessWidget {
       decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: measurement.forecast
-              ? Config.appColorPaleBlue
+              ? Config.appColorBlue.withOpacity(0.24)
               : pollutant == Pollutant.pm2_5
                   ? pollutantValueColor(
                       value: measurement.getChartValue(pollutant),

@@ -41,8 +41,6 @@ class Config {
 
   static Color get appColorDisabled => appColorBlue.withOpacity(0.5);
 
-  static Color get appColorPaleBlue => const Color(0xffCEDDFF);
-
   static String get appErrorMessage =>
       'Failed to process your request. Try again later';
 
@@ -53,8 +51,6 @@ class Config {
   static Color get appPicColor => const Color(0xffFF79C1);
 
   static String get appStoreUrl => dotenv.env['APP_STORE_URL'] ?? '';
-
-  static Color get appTipColor => const Color(0xffD5FFD4);
 
   static String get carrierSearchApi => dotenv.env['CARRIER_SEARCH_API'] ?? '';
 
@@ -88,8 +84,6 @@ class Config {
   static Color get green => const Color(0xff3AFF38);
 
   static Color get greyColor => const Color(0xffD1D3D9);
-
-  static Color get greyTextColor => const Color(0xffADAFB6);
 
   static String get imageUploadApiKey =>
       dotenv.env['IMAGE_UPLOAD_API_KEY'] ?? '';

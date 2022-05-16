@@ -223,3 +223,19 @@ class NotificationCard extends StatelessWidget {
     );
   }
 }
+
+class EmptyNotifications extends StatelessWidget {
+  const EmptyNotifications({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Config.appBodyColor,
+      padding: const EdgeInsets.all(40.0),
+      child: Center(
+        child: Text('No Notifications',
+            style: Theme.of(context).textTheme.bodyText1),
+      ),
+    );
+  }
+}

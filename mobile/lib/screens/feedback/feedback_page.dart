@@ -192,7 +192,9 @@ class _FeedbackPageState extends State<FeedbackPage> {
                           }
                         },
                         child: _feedbackType == ''
-                            ? NextButton(buttonColor: Config.appColorPaleBlue)
+                            ? NextButton(
+                                buttonColor:
+                                    Config.appColorBlue.withOpacity(0.24))
                             : NextButton(buttonColor: Config.appColorBlue),
                       ),
                     ),
@@ -274,7 +276,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                 ? FeedbackNextButton(
                                     text: 'Send',
                                     buttonColor: _isSendingFeedback
-                                        ? Config.appColorPaleBlue
+                                        ? Config.appColorBlue.withOpacity(0.24)
                                         : Config.appColorBlue)
                                 : FeedbackNextButton(
                                     text: 'Next',
@@ -297,7 +299,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
                       }
                     },
                     child: _feedbackType == ''
-                        ? NextButton(buttonColor: Config.appColorPaleBlue)
+                        ? NextButton(
+                            buttonColor: Config.appColorBlue.withOpacity(0.24))
                         : NextButton(buttonColor: Config.appColorBlue),
                   ),
                 ),
@@ -376,7 +379,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                             ? FeedbackNextButton(
                                 text: 'Send',
                                 buttonColor: _isSendingFeedback
-                                    ? Config.appColorPaleBlue
+                                    ? Config.appColorBlue.withOpacity(0.24)
                                     : Config.appColorBlue)
                             : FeedbackNextButton(
                                 text: 'Next', buttonColor: Config.appColorBlue),

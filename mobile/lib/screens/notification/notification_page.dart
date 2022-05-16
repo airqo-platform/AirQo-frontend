@@ -23,26 +23,29 @@ class _NotificationPageState extends State<NotificationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: appTopBar(context: context, title: 'Notifications'),
-      body: Container(
-          color: Config.appBodyColor,
-          child: refreshIndicator(
-              sliverChildDelegate: SliverChildBuilderDelegate((context, index) {
-                return Padding(
-                    padding:
-                        EdgeInsets.fromLTRB(16, index == 0 ? 24.0 : 4, 16, 4),
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.push(context,
-                            MaterialPageRoute(builder: (context) {
-                          return NotificationView(
-                              appNotification: _notifications[index]);
-                        }));
-                      },
-                      child: NotificationCard(
-                          appNotification: _notifications[index]),
-                    ));
-              }, childCount: _notifications.length),
-              onRefresh: _refreshNotifications)),
+      body: _notifications.isEmpty
+          ? const EmptyNotifications()
+          : Container(
+              color: Config.appBodyColor,
+              child: refreshIndicator(
+                  sliverChildDelegate:
+                      SliverChildBuilderDelegate((context, index) {
+                    return Padding(
+                        padding: EdgeInsets.fromLTRB(
+                            16, index == 0 ? 24.0 : 4, 16, 4),
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.push(context,
+                                MaterialPageRoute(builder: (context) {
+                              return NotificationView(
+                                  appNotification: _notifications[index]);
+                            }));
+                          },
+                          child: NotificationCard(
+                              appNotification: _notifications[index]),
+                        ));
+                  }, childCount: _notifications.length),
+                  onRefresh: _refreshNotifications)),
     );
   }
 
@@ -53,11 +56,11 @@ class _NotificationPageState extends State<NotificationPage> {
   }
 
   void _loadNotifications() {
-    var notifies = Hive.box<AppNotification>(HiveBox.appNotifications)
-        .values
-        .toList()
-        .cast<AppNotification>();
-    setState(() => _notifications = notifies);
+    setState(() => _notifications =
+        Hive.box<AppNotification>(HiveBox.appNotifications)
+            .values
+            .toList()
+            .cast<AppNotification>());
   }
 
   Future<void> _refreshNotifications() async {
