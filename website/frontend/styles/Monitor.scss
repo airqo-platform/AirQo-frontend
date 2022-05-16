@@ -120,6 +120,7 @@
       .label {
         margin-bottom: 24px;
         padding: 0;
+        background-color: $aq-blue-1;
       }
     }
 
@@ -132,8 +133,9 @@
 
     .text-sub {
       width: 100%;
-      font-size: 18px;
-      line-height: 26px;
+      font-size: 20px;
+      line-height: 28px;
+      font-weight: 400;
       margin: 0;
       margin-bottom: 36px;
     }
