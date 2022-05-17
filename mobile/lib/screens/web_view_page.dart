@@ -70,7 +70,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
   @override
   void initState() {
     super.initState();
-    checkNetworkConnection(context);
+    checkNetworkConnection(context, notifyUser: true);
   }
 }
 

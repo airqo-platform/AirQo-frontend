@@ -497,7 +497,7 @@ class _InsightsTabState extends State<InsightsTab> {
       List<List<charts.Series<Insights, String>>> data,
       Duration? duration) async {
     if (controller.isAttached) {
-      updateTitleDateTime(data[index]);
+      _updateTitleDateTime(data[index]);
       await controller.scrollTo(
           index: index,
           duration: duration ?? const Duration(seconds: 1),
@@ -507,7 +507,7 @@ class _InsightsTabState extends State<InsightsTab> {
         if (!controller.isAttached) {
           return;
         }
-        updateTitleDateTime(data[index]);
+        _updateTitleDateTime(data[index]);
         controller.scrollTo(
             index: index,
             duration: duration ?? const Duration(seconds: 1),
@@ -535,7 +535,7 @@ class _InsightsTabState extends State<InsightsTab> {
     await _appService.updateFavouritePlace(widget.placeDetails, context);
   }
 
-  void updateTitleDateTime(List<charts.Series<Insights, String>> data) {
+  void _updateTitleDateTime(List<charts.Series<Insights, String>> data) {
     var dateTime = data.first.data.first.time;
 
     setState(() {
@@ -771,7 +771,7 @@ class _InsightsTabState extends State<InsightsTab> {
   }
 
   Future<void> _refreshPage() async {
-    await checkNetworkConnection(context);
+    await checkNetworkConnection(context, notifyUser: true);
     var insights = await _appService.fetchInsights([widget.placeDetails.siteId],
         frequency: widget.frequency);
 

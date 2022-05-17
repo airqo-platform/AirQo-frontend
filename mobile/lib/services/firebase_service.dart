@@ -52,16 +52,13 @@ class CloudStore {
   }
 
   static Future<void> deleteAccount(id) async {
-    var hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return;
-    }
-
-    /// TODO IMPLEMENT DELETE NOTIFICATIONS
-    /// TODO IMPLEMENT DELETE KYA
     try {
       await FirebaseFirestore.instance
           .collection(Config.usersCollection)
+          .doc(id)
+          .delete();
+      await FirebaseFirestore.instance
+          .collection(Config.usersKyaCollection)
           .doc(id)
           .delete();
     } catch (exception, stackTrace) {
@@ -255,32 +252,6 @@ class CloudStore {
     return UserDetails.initialize();
   }
 
-  static Future<bool> markNotificationAsRead(
-      String userId, String notificationId) async {
-    if (userId == '' || notificationId == '') {
-      return false;
-    }
-
-    var hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return false;
-    }
-
-    try {
-      var updated = false;
-      await FirebaseFirestore.instance
-          .collection('${Config.notificationCollection}/$userId/$userId')
-          .doc(notificationId)
-          .update({'isNew': false}).then((value) => {updated = true});
-
-      return updated;
-    } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
-    }
-
-    return false;
-  }
-
   // TODO - fix functionality
   // Future<void> monitorNotifications(context, String id) async {
   //   var notifications = await getNotifications(id);
@@ -451,14 +422,15 @@ class CloudStore {
           .collection(Config.usersCollection)
           .doc(id)
           .update(fields);
-    } catch (exception, stackTrace) {
-      if (exception.toString().contains('not-found')) {
+    } catch (exception, _) {
+      try {
         await FirebaseFirestore.instance
             .collection(Config.usersCollection)
             .doc(id)
             .set(fields);
+      } catch (exception, stackTrace) {
+        await logException(exception, stackTrace);
       }
-      await logException(exception, stackTrace);
     }
   }
 
@@ -467,7 +439,7 @@ class CloudStore {
     try {
       var file = File(filePath);
 
-      var docRef = '${Config.usersProfilePictureCollection}/'
+      var docRef = '${Config.usersProfilePictureStorage}/'
           '$userId/avatar${file.getExtension()}';
 
       var task = await firebase_storage.FirebaseStorage.instance
@@ -683,12 +655,10 @@ class CustomAuth {
     return false;
   }
 
-  @Deprecated('To be replaced with functionality in the app service')
   static Future<bool> requestPhoneVerification(
       phoneNumber, context, callBackFn, autoVerificationFn) async {
-    var hasConnection = await hasNetworkConnection();
+    var hasConnection = await checkNetworkConnection(context, notifyUser: true);
     if (!hasConnection) {
-      await showSnackBar(context, Config.connectionErrorMessage);
       return false;
     }
 
@@ -850,11 +820,6 @@ class CustomAuth {
   }
 
   static Future<void> updateUserProfile(UserDetails userDetails) async {
-    var hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return;
-    }
-
     try {
       var firebaseUser = FirebaseAuth.instance.currentUser;
       if (firebaseUser == null) {

@@ -394,7 +394,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
   }
 
   Future<void> verifySentCode() async {
-    var connected = await checkNetworkConnection(context);
+    var connected = await checkNetworkConnection(context, notifyUser: true);
     if (!connected) {
       return;
     }
@@ -492,7 +492,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
   }
 
   Future<void> _requestVerification() async {
-    var connected = await checkNetworkConnection(context);
+    var connected = await checkNetworkConnection(context, notifyUser: true);
     if (!connected) {
       return;
     }
@@ -569,7 +569,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
   }
 
   Future<void> _resendVerificationCode() async {
-    var connected = await checkNetworkConnection(context);
+    var connected = await checkNetworkConnection(context, notifyUser: true);
     if (!connected) {
       return;
     }

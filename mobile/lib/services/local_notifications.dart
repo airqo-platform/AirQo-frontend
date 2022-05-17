@@ -232,18 +232,6 @@ class LocalNotifications {
         payload: 'Destination Screen(Schedule Notification)');
   }
 
-  // TODO - fix functionality
-  // Future<void> showSimpleNotification(NotificationModel notification) async {
-  //   var androidDetails = const AndroidNotificationDetails('id', 'channel ',
-  //       priority: Priority.high, importance: Importance.max);
-  //   var iOSDetails = const IOSNotificationDetails();
-  //   var platformDetails =
-  //       NotificationDetails(android: androidDetails, iOS: iOSDetails);
-  //   await flutterLocalNotificationsPlugin.show(
-  //       1, 'notification.title', 'notification.body', platformDetails,
-  //       payload: 'Destination Screen (Simple Notification)');
-  // }
-
   Future<void> showSmartNotification() async {
     const bigTextStyleInformation = BigTextStyleInformation(
       'You will be receiving notifications on air pollution alerts and '

@@ -553,7 +553,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
   }
 
   Future<void> _requestVerification() async {
-    var connected = await checkNetworkConnection(context);
+    var connected = await checkNetworkConnection(context, notifyUser: true);
     if (!connected) {
       return;
     }
@@ -567,7 +567,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
       });
       loadingScreen(_loadingContext);
 
-      var connected = await checkNetworkConnection(context);
+      var connected = await checkNetworkConnection(context, notifyUser: true);
       if (!connected) {
         Navigator.pop(_loadingContext);
         setState(() {
@@ -631,7 +631,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
   }
 
   Future<void> _resendVerificationCode() async {
-    var connected = await checkNetworkConnection(context);
+    var connected = await checkNetworkConnection(context, notifyUser: true);
     if (!connected) {
       return;
     }
@@ -681,7 +681,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
   }
 
   Future<void> _verifySentCode() async {
-    var connected = await checkNetworkConnection(context);
+    var connected = await checkNetworkConnection(context, notifyUser: true);
     if (!connected) {
       return;
     }

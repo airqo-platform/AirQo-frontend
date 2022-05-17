@@ -73,8 +73,6 @@ class Config {
   static String get favPlacesCollection =>
       dotenv.env['FAV_PLACES_COLLECTION'] ?? '';
 
-  static String get feedbackWebhook => dotenv.env['FEEDBACK_WEBHOOK'] ?? '';
-
   static String get googleApiKey =>
       (Platform.isAndroid
           ? dotenv.env['GOOGLE_ANDROID_API_KEY']
@@ -151,8 +149,6 @@ class Config {
   static String get socketErrorMessage =>
       'Your internet connection in unstable.';
 
-  static String get storiesUrl => dotenv.env['STORIES_URL'] ?? '';
-
   static String get termsUrl => dotenv.env['TERMS_URL'] ?? '';
 
   static Color get toolTipGreyColor => Colors.white.withOpacity(0.32);
@@ -162,7 +158,7 @@ class Config {
   static String get usersKyaCollection =>
       dotenv.env['USER_KYA_COLLECTION'] ?? '';
 
-  static String get usersProfilePictureCollection =>
+  static String get usersProfilePictureStorage =>
       dotenv.env['USERS_PROFILE_PICTURE_COLLECTION'] ?? '';
 
   static Color get yellow => const Color(0xffFFFF35);

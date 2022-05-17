@@ -243,10 +243,7 @@ class _SettingsPageState extends State<SettingsPage> {
           return const PhoneSignUpWidget();
         }), (r) => false);
       } else {
-        await showSnackBar(
-            context,
-            'Failed to delete account. '
-            'Try again later');
+        await showSnackBar(context, 'Error occurred. Try again later');
       }
     } else {
       await showSnackBar(

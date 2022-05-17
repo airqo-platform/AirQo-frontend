@@ -177,9 +177,8 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
   }
 
   Future<void> _requestVerification() async {
-    var connected = await hasNetworkConnection();
+    var connected = await checkNetworkConnection(context, notifyUser: true);
     if (!connected) {
-      await showSnackBar(context, Config.connectionErrorMessage);
       return;
     }
     setState(() {
@@ -204,9 +203,8 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
   }
 
   Future<void> _resendVerificationCode() async {
-    var connected = await hasNetworkConnection();
+    var connected = await checkNetworkConnection(context, notifyUser: true);
     if (!connected) {
-      await showSnackBar(context, Config.connectionErrorMessage);
       return;
     }
 
@@ -233,9 +231,8 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
   }
 
   Future<void> _verifySentCode() async {
-    var connected = await hasNetworkConnection();
+    var connected = await checkNetworkConnection(context, notifyUser: true);
     if (!connected) {
-      await showSnackBar(context, Config.connectionErrorMessage);
       return;
     }
 

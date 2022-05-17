@@ -357,9 +357,8 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
   }
 
   Future<void> requestVerification() async {
-    var connected = await hasNetworkConnection();
+    var connected = await checkNetworkConnection(context, notifyUser: true);
     if (!connected) {
-      await showSnackBar(context, Config.connectionErrorMessage);
       return;
     }
     _phoneFormKey.currentState!.validate();
@@ -391,9 +390,8 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
   }
 
   Future<void> resendVerificationCode() async {
-    var connected = await hasNetworkConnection();
+    var connected = await checkNetworkConnection(context, notifyUser: true);
     if (!connected) {
-      await showSnackBar(context, Config.connectionErrorMessage);
       return;
     }
 
@@ -449,9 +447,8 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
   }
 
   Future<void> verifySentCode() async {
-    var connected = await hasNetworkConnection();
+    var connected = await checkNetworkConnection(context, notifyUser: true);
     if (!connected) {
-      await showSnackBar(context, Config.connectionErrorMessage);
       return;
     }
 

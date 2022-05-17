@@ -12,11 +12,14 @@ import 'package:app/utils/extensions.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../constants/config.dart';
 import '../models/enum_constants.dart';
+import '../models/notification.dart';
 
 class DBHelper {
   Database? _database;
@@ -32,8 +35,6 @@ class DBHelper {
     try {
       final db = await database;
       await db.delete(Kya.dbName());
-      // TODO - fix functionality
-      // await db.delete(AppNotification.dbName());
       await db.delete(PlaceDetails.dbName());
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
@@ -260,27 +261,6 @@ class DBHelper {
       return <Measurement>[];
     }
   }
-
-  // TODO - fix functionality
-  // Future<List<AppNotification>> getAppNotifications() async {
-  //   try {
-  //     final db = await database;
-  //
-  //     var res = await db.query(AppNotification.dbName());
-  //
-  //     return res.isNotEmpty
-  //         ? List.generate(res.length, (i) {
-  //             return AppNotification.fromJson(res[i]);
-  //           })
-  //         : <AppNotification>[]
-  //       ..sort(
-  //           (x, y) => DateTime.parse(x.time)
-  //           .compareTo(DateTime.parse(y.time)));
-  //   } catch (exception, stackTrace) {
-  //     debugPrint('$exception\n$stackTrace');
-  //     return <AppNotification>[];
-  //   }
-  // }
 
   Future<Database> initDB() async {
     return await openDatabase(
@@ -585,5 +565,11 @@ class SharedPreferencesHelper {
     await sharedPreferences.setBool('location', userPreferences.location);
     await sharedPreferences.setBool('alerts', userPreferences.alerts);
     await sharedPreferences.setInt('aqShares', userPreferences.aqShares);
+  }
+}
+
+class HiveStore {
+  static Future<void> performLogOut() async {
+    await Hive.box<AppNotification>(HiveBox.appNotifications).clear();
   }
 }

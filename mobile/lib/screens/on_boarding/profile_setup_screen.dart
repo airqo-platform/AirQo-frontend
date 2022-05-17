@@ -283,6 +283,8 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
               MaterialPageRoute(builder: (context) {
             return const NotificationsSetupScreen();
           }), (r) => false);
+        } else {
+          Navigator.pop(dialogContext);
         }
       }
     } on Exception catch (exception, stackTrace) {
