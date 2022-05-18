@@ -310,3 +310,82 @@
   }
 
 }
+
+@media(max-width: $mainBreakPoint) {
+  .Hero {
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+
+    >span {
+      position: relative;
+      padding: 0 16px;
+      margin-bottom: 40px;
+      >img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+
+    .hero-content {
+      padding: 0 16px;
+      width: 100%;
+    }
+
+    .hero-title {
+      width: 100%;
+      font-size: 48px;
+      font-weight: 700;
+      line-height: 56px;
+      color: $aq-black-1;
+      margin: 0;
+      margin-bottom: 16px;
+    }
+
+    .hero-sub {
+      width: 100%;
+      height: auto;
+      margin: 0;
+      margin-bottom: 40px;
+    }
+
+    .hero-buttons {
+      flex-direction: column;
+      width: 100%;
+      margin: 0;
+    }
+  }
+
+  .button-hero, .button-get-involved {
+    width: 100%;
+    padding: 16px auto;
+    box-sizing: border-box;
+  }
+
+  .button-get-involved {
+    margin-top: 12px;
+  }
+}
+
+@media(max-width: 411px) {
+  .hero-buttons {
+    max-width: 328px;
+    width: 100%;
+    margin: 0;
+  }
+
+  .button-hero {
+    width: 328px;
+    padding: 16px 108.5px;
+  }
+
+  .button-get-involved {
+    margin-top: 12px;
+    width: 328px;
+    padding: 16px 116px;
+    box-sizing: border-box;
+  }
+}
