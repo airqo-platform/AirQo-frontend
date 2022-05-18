@@ -6,36 +6,27 @@ import { Link } from 'react-scroll';
 import TeamImg from 'assets/img/team.png';
 import Vector1 from 'assets/img/about_us_vector_3.png';
 import Vector2 from 'assets/img/about-us-vector-2.png';
-
 import ProfileImg1 from 'assets/img/profile-pics/profile (1).png';
-import AngelaImg from 'assets/img/profile-pics/ANGELA long.jpg';
-import BelindaImg from 'assets/img/profile-pics/BELINDA long.jpg';
-import DeoImg from 'assets/img/profile-pics/DEO large.jpg';
-import MikeImg from 'assets/img/profile-pics/DEOS long.jpg';
-import FaithImg from 'assets/img/profile-pics/FAITH long.jpg';
-import FidelImg from 'assets/img/profile-pics/FIDEL long.jpg';
-import GeorgeImg from 'assets/img/profile-pics/GEORGE long.jpg';
-import JoelImg from 'assets/img/profile-pics/JOEL long.jpg';
-import MartinImg from 'assets/img/profile-pics/MARTIN small.jpg';
-import MaclinaImg from 'assets/img/profile-pics/MACLINA.jpg';
-import MarvinImg from 'assets/img/profile-pics/MARVIN smalljpg.jpg';
-import OkediImg from 'assets/img/profile-pics/OKURE long.jpg';
-import PaulImg from 'assets/img/profile-pics/PAUL ZANA large.jpg';
-import PriscahImg from 'assets/img/profile-pics/PRISCAH small.jpg';
-import PriscillaImg from 'assets/img/profile-pics/PRISCILLA large.jpg';
-import ProssyImg from 'assets/img/profile-pics/PROSSY small.jpg';
-import RichardImg from 'assets/img/profile-pics/RICHARD large.jpg';
-import DoraImg from 'assets/img/profile-pics/DORA.jpg';
-
+import ProfileImg2 from 'assets/img/profile-pics/profile (2).png';
+import ProfileImg3 from 'assets/img/profile-pics/profile (3).png';
+import ProfileImg4 from 'assets/img/profile-pics/profile (4).png';
+import ProfileImg5 from 'assets/img/profile-pics/profile (5).png';
+import ProfileImg6 from 'assets/img/profile-pics/profile (6).png';
 import ProfileImg7 from 'assets/img/profile-pics/profile (7).png';
+import ProfileImg8 from 'assets/img/profile-pics/profile (8).png';
+import ProfileImg9 from 'assets/img/profile-pics/profile (9).png';
 import ProfileImg10 from 'assets/img/profile-pics/profile (10).png';
+import ProfileImg11 from 'assets/img/profile-pics/profile (11).png';
 import ProfileImg12 from 'assets/img/profile-pics/profile (12).png';
 import ProfileImg13 from 'assets/img/profile-pics/profile (13).png';
 import ProfileImg14 from 'assets/img/profile-pics/profile (14).png';
 import ProfileImg15 from 'assets/img/profile-pics/profile (15).png';
 import ProfileImg16 from 'assets/img/profile-pics/profile (16).png';
 import ProfileImg17 from 'assets/img/profile-pics/profile (17).png';
-
+import ProfileImg18 from 'assets/img/profile-pics/profile (18).png';
+import ProfileImg19 from 'assets/img/profile-pics/profile (19).png';
+import ProfileImg20 from 'assets/img/profile-pics/profile (20).png';
+import ProfileImg21 from 'assets/img/profile-pics/profile (21).png';
 import WorldBankLogo from 'assets/img/partners/partner-logo-1.png';
 import GoogleLogo from 'assets/img/partners/partner-logo-2.png';
 import BirminghamUniLogo from 'assets/img/partners/partner-logo-3.png';
@@ -48,32 +39,26 @@ import Profile from '../components/Profile';
 
 const teamMembers = [
   { name: 'Prof. Engineer Bainomugisha', title: 'Project Lead', img: ProfileImg1 },
-  { name: 'Deo Okure', title: 'Air Quality Scientist & Programme Manager', img: DeoImg },
-  { name: 'Martin Bbale', title: 'Software Engineering Lead', img: MartinImg },
-  { name: 'Maclina Birungi, MSc, MCIM', title: 'Marketing And Communications Lead', img: MaclinaImg },
-  { name: 'Joel Ssematimba', title: 'Hardware Development & Manufacturing Lead', img: JoelImg },
-  { name: 'Dora Bampangana', title: 'Project Administrator', img: DoraImg },
-  { name: 'Priscilla Adong', title: 'Data Scientist', img: PriscillaImg },
+  { name: 'Deo Okure', title: 'Air Quality Scientist & Programme Manager', img: ProfileImg2 },
+  { name: 'Martin Bbale', title: 'Software Engineer', img: ProfileImg3 },
+  { name: 'Maclina Birungi', title: 'Marketing And Communications Lead', img: ProfileImg4 },
+  { name: 'Joel Ssematimba', title: 'Hardware Development & Manufacturing Lead', img: ProfileImg5 },
+  { name: 'Priscilla Adong', title: 'Data Scientist', img: ProfileImg6 },
   { name: 'Joseph Odur', title: 'Software Engineer', img: ProfileImg7 },
-  { name: 'Richard Sserunjogi', title: 'Data Scientist', img: RichardImg },
-  { name: 'Proscovia Nakiranda', title: 'Data Scientist', img: ProssyImg },
+  { name: 'Richard Sserunjogi', title: 'Data Scientist', img: ProfileImg8 },
+  { name: 'Proscovia Nakiranda', title: 'Data Scientist', img: ProfileImg9 },
   { name: 'Noah Nsimbe', title: 'Software Engineer', img: ProfileImg10 },
-  { name: 'Paul Zana', title: 'UI/UX Designer', img: PaulImg },
-  { name: 'Deo Okedi', title: 'Embedded Systems Engineer', img: OkediImg },
-  { name: 'Marvin Banda', title: 'Assistant Embedded Systems Engineer', img: MarvinImg },
-  { name: 'George Settala', title: 'Embedded Systems and Network Support Engineer', img: GeorgeImg },
+  { name: 'Marvin Banda', title: 'Assistant Embedded Systems Engineer', img: ProfileImg11 },
   { name: 'Daniel Ogenrwot', title: 'Assistant Software Engineer', img: ProfileImg12 },
   { name: 'Lillian Muyama', title: 'Data Scientist', img: ProfileImg13 },
   { name: 'Pablo A Alvarado Duran', title: 'Research Scientist', img: ProfileImg14 },
   { name: 'Dennis M Reddyhoff', title: 'Researcher', img: ProfileImg15 },
   { name: 'Paterne Gahungu', title: 'Postdoctoral Researcher', img: ProfileImg16 },
   { name: 'Dr. Gabriel Okello', title: 'Visiting Research Fellow', img: ProfileImg17 },
-  { name: 'Angela Nshimye', title: 'Policy And Engagement Officer', img: AngelaImg },
-  { name: 'Adrine Priscah Warigo', title: 'Digital Communications Executive', img: PriscahImg },
-  { name: 'Busigu Faith Daka', title: 'Frontend Engineering Intern', img: FaithImg },
-  { name: 'Wabinyai Fidel Raja', title: 'Data Scientist', img: FidelImg },
-  { name: 'Belinda Marion Kobusingye', title: 'Frontend Engineering Intern', img: BelindaImg },
-  { name: 'Mike Mwanje', title: 'DevOps Intern', img: MikeImg },
+  { name: 'Angela Nshimye', title: 'Policy And Engagement Officer', img: ProfileImg18 },
+  { name: 'Busigu Faith Daka', title: 'Frontend Engineering Intern', img: ProfileImg19 },
+  { name: 'Wabinyai Fidel Raja', title: 'Data Scientist', img: ProfileImg20 },
+  { name: 'Belinda Marion Kobusingye', title: 'Frontend Engineering Intern', img: ProfileImg21 },
 ];
 
 const AboutUsPage = () => {

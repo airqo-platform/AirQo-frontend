@@ -115,7 +115,7 @@ const TopBar = () => {
                 </div>
                 <div className="nav-right" id="nav-right">
                     <NavTab text="Sign In"  hideArrow colored />
-                    <NavTab text="Request demo"  hideArrow filled />
+                    <NavTab text="Request a demo"  hideArrow filled />
                 </div>
             </div>
             <MenuIcon className="menu-btn" id="menu" onClick={toggleMenu} />
