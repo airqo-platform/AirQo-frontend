@@ -386,34 +386,6 @@ class DBHelper {
     }
   }
 
-  // TODO - fix functionality
-  // Future<void> insertAppNotifications(
-  //     List<AppNotification> notifications, BuildContext context) async {
-  //   try {
-  //     final db = await database;
-  //
-  //     if (notifications.isEmpty) {
-  //       return;
-  //     }
-  //
-  //     var batch = db.batch()..delete(AppNotification.dbName());
-  //
-  //     for (var notification in notifications) {
-  //       var jsonData = notification.toJson();
-  //       batch.insert(
-  //         AppNotification.dbName(),
-  //         jsonData,
-  //         conflictAlgorithm: ConflictAlgorithm.replace,
-  //       );
-  //     }
-  //     await batch.commit(noResult: true, continueOnError: true);
-  //     Provider.of<NotificationModel>(context, listen: false)
-  //         .addAll(notifications);
-  //   } catch (exception, stackTrace) {
-  //     debugPrint('$exception\n$stackTrace');
-  //   }
-  // }
-
   Future<void> removeFavPlace(PlaceDetails placeDetails) async {
     try {
       final db = await database;
@@ -569,7 +541,7 @@ class SharedPreferencesHelper {
 }
 
 class HiveStore {
-  static Future<void> performLogOut() async {
+  static Future<void> clearUserData() async {
     await Hive.box<AppNotification>(HiveBox.appNotifications).clear();
   }
 }

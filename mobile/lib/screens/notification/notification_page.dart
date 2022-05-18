@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../../services/app_service.dart';
+import '../../services/firebase_service.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({Key? key}) : super(key: key);
@@ -17,7 +17,6 @@ class NotificationPage extends StatefulWidget {
 
 class _NotificationPageState extends State<NotificationPage> {
   List<AppNotification> _notifications = [];
-  final AppService _appService = AppService();
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +44,7 @@ class _NotificationPageState extends State<NotificationPage> {
                               appNotification: _notifications[index]),
                         ));
                   }, childCount: _notifications.length),
-                  onRefresh: _refreshNotifications)),
+                  onRefresh: CloudStore.getNotifications)),
     );
   }
 
@@ -53,19 +52,21 @@ class _NotificationPageState extends State<NotificationPage> {
   void initState() {
     super.initState();
     _loadNotifications();
+    _initListeners();
   }
 
   void _loadNotifications() {
-    setState(() => _notifications =
+    setState(() => _notifications = AppNotification.sort(
         Hive.box<AppNotification>(HiveBox.appNotifications)
             .values
             .toList()
-            .cast<AppNotification>());
+            .cast<AppNotification>()));
   }
 
-  Future<void> _refreshNotifications() async {
-    await _appService
-        .fetchNotifications(context)
-        .then((value) => _loadNotifications());
+  Future<void> _initListeners() async {
+    Hive.box<AppNotification>(HiveBox.appNotifications)
+        .watch()
+        .listen((_) => _loadNotifications())
+        .onDone(_loadNotifications);
   }
 }

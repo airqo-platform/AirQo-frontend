@@ -5,6 +5,7 @@ import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/enum_constants.dart';
+import '../../utils/network.dart';
 import 'insights_widgets.dart';
 
 class InsightsPage extends StatefulWidget {
@@ -88,5 +89,6 @@ class _InsightsPageState extends State<InsightsPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    checkNetworkConnection(context, notifyUser: true);
   }
 }

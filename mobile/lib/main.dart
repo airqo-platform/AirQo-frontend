@@ -83,8 +83,6 @@ class AirQoApp extends StatelessWidget {
           controller: themeController,
           child: MultiProvider(
             providers: [
-              // TODO - fix functionality
-              // ChangeNotifierProvider(create: (context) => NotificationModel()),
               ChangeNotifierProvider(create: (context) => PlaceDetailsModel()),
             ],
             builder: (context, child) {

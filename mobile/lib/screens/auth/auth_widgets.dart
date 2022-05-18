@@ -14,11 +14,13 @@ class ProceedAsGuest extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () async {
-        await CloudAnalytics.logEvent(AnalyticsEvent.browserAsAppGuest, false);
-        await Navigator.pushAndRemoveUntil(context,
-            MaterialPageRoute(builder: (context) {
-          return const HomePage();
-        }), (r) => false);
+        await Future.wait([
+          CloudAnalytics.logEvent(AnalyticsEvent.browserAsAppGuest, false),
+          Navigator.pushAndRemoveUntil(context,
+              MaterialPageRoute(builder: (context) {
+            return const HomePage();
+          }), (r) => false)
+        ]);
       },
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,

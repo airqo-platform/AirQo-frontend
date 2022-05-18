@@ -12,12 +12,14 @@ import 'package:app/utils/extensions.dart';
 import 'package:app/utils/network.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../models/enum_constants.dart';
 import '../models/insights.dart';
 import '../models/kya.dart';
+import '../models/notification.dart';
 import '../utils/exception.dart';
 import 'native_api.dart';
 
@@ -85,17 +87,9 @@ class AppService {
     try {
       var id = currentUser.uid;
       await Future.wait([
-        _secureStorage.clearUserDetails(),
-        SharedPreferencesHelper.clearPreferences(),
         CloudStore.deleteAccount(id),
         logEvent(AnalyticsEvent.deletedAccount),
-        _dbHelper.clearAccount().then((value) => {
-              Provider.of<PlaceDetailsModel>(buildContext, listen: false)
-                  .reloadFavouritePlaces(),
-              // TODO - fix functionality
-              //     Provider.of<NotificationModel>(buildContext, listen: false)
-              //         .loadNotifications()
-            })
+        _clearUserLocalStorage(buildContext),
       ]).then((value) => currentUser.delete());
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
@@ -239,11 +233,26 @@ class AppService {
   }
 
   Future<void> _loadNotifications() async {
-    // TODO IMPLEMENT GET NOTIFICATIONS
-    // TODO - fix functionality
+    try {
+      var _offlineNotifications =
+          Hive.box<AppNotification>(HiveBox.appNotifications)
+              .values
+              .toList()
+              .cast<AppNotification>();
 
-    // await Provider.of<NotificationModel>(buildContext, listen: false)
-    //     .loadNotifications();
+      var _cloudNotifications = await CloudStore.getNotifications();
+
+      for (var notification in _offlineNotifications) {
+        _cloudNotifications.removeWhere(
+            (element) => element.id.equalsIgnoreCase(notification.id));
+      }
+
+      var notifications = [..._offlineNotifications, ..._cloudNotifications];
+
+      await AppNotification.load(notifications);
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+    }
   }
 
   Future<void> logEvent(AnalyticsEvent analyticsEvent) async {
@@ -266,18 +275,24 @@ class AppService {
             .getFavouritePlaces()
             .then((value) => CloudStore.updateFavPlaces(userId, value)),
         CloudStore.updateProfileFields(userId, {'device': ''}),
-        _secureStorage.clearUserDetails(),
-        SharedPreferencesHelper.clearPreferences(),
-        _dbHelper.clearAccount().then((value) => {
-              Provider.of<PlaceDetailsModel>(buildContext, listen: false)
-                  .reloadFavouritePlaces()
-            }),
-        HiveStore.performLogOut()
+        _clearUserLocalStorage(buildContext)
       ]).then((value) => CustomAuth.logOut(buildContext));
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
     }
     return true;
+  }
+
+  Future<void> _clearUserLocalStorage(BuildContext buildContext) async {
+    await Future.wait([
+      _secureStorage.clearUserDetails(),
+      SharedPreferencesHelper.clearPreferences(),
+      _dbHelper.clearAccount().then((value) => {
+            Provider.of<PlaceDetailsModel>(buildContext, listen: false)
+                .reloadFavouritePlaces()
+          }),
+      HiveStore.clearUserData()
+    ]);
   }
 
   Future<void> postLoginActions(BuildContext buildContext) async {
@@ -316,15 +331,7 @@ class AppService {
                       .reloadFavouritePlaces(),
                 }
             }),
-        // TODO - fix functionality
-        // CloudStore.getNotifications(user.uid).then((value) => {
-        //       if (value.isNotEmpty)
-        //         {
-        //
-        //           Provider.of<NotificationModel>(buildContext, listen: false)
-        //               .addAll(value),
-        //         }
-        //     }),
+        CloudStore.getNotifications(),
         _logPlatformType(),
         updateFavouritePlacesSites(buildContext)
       ]);
@@ -408,10 +415,6 @@ class AppService {
       fetchFavPlacesInsights(),
       updateFavouritePlacesSites(buildContext)
     ]);
-  }
-
-  Future<void> fetchNotifications(BuildContext buildContext) async {
-    await CloudStore.getNotifications();
   }
 
   Future<void> updateFavouritePlace(

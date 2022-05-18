@@ -98,7 +98,7 @@ class Config {
   static String get kyaCollection => dotenv.env['KYA_COLLECTION'] ?? '';
 
   static String get locationErrorMessage =>
-      'PLease turn on and allow location permissions';
+      'Turn on and allow location permissions';
 
   static Color get maroon => const Color(0xffA51F3F);
 
@@ -120,11 +120,6 @@ class Config {
   static String get prefDashboardRegion =>
       dotenv.env['PREF_DASHBOARD_REGION'] ?? '';
 
-  static String get prefHomePageTips => dotenv.env['PREF_HOME_PAGE_TIPS'] ?? '';
-
-  static String get prefInsightsCardTips =>
-      dotenv.env['PREF_INSIGHTS_PAGE_TIPS'] ?? '';
-
   static String get prefOnBoardingPage =>
       dotenv.env['PREF_ON_BOARDING_PAGE'] ?? '';
 
@@ -145,9 +140,6 @@ class Config {
   static int get smartNotificationId => 4877231;
 
   static Color get snackBarBgColor => appColorBlack.withOpacity(0.8);
-
-  static String get socketErrorMessage =>
-      'Your internet connection in unstable.';
 
   static String get termsUrl => dotenv.env['TERMS_URL'] ?? '';
 

@@ -450,32 +450,6 @@ class NotificationService {
     }
     return false;
   }
-
-  // TODO - fix functionality
-  // static Future<void> backgroundNotificationHandler(
-  //     RemoteMessage message) async {
-  //   try {
-  //     var notificationMessage = AppNotification.composeNotification(message);
-  //     if (notificationMessage != null) {
-  //       await LocalNotifications()
-//       .showAlertNotification(notificationMessage);
-  //     }
-  //   } catch (exception, stackTrace) {
-  //     debugPrint('$exception\n$stackTrace');
-  //   }
-  // }
-  //
-  // static Future<void> foregroundMessageHandler(RemoteMessage message) async {
-  //   try {
-  //     var notificationMessage = AppNotification.composeNotification(message);
-  //     if (notificationMessage != null) {
-  //       await LocalNotifications()
-//       .showAlertNotification(notificationMessage);
-  //     }
-  //   } catch (exception, stackTrace) {
-  //     debugPrint('$exception\n$stackTrace');
-  //   }
-  // }
 }
 
 class RateService {

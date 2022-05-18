@@ -185,7 +185,7 @@ class NotificationCard extends StatelessWidget {
             width: 12,
           ),
           Visibility(
-              visible: appNotification.read,
+              visible: !appNotification.read,
               child: Container(
                   padding: const EdgeInsets.fromLTRB(8.0, 1.0, 8.0, 1.0),
                   constraints: const BoxConstraints(
@@ -201,7 +201,7 @@ class NotificationCard extends StatelessWidget {
                     style: CustomTextStyle.newNotification(context),
                   ))),
           Visibility(
-              visible: !appNotification.read,
+              visible: appNotification.read,
               child: Container(
                   constraints: const BoxConstraints(
                     maxHeight: 16,

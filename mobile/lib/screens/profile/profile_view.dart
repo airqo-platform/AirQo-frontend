@@ -28,7 +28,7 @@ class _ProfileViewState extends State<ProfileView> {
   UserDetails _userProfile = UserDetails.initialize();
   bool _isLoggedIn = false;
   final AppService _appService = AppService();
-  List<AppNotification> _unreadAppNotifications = <AppNotification>[];
+  List<AppNotification> _unreadNotifications = <AppNotification>[];
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +59,7 @@ class _ProfileViewState extends State<ProfileView> {
                     decoration: const BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.all(Radius.circular(8.0))),
-                    child: _unreadAppNotifications.isEmpty
+                    child: _unreadNotifications.isEmpty
                         ? SvgPicture.asset(
                             'assets/icon/empty_notifications.svg',
                             height: 20,
@@ -181,7 +181,8 @@ class _ProfileViewState extends State<ProfileView> {
         }
       }
     }
-    await _getNotifications();
+    await _loadNotifications();
+    await _initListeners();
   }
 
   @override
@@ -211,13 +212,20 @@ class _ProfileViewState extends State<ProfileView> {
     }
   }
 
-  Future<void> _getNotifications() async {
-    setState(() => _unreadAppNotifications =
+  Future<void> _loadNotifications() async {
+    setState(() => _unreadNotifications =
         Hive.box<AppNotification>(HiveBox.appNotifications)
             .values
             .where((element) => !element.read)
             .toList()
             .cast<AppNotification>());
+  }
+
+  Future<void> _initListeners() async {
+    Hive.box<AppNotification>(HiveBox.appNotifications)
+        .watch()
+        .listen((_) => _loadNotifications())
+        .onDone(_loadNotifications);
   }
 
   Future<void> viewProfile() async {

@@ -53,14 +53,20 @@ class CloudStore {
 
   static Future<void> deleteAccount(id) async {
     try {
-      await FirebaseFirestore.instance
-          .collection(Config.usersCollection)
-          .doc(id)
-          .delete();
-      await FirebaseFirestore.instance
-          .collection(Config.usersKyaCollection)
-          .doc(id)
-          .delete();
+      await Future.wait([
+        FirebaseFirestore.instance
+            .collection(Config.usersCollection)
+            .doc(id)
+            .delete(),
+        FirebaseFirestore.instance
+            .collection(Config.usersKyaCollection)
+            .doc(id)
+            .delete(),
+        FirebaseFirestore.instance
+            .collection(Config.notificationCollection)
+            .doc(id)
+            .delete()
+      ]);
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
     }
@@ -164,70 +170,37 @@ class CloudStore {
     return [];
   }
 
-  // TODO - fix functionality
-  // Future<List<AppNotification>> getNotifications(String id) async {
-  //   if (id == '') {
-  //     return [];
-  //   }
-  //
-  //   var hasConnection = await isConnected();
-  //   if (!hasConnection) {
-  //     return [];
-  //   }
-  //
-  //   try {
-  //     var notificationsJson = await _firebaseFirestore
-  //         .collection('${Config.notificationCollection}/$id/$id')
-  //         .get();
-  //
-  //     var notifications = <AppNotification>[];
-  //
-  //     var notificationDocs = notificationsJson.docs;
-  //     for (var doc in notificationDocs) {
-  //       var notification =
-  //           await compute(AppNotification.parseNotification, doc.data());
-  //       if (notification != null) {
-  //         notifications.add(notification);
-  //       }
-  //     }
-  //
-  //     return notifications;
-  //   } catch (exception, stackTrace) {
-  //     await logException(exception, stackTrace);
-  //   }
-  //
-  //   return [];
-  // }
-
   static String getUserId() {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null || uid.isEmpty) {
-      throw UserException('Missing uuid');
+      throw UserException('Not Logged in. Missing uuid');
     }
     return uid;
   }
 
-  static Future<void> getNotifications() async {
+  static Future<List<AppNotification>> getNotifications() async {
     try {
       final uid = CloudStore.getUserId();
       var notificationsJson = await FirebaseFirestore.instance
           .collection('${Config.notificationCollection}/$uid/$uid')
           .get();
 
-      final notifications = <dynamic, AppNotification>{};
+      final notifications = <AppNotification>[];
 
       for (var doc in notificationsJson.docs) {
         var notification = AppNotification.parseAppNotification(doc.data());
         if (notification != null) {
-          notifications[notification.id] = notification;
+          notifications.add(notification);
         }
       }
 
-      await Hive.box<AppNotification>(HiveBox.appNotifications)
-          .putAll(notifications);
+      await AppNotification.load(notifications);
+
+      return notifications;
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
     }
+    return [];
   }
 
   static Future<UserDetails> getProfile() async {
@@ -251,35 +224,6 @@ class CloudStore {
 
     return UserDetails.initialize();
   }
-
-  // TODO - fix functionality
-  // Future<void> monitorNotifications(context, String id) async {
-  //   var notifications = await getNotifications(id);
-  //
-  //   if (notifications.isEmpty) {
-  //     return;
-  //   }
-  //
-  //   try {
-  //     _firebaseFirestore
-  //         .collection('${Config.notificationCollection}/$id/$id')
-  //         .where('isNew', isEqualTo: true)
-  //         .snapshots()
-  //         .listen((result) async {
-  //       for (var result in result.docs) {
-  //         var notification =
-  //             await compute(AppNotification.parseNotification,
-  //             result.data());
-  //         if (notification != null) {
-  //           Provider.of<NotificationModel>(context, listen: false)
-  //               .add(notification);
-  //         }
-  //       }
-  //     });
-  //   } catch (exception, stackTrace) {
-  //     await logException(exception, stackTrace);
-  //   }
-  // }
 
   static Future<void> removeFavPlace(
       String userId, PlaceDetails placeDetails) async {

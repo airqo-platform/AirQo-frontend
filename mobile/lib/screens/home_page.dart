@@ -10,6 +10,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../services/local_storage.dart';
+import '../utils/network.dart';
 import 'dashboard_view.dart';
 import 'map/map_view.dart';
 
@@ -118,29 +119,6 @@ class _HomePageState extends State<HomePage> {
                               shape: BoxShape.circle, color: Config.red),
                         ),
                       )),
-                  // TODO - fix functionality
-                  // Positioned(
-                  //   right: 0.0,
-                  //   child: Consumer<NotificationModel>(
-                  //     builder: (context, notificationModel, child) {
-                  //       if (notificationModel.navBarNotification) {
-                  //         return Container(
-                  //           height: 4,
-                  //           width: 4,
-                  //           decoration: BoxDecoration(
-                  //               shape: BoxShape.circle, color: Config.red),
-                  //         );
-                  //       }
-                  //       return Container(
-                  //         height: 0.1,
-                  //         width: 0.1,
-                  //         decoration: const BoxDecoration(
-                  //             shape: BoxShape.circle,
-                  //             color: Colors.transparent),
-                  //       );
-                  //     },
-                  //   ),
-                  // ),
                 ],
               ),
               label: 'Profile',
@@ -165,9 +143,12 @@ class _HomePageState extends State<HomePage> {
   Future<void> initialize() async {
     if (refresh) {
       await _appService.fetchData(context);
+    } else {
+      await checkNetworkConnection(context, notifyUser: true);
     }
-    await Future.wait([_updateOnBoardingPage(), _getNotifications()]);
-    await _getCloudStore();
+
+    await Future.wait(
+        [_updateOnBoardingPage(), _loadNotifications(), _initListeners()]);
   }
 
   @override
@@ -203,44 +184,25 @@ class _HomePageState extends State<HomePage> {
     await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.home);
   }
 
-  Future<void> _getNotifications() async {
+  Future<void> _initListeners() async {
+    Hive.box<AppNotification>(HiveBox.appNotifications)
+        .watch()
+        .listen((_) => _loadNotifications())
+        .onDone(_loadNotifications);
+  }
+
+  Future<void> _loadNotifications() async {
     setState(() => _unreadAppNotifications =
         Hive.box<AppNotification>(HiveBox.appNotifications)
             .values
             .where((element) => !element.read)
             .toList()
             .cast<AppNotification>());
-
-    // TODO - fix functionality
-    // notificationsBox.watch().listen((event) {
-    //   print(event.value);
-    // });
-    // if (_appService.customAuth.isLoggedIn()) {
-    //   await _appService.cloudStore
-    //       .monitorNotifications(context, _appService.customAuth.getUserId());
-    // }
-  }
-
-  Future<void> _getCloudStore() async {
-    // TODO - fix functionality
-    // notificationsBox.watch().listen((event) {
-    //   print(event.value);
-    // });
-    // if (_appService.customAuth.isLoggedIn()) {
-    //   await _appService.cloudStore
-    //       .monitorNotifications(context, _appService.customAuth.getUserId());
-    // }
   }
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
-
-    // TODO - fix functionality
-    // if (index == 2) {
-    //   Provider.of<NotificationModel>(context, listen: false)
-    //       .removeNavBarNotification();
-    // }
   }
 }

@@ -1,7 +1,9 @@
+import 'package:app/utils/exception.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import '../constants/config.dart';
 import 'enum_constants.dart';
 
 part 'notification.g.dart';
@@ -110,10 +112,27 @@ class AppNotification extends HiveObject {
       var notification = AppNotification.fromJson(jsonBody);
       return notification;
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
+      logException(exception, stackTrace);
+      return null;
+    }
+  }
+
+  static List<AppNotification> sort(List<AppNotification> notifications) {
+    notifications.sort((x, y) {
+      return -(x.dateTime.compareTo(y.dateTime));
+    });
+    return notifications;
+  }
+
+  static Future<void> load(List<AppNotification> notifications) async {
+    final newNotifications = <dynamic, AppNotification>{};
+
+    for (var notification in notifications) {
+      newNotifications[notification.id] = notification;
     }
 
-    return null;
+    await Hive.box<AppNotification>(HiveBox.appNotifications)
+        .putAll(newNotifications);
   }
 
   static List<AppNotification> parseNotifications(dynamic jsonBody) {
