@@ -111,10 +111,11 @@
     height: 100%;
     width: 100%;
     margin-bottom: 77px;
+    flex-direction: column;
 
     .monitor-content {
+      padding: 0 16px;
       padding-top: 80px;
-      margin: 0 16px;
       width: 100%;
 
       .label {
@@ -140,12 +141,15 @@
       margin-bottom: 36px;
     }
 
-    >img {
+    .Monitor-img {
       height: 400px;
       width: 100%;
-      object-fit: cover;
-      border-radius: 16px;
-      margin: 0 16px;
+      
+      > img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
     }
   }
 }
