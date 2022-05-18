@@ -17,7 +17,7 @@ const Hero = () => {
         <div className="Hero">
             <span>
                 <img src={size.width <= breakPoint ? HeroCityImg : HeroCityLargeImg} alt="Hero image" />
-                <div className="air-quality-reading">
+                {/* <div className="air-quality-reading">
                     <div className="top-reading">
                         <span className="name-wrapper">
                             <Location />
@@ -42,7 +42,7 @@ const Hero = () => {
                             </span>
                         </span>
                     </div>
-                </div>
+                </div> */}
             </span>
             <div className="hero-content">
                 <div>
@@ -51,7 +51,7 @@ const Hero = () => {
                     drive air pollution mitigation actions.
                 </p>
                 <div className="hero-buttons">
-                    <Button label="Request demo" />
+                    <Button label="Explore data" />
                     <Button className="button-get-involved" label="Get Involved" />
                 </div>
                 </div>
