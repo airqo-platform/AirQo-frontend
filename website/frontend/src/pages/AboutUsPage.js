@@ -25,6 +25,7 @@ import PriscahImg from 'assets/img/profile-pics/PRISCAH small.jpg';
 import PriscillaImg from 'assets/img/profile-pics/PRISCILLA large.jpg';
 import ProssyImg from 'assets/img/profile-pics/PROSSY small.jpg';
 import RichardImg from 'assets/img/profile-pics/RICHARD large.jpg';
+import DoraImg from 'assets/img/profile-pics/DORA.jpg';
 
 import ProfileImg7 from 'assets/img/profile-pics/profile (7).png';
 import ProfileImg10 from 'assets/img/profile-pics/profile (10).png';
@@ -48,18 +49,19 @@ import Profile from '../components/Profile';
 const teamMembers = [
   { name: 'Prof. Engineer Bainomugisha', title: 'Project Lead', img: ProfileImg1 },
   { name: 'Deo Okure', title: 'Air Quality Scientist & Programme Manager', img: DeoImg },
-  { name: 'Martin Bbale', title: 'Software Engineer', img: MartinImg },
-  { name: 'Maclina Birungi', title: 'Marketing And Communications Lead', img: MaclinaImg },
+  { name: 'Martin Bbale', title: 'Software Engineering Lead', img: MartinImg },
+  { name: 'Maclina Birungi, MSc, MCIM', title: 'Marketing And Communications Lead', img: MaclinaImg },
   { name: 'Joel Ssematimba', title: 'Hardware Development & Manufacturing Lead', img: JoelImg },
+  { name: 'Dora Bampangana', title: 'Project Administrator', img: DoraImg },
   { name: 'Priscilla Adong', title: 'Data Scientist', img: PriscillaImg },
   { name: 'Joseph Odur', title: 'Software Engineer', img: ProfileImg7 },
   { name: 'Richard Sserunjogi', title: 'Data Scientist', img: RichardImg },
   { name: 'Proscovia Nakiranda', title: 'Data Scientist', img: ProssyImg },
   { name: 'Noah Nsimbe', title: 'Software Engineer', img: ProfileImg10 },
   { name: 'Paul Zana', title: 'UI/UX Designer', img: PaulImg },
-  { name: 'Deo Okedi', title: 'Assistant Embedded Systems Engineer', img: OkediImg },
+  { name: 'Deo Okedi', title: 'Embedded Systems Engineer', img: OkediImg },
   { name: 'Marvin Banda', title: 'Assistant Embedded Systems Engineer', img: MarvinImg },
-  { name: 'George Settala', title: 'Assistant Embedded Systems Engineer', img: GeorgeImg },
+  { name: 'George Settala', title: 'Embedded Systems and Network Support Engineer', img: GeorgeImg },
   { name: 'Daniel Ogenrwot', title: 'Assistant Software Engineer', img: ProfileImg12 },
   { name: 'Lillian Muyama', title: 'Data Scientist', img: ProfileImg13 },
   { name: 'Pablo A Alvarado Duran', title: 'Research Scientist', img: ProfileImg14 },
@@ -67,11 +69,11 @@ const teamMembers = [
   { name: 'Paterne Gahungu', title: 'Postdoctoral Researcher', img: ProfileImg16 },
   { name: 'Dr. Gabriel Okello', title: 'Visiting Research Fellow', img: ProfileImg17 },
   { name: 'Angela Nshimye', title: 'Policy And Engagement Officer', img: AngelaImg },
-  { name: 'Priscah', title: 'Policy And Engagement Officer', img: PriscahImg },
+  { name: 'Adrine Priscah Warigo', title: 'Digital Communications Executive', img: PriscahImg },
   { name: 'Busigu Faith Daka', title: 'Frontend Engineering Intern', img: FaithImg },
   { name: 'Wabinyai Fidel Raja', title: 'Data Scientist', img: FidelImg },
   { name: 'Belinda Marion Kobusingye', title: 'Frontend Engineering Intern', img: BelindaImg },
-  { name: 'Mike Mwanje', title: 'Devops Engineering Intern', img: MikeImg },
+  { name: 'Mike Mwanje', title: 'DevOps Intern', img: MikeImg },
 ];
 
 const AboutUsPage = () => {
