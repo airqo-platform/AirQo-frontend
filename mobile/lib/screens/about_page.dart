@@ -36,7 +36,7 @@ class _AboutAirQoState extends State<AboutAirQo> {
                 children: [
                   const Spacer(),
                   SvgPicture.asset(
-                    'assets/icon/airqo_home.svg',
+                    'assets/icon/airqo_logo.svg',
                     height: 52.86,
                     width: 76.91,
                     semanticsLabel: 'Home',

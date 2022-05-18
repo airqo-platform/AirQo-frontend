@@ -572,7 +572,7 @@ class _DashboardViewState extends State<DashboardView> {
       child: Row(
         children: [
           SvgPicture.asset(
-            'assets/icon/airqo_home.svg',
+            'assets/icon/airqo_logo.svg',
             height: 40,
             width: 58,
             semanticsLabel: 'AirQo',

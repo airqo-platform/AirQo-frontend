@@ -21,7 +21,9 @@ class AppNotificationAdapter extends TypeAdapter<AppNotification> {
       title: fields[2] == null ? '' : fields[2] as String,
       subTitle: fields[3] == null ? '' : fields[3] as String,
       link: fields[4] == null ? '' : fields[4] as String,
-      icon: fields[5] == null ? '' : fields[5] as String,
+      icon: fields[5] == null
+          ? 'assets/icon/airqo_logo.svg'
+          : fields[5] as String,
       image: fields[6] == null ? '' : fields[6] as String,
       body: fields[7] == null ? '' : fields[7] as String,
       read: fields[9] == null ? false : fields[9] as bool,
@@ -79,7 +81,7 @@ AppNotification _$AppNotificationFromJson(Map<String, dynamic> json) =>
       title: json['title'] as String,
       subTitle: json['subTitle'] as String,
       link: json['link'] as String,
-      icon: json['icon'] as String,
+      icon: notificationIconFromJson(json['icon']),
       image: json['image'] as String,
       body: json['body'] as String,
       read: json['read'] as bool,
@@ -95,7 +97,7 @@ Map<String, dynamic> _$AppNotificationToJson(AppNotification instance) =>
       'title': instance.title,
       'subTitle': instance.subTitle,
       'link': instance.link,
-      'icon': instance.icon,
+      'icon': notificationIconToJson(instance.icon),
       'image': instance.image,
       'body': instance.body,
       'dateTime': instance.dateTime.toIso8601String(),

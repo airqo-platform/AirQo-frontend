@@ -5,56 +5,9 @@ import 'package:json_annotation/json_annotation.dart';
 
 import '../constants/config.dart';
 import 'enum_constants.dart';
+import 'json_parsers.dart';
 
 part 'notification.g.dart';
-//
-// class NotificationModel extends ChangeNotifier {
-//   final List<AppNotification> _notifications = [];
-//   bool _navBarNotification = true;
-//   final DBHelper _dbHelper = DBHelper();
-//
-//   bool get navBarNotification {
-//     return _navBarNotification && hasNotifications();
-//   }
-//
-//   UnmodifiableListView<AppNotification> get notifications =>
-//       UnmodifiableListView(_notifications);
-//
-//   void add(AppNotification notification) {
-//     _notifications.add(notification);
-//     notifyListeners();
-//   }
-//
-//   void addAll(List<AppNotification> notifications) {
-//     _notifications
-//       ..clear()
-//       ..addAll(notifications);
-//     notifyListeners();
-//   }
-//
-//   bool hasNotifications() {
-//     return _notifications.where((element) => element.isNew).toList().isNotEmpty;
-//   }
-//
-//   Future<void> loadNotifications() async {
-//     var notifications = await _dbHelper.getAppNotifications();
-//     _notifications
-//       ..clear()
-//       ..addAll(notifications);
-//     notifyListeners();
-//   }
-//
-//   void removeAll() {
-//     _notifications.clear();
-//     _navBarNotification = false;
-//     notifyListeners();
-//   }
-//
-//   void removeNavBarNotification() {
-//     _navBarNotification = false;
-//     notifyListeners();
-//   }
-// }
 
 @JsonSerializable()
 @HiveType(typeId: 10, adapterName: 'AppNotificationAdapter')
@@ -71,7 +24,8 @@ class AppNotification extends HiveObject {
   @HiveField(4, defaultValue: '')
   String link;
 
-  @HiveField(5, defaultValue: '')
+  @JsonKey(fromJson: notificationIconFromJson, toJson: notificationIconToJson)
+  @HiveField(5, defaultValue: 'assets/icon/airqo_logo.svg')
   String icon;
 
   @HiveField(6, defaultValue: '')

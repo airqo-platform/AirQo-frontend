@@ -75,7 +75,7 @@ class _NotificationViewState extends State<NotificationView> {
                                   shape: BoxShape.circle,
                                 ),
                                 child: SvgPicture.asset(
-                                  'assets/icon/airqo_home.svg',
+                                  widget.appNotification.icon,
                                   height: 24,
                                   width: 36,
                                 ),
@@ -150,10 +150,10 @@ class NotificationCard extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             child: SvgPicture.asset(
-              'assets/icon/airqo_home.svg',
+              appNotification.icon,
               height: 16,
               width: 24,
-              semanticsLabel: 'home_icon',
+              semanticsLabel: 'notification_icon',
             ),
           ),
           const SizedBox(
