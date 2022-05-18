@@ -18,7 +18,7 @@ import GeorgeImg from 'assets/img/profile-pics/GEORGE long.jpg';
 import JoelImg from 'assets/img/profile-pics/JOEL long.jpg';
 import MartinImg from 'assets/img/profile-pics/MARTIN small.jpg';
 import MaclinaImg from 'assets/img/profile-pics/MACLINA.jpg';
-import MarvinImg from 'assets/img/profile-pics/MARVIN smalljpg.jpg';
+import MarvinImg from 'assets/img/profile-pics/MARVIN small.jpg';
 import OkediImg from 'assets/img/profile-pics/OKURE long.jpg';
 import PaulImg from 'assets/img/profile-pics/PAUL ZANA large.jpg';
 import PriscahImg from 'assets/img/profile-pics/PRISCAH small.jpg';
