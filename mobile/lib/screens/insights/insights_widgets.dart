@@ -6,7 +6,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../constants/config.dart';
 import '../../models/enum_constants.dart';
 import '../../models/insights.dart';
-import '../../themes/light_theme.dart';
 import '../../utils/pm.dart';
 
 class InsightsGraph extends StatelessWidget {
@@ -138,42 +137,6 @@ class InsightsGraph extends StatelessWidget {
   charts.OrdinalAxisSpec _yAxisScale(List<charts.TickSpec<String>> ticks) {
     return charts.OrdinalAxisSpec(
         tickProviderSpec: charts.StaticOrdinalTickProviderSpec(ticks));
-  }
-}
-
-class InsightsTabButton extends StatelessWidget {
-  final String text;
-  final Frequency frequency;
-  const InsightsTabButton(
-      {Key? key, required this.text, required this.frequency})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      constraints:
-          const BoxConstraints(minWidth: double.infinity, maxHeight: 32),
-      decoration: BoxDecoration(
-          color: text.toLowerCase() == 'day'
-              ? frequency == Frequency.hourly
-                  ? Config.appColorBlue
-                  : Colors.white
-              : frequency == Frequency.hourly
-                  ? Colors.white
-                  : Config.appColorBlue,
-          borderRadius: const BorderRadius.all(Radius.circular(4.0))),
-      child: Tab(
-          child: Text(text,
-              style: CustomTextStyle.button1(context)?.copyWith(
-                color: text.toLowerCase() == 'day'
-                    ? frequency == Frequency.hourly
-                        ? Colors.white
-                        : Config.appColorBlue
-                    : frequency == Frequency.hourly
-                        ? Config.appColorBlue
-                        : Colors.white,
-              ))),
-    );
   }
 }
 

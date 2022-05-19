@@ -2,7 +2,7 @@ import 'package:app/constants/config.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
 
-import '../themes/light_theme.dart';
+import '../widgets/buttons.dart';
 import 'analytics_view.dart';
 import 'kya/know_your_air_view.dart';
 
@@ -53,8 +53,16 @@ class _ForYouPageState extends State<ForYouPage>
                       }
                     },
                     tabs: <Widget>[
-                      tabButton(text: 'Analytics'),
-                      tabButton(text: 'Know your Air'),
+                      TabButton(
+                        text: 'Analytics',
+                        index: 0,
+                        tabController: _tabController,
+                      ),
+                      TabButton(
+                        text: 'Know your Air',
+                        index: 1,
+                        tabController: _tabController,
+                      )
                     ]),
               ),
             ),
@@ -85,32 +93,5 @@ class _ForYouPageState extends State<ForYouPage>
     _analytics = widget.analytics ?? true;
     _tabController = TabController(length: 2, vsync: this);
     _tabController.animateTo(_analytics ? 0 : 1);
-  }
-
-  Widget tabButton({required String text}) {
-    return Container(
-      constraints:
-          const BoxConstraints(minWidth: double.infinity, maxHeight: 32),
-      decoration: BoxDecoration(
-          color: text.toLowerCase() == 'analytics'
-              ? _analytics
-                  ? Config.appColorBlue
-                  : Colors.white
-              : _analytics
-                  ? Colors.white
-                  : Config.appColorBlue,
-          borderRadius: const BorderRadius.all(Radius.circular(4.0))),
-      child: Tab(
-          child: Text(text,
-              style: CustomTextStyle.button1(context)?.copyWith(
-                color: text.toLowerCase() == 'analytics'
-                    ? _analytics
-                        ? Colors.white
-                        : Config.appColorBlue
-                    : _analytics
-                        ? Config.appColorBlue
-                        : Colors.white,
-              ))),
-    );
   }
 }

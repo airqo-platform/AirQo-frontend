@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/enum_constants.dart';
 import '../../utils/network.dart';
-import 'insights_widgets.dart';
+import '../../widgets/buttons.dart';
 
 class InsightsPage extends StatefulWidget {
   final PlaceDetails placeDetails;
@@ -59,8 +59,16 @@ class _InsightsPageState extends State<InsightsPage>
                       }
                     },
                     tabs: <Widget>[
-                      InsightsTabButton(text: 'Day', frequency: frequency),
-                      InsightsTabButton(text: 'Week', frequency: frequency),
+                      TabButton(
+                        text: 'Day',
+                        index: 0,
+                        tabController: _tabController,
+                      ),
+                      TabButton(
+                        text: 'Week',
+                        index: 1,
+                        tabController: _tabController,
+                      )
                     ]),
               ),
             ),

@@ -11,7 +11,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../services/local_storage.dart';
 import '../utils/network.dart';
-import 'dashboard_view.dart';
+import 'dashboard/dashboard_view.dart';
 import 'map/map_view.dart';
 
 class HomePage extends StatefulWidget {

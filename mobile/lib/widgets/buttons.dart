@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../constants/config.dart';
+import '../themes/light_theme.dart';
 
 class NextButton extends StatelessWidget {
   final String? text;
@@ -80,6 +81,38 @@ class IconTextButton extends StatelessWidget {
               fontSize: 14, color: Config.appColorBlack, height: 18 / 14),
         )
       ],
+    );
+  }
+}
+
+class TabButton extends StatelessWidget {
+  final String text;
+  final int index;
+  final TabController? tabController;
+  const TabButton({
+    Key? key,
+    required this.text,
+    required this.index,
+    required this.tabController,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints:
+          const BoxConstraints(minWidth: double.infinity, maxHeight: 32),
+      decoration: BoxDecoration(
+          color: tabController?.index == index
+              ? Config.appColorBlue
+              : Colors.white,
+          borderRadius: const BorderRadius.all(Radius.circular(4.0))),
+      child: Tab(
+          child: Text(text,
+              style: CustomTextStyle.button1(context)?.copyWith(
+                color: tabController?.index == index
+                    ? Colors.white
+                    : Config.appColorBlue,
+              ))),
     );
   }
 }
