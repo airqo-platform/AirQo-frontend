@@ -256,9 +256,7 @@ Widget signUpOptions({required BuildContext context}) {
               context,
               PageRouteBuilder(
                 pageBuilder: (context, animation, secondaryAnimation) =>
-                    const PhoneLoginWidget(
-                  phoneNumber: '',
-                ),
+                    const PhoneLoginWidget(),
                 transitionsBuilder:
                     (context, animation, secondaryAnimation, child) {
                   return FadeTransition(

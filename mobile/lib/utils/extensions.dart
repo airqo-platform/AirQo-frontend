@@ -173,15 +173,7 @@ extension DateTimeExtension on DateTime {
   }
 
   String getLongDate() {
-    if (day.toString().endsWith('1')) {
-      return '${getDayPostfix()} ${getMonthString(abbreviate: false)}';
-    } else if (day.toString().endsWith('2')) {
-      return '${getDayPostfix()} ${getMonthString(abbreviate: false)}';
-    } else if (day.toString().endsWith('3')) {
-      return '${getDayPostfix()} ${getMonthString(abbreviate: false)}';
-    } else {
-      return '${getDayPostfix()} ${getMonthString(abbreviate: false)}';
-    }
+    return '${getDayPostfix()} ${getMonthString(abbreviate: false)}';
   }
 
   String getMonth(DateTime? datetime) {
@@ -193,11 +185,11 @@ extension DateTimeExtension on DateTime {
   }
 
   String getDayPostfix() {
-    if (day.toString().endsWith('1')) {
+    if (day.toString().endsWith('1') && day != 11) {
       return '${day}st';
-    } else if (day.toString().endsWith('2')) {
+    } else if (day.toString().endsWith('2') && day != 12) {
       return '${day}nd';
-    } else if (day.toString().endsWith('3')) {
+    } else if (day.toString().endsWith('3') && day != 13) {
       return '${day}rd';
     } else {
       return '${day}th';
@@ -236,15 +228,7 @@ extension DateTimeExtension on DateTime {
   }
 
   String getShortDate() {
-    if (day.toString().endsWith('1')) {
-      return '${getDayPostfix()} ${getMonthString(abbreviate: true)}';
-    } else if (day.toString().endsWith('2')) {
-      return '${getDayPostfix()} ${getMonthString(abbreviate: true)}';
-    } else if (day.toString().endsWith('3')) {
-      return '${getDayPostfix()} ${getMonthString(abbreviate: true)}';
-    } else {
-      return '${getDayPostfix()} ${getMonthString(abbreviate: true)}';
-    }
+    return '${getDayPostfix()} ${getMonthString(abbreviate: true)}';
   }
 
   String getWeekday() {

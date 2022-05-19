@@ -183,9 +183,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                 PageRouteBuilder(
                   pageBuilder: (context, animation, secondaryAnimation) {
                     if (widget.authProcedure == AuthProcedure.login) {
-                      return const PhoneLoginWidget(
-                        phoneNumber: '',
-                      );
+                      return const PhoneLoginWidget();
                     }
                     return const PhoneSignUpWidget();
                   },
