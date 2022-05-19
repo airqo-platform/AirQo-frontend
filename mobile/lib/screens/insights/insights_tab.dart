@@ -46,8 +46,6 @@ class _InsightsTabState extends State<InsightsTab> {
   List<Recommendation> _recommendations = [];
 
   final GlobalKey _globalKey = GlobalKey();
-  final String _toggleToolTipText = 'Customize your air quality analytics '
-      'with a single click ';
   int _currentItem = 0;
   Insights? _selectedMeasurement;
   String _lastUpdated = '';
@@ -63,7 +61,6 @@ class _InsightsTabState extends State<InsightsTab> {
 
   final GlobalKey _forecastToolTipKey = GlobalKey();
   final GlobalKey _infoToolTipKey = GlobalKey();
-  final GlobalKey _toggleToolTipKey = GlobalKey();
 
   final ItemScrollController _itemScrollController = ItemScrollController();
   final AppService _appService = AppService();
@@ -503,7 +500,7 @@ class _InsightsTabState extends State<InsightsTab> {
           duration: duration ?? const Duration(seconds: 1),
           curve: Curves.easeInOutCubic);
     } else {
-      Future.delayed(const Duration(milliseconds: 10), () {
+      Future.delayed(const Duration(milliseconds: 100), () {
         if (!controller.isAttached) {
           return;
         }
