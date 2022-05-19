@@ -1,6 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../constants/config.dart';
+
+class OnBoardingAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const OnBoardingAppBar({Key? key}) : super(key: key);
+
+  @override
+  PreferredSizeWidget build(BuildContext context) {
+    return AppBar(
+      automaticallyImplyLeading: false,
+      elevation: 0,
+      toolbarHeight: 0,
+      backgroundColor: Config.appBodyColor,
+    );
+  }
+
+  @override
+  Size get preferredSize => Size.zero;
+}
+
 class OnBoardingLocationIcon extends StatelessWidget {
   const OnBoardingLocationIcon({Key? key}) : super(key: key);
 

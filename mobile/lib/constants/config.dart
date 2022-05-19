@@ -26,8 +26,6 @@ class Config {
   static String get airqoApiUserExistsUrl =>
       dotenv.env['AIRQO_API_USER_EXISTS_URL'] ?? '';
 
-  static String get alertsCollection => dotenv.env['ALERTS_COLLECTION'] ?? '';
-
   static String get appAndroidWhatsappUrl =>
       dotenv.env['ANDROID_WHATSAPP_URL'] ?? '';
 
@@ -104,8 +102,8 @@ class Config {
 
   static int get maxSearchRadius => searchRadius * 2;
 
-  static String get notificationCollection =>
-      dotenv.env['NOTIFICATION_COLLECTION'] ?? '';
+  static String get usersNotificationCollection =>
+      dotenv.env['USERS_NOTIFICATION_COLLECTION'] ?? '';
 
   static Color get orange => const Color(0xffFE9E35);
 
@@ -148,7 +146,7 @@ class Config {
   static String get usersCollection => dotenv.env['USERS_COLLECTION'] ?? '';
 
   static String get usersKyaCollection =>
-      dotenv.env['USER_KYA_COLLECTION'] ?? '';
+      dotenv.env['USERS_KYA_COLLECTION'] ?? '';
 
   static String get usersProfilePictureStorage =>
       dotenv.env['USERS_PROFILE_PICTURE_COLLECTION'] ?? '';

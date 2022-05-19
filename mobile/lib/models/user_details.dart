@@ -7,29 +7,31 @@ part 'user_details.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class UserDetails {
-  @JsonKey(defaultValue: '')
+  @JsonKey(defaultValue: '', required: false)
   String title = '';
 
-  @JsonKey(defaultValue: '')
+  @JsonKey(defaultValue: '', required: false)
   String firstName = '';
 
-  @JsonKey(defaultValue: '')
+  @JsonKey(defaultValue: '', required: false)
   String userId = '';
 
-  @JsonKey(defaultValue: '')
+  @JsonKey(defaultValue: '', required: false)
   String lastName = '';
 
-  @JsonKey(defaultValue: '')
+  @JsonKey(defaultValue: '', required: false)
   String emailAddress = '';
 
-  @JsonKey(defaultValue: '')
+  @JsonKey(defaultValue: '', required: false)
   String phoneNumber = '';
 
-  @JsonKey(defaultValue: '')
+  @JsonKey(defaultValue: '', required: false)
   String device = '';
 
-  @JsonKey(defaultValue: '')
+  @JsonKey(defaultValue: '', required: false)
   String photoUrl = '';
+
+  @JsonKey(required: false)
   UserPreferences preferences = UserPreferences(false, false, false, 0);
 
   UserDetails(
@@ -112,16 +114,16 @@ class UserDetails {
 
 @JsonSerializable(explicitToJson: true)
 class UserPreferences {
-  @JsonKey(defaultValue: false)
+  @JsonKey(defaultValue: false, required: false)
   bool notifications;
 
-  @JsonKey(defaultValue: false)
+  @JsonKey(defaultValue: false, required: false)
   bool location;
 
-  @JsonKey(defaultValue: false)
+  @JsonKey(defaultValue: false, required: false)
   bool alerts;
 
-  @JsonKey(defaultValue: 0)
+  @JsonKey(defaultValue: 0, required: false)
   int aqShares;
 
   UserPreferences(

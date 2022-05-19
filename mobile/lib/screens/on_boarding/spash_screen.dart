@@ -14,6 +14,7 @@ import '../../services/local_storage.dart';
 import '../auth/phone_auth_widget.dart';
 import 'location_setup_screen.dart';
 import 'notifications_setup_screen.dart';
+import 'on_boarding_widgets.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -30,7 +31,8 @@ class SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Config.appBodyColor,
+      extendBodyBehindAppBar: true,
+      backgroundColor: Colors.white,
       body: PageTransitionSwitcher(
         duration: const Duration(seconds: 3),
         transitionBuilder: (
@@ -95,20 +97,15 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   Widget logoWidget() {
-    return Container(
-      color: Colors.white,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SvgPicture.asset(
-              'assets/icon/splash_image.svg',
-              semanticsLabel: 'Share',
-              // height: 118,
-              // width: 81,
-            ),
-          ],
-        ),
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SvgPicture.asset(
+            'assets/icon/splash_image.svg',
+            semanticsLabel: 'Splash image',
+          ),
+        ],
       ),
     );
   }

@@ -8,6 +8,7 @@ import '../../models/enum_constants.dart';
 import '../../services/local_storage.dart';
 import '../../themes/light_theme.dart';
 import '../auth/phone_auth_widget.dart';
+import 'on_boarding_widgets.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({Key? key}) : super(key: key);
@@ -22,6 +23,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        appBar: const OnBoardingAppBar(),
         backgroundColor: Config.appBodyColor,
         body: WillPopScope(
           onWillPop: onWillPop,

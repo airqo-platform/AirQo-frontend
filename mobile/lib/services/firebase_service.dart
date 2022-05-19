@@ -63,7 +63,7 @@ class CloudStore {
             .doc(id)
             .delete(),
         FirebaseFirestore.instance
-            .collection(Config.notificationCollection)
+            .collection(Config.usersNotificationCollection)
             .doc(id)
             .delete()
       ]);
@@ -182,7 +182,7 @@ class CloudStore {
     try {
       final uid = CloudStore.getUserId();
       var notificationsJson = await FirebaseFirestore.instance
-          .collection('${Config.notificationCollection}/$uid/$uid')
+          .collection('${Config.usersNotificationCollection}/$uid/$uid')
           .get();
 
       final notifications = <AppNotification>[];
@@ -223,6 +223,17 @@ class CloudStore {
     }
 
     return UserDetails.initialize();
+  }
+
+  static Future<void> createProfile(UserDetails userDetails) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection(Config.usersCollection)
+          .doc(userDetails.userId)
+          .set(userDetails.toJson());
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
+    }
   }
 
   static Future<void> removeFavPlace(
@@ -434,6 +445,8 @@ class CustomAuth {
         if (firebaseUser.email != null) {
           userDetails.emailAddress = firebaseUser.email!;
         }
+
+        await CloudStore.createProfile(userDetails);
 
         return userDetails;
       }
