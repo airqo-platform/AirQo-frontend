@@ -83,10 +83,8 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
     });
   }
 
-  void codeValueChange(text) {
-    setState(() {
-      _countryCode = text;
-    });
+  void codeValueChange(String? countryCode) {
+    setState(() => _countryCode = countryCode ?? '');
   }
 
   @override
@@ -235,8 +233,8 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
               children: [
                 SizedBox(
                   width: 64,
-                  child: countryPickerField(
-                      _countryCode, codeValueChange, context),
+                  child: CountryCodePickerField(
+                      valueChange: codeValueChange, placeholder: _countryCode),
                 ),
                 const SizedBox(
                   width: 16,
@@ -370,7 +368,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
       ),
       Padding(
         padding: const EdgeInsets.only(left: 60, right: 60),
-        child: optFieldV2(0, context, setCode, _codeSent),
+        child: OptField(codeSent: _codeSent, position: 0, callbackFn: setCode),
       ),
       const SizedBox(
         height: 16,
@@ -451,7 +449,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
     ];
   }
 
-  void setCode(value, position) {
+  void setCode(String value, int position) {
     setState(() {
       _phoneVerificationCode[position] = value;
     });

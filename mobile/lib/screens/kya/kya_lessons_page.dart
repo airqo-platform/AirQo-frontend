@@ -12,6 +12,7 @@ import '../../themes/light_theme.dart';
 import '../../utils/exception.dart';
 import '../../widgets/custom_shimmer.dart';
 import 'kya_final_page.dart';
+import 'kya_widgets.dart';
 
 class KyaLessonsPage extends StatefulWidget {
   final Kya kya;
@@ -124,16 +125,16 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                               onTap: () {
                                 scrollToCard(direction: -1);
                               },
-                              child: circularButton(
-                                  'assets/icon/previous_arrow.svg')),
+                              child: const CircularKyaButton(
+                                  icon: 'assets/icon/previous_arrow.svg')),
                           visible: currentIndex > 0,
                         ),
                         GestureDetector(
                             onTap: () {
                               scrollToCard(direction: 1);
                             },
-                            child:
-                                circularButton('assets/icon/next_arrow.svg')),
+                            child: const CircularKyaButton(
+                                icon: 'assets/icon/next_arrow.svg')),
                       ],
                     ),
                   ),
@@ -142,22 +143,6 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                   ),
                 ],
               ))),
-    );
-  }
-
-  Widget circularButton(String icon) {
-    return Container(
-      height: 48,
-      width: 48,
-      padding: const EdgeInsets.all(15.0),
-      decoration: BoxDecoration(
-        color: Config.appColorBlue.withOpacity(0.24),
-        shape: BoxShape.circle,
-      ),
-      child: SvgPicture.asset(
-        icon,
-        color: Config.appColorBlue,
-      ),
     );
   }
 

@@ -32,7 +32,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: appTopBar(context: context, title: 'Settings'),
+        appBar: const AppTopBar('Settings'),
         body: Container(
             color: Config.appBodyColor,
             padding:

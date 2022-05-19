@@ -271,9 +271,9 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
         height: 32,
       ),
       Padding(
-        padding: const EdgeInsets.only(left: 36, right: 36),
-        child: optField(0, context, setCode, _codeSent),
-      ),
+          padding: const EdgeInsets.only(left: 36, right: 36),
+          child:
+              OptField(codeSent: _codeSent, position: 0, callbackFn: setCode)),
       const SizedBox(
         height: 16,
       ),
@@ -377,7 +377,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     return Future.value(false);
   }
 
-  void setCode(value, position) {
+  void setCode(String value, int position) {
     setState(() {
       _emailVerificationCode[position] = value;
     });

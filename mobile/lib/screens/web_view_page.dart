@@ -27,9 +27,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: appTopBar(
-            context: context,
-            title: widget.title.trimEllipsis(),
+        appBar: AppTopBar(widget.title.trimEllipsis(),
             actions: [
               NavigationControls(controller: controller),
             ],

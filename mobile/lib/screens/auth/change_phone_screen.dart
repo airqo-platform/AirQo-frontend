@@ -119,9 +119,9 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
           Visibility(
             visible: _verifyCode,
             child: Padding(
-              padding: const EdgeInsets.only(left: 36, right: 36),
-              child: optField(0, context, setCode, _codeSent),
-            ),
+                padding: const EdgeInsets.only(left: 36, right: 36),
+                child: OptField(
+                    codeSent: _codeSent, position: 0, callbackFn: setCode)),
           ),
           Visibility(
             visible: !_verifyCode,
@@ -133,8 +133,9 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
                   children: [
                     SizedBox(
                       width: 64,
-                      child: countryPickerField(
-                          _countryCode, codeValueChange, context),
+                      child: CountryCodePickerField(
+                          valueChange: codeValueChange,
+                          placeholder: _countryCode),
                     ),
                     const SizedBox(
                       width: 16,
@@ -266,10 +267,10 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
     });
   }
 
-  void codeValueChange(text) {
+  void codeValueChange(String? countryCode) {
     setState(() {
-      _countryCode = text;
-      _countryCodePlaceHolder = '$text(0) ';
+      _countryCode = countryCode ?? '';
+      _countryCodePlaceHolder = '$countryCode(0) ';
     });
   }
 
@@ -417,7 +418,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
             });
   }
 
-  void setCode(value, position) {
+  void setCode(String value, int position) {
     setState(() {
       _phoneVerificationCode[position] = value;
     });

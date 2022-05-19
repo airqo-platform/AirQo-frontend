@@ -97,9 +97,9 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
         Visibility(
           visible: _requestCode,
           child: Padding(
-            padding: const EdgeInsets.only(left: 36, right: 36),
-            child: optField(0, context, setCode, _requestCode),
-          ),
+              padding: const EdgeInsets.only(left: 36, right: 36),
+              child: OptField(
+                  codeSent: _requestCode, position: 0, callbackFn: setCode)),
         ),
         Visibility(
           visible: !_requestCode,
@@ -225,7 +225,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
     _initialize();
   }
 
-  void setCode(value, position) {
+  void setCode(String value, int position) {
     setState(() {
       _emailVerificationCode[position] = value;
     });

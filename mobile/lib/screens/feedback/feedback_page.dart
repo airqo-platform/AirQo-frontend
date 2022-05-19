@@ -35,7 +35,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         resizeToAvoidBottomInset: false,
-        appBar: appTopBar(context: context, title: 'Send Feedback'),
+        appBar: const AppTopBar('Send Feedback'),
         body: Container(
             padding: const EdgeInsets.only(left: 16, right: 16),
             color: Config.appBodyColor,

@@ -21,7 +21,7 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: appTopBar(context: context, title: 'Favorites'),
+      appBar: const AppTopBar('Favorites'),
       body: Container(
           color: Config.appBodyColor,
           child: Consumer<PlaceDetailsModel>(
@@ -30,7 +30,7 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
                 return const EmptyFavouritePlaces();
               }
 
-              return refreshIndicator(
+              return AppRefreshIndicator(
                   sliverChildDelegate:
                       SliverChildBuilderDelegate((context, index) {
                     return Padding(

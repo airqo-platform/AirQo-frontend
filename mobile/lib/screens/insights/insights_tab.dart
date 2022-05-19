@@ -74,7 +74,7 @@ class _InsightsTabState extends State<InsightsTab> {
 
   @override
   Widget build(BuildContext context) {
-    return refreshIndicator(
+    return AppRefreshIndicator(
         sliverChildDelegate: SliverChildBuilderDelegate((context, index) {
           return _pageItems()[index];
         }, childCount: _pageItems().length),

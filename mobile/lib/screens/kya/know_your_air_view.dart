@@ -26,7 +26,7 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
             ? Center(
                 child: Text(_error),
               )
-            : refreshIndicator(
+            : AppRefreshIndicator(
                 sliverChildDelegate:
                     SliverChildBuilderDelegate((context, index) {
                   return Padding(

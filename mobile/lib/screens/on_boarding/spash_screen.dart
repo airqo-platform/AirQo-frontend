@@ -8,13 +8,11 @@ import 'package:app/utils/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../constants/config.dart';
 import '../../models/enum_constants.dart';
 import '../../services/local_storage.dart';
 import '../auth/phone_auth_widget.dart';
 import 'location_setup_screen.dart';
 import 'notifications_setup_screen.dart';
-import 'on_boarding_widgets.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);

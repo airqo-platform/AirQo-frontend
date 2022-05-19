@@ -29,7 +29,7 @@ class _InsightsPageState extends State<InsightsPage>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      appBar: appTopBar(context: context, title: 'More Insights'),
+      appBar: const AppTopBar('More Insights'),
       body: Container(
         padding: const EdgeInsets.only(right: 0, left: 0),
         color: Config.appBodyColor,

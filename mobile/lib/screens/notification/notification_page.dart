@@ -21,12 +21,12 @@ class _NotificationPageState extends State<NotificationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: appTopBar(context: context, title: 'Notifications'),
+      appBar: const AppTopBar('Notifications'),
       body: _notifications.isEmpty
           ? const EmptyNotifications()
           : Container(
               color: Config.appBodyColor,
-              child: refreshIndicator(
+              child: AppRefreshIndicator(
                   sliverChildDelegate:
                       SliverChildBuilderDelegate((context, index) {
                     return Padding(

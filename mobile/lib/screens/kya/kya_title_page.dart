@@ -23,7 +23,7 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: knowYourAirAppBar(context, 'Know Your Air'),
+      appBar: const KnowYourAirAppBar(),
       body: Stack(fit: StackFit.expand, children: [
         Container(
           color: Config.appBodyColor,

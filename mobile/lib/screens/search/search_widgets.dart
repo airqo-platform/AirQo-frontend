@@ -1,9 +1,12 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../constants/config.dart';
+import '../../models/measurement.dart';
 import '../../models/suggestion.dart';
 import '../../themes/light_theme.dart';
+import '../../widgets/custom_widgets.dart';
 
 class SearchPlaceTile extends StatelessWidget {
   final Suggestion searchSuggestion;
@@ -176,6 +179,46 @@ class NoNearbyLocations extends StatelessWidget {
           ),
         )
       ],
+    );
+  }
+}
+
+class SearchLocationTile extends StatelessWidget {
+  final Measurement measurement;
+  const SearchLocationTile({Key? key, required this.measurement})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.only(left: 16.0, right: 30.0),
+      decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+          border: Border.all(color: Colors.transparent)),
+      child: ListTile(
+        contentPadding: const EdgeInsets.only(left: 0.0),
+        title: AutoSizeText(
+          measurement.site.name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: CustomTextStyle.headline8(context),
+        ),
+        subtitle: AutoSizeText(
+          measurement.site.location,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: CustomTextStyle.bodyText4(context)
+              ?.copyWith(color: Config.appColorBlack.withOpacity(0.3)),
+        ),
+        trailing: SvgPicture.asset(
+          'assets/icon/more_arrow.svg',
+          semanticsLabel: 'more',
+          height: 6.99,
+          width: 4,
+        ),
+        leading: MiniAnalyticsAvatar(measurement: measurement),
+      ),
     );
   }
 }

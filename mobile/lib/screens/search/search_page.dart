@@ -4,7 +4,6 @@ import 'package:app/models/place_details.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:app/screens/search/search_widgets.dart';
 import 'package:app/utils/dialogs.dart';
-import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 

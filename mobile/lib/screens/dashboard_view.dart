@@ -100,7 +100,7 @@ class _DashboardViewState extends State<DashboardView> {
                 height: 8,
               ),
               Expanded(
-                child: refreshIndicator(
+                child: AppRefreshIndicator(
                     sliverChildDelegate:
                         SliverChildBuilderDelegate((context, index) {
                       return _dashBoardItems[index];

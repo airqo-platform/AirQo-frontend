@@ -14,22 +14,29 @@ import '../models/enum_constants.dart';
 import '../themes/light_theme.dart';
 import 'buttons.dart';
 
-Widget refreshIndicator(
-    {required SliverChildDelegate sliverChildDelegate,
-    Future Function()? onRefresh}) {
-  return CustomScrollView(
-    physics: Platform.isAndroid ? const BouncingScrollPhysics() : null,
-    slivers: [
-      CupertinoSliverRefreshControl(
-        refreshTriggerPullDistance: Config.refreshTriggerPullDistance,
-        refreshIndicatorExtent: Config.refreshIndicatorExtent,
-        onRefresh: onRefresh,
-      ),
-      SliverList(
-        delegate: sliverChildDelegate,
-      ),
-    ],
-  );
+class AppRefreshIndicator extends StatelessWidget {
+  final Future Function()? onRefresh;
+  final SliverChildDelegate sliverChildDelegate;
+  const AppRefreshIndicator(
+      {Key? key, this.onRefresh, required this.sliverChildDelegate})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomScrollView(
+      physics: Platform.isAndroid ? const BouncingScrollPhysics() : null,
+      slivers: [
+        CupertinoSliverRefreshControl(
+          refreshTriggerPullDistance: Config.refreshTriggerPullDistance,
+          refreshIndicatorExtent: Config.refreshIndicatorExtent,
+          onRefresh: onRefresh,
+        ),
+        SliverList(
+          delegate: sliverChildDelegate,
+        ),
+      ],
+    );
+  }
 }
 
 class AnalyticsAvatar extends StatelessWidget {
@@ -88,49 +95,63 @@ class AnalyticsAvatar extends StatelessWidget {
   }
 }
 
-PreferredSizeWidget appTopBar(
-    {required BuildContext context,
-    required String title,
-    List<Widget>? actions,
-    bool? centerTitle}) {
-  return AppBar(
-    toolbarHeight: 72,
-    centerTitle: centerTitle ?? true,
-    elevation: 0,
-    backgroundColor: Config.appBodyColor,
-    automaticallyImplyLeading: false,
-    leading: const Padding(
-      padding: EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
-      child: AppBackButton(),
-    ),
-    title: Text(
-      title,
-      style: CustomTextStyle.headline8(context),
-    ),
-    actions: actions,
-  );
+class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
+  final String title;
+  final List<Widget>? actions;
+  final bool? centerTitle;
+  const AppTopBar(this.title, {Key? key, this.actions, this.centerTitle})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      toolbarHeight: 72,
+      centerTitle: centerTitle ?? true,
+      elevation: 0,
+      backgroundColor: Config.appBodyColor,
+      automaticallyImplyLeading: false,
+      leading: const Padding(
+        padding: EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
+        child: AppBackButton(),
+      ),
+      title: Text(
+        title,
+        style: CustomTextStyle.headline8(context),
+      ),
+      actions: actions,
+    );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(60);
 }
 
-PreferredSizeWidget appIconTopBar(
-    {required BuildContext context, List<Widget>? actions}) {
-  return AppBar(
-    toolbarHeight: 72,
-    centerTitle: true,
-    elevation: 0,
-    backgroundColor: Config.appBodyColor,
-    automaticallyImplyLeading: false,
-    leading: const Padding(
-      padding: EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
-      child: AppBackButton(),
-    ),
-    title: SvgPicture.asset(
-      'assets/icon/airqo_logo.svg',
-      height: 40,
-      width: 58,
-      semanticsLabel: 'AirQo',
-    ),
-    actions: actions,
-  );
+class AppIconTopBar extends StatelessWidget implements PreferredSizeWidget {
+  const AppIconTopBar({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      toolbarHeight: 72,
+      centerTitle: true,
+      elevation: 0,
+      backgroundColor: Config.appBodyColor,
+      automaticallyImplyLeading: false,
+      leading: const Padding(
+        padding: EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
+        child: AppBackButton(),
+      ),
+      title: SvgPicture.asset(
+        'assets/icon/airqo_logo.svg',
+        height: 40,
+        width: 58,
+        semanticsLabel: 'AirQo',
+      ),
+    );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(60);
 }
 
 class AqiStringContainer extends StatelessWidget {
@@ -168,24 +189,32 @@ class AqiStringContainer extends StatelessWidget {
   }
 }
 
-PreferredSizeWidget knowYourAirAppBar(context, title) {
-  return AppBar(
-      centerTitle: true,
-      elevation: 0,
-      backgroundColor: Colors.transparent,
-      foregroundColor: Colors.transparent,
-      leading: const Padding(
-        padding: EdgeInsets.only(top: 12, bottom: 6.5, left: 16),
-        child: AppBackButton(),
-      ),
-      title: Padding(
-        padding: const EdgeInsets.only(top: 10),
-        child: Text(
-          title,
-          style:
-              CustomTextStyle.headline8(context)?.copyWith(color: Colors.white),
+class KnowYourAirAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const KnowYourAirAppBar({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.transparent,
+        leading: const Padding(
+          padding: EdgeInsets.only(top: 12, bottom: 6.5, left: 16),
+          child: AppBackButton(),
         ),
-      ));
+        title: Padding(
+          padding: const EdgeInsets.only(top: 10),
+          child: Text(
+            'Know Your Air',
+            style: CustomTextStyle.headline8(context)
+                ?.copyWith(color: Colors.white),
+          ),
+        ));
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(60);
 }
 
 class MiniAnalyticsAvatar extends StatelessWidget {
@@ -239,46 +268,6 @@ class MiniAnalyticsAvatar extends StatelessWidget {
           ),
           const Spacer(),
         ],
-      ),
-    );
-  }
-}
-
-class SearchLocationTile extends StatelessWidget {
-  final Measurement measurement;
-  const SearchLocationTile({Key? key, required this.measurement})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.only(left: 16.0, right: 30.0),
-      decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: const BorderRadius.all(Radius.circular(8.0)),
-          border: Border.all(color: Colors.transparent)),
-      child: ListTile(
-        contentPadding: const EdgeInsets.only(left: 0.0),
-        title: AutoSizeText(
-          measurement.site.name,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: CustomTextStyle.headline8(context),
-        ),
-        subtitle: AutoSizeText(
-          measurement.site.location,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: CustomTextStyle.bodyText4(context)
-              ?.copyWith(color: Config.appColorBlack.withOpacity(0.3)),
-        ),
-        trailing: SvgPicture.asset(
-          'assets/icon/more_arrow.svg',
-          semanticsLabel: 'more',
-          height: 6.99,
-          width: 4,
-        ),
-        leading: MiniAnalyticsAvatar(measurement: measurement),
       ),
     );
   }

@@ -26,7 +26,7 @@ class _AboutAirQoState extends State<AboutAirQo> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: appTopBar(context: context, title: 'About'),
+        appBar: const AppTopBar('About'),
         body: Container(
             color: Config.appBodyColor,
             child: Center(

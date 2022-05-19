@@ -8,6 +8,28 @@ import '../../models/kya.dart';
 import '../../themes/light_theme.dart';
 import 'kya_title_page.dart';
 
+class CircularKyaButton extends StatelessWidget {
+  final String icon;
+  const CircularKyaButton({Key? key, required this.icon}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 48,
+      width: 48,
+      padding: const EdgeInsets.all(15.0),
+      decoration: BoxDecoration(
+        color: Config.appColorBlue.withOpacity(0.24),
+        shape: BoxShape.circle,
+      ),
+      child: SvgPicture.asset(
+        icon,
+        color: Config.appColorBlue,
+      ),
+    );
+  }
+}
+
 String getKyaMessage({required Kya kya}) {
   var kyaItems = kya.lessons.length;
   var progress = kya.progress;

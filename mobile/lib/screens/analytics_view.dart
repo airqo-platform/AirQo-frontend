@@ -34,7 +34,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                 },
                 itemCount: 5,
               )
-            : refreshIndicator(
+            : AppRefreshIndicator(
                 sliverChildDelegate:
                     SliverChildBuilderDelegate((context, index) {
                   return Padding(

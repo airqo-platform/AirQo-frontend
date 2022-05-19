@@ -28,17 +28,16 @@ OnBoardingPage getOnBoardingPageConstant(String value) {
 }
 
 Region getRegionConstant(String value) {
-  switch (value) {
-    case 'central':
-      return Region.central;
-    case 'northern':
-      return Region.northern;
-    case 'eastern':
-      return Region.eastern;
-    case 'western':
-      return Region.western;
-    default:
-      return Region.central;
+  if (value.toLowerCase().contains('central')) {
+    return Region.central;
+  } else if (value.toLowerCase().contains('northern')) {
+    return Region.northern;
+  } else if (value.toLowerCase().contains('eastern')) {
+    return Region.eastern;
+  } else if (value.toLowerCase().contains('western')) {
+    return Region.western;
+  } else {
+    return Region.central;
   }
 }
 

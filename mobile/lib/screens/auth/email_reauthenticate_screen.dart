@@ -61,9 +61,8 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
           height: 32,
         ),
         Padding(
-          padding: const EdgeInsets.only(left: 36, right: 36),
-          child: optField(0, context, setCode, true),
-        ),
+            padding: const EdgeInsets.only(left: 36, right: 36),
+            child: OptField(codeSent: true, position: 0, callbackFn: setCode)),
         const SizedBox(
           height: 24,
         ),
@@ -165,7 +164,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
     });
   }
 
-  void setCode(value, position) {
+  void setCode(String value, int position) {
     setState(() {
       _emailVerificationCode[position] = value;
     });
