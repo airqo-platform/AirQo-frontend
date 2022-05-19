@@ -58,7 +58,6 @@ class InsightsGraph extends StatelessWidget {
                   var value = model.selectedDatum[0].index;
                   if (value != null) {
                     onBarSelection(model.selectedSeries[0].data[value]);
-                    // _updateUI(model.selectedSeries[0].data[value]);
                   }
                 } catch (exception, stackTrace) {
                   debugPrint(
