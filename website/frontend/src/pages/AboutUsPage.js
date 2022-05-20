@@ -2,7 +2,6 @@ import React from 'react';
 import { Link } from 'react-scroll';
 
 // image imports
-// import KitengiImg from 'assets/img/about-us-kitenge.png';
 import TeamImg from 'assets/img/team.png';
 import Vector1 from 'assets/img/about_us_vector_3.png';
 import Vector2 from 'assets/img/about-us-vector-2.png';
@@ -70,10 +69,10 @@ const teamMembers = [
   { name: 'Dr. Gabriel Okello', title: 'Visiting Research Fellow', img: ProfileImg17 },
   { name: 'Angela Nshimye', title: 'Policy And Engagement Officer', img: AngelaImg },
   { name: 'Adrine Priscah Warigo', title: 'Digital Communications Executive', img: PriscahImg },
-  { name: 'Busigu Faith Daka', title: 'Frontend Engineering Intern', img: FaithImg },
+  { name: 'Busigu Faith Daka', title: 'Frontend Engineer', img: FaithImg },
   { name: 'Wabinyai Fidel Raja', title: 'Data Scientist', img: FidelImg },
-  { name: 'Belinda Marion Kobusingye', title: 'Frontend Engineering Intern', img: BelindaImg },
-  { name: 'Mike Mwanje', title: 'DevOps Intern', img: MikeImg },
+  { name: 'Belinda Marion Kobusingye', title: 'Frontend Engineer', img: BelindaImg },
+  { name: 'Mike Mwanje', title: 'DevOps Engineer', img: MikeImg },
 ];
 
 const AboutUsPage = () => {

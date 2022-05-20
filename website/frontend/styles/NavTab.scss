@@ -33,11 +33,19 @@
   border-radius: 16px;
 }
 
+.colored:hover {
+  background-color: $aq-blue-7;
+}
+
 .filled {
   color: $aq-white-0;
   background: $aq-blue-0;
   border-radius: 16px;
   margin-left: 16px;
+}
+
+.filled:hover {
+  background-color: $aq-blue-6;
 }
 
 @media(max-width: 1024px){
