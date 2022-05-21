@@ -1,11 +1,9 @@
 import 'dart:io';
 
-import 'package:app/models/notification.dart';
-import 'package:app/providers/locale_provider.dart';
-import 'package:app/services/native_api.dart';
-import 'package:app/services/notifications_svc.dart';
 import 'package:app/screens/on_boarding/spash_screen.dart';
 import 'package:app/services/hive_service.dart';
+import 'package:app/services/native_api.dart';
+import 'package:app/services/notifications_svc.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -37,8 +35,17 @@ void main() async {
 
   await SystemProperties.setDefault();
 
-  FirebaseMessaging.onBackgroundMessage(NotificationService.initNotifications);
-
+  if (Platform.isIOS) {
+    FirebaseMessaging.onMessage.listen(NotificationService.notificationHandler);
+    FirebaseMessaging.onMessageOpenedApp.listen((message) {
+      // TODO: LOG EVENT
+      var type = message.data['type'] ?? '';
+      if (type == 'update') {
+        // TODO: NAVIGATE TO FAV PLACES
+        // TODO: LOG EVENT
+      }
+    });
+  }
   final prefs = await SharedPreferences.getInstance();
   final themeController = ThemeController(prefs);
 

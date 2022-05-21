@@ -502,7 +502,12 @@ class SharedPreferencesHelper {
     var alerts = sharedPreferences.getBool('alerts') ?? false;
     var aqShares = sharedPreferences.getInt('aqShares') ?? 0;
 
-    return UserPreferences(notifications, location, alerts, aqShares);
+    return UserPreferences(
+      location: location,
+      alerts: alerts,
+      notifications: notifications,
+      aqShares: aqShares,
+    );
   }
 
   static Future<void> updateOnBoardingPage(

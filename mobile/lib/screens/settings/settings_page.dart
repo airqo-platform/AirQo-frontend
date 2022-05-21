@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 
 import '../../services/firebase_service.dart';
 import '../../services/native_api.dart';
+import '../../services/notifications_svc.dart';
 import '../about_page.dart';
 import '../auth/email_reauthenticate_screen.dart';
 import '../auth/phone_auth_widget.dart';

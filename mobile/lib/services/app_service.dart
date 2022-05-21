@@ -11,7 +11,6 @@ import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/utils/network.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
@@ -23,7 +22,6 @@ import '../models/kya.dart';
 import '../models/notification.dart';
 import '../utils/exception.dart';
 import 'native_api.dart';
-import 'notifications_svc.dart';
 
 class AppService {
   final DBHelper _dbHelper = DBHelper();

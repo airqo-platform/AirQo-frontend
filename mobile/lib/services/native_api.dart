@@ -26,6 +26,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../models/enum_constants.dart';
 import '../themes/light_theme.dart';
+import '../utils/exception.dart';
 import 'firebase_service.dart';
 
 class LocationService {
@@ -400,69 +401,6 @@ class SystemProperties {
 
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
         overlays: [SystemUiOverlay.bottom, SystemUiOverlay.top]);
-  }
-}
-
-class NotificationService {
-  static Future<bool> allowNotifications() async {
-    var enabled = await requestPermission();
-    if (enabled) {
-      await CloudAnalytics.logEvent(AnalyticsEvent.allowNotification, true);
-    }
-    return enabled;
-  }
-
-  static Future<bool> checkPermission() async {
-    try {
-      var settings = await FirebaseMessaging.instance.getNotificationSettings();
-
-      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-        return true;
-      }
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-
-    return false;
-  }
-
-  static Future<bool> requestPermission() async {
-    try {
-      var settings = await FirebaseMessaging.instance.requestPermission(
-        alert: true,
-        announcement: false,
-        badge: true,
-        carPlay: false,
-        criticalAlert: false,
-        provisional: false,
-        sound: true,
-      );
-      var status =
-          settings.authorizationStatus == AuthorizationStatus.authorized;
-
-      var id = CustomAuth.getUserId();
-
-      if (id != '') {
-        await CloudStore.updatePreferenceFields(
-            id, 'notifications', status, 'bool');
-      }
-      return status;
-    } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
-    }
-
-    return false;
-  }
-
-  static Future<bool> revokePermission() async {
-    // TODO: implement revoke permission
-    var id = CustomAuth.getUserId();
-
-    if (id != '') {
-      await CloudStore.updatePreferenceFields(
-          id, 'notifications', false, 'bool');
-    }
-    return false;
   }
 }
 

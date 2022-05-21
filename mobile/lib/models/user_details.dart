@@ -35,7 +35,8 @@ class UserDetails {
   String photoUrl = '';
 
   @JsonKey(required: false)
-  UserPreferences preferences = UserPreferences(false, false, false, 0);
+  UserPreferences preferences = UserPreferences(
+      notifications: false, alerts: false, aqShares: 0, location: false);
 
   UserDetails(
       {required this.title,

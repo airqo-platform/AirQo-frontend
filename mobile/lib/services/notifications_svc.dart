@@ -8,14 +8,9 @@ import '../utils/exception.dart';
 import 'firebase_service.dart';
 
 class NotificationService {
-  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
-  final CustomAuth _customAuth = CustomAuth();
-  final CloudStore _cloudStore = CloudStore();
-  final CloudAnalytics _cloudAnalytics = CloudAnalytics();
-
-  Future<bool> checkPermission() async {
+  static Future<bool> checkPermission() async {
     try {
-      var settings = await _firebaseMessaging.getNotificationSettings();
+      var settings = await FirebaseMessaging.instance.getNotificationSettings();
 
       if (settings.authorizationStatus == AuthorizationStatus.authorized) {
         return true;
@@ -27,29 +22,18 @@ class NotificationService {
     return false;
   }
 
-  Future<String?> getToken() async {
+  static Future<void> updateNotificationSettings({String? token}) async {
     try {
-      var token = await _firebaseMessaging.getToken();
-      return token;
-    } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
-    }
-
-    return null;
-  }
-
-  Future<void> updateNotificationSettings({String? token}) async {
-    try {
-      var user = _customAuth.getUser();
+      var user = CustomAuth.getUser();
       if (user == null) {
         return;
       }
-      var device = token ?? await _firebaseMessaging.getToken();
+      var device = token ?? await FirebaseMessaging.instance.getToken();
       var utcOffset = DateTime.now().getUtcOffset();
       debugPrint('deice token : $device');
 
       if (device != null) {
-        await _cloudStore.updateProfileFields(
+        await CloudStore.updateProfileFields(
             user.uid, {'device': device, 'utcOffset': utcOffset});
       }
     } catch (exception, stackTrace) {
@@ -57,9 +41,9 @@ class NotificationService {
     }
   }
 
-  Future<bool> requestPermission() async {
+  static Future<bool> requestPermission() async {
     try {
-      var settings = await _firebaseMessaging.requestPermission(
+      var settings = await FirebaseMessaging.instance.requestPermission(
         alert: true,
         announcement: false,
         badge: true,
@@ -71,14 +55,14 @@ class NotificationService {
       var status =
           settings.authorizationStatus == AuthorizationStatus.authorized;
 
-      var id = _customAuth.getUserId();
+      var id = CustomAuth.getUserId();
 
       if (id != '') {
-        await _cloudStore.updatePreferenceFields(
+        await CloudStore.updatePreferenceFields(
             id, 'notifications', status, 'bool');
       }
       if (status) {
-        await _cloudAnalytics.logEvent(AnalyticsEvent.allowNotification, true);
+        await CloudAnalytics.logEvent(AnalyticsEvent.allowNotification, true);
       }
       return status;
     } catch (exception, stackTrace) {
@@ -88,19 +72,19 @@ class NotificationService {
     return false;
   }
 
-  Future<bool> revokePermission() async {
+  static Future<bool> revokePermission() async {
     // TODO: implement revoke permission
-    var id = _customAuth.getUserId();
+    var id = CustomAuth.getUserId();
 
     if (id != '') {
-      await _cloudStore.updatePreferenceFields(
+      await CloudStore.updatePreferenceFields(
           id, 'notifications', false, 'bool');
     }
     return false;
   }
 
   static Future<void> initNotifications(RemoteMessage message) async {
-    await NotificationService().requestPermission();
+    await requestPermission();
     await FirebaseMessaging.instance
         .setForegroundNotificationPresentationOptions(
       alert: true,
@@ -109,7 +93,7 @@ class NotificationService {
     );
     await NotificationService.notificationHandler(message);
     FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) {
-      NotificationService().updateNotificationSettings(token: fcmToken);
+      updateNotificationSettings(token: fcmToken);
     }).onError((err) {
       logException(err, '');
     });
@@ -151,5 +135,13 @@ class NotificationService {
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
     }
+  }
+
+  static Future<bool> allowNotifications() async {
+    var enabled = await requestPermission();
+    if (enabled) {
+      await CloudAnalytics.logEvent(AnalyticsEvent.allowNotification, true);
+    }
+    return enabled;
   }
 }

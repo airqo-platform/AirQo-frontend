@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:animations/animations.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/screens/on_boarding/profile_setup_screen.dart';
@@ -7,12 +5,9 @@ import 'package:app/screens/on_boarding/setup_complete_screeen.dart';
 import 'package:app/screens/on_boarding/welcome_screen.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/utils/extensions.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../models/enum_constants.dart';
-import '../services/notifications_svc.dart';
 import '../../models/enum_constants.dart';
 import '../../services/local_storage.dart';
 import '../auth/phone_auth_widget.dart';
@@ -97,22 +92,6 @@ class SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     _initialize();
-    _initNotifications();
-  }
-
-  void _initNotifications() {
-    if (Platform.isIOS) {
-      FirebaseMessaging.onMessage
-          .listen(NotificationService.notificationHandler);
-      FirebaseMessaging.onMessageOpenedApp.listen((message) {
-        // TODO: LOG EVENT
-        var type = message.data['type'] ?? '';
-        if (type == 'update') {
-          // TODO: NAVIGATE TO FAV PLACES
-          // TODO: LOG EVENT
-        }
-      });
-    }
   }
 
   Widget logoWidget() {
