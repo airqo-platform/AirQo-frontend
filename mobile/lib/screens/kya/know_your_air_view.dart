@@ -55,9 +55,7 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
     }
 
     if (mounted) {
-      setState(() {
-        _kyaCards = kya;
-      });
+      setState(() => _kyaCards = kya);
     }
   }
 

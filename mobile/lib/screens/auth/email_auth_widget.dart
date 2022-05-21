@@ -65,9 +65,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     if (_emailAddress == '') {
       FocusScope.of(context).unfocus();
       Future.delayed(const Duration(milliseconds: 400), () {
-        setState(() {
-          _showAuthOptions = true;
-        });
+        setState(() => _showAuthOptions = true);
       });
     }
 
@@ -82,16 +80,12 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     return TextFormField(
       controller: _emailInputController,
       onTap: () {
-        setState(() {
-          _showAuthOptions = false;
-        });
+        setState(() => _showAuthOptions = false);
       },
       onEditingComplete: () async {
         FocusScope.of(context).requestFocus(FocusNode());
         Future.delayed(const Duration(milliseconds: 400), () {
-          setState(() {
-            _showAuthOptions = true;
-          });
+          setState(() => _showAuthOptions = true);
         });
       },
       onChanged: emailValueChange,
@@ -441,6 +435,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
 
     if (success) {
       if (widget.authProcedure == AuthProcedure.signup) {
+        await AppService.postSignUpActions();
         await Navigator.pushAndRemoveUntil(context,
             MaterialPageRoute(builder: (context) {
           return const ProfileSetupScreen();

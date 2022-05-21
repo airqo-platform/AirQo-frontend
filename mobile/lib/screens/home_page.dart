@@ -162,9 +162,7 @@ class _HomePageState extends State<HomePage> {
     var currentPage = _selectedIndex;
 
     if (currentPage != 0) {
-      setState(() {
-        _selectedIndex = 0;
-      });
+      setState(() => _selectedIndex = 0);
       return Future.value(false);
     }
 
@@ -201,8 +199,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    setState(() => _selectedIndex = index);
   }
 }

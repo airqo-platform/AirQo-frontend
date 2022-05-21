@@ -43,13 +43,9 @@ class _ForYouPageState extends State<ForYouPage>
                     physics: const NeverScrollableScrollPhysics(),
                     onTap: (value) {
                       if (value == 0) {
-                        setState(() {
-                          _analytics = true;
-                        });
+                        setState(() => _analytics = true);
                       } else {
-                        setState(() {
-                          _analytics = false;
-                        });
+                        setState(() => _analytics = false);
                       }
                     },
                     tabs: <Widget>[

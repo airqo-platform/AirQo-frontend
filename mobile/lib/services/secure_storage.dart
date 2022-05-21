@@ -1,4 +1,4 @@
-import 'package:app/models/user_details.dart';
+import 'package:app/models/profile.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../utils/exception.dart';
@@ -10,9 +10,9 @@ class SecureStorage {
     await _secureStorage.deleteAll();
   }
 
-  Future<UserDetails> getUserDetails() async {
+  Future<Profile> getUserDetails() async {
     var userInfo = await _secureStorage.readAll();
-    var userDetails = UserDetails.initialize()
+    var userDetails = await Profile.getProfile()
       ..title = userInfo['title'] ?? 'Ms.'
       ..firstName = userInfo['firstName'] ?? ''
       ..lastName = userInfo['lastName'] ?? ''
@@ -23,24 +23,6 @@ class SecureStorage {
       ..phoneNumber = userInfo['phoneNumber'] ?? '';
 
     return userDetails;
-  }
-
-  Future<void> updateUserDetails(UserDetails userDetails) async {
-    try {
-      await _secureStorage.write(
-          key: 'firstName', value: userDetails.firstName);
-      await _secureStorage.write(key: 'lastName', value: userDetails.lastName);
-      await _secureStorage.write(key: 'photoUrl', value: userDetails.photoUrl);
-      await _secureStorage.write(key: 'title', value: userDetails.title);
-      await _secureStorage.write(key: 'userId', value: userDetails.userId);
-      await _secureStorage.write(key: 'device', value: userDetails.device);
-      await _secureStorage.write(
-          key: 'emailAddress', value: userDetails.emailAddress);
-      await _secureStorage.write(
-          key: 'phoneNumber', value: userDetails.phoneNumber);
-    } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
-    }
   }
 
   Future<void> updateUserDetailsField(String key, String value) async {

@@ -49,13 +49,9 @@ class _InsightsPageState extends State<InsightsPage>
                     labelPadding: const EdgeInsets.all(3.0),
                     onTap: (value) {
                       if (value == 0) {
-                        setState(() {
-                          frequency = Frequency.hourly;
-                        });
+                        setState(() => frequency = Frequency.hourly);
                       } else {
-                        setState(() {
-                          frequency = Frequency.daily;
-                        });
+                        setState(() => frequency = Frequency.daily);
                       }
                     },
                     tabs: <Widget>[

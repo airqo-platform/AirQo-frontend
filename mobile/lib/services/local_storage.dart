@@ -5,8 +5,8 @@ import 'package:app/models/insights.dart';
 import 'package:app/models/kya.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
+import 'package:app/models/profile.dart';
 import 'package:app/models/site.dart';
-import 'package:app/models/user_details.dart';
 import 'package:app/utils/distance.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:collection/collection.dart';
@@ -499,12 +499,10 @@ class SharedPreferencesHelper {
     var sharedPreferences = await SharedPreferences.getInstance();
     var notifications = sharedPreferences.getBool('notifications') ?? false;
     var location = sharedPreferences.getBool('location') ?? false;
-    var alerts = sharedPreferences.getBool('alerts') ?? false;
     var aqShares = sharedPreferences.getInt('aqShares') ?? 0;
 
     return UserPreferences(
       location: location,
-      alerts: alerts,
       notifications: notifications,
       aqShares: aqShares,
     );
@@ -540,13 +538,15 @@ class SharedPreferencesHelper {
     await sharedPreferences.setBool(
         'notifications', userPreferences.notifications);
     await sharedPreferences.setBool('location', userPreferences.location);
-    await sharedPreferences.setBool('alerts', userPreferences.alerts);
     await sharedPreferences.setInt('aqShares', userPreferences.aqShares);
   }
 }
 
 class HiveStore {
   static Future<void> clearUserData() async {
-    await Hive.box<AppNotification>(HiveBox.appNotifications).clear();
+    await Future.wait([
+      Hive.box<AppNotification>(HiveBox.appNotifications).clear(),
+      Hive.box<Profile>(HiveBox.profile).clear()
+    ]);
   }
 }

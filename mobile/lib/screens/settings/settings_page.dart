@@ -8,6 +8,7 @@ import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import '../../models/profile.dart';
 import '../../services/firebase_service.dart';
 import '../../services/native_api.dart';
 import '../../services/notifications_svc.dart';
@@ -59,18 +60,16 @@ class _SettingsPageState extends State<SettingsPage> {
                           activeColor: Config.appColorBlue,
                           onChanged: (bool value) {
                             if (value) {
-                              LocationService.allowLocationAccess()
-                                  .then((response) => {
-                                        setState(() {
-                                          _allowLocation = response;
-                                        })
+                              LocationService.allowLocationAccess().then(
+                                  (response) => {
+                                        setState(
+                                            () => _allowLocation = response)
                                       });
                             } else {
-                              LocationService.revokePermission()
-                                  .then((response) => {
-                                        setState(() {
-                                          _allowLocation = response;
-                                        })
+                              LocationService.revokePermission().then(
+                                  (response) => {
+                                        setState(
+                                            () => _allowLocation = response)
                                       });
                             }
                           },
@@ -88,18 +87,16 @@ class _SettingsPageState extends State<SettingsPage> {
                           activeColor: Config.appColorBlue,
                           onChanged: (bool value) {
                             if (value) {
-                              NotificationService.allowNotifications()
-                                  .then((response) => {
-                                        setState(() {
-                                          _allowNotification = response;
-                                        })
+                              NotificationService.allowNotifications().then(
+                                  (response) => {
+                                        setState(
+                                            () => _allowNotification = response)
                                       });
                             } else {
-                              NotificationService.revokePermission()
-                                  .then((response) => {
-                                        setState(() {
-                                          _allowNotification = response;
-                                        })
+                              NotificationService.revokePermission().then(
+                                  (response) => {
+                                        setState(
+                                            () => _allowNotification = response)
                                       });
                             }
                           },
@@ -194,7 +191,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
     var alert = AlertDialog(
       title: const Text('Delete Account'),
-      content: const Text('Are you sure toy want to delete your account ? '),
+      content: const Text('Are you sure about deleting your account ? '),
       actions: [okButton, cancelButton],
     );
 
@@ -216,18 +213,18 @@ class _SettingsPageState extends State<SettingsPage> {
     }
 
     bool authResponse;
-    var userDetails = await _appService.getUserDetails();
+    var profile = await Profile.getProfile();
     if (user.email != null) {
-      userDetails.emailAddress = user.email!;
+      profile.emailAddress = user.email!;
       authResponse =
           await Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return EmailReAuthenticateScreen(userDetails);
+        return EmailReAuthenticateScreen(profile);
       }));
     } else if (user.phoneNumber != null) {
-      userDetails.phoneNumber = user.phoneNumber!;
+      profile.phoneNumber = user.phoneNumber!;
       authResponse =
           await Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return PhoneReAuthenticateScreen(userDetails);
+        return PhoneReAuthenticateScreen(profile);
       }));
     } else {
       authResponse = false;
@@ -256,15 +253,11 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _initialize() async {
     await NotificationService.checkPermission().then((value) => {
-          setState(() {
-            _allowNotification = value;
-          }),
+          setState(() => _allowNotification = value),
         });
 
     await LocationService.checkPermission().then((value) => {
-          setState(() {
-            _allowLocation = value;
-          }),
+          setState(() => _allowLocation = value),
         });
   }
 }

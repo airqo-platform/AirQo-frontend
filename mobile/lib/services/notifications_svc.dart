@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../models/enum_constants.dart';
+import '../models/profile.dart';
 import '../utils/exception.dart';
 import 'firebase_service.dart';
 
@@ -142,6 +143,9 @@ class NotificationService {
     if (enabled) {
       await CloudAnalytics.logEvent(AnalyticsEvent.allowNotification, true);
     }
-    return enabled;
+    var profile = await Profile.getProfile()
+      ..preferences.notifications = enabled;
+    await profile.saveProfile();
+    return true;
   }
 }

@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import '../../services/local_storage.dart';
 import '../../services/native_api.dart';
 import '../../themes/light_theme.dart';
+import '../../widgets/custom_shimmer.dart';
 import 'on_boarding_widgets.dart';
 
 class LocationSetupScreen extends StatefulWidget {
@@ -58,21 +59,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
             Padding(
               padding: const EdgeInsets.only(left: 24, right: 24),
               child: GestureDetector(
-                onTap: () {
-                  LocationService.allowLocationAccess()
-                      .then((value) => {
-                            Navigator.pushAndRemoveUntil(context,
-                                MaterialPageRoute(builder: (context) {
-                              return const SetUpCompleteScreen();
-                            }), (r) => false)
-                          })
-                      .whenComplete(() => {
-                            Navigator.pushAndRemoveUntil(context,
-                                MaterialPageRoute(builder: (context) {
-                              return const SetUpCompleteScreen();
-                            }), (r) => false)
-                          });
-                },
+                onTap: _allowLocation,
                 child: NextButton(
                     text: 'Yes, keep me safe',
                     buttonColor: Config.appColorBlue),
@@ -107,7 +94,19 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
   @override
   void initState() {
     super.initState();
-    updateOnBoardingPage();
+    _updateOnBoardingPage();
+  }
+
+  Future<void> _allowLocation() async {
+    loadingScreen(context);
+    var response = await LocationService.allowLocationAccess();
+    if (response) {
+      Navigator.pop(context);
+      await Navigator.pushAndRemoveUntil(context,
+          MaterialPageRoute(builder: (context) {
+        return const SetUpCompleteScreen();
+      }), (r) => false);
+    }
   }
 
   Future<bool> onWillPop() {
@@ -128,7 +127,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
     return Future.value(false);
   }
 
-  void updateOnBoardingPage() async {
+  void _updateOnBoardingPage() async {
     await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.location);
   }
 }

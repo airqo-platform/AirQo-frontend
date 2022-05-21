@@ -1,5 +1,5 @@
 import 'package:app/constants/config.dart';
-import 'package:app/models/user_details.dart';
+import 'package:app/models/profile.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/text_fields.dart';
@@ -9,7 +9,7 @@ import '../../services/app_service.dart';
 import '../../services/firebase_service.dart';
 
 class EmailReAuthenticateScreen extends StatefulWidget {
-  final UserDetails userDetails;
+  final Profile userDetails;
 
   const EmailReAuthenticateScreen(
     this.userDetails, {
@@ -146,9 +146,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
   }
 
   Future<void> resendVerificationCode() async {
-    setState(() {
-      _isResending = true;
-    });
+    setState(() => _isResending = true);
 
     var emailVerificationResponse = await _appService.apiClient
         .requestEmailVerificationCode(widget.userDetails.emailAddress, true);
@@ -165,18 +163,12 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
   }
 
   void setCode(String value, int position) {
-    setState(() {
-      _emailVerificationCode[position] = value;
-    });
+    setState(() => _emailVerificationCode[position] = value);
     var code = _emailVerificationCode.join('');
     if (code.length == 6) {
-      setState(() {
-        _nextBtnColor = Config.appColorBlue;
-      });
+      setState(() => _nextBtnColor = Config.appColorBlue);
     } else {
-      setState(() {
-        _nextBtnColor = Config.appColorDisabled;
-      });
+      setState(() => _nextBtnColor = Config.appColorDisabled);
     }
   }
 
@@ -262,9 +254,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
     });
 
     Future.delayed(const Duration(seconds: 5), () {
-      setState(() {
-        _showResendCode = true;
-      });
+      setState(() => _showResendCode = true);
     });
   }
 }

@@ -25,6 +25,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/enum_constants.dart';
+import '../models/profile.dart';
 import '../themes/light_theme.dart';
 import '../utils/exception.dart';
 import 'firebase_service.dart';
@@ -35,7 +36,10 @@ class LocationService {
     if (enabled) {
       await CloudAnalytics.logEvent(AnalyticsEvent.allowLocation, true);
     }
-    return requestLocationAccess();
+    var profile = await Profile.getProfile()
+      ..preferences.location = enabled;
+    await profile.saveProfile();
+    return true;
   }
 
   static Future<bool> checkPermission() async {

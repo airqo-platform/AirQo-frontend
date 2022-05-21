@@ -30,9 +30,7 @@ class ChangeThemeDialogState extends State<ChangeThemeDialog> {
               value: Themes.lightTheme,
               groupValue: _theme,
               onChanged: (Themes? value) {
-                setState(() {
-                  _theme = value;
-                });
+                setState(() => _theme = value);
 
                 if (value != null) {
                   ThemeController.of(context).setTheme('light');
@@ -45,9 +43,7 @@ class ChangeThemeDialogState extends State<ChangeThemeDialog> {
               value: Themes.darkTheme,
               groupValue: _theme,
               onChanged: (Themes? value) {
-                setState(() {
-                  _theme = value;
-                });
+                setState(() => _theme = value);
 
                 if (value != null) {
                   ThemeController.of(context).setTheme('dark');

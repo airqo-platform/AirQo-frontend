@@ -80,12 +80,7 @@ class _SearchPageState extends State<SearchPage> {
 
   Future<void> getSites() async {
     await _appService.dbHelper.getLatestMeasurements().then((value) => {
-          if (mounted)
-            {
-              setState(() {
-                _allSites = value;
-              })
-            }
+          if (mounted) {setState(() => _allSites = value)}
         });
   }
 
@@ -407,21 +402,15 @@ class _SearchPageState extends State<SearchPage> {
       });
 
       _appService.searchApi.fetchSuggestions(text).then((value) => {
-            if (mounted)
-              {
-                setState(() {
-                  _searchSuggestions = value;
-                })
-              }
+            if (mounted) {setState(() => _searchSuggestions = value)}
           });
 
       if (!mounted) {
         return;
       }
 
-      setState(() {
-        _searchSites = LocationService.textSearchNearestSites(text, _allSites);
-      });
+      setState(() => _searchSites =
+          LocationService.textSearchNearestSites(text, _allSites));
     }
   }
 
@@ -533,18 +522,15 @@ class _SearchPageState extends State<SearchPage> {
     if (!mounted) {
       return;
     }
-    setState(() {
-      _textEditingController.text = suggestion.suggestionDetails.mainText;
-    });
+    setState(() =>
+        _textEditingController.text = suggestion.suggestionDetails.mainText);
     var place = await _appService.searchApi.getPlaceDetails(suggestion.placeId);
     if (place != null) {
       var nearestSite = await LocationService.getNearestSite(
           place.geometry.location.lat, place.geometry.location.lng);
 
       if (nearestSite == null) {
-        setState(() {
-          _emptyView = true;
-        });
+        setState(() => _emptyView = true);
         return;
       }
 

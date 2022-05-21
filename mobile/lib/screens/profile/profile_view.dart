@@ -1,5 +1,5 @@
 import 'package:app/constants/config.dart';
-import 'package:app/models/user_details.dart';
+import 'package:app/models/profile.dart';
 import 'package:app/screens/profile/profile_edit_page.dart';
 import 'package:app/screens/profile/profile_widgets.dart';
 import 'package:app/services/app_service.dart';
@@ -25,7 +25,7 @@ class ProfileView extends StatefulWidget {
 }
 
 class _ProfileViewState extends State<ProfileView> {
-  UserDetails _userProfile = UserDetails.initialize();
+  late Profile _profile;
   bool _isLoggedIn = false;
   final AppService _appService = AppService();
   List<AppNotification> _unreadNotifications = <AppNotification>[];
@@ -42,7 +42,7 @@ class _ProfileViewState extends State<ProfileView> {
             title: Row(
               children: [
                 ProfilePicture(
-                  userDetails: _userProfile,
+                  userDetails: _profile,
                 ),
                 const Spacer(),
                 GestureDetector(
@@ -92,7 +92,7 @@ class _ProfileViewState extends State<ProfileView> {
                             height: 10,
                           ),
                           AutoSizeText(
-                            _userProfile.getFullName(),
+                            _profile.getProfileViewName(),
                             maxLines: 2,
                             style: CustomTextStyle.headline9(context),
                           ),
@@ -101,7 +101,7 @@ class _ProfileViewState extends State<ProfileView> {
                           ),
                           GestureDetector(
                             onTap: () async {
-                              await viewProfile();
+                              await _viewProfile();
                             },
                             child: Text('Edit profile',
                                 style: Theme.of(context)
@@ -116,7 +116,7 @@ class _ProfileViewState extends State<ProfileView> {
                             padding:
                                 const EdgeInsets.fromLTRB(0.0, 16.0, 0.0, 0.0),
                             child: ProfileSection(
-                              userDetails: _userProfile,
+                              userDetails: _profile,
                             ),
                           ),
                           // logoutSection('Logout', 'assets/icon/location.svg',
@@ -130,7 +130,7 @@ class _ProfileViewState extends State<ProfileView> {
                   Visibility(
                       visible: _isLoggedIn,
                       child: GestureDetector(
-                        onTap: logOut,
+                        onTap: _logOut,
                         child: const LogoutButton(),
                       )),
                   Visibility(
@@ -164,41 +164,19 @@ class _ProfileViewState extends State<ProfileView> {
             )));
   }
 
-  Future<void> initialize() async {
-    setState(() {
-      _isLoggedIn = CustomAuth.isLoggedIn();
-    });
-
-    if (_isLoggedIn) {
-      var userDetails = await _appService.secureStorage.getUserDetails();
-      if (mounted) {
-        setState(() {
-          _userProfile = userDetails;
-        });
-        if (userDetails.photoUrl != '') {
-          await precacheImage(
-              CachedNetworkImageProvider(_userProfile.photoUrl), context);
-        }
-      }
-    }
-    await _loadNotifications();
-    await _initListeners();
+  Future<void> _initialize() async {
+    await Future.wait([_loadProfile(), _loadNotifications(), _initListeners()]);
   }
 
   @override
   void initState() {
     super.initState();
-    initialize();
+    _initialize();
   }
 
-  Future<void> logOut() async {
+  Future<void> _logOut() async {
     var loadingContext = context;
     loadingScreen(loadingContext);
-
-    setState(() {
-      _userProfile = UserDetails.initialize();
-    });
-
     var successful = await _appService.logOut(context);
     if (successful) {
       Navigator.pop(loadingContext);
@@ -221,16 +199,30 @@ class _ProfileViewState extends State<ProfileView> {
             .cast<AppNotification>());
   }
 
+  Future<void> _loadProfile() async {
+    var profile = await Profile.getProfile();
+    setState(() => _profile = profile);
+    if (_profile.photoUrl != '' && mounted) {
+      await precacheImage(
+          CachedNetworkImageProvider(_profile.photoUrl), context);
+    }
+    setState(() => _isLoggedIn = CustomAuth.isLoggedIn());
+  }
+
   Future<void> _initListeners() async {
     Hive.box<AppNotification>(HiveBox.appNotifications)
         .watch()
         .listen((_) => _loadNotifications())
         .onDone(_loadNotifications);
+    Hive.box<Profile>(HiveBox.profile)
+        .watch()
+        .listen((_) => _loadProfile())
+        .onDone(_loadProfile);
   }
 
-  Future<void> viewProfile() async {
+  Future<void> _viewProfile() async {
     await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return ProfileEditPage(_userProfile);
-    })).whenComplete(() => {initialize()});
+      return const ProfileEditPage();
+    }));
   }
 }

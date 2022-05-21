@@ -10,8 +10,8 @@ import 'package:app/models/insights.dart';
 import 'package:app/models/json_parsers.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place.dart';
+import 'package:app/models/profile.dart';
 import 'package:app/models/suggestion.dart';
-import 'package:app/models/user_details.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -240,7 +240,7 @@ class AirqoApiClient {
   }
 
   @Deprecated('Functionality has been transferred to the backend')
-  Future<void> sendWelcomeMessage(UserDetails userDetails) async {
+  Future<void> sendWelcomeMessage(Profile userDetails) async {
     try {
       if (!userDetails.emailAddress.isValidEmail()) {
         return;

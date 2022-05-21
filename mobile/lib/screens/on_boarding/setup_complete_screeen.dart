@@ -1,11 +1,10 @@
 import 'package:app/constants/config.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/app_service.dart';
-import 'package:app/utils/dialogs.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/enum_constants.dart';
-import '../../services/firebase_service.dart';
+import '../../models/profile.dart';
 import '../../services/local_storage.dart';
 
 class SetUpCompleteScreen extends StatefulWidget {
@@ -16,9 +15,6 @@ class SetUpCompleteScreen extends StatefulWidget {
 }
 
 class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
-  DateTime? _exitTime;
-  final AppService _appService = AppService();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -33,12 +29,13 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
                   Text(
                     'All Set!',
                     textAlign: TextAlign.center,
-                    style: _textStyle(),
+                    style: _setUpCompleteTextStyle(),
                   ),
                   Text(
                     'Breathe',
                     textAlign: TextAlign.center,
-                    style: _textStyle()?.copyWith(color: Config.appColorBlue),
+                    style: _setUpCompleteTextStyle()
+                        ?.copyWith(color: Config.appColorBlue),
                   ),
                 ]),
           ),
@@ -47,13 +44,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
 
   Future<void> initialize() async {
     await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.complete);
-    Future.delayed(const Duration(seconds: 4), () {
-      Navigator.pushAndRemoveUntil(context,
-          MaterialPageRoute(builder: (context) {
-        _updateOnBoardingPage(OnBoardingPage.home);
-        return const HomePage();
-      }), (r) => false);
-    });
+    Future.delayed(const Duration(seconds: 4), _goToHome);
   }
 
   @override
@@ -63,46 +54,35 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   }
 
   Future<bool> onWillPop() {
-    var now = DateTime.now();
-
-    if (_exitTime == null ||
-        now.difference(_exitTime!) > const Duration(seconds: 2)) {
-      _exitTime = now;
-
-      showSnackBar(context, 'Tap again to exit !');
-      return Future.value(false);
-    }
-
-    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) {
-      return const HomePage();
-    }), (r) => false);
-
+    _goToHome();
     return Future.value(false);
+  }
+
+  void _goToHome() {
+    if (mounted) {
+      Navigator.pushAndRemoveUntil(context,
+          MaterialPageRoute(builder: (context) {
+        return const HomePage();
+      }), (r) => false);
+    }
   }
 
   @Deprecated('Functionality has been transferred to the backend')
   Future<void> sendWelcomeEmail() async {
     try {
-      var userDetails = await CloudStore.getProfile();
-      await _appService.apiClient.sendWelcomeMessage(userDetails);
+      var profile = await Profile.getProfile();
+      await AppService().apiClient.sendWelcomeMessage(profile);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
   }
 
-  TextStyle? _textStyle() {
+  TextStyle? _setUpCompleteTextStyle() {
     return Theme.of(context).textTheme.bodyText1?.copyWith(
         fontWeight: FontWeight.bold,
         fontStyle: FontStyle.normal,
         fontSize: 48,
         height: 56 / 48,
         letterSpacing: 16 * -0.022);
-  }
-
-  Future<void> _updateOnBoardingPage(OnBoardingPage page) async {
-    await Future.wait([
-      _appService.postSignUpActions(context),
-      SharedPreferencesHelper.updateOnBoardingPage(page)
-    ]);
   }
 }

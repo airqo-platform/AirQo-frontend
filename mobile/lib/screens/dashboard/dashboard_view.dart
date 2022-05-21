@@ -343,9 +343,8 @@ class _DashboardViewState extends State<DashboardView> {
     _completeKya = kya.where((element) => element.progress == -1).toList();
     _loadCompleteKya(_completeKya);
 
-    setState(() {
-      _incompleteKya = kya.where((element) => element.progress != -1).toList();
-    });
+    setState(() => _incompleteKya =
+        kya.where((element) => element.progress != -1).toList());
   }
 
   Future<void> _handleKyaOnClick(Kya kya) async {
@@ -417,9 +416,7 @@ class _DashboardViewState extends State<DashboardView> {
         'assets/icon/add_avator.svg',
       ));
     } else {
-      setState(() {
-        _completeKya = completeKya;
-      });
+      setState(() => _completeKya = completeKya);
       try {
         if (completeKya.length == 1) {
           widgets.add(KyaDashboardAvatar(rightPadding: 7, kya: completeKya[0]));
@@ -444,9 +441,7 @@ class _DashboardViewState extends State<DashboardView> {
           'assets/icon/add_avator.svg',
         ));
       }
-      setState(() {
-        _completeKyaWidgets = widgets;
-      });
+      setState(() => _completeKyaWidgets = widgets);
     }
   }
 
@@ -526,9 +521,7 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   Future<void> _refresh() async {
-    setState(() {
-      _isRefreshing = true;
-    });
+    setState(() => _isRefreshing = true);
 
     _setGreetings();
     await _appService.refreshDashboard(context);
@@ -536,16 +529,12 @@ class _DashboardViewState extends State<DashboardView> {
     _getKya();
     _loadFavourites(reload: true);
 
-    setState(() {
-      _isRefreshing = false;
-    });
+    setState(() => _isRefreshing = false);
   }
 
   void _setGreetings() {
     if (mounted) {
-      setState(() {
-        _greetings = getGreetings(CustomAuth.getDisplayName());
-      });
+      setState(() => _greetings = getGreetings(CustomAuth.getDisplayName()));
     }
   }
 }

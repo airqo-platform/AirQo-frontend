@@ -224,9 +224,7 @@ class _MapViewState extends State<MapView> {
 
   void _searchChanged(String text) {
     if (text.isEmpty) {
-      setState(() {
-        _isSearching = false;
-      });
+      setState(() => _isSearching = false);
     } else {
       setState(() {
         _isSearching = true;
@@ -234,16 +232,12 @@ class _MapViewState extends State<MapView> {
             LocationService.textSearchNearestSites(text, _latestMeasurements);
       });
 
-      _appService.searchApi.fetchSuggestions(text).then((value) => {
-            setState(() {
-              _searchSuggestions = value;
-            })
-          });
+      _appService.searchApi
+          .fetchSuggestions(text)
+          .then((value) => {setState(() => _searchSuggestions = value)});
 
-      setState(() {
-        _searchSites =
-            LocationService.textSearchNearestSites(text, _latestMeasurements);
-      });
+      setState(() => _searchSites =
+          LocationService.textSearchNearestSites(text, _latestMeasurements));
     }
   }
 
@@ -262,9 +256,7 @@ class _MapViewState extends State<MapView> {
               controller: _searchController,
               onChanged: _searchChanged,
               onTap: () {
-                setState(() {
-                  _scrollSheetHeight = 0.7;
-                });
+                setState(() => _scrollSheetHeight = 0.7);
               },
               style: Theme.of(context).textTheme.caption?.copyWith(
                     fontSize: 16,
@@ -339,9 +331,7 @@ class _MapViewState extends State<MapView> {
       child: TextFormField(
         controller: _searchController,
         onTap: () {
-          setState(() {
-            _scrollSheetHeight = 0.7;
-          });
+          setState(() => _scrollSheetHeight = 0.7);
         },
         onChanged: _searchChanged,
         cursorWidth: 1,
@@ -495,9 +485,7 @@ class _MapViewState extends State<MapView> {
           if (!mounted) {
             return;
           }
-          setState(() {
-            _searchController.text = measurement.site.name;
-          });
+          setState(() => _searchController.text = measurement.site.name);
           _showLocationContent(measurement, null);
         },
       );
@@ -527,9 +515,7 @@ class _MapViewState extends State<MapView> {
         }
       }
 
-      setState(() {
-        _markers = markers;
-      });
+      setState(() => _markers = markers);
     }
   }
 
@@ -537,18 +523,14 @@ class _MapViewState extends State<MapView> {
     if (!mounted) {
       return;
     }
-    setState(() {
-      _showLocationDetails = !_showLocationDetails;
-    });
+    setState(() => _showLocationDetails = !_showLocationDetails);
 
     if (!_showLocationDetails) {
       _showRegions();
     }
 
     if (_showLocationDetails) {
-      setState(() {
-        _bottomPadding = 0.5;
-      });
+      setState(() => _bottomPadding = 0.5);
     }
   }
 
@@ -617,9 +599,7 @@ class _MapViewState extends State<MapView> {
       return;
     }
 
-    setState(() {
-      _selectedRegion = region;
-    });
+    setState(() => _selectedRegion = region);
     var sites = await _appService.dbHelper.getRegionSites(region);
     setState(() {
       _showLocationDetails = false;
@@ -634,9 +614,8 @@ class _MapViewState extends State<MapView> {
       return;
     }
 
-    setState(() {
-      _searchController.text = suggestion.suggestionDetails.mainText;
-    });
+    setState(
+        () => _searchController.text = suggestion.suggestionDetails.mainText);
     var place = await _appService.searchApi.getPlaceDetails(suggestion.placeId);
     if (place != null) {
       var nearestSite = await LocationService.getNearestSite(
@@ -708,9 +687,7 @@ class _MapViewState extends State<MapView> {
     if (!mounted) {
       return;
     }
-    setState(() {
-      _searchController.text = measurement.site.name;
-    });
+    setState(() => _searchController.text = measurement.site.name);
     _showLocationContent(measurement, null);
   }
 
@@ -718,18 +695,14 @@ class _MapViewState extends State<MapView> {
     var dbMeasurements = await _appService.dbHelper.getLatestMeasurements();
 
     if (dbMeasurements.isNotEmpty && mounted) {
-      setState(() {
-        _latestMeasurements = dbMeasurements;
-      });
+      setState(() => _latestMeasurements = dbMeasurements);
       await _setMarkers(dbMeasurements, false, 6.6);
     }
 
     var measurements = await _appService.apiClient.fetchLatestMeasurements();
 
     if (measurements.isNotEmpty && mounted) {
-      setState(() {
-        _latestMeasurements = measurements;
-      });
+      setState(() => _latestMeasurements = measurements);
       await _setMarkers(measurements, false, 6.6);
     }
 

@@ -7,6 +7,7 @@ import '../../models/enum_constants.dart';
 import '../../services/local_storage.dart';
 import '../../services/notifications_svc.dart';
 import '../../themes/light_theme.dart';
+import '../../widgets/custom_shimmer.dart';
 import 'location_setup_screen.dart';
 import 'on_boarding_widgets.dart';
 
@@ -56,14 +57,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
             Padding(
               padding: const EdgeInsets.only(left: 24, right: 24),
               child: GestureDetector(
-                onTap: () {
-                  NotificationService.allowNotifications().then((value) => {
-                        Navigator.pushAndRemoveUntil(context,
-                            MaterialPageRoute(builder: (context) {
-                          return const LocationSetupScreen();
-                        }), (r) => false)
-                      });
-                },
+                onTap: _allowNotifications,
                 child: NextButton(
                     text: 'Yes, keep me updated',
                     buttonColor: Config.appColorBlue),
@@ -98,7 +92,19 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
   @override
   void initState() {
     super.initState();
-    updateOnBoardingPage();
+    _updateOnBoardingPage();
+  }
+
+  Future<void> _allowNotifications() async {
+    loadingScreen(context);
+    var response = await NotificationService.allowNotifications();
+    if (response) {
+      Navigator.pop(context);
+      await Navigator.pushAndRemoveUntil(context,
+          MaterialPageRoute(builder: (context) {
+        return const LocationSetupScreen();
+      }), (r) => false);
+    }
   }
 
   Future<bool> onWillPop() {
@@ -119,7 +125,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
     return Future.value(false);
   }
 
-  void updateOnBoardingPage() async {
+  void _updateOnBoardingPage() async {
     await SharedPreferencesHelper.updateOnBoardingPage(
         OnBoardingPage.notification);
   }

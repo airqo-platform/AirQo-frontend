@@ -4,7 +4,7 @@ import 'package:app/constants/config.dart';
 import 'package:app/models/kya.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/models/place_details.dart';
-import 'package:app/models/user_details.dart';
+import 'package:app/models/profile.dart';
 import 'package:app/services/secure_storage.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/extensions.dart';
@@ -50,8 +50,9 @@ class CloudStore {
     }
   }
 
-  static Future<void> deleteAccount(id) async {
+  static Future<void> deleteAccount() async {
     try {
+      var id = CustomAuth.getUser()?.uid;
       await Future.wait([
         FirebaseFirestore.instance
             .collection(Config.usersCollection)
@@ -202,7 +203,7 @@ class CloudStore {
     return [];
   }
 
-  static Future<UserDetails> getProfile() async {
+  static Future<Profile> getProfile() async {
     try {
       final uuid = CloudStore.getUserId();
 
@@ -210,10 +211,11 @@ class CloudStore {
           .collection(Config.usersCollection)
           .doc(uuid)
           .get();
-      return await compute(UserDetails.parseUserDetails, userJson.data());
+      return await compute(Profile.parseUserDetails, userJson.data());
     } on FirebaseException catch (exception, _) {
       if (exception.code == 'not-found') {
-        await CustomAuth.createProfile();
+        var profile = await CustomAuth.createProfile();
+        return profile;
       } else {
         rethrow;
       }
@@ -221,18 +223,7 @@ class CloudStore {
       await logException(exception, stackTrace);
     }
 
-    return UserDetails.initialize();
-  }
-
-  static Future<void> createProfile(UserDetails userDetails) async {
-    try {
-      await FirebaseFirestore.instance
-          .collection(Config.usersCollection)
-          .doc(userDetails.userId)
-          .set(userDetails.toJson());
-    } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
-    }
+    return Profile.getProfile();
   }
 
   static Future<void> removeFavPlace(
@@ -320,7 +311,7 @@ class CloudStore {
       var data = userDoc.data();
 
       if (data != null) {
-        var userDetails = UserDetails.fromJson(data as Map<String, dynamic>);
+        var userDetails = Profile.fromJson(data as Map<String, dynamic>);
         if (field == 'notifications') {
           userDetails.preferences.notifications = value as bool;
         } else if (field == 'location') {
@@ -334,30 +325,6 @@ class CloudStore {
             .collection(Config.usersCollection)
             .doc(id)
             .update(userJson);
-      }
-    } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
-    }
-  }
-
-  static Future<void> updateProfile(UserDetails userDetails, String id) async {
-    var hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return;
-    }
-
-    try {
-      var _userJson = userDetails.toJson();
-      try {
-        await FirebaseFirestore.instance
-            .collection(Config.usersCollection)
-            .doc(id)
-            .update(_userJson);
-      } catch (exception) {
-        await FirebaseFirestore.instance
-            .collection(Config.usersCollection)
-            .doc(id)
-            .set(_userJson);
       }
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
@@ -388,9 +355,9 @@ class CloudStore {
     }
   }
 
-  static Future<String?> uploadProfilePicture(
-      String filePath, String userId) async {
+  static Future<String> uploadProfilePicture(String filePath) async {
     try {
+      var userId = CustomAuth.getUserId();
       var file = File(filePath);
 
       var docRef = '${Config.usersProfilePictureStorage}/'
@@ -400,14 +367,13 @@ class CloudStore {
           .ref(docRef)
           .putFile(file);
 
-      var downloadURL = await task.storage.ref(docRef).getDownloadURL();
-
-      return downloadURL;
+      var downloadUrl = await task.storage.ref(docRef).getDownloadURL();
+      return downloadUrl;
     } on Exception catch (exception, stackTrace) {
       await logException(exception, stackTrace);
     }
 
-    return null;
+    return '';
   }
 }
 
@@ -419,40 +385,24 @@ class CloudMessaging {
 }
 
 class CustomAuth {
-  static Future<UserDetails?> createProfile() async {
-    var hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return null;
-    }
-
+  static Future<Profile> createProfile() async {
+    var profile = await Profile.getProfile();
     try {
-      var firebaseUser = FirebaseAuth.instance.currentUser;
-      if (firebaseUser != null) {
-        var userDetails = UserDetails.initialize();
-
-        var device = await CloudMessaging.getDeviceToken() ?? '';
-        userDetails
-          ..device = device
-          ..userId = firebaseUser.uid;
-
-        await firebaseUser.updateDisplayName(userDetails.firstName);
-
-        if (firebaseUser.phoneNumber != null) {
-          userDetails.phoneNumber = firebaseUser.phoneNumber!;
-        }
-
-        if (firebaseUser.email != null) {
-          userDetails.emailAddress = firebaseUser.email!;
-        }
-
-        await CloudStore.createProfile(userDetails);
-
-        return userDetails;
-      }
+      await FirebaseAuth.instance.currentUser
+          ?.updateDisplayName(profile.firstName);
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
     }
-    return null;
+    return profile;
+  }
+
+  static Future<void> deleteAccount() async {
+    try {
+      var user = getUser();
+      await user?.delete();
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
+    }
   }
 
   static Future<bool> emailAuthentication(
@@ -520,7 +470,7 @@ class CustomAuth {
     return false;
   }
 
-  static Future<void> logOut(context) async {
+  static Future<void> logOut() async {
     try {
       await FirebaseAuth.instance.signOut();
     } catch (exception, stackTrace) {
@@ -727,69 +677,5 @@ class CustomAuth {
     }
 
     return false;
-  }
-
-  static Future<void> updateProfile(UserDetails userDetails) async {
-    var hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return;
-    }
-
-    try {
-      var firebaseUser = FirebaseAuth.instance.currentUser;
-      if (firebaseUser == null) {
-        throw Exception('You are not signed in');
-      } else {
-        if (!userDetails.photoUrl.isValidUri()) {
-          userDetails.photoUrl = '';
-        }
-
-        await firebaseUser.updateDisplayName(userDetails.firstName);
-        await firebaseUser.updatePhotoURL(userDetails.photoUrl);
-
-        userDetails.userId = firebaseUser.uid;
-
-        if (firebaseUser.phoneNumber != null) {
-          userDetails.phoneNumber = firebaseUser.phoneNumber ?? '';
-        }
-
-        if (firebaseUser.email != null) {
-          userDetails.emailAddress = firebaseUser.email ?? '';
-        }
-
-        await SecureStorage().updateUserDetails(userDetails);
-
-        var fields = {
-          'title': userDetails.title,
-          'firstName': userDetails.firstName,
-          'lastName': userDetails.lastName,
-          'photoUrl': userDetails.photoUrl,
-          'emailAddress': userDetails.emailAddress,
-          'phoneNumber': userDetails.phoneNumber,
-        };
-
-        await CloudStore.updateProfileFields(firebaseUser.uid, fields);
-      }
-    } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
-    }
-  }
-
-  static Future<void> updateUserProfile(UserDetails userDetails) async {
-    try {
-      var firebaseUser = FirebaseAuth.instance.currentUser;
-      if (firebaseUser == null) {
-        throw Exception('You are not signed in');
-      } else {
-        if (!userDetails.photoUrl.isValidUri()) {
-          userDetails.photoUrl = '';
-        }
-
-        await firebaseUser.updateDisplayName(userDetails.firstName);
-        await firebaseUser.updatePhotoURL(userDetails.photoUrl);
-      }
-    } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
-    }
   }
 }

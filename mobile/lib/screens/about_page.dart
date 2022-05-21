@@ -91,8 +91,6 @@ class _AboutAirQoState extends State<AboutAirQo> {
 
   Future<void> _initPackageInfo() async {
     final info = await PackageInfo.fromPlatform();
-    setState(() {
-      _packageInfo = info;
-    });
+    setState(() => _packageInfo = info);
   }
 }

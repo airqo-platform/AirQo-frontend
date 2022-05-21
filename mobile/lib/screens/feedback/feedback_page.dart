@@ -186,9 +186,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                       child: GestureDetector(
                         onTap: () {
                           if (_feedbackType != '') {
-                            setState(() {
-                              _index = 1;
-                            });
+                            setState(() => _index = 1);
                           }
                         },
                         child: _feedbackType == ''
@@ -207,9 +205,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                           GestureDetector(
                             child: const FeedbackBackButton(),
                             onTap: () {
-                              setState(() {
-                                _index = _index - 1;
-                              });
+                              setState(() => _index = _index - 1);
                             },
                           ),
                           GestureDetector(
@@ -221,9 +217,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                     await showSnackBar(context,
                                         'Please enter a valid email address');
                                   } else {
-                                    setState(() {
-                                      _index = _index + 1;
-                                    });
+                                    setState(() => _index = _index + 1);
                                   }
                                 } else if (_feedbackChannel == 'WhatsApp') {
                                   openWhatsapp();
@@ -242,9 +236,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                       _emailInputController.text,
                                       _emailFeedbackController.text,
                                       _feedbackType);
-                                  setState(() {
-                                    _isSendingFeedback = true;
-                                  });
+                                  setState(() => _isSendingFeedback = true);
                                   await _appService.apiClient
                                       .sendFeedback(feedback)
                                       .then((value) => {
@@ -253,9 +245,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                                 showSnackBar(context,
                                                     'Thanks for the feedback'),
                                                 Navigator.of(context).pop(),
-                                                setState(() {
-                                                  _isSendingFeedback = false;
-                                                })
+                                                setState(() =>
+                                                    _isSendingFeedback = false)
                                               }
                                             else
                                               {
@@ -264,9 +255,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                                     'Could not capture'
                                                     ' your feedback.'
                                                     ' Try again later'),
-                                                setState(() {
-                                                  _isSendingFeedback = false;
-                                                })
+                                                setState(() =>
+                                                    _isSendingFeedback = false)
                                               }
                                           });
                                 }
@@ -293,9 +283,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                   child: GestureDetector(
                     onTap: () {
                       if (_feedbackType != '') {
-                        setState(() {
-                          _index = 1;
-                        });
+                        setState(() => _index = 1);
                       }
                     },
                     child: _feedbackType == ''

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:app/screens/profile/profile_edit_page.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -5,8 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../constants/config.dart';
-import '../../models/user_details.dart';
+import '../../models/profile.dart';
 import '../../themes/light_theme.dart';
+import '../../widgets/buttons.dart';
 import '../../widgets/custom_shimmer.dart';
 import '../auth/phone_auth_widget.dart';
 import '../favourite_places/favourite_places_page.dart';
@@ -157,7 +160,7 @@ class SettingsButton extends StatelessWidget {
 }
 
 class ProfilePicture extends StatelessWidget {
-  final UserDetails userDetails;
+  final Profile userDetails;
   const ProfilePicture({Key? key, required this.userDetails}) : super(key: key);
 
   @override
@@ -251,7 +254,7 @@ class CardSection extends StatelessWidget {
 }
 
 class ProfileSection extends StatefulWidget {
-  final UserDetails userDetails;
+  final Profile userDetails;
   const ProfileSection({Key? key, required this.userDetails}) : super(key: key);
 
   @override
@@ -273,7 +276,7 @@ class _ProfileSectionState extends State<ProfileSection> {
             onTap: () async {
               await Navigator.push(context,
                   MaterialPageRoute(builder: (context) {
-                return ProfileEditPage(widget.userDetails);
+                return const ProfileEditPage();
               }));
             },
             child: CardSection(
@@ -330,4 +333,202 @@ class _ProfileSectionState extends State<ProfileSection> {
       ),
     );
   }
+}
+
+class EditProfilePicSection extends StatelessWidget {
+  final Profile profile;
+  final VoidCallback getFromGallery;
+  const EditProfilePicSection(
+      {Key? key, required this.profile, required this.getFromGallery})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Stack(
+          alignment: AlignmentDirectional.center,
+          children: [
+            profile.photoUrl == ''
+                ? RotationTransition(
+                    turns: const AlwaysStoppedAnimation(-5 / 360),
+                    child: Container(
+                      padding: const EdgeInsets.all(2.0),
+                      decoration: BoxDecoration(
+                          color: Config.appPicColor,
+                          shape: BoxShape.rectangle,
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(35.0))),
+                      child: Container(
+                        height: 88,
+                        width: 88,
+                        color: Colors.transparent,
+                      ),
+                    ),
+                  )
+                : profile.photoUrl.startsWith('http')
+                    ? CircleAvatar(
+                        radius: 44,
+                        backgroundColor: Config.appPicColor,
+                        foregroundColor: Config.appPicColor,
+                        backgroundImage: CachedNetworkImageProvider(
+                          profile.photoUrl,
+                        ),
+                      )
+                    : CircleAvatar(
+                        radius: 44,
+                        backgroundColor: Config.appPicColor,
+                        foregroundColor: Config.appPicColor,
+                        backgroundImage: FileImage(File(profile.photoUrl)),
+                      ),
+            if (profile.photoUrl == '')
+              const Text(
+                'A',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    fontSize: 30),
+              ),
+            Positioned(
+                bottom: 0,
+                right: 0,
+                child: GestureDetector(
+                  onTap: getFromGallery,
+                  child: Container(
+                    padding: const EdgeInsets.all(2.0),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.white),
+                      color: Config.appColorBlue,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.add,
+                      size: 22,
+                      color: Colors.white,
+                    ),
+                  ),
+                )),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class EditCredentialsIcon extends StatelessWidget {
+  const EditCredentialsIcon({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: SvgPicture.asset(
+        'assets/icon/profile_edit.svg',
+        height: 27,
+        width: 27,
+      ),
+    );
+  }
+}
+
+class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
+  final VoidCallback updateProfile;
+  const EditProfileAppBar({Key? key, required this.updateProfile})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+        toolbarHeight: 72,
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: Config.appBodyColor,
+        automaticallyImplyLeading: false,
+        title: Row(
+          children: [
+            const AppBackButton(),
+            const Spacer(),
+            Text(
+              'Edit Profile',
+              style: CustomTextStyle.headline8(context),
+            ),
+            const Spacer(),
+            GestureDetector(
+              onTap: updateProfile,
+              child: Text('Save',
+                  style: Theme.of(context)
+                      .textTheme
+                      .subtitle2
+                      ?.copyWith(color: Config.appColorBlack.withOpacity(0.2))),
+            ),
+          ],
+        ));
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(60);
+}
+
+class NameEditField extends StatelessWidget {
+  final String value;
+  final Function(String) valueChange;
+  const NameEditField(
+      {Key? key, required this.value, required this.valueChange})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      initialValue: value,
+      enableSuggestions: false,
+      cursorWidth: 1,
+      cursorColor: Config.appColorBlue,
+      keyboardType: TextInputType.name,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: Colors.white,
+        hintText: '-',
+        focusedBorder: OutlineInputBorder(
+          borderSide: const BorderSide(color: Colors.transparent, width: 1.0),
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderSide: const BorderSide(color: Colors.transparent, width: 1.0),
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        suffixIcon: Container(
+          padding: const EdgeInsets.all(10),
+          height: 20,
+          width: 20,
+          child: SvgPicture.asset(
+            'assets/icon/profile_edit.svg',
+          ),
+        ),
+      ),
+      onChanged: valueChange,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Required';
+        }
+        return null;
+      },
+    );
+  }
+}
+
+InputDecoration inactiveFormFieldDecoration() {
+  return InputDecoration(
+    filled: true,
+    fillColor: Colors.white,
+    hintText: '-',
+    focusedBorder: OutlineInputBorder(
+      borderSide: const BorderSide(color: Colors.transparent, width: 1.0),
+      borderRadius: BorderRadius.circular(8.0),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderSide: const BorderSide(color: Colors.transparent, width: 1.0),
+      borderRadius: BorderRadius.circular(8.0),
+    ),
+  );
 }

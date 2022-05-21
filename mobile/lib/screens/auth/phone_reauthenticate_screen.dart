@@ -1,5 +1,5 @@
 import 'package:app/constants/config.dart';
-import 'package:app/models/user_details.dart';
+import 'package:app/models/profile.dart';
 import 'package:app/services/firebase_service.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
@@ -11,7 +11,7 @@ import '../../utils/network.dart';
 import 'auth_widgets.dart';
 
 class PhoneReAuthenticateScreen extends StatefulWidget {
-  final UserDetails userDetails;
+  final Profile userDetails;
 
   const PhoneReAuthenticateScreen(this.userDetails, {Key? key})
       : super(key: key);

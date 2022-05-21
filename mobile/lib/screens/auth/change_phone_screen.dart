@@ -318,13 +318,9 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
           validator: (value) {
             if (value == null || value.isEmpty) {
               showSnackBar(context, 'Please enter your phone number');
-              setState(() {
-                _phoneFormValid = false;
-              });
+              setState(() => _phoneFormValid = false);
             } else {
-              setState(() {
-                _phoneFormValid = true;
-              });
+              setState(() => _phoneFormValid = true);
             }
             return null;
           },
@@ -343,18 +339,12 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
 
   void phoneValueChange(text) {
     if (text.toString().isEmpty) {
-      setState(() {
-        _nextBtnColor = Config.appColorDisabled;
-      });
+      setState(() => _nextBtnColor = Config.appColorDisabled);
     } else {
-      setState(() {
-        _nextBtnColor = Config.appColorBlue;
-      });
+      setState(() => _nextBtnColor = Config.appColorBlue);
     }
 
-    setState(() {
-      _phoneNumber = text;
-    });
+    setState(() => _phoneNumber = text);
   }
 
   Future<void> requestVerification() async {
@@ -400,37 +390,21 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
       return;
     }
 
-    setState(() {
-      _isResending = true;
-    });
+    setState(() => _isResending = true);
 
     await CustomAuth.requestPhoneVerification('$_countryCode$_phoneNumber',
             context, verifyPhoneFn, autoVerifyPhoneFn)
-        .then((value) => {
-              setState(() {
-                _isResending = false;
-              })
-            })
-        .whenComplete(() => {
-              setState(() {
-                _isResending = false;
-              })
-            });
+        .then((value) => {setState(() => _isResending = false)})
+        .whenComplete(() => {setState(() => _isResending = false)});
   }
 
   void setCode(String value, int position) {
-    setState(() {
-      _phoneVerificationCode[position] = value;
-    });
+    setState(() => _phoneVerificationCode[position] = value);
     var code = _phoneVerificationCode.join('');
     if (code.length == 6) {
-      setState(() {
-        _nextBtnColor = Config.appColorBlue;
-      });
+      setState(() => _nextBtnColor = Config.appColorBlue);
     } else {
-      setState(() {
-        _nextBtnColor = Config.appColorDisabled;
-      });
+      setState(() => _nextBtnColor = Config.appColorDisabled);
     }
   }
 
@@ -441,9 +415,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
     });
 
     Future.delayed(const Duration(seconds: 5), () {
-      setState(() {
-        _resendCode = true;
-      });
+      setState(() => _resendCode = true);
     });
   }
 

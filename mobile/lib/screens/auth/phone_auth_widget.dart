@@ -500,6 +500,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
           authMethod: AuthMethod.phone,
           authCredential: authCredential);
       if (signUpSuccessful) {
+        await AppService.postSignUpActions();
         Navigator.pop(_loadingContext);
         await Navigator.pushAndRemoveUntil(context,
             MaterialPageRoute(builder: (context) {

@@ -194,9 +194,7 @@ class _InsightsTabState extends State<InsightsTab> {
                                     if ((visibilityInfo.visibleFraction >
                                             0.3) &&
                                         (_currentItem != index)) {
-                                      setState(() {
-                                        _currentItem = index;
-                                      });
+                                      setState(() => _currentItem = index);
                                       _scrollToChart(
                                           _itemScrollController,
                                           _currentItem,
@@ -228,9 +226,7 @@ class _InsightsTabState extends State<InsightsTab> {
                                     if ((visibilityInfo.visibleFraction >
                                             0.3) &&
                                         (_currentItem != index)) {
-                                      setState(() {
-                                        _currentItem = index;
-                                      });
+                                      setState(() => _currentItem = index);
                                       _scrollToChart(
                                           _itemScrollController,
                                           _currentItem,
@@ -482,9 +478,8 @@ class _InsightsTabState extends State<InsightsTab> {
             element.time.month == randomValue.time.month);
       }
 
-      setState(() {
-        selectedMiniChart = DateFormat('yyyy-MM-dd').format(defaultSelection);
-      });
+      setState(() => selectedMiniChart =
+          DateFormat('yyyy-MM-dd').format(defaultSelection));
     }
   }
 
@@ -514,20 +509,14 @@ class _InsightsTabState extends State<InsightsTab> {
   }
 
   void togglePollutant() {
-    setState(() {
-      _pollutant =
-          _pollutant == Pollutant.pm2_5 ? Pollutant.pm10 : Pollutant.pm2_5;
-    });
+    setState(() => _pollutant =
+        _pollutant == Pollutant.pm2_5 ? Pollutant.pm10 : Pollutant.pm2_5);
   }
 
   void updateFavPlace() async {
-    setState(() {
-      _showHeartAnimation = true;
-    });
+    setState(() => _showHeartAnimation = true);
     Future.delayed(const Duration(seconds: 2), () {
-      setState(() {
-        _showHeartAnimation = false;
-      });
+      setState(() => _showHeartAnimation = false);
     });
     await _appService.updateFavouritePlace(widget.placeDetails, context);
   }
@@ -535,10 +524,8 @@ class _InsightsTabState extends State<InsightsTab> {
   void _updateTitleDateTime(List<charts.Series<Insights, String>> data) {
     var dateTime = data.first.data.first.time;
 
-    setState(() {
-      _titleDateTime =
-          insightsChartTitleDateTimeToString(dateTime, widget.frequency);
-    });
+    setState(() => _titleDateTime =
+        insightsChartTitleDateTimeToString(dateTime, widget.frequency));
 
     var insights = data.first.data
         .where((element) => !element.empty && !element.forecast)
@@ -573,15 +560,11 @@ class _InsightsTabState extends State<InsightsTab> {
             getHealthRecommendations(lastAvailableInsight.pm2_5, _pollutant);
       });
     } else {
-      setState(() {
-        _recommendations = [];
-      });
+      setState(() => _recommendations = []);
     }
 
     /// Auto select measurement
-    setState(() {
-      _selectedMeasurement = lastAvailableInsight;
-    });
+    setState(() => _selectedMeasurement = lastAvailableInsight);
   }
 
   Future<void> _fetchDBInsights() async {

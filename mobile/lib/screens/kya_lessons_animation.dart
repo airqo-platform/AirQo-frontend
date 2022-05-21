@@ -24,9 +24,7 @@ class _KyaLessonAnimationState extends State<KyaLessonAnimation>
   late List<KyaLesson> kyaLessons;
 
   void addLesson(KyaLesson kyaLesson) {
-    setState(() {
-      kyaLessons.remove(kyaLesson);
-    });
+    setState(() => kyaLessons.remove(kyaLesson));
   }
 
   @override
@@ -150,9 +148,7 @@ class _KyaLessonAnimationState extends State<KyaLessonAnimation>
   }
 
   void dismissLesson(KyaLesson kyaLesson) {
-    setState(() {
-      kyaLessons.remove(kyaLesson);
-    });
+    setState(() => kyaLessons.remove(kyaLesson));
     _updateProgress(kyaLesson);
   }
 
@@ -212,18 +208,14 @@ class _KyaLessonAnimationState extends State<KyaLessonAnimation>
 
   void swipeLeft() {
     if (flag == 1) {
-      setState(() {
-        flag = 0;
-      });
+      setState(() => flag = 0);
     }
     _swipeAnimationRight();
   }
 
   void swipeRight() {
     if (flag == 0) {
-      setState(() {
-        flag = 1;
-      });
+      setState(() => flag = 1);
     }
     _swipeAnimationRight();
   }

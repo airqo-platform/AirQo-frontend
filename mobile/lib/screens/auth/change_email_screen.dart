@@ -226,18 +226,12 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
   }
 
   void setCode(String value, int position) {
-    setState(() {
-      _emailVerificationCode[position] = value;
-    });
+    setState(() => _emailVerificationCode[position] = value);
     var code = _emailVerificationCode.join('');
     if (code.length == 6) {
-      setState(() {
-        _nextBtnColor = Config.appColorBlue;
-      });
+      setState(() => _nextBtnColor = Config.appColorBlue);
     } else {
-      setState(() {
-        _nextBtnColor = Config.appColorDisabled;
-      });
+      setState(() => _nextBtnColor = Config.appColorDisabled);
     }
   }
 
@@ -269,19 +263,13 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
           validator: (value) {
             if (value == null || value.isEmpty) {
               showSnackBar(context, 'Please enter your new email address');
-              setState(() {
-                _emailFormValid = false;
-              });
+              setState(() => _emailFormValid = false);
             } else {
               if (!value.isValidEmail()) {
                 showSnackBar(context, 'Please enter a valid email address');
-                setState(() {
-                  _emailFormValid = false;
-                });
+                setState(() => _emailFormValid = false);
               } else {
-                setState(() {
-                  _emailFormValid = true;
-                });
+                setState(() => _emailFormValid = true);
               }
             }
             return null;
@@ -302,17 +290,11 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
 
   void _emailValueChange(text) {
     if (text.toString().isEmpty || !_emailInputController.text.isValidEmail()) {
-      setState(() {
-        _nextBtnColor = Config.appColorDisabled;
-      });
+      setState(() => _nextBtnColor = Config.appColorDisabled);
     } else {
-      setState(() {
-        _nextBtnColor = Config.appColorBlue;
-      });
+      setState(() => _nextBtnColor = Config.appColorBlue);
     }
-    setState(() {
-      _emailAddress = text;
-    });
+    setState(() => _emailAddress = text);
   }
 
   void _initialize() {
@@ -368,16 +350,12 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
     });
 
     Future.delayed(const Duration(seconds: 5), () {
-      setState(() {
-        _showResendCode = true;
-      });
+      setState(() => _showResendCode = true);
     });
   }
 
   Future<void> _resendVerificationCode() async {
-    setState(() {
-      _isResending = true;
-    });
+    setState(() => _isResending = true);
 
     var emailVerificationResponse = await _appService.apiClient
         .requestEmailVerificationCode(_emailAddress, false);

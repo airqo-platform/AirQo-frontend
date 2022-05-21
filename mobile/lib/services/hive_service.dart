@@ -1,3 +1,4 @@
+import 'package:app/models/profile.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../constants/config.dart';
@@ -9,8 +10,11 @@ class HiveService {
     await Hive.initFlutter();
     Hive
       ..registerAdapter(AppNotificationAdapter())
-      ..registerAdapter(AppNotificationTypeAdapter());
+      ..registerAdapter(ProfileAdapter())
+      ..registerAdapter(AppNotificationTypeAdapter())
+      ..registerAdapter(UserPreferencesTypeAdapter());
 
     await Hive.openBox<AppNotification>(HiveBox.appNotifications);
+    await Hive.openBox<Profile>(HiveBox.profile);
   }
 }
