@@ -43,7 +43,7 @@ class LocalNotifications {
     // );
   }
 
-  Future<void> showAlertNotification(UserNotification notification) async {
+  Future<void> showAlertNotification(AppNotification notification) async {
     var bigTextStyleInformation = BigTextStyleInformation(
       notification.body,
       htmlFormatBigText: true,
@@ -230,17 +230,6 @@ class LocalNotifications {
         scheduledNotificationDateTime,
         platformDetails,
         payload: 'Destination Screen(Schedule Notification)');
-  }
-
-  Future<void> showSimpleNotification(NotificationModel notification) async {
-    var androidDetails = const AndroidNotificationDetails('id', 'channel ',
-        priority: Priority.high, importance: Importance.max);
-    var iOSDetails = const IOSNotificationDetails();
-    var platformDetails =
-        NotificationDetails(android: androidDetails, iOS: iOSDetails);
-    await flutterLocalNotificationsPlugin.show(
-        1, 'notification.title', 'notification.body', platformDetails,
-        payload: 'Destination Screen (Simple Notification)');
   }
 
   Future<void> showSmartNotification() async {

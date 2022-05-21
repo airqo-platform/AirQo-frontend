@@ -2,10 +2,10 @@ import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/widgets/custom_shimmer.dart';
-import 'package:app/widgets/favourite_place_card.dart';
 import 'package:flutter/cupertino.dart';
 
 import '../services/app_service.dart';
+import '../widgets/analytics_card.dart';
 import '../widgets/custom_widgets.dart';
 
 class AnalyticsView extends StatefulWidget {
@@ -26,15 +26,15 @@ class _AnalyticsViewState extends State<AnalyticsView> {
         child: _places.isEmpty
             ? ListView.builder(
                 itemBuilder: (BuildContext context, int index) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 15),
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 15),
                     child:
-                        containerLoadingAnimation(height: 120.0, radius: 16.0),
+                        ContainerLoadingAnimation(height: 120.0, radius: 16.0),
                   );
                 },
                 itemCount: 5,
               )
-            : refreshIndicator(
+            : AppRefreshIndicator(
                 sliverChildDelegate:
                     SliverChildBuilderDelegate((context, index) {
                   return Padding(

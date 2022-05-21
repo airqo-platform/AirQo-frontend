@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
-import 'package:app/screens/insights_page.dart';
+import 'package:app/screens/insights/insights_page.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/dialogs.dart';
@@ -17,125 +17,81 @@ import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
 import '../models/enum_constants.dart';
+import '../services/native_api.dart';
 import '../themes/light_theme.dart';
+import 'buttons.dart';
 import 'custom_shimmer.dart';
 import 'custom_widgets.dart';
 
-Widget analyticsCardLoading() {
-  return Container(
-    padding: const EdgeInsets.only(top: 32, bottom: 22),
-    constraints: const BoxConstraints(
-      maxHeight: 251,
-      minHeight: 251,
-    ),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: const BorderRadius.all(Radius.circular(16.0)),
-      border: Border.all(color: Colors.transparent),
-    ),
-    child: Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 24, right: 24),
-          child: Row(
-            children: [
-              circularLoadingAnimation(104),
-              const SizedBox(width: 16.0),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    sizedContainerLoadingAnimation(15, 139, 1000),
-                    const SizedBox(
-                      height: 9,
-                    ),
-                    sizedContainerLoadingAnimation(10, 115, 1000),
-                    const SizedBox(
-                      height: 12,
-                    ),
-                    sizedContainerLoadingAnimation(24, 115, 1000),
-                  ],
-                ),
-              )
-            ],
-          ),
-        ),
-        const SizedBox(height: 20),
-        Padding(
-          padding: const EdgeInsets.only(left: 24, right: 24),
-          child: containerLoadingAnimation(height: 9, radius: 1000),
-        ),
-        const Divider(color: Color(0xffC4C4C4)),
-        const SizedBox(
-          height: 16,
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+class MapAnalyticsMoreInsights extends StatelessWidget {
+  final PlaceDetails placeDetails;
+  const MapAnalyticsMoreInsights({Key? key, required this.placeDetails})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 16,
+      child: ListTile(
+        contentPadding: const EdgeInsets.only(left: 20, right: 30),
+        title: Row(
           children: [
-            sizedContainerLoadingAnimation(20, 105, 1000),
-            sizedContainerLoadingAnimation(20, 105, 1000),
+            SvgPicture.asset(
+              'assets/icon/chart.svg',
+              semanticsLabel: 'chart',
+              height: 16,
+              width: 16,
+            ),
+            const SizedBox(width: 8.0),
+            Text(
+              'View More Insights',
+              style: TextStyle(fontSize: 12, color: Config.appColorBlue),
+            ),
+            const Spacer(),
+            SvgPicture.asset(
+              'assets/icon/more_arrow.svg',
+              semanticsLabel: 'more',
+              height: 6.99,
+              width: 4,
+            ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class AnalyticsMoreInsights extends StatelessWidget {
+  final PlaceDetails placeDetails;
+  const AnalyticsMoreInsights({Key? key, required this.placeDetails})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        SvgPicture.asset(
+          'assets/icon/chart.svg',
+          semanticsLabel: 'chart',
+          height: 16,
+          width: 16,
+        ),
+        const SizedBox(width: 8.0),
+        Text(
+          'View More Insights',
+          style: CustomTextStyle.caption4(context)
+              ?.copyWith(color: Config.appColorBlue),
+        ),
+        const Spacer(),
+        SvgPicture.asset(
+          'assets/icon/more_arrow.svg',
+          semanticsLabel: 'more',
+          height: 6.99,
+          width: 4,
+        ),
       ],
-    ),
-  );
-}
-
-Widget mapMoreInsightsWidget(PlaceDetails placeDetails) {
-  return SizedBox(
-    height: 16,
-    child: ListTile(
-      contentPadding: const EdgeInsets.only(left: 20, right: 30),
-      title: Row(
-        children: [
-          SvgPicture.asset(
-            'assets/icon/chart.svg',
-            semanticsLabel: 'chart',
-            height: 16,
-            width: 16,
-          ),
-          const SizedBox(width: 8.0),
-          Text(
-            'View More Insights',
-            style: TextStyle(fontSize: 12, color: Config.appColorBlue),
-          ),
-          const Spacer(),
-          SvgPicture.asset(
-            'assets/icon/more_arrow.svg',
-            semanticsLabel: 'more',
-            height: 6.99,
-            width: 4,
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-Widget moreInsightsWidget(PlaceDetails placeDetails, context) {
-  return Row(
-    children: [
-      SvgPicture.asset(
-        'assets/icon/chart.svg',
-        semanticsLabel: 'chart',
-        height: 16,
-        width: 16,
-      ),
-      const SizedBox(width: 8.0),
-      Text(
-        'View More Insights',
-        style: CustomTextStyle.caption4(context)
-            ?.copyWith(color: Config.appColorBlue),
-      ),
-      const Spacer(),
-      SvgPicture.asset(
-        'assets/icon/more_arrow.svg',
-        semanticsLabel: 'more',
-        height: 6.99,
-        width: 4,
-      ),
-    ],
-  );
+    );
+  }
 }
 
 class AnalyticsCard extends StatefulWidget {
@@ -188,7 +144,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
             children: [
               RepaintBoundary(
                   key: _globalKey,
-                  child: _appService.shareService.analyticsCardImage(
+                  child: ShareService.analyticsCardImage(
                       widget.measurement, widget.placeDetails, context)),
               Container(
                 padding: const EdgeInsets.only(top: 12, bottom: 12),
@@ -229,8 +185,8 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                         child: Row(
                           children: [
                             GestureDetector(
-                              child: analyticsAvatar(
-                                  widget.measurement, 104, 40, 12),
+                              child: AnalyticsAvatar(
+                                  measurement: widget.measurement),
                               onTap: () {
                                 ToolTip(context, ToolTipType.info).show(
                                   widgetKey: _infoToolTipKey,
@@ -261,9 +217,8 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                   height: 12,
                                 ),
                                 GestureDetector(
-                                  child: aqiContainerString(
-                                      measurement: widget.measurement,
-                                      context: context),
+                                  child: AqiStringContainer(
+                                      measurement: widget.measurement),
                                   onTap: () {
                                     ToolTip(context, ToolTipType.info).show(
                                       widgetKey: _infoToolTipKey,
@@ -315,7 +270,8 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                     const SizedBox(height: 30),
                     Padding(
                       padding: const EdgeInsets.only(left: 24, right: 24),
-                      child: moreInsightsWidget(widget.placeDetails, context),
+                      child: AnalyticsMoreInsights(
+                          placeDetails: widget.placeDetails),
                     ),
                     const SizedBox(height: 12),
                     const Divider(
@@ -331,20 +287,21 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                             var shareMeasurement = widget.measurement;
                             shareMeasurement.site.name =
                                 widget.placeDetails.name;
-                            _appService.shareService.shareCard(
+                            ShareService.shareCard(
                                 context, _globalKey, shareMeasurement);
                           },
                           child: Padding(
                             padding: const EdgeInsets.only(top: 17),
-                            child: iconTextButton(
-                                SvgPicture.asset(
-                                  'assets/icon/share_icon.svg',
-                                  semanticsLabel: 'Share',
-                                  color: Config.greyColor,
-                                  height: 16,
-                                  width: 16,
-                                ),
-                                'Share'),
+                            child: IconTextButton(
+                              iconWidget: SvgPicture.asset(
+                                'assets/icon/share_icon.svg',
+                                semanticsLabel: 'Share',
+                                color: Config.greyColor,
+                                height: 16,
+                                width: 16,
+                              ),
+                              text: 'Share',
+                            ),
                           ),
                         ),
                         GestureDetector(
@@ -353,7 +310,8 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                             },
                             child: Padding(
                               padding: const EdgeInsets.only(top: 17),
-                              child: iconTextButton(getHeartIcon(), 'Favorite'),
+                              child: IconTextButton(
+                                  iconWidget: getHeartIcon(), text: 'Favorite'),
                             )),
                       ],
                     ),
@@ -434,7 +392,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
             children: [
               RepaintBoundary(
                   key: _globalKey,
-                  child: _appService.shareService.analyticsCardImage(
+                  child: ShareService.analyticsCardImage(
                       widget.measurement, widget.placeDetails, context)),
               Container(
                 color: Colors.white,
@@ -466,7 +424,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                           padding: const EdgeInsets.only(left: 20, right: 20),
                           child: Row(
                             children: [
-                              analyticsAvatar(widget.measurement, 104, 40, 12),
+                              AnalyticsAvatar(measurement: widget.measurement),
                               const SizedBox(width: 16.0),
                               Expanded(
                                 child: Column(
@@ -498,14 +456,18 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                       decoration: BoxDecoration(
                                           borderRadius: const BorderRadius.all(
                                               Radius.circular(40.0)),
-                                          color: pm2_5ToColor(widget.measurement
-                                                  .getPm2_5Value())
+                                          color: pollutantValueColor(
+                                                  value: widget.measurement
+                                                      .getPm2_5Value(),
+                                                  pollutant: Pollutant.pm2_5)
                                               .withOpacity(0.4),
                                           border: Border.all(
                                               color: Colors.transparent)),
                                       child: AutoSizeText(
-                                        pm2_5ToString(widget.measurement
-                                                .getPm2_5Value())
+                                        pollutantValueString(
+                                                value: widget.measurement
+                                                    .getPm2_5Value(),
+                                                pollutant: Pollutant.pm2_5)
                                             .trimEllipsis(),
                                         maxLines: 1,
                                         maxFontSize: 14,
@@ -513,9 +475,11 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
                                           fontSize: 14,
-                                          color: pm2_5TextColor(widget
-                                              .measurement
-                                              .getPm2_5Value()),
+                                          color: pollutantTextColor(
+                                              value: widget.measurement
+                                                  .getPm2_5Value(),
+                                              pollutant: Pollutant.pm2_5,
+                                              graph: true),
                                         ),
                                       ),
                                     ),
@@ -563,8 +527,9 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
 
                         const SizedBox(height: 20),
                         // Analytics
-                        mapMoreInsightsWidget(
-                          PlaceDetails.measurementToPLace(widget.measurement),
+                        MapAnalyticsMoreInsights(
+                          placeDetails: PlaceDetails.measurementToPLace(
+                              widget.measurement),
                         ),
                       ],
                     ),
@@ -581,22 +546,23 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                             var shareMeasurement = widget.measurement;
                             shareMeasurement.site.name =
                                 widget.placeDetails.name;
-                            _appService.shareService.shareCard(
+                            ShareService.shareCard(
                                 context, _globalKey, shareMeasurement);
                           },
-                          child: iconTextButton(
-                              SvgPicture.asset(
+                          child: IconTextButton(
+                              iconWidget: SvgPicture.asset(
                                 'assets/icon/share_icon.svg',
                                 color: Config.greyColor,
                                 semanticsLabel: 'Share',
                               ),
-                              'Share'),
+                              text: 'Share'),
                         ),
                         GestureDetector(
                           onTap: () async {
                             updateFavPlace();
                           },
-                          child: iconTextButton(getHeartIcon(), 'Favorite'),
+                          child: IconTextButton(
+                              iconWidget: getHeartIcon(), text: 'Favorite'),
                         ),
                       ],
                     ),
@@ -651,6 +617,215 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
         _showHeartAnimation = false;
       });
     });
+    await _appService.updateFavouritePlace(widget.placeDetails, context);
+  }
+}
+
+class MiniAnalyticsCard extends StatefulWidget {
+  final PlaceDetails placeDetails;
+
+  const MiniAnalyticsCard(this.placeDetails, {Key? key}) : super(key: key);
+
+  @override
+  _MiniAnalyticsCard createState() => _MiniAnalyticsCard();
+}
+
+class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
+  late Measurement measurement;
+  bool showHeartAnimation = false;
+  bool isNull = true;
+
+  final AppService _appService = AppService();
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(context, MaterialPageRoute(builder: (context) {
+          return InsightsPage(widget.placeDetails);
+        }));
+      },
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(0.0, 8.0, 0.0, 8.0),
+        child: Container(
+            decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+                border: Border.all(color: Colors.transparent)),
+            child: Column(
+              children: [
+                const SizedBox(
+                  height: 24,
+                ),
+                Container(
+                  padding: const EdgeInsets.only(left: 32, right: 32),
+                  child: Row(
+                    children: [
+                      if (!isNull)
+                        MiniAnalyticsAvatar(measurement: measurement),
+                      if (isNull) const CircularLoadingAnimation(size: 40),
+                      const SizedBox(
+                        width: 12,
+                      ),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            AutoSizeText(
+                              widget.placeDetails.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: CustomTextStyle.headline8(context),
+                            ),
+                            AutoSizeText(
+                              widget.placeDetails.location,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: CustomTextStyle.bodyText4(context)
+                                  ?.copyWith(
+                                      color: Config.appColorBlack
+                                          .withOpacity(0.3)),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 12,
+                      ),
+                      Consumer<PlaceDetailsModel>(
+                        builder: (context, placeDetailsModel, child) {
+                          return GestureDetector(
+                              onTap: () async {
+                                updateFavPlace();
+                              },
+                              child: getHeartIcon());
+                        },
+                      )
+                    ],
+                  ),
+                ),
+                const SizedBox(
+                  height: 24,
+                ),
+                const Divider(color: Color(0xffC4C4C4)),
+                const SizedBox(
+                  height: 11,
+                ),
+                Container(
+                  padding: const EdgeInsets.only(left: 32, right: 32),
+                  child: Row(
+                    children: [
+                      Container(
+                        height: 16,
+                        width: 16,
+                        decoration: BoxDecoration(
+                            color: Config.appColorBlue,
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(3.0)),
+                            border: Border.all(color: Colors.transparent)),
+                        child: const Icon(
+                          Icons.bar_chart,
+                          size: 14,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(width: 8.0),
+                      Text(
+                        'View More Insights',
+                        style: CustomTextStyle.caption3(context)
+                            ?.copyWith(color: Config.appColorBlue),
+                      ),
+                      const Spacer(),
+                      Container(
+                        height: 16,
+                        width: 16,
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                            color: Config.appColorBlue.withOpacity(0.24),
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(3.0)),
+                            border: Border.all(color: Colors.transparent)),
+                        child: SvgPicture.asset(
+                          'assets/icon/more_arrow.svg',
+                          semanticsLabel: 'more',
+                          height: 6.99,
+                          width: 4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+              ],
+            )),
+      ),
+    );
+  }
+
+  Widget getHeartIcon() {
+    if (showHeartAnimation) {
+      return SizedBox(
+        height: 16.67,
+        width: 16.67,
+        child: Lottie.asset('assets/lottie/animated_heart.json',
+            repeat: false, reverse: false, animate: true, fit: BoxFit.cover),
+      );
+    }
+
+    return Consumer<PlaceDetailsModel>(
+      builder: (context, placeDetailsModel, child) {
+        if (PlaceDetails.isFavouritePlace(
+            placeDetailsModel.favouritePlaces, widget.placeDetails)) {
+          return SvgPicture.asset(
+            'assets/icon/heart.svg',
+            semanticsLabel: 'Favorite',
+            height: 16.67,
+            width: 16.67,
+          );
+        }
+        return SvgPicture.asset(
+          'assets/icon/heart_dislike.svg',
+          semanticsLabel: 'Favorite',
+          height: 16.67,
+          width: 16.67,
+        );
+      },
+    );
+  }
+
+  void getMeasurement() {
+    _appService.dbHelper
+        .getMeasurement(widget.placeDetails.siteId)
+        .then((value) => {
+              if (value != null && mounted)
+                {
+                  setState(() {
+                    measurement = value;
+                    isNull = false;
+                  })
+                }
+            });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getMeasurement();
+  }
+
+  void updateFavPlace() async {
+    setState(() {
+      showHeartAnimation = true;
+    });
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() {
+        showHeartAnimation = false;
+      });
+    });
+
     await _appService.updateFavouritePlace(widget.placeDetails, context);
   }
 }

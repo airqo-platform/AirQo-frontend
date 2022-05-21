@@ -17,6 +17,27 @@
     color: $aq-blue-2;
 }
 
+@mixin header4 {
+    font-size: 32px;
+    line-height: 40px;
+    font-weight: 400;
+    color: $aq-blue-2;
+}
+
+@mixin header5 {
+    font-size: 28px;
+    line-height: 36px;
+    font-weight: 400;
+    color: $aq-blue-2;
+}
+
+@mixin header6 {
+    font-size: 40px;
+    line-height: 48px;
+    font-weight: 500;
+    color: $aq-blue-2;
+}
+
 .AboutUsPage {
     position: relative;
     hr {
@@ -29,12 +50,7 @@
         height: 44vh;
         position: relative;
         width: 100%;
-
-        img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+        background-color: #F2F1F6;
 
         .content {
             position: absolute;
@@ -46,7 +62,7 @@
             h2 {
                 @include header2();
                 font-weight: 700;
-                color: $aq-white-0;
+                color: $aq-blue-2;
                 margin: -16% 0 10% 0;
             }
 
@@ -57,8 +73,8 @@
                 list-style-type: none;
 
                 .active-link {
-                    color: $aq-white-0;
-                    border-bottom: 2px solid $aq-white-0;
+                    color: $aq-blue-2;
+                    border-bottom: 2px solid $aq-blue-2;
                 }
 
                 li {
@@ -66,13 +82,13 @@
                     margin-right: 40px;
                     font-size: 18px;
                     line-height: 32px;
-                    color: #ffffffa3;
+                    color: #353E52A3;
 
                 }
 
                 li:hover {
                     cursor: pointer;
-                    color: $aq-white-0;
+                    color: $aq-blue-2;
                 }
 
             }
@@ -140,7 +156,7 @@
     }
 
     .separator-1 {
-        border: 16px solid #FFFCE6;
+        border: 16px solid $aq-blue-3;
         margin-top: 130px;
     }
 
@@ -314,6 +330,221 @@
             width: 100%;
             height: 95px;
             object-fit: contain;
+        }
+    }
+}
+
+@media(max-width: $mainBreakPoint) {
+    .AboutUsPage {
+        width: 100%;
+
+        &__hero {
+            width: 100%;
+
+            .content {
+                width: 100%;
+
+                h2 {
+                    margin: 126px 0 25% 0;
+                }
+
+                .AboutUsPage__nav {
+                    display: flex;
+                    overflow-x: auto;
+                    padding-right: 40px;
+    
+                    li {
+                        margin-right: 20px;
+                        flex: 0 0 auto;
+                    }
+                }
+    
+                .AboutUsPage__nav::-webkit-scrollbar {    
+                    display: none;
+                }
+            }
+            
+        }
+
+        .wrapper {
+            margin: 0 auto;
+            padding: 64px 16px;
+            width: 100%;
+        }
+
+        &__vision, &__mission {
+            width: 100%;
+            margin: 0;
+        }
+
+        &__mission {
+            @include header6();
+            font-weight: 500;
+            margin-bottom: 48px;
+        }
+
+        &__vision {
+            @include header4();
+            margin-bottom: 63px;
+        }
+
+        .team_img {
+            height: 209px;
+            border-radius: 8px;
+        }
+
+        &__banner {
+            flex-direction: column;
+            margin-bottom: 70px;
+            
+            .section-title {
+                margin: 0;
+                margin-bottom: 36px;
+                position: relative;
+    
+                div {
+                    width: 247px;
+                    height: 130px;
+                }
+    
+                h3 {
+                    @include header5();
+                    top: 39%;
+                }
+            }
+    
+            p {
+                @include header4();
+                text-align: center;
+            }
+        }
+
+        .separator-1 {
+            margin: 0;
+            margin-bottom: 64px;
+        }
+
+        &__story {
+            flex-direction: column;
+            margin: 0;
+            margin-bottom: 70px;
+    
+            h3 {
+                @include header6();
+                color: $aq-black-1;
+                margin: 0;
+                margin-bottom: 16px;
+            }
+    
+            .section-info {
+                width: 100%;
+                
+                p {
+                    width: 100%;
+                    color: $aq-black-1;
+                    margin: 0;
+                    margin-bottom: 24px;
+                }
+            }
+        }
+
+        &__values {
+            flex-direction: column;
+            margin-bottom: 64px;
+    
+            h3 {
+                @include header6();
+                color: $aq-black-1;
+                margin: 0;
+                margin-bottom: 16px;
+            }
+    
+            .section-info {
+                width: 100%;
+                .subsection {
+                    
+                    h6, p {
+                        width: 100%;
+                    }
+
+                    h6 {
+                        font-weight: 600;
+                    }
+
+                    p {
+                        width: 100%;
+                    }
+                }
+            }
+        }
+
+        &__team {
+            &_info {
+                flex-direction: column;
+                margin-bottom: 64px;
+    
+                h3 {
+                    @include header6();
+                    color: $aq-black-1;
+                    margin: 0;
+                    margin-bottom: 16px;
+                }
+    
+                p {
+                    width: 100%;
+                    color: $aq-black-1;
+                }
+            }
+        }
+
+        &__partners {
+            flex-direction: column;
+            margin-bottom: 48px;
+    
+            h3 {
+                @include header6();
+                color: $aq-black-1;
+                margin: 0;
+                margin-bottom: 16px;
+            }
+    
+            p {
+                width: 100%;
+                color: $aq-black-1;
+            }
+        }
+
+        .partner-logos {
+            margin-bottom: 80px;
+            width: 100%;
+            table {
+                table-layout: inherit;
+                width: 100%;
+            }
+    
+            tr {
+                display: flex;
+                flex-direction: column;
+                flex-wrap: wrap;
+                width: 100%;
+            }
+    
+            td {
+                width: 100%;
+            }
+    
+            img {
+                height: 111.38px;
+                margin-top: 20px;
+            }
+        }
+
+        &__pictorial {
+            justify-content: space-evenly;
+            .profile {
+                width: 328px;
+                margin-bottom: 66px;
+            }
         }
     }
 }

@@ -30,7 +30,7 @@ flutter run
 ### Some useful commands
 
 ```bash
-flutter pub run build_runner build --delete-conflicting-outputs
+flutter packages pub run build_runner build --delete-conflicting-outputs
 flutter build appbundle [--analyze-size]
 flutter build ipa
 dart fix --dry-run

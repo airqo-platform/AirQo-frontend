@@ -9,6 +9,7 @@ import 'package:app/services/firebase_service.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/distance.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -28,39 +29,23 @@ import '../themes/light_theme.dart';
 import 'firebase_service.dart';
 
 class LocationService {
-  final locate_api.Location _location = locate_api.Location();
-  final DBHelper _dbHelper = DBHelper();
-  final CustomAuth _customAuth = CustomAuth();
-  final CloudStore _cloudStore = CloudStore();
-  final CloudAnalytics _cloudAnalytics = CloudAnalytics();
-
-  Future<bool> allowLocationAccess() async {
+  static Future<bool> allowLocationAccess() async {
     var enabled = await requestLocationAccess();
     if (enabled) {
-      await _cloudAnalytics.logEvent(AnalyticsEvent.allowLocation, true);
+      await CloudAnalytics.logEvent(AnalyticsEvent.allowLocation, true);
     }
     return requestLocationAccess();
   }
 
-  Future<bool> checkPermission() async {
+  static Future<bool> checkPermission() async {
+    final location = locate_api.Location();
     try {
-      var status = await _location.hasPermission();
+      var status = await location.hasPermission();
       if (status == locate_api.PermissionStatus.granted) {
         return true;
       }
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
-    }
-    return false;
-  }
-
-  bool containsWord(String body, String term) {
-    var words = body.toLowerCase().split(' ');
-    var terms = term.toLowerCase().split(' ');
-    for (var word in words) {
-      if (terms.first.trim() == word.trim()) {
-        return true;
-      }
     }
     return false;
   }
@@ -73,8 +58,9 @@ class LocationService {
   //   return addresses.first;
   // }
 
-  Future<Measurement?> defaultLocationPlace() async {
-    var measurement = await _dbHelper.getNearestMeasurement(
+  static Future<Measurement?> defaultLocationPlace() async {
+    final dbHelper = DBHelper();
+    var measurement = await dbHelper.getNearestMeasurement(
         Config.defaultLatitude, Config.defaultLongitude);
 
     if (measurement == null) {
@@ -99,7 +85,7 @@ class LocationService {
   //   return googleAddresses;
   // }
 
-  Future<String> getAddress(double lat, double lng) async {
+  static Future<String> getAddress(double lat, double lng) async {
     var placeMarks = await placemarkFromCoordinates(lat, lng);
     var place = placeMarks[0];
     var name = place.thoroughfare ?? place.name;
@@ -110,7 +96,7 @@ class LocationService {
     return name;
   }
 
-  Future<List<String>> getAddresses(double lat, double lng) async {
+  static Future<List<String>> getAddresses(double lat, double lng) async {
     var placeMarks = await placemarkFromCoordinates(lat, lng);
     var addresses = <String>[];
     for (var place in placeMarks) {
@@ -125,21 +111,21 @@ class LocationService {
     return addresses;
   }
 
-  Future<locate_api.LocationData?> getLocation() async {
+  static Future<locate_api.LocationData?> getLocation() async {
     bool _serviceEnabled;
     locate_api.PermissionStatus _permissionGranted;
-
-    _serviceEnabled = await _location.serviceEnabled();
+    final location = locate_api.Location();
+    _serviceEnabled = await location.serviceEnabled();
     if (!_serviceEnabled) {
-      _serviceEnabled = await _location.requestService();
+      _serviceEnabled = await location.requestService();
       if (!_serviceEnabled) {
         return null;
       }
     }
 
-    _permissionGranted = await _location.hasPermission();
+    _permissionGranted = await location.hasPermission();
     if (_permissionGranted == locate_api.PermissionStatus.denied) {
-      _permissionGranted = await _location.requestPermission();
+      _permissionGranted = await location.requestPermission();
       if (_permissionGranted != locate_api.PermissionStatus.granted) {
         return null;
       }
@@ -151,11 +137,11 @@ class LocationService {
     //   print('${locationData.longitude} : ${locationData.longitude}');
     // });
 
-    var _locationData = await _location.getLocation();
-    return _locationData;
+    var locationData = await location.getLocation();
+    return locationData;
   }
 
-  Future<Position> getLocationUsingGeoLocator() async {
+  static Future<Position> getLocationUsingGeoLocator() async {
     bool serviceEnabled;
     LocationPermission permission;
 
@@ -187,7 +173,7 @@ class LocationService {
   //   return localAddresses;
   // }
 
-  Future<List<Measurement>> getNearbyLocationReadings() async {
+  static Future<List<Measurement>> getNearbyLocationReadings() async {
     try {
       var nearestMeasurements = <Measurement>[];
       double distanceInMeters;
@@ -201,7 +187,8 @@ class LocationService {
         var addresses =
             await getAddresses(location.latitude!, location.longitude!);
         Measurement? nearestMeasurement;
-        var latestMeasurements = await _dbHelper.getLatestMeasurements();
+        final dbHelper = DBHelper();
+        var latestMeasurements = await dbHelper.getLatestMeasurements();
 
         for (var measurement in latestMeasurements) {
           distanceInMeters = metersToKmDouble(Geolocator.distanceBetween(
@@ -254,7 +241,7 @@ class LocationService {
     return [];
   }
 
-  Future<Site?> getNearestSite(double latitude, double longitude) async {
+  static Future<Site?> getNearestSite(double latitude, double longitude) async {
     try {
       var nearestSites = await getNearestSites(latitude, longitude);
       if (nearestSites.isEmpty) {
@@ -279,9 +266,9 @@ class LocationService {
   // Future<bool> requestLocationAccess() async {
   //   try {
   //     var status = await location.requestPermission();
-  //     var id = _customAuth.getId();
+  //     var id = CustomAuth.getId();
   //     if (id != '') {
-  //       await _cloudStore.updatePreferenceFields(
+  //       await CloudStore.updatePreferenceFields(
   //           id, 'location', status == PermissionStatus.granted, 'bool');
   //     }
   //     return status == PermissionStatus.granted;
@@ -291,12 +278,12 @@ class LocationService {
   //   return false;
   // }
 
-  Future<List<Measurement>> getNearestSites(
+  static Future<List<Measurement>> getNearestSites(
       double latitude, double longitude) async {
     var nearestSites = <Measurement>[];
     double distanceInMeters;
-
-    var latestMeasurements = await _dbHelper.getLatestMeasurements();
+    final dbHelper = DBHelper();
+    var latestMeasurements = await dbHelper.getLatestMeasurements();
 
     for (var measurement in latestMeasurements) {
       distanceInMeters = metersToKmDouble(Geolocator.distanceBetween(
@@ -313,7 +300,7 @@ class LocationService {
     return nearestSites;
   }
 
-  Future<bool> requestLocationAccess() async {
+  static Future<bool> requestLocationAccess() async {
     try {
       var status = await Geolocator.requestPermission();
       return !(status == LocationPermission.denied);
@@ -323,23 +310,23 @@ class LocationService {
     return false;
   }
 
-  Future<bool> revokePermission() async {
+  static Future<bool> revokePermission() async {
     // TODO: implement revoke permission
 
-    var id = _customAuth.getUserId();
+    var id = CustomAuth.getUserId();
 
     if (id != '') {
-      await _cloudStore.updatePreferenceFields(id, 'location', false, 'bool');
+      await CloudStore.updatePreferenceFields(id, 'location', false, 'bool');
     }
     return false;
   }
 
-  Future<List<Measurement>> searchNearestSites(
+  static Future<List<Measurement>> searchNearestSites(
       double latitude, double longitude, String term) async {
     var nearestSites = <Measurement>[];
     double distanceInMeters;
-
-    var latestMeasurements = await _dbHelper.getLatestMeasurements();
+    final dbHelper = DBHelper();
+    var latestMeasurements = await dbHelper.getLatestMeasurements();
 
     for (var measurement in latestMeasurements) {
       distanceInMeters = metersToKmDouble(Geolocator.distanceBetween(
@@ -347,7 +334,7 @@ class LocationService {
           measurement.site.longitude,
           latitude,
           longitude));
-      if (containsWord(measurement.site.name, term)) {
+      if (measurement.site.name.inStatement(term)) {
         measurement.site.distance = distanceInMeters;
         nearestSites.add(measurement);
       } else {
@@ -361,7 +348,7 @@ class LocationService {
     return nearestSites;
   }
 
-  List<Measurement> textSearchNearestSites(
+  static List<Measurement> textSearchNearestSites(
       String term, List<Measurement> measurements) {
     var nearestSites = <Measurement>[];
 
@@ -380,10 +367,10 @@ class LocationService {
     return nearestSites;
   }
 
-  Future<List<Measurement>> textSearchNearestSitesV1(String term) async {
+  static Future<List<Measurement>> textSearchNearestSitesV1(String term) async {
     var nearestSites = <Measurement>[];
-
-    var latestMeasurements = await _dbHelper.getLatestMeasurements();
+    final dbHelper = DBHelper();
+    var latestMeasurements = await dbHelper.getLatestMeasurements();
 
     for (var measurement in latestMeasurements) {
       if (measurement.site.name
@@ -416,29 +403,91 @@ class SystemProperties {
   }
 }
 
-class RateService {
-  final CloudAnalytics _cloudAnalytics = CloudAnalytics();
-  final InAppReview _inAppReview = InAppReview.instance;
+class NotificationService {
+  static Future<bool> allowNotifications() async {
+    var enabled = await requestPermission();
+    if (enabled) {
+      await CloudAnalytics.logEvent(AnalyticsEvent.allowNotification, true);
+    }
+    return enabled;
+  }
 
-  Future<void> rateApp({bool inApp = false}) async {
-    if (await _inAppReview.isAvailable()) {
+  static Future<bool> checkPermission() async {
+    try {
+      var settings = await FirebaseMessaging.instance.getNotificationSettings();
+
+      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+        return true;
+      }
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+    }
+
+    return false;
+  }
+
+  static Future<bool> requestPermission() async {
+    try {
+      var settings = await FirebaseMessaging.instance.requestPermission(
+        alert: true,
+        announcement: false,
+        badge: true,
+        carPlay: false,
+        criticalAlert: false,
+        provisional: false,
+        sound: true,
+      );
+      var status =
+          settings.authorizationStatus == AuthorizationStatus.authorized;
+
+      var id = CustomAuth.getUserId();
+
+      if (id != '') {
+        await CloudStore.updatePreferenceFields(
+            id, 'notifications', status, 'bool');
+      }
+      return status;
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
+    }
+
+    return false;
+  }
+
+  static Future<bool> revokePermission() async {
+    // TODO: implement revoke permission
+    var id = CustomAuth.getUserId();
+
+    if (id != '') {
+      await CloudStore.updatePreferenceFields(
+          id, 'notifications', false, 'bool');
+    }
+    return false;
+  }
+}
+
+class RateService {
+  static Future<void> rateApp({bool inApp = false}) async {
+    if (await InAppReview.instance.isAvailable()) {
       inApp
-          ? await _inAppReview.requestReview()
-          : await _inAppReview
+          ? await InAppReview.instance.requestReview()
+          : await InAppReview.instance
               .openStoreListing(
                 appStoreId: Config.iosStoreId,
               )
-              .then((value) => _logAppRating);
+              .then((value) => logAppRating);
     } else {
       if (Platform.isIOS || Platform.isMacOS) {
         try {
-          await launch(Config.appStoreUrl).then((value) => _logAppRating);
+          await launchUrl(Uri.parse(Config.appStoreUrl))
+              .then((value) => logAppRating);
         } catch (exception, stackTrace) {
           debugPrint('${exception.toString()}\n${stackTrace.toString()}');
         }
       } else {
         try {
-          await launch(Config.playStoreUrl).then((value) => _logAppRating);
+          await launchUrl(Uri.parse(Config.playStoreUrl))
+              .then((value) => logAppRating);
         } catch (exception, stackTrace) {
           debugPrint('${exception.toString()}\n${stackTrace.toString()}');
         }
@@ -446,19 +495,14 @@ class RateService {
     }
   }
 
-  Future<void> _logAppRating() async {
-    await _cloudAnalytics.logEvent(AnalyticsEvent.rateApp, true);
+  static Future<void> logAppRating() async {
+    await CloudAnalytics.logEvent(AnalyticsEvent.rateApp, true);
   }
 }
 
 class ShareService {
-  final CustomAuth _customAuth = CustomAuth();
-  final CloudStore _cloudStore = CloudStore();
-  final SharedPreferencesHelper _preferencesHelper = SharedPreferencesHelper();
-  final CloudAnalytics _cloudAnalytics = CloudAnalytics();
-
-  Widget analyticsCardImage(Measurement measurement, PlaceDetails placeDetails,
-      BuildContext context) {
+  static Widget analyticsCardImage(Measurement measurement,
+      PlaceDetails placeDetails, BuildContext context) {
     return Container(
       constraints: const BoxConstraints(maxHeight: 200, maxWidth: 300),
       padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
@@ -472,7 +516,7 @@ class ShareService {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              analyticsAvatar(measurement, 104, 40, 12),
+              AnalyticsAvatar(measurement: measurement),
               const SizedBox(width: 10.0),
               Flexible(
                 child: Column(
@@ -501,17 +545,23 @@ class ShareService {
                       decoration: BoxDecoration(
                           borderRadius:
                               const BorderRadius.all(Radius.circular(40.0)),
-                          color: pm2_5ToColor(measurement.getPm2_5Value())
+                          color: pollutantValueColor(
+                                  value: measurement.getPm2_5Value(),
+                                  pollutant: Pollutant.pm2_5)
                               .withOpacity(0.4),
                           border: Border.all(color: Colors.transparent)),
                       child: AutoSizeText(
-                        pm2_5ToString(measurement.getPm2_5Value()),
+                        pollutantValueString(
+                            value: measurement.getPm2_5Value(),
+                            pollutant: Pollutant.pm2_5),
                         maxLines: 2,
                         textAlign: TextAlign.start,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 12,
-                          color: pm2_5TextColor(measurement.getPm2_5Value()),
+                          color: pollutantTextColor(
+                              value: measurement.getPm2_5Value(),
+                              pollutant: Pollutant.pm2_5),
                         ),
                       ),
                     ),
@@ -559,11 +609,11 @@ class ShareService {
     );
   }
 
-  String getShareMessage() {
+  static String getShareMessage() {
     return 'Download the AirQo app from Google play\nhttps://play.google.com/store/apps/details?id=com.airqo.app\nand App Store\nhttps://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091\n';
   }
 
-  Future<void> shareCard(BuildContext buildContext, GlobalKey globalKey,
+  static Future<void> shareCard(BuildContext buildContext, GlobalKey globalKey,
       Measurement measurement) async {
     try {
       var boundary =
@@ -577,13 +627,13 @@ class ShareService {
       await imgFile.writeAsBytes(pngBytes);
 
       await Share.shareFiles([imgFile.path], text: getShareMessage())
-          .then((value) => {_updateUserShares()});
-    } catch (e) {
-      debugPrint('$e');
+          .then((value) => {updateUserShares()});
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
     }
   }
 
-  Future<void> shareGraph(BuildContext buildContext, GlobalKey globalKey,
+  static Future<void> shareGraph(BuildContext buildContext, GlobalKey globalKey,
       PlaceDetails placeDetails) async {
     var boundary =
         globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
@@ -596,10 +646,11 @@ class ShareService {
     await imgFile.writeAsBytes(pngBytes);
 
     await Share.shareFiles([imgFile.path], text: getShareMessage())
-        .then((value) => {_updateUserShares()});
+        .then((value) => {updateUserShares()});
   }
 
-  Future<void> shareKya(BuildContext buildContext, GlobalKey globalKey) async {
+  static Future<void> shareKya(
+      BuildContext buildContext, GlobalKey globalKey) async {
     var boundary =
         globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
     var image = await boundary.toImage(pixelRatio: 10.0);
@@ -610,10 +661,10 @@ class ShareService {
     await imgFile.writeAsBytes(pngBytes);
 
     await Share.shareFiles([imgFile.path], text: getShareMessage())
-        .then((value) => {_updateUserShares()});
+        .then((value) => {updateUserShares()});
   }
 
-  void shareMeasurementText(Measurement measurement) {
+  static void shareMeasurementText(Measurement measurement) {
     var recommendationList =
         getHealthRecommendations(measurement.getPm2_5Value(), Pollutant.pm2_5);
     var recommendations = '';
@@ -622,26 +673,26 @@ class ShareService {
     }
     Share.share(
             '${measurement.site.name}, Current Air Quality. \n\n'
-            'PM2.5 : ${measurement.getPm2_5Value().toStringAsFixed(2)} µg/m\u00B3 (${pm2_5ToString(measurement.getPm2_5Value())}) \n'
+            'PM2.5 : ${measurement.getPm2_5Value().toStringAsFixed(2)} µg/m\u00B3 (${pollutantValueString(value: measurement.getPm2_5Value(), pollutant: Pollutant.pm2_5)}) \n'
             'PM10 : ${measurement.getPm10Value().toStringAsFixed(2)} µg/m\u00B3 \n'
             '$recommendations\n\n'
             'Source: AirQo App',
-            subject: '${Config.appName}, ${measurement.site.name}!')
-        .then((value) => {_updateUserShares()});
+            subject: 'AirQo, ${measurement.site.name}!')
+        .then((value) => {updateUserShares()});
   }
 
-  Future<void> _updateUserShares() async {
-    var preferences = await _preferencesHelper.getPreferences();
+  static Future<void> updateUserShares() async {
+    var preferences = await SharedPreferencesHelper.getPreferences();
     var value = preferences.aqShares + 1;
-    if (_customAuth.isLoggedIn()) {
-      await _cloudStore.updatePreferenceFields(
-          _customAuth.getUserId(), 'aqShares', value, 'int');
+    if (CustomAuth.isLoggedIn()) {
+      await CloudStore.updatePreferenceFields(
+          CustomAuth.getUserId(), 'aqShares', value, 'int');
     } else {
-      await _preferencesHelper.updatePreference('aqShares', value, 'int');
+      await SharedPreferencesHelper.updatePreference('aqShares', value, 'int');
     }
 
     if (value >= 5) {
-      await _cloudAnalytics.logEvent(
+      await CloudAnalytics.logEvent(
           AnalyticsEvent.shareAirQualityInformation, true);
     }
   }

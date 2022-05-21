@@ -361,6 +361,15 @@ class CustomTextStyle {
         );
   }
 
+  static TextStyle? newNotification(BuildContext context) {
+    return Theme.of(context).textTheme.headline6?.copyWith(
+        fontSize: 10.0,
+        fontWeight: FontWeight.w500,
+        fontStyle: FontStyle.normal,
+        height: 13.0 / 10.0,
+        color: Config.appColorBlue);
+  }
+
   static TextStyle? button2(BuildContext context) {
     return Theme.of(context).textTheme.headline6?.copyWith(
           fontSize: 14.0,

@@ -26,16 +26,8 @@ class Config {
   static String get airqoApiUserExistsUrl =>
       dotenv.env['AIRQO_API_USER_EXISTS_URL'] ?? '';
 
-  static String get alertsCollection => dotenv.env['ALERTS_COLLECTION'] ?? '';
-
   static String get appAndroidWhatsappUrl =>
       dotenv.env['ANDROID_WHATSAPP_URL'] ?? '';
-
-  static Color get appBarBgColor => const Color(0xffF2F1F6);
-
-  static Color get appBarTitleColor => appColor;
-
-  static Color get appBgColor => const Color(0xffEBEBEB);
 
   static Color get appBodyColor => const Color(0xffF2F1F6);
 
@@ -47,8 +39,6 @@ class Config {
 
   static Color get appColorDisabled => appColorBlue.withOpacity(0.5);
 
-  static Color get appColorPaleBlue => const Color(0xffCEDDFF);
-
   static String get appErrorMessage =>
       'Failed to process your request. Try again later';
 
@@ -56,13 +46,9 @@ class Config {
 
   static Color get appLoadingColor => const Color(0xffEBEAEF);
 
-  static String get appName => dotenv.env['APP_NAME'] ?? 'AirQo';
-
   static Color get appPicColor => const Color(0xffFF79C1);
 
   static String get appStoreUrl => dotenv.env['APP_STORE_URL'] ?? '';
-
-  static Color get appTipColor => const Color(0xffD5FFD4);
 
   static String get carrierSearchApi => dotenv.env['CARRIER_SEARCH_API'] ?? '';
 
@@ -85,8 +71,6 @@ class Config {
   static String get favPlacesCollection =>
       dotenv.env['FAV_PLACES_COLLECTION'] ?? '';
 
-  static String get feedbackWebhook => dotenv.env['FEEDBACK_WEBHOOK'] ?? '';
-
   static String get googleApiKey =>
       (Platform.isAndroid
           ? dotenv.env['GOOGLE_ANDROID_API_KEY']
@@ -96,8 +80,6 @@ class Config {
   static Color get green => const Color(0xff3AFF38);
 
   static Color get greyColor => const Color(0xffD1D3D9);
-
-  static Color get greyTextColor => const Color(0xffADAFB6);
 
   static String get imageUploadApiKey =>
       dotenv.env['IMAGE_UPLOAD_API_KEY'] ?? '';
@@ -114,14 +96,14 @@ class Config {
   static String get kyaCollection => dotenv.env['KYA_COLLECTION'] ?? '';
 
   static String get locationErrorMessage =>
-      'PLease turn on and allow location permissions';
+      'Turn on and allow location permissions';
 
   static Color get maroon => const Color(0xffA51F3F);
 
   static int get maxSearchRadius => searchRadius * 2;
 
-  static String get notificationCollection =>
-      dotenv.env['NOTIFICATION_COLLECTION'] ?? '';
+  static String get usersNotificationCollection =>
+      dotenv.env['USERS_NOTIFICATION_COLLECTION'] ?? '';
 
   static Color get orange => const Color(0xffFE9E35);
 
@@ -135,11 +117,6 @@ class Config {
 
   static String get prefDashboardRegion =>
       dotenv.env['PREF_DASHBOARD_REGION'] ?? '';
-
-  static String get prefHomePageTips => dotenv.env['PREF_HOME_PAGE_TIPS'] ?? '';
-
-  static String get prefInsightsCardTips =>
-      dotenv.env['PREF_INSIGHTS_PAGE_TIPS'] ?? '';
 
   static String get prefOnBoardingPage =>
       dotenv.env['PREF_ON_BOARDING_PAGE'] ?? '';
@@ -162,11 +139,6 @@ class Config {
 
   static Color get snackBarBgColor => appColorBlack.withOpacity(0.8);
 
-  static String get socketErrorMessage =>
-      'Your internet connection in unstable.';
-
-  static String get storiesUrl => dotenv.env['STORIES_URL'] ?? '';
-
   static String get termsUrl => dotenv.env['TERMS_URL'] ?? '';
 
   static Color get toolTipGreyColor => Colors.white.withOpacity(0.32);
@@ -174,9 +146,9 @@ class Config {
   static String get usersCollection => dotenv.env['USERS_COLLECTION'] ?? '';
 
   static String get usersKyaCollection =>
-      dotenv.env['USER_KYA_COLLECTION'] ?? '';
+      dotenv.env['USERS_KYA_COLLECTION'] ?? '';
 
-  static String get usersProfilePictureCollection =>
+  static String get usersProfilePictureStorage =>
       dotenv.env['USERS_PROFILE_PICTURE_COLLECTION'] ?? '';
 
   static Color get yellow => const Color(0xffFFFF35);
@@ -188,4 +160,8 @@ class Config {
   static double refreshIndicatorPadding(int index) {
     return index == 0 ? 16.0 : 0.0;
   }
+}
+
+class HiveBox {
+  static String get appNotifications => 'appNotifications';
 }

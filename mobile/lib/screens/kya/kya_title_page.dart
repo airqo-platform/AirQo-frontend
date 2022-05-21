@@ -1,6 +1,5 @@
 import 'package:app/constants/config.dart';
 import 'package:app/models/kya.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -24,8 +23,8 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: knowYourAirAppBar(context, 'Know Your Air'),
-      body: Stack(children: [
+      appBar: const KnowYourAirAppBar(),
+      body: Stack(fit: StackFit.expand, children: [
         Container(
           color: Config.appBodyColor,
           height: double.infinity,
@@ -36,45 +35,36 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
           widthFactor: 1.0,
           heightFactor: 0.4,
           child: Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                fit: BoxFit.cover,
-                image: CachedNetworkImageProvider(
-                  widget.kya.imageUrl,
-                ),
+              decoration: BoxDecoration(
+            image: DecorationImage(
+              fit: BoxFit.cover,
+              image: CachedNetworkImageProvider(
+                widget.kya.imageUrl,
               ),
             ),
-            child: Container(
-              color: Config.appColorBlue.withOpacity(0.4),
+          )),
+        ),
+        Align(
+          alignment: AlignmentDirectional.bottomCenter,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 24, right: 24, bottom: 32),
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (context) {
+                    return KyaLessonsPage(widget.kya);
+                  }));
+                });
+              },
+              child:
+                  NextButton(text: 'Begin', buttonColor: Config.appColorBlue),
             ),
           ),
-          //   child: Stack(
-          //     children: [
-          //       CachedNetworkImage(
-          //         fit: BoxFit.contain,
-          //         placeholder: (context, url) => SizedBox(
-          //           child: containerLoadingAnimation(
-          //               height:
-          //               double.infinity,
-          //               radius: 0),
-          //         ),
-          //         imageUrl: widget.kya.secondaryImageUrl.trim() == ''
-          //             ? widget.kya.imageUrl
-          //             : widget.kya.secondaryImageUrl,
-          //         errorWidget: (context, url, error) => Icon(
-          //           Icons.error_outline,
-          //           color: Config.red,
-          //         ),
-          //       ),
-          //       Container(
-          //         color: Config.appColorBlue.withOpacity(0.4),
-          //       ),
-          //     ],
-          //   )
         ),
         Positioned.fill(
           child: Align(
-              alignment: Alignment.bottomCenter,
+              alignment: Alignment.center,
               child: Padding(
                 padding: const EdgeInsets.only(left: 24, right: 24),
                 child: Column(
@@ -114,14 +104,12 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
                               ),
                               Padding(
                                 padding:
-                                    const EdgeInsets.only(left: 16, right: 16),
-                                child: AutoSizeText(
+                                    const EdgeInsets.symmetric(horizontal: 40),
+                                child: Text(
                                   widget.kya.title,
                                   textAlign: TextAlign.center,
-                                  maxLines: 3,
-                                  overflow: TextOverflow.ellipsis,
-                                  maxFontSize: 28,
-                                  style: CustomTextStyle.headline11(context),
+                                  style: CustomTextStyle.headline11(context)
+                                      ?.copyWith(color: Config.appColorBlack),
                                 ),
                               ),
                               const SizedBox(
@@ -130,23 +118,7 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
                             ],
                           ),
                         )),
-                    const SizedBox(
-                      height: 16,
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          Navigator.pushReplacement(context,
-                              MaterialPageRoute(builder: (context) {
-                            return KyaLessonsPage(widget.kya);
-                          }));
-                        });
-                      },
-                      child: nextButton('Begin', Config.appColorBlue),
-                    ),
-                    const SizedBox(
-                      height: 32,
-                    ),
+                    const Spacer(),
                   ],
                 ),
               )),
@@ -161,7 +133,7 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
       width: 48,
       padding: const EdgeInsets.all(15.0),
       decoration: BoxDecoration(
-        color: Config.appColorPaleBlue,
+        color: Config.appColorBlue.withOpacity(0.24),
         shape: BoxShape.circle,
       ),
       child: SvgPicture.asset(

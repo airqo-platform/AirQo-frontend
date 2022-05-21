@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:app/constants/config.dart';
-import 'package:app/models/notification.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/user_details.dart';
 import 'package:app/services/firebase_service.dart';
@@ -10,55 +9,35 @@ import 'package:app/services/rest_api.dart';
 import 'package:app/services/secure_storage.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/extensions.dart';
+import 'package:app/utils/network.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../models/enum_constants.dart';
 import '../models/insights.dart';
 import '../models/kya.dart';
+import '../models/notification.dart';
 import '../utils/exception.dart';
 import 'native_api.dart';
 import 'notifications_svc.dart';
 
 class AppService {
   final DBHelper _dbHelper = DBHelper();
-  final CloudStore _cloudStore = CloudStore();
-  final CustomAuth _customAuth = CustomAuth();
-  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
-  final SharedPreferencesHelper _preferencesHelper = SharedPreferencesHelper();
   final SecureStorage _secureStorage = SecureStorage();
   final AirqoApiClient _apiClient = AirqoApiClient();
-  final CloudAnalytics _cloudAnalytics = CloudAnalytics();
-  final LocationService _locationService = LocationService();
-  final RateService _rateService = RateService();
-  final ShareService _shareService = ShareService();
-  final NotificationService _notificationService = NotificationService();
   final SearchApi _searchApi = SearchApi();
 
   AirqoApiClient get apiClient => _apiClient;
 
-  CloudStore get cloudStore => _cloudStore;
-
-  CustomAuth get customAuth => _customAuth;
-
   DBHelper get dbHelper => _dbHelper;
-
-  LocationService get locationService => _locationService;
-
-  NotificationService get notificationService => _notificationService;
-
-  SharedPreferencesHelper get preferencesHelper => _preferencesHelper;
-
-  RateService get rateService => _rateService;
 
   SearchApi get searchApi => _searchApi;
 
   SecureStorage get secureStorage => _secureStorage;
-
-  ShareService get shareService => _shareService;
 
   Future<bool> authenticateUser({
     required AuthMethod authMethod,
@@ -68,7 +47,8 @@ class AppService {
     String? emailAuthLink,
     AuthCredential? authCredential,
   }) async {
-    var hasConnection = await isConnected(buildContext);
+    var hasConnection =
+        await checkNetworkConnection(buildContext, notifyUser: true);
     if (!hasConnection) {
       return false;
     }
@@ -77,10 +57,10 @@ class AppService {
     if (authMethod == AuthMethod.email &&
         emailAddress != null &&
         emailAuthLink != null) {
-      authSuccessful = await _customAuth.emailAuthentication(
+      authSuccessful = await CustomAuth.emailAuthentication(
           emailAddress, emailAuthLink, buildContext);
     } else if (authMethod == AuthMethod.phone && authCredential != null) {
-      authSuccessful = await _customAuth.phoneNumberAuthentication(
+      authSuccessful = await CustomAuth.phoneNumberAuthentication(
           authCredential, buildContext);
     } else {
       authSuccessful = false;
@@ -96,28 +76,22 @@ class AppService {
   }
 
   Future<bool> deleteAccount(BuildContext buildContext) async {
-    var currentUser = _customAuth.getUser();
-    var hasConnection = await isConnected(buildContext);
-    if (currentUser == null || !hasConnection) {
-      ///TODO
-      /// notify user
-      /// Add more implementation
+    var currentUser = CustomAuth.getUser();
+    if (currentUser == null) {
+      return false;
+    }
+    var hasConnection =
+        await checkNetworkConnection(buildContext, notifyUser: true);
+    if (!hasConnection) {
       return false;
     }
 
     try {
       var id = currentUser.uid;
       await Future.wait([
-        _secureStorage.clearUserDetails(),
-        _preferencesHelper.clearPreferences(),
-        _cloudStore.deleteAccount(id),
+        CloudStore.deleteAccount(id),
         logEvent(AnalyticsEvent.deletedAccount),
-        _dbHelper.clearAccount().then((value) => {
-              Provider.of<PlaceDetailsModel>(buildContext, listen: false)
-                  .reloadFavouritePlaces(),
-              Provider.of<NotificationModel>(buildContext, listen: false)
-                  .loadNotifications()
-            })
+        _clearUserLocalStorage(buildContext),
       ]).then((value) => currentUser.delete());
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
@@ -132,7 +106,7 @@ class AppService {
       required BuildContext buildContext}) async {
     try {
       if (emailAddress != null) {
-        var methods = await _customAuth.firebaseAuth
+        var methods = await FirebaseAuth.instance
             .fetchSignInMethodsForEmail(emailAddress);
         return methods.isNotEmpty;
       }
@@ -149,10 +123,10 @@ class AppService {
 
   Future<void> fetchData(BuildContext buildContext) async {
     await Future.wait([
-      isConnected(buildContext),
+      checkNetworkConnection(buildContext, notifyUser: true),
       _fetchLatestMeasurements(),
       _fetchKya(),
-      _loadNotifications(buildContext),
+      _loadNotifications(),
       _loadFavPlaces(buildContext),
       fetchFavPlacesInsights(),
       updateFavouritePlacesSites(buildContext)
@@ -209,7 +183,7 @@ class AppService {
 
   Future<void> _fetchKya() async {
     try {
-      var kyas = await _cloudStore.getKya(_customAuth.getUserId());
+      var kyas = await CloudStore.getKya(CustomAuth.getUserId());
       await _dbHelper.insertKyas(kyas);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
@@ -232,27 +206,15 @@ class AppService {
     return userDetails;
   }
 
-  Future<bool> isConnected(BuildContext buildContext) async {
-    try {
-      final result = await InternetAddress.lookup('firebase.google.com');
-      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-        return true;
-      }
-    } catch (_) {}
-
-    await showSnackBar(buildContext, Config.connectionErrorMessage);
-    return false;
-  }
-
   bool isLoggedIn() {
-    return _customAuth.isLoggedIn();
+    return CustomAuth.isLoggedIn();
   }
 
   Future<void> _loadFavPlaces(BuildContext buildContext) async {
     try {
       var _offlineFavPlaces = await _dbHelper.getFavouritePlaces();
       var _cloudFavPlaces =
-          await _cloudStore.getFavPlaces(_customAuth.getUserId());
+          await CloudStore.getFavPlaces(CustomAuth.getUserId());
 
       for (var place in _offlineFavPlaces) {
         _cloudFavPlaces.removeWhere(
@@ -265,57 +227,79 @@ class AppService {
               Provider.of<PlaceDetailsModel>(buildContext, listen: false)
                   .reloadFavouritePlaces(),
             }),
-        _cloudStore.updateFavPlaces(_customAuth.getUserId(), favPlaces)
+        CloudStore.updateFavPlaces(CustomAuth.getUserId(), favPlaces)
       ]);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
   }
 
-  Future<void> _loadNotifications(BuildContext buildContext) async {
-    // TODO IMPLEMENT GET NOTIFICATIONS
-    await Provider.of<NotificationModel>(buildContext, listen: false)
-        .loadNotifications();
+  Future<void> _loadNotifications() async {
+    try {
+      var _offlineNotifications =
+          Hive.box<AppNotification>(HiveBox.appNotifications)
+              .values
+              .toList()
+              .cast<AppNotification>();
+
+      var _cloudNotifications = await CloudStore.getNotifications();
+
+      for (var notification in _offlineNotifications) {
+        _cloudNotifications.removeWhere(
+            (element) => element.id.equalsIgnoreCase(notification.id));
+      }
+
+      var notifications = [..._offlineNotifications, ..._cloudNotifications];
+
+      await AppNotification.load(notifications);
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+    }
   }
 
   Future<void> logEvent(AnalyticsEvent analyticsEvent) async {
     var loggedIn = isLoggedIn();
-    await _cloudAnalytics.logEvent(analyticsEvent, loggedIn);
+    await CloudAnalytics.logEvent(analyticsEvent, loggedIn);
   }
 
   Future<bool> logOut(buildContext) async {
-    var hasConnection = await isConnected(buildContext);
+    var hasConnection =
+        await checkNetworkConnection(buildContext, notifyUser: true);
     if (!hasConnection) {
-      await showSnackBar(buildContext, Config.connectionErrorMessage);
       return false;
     }
 
     try {
-      var userId = _customAuth.getUserId();
+      var userId = CustomAuth.getUserId();
 
       await Future.wait([
         _dbHelper
             .getFavouritePlaces()
-            .then((value) => _cloudStore.updateFavPlaces(userId, value)),
-        _cloudStore.updateProfileFields(userId, {'device': ''}),
-        _secureStorage.clearUserDetails(),
-        _preferencesHelper.clearPreferences(),
-        _dbHelper.clearAccount().then((value) => {
-              Provider.of<NotificationModel>(buildContext, listen: false)
-                  .loadNotifications(),
-              Provider.of<PlaceDetailsModel>(buildContext, listen: false)
-                  .reloadFavouritePlaces()
-            })
-      ]).then((value) => _customAuth.logOut(buildContext));
+            .then((value) => CloudStore.updateFavPlaces(userId, value)),
+        CloudStore.updateProfileFields(userId, {'device': ''}),
+        _clearUserLocalStorage(buildContext)
+      ]).then((value) => CustomAuth.logOut(buildContext));
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
     }
     return true;
   }
 
+  Future<void> _clearUserLocalStorage(BuildContext buildContext) async {
+    await Future.wait([
+      _secureStorage.clearUserDetails(),
+      SharedPreferencesHelper.clearPreferences(),
+      _dbHelper.clearAccount().then((value) => {
+            Provider.of<PlaceDetailsModel>(buildContext, listen: false)
+                .reloadFavouritePlaces()
+          }),
+      HiveStore.clearUserData()
+    ]);
+  }
+
   Future<void> postLoginActions(BuildContext buildContext) async {
     try {
-      var user = _customAuth.getUser();
+      var user = CustomAuth.getUser();
       if (user == null) {
         return;
       }
@@ -325,31 +309,25 @@ class AppService {
             scope.user = SentryUser(id: user.uid, email: user.email ?? ''),
       );
 
-      var hasConnection = await isConnected(buildContext);
+      var hasConnection = await checkNetworkConnection(buildContext);
       if (!hasConnection) {
         await showSnackBar(buildContext, Config.connectionErrorMessage);
         return;
       }
 
-      var userDetails = await _cloudStore.getProfile(user.uid);
-      userDetails ??= await _customAuth.createProfile();
+      var userDetails = await CloudStore.getProfile();
 
-      if (userDetails == null) {
-        return;
-      }
-
-      var device = await _firebaseMessaging.getToken();
       var utcOffset = DateTime.now().getUtcOffset();
-
+      var device = await CloudMessaging.getDeviceToken();
       if (device != null) {
-        await _cloudStore.updateProfileFields(
+        await CloudStore.updateProfileFields(
             user.uid, {'device': device, 'utcOffset': utcOffset});
       }
 
       await Future.wait([
         _secureStorage.updateUserDetails(userDetails),
-        _preferencesHelper.updatePreferences(userDetails.preferences),
-        _cloudStore.getFavPlaces(user.uid).then((value) => {
+        SharedPreferencesHelper.updatePreferences(userDetails.preferences),
+        CloudStore.getFavPlaces(user.uid).then((value) => {
               if (value.isNotEmpty)
                 {
                   _dbHelper.setFavouritePlaces(value),
@@ -357,13 +335,7 @@ class AppService {
                       .reloadFavouritePlaces(),
                 }
             }),
-        _cloudStore.getNotifications(user.uid).then((value) => {
-              if (value.isNotEmpty)
-                {
-                  Provider.of<NotificationModel>(buildContext, listen: false)
-                      .addAll(value),
-                }
-            }),
+        CloudStore.getNotifications(),
         _logPlatformType(),
         updateFavouritePlacesSites(buildContext)
       ]);
@@ -374,7 +346,7 @@ class AppService {
 
   Future<void> postSignUpActions(BuildContext buildContext) async {
     try {
-      var user = _customAuth.getUser();
+      var user = CustomAuth.getUser();
       if (user == null) {
         return;
       }
@@ -384,27 +356,27 @@ class AppService {
             scope.user = SentryUser(id: user.uid, email: user.email ?? ''),
       );
 
-      var hasConnection = await isConnected(buildContext);
+      var hasConnection =
+          await checkNetworkConnection(buildContext, notifyUser: true);
       if (!hasConnection) {
-        await showSnackBar(buildContext, Config.connectionErrorMessage);
         return;
       }
 
-      var userDetails = await _customAuth.createProfile();
+      var userDetails = await CustomAuth.createProfile();
 
       if (userDetails == null) {
         return;
       }
 
-      var device = await _firebaseMessaging.getToken();
+      var device = await CloudMessaging.getDeviceToken();
       if (device != null) {
         userDetails.device = device;
       }
 
       await Future.wait([
-        _cloudStore.updateProfile(userDetails, user.uid),
+        CloudStore.updateProfile(userDetails, user.uid),
         _secureStorage.updateUserDetails(userDetails),
-        _preferencesHelper.updatePreferences(userDetails.preferences),
+        SharedPreferencesHelper.updatePreferences(userDetails.preferences),
         logEvent(AnalyticsEvent.createUserProfile),
         _logNetworkProvider(userDetails),
         _logGender(userDetails),
@@ -417,17 +389,17 @@ class AppService {
 
   Future<void> refreshDashboard(BuildContext buildContext) async {
     await Future.wait([
-      isConnected(buildContext),
+      checkNetworkConnection(buildContext, notifyUser: true),
       _fetchLatestMeasurements(),
       _fetchKya(),
-      _loadNotifications(buildContext),
+      _loadNotifications(),
       updateFavouritePlacesSites(buildContext),
     ]);
   }
 
   Future<void> refreshAnalytics(BuildContext buildContext) async {
     await Future.wait([
-      isConnected(buildContext),
+      checkNetworkConnection(buildContext, notifyUser: true),
       _fetchLatestMeasurements(),
       _fetchKya(),
       fetchFavPlacesInsights(),
@@ -436,14 +408,14 @@ class AppService {
 
   Future<void> refreshKyaView(BuildContext buildContext) async {
     await Future.wait([
-      isConnected(buildContext),
+      checkNetworkConnection(buildContext, notifyUser: true),
       _fetchKya(),
     ]);
   }
 
   Future<void> refreshFavouritePlaces(BuildContext buildContext) async {
     await Future.wait([
-      isConnected(buildContext),
+      checkNetworkConnection(buildContext, notifyUser: true),
       fetchFavPlacesInsights(),
       updateFavouritePlacesSites(buildContext)
     ]);
@@ -453,9 +425,9 @@ class AppService {
       PlaceDetails placeDetails, BuildContext context) async {
     var isFav = await _dbHelper.updateFavouritePlace(placeDetails);
     if (isFav) {
-      await _cloudStore.addFavPlace(_customAuth.getUserId(), placeDetails);
+      await CloudStore.addFavPlace(CustomAuth.getUserId(), placeDetails);
     } else {
-      await _cloudStore.removeFavPlace(_customAuth.getUserId(), placeDetails);
+      await CloudStore.removeFavPlace(CustomAuth.getUserId(), placeDetails);
     }
 
     await Future.wait([
@@ -469,7 +441,7 @@ class AppService {
     var favPlaces = await _dbHelper.getFavouritePlaces();
     var updatedFavPlaces = <PlaceDetails>[];
     for (var favPlace in favPlaces) {
-      var nearestSite = await _locationService.getNearestSite(
+      var nearestSite = await LocationService.getNearestSite(
           favPlace.latitude, favPlace.longitude);
       if (nearestSite != null) {
         favPlace.siteId = nearestSite.id;
@@ -483,9 +455,9 @@ class AppService {
 
   Future<void> updateKya(Kya kya, BuildContext buildContext) async {
     await _dbHelper.updateKya(kya);
-    var connected = await isConnected(buildContext);
-    if (_customAuth.isLoggedIn() && connected) {
-      await _cloudStore.updateKyaProgress(_customAuth.getUserId(), kya);
+    var connected = await checkNetworkConnection(buildContext);
+    if (CustomAuth.isLoggedIn() && connected) {
+      await CloudStore.updateKyaProgress(CustomAuth.getUserId(), kya);
       if (kya.progress == kya.lessons.length) {
         await logEvent(AnalyticsEvent.completeOneKYA);
       }
@@ -494,13 +466,14 @@ class AppService {
 
   Future<bool> updateProfile(
       UserDetails userDetails, BuildContext buildContext) async {
-    var hasConnection = await isConnected(buildContext);
+    var hasConnection =
+        await checkNetworkConnection(buildContext, notifyUser: true);
     if (!hasConnection) {
       return false;
     }
 
     try {
-      var firebaseUser = _customAuth.getUser();
+      var firebaseUser = CustomAuth.getUser();
       if (firebaseUser == null) {
         throw Exception('You are not signed in');
       } else {
@@ -517,11 +490,11 @@ class AppService {
           ..preferences = userDetails.preferences
           ..device = userDetails.device
           ..userId = firebaseUser.uid
-          ..phoneNumber = _customAuth.getUser()?.phoneNumber ?? ''
-          ..emailAddress = _customAuth.getUser()?.email ?? '';
+          ..phoneNumber = CustomAuth.getUser()?.phoneNumber ?? ''
+          ..emailAddress = CustomAuth.getUser()?.email ?? '';
 
         await Future.wait([
-          _customAuth.updateUserProfile(userDetails),
+          CustomAuth.updateUserProfile(userDetails),
           _secureStorage.updateUserDetails(userDetails)
         ]);
 
@@ -534,7 +507,7 @@ class AppService {
           'phoneNumber': userDetails.phoneNumber,
         };
 
-        await _cloudStore.updateProfileFields(firebaseUser.uid, fields);
+        await CloudStore.updateProfileFields(firebaseUser.uid, fields);
         return true;
       }
     } catch (exception, stackTrace) {
@@ -582,21 +555,22 @@ class AppService {
   }
 
   /// TODO utilise this method
-  Future<void> _updateCredentials(
+  Future<void> updateCredentials(
       String? phone, String? email, BuildContext buildContext) async {
-    var hasConnection = await isConnected(buildContext);
+    var hasConnection =
+        await checkNetworkConnection(buildContext, notifyUser: true);
     if (!hasConnection) {
       return;
     }
 
     try {
-      var id = _customAuth.getUserId();
+      var id = CustomAuth.getUserId();
       if (phone != null) {
-        await _cloudStore.updateProfileFields(id, {'phoneNumber': phone});
+        await CloudStore.updateProfileFields(id, {'phoneNumber': phone});
         await _secureStorage.updateUserDetailsField('phoneNumber', phone);
       }
       if (email != null) {
-        await _cloudStore.updateProfileFields(id, {'emailAddress': email});
+        await CloudStore.updateProfileFields(id, {'emailAddress': email});
         await _secureStorage.updateUserDetailsField('emailAddress', email);
       }
     } catch (exception, stackTrace) {

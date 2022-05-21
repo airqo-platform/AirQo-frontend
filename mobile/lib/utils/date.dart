@@ -59,23 +59,23 @@ String getDateTime() {
 
 String getGreetings(String name) {
   if (name.isNull() || name.toLowerCase() == 'guest') {
-    return 'Hello';
+    name = '';
   }
 
   var hour = DateTime.now().hour;
   if (00 <= hour && hour < 12) {
-    return 'Good morning $name';
+    return 'Good morning $name'.trim();
   }
 
   if (12 <= hour && hour < 16) {
-    return 'Good afternoon $name';
+    return 'Good afternoon $name'.trim();
   }
 
   if (18 <= hour && hour <= 23) {
-    return 'Good evening $name';
+    return 'Good evening $name'.trim();
   }
 
-  return 'Hello $name';
+  return 'Hello $name'.trim();
 }
 
 String insightsChartTitleDateTimeToString(
@@ -118,12 +118,4 @@ String insightsChartTitleDateTimeToString(
     debugPrint('$exception\n$stackTrace');
     return dateTime.toString();
   }
-}
-
-DateTime tomorrow() {
-  return DateTime.now().add(const Duration(days: 1));
-}
-
-DateTime yesterday() {
-  return DateTime.now().subtract(const Duration(days: 1));
 }

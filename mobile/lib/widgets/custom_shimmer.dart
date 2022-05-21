@@ -3,117 +3,192 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
-Widget circularLoadingAnimation(double size) {
-  return SizedBox(
-      height: size,
-      width: size,
+class CircularLoadingAnimation extends StatelessWidget {
+  final double size;
+  const CircularLoadingAnimation({Key? key, required this.size})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+        height: size,
+        width: size,
+        child: Shimmer.fromColors(
+          baseColor: Config.appLoadingColor,
+          highlightColor: Colors.white,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Config.appLoadingColor,
+              shape: BoxShape.circle,
+            ),
+          ),
+        ));
+  }
+}
+
+class ContainerLoadingAnimation extends StatelessWidget {
+  final double radius;
+  final double height;
+  const ContainerLoadingAnimation(
+      {Key? key, required this.radius, required this.height})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: height,
       child: Shimmer.fromColors(
         baseColor: Config.appLoadingColor,
         highlightColor: Colors.white,
         child: Container(
-          decoration: BoxDecoration(
-            color: Config.appLoadingColor,
-            shape: BoxShape.circle,
-          ),
-        ),
-      ));
-}
-
-Widget containerLoadingAnimation(
-    {required double height, required double radius}) {
-  return SizedBox(
-    height: height,
-    child: Shimmer.fromColors(
-      baseColor: Config.appLoadingColor,
-      highlightColor: Colors.white,
-      child: Container(
-          constraints: BoxConstraints(minHeight: height, maxHeight: height),
-          decoration: BoxDecoration(
-              color: Config.appLoadingColor,
-              borderRadius: BorderRadius.all(Radius.circular(radius)))),
-    ),
-  );
+            constraints: BoxConstraints(minHeight: height, maxHeight: height),
+            decoration: BoxDecoration(
+                color: Config.appLoadingColor,
+                borderRadius: BorderRadius.all(Radius.circular(radius)))),
+      ),
+    );
+  }
 }
 
 void loadingScreen(BuildContext _context) async {
   await showDialog(
+      barrierColor: Colors.transparent,
       context: _context,
       barrierDismissible: false,
-      builder: (ctx) => Container(
-          decoration:
-              BoxDecoration(color: Config.appColorBlue.withOpacity(0.005)),
-          child: CupertinoActivityIndicator(
+      builder: (ctx) => CupertinoActivityIndicator(
             radius: 20,
             color: Config.appColorBlue,
-          )));
+          ));
 }
 
-Widget sizedContainerLoadingAnimation(
-    double height, double width, double radius) {
-  return SizedBox(
-    height: height,
-    width: width,
-    child: Shimmer.fromColors(
-      baseColor: Config.appLoadingColor,
-      highlightColor: Colors.white,
-      child: Container(
-          constraints: BoxConstraints(
-              minWidth: width,
-              minHeight: height,
-              maxWidth: width,
-              maxHeight: height),
-          decoration: BoxDecoration(
-              color: Config.appLoadingColor,
-              borderRadius: BorderRadius.all(Radius.circular(radius)))),
-    ),
-  );
+class SizedContainerLoadingAnimation extends StatelessWidget {
+  final double height;
+  final double width;
+  final double radius;
+  const SizedContainerLoadingAnimation(
+      {Key? key,
+      required this.height,
+      required this.width,
+      required this.radius})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: height,
+      width: width,
+      child: Shimmer.fromColors(
+        baseColor: Config.appLoadingColor,
+        highlightColor: Colors.white,
+        child: Container(
+            constraints: BoxConstraints(
+                minWidth: width,
+                minHeight: height,
+                maxWidth: width,
+                maxHeight: height),
+            decoration: BoxDecoration(
+                color: Config.appLoadingColor,
+                borderRadius: BorderRadius.all(Radius.circular(radius)))),
+      ),
+    );
+  }
 }
 
-Widget textLoadingAnimation(double height, double width) {
-  return SizedBox(
-    height: height,
-    width: width,
-    child: Shimmer.fromColors(
-      baseColor: Config.appLoadingColor,
-      highlightColor: Colors.white,
-      child: Container(
-          constraints: BoxConstraints(
-              minWidth: width,
-              minHeight: height,
-              maxWidth: width,
-              maxHeight: height),
-          decoration: BoxDecoration(
-              color: Config.appLoadingColor,
-              borderRadius: const BorderRadius.all(Radius.circular(2)))),
-    ),
-  );
+class TextLoadingAnimation extends StatelessWidget {
+  final double height;
+  final double width;
+  const TextLoadingAnimation(
+      {Key? key, required this.height, required this.width})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: height,
+      width: width,
+      child: Shimmer.fromColors(
+        baseColor: Config.appLoadingColor,
+        highlightColor: Colors.white,
+        child: Container(
+            constraints: BoxConstraints(
+                minWidth: width,
+                minHeight: height,
+                maxWidth: width,
+                maxHeight: height),
+            decoration: BoxDecoration(
+                color: Config.appLoadingColor,
+                borderRadius: const BorderRadius.all(Radius.circular(2)))),
+      ),
+    );
+  }
 }
 
-class LoadingOverlay {
-  BuildContext _context;
+class AnalyticsCardLoading extends StatelessWidget {
+  const AnalyticsCardLoading({Key? key}) : super(key: key);
 
-  factory LoadingOverlay.of(BuildContext context) {
-    return LoadingOverlay._create(context);
-  }
-
-  LoadingOverlay._create(this._context);
-
-  Future<T> during<T>(Future<T> future) {
-    show();
-    return future.whenComplete(hide);
-  }
-
-  void hide() {
-    Navigator.of(_context).pop();
-  }
-
-  void show() {
-    showDialog(
-        context: _context,
-        barrierDismissible: false,
-        builder: (ctx) => Container(
-            decoration:
-                const BoxDecoration(color: Color.fromRGBO(0, 0, 0, 0.5)),
-            child: const Center(child: CircularProgressIndicator())));
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.only(top: 32, bottom: 22),
+      constraints: const BoxConstraints(
+        maxHeight: 251,
+        minHeight: 251,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.all(Radius.circular(16.0)),
+        border: Border.all(color: Colors.transparent),
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 24, right: 24),
+            child: Row(
+              children: [
+                const CircularLoadingAnimation(size: 104),
+                const SizedBox(width: 16.0),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      SizedContainerLoadingAnimation(
+                          height: 15, width: 139, radius: 1000),
+                      SizedBox(
+                        height: 9,
+                      ),
+                      SizedContainerLoadingAnimation(
+                          height: 10, width: 115, radius: 1000),
+                      SizedBox(
+                        height: 12,
+                      ),
+                      SizedContainerLoadingAnimation(
+                          height: 24, width: 115, radius: 1000),
+                    ],
+                  ),
+                )
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          const Padding(
+            padding: EdgeInsets.only(left: 24, right: 24),
+            child: ContainerLoadingAnimation(height: 9, radius: 1000),
+          ),
+          const Divider(color: Color(0xffC4C4C4)),
+          const SizedBox(
+            height: 16,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: const [
+              SizedContainerLoadingAnimation(
+                  height: 20, width: 105, radius: 1000),
+              SizedContainerLoadingAnimation(
+                  height: 20, width: 105, radius: 1000),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }

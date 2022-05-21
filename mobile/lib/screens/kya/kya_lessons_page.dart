@@ -7,10 +7,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
+import '../../services/native_api.dart';
 import '../../themes/light_theme.dart';
 import '../../utils/exception.dart';
 import '../../widgets/custom_shimmer.dart';
 import 'kya_final_page.dart';
+import 'kya_widgets.dart';
 
 class KyaLessonsPage extends StatefulWidget {
   final Kya kya;
@@ -69,8 +71,8 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                 GestureDetector(
                   onTap: () async {
                     try {
-                      await _appService.shareService
-                          .shareKya(context, _globalKeys[currentIndex]);
+                      await ShareService.shareKya(
+                          context, _globalKeys[currentIndex]);
                     } catch (exception, stackTrace) {
                       await logException(exception, stackTrace);
                     }
@@ -89,30 +91,29 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
             ),
           ),
           body: Container(
-              alignment: Alignment.center,
               color: Config.appBodyColor,
               child: Column(
                 children: [
                   const Spacer(),
                   SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.75,
-                    child: ScrollablePositionedList.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: kya.lessons.length,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemBuilder: (context, index) {
-                        return Padding(
-                          padding: const EdgeInsets.only(
-                              top: 52, bottom: 40, left: 19, right: 19),
-                          child: SizedBox(
-                              width: screenSize.width * 0.9,
-                              child: _kyaCard(kya.lessons[index], index)),
-                        );
-                      },
-                      itemPositionsListener: itemPositionsListener,
-                      itemScrollController: itemScrollController,
-                    ),
-                  ),
+                      height: 400,
+                      child: ScrollablePositionedList.builder(
+                        padding: EdgeInsets.zero,
+                        scrollDirection: Axis.horizontal,
+                        itemCount: kya.lessons.length,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemBuilder: (context, index) {
+                          return Padding(
+                            padding: const EdgeInsets.only(
+                                left: 19, right: 19, bottom: 10),
+                            child: SizedBox(
+                                width: screenSize.width * 0.9,
+                                child: _kyaCard(kya.lessons[index], index)),
+                          );
+                        },
+                        itemPositionsListener: itemPositionsListener,
+                        itemScrollController: itemScrollController,
+                      )),
                   const Spacer(),
                   Padding(
                     padding: const EdgeInsets.only(left: 20, right: 20),
@@ -124,16 +125,16 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                               onTap: () {
                                 scrollToCard(direction: -1);
                               },
-                              child: circularButton(
-                                  'assets/icon/previous_arrow.svg')),
+                              child: const CircularKyaButton(
+                                  icon: 'assets/icon/previous_arrow.svg')),
                           visible: currentIndex > 0,
                         ),
                         GestureDetector(
                             onTap: () {
                               scrollToCard(direction: 1);
                             },
-                            child:
-                                circularButton('assets/icon/next_arrow.svg')),
+                            child: const CircularKyaButton(
+                                icon: 'assets/icon/next_arrow.svg')),
                       ],
                     ),
                   ),
@@ -142,22 +143,6 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                   ),
                 ],
               ))),
-    );
-  }
-
-  Widget circularButton(String icon) {
-    return Container(
-      height: 48,
-      width: 48,
-      padding: const EdgeInsets.all(15.0),
-      decoration: BoxDecoration(
-        color: Config.appColorPaleBlue,
-        shape: BoxShape.circle,
-      ),
-      child: SvgPicture.asset(
-        icon,
-        color: Config.appColorBlue,
-      ),
     );
   }
 
@@ -234,173 +219,67 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   Widget _kyaCard(KyaLesson kyaItem, int index) {
     return Card(
       color: Colors.white,
-      elevation: 20.0,
+      elevation: 5,
+      margin: EdgeInsets.zero,
       shadowColor: Config.appBodyColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Stack(
-        children: [
-          RepaintBoundary(
-            key: _globalKeys[index],
-            child: SizedBox(
-                width: 300,
-                height: 400,
-                child: _kyaShareCard(kya.lessons[index], index)),
-          ),
-          Container(
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: const BorderRadius.all(Radius.circular(16.0)),
-                border: Border.all(
-                  color: Colors.white,
-                )),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(
-                  height: 8.0,
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                  child: Container(
-                      height: 180,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: CachedNetworkImage(
-                            fit: BoxFit.fill,
-                            placeholder: (context, url) => SizedBox(
-                              child: containerLoadingAnimation(
-                                  height: 180, radius: 8),
-                            ),
-                            imageUrl: kyaItem.imageUrl,
-                            errorWidget: (context, url, error) => Icon(
-                              Icons.error_outline,
-                              color: Config.red,
-                            ),
-                          ))),
-                ),
-                const Spacer(),
-                Padding(
-                  padding: const EdgeInsets.only(left: 36, right: 36),
-                  child: AutoSizeText(
-                    kyaItem.title,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: CustomTextStyle.headline9(context),
-                  ),
-                ),
-                const SizedBox(
-                  height: 8.0,
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 16, right: 16),
-                  child: AutoSizeText(kyaItem.body,
-                      maxLines: 5,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.subtitle1?.copyWith(
-                          color: Config.appColorBlack.withOpacity(0.5))),
-                ),
-                const Spacer(),
-                SvgPicture.asset(
-                  'assets/icon/tips_graphics.svg',
-                  semanticsLabel: 'tips_graphics',
-                ),
-                const SizedBox(
-                  height: 30,
-                ),
-              ],
+      child: RepaintBoundary(
+        key: _globalKeys[index],
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 8.0, right: 8.0, top: 8.0),
+              child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: CachedNetworkImage(
+                    fit: BoxFit.fill,
+                    placeholder: (context, url) => const SizedBox(
+                      child: ContainerLoadingAnimation(height: 180, radius: 8),
+                    ),
+                    imageUrl: kyaItem.imageUrl,
+                    errorWidget: (context, url, error) => Icon(
+                      Icons.error_outline,
+                      color: Config.red,
+                    ),
+                  )),
             ),
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget _kyaShareCard(KyaLesson kyaItem, int index) {
-    return Container(
-      alignment: Alignment.center,
-      padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 2),
-      decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: const BorderRadius.all(Radius.circular(16.0)),
-          border: Border.all(color: Colors.transparent)),
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const SizedBox(
-            height: 8.0,
-          ),
-          Padding(
-            padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-            child: Container(
-              height: 180,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: index == currentIndex
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: CachedNetworkImage(
-                        fit: BoxFit.fill,
-                        placeholder: (context, url) => SizedBox(
-                          child:
-                              containerLoadingAnimation(height: 180, radius: 8),
-                        ),
-                        imageUrl: kyaItem.imageUrl,
-                        errorWidget: (context, url, error) => Icon(
-                          Icons.error_outline,
-                          color: Config.red,
-                        ),
-                      ))
-                  : ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: containerLoadingAnimation(height: 180, radius: 8)),
-            ),
-          ),
-          const Spacer(),
-          Padding(
-            padding: const EdgeInsets.only(left: 36, right: 36),
-            child: AutoSizeText(
-              kyaItem.title,
-              maxLines: 3,
-              minFontSize: 15,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: CustomTextStyle.headline9(context)?.copyWith(fontSize: 15),
-            ),
-          ),
-          const SizedBox(
-            height: 8.0,
-          ),
-          Padding(
-            padding: const EdgeInsets.only(left: 16, right: 16),
-            child: AutoSizeText(kyaItem.body,
-                maxLines: 10,
+            Padding(
+              padding: const EdgeInsets.only(left: 36, right: 36, top: 12.0),
+              child: AutoSizeText(
+                kyaItem.title,
+                maxLines: 2,
+                minFontSize: 20,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
-                minFontSize: 12,
-                style: Theme.of(context).textTheme.subtitle1?.copyWith(
-                    color: Config.appColorBlack.withOpacity(0.5),
-                    fontSize: 12)),
-          ),
-          const Spacer(),
-          SvgPicture.asset(
-            'assets/icon/tips_graphics.svg',
-            semanticsLabel: 'tips_graphics',
-          ),
-          const SizedBox(
-            height: 20.0,
-          ),
-        ],
+                style: CustomTextStyle.headline9(context),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 16, right: 16, top: 8.0),
+              child: AutoSizeText(kyaItem.body,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  minFontSize: 16,
+                  style: Theme.of(context)
+                      .textTheme
+                      .subtitle1
+                      ?.copyWith(color: Config.appColorBlack.withOpacity(0.5))),
+            ),
+            const Spacer(),
+            SvgPicture.asset(
+              'assets/icon/tips_graphics.svg',
+              semanticsLabel: 'tips_graphics',
+            ),
+            const SizedBox(
+              height: 30,
+            ),
+          ],
+        ),
       ),
     );
   }

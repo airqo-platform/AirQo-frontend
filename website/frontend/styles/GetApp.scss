@@ -42,10 +42,11 @@ $p-font:18px;
                     line-height: 10px;
                 }
                 span{
-                    color:$aq-blue-0;
+                    color: $aq-blue-2;
                     font-weight: 400;
-                    font-size: $p-font;
-                    line-height: 10px;
+                    font-size: 20px;
+                    line-height: 28px;
+                    width: 269px;
                 }
             }
             .get-btns{
@@ -53,66 +54,23 @@ $p-font:18px;
                 margin-top: 10%;
                 padding:0 0 0 30px;
 
-                button{
+                .get-btn {
                     color: $aq-white-0;
                     background-color: $aq-black-0;
-                    width:140px;
-                    border-radius: 7px;
+                    width: 178.14px;
+                    height: 60.44px;
+                    border-radius: 8px;
+                    outline: 0;
+                    border: 0;
                 }
-                .get-btn{
-                    @include flex-row();
-                    div{
-                        @include flex-column();
-                        text-align: left;
-                        padding:4px 0 2px 8px;
-                        opacity:0.9;
 
-                        small{
-                            font-size: 10px;
-                        }
-                        span{
-                            font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                            font-size: 17px;
-                        }
-                    }
-                    i{
-                        padding: 5px 0 2px 0
-                    }
-                    .apple-icon{
-                        width:28px;
-                        height:28px;
-                        fill:$aq-white-0;
-                    }
-                    .play-icon{
-                        width:25px;
-                        height:25px;
-                        fill:$aq-white-0;
-                    }
+                .get-ios {
+                    padding: 10.82px 17.67px 11.03px 13.86px;
                 }
+
                 .get-android{
-                    margin-left:18%;
-                    div{
-                        .google-play{
-                            @include flex-row();
-                            letter-spacing: 0.3px;
-                            padding:0;
-                            margin:0;
-                        }
-                        small{
-                            text-transform: uppercase;
-                        }
-                    }
-                    #google{
-                        font-family: serif;
-                        font-weight: 200;
-                        font-size: 17px;
-                    }
-                    #play{
-                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                        font-weight: 200;
-                        font-size: 16px;
-                        padding-left: 2px;
-                    }
+                    margin-left:33px;
+                    padding: 9.84px 12.61px 7.48px 13.6px;
                 }
             }
             .get-btn:hover, .get-btn:focus{
@@ -147,13 +105,14 @@ $p-font:18px;
 
 @media (max-width: $mainBreakPoint){
     .get-app{
-        padding:80px 0 30px 0;
-        margin:280px 0 100px 0;
+        padding: 80px 0 120px 0;
+        margin: 50% 0 0 0;
+        background-color: $aq-blue-1;
         .back-drop{
             @include flex-column();
             justify-content: center;
             flex-direction: column-reverse;
-            height:auto;
+            height: 100%;
             padding:0;
 
             .get-graphics{
@@ -172,8 +131,8 @@ $p-font:18px;
                 @include flex-column();
                 justify-content: center;
                 .get-text{
-                    padding: 10px 0 0 20px;
-                    max-width:270px;
+                    padding: 10px 17px 17px 20px;
+                    width: 100%;
                 }
                 .get-btns{
                     @include flex-column();
@@ -184,39 +143,14 @@ $p-font:18px;
                         outline: none;
                     }
                     .get-android{
-                        margin:4% 0 0 0;
-
-                        #google{
-                            font-size: 22px;
-                        }
-                        #play{
-                            font-size: 22px;
-                        }
+                        margin:0;
+                        margin-top: 21px;
                     }
                     .get-btn{
                         justify-content: center;
                         align-items: center;
                         padding:6px 0 4px 0;
-                        div{
-                            padding:2px 0 2px 0;
-                            small{
-                                font-size: 13px;
-                            }
-                            span{
-                                font-size: 22px;
-                            }
-                        }
-                        i{
-                            padding:0 6px 0 0;
-                        }
-                        .apple-icon{
-                            width:35px;
-                            height:35px;
-                        }
-                        .play-icon{
-                            width:30px;
-                            height:30px;
-                        }
+                        width: 100%;
                     }
                 }
             }

@@ -1,3 +1,7 @@
+import 'package:hive/hive.dart';
+
+part 'enum_constants.g.dart';
+
 enum AnalyticsEvent {
   browserAsAppGuest,
   createUserProfile,
@@ -17,6 +21,16 @@ enum AnalyticsEvent {
   airtelUser,
   otherNetwork,
   deletedAccount
+}
+
+@HiveType(typeId: 110, adapterName: 'AppNotificationTypeAdapter')
+enum AppNotificationType {
+  @HiveField(0)
+  appUpdate,
+  @HiveField(1)
+  reminder,
+  @HiveField(2)
+  welcomeMessage,
 }
 
 enum Region {
