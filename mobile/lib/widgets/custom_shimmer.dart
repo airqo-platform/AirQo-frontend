@@ -61,6 +61,23 @@ void loadingScreen(BuildContext _context) async {
           ));
 }
 
+class LoadingWidget extends StatelessWidget {
+  const LoadingWidget({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Config.appBodyColor,
+      child: Center(
+        child: CupertinoActivityIndicator(
+          radius: 20,
+          color: Config.appColorBlue,
+        ),
+      ),
+    );
+  }
+}
+
 class SizedContainerLoadingAnimation extends StatelessWidget {
   final double height;
   final double width;

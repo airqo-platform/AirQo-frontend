@@ -1,5 +1,6 @@
 import 'package:app/utils/extensions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -9,6 +10,7 @@ import '../services/firebase_service.dart';
 import '../services/native_api.dart';
 import '../services/notifications_svc.dart';
 import '../utils/exception.dart';
+import '../utils/network.dart';
 import 'enum_constants.dart';
 
 part 'profile.g.dart';
@@ -83,7 +85,8 @@ class Profile extends HiveObject {
   }
 
   static Future<Profile> getProfile() async {
-    return Hive.box<Profile>(HiveBox.profile).getAt(0) ?? await _initialize();
+    return Hive.box<Profile>(HiveBox.profile).get(HiveBox.profile) ??
+        await _initialize();
   }
 
   Gender getGender() {
@@ -115,6 +118,14 @@ class Profile extends HiveObject {
 
   Map<String, dynamic> toJson() => _$ProfileToJson(this);
 
+  static Future<void> syncProfile() async {
+    final hasConnection = await hasNetworkConnection();
+    if (hasConnection && CustomAuth.isLoggedIn()) {
+      final profile = await CloudStore.getProfile();
+      await profile.saveProfile();
+    }
+  }
+
   Future<void> saveProfile() async {
     var user = CustomAuth.getUser();
     if (user != null) {
@@ -132,23 +143,33 @@ class Profile extends HiveObject {
             await NotificationService.checkPermission()
         ..preferences.location = await LocationService.checkPermission();
     }
-    await save().then((_) => _updateCloudProfile());
+    await Hive.box<Profile>(HiveBox.profile)
+        .put(HiveBox.profile, this)
+        .then((_) => _updateCloudProfile());
   }
 
   static Future<void> _updateCloudProfile() async {
     try {
       var profile = await getProfile();
-
-      try {
-        await FirebaseFirestore.instance
-            .collection(Config.usersCollection)
-            .doc(profile.userId)
-            .update(profile.toJson());
-      } catch (exception) {
-        await FirebaseFirestore.instance
-            .collection(Config.usersCollection)
-            .doc(profile.userId)
-            .set(profile.toJson());
+      var currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        try {
+          await Future.wait([
+            currentUser.updateDisplayName(profile.firstName),
+            FirebaseFirestore.instance
+                .collection(Config.usersCollection)
+                .doc(profile.userId)
+                .update(profile.toJson())
+          ]);
+        } catch (exception) {
+          await Future.wait([
+            currentUser.updateDisplayName(profile.firstName),
+            FirebaseFirestore.instance
+                .collection(Config.usersCollection)
+                .doc(profile.userId)
+                .set(profile.toJson())
+          ]);
+        }
       }
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
@@ -191,13 +212,19 @@ class Profile extends HiveObject {
         ..preferences.notifications =
             await NotificationService.checkPermission()
         ..preferences.location = await LocationService.checkPermission();
+      await Hive.box<Profile>(HiveBox.profile).put(HiveBox.profile, profile);
+      await profile.saveProfile();
     }
-    await profile.saveProfile();
     return profile;
   }
 
   static Profile parseUserDetails(dynamic jsonBody) {
     return Profile.fromJson(jsonBody);
+  }
+
+  @override
+  String toString() {
+    return 'Profile{title: $title, firstName: $firstName, userId: $userId, lastName: $lastName, emailAddress: $emailAddress, phoneNumber: $phoneNumber, device: $device, utcOffset: $utcOffset, photoUrl: $photoUrl, preferences: $preferences}';
   }
 }
 
@@ -228,5 +255,10 @@ class UserPreferences extends HiveObject {
 
   static UserPreferences initialize() {
     return UserPreferences(notifications: false, location: false, aqShares: 0);
+  }
+
+  @override
+  String toString() {
+    return 'UserPreferences{notifications: $notifications, location: $location, aqShares: $aqShares}';
   }
 }

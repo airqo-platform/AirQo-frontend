@@ -26,7 +26,7 @@ class ProfileEditPage extends StatefulWidget {
 class _ProfileEditPageState extends State<ProfileEditPage> {
   final _formKey = GlobalKey<FormState>();
   final ImagePicker _imagePicker = ImagePicker();
-
+  bool _profileReady = false;
   String _profilePic = '';
   final TextEditingController _phoneEditor = TextEditingController();
   final TextEditingController _emailEditor = TextEditingController();
@@ -35,6 +35,9 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_profileReady) {
+      return const LoadingWidget();
+    }
     return Scaffold(
         appBar: EditProfileAppBar(
           updateProfile: _updateProfile,
@@ -226,12 +229,15 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   }
 
   Future<void> _initialize() async {
-    var _profile = await Profile.getProfile();
-    setState(() {
-      _phoneEditor.text = _profile.phoneNumber;
-      _emailEditor.text = _profile.emailAddress;
-      _profilePic = _profile.photoUrl;
-    });
+    await Profile.getProfile().then((value) => {
+          setState(() {
+            _profile = value;
+            _phoneEditor.text = value.phoneNumber;
+            _emailEditor.text = value.emailAddress;
+            _profilePic = value.photoUrl;
+            _profileReady = true;
+          }),
+        });
   }
 
   @override

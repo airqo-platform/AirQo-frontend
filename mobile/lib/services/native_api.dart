@@ -34,12 +34,13 @@ class LocationService {
   static Future<bool> allowLocationAccess() async {
     var enabled = await requestLocationAccess();
     if (enabled) {
-      await CloudAnalytics.logEvent(AnalyticsEvent.allowLocation, true);
+      await Future.wait([
+        CloudAnalytics.logEvent(AnalyticsEvent.allowLocation, true),
+        Profile.getProfile().then((profile) => profile.saveProfile())
+      ]);
     }
-    var profile = await Profile.getProfile()
-      ..preferences.location = enabled;
-    await profile.saveProfile();
-    return true;
+
+    return enabled;
   }
 
   static Future<bool> checkPermission() async {
@@ -55,14 +56,6 @@ class LocationService {
     return false;
   }
 
-  // Future<Address> getAddress(double lat, double lng) async {
-  //   var addresses = await getAddressGoogle(lat, lng);
-  //   if (addresses.isEmpty) {
-  //     addresses = await getLocalAddress(lat, lng);
-  //   }
-  //   return addresses.first;
-  // }
-
   static Future<Measurement?> defaultLocationPlace() async {
     final dbHelper = DBHelper();
     var measurement = await dbHelper.getNearestMeasurement(
@@ -72,23 +65,8 @@ class LocationService {
       return null;
     }
 
-    // var returnMeasurement = measurement;
-    // var address =
-    //     await getAddress(AppConfig.defaultLatitude,
-    //     AppConfig.defaultLongitude);
-    // returnMeasurement.site.name = address.thoroughfare;
-    // returnMeasurement.site.description = address.thoroughfare;
-
     return measurement;
   }
-
-  // Future<List<Address>> getAddressGoogle(double lat, double lang) async {
-  //   final coordinates = Coordinates(lat, lang);
-  //   List<Address> googleAddresses =
-  //       await Geocoder.google(AppConfig.googleApiKey)
-  //           .findAddressesFromCoordinates(coordinates);
-  //   return googleAddresses;
-  // }
 
   static Future<String> getAddress(double lat, double lng) async {
     var placeMarks = await placemarkFromCoordinates(lat, lng);
@@ -170,13 +148,6 @@ class LocationService {
     }
     return await Geolocator.getCurrentPosition();
   }
-
-  // Future<List<Address>> getLocalAddress(double lat, double lang) async {
-  //   final coordinates = Coordinates(lat, lang);
-  //   List<Address> localAddresses =
-  //       await Geocoder.local.findAddressesFromCoordinates(coordinates);
-  //   return localAddresses;
-  // }
 
   static Future<List<Measurement>> getNearbyLocationReadings() async {
     try {
@@ -267,21 +238,6 @@ class LocationService {
       return null;
     }
   }
-
-  // Future<bool> requestLocationAccess() async {
-  //   try {
-  //     var status = await location.requestPermission();
-  //     var id = CustomAuth.getId();
-  //     if (id != '') {
-  //       await CloudStore.updatePreferenceFields(
-  //           id, 'location', status == PermissionStatus.granted, 'bool');
-  //     }
-  //     return status == PermissionStatus.granted;
-  //   } catch (exception, stackTrace) {
-  //     debugPrint('$exception\n$stackTrace');
-  //   }
-  //   return false;
-  // }
 
   static Future<List<Measurement>> getNearestSites(
       double latitude, double longitude) async {

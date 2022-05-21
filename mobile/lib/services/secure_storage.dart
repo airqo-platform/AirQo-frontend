@@ -1,4 +1,3 @@
-import 'package:app/models/profile.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../utils/exception.dart';
@@ -6,23 +5,9 @@ import '../utils/exception.dart';
 class SecureStorage {
   final _secureStorage = const FlutterSecureStorage();
 
-  Future<void> clearUserDetails() async {
-    await _secureStorage.deleteAll();
-  }
-
-  Future<Profile> getUserDetails() async {
-    var userInfo = await _secureStorage.readAll();
-    var userDetails = await Profile.getProfile()
-      ..title = userInfo['title'] ?? 'Ms.'
-      ..firstName = userInfo['firstName'] ?? ''
-      ..lastName = userInfo['lastName'] ?? ''
-      ..photoUrl = userInfo['photoUrl'] ?? ''
-      ..userId = userInfo['userId'] ?? ''
-      ..device = userInfo['device'] ?? ''
-      ..emailAddress = userInfo['emailAddress'] ?? ''
-      ..phoneNumber = userInfo['phoneNumber'] ?? '';
-
-    return userDetails;
+  static Future<void> clearUserData() async {
+    const secureStorage = FlutterSecureStorage();
+    await secureStorage.deleteAll();
   }
 
   Future<void> updateUserDetailsField(String key, String value) async {

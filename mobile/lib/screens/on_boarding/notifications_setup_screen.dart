@@ -97,14 +97,13 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
 
   Future<void> _allowNotifications() async {
     loadingScreen(context);
-    var response = await NotificationService.allowNotifications();
-    if (response) {
+    await NotificationService.allowNotifications().then((_) {
       Navigator.pop(context);
-      await Navigator.pushAndRemoveUntil(context,
+      Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
         return const LocationSetupScreen();
       }), (r) => false);
-    }
+    });
   }
 
   Future<bool> onWillPop() {

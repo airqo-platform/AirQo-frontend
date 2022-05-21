@@ -121,7 +121,8 @@ class AppService {
       _loadNotifications(),
       _loadFavPlaces(buildContext),
       fetchFavPlacesInsights(),
-      updateFavouritePlacesSites(buildContext)
+      updateFavouritePlacesSites(buildContext),
+      Profile.syncProfile()
     ]);
   }
 
@@ -258,14 +259,17 @@ class AppService {
 
     try {
       var userId = CustomAuth.getUserId();
+      var profile = await Profile.getProfile();
 
       await Future.wait([
         _dbHelper
             .getFavouritePlaces()
             .then((value) => CloudStore.updateFavPlaces(userId, value)),
-        CloudStore.updateProfileFields(userId, {'device': ''}),
-        _clearUserLocalStorage(buildContext)
-      ]).then((value) => CustomAuth.logOut());
+        profile.saveProfile(),
+      ]).then((value) {
+        CustomAuth.logOut();
+        _clearUserLocalStorage(buildContext);
+      });
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
     }
@@ -274,25 +278,21 @@ class AppService {
 
   Future<void> _clearUserLocalStorage(BuildContext buildContext) async {
     await Future.wait([
-      _secureStorage.clearUserDetails(),
       SharedPreferencesHelper.clearPreferences(),
       _dbHelper.clearAccount().then((value) => {
             Provider.of<PlaceDetailsModel>(buildContext, listen: false)
                 .reloadFavouritePlaces()
           }),
-      HiveStore.clearUserData()
+      HiveStore.clearUserData(),
+      SecureStorage.clearUserData()
     ]);
   }
 
   Future<void> postLoginActions(BuildContext buildContext) async {
     try {
       await checkNetworkConnection(buildContext, notifyUser: true);
-      var profile = await Profile.getProfile();
-      var cloudProfile = await CloudStore.getProfile();
-      profile = {profile.toJson(), cloudProfile.toJson()} as Profile;
-
       await Future.wait([
-        profile.saveProfile(),
+        Profile.syncProfile(),
         CloudStore.getFavPlaces(CustomAuth.getUser()?.uid ?? '')
             .then((value) => {
                   if (value.isNotEmpty)
@@ -314,9 +314,8 @@ class AppService {
 
   static Future<void> postSignUpActions() async {
     try {
-      var profile = await Profile.getProfile();
       await Future.wait([
-        profile.saveProfile(),
+        Profile.getProfile(),
         logEvent(AnalyticsEvent.createUserProfile),
         logNetworkProvider(),
         logPlatformType(),

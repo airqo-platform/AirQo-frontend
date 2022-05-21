@@ -141,11 +141,11 @@ class NotificationService {
   static Future<bool> allowNotifications() async {
     var enabled = await requestPermission();
     if (enabled) {
-      await CloudAnalytics.logEvent(AnalyticsEvent.allowNotification, true);
+      await Future.wait([
+        CloudAnalytics.logEvent(AnalyticsEvent.allowNotification, true),
+        Profile.getProfile().then((profile) => profile.saveProfile())
+      ]);
     }
-    var profile = await Profile.getProfile()
-      ..preferences.notifications = enabled;
-    await profile.saveProfile();
-    return true;
+    return enabled;
   }
 }

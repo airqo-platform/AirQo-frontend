@@ -99,14 +99,13 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
 
   Future<void> _allowLocation() async {
     loadingScreen(context);
-    var response = await LocationService.allowLocationAccess();
-    if (response) {
+    await LocationService.allowLocationAccess().then((_) {
       Navigator.pop(context);
-      await Navigator.pushAndRemoveUntil(context,
+      Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (context) {
         return const SetUpCompleteScreen();
       }), (r) => false);
-    }
+    });
   }
 
   Future<bool> onWillPop() {

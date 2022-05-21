@@ -27,11 +27,15 @@ class ProfileView extends StatefulWidget {
 class _ProfileViewState extends State<ProfileView> {
   late Profile _profile;
   bool _isLoggedIn = false;
+  bool _profileReady = false;
   final AppService _appService = AppService();
   List<AppNotification> _unreadNotifications = <AppNotification>[];
 
   @override
   Widget build(BuildContext context) {
+    if (!_profileReady) {
+      return const LoadingWidget();
+    }
     return Scaffold(
         appBar: AppBar(
             toolbarHeight: 72,
@@ -165,6 +169,7 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   Future<void> _initialize() async {
+    setState(() => _isLoggedIn = CustomAuth.isLoggedIn());
     await Future.wait([_loadProfile(), _loadNotifications(), _initListeners()]);
   }
 
@@ -191,6 +196,10 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   Future<void> _loadNotifications() async {
+    if (!mounted) {
+      return;
+    }
+
     setState(() => _unreadNotifications =
         Hive.box<AppNotification>(HiveBox.appNotifications)
             .values
@@ -200,24 +209,30 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   Future<void> _loadProfile() async {
-    var profile = await Profile.getProfile();
-    setState(() => _profile = profile);
-    if (_profile.photoUrl != '' && mounted) {
+    if (!mounted) {
+      return;
+    }
+
+    await Profile.getProfile().then(
+        (value) => {setState(() => _profile = value), _profileReady = true});
+
+    if (_profile.photoUrl.isNotEmpty && mounted) {
       await precacheImage(
           CachedNetworkImageProvider(_profile.photoUrl), context);
     }
-    setState(() => _isLoggedIn = CustomAuth.isLoggedIn());
   }
 
   Future<void> _initListeners() async {
-    Hive.box<AppNotification>(HiveBox.appNotifications)
-        .watch()
-        .listen((_) => _loadNotifications())
-        .onDone(_loadNotifications);
-    Hive.box<Profile>(HiveBox.profile)
-        .watch()
-        .listen((_) => _loadProfile())
-        .onDone(_loadProfile);
+    if (CustomAuth.isLoggedIn()) {
+      Hive.box<AppNotification>(HiveBox.appNotifications)
+          .watch()
+          .listen((_) => _loadNotifications())
+          .onDone(_loadNotifications);
+      Hive.box<Profile>(HiveBox.profile)
+          .watch()
+          .listen((_) => _loadProfile())
+          .onDone(_loadProfile);
+    }
   }
 
   Future<void> _viewProfile() async {
