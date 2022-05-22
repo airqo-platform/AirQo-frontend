@@ -2,8 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../constants/config.dart';
-import '../models/kya.dart';
+import '../../constants/config.dart';
+import '../../models/kya.dart';
 
 Widget kyaCard(KyaLesson kyaItem, Size screenSize) {
   return Padding(

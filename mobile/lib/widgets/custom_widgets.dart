@@ -11,7 +11,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../models/enum_constants.dart';
-import '../themes/light_theme.dart';
+import '../themes/app_theme.dart';
 import 'buttons.dart';
 
 class AppRefreshIndicator extends StatelessWidget {

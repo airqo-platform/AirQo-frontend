@@ -5,7 +5,7 @@ import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../widgets/analytics_card.dart';
+import '../analytics/analytics_card.dart';
 import 'favourite_places_widgets.dart';
 
 class FavouritePlaces extends StatefulWidget {

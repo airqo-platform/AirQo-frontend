@@ -5,16 +5,14 @@ import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/suggestion.dart';
-import 'package:app/themes/dark_theme.dart';
-import 'package:app/themes/light_theme.dart';
+import 'package:app/screens/analytics/analytics_card.dart';
+import 'package:app/themes/app_theme.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/utils/pm.dart';
-import 'package:app/widgets/analytics_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/enum_constants.dart';
 import '../../services/app_service.dart';
@@ -710,20 +708,7 @@ class _MapViewState extends State<MapView> {
   }
 
   Future<void> _loadTheme() async {
-    var prefs = await SharedPreferences.getInstance();
-    var theme = prefs.getString(Config.prefAppTheme) ?? 'light';
-
-    switch (theme) {
-      case 'light':
-        await _mapController.setMapStyle(jsonEncode(googleMapsLightTheme));
-        break;
-      case 'dark':
-        await _mapController.setMapStyle(jsonEncode(googleMapsDarkTheme));
-        break;
-      default:
-        await _mapController.setMapStyle(jsonEncode(googleMapsLightTheme));
-        break;
-    }
+    await _mapController.setMapStyle(jsonEncode(googleMapsTheme));
   }
 
   Future<void> _onMapCreated(GoogleMapController controller) async {

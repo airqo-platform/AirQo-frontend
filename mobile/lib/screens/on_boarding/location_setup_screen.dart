@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 
 import '../../services/local_storage.dart';
 import '../../services/native_api.dart';
-import '../../themes/light_theme.dart';
+import '../../themes/app_theme.dart';
 import '../../widgets/custom_shimmer.dart';
 import 'on_boarding_widgets.dart';
 

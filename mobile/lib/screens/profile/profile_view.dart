@@ -13,7 +13,7 @@ import 'package:hive/hive.dart';
 
 import '../../models/notification.dart';
 import '../../services/firebase_service.dart';
-import '../../themes/light_theme.dart';
+import '../../themes/app_theme.dart';
 import '../auth/phone_auth_widget.dart';
 import '../notification/notification_page.dart';
 

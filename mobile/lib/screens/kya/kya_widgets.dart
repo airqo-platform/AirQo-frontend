@@ -5,7 +5,7 @@ import 'package:flutter_svg/svg.dart';
 
 import '../../constants/config.dart';
 import '../../models/kya.dart';
-import '../../themes/light_theme.dart';
+import '../../themes/app_theme.dart';
 import 'kya_title_page.dart';
 
 class CircularKyaButton extends StatelessWidget {

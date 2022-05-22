@@ -22,7 +22,7 @@ import 'package:visibility_detector/visibility_detector.dart';
 
 import '../../models/enum_constants.dart';
 import '../../services/native_api.dart';
-import '../../themes/light_theme.dart';
+import '../../themes/app_theme.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/custom_shimmer.dart';
 import '../../widgets/custom_widgets.dart';

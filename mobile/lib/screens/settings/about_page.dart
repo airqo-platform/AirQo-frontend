@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-import '../themes/light_theme.dart';
+import '../../themes/app_theme.dart';
 
 class AboutAirQo extends StatefulWidget {
   const AboutAirQo({Key? key}) : super(key: key);

@@ -8,7 +8,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import '../../services/native_api.dart';
-import '../../themes/light_theme.dart';
+import '../../themes/app_theme.dart';
 import '../../utils/exception.dart';
 import '../../widgets/custom_shimmer.dart';
 import 'kya_final_page.dart';

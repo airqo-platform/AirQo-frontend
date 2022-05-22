@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../constants/config.dart';
-import '../themes/light_theme.dart';
+import '../themes/app_theme.dart';
 
 class NextButton extends StatelessWidget {
   final String? text;

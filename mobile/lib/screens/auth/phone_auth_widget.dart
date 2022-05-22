@@ -8,12 +8,11 @@ import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/enum_constants.dart';
 import '../../services/firebase_service.dart';
-import '../../themes/light_theme.dart';
+import '../../themes/app_theme.dart';
 import '../../utils/network.dart';
 import '../../widgets/custom_shimmer.dart';
 import '../on_boarding/profile_setup_screen.dart';

@@ -4,9 +4,9 @@ import 'package:app/models/place_details.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:flutter/cupertino.dart';
 
-import '../services/app_service.dart';
-import '../widgets/analytics_card.dart';
-import '../widgets/custom_widgets.dart';
+import '../../services/app_service.dart';
+import '../../widgets/custom_widgets.dart';
+import 'analytics_card.dart';
 
 class AnalyticsView extends StatefulWidget {
   const AnalyticsView({Key? key}) : super(key: key);

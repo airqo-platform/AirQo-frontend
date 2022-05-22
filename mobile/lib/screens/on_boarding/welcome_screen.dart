@@ -6,7 +6,7 @@ import 'package:flutter_svg/svg.dart';
 
 import '../../models/enum_constants.dart';
 import '../../services/local_storage.dart';
-import '../../themes/light_theme.dart';
+import '../../themes/app_theme.dart';
 import '../auth/phone_auth_widget.dart';
 import 'on_boarding_widgets.dart';
 

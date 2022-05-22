@@ -12,14 +12,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'constants/config.dart';
 import 'firebase_options.dart';
 import 'models/place_details.dart';
-import 'providers/theme_provider.dart';
-import 'themes/dark_theme.dart';
-import 'themes/light_theme.dart';
+import 'themes/app_theme.dart';
 
 void main() async {
   HttpOverrides.global = AppHttpOverrides();
@@ -46,9 +43,6 @@ void main() async {
       }
     });
   }
-  final prefs = await SharedPreferences.getInstance();
-  final themeController = ThemeController(prefs);
-
   if (kReleaseMode) {
     await SentryFlutter.init(
       (options) {
@@ -57,57 +51,37 @@ void main() async {
           ..enableOutOfMemoryTracking = true
           ..tracesSampleRate = 1.0;
       },
-      appRunner: () => runApp(AirQoApp(themeController: themeController)),
+      appRunner: () => runApp(AirQoApp()),
     );
   } else {
-    runApp(AirQoApp(themeController: themeController));
+    runApp(AirQoApp());
   }
 }
 
 class AirQoApp extends StatelessWidget {
-  final ThemeController themeController;
   final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
 
-  AirQoApp({Key? key, required this.themeController}) : super(key: key);
+  AirQoApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: themeController,
-      builder: (context, _) {
-        return ThemeControllerProvider(
-          controller: themeController,
-          child: MultiProvider(
-            providers: [
-              ChangeNotifierProvider(create: (context) => PlaceDetailsModel()),
-            ],
-            builder: (context, child) {
-              return MaterialApp(
-                debugShowCheckedModeBanner: false,
-                navigatorObservers: [
-                  FirebaseAnalyticsObserver(analytics: analytics),
-                  SentryNavigatorObserver(),
-                ],
-                title: 'AirQo',
-                theme: _buildCurrentTheme(),
-                home: const SplashScreen(),
-              );
-            },
-          ),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => PlaceDetailsModel()),
+      ],
+      builder: (context, child) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          navigatorObservers: [
+            FirebaseAnalyticsObserver(analytics: analytics),
+            SentryNavigatorObserver(),
+          ],
+          title: 'AirQo',
+          theme: customTheme(),
+          home: const SplashScreen(),
         );
       },
     );
-  }
-
-  ThemeData _buildCurrentTheme() {
-    switch (themeController.currentTheme) {
-      case 'dark':
-        return darkTheme();
-      case 'light':
-        return lightTheme();
-      default:
-        return lightTheme();
-    }
   }
 }
 

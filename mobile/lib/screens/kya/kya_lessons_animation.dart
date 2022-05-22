@@ -3,7 +3,7 @@ import 'package:app/models/kya.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../widgets/kya_cards.dart';
+import 'kya_cards.dart';
 
 class KyaLessonAnimation extends StatefulWidget {
   final Kya kya;

@@ -16,12 +16,12 @@ import 'package:flutter_svg/svg.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
-import '../models/enum_constants.dart';
-import '../services/native_api.dart';
-import '../themes/light_theme.dart';
-import 'buttons.dart';
-import 'custom_shimmer.dart';
-import 'custom_widgets.dart';
+import '../../models/enum_constants.dart';
+import '../../services/native_api.dart';
+import '../../themes/app_theme.dart';
+import '../../widgets/buttons.dart';
+import '../../widgets/custom_shimmer.dart';
+import '../../widgets/custom_widgets.dart';
 
 class MapAnalyticsMoreInsights extends StatelessWidget {
   final PlaceDetails placeDetails;

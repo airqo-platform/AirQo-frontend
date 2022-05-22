@@ -12,11 +12,11 @@ import '../../models/profile.dart';
 import '../../services/firebase_service.dart';
 import '../../services/native_api.dart';
 import '../../services/notifications_svc.dart';
-import '../about_page.dart';
 import '../auth/email_reauthenticate_screen.dart';
 import '../auth/phone_auth_widget.dart';
 import '../auth/phone_reauthenticate_screen.dart';
 import '../feedback/feedback_page.dart';
+import 'about_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({Key? key}) : super(key: key);

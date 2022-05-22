@@ -7,7 +7,7 @@ import '../../constants/config.dart';
 import '../../models/enum_constants.dart';
 import '../../models/measurement.dart';
 import '../../models/suggestion.dart';
-import '../../themes/light_theme.dart';
+import '../../themes/app_theme.dart';
 import '../../widgets/custom_widgets.dart';
 
 class DraggingHandle extends StatelessWidget {

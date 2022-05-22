@@ -7,7 +7,7 @@ import '../../constants/config.dart';
 import '../../models/enum_constants.dart';
 import '../../models/kya.dart';
 import '../../models/measurement.dart';
-import '../../themes/light_theme.dart';
+import '../../themes/app_theme.dart';
 import '../../utils/pm.dart';
 import '../../widgets/custom_shimmer.dart';
 import '../kya/kya_widgets.dart';

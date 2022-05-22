@@ -26,7 +26,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../models/enum_constants.dart';
 import '../models/profile.dart';
-import '../themes/light_theme.dart';
+import '../themes/app_theme.dart';
 import '../utils/exception.dart';
 import 'firebase_service.dart';
 

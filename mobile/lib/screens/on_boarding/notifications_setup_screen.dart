@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import '../../models/enum_constants.dart';
 import '../../services/local_storage.dart';
 import '../../services/notifications_svc.dart';
-import '../../themes/light_theme.dart';
+import '../../themes/app_theme.dart';
 import '../../widgets/custom_shimmer.dart';
 import 'location_setup_screen.dart';
 import 'on_boarding_widgets.dart';

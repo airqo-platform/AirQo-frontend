@@ -136,7 +136,6 @@ List<Recommendation> getHealthRecommendations(
           'Reduce the intensity of your outdoor activities',
           'assets/images/old_man.png'));
   } else {}
-  recommendations.shuffle();
   return recommendations;
 }
 

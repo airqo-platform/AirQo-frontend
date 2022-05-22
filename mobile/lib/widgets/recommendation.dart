@@ -3,7 +3,7 @@ import 'package:app/utils/pm.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
-import '../themes/light_theme.dart';
+import '../themes/app_theme.dart';
 
 class RecommendationContainer extends StatelessWidget {
   final Recommendation recommendation;

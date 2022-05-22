@@ -1,7 +1,7 @@
 import 'package:app/constants/config.dart';
 import 'package:flutter/material.dart';
 
-const googleMapsLightTheme = [
+const googleMapsTheme = [
   {
     'elementType': 'geometry.fill',
     'stylers': [
@@ -257,7 +257,7 @@ const googleMapsLightTheme = [
   }
 ];
 
-ThemeData lightTheme() {
+ThemeData customTheme() {
   final base = ThemeData.light();
 
   /// height := line height * fontSize

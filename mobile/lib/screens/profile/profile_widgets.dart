@@ -8,7 +8,7 @@ import 'package:flutter_svg/svg.dart';
 
 import '../../constants/config.dart';
 import '../../models/profile.dart';
-import '../../themes/light_theme.dart';
+import '../../themes/app_theme.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/custom_shimmer.dart';
 import '../auth/phone_auth_widget.dart';

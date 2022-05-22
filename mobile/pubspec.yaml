@@ -26,16 +26,16 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
-  shared_preferences: ^2.0.13
-  google_maps_flutter: ^2.1.4
+  shared_preferences: ^2.0.15
+  google_maps_flutter: ^2.1.5
   json_annotation: ^4.5.0
   http: ^0.13.4
   sqflite: ^2.0.2+1
-  cached_network_image: ^3.2.0
+  cached_network_image: ^3.2.1
   geolocator: ^8.2.1
-  flutter_local_notifications: ^9.5.2
-  url_launcher: ^6.1.0
-  path_provider: ^2.0.9
+  flutter_local_notifications: ^9.5.3+1
+  url_launcher: ^6.1.2
+  path_provider: ^2.0.10
   animations: ^2.0.2
   provider: ^6.0.2
   charts_flutter: ^0.12.0
@@ -44,10 +44,10 @@ dependencies:
   flutter_svg: ^1.0.3
   camera: ^0.9.4+21
   location: ^4.3.0
-  image_picker: ^0.8.5
+  image_picker: ^0.8.5+3
   country_list_pick: ^1.0.1+5
   shimmer: ^2.0.0
-  google_fonts: ^2.3.2
+  google_fonts: ^3.0.0
   in_app_review: ^2.0.4
   sentry_flutter: ^6.5.1
   lottie: ^1.3.0
@@ -56,18 +56,18 @@ dependencies:
   geocoding: ^2.0.4
   flutter_dotenv: ^5.0.2
   auto_size_text: ^3.0.0
-  firebase_core: ^1.16.0
-  firebase_messaging: ^11.3.0
-  cloud_firestore: ^3.1.14
-  firebase_auth: ^3.3.17
-  firebase_analytics: ^9.1.7
-  firebase_storage: ^10.2.15
-  scrollable_positioned_list: ^0.2.3
-  visibility_detector: ^0.2.2
+  firebase_core: ^1.17.0
+  firebase_messaging: ^11.4.0
+  cloud_firestore: ^3.1.15
+  firebase_auth: ^3.3.18
+  firebase_analytics: ^9.1.8
+  firebase_storage: ^10.2.16
+  scrollable_positioned_list: ^0.3.2
+  visibility_detector: ^0.3.3
   package_info_plus: ^1.4.2
-  cloud_functions: ^3.2.14
-  webview_flutter: ^3.0.2
-  hive: ^2.1.0
+  cloud_functions: ^3.2.15
+  webview_flutter: ^3.0.4
+  hive: ^2.2.1
   hive_flutter: ^1.1.0
   firebase_in_app_messaging: ^0.6.0+14
   # https://pub.dev/packages/permission_handler

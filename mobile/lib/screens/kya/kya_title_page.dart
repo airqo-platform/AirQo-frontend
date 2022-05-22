@@ -4,7 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../themes/light_theme.dart';
+import '../../themes/app_theme.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/custom_widgets.dart';
 import 'kya_lessons_page.dart';

@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/enum_constants.dart';
 import '../../services/local_storage.dart';
-import '../../themes/light_theme.dart';
+import '../../themes/app_theme.dart';
 import 'notifications_setup_screen.dart';
 import 'on_boarding_widgets.dart';
 

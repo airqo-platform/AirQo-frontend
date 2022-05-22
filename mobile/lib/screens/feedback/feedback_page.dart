@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../services/app_service.dart';
-import '../../themes/light_theme.dart';
+import '../../themes/app_theme.dart';
 import 'feedback_page_widgets.dart';
 
 class FeedbackPage extends StatefulWidget {
