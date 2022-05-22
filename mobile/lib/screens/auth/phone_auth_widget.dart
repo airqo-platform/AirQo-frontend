@@ -8,6 +8,7 @@ import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/enum_constants.dart';
@@ -558,6 +559,20 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
     }
 
     if (_phoneFormKey.currentState!.validate()) {
+      var phoneNumber = '$_countryCode$_phoneNumber';
+
+      final action = await showDialog<ConfirmationAction>(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const ConfirmationDialog();
+        },
+      );
+
+      if (action == null || action == ConfirmationAction.cancel) {
+        return;
+      }
+
       FocusScope.of(context).requestFocus(FocusNode());
       setState(() {
         _nextBtnColor = Config.appColorDisabled;
@@ -574,8 +589,6 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
         });
         return;
       }
-
-      var phoneNumber = '$_countryCode$_phoneNumber';
 
       if (widget.authProcedure == AuthProcedure.signup) {
         var phoneNumberTaken = await _appService.doesUserExist(

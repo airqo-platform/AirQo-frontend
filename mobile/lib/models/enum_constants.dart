@@ -48,6 +48,8 @@ enum Frequency { daily, hourly }
 
 enum Gender { male, female, undefined }
 
+enum ConfirmationAction { cancel, ok }
+
 enum OnBoardingPage {
   signup,
   profile,

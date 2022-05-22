@@ -2,6 +2,7 @@ import 'package:app/constants/config.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/utils/pm.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -278,4 +279,34 @@ Future<void> showSnackBar(context, String message) async {
     backgroundColor: Config.snackBarBgColor,
   );
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
+}
+
+class ConfirmationDialog extends StatelessWidget {
+  const ConfirmationDialog({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoAlertDialog(
+      title: const Text('Confirm Number'),
+      content: const Text('We shall send a verification code to this number'),
+      actions: <Widget>[
+        CupertinoDialogAction(
+          onPressed: () {
+            Navigator.of(context).pop(ConfirmationAction.cancel);
+          },
+          child: const Text('Cancel'),
+          isDefaultAction: true,
+          isDestructiveAction: true,
+        ),
+        CupertinoDialogAction(
+          onPressed: () {
+            Navigator.of(context).pop(ConfirmationAction.ok);
+          },
+          child: const Text('Proceed'),
+          isDefaultAction: true,
+          isDestructiveAction: false,
+        ),
+      ],
+    );
+  }
 }
