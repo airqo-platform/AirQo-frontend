@@ -42,9 +42,6 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
 
   const [errors, setErrors] = useState({});
 
-  const [site, setSite] = useState(
-    filterSite(siteOptions, deviceData.site && deviceData.site._id)
-  );
   const [editLoading, setEditLoading] = useState(false);
 
   const handleTextFieldChange = (event) => {

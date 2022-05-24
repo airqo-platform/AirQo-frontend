@@ -33,6 +33,7 @@ const SiteForm = ({ site }) => {
   const dispatch = useDispatch();
   const goBackUrl = useSiteBackUrl();
 
+  const [loading, setLoading] = useState(false);
   const [siteInfo, setSiteInfo] = useState({});
   const [errors, setErrors] = useState({});
 
@@ -48,7 +49,15 @@ const SiteForm = ({ site }) => {
     dispatch(loadSitesData());
   };
 
+  const weightedBool = (primary, secondary) => {
+    if (primary) {
+      return primary;
+    }
+    return secondary;
+  };
+
   const handleSubmit = async () => {
+    setLoading(true);
     await updateSiteApi(site._id, siteInfo)
       .then((responseData) => {
         dispatch(
@@ -73,6 +82,7 @@ const SiteForm = ({ site }) => {
           })
         );
       });
+    setLoading(false);
   };
 
   return (
@@ -333,7 +343,7 @@ const SiteForm = ({ site }) => {
           <Button
             variant="contained"
             color="primary"
-            disabled={isEmpty(siteInfo)}
+            disabled={weightedBool(loading, isEmpty(siteInfo))}
             onClick={handleSubmit}
             style={{ marginLeft: "10px" }}
           >
