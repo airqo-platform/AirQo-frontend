@@ -60,6 +60,11 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
     });
   };
 
+  const handleCancel = () => {
+    setEditData(deviceData);
+    setErrors({});
+  };
+
   const handleEditSubmit = async () => {
     setEditLoading(true);
 
@@ -70,9 +75,9 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
         editData.deployment_date
       ).toISOString();
 
-    if (isEmpty(editData.latitude)) delete editData.latitude;
-
-    if (isEmpty(editData.longitude)) delete editData.longitude;
+    Object.keys(editData).map((key) => {
+      if (isEmpty(editData[key])) delete editData[key];
+    });
 
     await updateDeviceDetails(deviceData._id, editData)
       .then((responseData) => {
@@ -365,7 +370,7 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
             xs={12}
             style={{ margin: "10px 0" }}
           >
-            <Button variant="contained" onClick={() => setEditData(deviceData)}>
+            <Button variant="contained" onClick={handleCancel}>
               Cancel
             </Button>
 
