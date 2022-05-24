@@ -35,9 +35,10 @@ const EDIT_OMITTED_KEYS = [
 
 const EditDeviceForm = ({ deviceData, siteOptions }) => {
   const dispatch = useDispatch();
-  const [editData, setEditData] = useState({
-    ...omit(deviceData, EDIT_OMITTED_KEYS),
-  });
+  // const [editData, setEditData] = useState({
+  //   ...omit(deviceData, EDIT_OMITTED_KEYS),
+  // });
+  const [editData, setEditData] = useState({});
 
   const [errors, setErrors] = useState({});
 
@@ -61,23 +62,17 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
   };
 
   const handleCancel = () => {
-    setEditData(deviceData);
+    setEditData({});
     setErrors({});
   };
 
   const handleEditSubmit = async () => {
     setEditLoading(true);
 
-    if (site && site.value) editData.site_id = site.value;
-
     if (editData.deployment_date)
       editData.deployment_date = new Date(
         editData.deployment_date
       ).toISOString();
-
-    Object.keys(editData).map((key) => {
-      if (isEmpty(editData[key])) delete editData[key];
-    });
 
     await updateDeviceDetails(deviceData._id, editData)
       .then((responseData) => {
@@ -134,7 +129,7 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               id="long_name"
               label="Name"
               variant="outlined"
-              value={editData.long_name}
+              defaultValue={deviceData.long_name}
               onChange={handleTextFieldChange}
               error={!!errors.long_name}
               helperText={errors.long_name}
@@ -148,7 +143,7 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               variant="outlined"
               id="description"
               label="Description"
-              value={editData.description}
+              defaultValue={deviceData.description}
               onChange={handleTextFieldChange}
               error={!!errors.description}
               helperText={errors.description}
@@ -162,7 +157,7 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               variant="outlined"
               id="phoneNumber"
               label="Phone Number"
-              value={editData.phoneNumber}
+              defaultValue={deviceData.phoneNumber}
               onChange={handleTextFieldChange}
               error={!!errors.phoneNumber}
               helperText={errors.phoneNumber}
@@ -177,7 +172,7 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               variant="outlined"
               id="latitude"
               label="Latitude"
-              value={editData.latitude}
+              defaultValue={deviceData.latitude}
               onChange={handleTextFieldChange}
               error={!!errors.latitude}
               helperText={errors.latitude}
@@ -191,7 +186,7 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               variant="outlined"
               id="longitude"
               label="Longitude"
-              value={editData.longitude}
+              defaultValue={deviceData.longitude}
               onChange={handleTextFieldChange}
               error={!!errors.longitude}
               helperText={errors.longitude}
@@ -204,7 +199,7 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               fullWidth
               label="Data Access"
               style={{ margin: "10px 0" }}
-              value={editData.visibility}
+              defaultValue={deviceData.visibility}
               onChange={handleSelectFieldChange("visibility")}
               SelectProps={{
                 native: true,
@@ -224,7 +219,7 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               fullWidth
               label="Internet Service Provider"
               style={{ margin: "10px 0" }}
-              value={editData.ISP}
+              defaultValue={deviceData.ISP}
               onChange={handleSelectFieldChange("ISP")}
               SelectProps={{
                 native: true,
@@ -246,7 +241,7 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
               fullWidth
               label="Primary Device In Location"
               style={{ margin: "10px 0" }}
-              value={editData.isPrimaryInLocation}
+              defaultValue={deviceData.isPrimaryInLocation}
               onChange={handleSelectFieldChange("isPrimaryInLocation")}
               SelectProps={{
                 native: true,
@@ -377,10 +372,7 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
             <Button
               variant="contained"
               color="primary"
-              disabled={weightedBool(
-                editLoading,
-                isEqual(deviceData, editData)
-              )}
+              disabled={weightedBool(editLoading, isEmpty(editData))}
               onClick={handleEditSubmit}
               style={{ marginLeft: "10px" }}
             >
