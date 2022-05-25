@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { isEmpty, isEqual } from "underscore";
+import { isEmpty } from "underscore";
 import PropTypes from "prop-types";
 import { useHistory, useParams } from "react-router-dom";
 import { ArrowBackIosRounded } from "@material-ui/icons";
@@ -33,14 +33,10 @@ const SiteForm = ({ site }) => {
   const dispatch = useDispatch();
   const goBackUrl = useSiteBackUrl();
 
-  const [siteInfo, setSiteInfo] = useState(site);
+  const [loading, setLoading] = useState(false);
+  const [siteInfo, setSiteInfo] = useState({});
   const [errors, setErrors] = useState({});
-  const [manualDisable, setManualDisable] = useState(false);
 
-  const weightedBool = (first, second) => {
-    if (first) return true;
-    return second;
-  };
   const handleSiteInfoChange = (event) => {
     const id = event.target.id;
     const value = event.target.value;
@@ -49,11 +45,19 @@ const SiteForm = ({ site }) => {
   };
 
   const handleCancel = () => {
-    setSiteInfo(site);
+    setSiteInfo({});
+    dispatch(loadSitesData());
+  };
+
+  const weightedBool = (primary, secondary) => {
+    if (primary) {
+      return primary;
+    }
+    return secondary;
   };
 
   const handleSubmit = async () => {
-    setManualDisable(true);
+    setLoading(true);
     await updateSiteApi(site._id, siteInfo)
       .then((responseData) => {
         dispatch(
@@ -63,7 +67,7 @@ const SiteForm = ({ site }) => {
             show: true,
           })
         );
-        setSiteInfo(responseData.site);
+        setSiteInfo({});
         dispatch(loadSitesData());
       })
       .catch((err) => {
@@ -78,7 +82,7 @@ const SiteForm = ({ site }) => {
           })
         );
       });
-    setManualDisable(false);
+    setLoading(false);
   };
 
   return (
@@ -119,7 +123,7 @@ const SiteForm = ({ site }) => {
             id="name"
             label="name"
             variant="outlined"
-            value={siteInfo.name}
+            defaultValue={site.name}
             onChange={handleSiteInfoChange}
             error={!!errors.name}
             helperText={errors.name}
@@ -131,7 +135,7 @@ const SiteForm = ({ site }) => {
           <TextField
             id="description"
             label="Description"
-            value={siteInfo.description}
+            defaultValue={site.description}
             variant="outlined"
             onChange={handleSiteInfoChange}
             error={!!errors.description}
@@ -144,7 +148,7 @@ const SiteForm = ({ site }) => {
           <TextField
             id="latitude"
             label="Latitude"
-            value={siteInfo.latitude}
+            defaultValue={site.latitude}
             variant="outlined"
             onChange={handleSiteInfoChange}
             error={!!errors.latitude}
@@ -158,7 +162,7 @@ const SiteForm = ({ site }) => {
             id="longitude"
             label="Longitude"
             variant="outlined"
-            value={siteInfo.longitude}
+            defaultValue={site.longitude}
             onChange={handleSiteInfoChange}
             error={!!errors.longitude}
             helperText={errors.longitude}
@@ -170,7 +174,7 @@ const SiteForm = ({ site }) => {
             id="parish"
             label="Parish"
             variant="outlined"
-            value={siteInfo.parish}
+            defaultValue={site.parish}
             onChange={handleSiteInfoChange}
             error={!!errors.parish}
             helperText={errors.parish}
@@ -182,7 +186,7 @@ const SiteForm = ({ site }) => {
             id="sub_county"
             label="Sub County"
             variant="outlined"
-            value={siteInfo.sub_county}
+            defaultValue={site.sub_county}
             onChange={handleSiteInfoChange}
             error={!!errors.sub_county}
             helperText={errors.sub_county}
@@ -194,7 +198,7 @@ const SiteForm = ({ site }) => {
             id="district"
             label="District"
             variant="outlined"
-            value={siteInfo.district}
+            defaultValue={site.district}
             onChange={handleSiteInfoChange}
             error={!!errors.district}
             helperText={errors.district}
@@ -207,7 +211,7 @@ const SiteForm = ({ site }) => {
             id="region"
             label="Region"
             variant="outlined"
-            value={siteInfo.region}
+            defaultValue={site.region}
             onChange={handleSiteInfoChange}
             error={!!errors.region}
             helperText={errors.region}
@@ -219,7 +223,7 @@ const SiteForm = ({ site }) => {
             id="altitude"
             label="Altitude"
             variant="outlined"
-            value={siteInfo.altitude}
+            defaultValue={site.altitude}
             onChange={handleSiteInfoChange}
             error={!!errors.altitude}
             helperText={errors.altitude}
@@ -232,7 +236,7 @@ const SiteForm = ({ site }) => {
             id="greenness"
             label="Greenness"
             variant="outlined"
-            value={siteInfo.greenness}
+            defaultValue={site.greenness}
             onChange={handleSiteInfoChange}
             error={!!errors.greenness}
             helperText={errors.greenness}
@@ -244,7 +248,7 @@ const SiteForm = ({ site }) => {
             id="distance_to_nearest_road"
             label="Nearest road (m)"
             variant="outlined"
-            value={siteInfo.distance_to_nearest_road}
+            defaultValue={site.distance_to_nearest_road}
             onChange={handleSiteInfoChange}
             error={!!errors.distance_to_nearest_road}
             helperText={errors.distance_to_nearest_road}
@@ -256,7 +260,7 @@ const SiteForm = ({ site }) => {
             id="distance_to_nearest_primary_road"
             label="Nearest primary road (m)"
             variant="outlined"
-            value={siteInfo.distance_to_nearest_primary_road}
+            defaultValue={site.distance_to_nearest_primary_road}
             onChange={handleSiteInfoChange}
             error={!!errors.distance_to_nearest_primary_road}
             helperText={errors.distance_to_nearest_primary_road}
@@ -268,7 +272,7 @@ const SiteForm = ({ site }) => {
             id="distance_to_nearest_tertiary_road"
             label="Nearest tertiary road (m)"
             variant="outlined"
-            value={siteInfo.distance_to_nearest_tertiary_road}
+            defaultValue={site.distance_to_nearest_tertiary_road}
             onChange={handleSiteInfoChange}
             error={!!errors.distance_to_nearest_tertiary_road}
             helperText={errors.distance_to_nearest_tertiary_road}
@@ -280,7 +284,7 @@ const SiteForm = ({ site }) => {
             id="distance_to_nearest_unclassified_road"
             label="Nearest unclassified road (m)"
             variant="outlined"
-            value={siteInfo.distance_to_nearest_unclassified_road}
+            defaultValue={site.distance_to_nearest_unclassified_road}
             onChange={handleSiteInfoChange}
             error={!!errors.distance_to_nearest_unclassified_road}
             helperText={errors.distance_to_nearest_unclassified_road}
@@ -292,7 +296,7 @@ const SiteForm = ({ site }) => {
             id="distance_to_nearest_residential_road"
             label="Nearest residential road (m)"
             variant="outlined"
-            value={siteInfo.distance_to_nearest_residential_road}
+            defaultValue={site.distance_to_nearest_residential_road}
             onChange={handleSiteInfoChange}
             error={!!errors.distance_to_nearest_residential_road}
             helperText={errors.distance_to_nearest_residential_road}
@@ -304,7 +308,7 @@ const SiteForm = ({ site }) => {
             id="bearing_to_kampala_center"
             label="Bearing to Kampala center"
             variant="outlined"
-            value={siteInfo.bearing_to_kampala_center}
+            defaultValue={site.bearing_to_kampala_center}
             onChange={handleSiteInfoChange}
             error={!!errors.bearing_to_kampala_center}
             helperText={errors.bearing_to_kampala_center}
@@ -316,7 +320,7 @@ const SiteForm = ({ site }) => {
             id="distance_to_kampala_center"
             variant="outlined"
             label="Distance to Kampala center (km)"
-            value={siteInfo.distance_to_kampala_center}
+            defaultValue={site.distance_to_kampala_center}
             onChange={handleSiteInfoChange}
             error={!!errors.distance_to_kampala_center}
             helperText={errors.distance_to_kampala_center}
@@ -339,7 +343,7 @@ const SiteForm = ({ site }) => {
           <Button
             variant="contained"
             color="primary"
-            disabled={weightedBool(manualDisable, isEqual(site, siteInfo))}
+            disabled={weightedBool(loading, isEmpty(siteInfo))}
             onClick={handleSubmit}
             style={{ marginLeft: "10px" }}
           >

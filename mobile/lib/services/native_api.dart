@@ -668,8 +668,8 @@ class ShareService {
 
       await Share.shareFiles([imgFile.path], text: getShareMessage())
           .then((value) => {_updateUserShares()});
-    } catch (e) {
-      debugPrint('$e');
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
     }
   }
 

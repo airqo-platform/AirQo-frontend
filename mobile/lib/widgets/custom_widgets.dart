@@ -116,7 +116,7 @@ Widget aqiContainerString(
             textAlign: TextAlign.start,
             overflow: TextOverflow.ellipsis,
             style: CustomTextStyle.button2(context)?.copyWith(
-              color: pm2_5TextColor(measurement.getPm2_5Value()),
+              color: pm2_5TextColor(measurement.getPm2_5Value(), graph: true),
             )),
   );
 }
