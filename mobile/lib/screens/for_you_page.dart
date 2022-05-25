@@ -7,9 +7,8 @@ import 'analytics/analytics_view.dart';
 import 'kya/know_your_air_view.dart';
 
 class ForYouPage extends StatefulWidget {
-  final bool? analytics;
-
   const ForYouPage({Key? key, this.analytics}) : super(key: key);
+  final bool? analytics;
 
   @override
   _ForYouPageState createState() => _ForYouPageState();

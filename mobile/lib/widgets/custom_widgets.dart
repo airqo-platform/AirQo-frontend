@@ -15,11 +15,11 @@ import '../themes/app_theme.dart';
 import 'buttons.dart';
 
 class AppRefreshIndicator extends StatelessWidget {
-  final Future Function()? onRefresh;
-  final SliverChildDelegate sliverChildDelegate;
   const AppRefreshIndicator(
       {Key? key, this.onRefresh, required this.sliverChildDelegate})
       : super(key: key);
+  final Future Function()? onRefresh;
+  final SliverChildDelegate sliverChildDelegate;
 
   @override
   Widget build(BuildContext context) {
@@ -40,9 +40,9 @@ class AppRefreshIndicator extends StatelessWidget {
 }
 
 class AnalyticsAvatar extends StatelessWidget {
-  final Measurement measurement;
   const AnalyticsAvatar({Key? key, required this.measurement})
       : super(key: key);
+  final Measurement measurement;
 
   @override
   Widget build(BuildContext context) {
@@ -96,11 +96,11 @@ class AnalyticsAvatar extends StatelessWidget {
 }
 
 class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
+  const AppTopBar(this.title, {Key? key, this.actions, this.centerTitle})
+      : super(key: key);
   final String title;
   final List<Widget>? actions;
   final bool? centerTitle;
-  const AppTopBar(this.title, {Key? key, this.actions, this.centerTitle})
-      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -155,9 +155,9 @@ class AppIconTopBar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class AqiStringContainer extends StatelessWidget {
-  final Measurement measurement;
   const AqiStringContainer({Key? key, required this.measurement})
       : super(key: key);
+  final Measurement measurement;
 
   @override
   Widget build(BuildContext context) {
@@ -218,9 +218,9 @@ class KnowYourAirAppBar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class MiniAnalyticsAvatar extends StatelessWidget {
-  final Measurement measurement;
   const MiniAnalyticsAvatar({Key? key, required this.measurement})
       : super(key: key);
+  final Measurement measurement;
 
   @override
   Widget build(BuildContext context) {

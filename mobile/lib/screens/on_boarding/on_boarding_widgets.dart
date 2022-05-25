@@ -67,15 +67,15 @@ class OnBoardingNotificationIcon extends StatelessWidget {
 }
 
 class ProfileSetupNameInputField extends StatelessWidget {
-  final Function(String) nameChangeCallBack;
-  final Function(bool) showTileOptionsCallBack;
-  final TextEditingController? controller;
   const ProfileSetupNameInputField(
       {Key? key,
       required this.nameChangeCallBack,
       required this.showTileOptionsCallBack,
       this.controller})
       : super(key: key);
+  final Function(String) nameChangeCallBack;
+  final Function(bool) showTileOptionsCallBack;
+  final TextEditingController? controller;
 
   @override
   Widget build(BuildContext context) {
@@ -126,11 +126,11 @@ class ProfileSetupNameInputField extends StatelessWidget {
 }
 
 class TitleDropDown extends StatelessWidget {
-  final Function(bool) showTileOptionsCallBack;
-  final Profile profile;
   const TitleDropDown(
       {Key? key, required this.showTileOptionsCallBack, required this.profile})
       : super(key: key);
+  final Function(bool) showTileOptionsCallBack;
+  final Profile profile;
 
   @override
   Widget build(BuildContext context) {
@@ -156,6 +156,55 @@ class TitleDropDown extends StatelessWidget {
               ],
             ),
           )),
+    );
+  }
+}
+
+class LogoWidget extends StatelessWidget {
+  const LogoWidget({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        SvgPicture.asset(
+          'assets/icon/splash_image.svg',
+          semanticsLabel: 'Splash image',
+        ),
+      ],
+    );
+  }
+}
+
+class TaglineWidget extends StatelessWidget {
+  const TaglineWidget({Key? key, required this.visible}) : super(key: key);
+  final bool visible;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedOpacity(
+      opacity: visible ? 1.0 : 0.0,
+      duration: const Duration(milliseconds: 500),
+      child: Center(
+        child: Stack(alignment: AlignmentDirectional.center, children: [
+          Image.asset(
+            'assets/images/splash-image.png',
+            fit: BoxFit.cover,
+            height: double.infinity,
+            width: double.infinity,
+            alignment: Alignment.center,
+          ),
+          Text(
+            'Breathe\nClean.',
+            textAlign: TextAlign.center,
+            style: Theme.of(context)
+                .textTheme
+                .headline4
+                ?.copyWith(color: Colors.white),
+          ),
+        ]),
+      ),
     );
   }
 }

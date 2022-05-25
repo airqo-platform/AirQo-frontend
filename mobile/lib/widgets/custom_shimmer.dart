@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
 class CircularLoadingAnimation extends StatelessWidget {
-  final double size;
   const CircularLoadingAnimation({Key? key, required this.size})
       : super(key: key);
+  final double size;
 
   @override
   Widget build(BuildContext context) {
@@ -27,11 +27,11 @@ class CircularLoadingAnimation extends StatelessWidget {
 }
 
 class ContainerLoadingAnimation extends StatelessWidget {
-  final double radius;
-  final double height;
   const ContainerLoadingAnimation(
       {Key? key, required this.radius, required this.height})
       : super(key: key);
+  final double radius;
+  final double height;
 
   @override
   Widget build(BuildContext context) {
@@ -79,15 +79,15 @@ class LoadingWidget extends StatelessWidget {
 }
 
 class SizedContainerLoadingAnimation extends StatelessWidget {
-  final double height;
-  final double width;
-  final double radius;
   const SizedContainerLoadingAnimation(
       {Key? key,
       required this.height,
       required this.width,
       required this.radius})
       : super(key: key);
+  final double height;
+  final double width;
+  final double radius;
 
   @override
   Widget build(BuildContext context) {
@@ -112,11 +112,11 @@ class SizedContainerLoadingAnimation extends StatelessWidget {
 }
 
 class TextLoadingAnimation extends StatelessWidget {
-  final double height;
-  final double width;
   const TextLoadingAnimation(
       {Key? key, required this.height, required this.width})
       : super(key: key);
+  final double height;
+  final double width;
 
   @override
   Widget build(BuildContext context) {

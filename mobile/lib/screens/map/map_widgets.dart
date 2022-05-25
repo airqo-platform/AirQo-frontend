@@ -43,10 +43,10 @@ class RegionAvatar extends StatelessWidget {
 }
 
 class MapCardWidget extends StatelessWidget {
-  final Widget widget;
-  final double padding;
   const MapCardWidget({Key? key, required this.widget, required this.padding})
       : super(key: key);
+  final Widget widget;
+  final double padding;
 
   @override
   Widget build(BuildContext context) {
@@ -65,11 +65,11 @@ class MapCardWidget extends StatelessWidget {
 }
 
 class SiteTile extends StatelessWidget {
-  final Measurement measurement;
-  final Function(Measurement) onSiteTileTap;
   const SiteTile(
       {Key? key, required this.measurement, required this.onSiteTileTap})
       : super(key: key);
+  final Measurement measurement;
+  final Function(Measurement) onSiteTileTap;
 
   @override
   Widget build(BuildContext context) {
@@ -100,11 +100,11 @@ class SiteTile extends StatelessWidget {
 }
 
 class RegionTile extends StatelessWidget {
-  final Function(Region) showRegionSites;
-  final Region region;
   const RegionTile(
       {Key? key, required this.showRegionSites, required this.region})
       : super(key: key);
+  final Function(Region) showRegionSites;
+  final Region region;
 
   @override
   Widget build(BuildContext context) {
@@ -136,11 +136,11 @@ class RegionTile extends StatelessWidget {
 }
 
 class SearchTile extends StatelessWidget {
-  final Suggestion suggestion;
-  final Function(Suggestion) onSearchTileTap;
   const SearchTile(
       {Key? key, required this.suggestion, required this.onSearchTileTap})
       : super(key: key);
+  final Suggestion suggestion;
+  final Function(Suggestion) onSearchTileTap;
 
   @override
   Widget build(BuildContext context) {
@@ -173,10 +173,6 @@ class SearchTile extends StatelessWidget {
 }
 
 class EmptyView extends StatelessWidget {
-  final String title;
-  final String bodyInnerText;
-  final bool topBars;
-  final VoidCallback showRegions;
   const EmptyView(
       {Key? key,
       required this.title,
@@ -184,6 +180,10 @@ class EmptyView extends StatelessWidget {
       required this.topBars,
       required this.showRegions})
       : super(key: key);
+  final String title;
+  final String bodyInnerText;
+  final bool topBars;
+  final VoidCallback showRegions;
 
   @override
   Widget build(BuildContext context) {

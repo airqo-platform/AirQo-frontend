@@ -6,13 +6,13 @@ import 'package:app/screens/on_boarding/welcome_screen.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 
 import '../../models/enum_constants.dart';
 import '../../services/local_storage.dart';
 import '../auth/phone_auth_widget.dart';
 import 'location_setup_screen.dart';
 import 'notifications_setup_screen.dart';
+import 'on_boarding_widgets.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -45,7 +45,10 @@ class SplashScreenState extends State<SplashScreen> {
             child: child,
           );
         },
-        child: _renderWidget(),
+        child: RenderWidget(
+          visible: _visible,
+          widgetId: _widgetId,
+        ),
       ),
     );
   }
@@ -97,55 +100,26 @@ class SplashScreenState extends State<SplashScreen> {
     _initialize();
   }
 
-  Widget logoWidget() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SvgPicture.asset(
-            'assets/icon/splash_image.svg',
-            semanticsLabel: 'Splash image',
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget taglineWidget() {
-    return AnimatedOpacity(
-      opacity: _visible ? 1.0 : 0.0,
-      duration: const Duration(milliseconds: 500),
-      // The green box must be a child of the AnimatedOpacity widget.
-      child: Center(
-        child: Stack(alignment: AlignmentDirectional.center, children: [
-          Image.asset(
-            'assets/images/splash-image.png',
-            fit: BoxFit.cover,
-            height: double.infinity,
-            width: double.infinity,
-            alignment: Alignment.center,
-          ),
-          Text(
-            'Breathe\nClean.',
-            textAlign: TextAlign.center,
-            style: Theme.of(context)
-                .textTheme
-                .headline4
-                ?.copyWith(color: Colors.white),
-          ),
-        ]),
-      ),
-    );
-  }
-
-  Widget _renderWidget() {
-    return _widgetId == 0 ? logoWidget() : taglineWidget();
-  }
-
   void _updateWidget() {
     setState(() {
       _visible = true;
       _widgetId = _widgetId == 0 ? 1 : 0;
     });
+  }
+}
+
+class RenderWidget extends StatelessWidget {
+  const RenderWidget({Key? key, required this.widgetId, required this.visible})
+      : super(key: key);
+  final int widgetId;
+  final bool visible;
+
+  @override
+  Widget build(BuildContext context) {
+    return widgetId == 0
+        ? const LogoWidget()
+        : TaglineWidget(
+            visible: visible,
+          );
   }
 }

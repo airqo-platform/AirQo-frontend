@@ -8,6 +8,11 @@ part 'insights.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class Insights {
+  factory Insights.fromJson(Map<String, dynamic> json) =>
+      _$InsightsFromJson(json);
+
+  Insights(this.time, this.pm2_5, this.pm10, this.empty, this.forecast,
+      this.siteId, this.frequency);
   @JsonKey(fromJson: timeFromJson, toJson: timeToJson)
   DateTime time;
   double pm2_5;
@@ -19,12 +24,6 @@ class Insights {
   String siteId;
   @JsonKey(fromJson: frequencyFromJson)
   String frequency;
-
-  Insights(this.time, this.pm2_5, this.pm10, this.empty, this.forecast,
-      this.siteId, this.frequency);
-
-  factory Insights.fromJson(Map<String, dynamic> json) =>
-      _$InsightsFromJson(json);
 
   double getChartValue(Pollutant pollutant) {
     return pollutant == Pollutant.pm2_5

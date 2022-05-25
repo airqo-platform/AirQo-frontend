@@ -3,9 +3,9 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
 class DeleteAccountButton extends StatelessWidget {
-  final Function() deleteAccount;
   const DeleteAccountButton({Key? key, required this.deleteAccount})
       : super(key: key);
+  final Function() deleteAccount;
 
   @override
   Widget build(BuildContext context) {
@@ -31,8 +31,8 @@ class DeleteAccountButton extends StatelessWidget {
 }
 
 class SettingsCard extends StatelessWidget {
-  final String text;
   const SettingsCard({Key? key, required this.text}) : super(key: key);
+  final String text;
 
   @override
   Widget build(BuildContext context) {

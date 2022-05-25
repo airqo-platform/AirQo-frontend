@@ -29,11 +29,10 @@ import '../../widgets/custom_widgets.dart';
 import 'insights_widgets.dart';
 
 class InsightsTab extends StatefulWidget {
-  final PlaceDetails placeDetails;
-  final Frequency frequency;
-
   const InsightsTab(this.placeDetails, this.frequency, {Key? key})
       : super(key: key);
+  final PlaceDetails placeDetails;
+  final Frequency frequency;
 
   @override
   _InsightsTabState createState() => _InsightsTabState();

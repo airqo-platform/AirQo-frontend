@@ -14,11 +14,11 @@ import '../kya/kya_widgets.dart';
 import '../search/search_page.dart';
 
 class DashboardFavPlaceAvatar extends StatelessWidget {
-  final double rightPadding;
-  final Measurement measurement;
   const DashboardFavPlaceAvatar(
       {Key? key, required this.rightPadding, required this.measurement})
       : super(key: key);
+  final double rightPadding;
+  final Measurement measurement;
 
   @override
   Widget build(BuildContext context) {
@@ -49,11 +49,11 @@ class DashboardFavPlaceAvatar extends StatelessWidget {
 }
 
 class KyaDashboardAvatar extends StatelessWidget {
-  final Kya kya;
-  final double rightPadding;
   const KyaDashboardAvatar(
       {Key? key, required this.kya, required this.rightPadding})
       : super(key: key);
+  final Kya kya;
+  final double rightPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -79,9 +79,9 @@ class KyaDashboardAvatar extends StatelessWidget {
 }
 
 class DashboardEmptyAvatar extends StatelessWidget {
-  final double rightPadding;
   const DashboardEmptyAvatar({Key? key, required this.rightPadding})
       : super(key: key);
+  final double rightPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -153,11 +153,11 @@ class DashboardTopBar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class DashboardKyaCard extends StatelessWidget {
-  final Kya kya;
-  final Function(Kya) kyaClickCallBack;
   const DashboardKyaCard(
       {Key? key, required this.kya, required this.kyaClickCallBack})
       : super(key: key);
+  final Kya kya;
+  final Function(Kya) kyaClickCallBack;
 
   @override
   Widget build(BuildContext context) {

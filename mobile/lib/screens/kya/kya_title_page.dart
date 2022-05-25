@@ -10,9 +10,8 @@ import '../../widgets/custom_widgets.dart';
 import 'kya_lessons_page.dart';
 
 class KyaTitlePage extends StatefulWidget {
-  final Kya kya;
-
   const KyaTitlePage(this.kya, {Key? key}) : super(key: key);
+  final Kya kya;
 
   @override
   _KyaTitlePageState createState() => _KyaTitlePageState();

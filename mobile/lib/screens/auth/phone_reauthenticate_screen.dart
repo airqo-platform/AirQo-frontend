@@ -11,10 +11,9 @@ import '../../utils/network.dart';
 import 'auth_widgets.dart';
 
 class PhoneReAuthenticateScreen extends StatefulWidget {
-  final Profile userDetails;
-
   const PhoneReAuthenticateScreen(this.userDetails, {Key? key})
       : super(key: key);
+  final Profile userDetails;
 
   @override
   PhoneReAuthenticateScreenState createState() =>

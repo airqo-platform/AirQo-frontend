@@ -9,12 +9,11 @@ import '../../services/app_service.dart';
 import '../../services/firebase_service.dart';
 
 class EmailReAuthenticateScreen extends StatefulWidget {
-  final Profile userDetails;
-
   const EmailReAuthenticateScreen(
     this.userDetails, {
     Key? key,
   }) : super(key: key);
+  final Profile userDetails;
 
   @override
   EmailReAuthenticateScreenState createState() =>

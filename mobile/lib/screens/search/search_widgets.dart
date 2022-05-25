@@ -9,9 +9,9 @@ import '../../themes/app_theme.dart';
 import '../../widgets/custom_widgets.dart';
 
 class SearchPlaceTile extends StatelessWidget {
-  final Suggestion searchSuggestion;
   const SearchPlaceTile({Key? key, required this.searchSuggestion})
       : super(key: key);
+  final Suggestion searchSuggestion;
 
   @override
   Widget build(BuildContext context) {
@@ -57,13 +57,13 @@ class SearchPlaceTile extends StatelessWidget {
 }
 
 class SearchInputField extends StatelessWidget {
-  final TextEditingController textEditingController;
-  final Function(String) searchChanged;
   const SearchInputField(
       {Key? key,
       required this.textEditingController,
       required this.searchChanged})
       : super(key: key);
+  final TextEditingController textEditingController;
+  final Function(String) searchChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -184,9 +184,9 @@ class NoNearbyLocations extends StatelessWidget {
 }
 
 class SearchLocationTile extends StatelessWidget {
-  final Measurement measurement;
   const SearchLocationTile({Key? key, required this.measurement})
       : super(key: key);
+  final Measurement measurement;
 
   @override
   Widget build(BuildContext context) {

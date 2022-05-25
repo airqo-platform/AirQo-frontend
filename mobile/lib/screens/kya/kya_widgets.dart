@@ -9,8 +9,8 @@ import '../../themes/app_theme.dart';
 import 'kya_title_page.dart';
 
 class CircularKyaButton extends StatelessWidget {
-  final String icon;
   const CircularKyaButton({Key? key, required this.icon}) : super(key: key);
+  final String icon;
 
   @override
   Widget build(BuildContext context) {
@@ -43,8 +43,8 @@ String getKyaMessage({required Kya kya}) {
 }
 
 class KyaMessage extends StatelessWidget {
-  final Kya kya;
   const KyaMessage({Key? key, required this.kya}) : super(key: key);
+  final Kya kya;
 
   @override
   Widget build(BuildContext context) {
@@ -73,8 +73,8 @@ class KyaMessage extends StatelessWidget {
 }
 
 class KyaProgressBar extends StatelessWidget {
-  final Kya kya;
   const KyaProgressBar({Key? key, required this.kya}) : super(key: key);
+  final Kya kya;
 
   @override
   Widget build(BuildContext context) {
@@ -95,8 +95,8 @@ class KyaProgressBar extends StatelessWidget {
 }
 
 class KyaViewWidget extends StatelessWidget {
-  final Kya kya;
   const KyaViewWidget({Key? key, required this.kya}) : super(key: key);
+  final Kya kya;
 
   @override
   Widget build(BuildContext context) {

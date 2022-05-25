@@ -18,6 +18,20 @@ part 'profile.g.dart';
 @JsonSerializable(explicitToJson: true)
 @HiveType(typeId: 20, adapterName: 'ProfileAdapter')
 class Profile extends HiveObject {
+  factory Profile.fromJson(Map<String, dynamic> json) =>
+      _$ProfileFromJson(json);
+
+  Profile(
+      {required this.title,
+      required this.firstName,
+      required this.lastName,
+      required this.userId,
+      required this.emailAddress,
+      required this.phoneNumber,
+      required this.device,
+      required this.preferences,
+      required this.photoUrl,
+      required this.utcOffset});
   @HiveField(0)
   @JsonKey(defaultValue: '')
   String title = '';
@@ -58,21 +72,6 @@ class Profile extends HiveObject {
   @JsonKey(required: false)
   UserPreferences preferences =
       UserPreferences(notifications: false, aqShares: 0, location: false);
-
-  Profile(
-      {required this.title,
-      required this.firstName,
-      required this.lastName,
-      required this.userId,
-      required this.emailAddress,
-      required this.phoneNumber,
-      required this.device,
-      required this.preferences,
-      required this.photoUrl,
-      required this.utcOffset});
-
-  factory Profile.fromJson(Map<String, dynamic> json) =>
-      _$ProfileFromJson(json);
 
   String getProfileViewName() {
     if (firstName != '') {
@@ -232,6 +231,13 @@ class Profile extends HiveObject {
 @JsonSerializable(explicitToJson: true)
 @HiveType(typeId: 120, adapterName: 'UserPreferencesTypeAdapter')
 class UserPreferences extends HiveObject {
+  UserPreferences(
+      {required this.notifications,
+      required this.location,
+      required this.aqShares});
+
+  factory UserPreferences.fromJson(Map<String, dynamic> json) =>
+      _$UserPreferencesFromJson(json);
   @HiveField(0, defaultValue: false)
   @JsonKey(defaultValue: false, required: false)
   bool notifications;
@@ -243,14 +249,6 @@ class UserPreferences extends HiveObject {
   @HiveField(2, defaultValue: 0)
   @JsonKey(defaultValue: 0, required: false)
   int aqShares;
-
-  UserPreferences(
-      {required this.notifications,
-      required this.location,
-      required this.aqShares});
-
-  factory UserPreferences.fromJson(Map<String, dynamic> json) =>
-      _$UserPreferencesFromJson(json);
 
   Map<String, dynamic> toJson() => _$UserPreferencesToJson(this);
 

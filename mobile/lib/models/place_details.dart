@@ -14,13 +14,6 @@ part 'place_details.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class PlaceDetails {
-  String name = '';
-  String location = '';
-  String siteId;
-  String placeId = const Uuid().v4();
-  double latitude;
-  double longitude;
-
   PlaceDetails(
       {required this.name,
       required this.location,
@@ -31,6 +24,12 @@ class PlaceDetails {
 
   factory PlaceDetails.fromJson(Map<String, dynamic> json) =>
       _$PlaceDetailsFromJson(json);
+  String name = '';
+  String location = '';
+  String siteId;
+  String placeId = const Uuid().v4();
+  double latitude;
+  double longitude;
 
   Map<String, dynamic> toJson() => _$PlaceDetailsToJson(this);
 

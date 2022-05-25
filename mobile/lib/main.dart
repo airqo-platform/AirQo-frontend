@@ -31,19 +31,12 @@ void main() async {
   );
 
   await SystemProperties.setDefault();
-  FirebaseMessaging.onMessage.listen(NotificationService.notificationHandler);
 
-  if (Platform.isIOS) {
-    FirebaseMessaging.onMessage.listen(NotificationService.notificationHandler);
-    FirebaseMessaging.onMessageOpenedApp.listen((message) {
-      // TODO: LOG EVENT
-      var type = message.data['type'] ?? '';
-      if (type == 'update') {
-        // TODO: NAVIGATE TO FAV PLACES
-        // TODO: LOG EVENT
-      }
-    });
-  }
+  FirebaseMessaging.onMessage.listen(NotificationService.notificationHandler);
+  FirebaseMessaging.onMessageOpenedApp.listen((_) {
+    // TODO: LOG EVENT
+  });
+
   if (kReleaseMode) {
     await SentryFlutter.init(
       (options) {
@@ -60,9 +53,8 @@ void main() async {
 }
 
 class AirQoApp extends StatelessWidget {
-  final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
-
   AirQoApp({Key? key}) : super(key: key);
+  final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
 
   @override
   Widget build(BuildContext context) {

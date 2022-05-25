@@ -12,6 +12,21 @@ part 'notification.g.dart';
 @JsonSerializable()
 @HiveType(typeId: 10, adapterName: 'AppNotificationAdapter')
 class AppNotification extends HiveObject {
+  factory AppNotification.fromJson(Map<String, dynamic> json) =>
+      _$AppNotificationFromJson(json);
+
+  AppNotification(
+      {required this.id,
+      required this.title,
+      required this.subTitle,
+      required this.link,
+      required this.icon,
+      required this.image,
+      required this.body,
+      required this.read,
+      required this.type,
+      DateTime? dateTime})
+      : dateTime = dateTime ?? DateTime.now();
   @HiveField(1)
   String id;
 
@@ -42,22 +57,6 @@ class AppNotification extends HiveObject {
 
   @HiveField(10, defaultValue: AppNotificationType.welcomeMessage)
   AppNotificationType type;
-
-  AppNotification(
-      {required this.id,
-      required this.title,
-      required this.subTitle,
-      required this.link,
-      required this.icon,
-      required this.image,
-      required this.body,
-      required this.read,
-      required this.type,
-      DateTime? dateTime})
-      : dateTime = dateTime ?? DateTime.now();
-
-  factory AppNotification.fromJson(Map<String, dynamic> json) =>
-      _$AppNotificationFromJson(json);
 
   Map<String, dynamic> toJson() => _$AppNotificationToJson(this);
 

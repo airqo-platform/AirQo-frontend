@@ -8,6 +8,11 @@ part 'measurement.g.dart';
 
 @JsonSerializable()
 class Measurement {
+  factory Measurement.fromJson(Map<String, dynamic> json) =>
+      _$MeasurementFromJson(json);
+
+  Measurement(this.time, this.pm2_5, this.pm10, this.altitude, this.speed,
+      this.temperature, this.humidity, this.site);
   @JsonKey(required: true)
   String time;
 
@@ -37,12 +42,6 @@ class Measurement {
 
   @JsonKey(required: true, name: 'siteDetails')
   final Site site;
-
-  Measurement(this.time, this.pm2_5, this.pm10, this.altitude, this.speed,
-      this.temperature, this.humidity, this.site);
-
-  factory Measurement.fromJson(Map<String, dynamic> json) =>
-      _$MeasurementFromJson(json);
 
   String getHumidityValue() {
     var humidityValue = humidity.value.round();

@@ -7,9 +7,8 @@ import 'package:flutter_svg/svg.dart';
 import '../../themes/app_theme.dart';
 
 class KyaFinalPage extends StatefulWidget {
-  final Kya kya;
-
   const KyaFinalPage({Key? key, required this.kya}) : super(key: key);
+  final Kya kya;
 
   @override
   _KyaFinalPageState createState() => _KyaFinalPageState();

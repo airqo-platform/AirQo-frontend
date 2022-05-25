@@ -6,9 +6,9 @@ import 'package:flutter/material.dart';
 import '../themes/app_theme.dart';
 
 class RecommendationContainer extends StatelessWidget {
-  final Recommendation recommendation;
   const RecommendationContainer(this.recommendation, {Key? key})
       : super(key: key);
+  final Recommendation recommendation;
 
   @override
   Widget build(BuildContext context) {

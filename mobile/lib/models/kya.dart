@@ -7,26 +7,6 @@ part 'kya.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class Kya {
-  @JsonKey(defaultValue: 0)
-  int progress;
-  String title;
-  @JsonKey(defaultValue: 'You just finished your first Know You Air Lesson')
-  String completionMessage;
-  String imageUrl;
-  @JsonKey(defaultValue: '')
-  String secondaryImageUrl;
-  String id;
-  List<KyaLesson> lessons = [];
-
-  Kya(
-      {required this.title,
-      required this.imageUrl,
-      required this.id,
-      required this.lessons,
-      required this.progress,
-      required this.completionMessage,
-      required this.secondaryImageUrl});
-
   factory Kya.fromDbJson(List<Map<String, Object?>>? json) {
     if (json == null) {
       return Kya(
@@ -76,6 +56,25 @@ class Kya {
 
   factory Kya.fromJson(Map<String, dynamic> json) => _$KyaFromJson(json);
 
+  Kya(
+      {required this.title,
+      required this.imageUrl,
+      required this.id,
+      required this.lessons,
+      required this.progress,
+      required this.completionMessage,
+      required this.secondaryImageUrl});
+  @JsonKey(defaultValue: 0)
+  int progress;
+  String title;
+  @JsonKey(defaultValue: 'You just finished your first Know You Air Lesson')
+  String completionMessage;
+  String imageUrl;
+  @JsonKey(defaultValue: '')
+  String secondaryImageUrl;
+  String id;
+  List<KyaLesson> lessons = [];
+
   List<Map<String, dynamic>> parseKyaToDb() {
     try {
       var kyaLessons = lessons;
@@ -122,28 +121,26 @@ class Kya {
 
 @JsonSerializable(explicitToJson: true)
 class KyaLesson {
-  String title;
-  String imageUrl;
-  String body;
-
   KyaLesson(this.title, this.imageUrl, this.body);
 
   factory KyaLesson.fromJson(Map<String, dynamic> json) =>
       _$KyaLessonFromJson(json);
+  String title;
+  String imageUrl;
+  String body;
 
   Map<String, dynamic> toJson() => _$KyaLessonToJson(this);
 }
 
 @JsonSerializable(explicitToJson: true)
 class UserKya {
+  factory UserKya.fromJson(Map<String, dynamic> json) =>
+      _$UserKyaFromJson(json);
+
+  UserKya(this.id, this.progress);
   @JsonKey(defaultValue: 0)
   int progress;
   String id;
-
-  UserKya(this.id, this.progress);
-
-  factory UserKya.fromJson(Map<String, dynamic> json) =>
-      _$UserKyaFromJson(json);
 
   Map<String, dynamic> toJson() => _$UserKyaToJson(this);
 }

@@ -5,10 +5,10 @@ import '../constants/config.dart';
 import '../themes/app_theme.dart';
 
 class NextButton extends StatelessWidget {
-  final String? text;
-  final Color buttonColor;
   const NextButton({Key? key, required this.buttonColor, this.text})
       : super(key: key);
+  final String? text;
+  final Color buttonColor;
 
   @override
   Widget build(BuildContext context) {
@@ -62,10 +62,10 @@ class AppBackButton extends StatelessWidget {
 }
 
 class IconTextButton extends StatelessWidget {
-  final Widget iconWidget;
-  final String text;
   const IconTextButton({Key? key, required this.iconWidget, required this.text})
       : super(key: key);
+  final Widget iconWidget;
+  final String text;
 
   @override
   Widget build(BuildContext context) {
@@ -86,15 +86,15 @@ class IconTextButton extends StatelessWidget {
 }
 
 class TabButton extends StatelessWidget {
-  final String text;
-  final int index;
-  final TabController? tabController;
   const TabButton({
     Key? key,
     required this.text,
     required this.index,
     required this.tabController,
   }) : super(key: key);
+  final String text;
+  final int index;
+  final TabController? tabController;
 
   @override
   Widget build(BuildContext context) {

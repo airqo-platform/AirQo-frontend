@@ -6,16 +6,15 @@ part 'suggestion.g.dart';
 
 @JsonSerializable()
 class Suggestion {
+  factory Suggestion.fromJson(Map<String, dynamic> json) =>
+      _$SuggestionFromJson(json);
+
+  Suggestion(this.placeId, this.suggestionDetails);
   @JsonKey(name: 'place_id', required: true)
   final String placeId;
 
   @JsonKey(name: 'structured_formatting')
   final SuggestionDetails suggestionDetails;
-
-  Suggestion(this.placeId, this.suggestionDetails);
-
-  factory Suggestion.fromJson(Map<String, dynamic> json) =>
-      _$SuggestionFromJson(json);
 
   Map<String, dynamic> toJson() => _$SuggestionToJson(this);
 
@@ -49,16 +48,15 @@ class Suggestion {
 
 @JsonSerializable()
 class SuggestionDetails {
+  SuggestionDetails(this.mainText, this.secondaryText);
+
+  factory SuggestionDetails.fromJson(Map<String, dynamic> json) =>
+      _$SuggestionDetailsFromJson(json);
   @JsonKey(name: 'main_text', required: true)
   final String mainText;
 
   @JsonKey(name: 'secondary_text', required: true)
   final String secondaryText;
-
-  SuggestionDetails(this.mainText, this.secondaryText);
-
-  factory SuggestionDetails.fromJson(Map<String, dynamic> json) =>
-      _$SuggestionDetailsFromJson(json);
 
   String getMainText() {
     return mainText.toTitleCase();

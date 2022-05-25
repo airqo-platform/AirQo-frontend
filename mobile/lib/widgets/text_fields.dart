@@ -5,11 +5,11 @@ import 'package:flutter/material.dart';
 import 'custom_widgets.dart';
 
 class CountryCodePickerField extends StatelessWidget {
-  final String placeholder;
-  final Function(String?) valueChange;
   const CountryCodePickerField(
       {Key? key, required this.placeholder, required this.valueChange})
       : super(key: key);
+  final String placeholder;
+  final Function(String?) valueChange;
 
   @override
   Widget build(BuildContext context) {
@@ -43,15 +43,15 @@ class CountryCodePickerField extends StatelessWidget {
 }
 
 class OptField extends StatelessWidget {
-  final bool codeSent;
-  final Function(String value, int position) callbackFn;
-  final int position;
   const OptField(
       {Key? key,
       required this.codeSent,
       required this.callbackFn,
       required this.position})
       : super(key: key);
+  final bool codeSent;
+  final Function(String value, int position) callbackFn;
+  final int position;
 
   @override
   Widget build(BuildContext context) {

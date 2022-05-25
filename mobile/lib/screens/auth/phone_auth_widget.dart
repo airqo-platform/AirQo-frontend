@@ -20,14 +20,13 @@ import 'auth_widgets.dart';
 import 'email_auth_widget.dart';
 
 class PhoneAuthWidget extends StatefulWidget {
-  final String? phoneNumber;
-  final AuthProcedure authProcedure;
-
   const PhoneAuthWidget({
     Key? key,
     this.phoneNumber,
     required this.authProcedure,
   }) : super(key: key);
+  final String? phoneNumber;
+  final AuthProcedure authProcedure;
 
   @override
   PhoneAuthWidgetState createState() => PhoneAuthWidgetState();

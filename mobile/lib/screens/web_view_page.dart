@@ -10,11 +10,10 @@ import '../constants/config.dart';
 import '../widgets/custom_widgets.dart';
 
 class WebViewScreen extends StatefulWidget {
-  final String url;
-  final String title;
-
   const WebViewScreen({Key? key, required this.url, required this.title})
       : super(key: key);
+  final String url;
+  final String title;
 
   @override
   State<WebViewScreen> createState() => _WebViewScreenState();

@@ -15,9 +15,8 @@ import 'kya_final_page.dart';
 import 'kya_widgets.dart';
 
 class KyaLessonsPage extends StatefulWidget {
-  final Kya kya;
-
   const KyaLessonsPage(this.kya, {Key? key}) : super(key: key);
+  final Kya kya;
 
   @override
   _KyaLessonsPageState createState() => _KyaLessonsPageState();

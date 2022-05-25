@@ -9,9 +9,8 @@ import '../../utils/network.dart';
 import '../../widgets/buttons.dart';
 
 class InsightsPage extends StatefulWidget {
-  final PlaceDetails placeDetails;
-
   const InsightsPage(this.placeDetails, {Key? key}) : super(key: key);
+  final PlaceDetails placeDetails;
 
   @override
   _InsightsPageState createState() => _InsightsPageState();

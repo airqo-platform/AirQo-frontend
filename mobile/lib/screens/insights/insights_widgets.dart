@@ -9,11 +9,6 @@ import '../../models/insights.dart';
 import '../../utils/pm.dart';
 
 class InsightsGraph extends StatelessWidget {
-  final List<charts.Series<Insights, String>> pm2_5ChartData;
-  final List<charts.Series<Insights, String>> pm10ChartData;
-  final Pollutant pollutant;
-  final Frequency frequency;
-  final Function(Insights) onBarSelection;
   const InsightsGraph(
       {Key? key,
       required this.pm2_5ChartData,
@@ -22,6 +17,11 @@ class InsightsGraph extends StatelessWidget {
       required this.frequency,
       required this.onBarSelection})
       : super(key: key);
+  final List<charts.Series<Insights, String>> pm2_5ChartData;
+  final List<charts.Series<Insights, String>> pm10ChartData;
+  final Pollutant pollutant;
+  final Frequency frequency;
+  final Function(Insights) onBarSelection;
 
   @override
   Widget build(BuildContext context) {
@@ -140,15 +140,15 @@ class InsightsGraph extends StatelessWidget {
 }
 
 class InsightsAvatar extends StatelessWidget {
-  final Insights measurement;
-  final double size;
-  final Pollutant pollutant;
   const InsightsAvatar(
       {Key? key,
       required this.measurement,
       required this.size,
       required this.pollutant})
       : super(key: key);
+  final Insights measurement;
+  final double size;
+  final Pollutant pollutant;
 
   @override
   Widget build(BuildContext context) {

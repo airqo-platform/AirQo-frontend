@@ -9,6 +9,12 @@ import '../models/enum_constants.dart';
 import '../themes/app_theme.dart';
 
 class ToolTip {
+  ToolTip(this.context, this._tipType,
+      {double? height, double? width, VoidCallback? onDismiss}) {
+    dismissCallback = onDismiss;
+    _popupHeight = height ?? 64.0;
+    _popupWidth = width ?? 261.0;
+  }
   late double _popupWidth;
   late double _popupHeight;
 
@@ -28,13 +34,6 @@ class ToolTip {
   late Size _screenSize;
 
   BuildContext context;
-
-  ToolTip(this.context, this._tipType,
-      {double? height, double? width, VoidCallback? onDismiss}) {
-    dismissCallback = onDismiss;
-    _popupHeight = height ?? 64.0;
-    _popupWidth = width ?? 261.0;
-  }
 
   LayoutBuilder buildPopupLayout(Offset offset) {
     return LayoutBuilder(builder: (context, constraints) {
@@ -239,10 +238,9 @@ class ToolTip {
 }
 
 class TrianglePainter extends CustomPainter {
+  TrianglePainter({this.isDownArrow = true, required this.color});
   bool isDownArrow;
   Color color;
-
-  TrianglePainter({this.isDownArrow = true, required this.color});
 
   @override
   void paint(Canvas canvas, Size size) {

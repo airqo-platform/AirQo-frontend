@@ -9,9 +9,9 @@ import 'package:flutter_svg/svg.dart';
 import '../../themes/app_theme.dart';
 
 class NotificationView extends StatefulWidget {
-  final AppNotification appNotification;
   const NotificationView({Key? key, required this.appNotification})
       : super(key: key);
+  final AppNotification appNotification;
 
   @override
   State<NotificationView> createState() => _NotificationViewState();
@@ -129,9 +129,9 @@ class _NotificationViewState extends State<NotificationView> {
 }
 
 class NotificationCard extends StatelessWidget {
-  final AppNotification appNotification;
   const NotificationCard({Key? key, required this.appNotification})
       : super(key: key);
+  final AppNotification appNotification;
 
   @override
   Widget build(BuildContext context) {

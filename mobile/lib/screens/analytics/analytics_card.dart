@@ -24,9 +24,9 @@ import '../../widgets/custom_shimmer.dart';
 import '../../widgets/custom_widgets.dart';
 
 class MapAnalyticsMoreInsights extends StatelessWidget {
-  final PlaceDetails placeDetails;
   const MapAnalyticsMoreInsights({Key? key, required this.placeDetails})
       : super(key: key);
+  final PlaceDetails placeDetails;
 
   @override
   Widget build(BuildContext context) {
@@ -62,9 +62,9 @@ class MapAnalyticsMoreInsights extends StatelessWidget {
 }
 
 class AnalyticsMoreInsights extends StatelessWidget {
-  final PlaceDetails placeDetails;
   const AnalyticsMoreInsights({Key? key, required this.placeDetails})
       : super(key: key);
+  final PlaceDetails placeDetails;
 
   @override
   Widget build(BuildContext context) {
@@ -95,29 +95,27 @@ class AnalyticsMoreInsights extends StatelessWidget {
 }
 
 class AnalyticsCard extends StatefulWidget {
-  final PlaceDetails placeDetails;
-  final Measurement measurement;
-  final bool isRefreshing;
-  final bool showHelpTip;
-
   const AnalyticsCard(
       this.placeDetails, this.measurement, this.isRefreshing, this.showHelpTip,
       {Key? key})
       : super(key: key);
+  final PlaceDetails placeDetails;
+  final Measurement measurement;
+  final bool isRefreshing;
+  final bool showHelpTip;
 
   @override
   _AnalyticsCardState createState() => _AnalyticsCardState();
 }
 
 class MapAnalyticsCard extends StatefulWidget {
-  final PlaceDetails placeDetails;
-  final Measurement measurement;
-  final VoidCallback closeCallBack;
-
   const MapAnalyticsCard(
       this.placeDetails, this.measurement, this.closeCallBack,
       {Key? key})
       : super(key: key);
+  final PlaceDetails placeDetails;
+  final Measurement measurement;
+  final VoidCallback closeCallBack;
 
   @override
   _MapAnalyticsCardState createState() => _MapAnalyticsCardState();
@@ -622,9 +620,8 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
 }
 
 class MiniAnalyticsCard extends StatefulWidget {
-  final PlaceDetails placeDetails;
-
   const MiniAnalyticsCard(this.placeDetails, {Key? key}) : super(key: key);
+  final PlaceDetails placeDetails;
 
   @override
   _MiniAnalyticsCard createState() => _MiniAnalyticsCard();

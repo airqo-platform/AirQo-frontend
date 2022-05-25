@@ -19,12 +19,11 @@ import '../on_boarding/profile_setup_screen.dart';
 import 'auth_widgets.dart';
 
 class EmailAuthWidget extends StatefulWidget {
-  final String? emailAddress;
-  final AuthProcedure authProcedure;
-
   const EmailAuthWidget(
       {Key? key, this.emailAddress, required this.authProcedure})
       : super(key: key);
+  final String? emailAddress;
+  final AuthProcedure authProcedure;
 
   @override
   EmailAuthWidgetState createState() => EmailAuthWidgetState();

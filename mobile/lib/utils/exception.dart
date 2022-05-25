@@ -5,8 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 class UserException implements Exception {
-  String message;
   UserException(this.message);
+  String message;
 }
 
 Future<void> logException(exception, stackTrace) async {

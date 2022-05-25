@@ -160,8 +160,8 @@ class SettingsButton extends StatelessWidget {
 }
 
 class ProfilePicture extends StatelessWidget {
-  final Profile userDetails;
   const ProfilePicture({Key? key, required this.userDetails}) : super(key: key);
+  final Profile userDetails;
 
   @override
   Widget build(BuildContext context) {
@@ -216,15 +216,15 @@ class ProfilePicture extends StatelessWidget {
 }
 
 class CardSection extends StatelessWidget {
-  final String icon;
-  final String text;
-  final Color? iconColor;
   const CardSection(
       {Key? key,
       required this.icon,
       required this.iconColor,
       required this.text})
       : super(key: key);
+  final String icon;
+  final String text;
+  final Color? iconColor;
 
   @override
   Widget build(BuildContext context) {
@@ -254,8 +254,8 @@ class CardSection extends StatelessWidget {
 }
 
 class ProfileSection extends StatefulWidget {
-  final Profile userDetails;
   const ProfileSection({Key? key, required this.userDetails}) : super(key: key);
+  final Profile userDetails;
 
   @override
   State<ProfileSection> createState() => _ProfileSectionState();
@@ -336,11 +336,11 @@ class _ProfileSectionState extends State<ProfileSection> {
 }
 
 class EditProfilePicSection extends StatelessWidget {
-  final Profile profile;
-  final VoidCallback getFromGallery;
   const EditProfilePicSection(
       {Key? key, required this.profile, required this.getFromGallery})
       : super(key: key);
+  final Profile profile;
+  final VoidCallback getFromGallery;
 
   @override
   Widget build(BuildContext context) {
@@ -433,9 +433,9 @@ class EditCredentialsIcon extends StatelessWidget {
 }
 
 class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final VoidCallback updateProfile;
   const EditProfileAppBar({Key? key, required this.updateProfile})
       : super(key: key);
+  final VoidCallback updateProfile;
 
   @override
   Widget build(BuildContext context) {
@@ -471,11 +471,11 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class NameEditField extends StatelessWidget {
-  final String value;
-  final Function(String) valueChange;
   const NameEditField(
       {Key? key, required this.value, required this.valueChange})
       : super(key: key);
+  final String value;
+  final Function(String) valueChange;
 
   @override
   Widget build(BuildContext context) {

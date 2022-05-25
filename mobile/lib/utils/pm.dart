@@ -475,9 +475,8 @@ Future<BitmapDescriptor> pmToSmallMarker(double pm2_5) async {
 }
 
 class Recommendation {
+  Recommendation(this.title, this.body, this.imageUrl);
   String title = '';
   String body = '';
   String imageUrl = '';
-
-  Recommendation(this.title, this.body, this.imageUrl);
 }

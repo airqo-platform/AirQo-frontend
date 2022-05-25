@@ -6,9 +6,8 @@ import 'package:flutter_svg/svg.dart';
 import 'kya_cards.dart';
 
 class KyaLessonAnimation extends StatefulWidget {
-  final Kya kya;
-
   const KyaLessonAnimation(this.kya, {Key? key}) : super(key: key);
+  final Kya kya;
 
   @override
   _KyaLessonAnimationState createState() => _KyaLessonAnimationState();

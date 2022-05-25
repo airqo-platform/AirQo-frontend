@@ -33,11 +33,11 @@ class FeedbackBackButton extends StatelessWidget {
 }
 
 class FeedbackNextButton extends StatelessWidget {
-  final String text;
-  final Color buttonColor;
   const FeedbackNextButton(
       {Key? key, required this.text, required this.buttonColor})
       : super(key: key);
+  final String text;
+  final Color buttonColor;
 
   @override
   Widget build(BuildContext context) {
