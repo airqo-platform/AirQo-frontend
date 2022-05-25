@@ -1,4 +1,4 @@
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: ingress-platform-resource
@@ -8,12 +8,20 @@ spec:
     - host: platform.airqo.net
       http:
         paths:
-          - backend:
-              serviceName: airqo-platform-svc
-              servicePort: 80
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name:  airqo-platform-svc
+                port: 
+                  number: 80
     - host: calibrate.airqo.net
       http:
         paths:
-          - backend:
-              serviceName: airqo-calibrate-app-svc
-              servicePort: 80
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name:  airqo-calibrate-app-svc
+                port: 
+                  number: 80

@@ -1,4 +1,4 @@
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: stage-ingress-frontend-resource
@@ -12,24 +12,40 @@ spec:
     - host: staging.platform.airqo.net
       http:
         paths:
-          - backend:
-              serviceName: airqo-stage-platform-ui-svc
-              servicePort: 80
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: airqo-stage-platform-ui-svc
+                port: 
+                  number: 80
     - host: staging.airqo.net
       http:
         paths:
-          - backend:
-              serviceName: airqo-stage-website-svc
-              servicePort: 8000
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: airqo-stage-website-svc
+                port: 
+                  number: 8000
     - host: staging.airqo.africa
       http:
         paths:
-          - backend:
-              serviceName: airqo-stage-website-svc
-              servicePort: 8000
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: airqo-stage-website-svc
+                port: 
+                  number: 8000
     - host: staging.calibrate.airqo.net
       http:
         paths:
-          - backend:
-              serviceName: airqo-stage-calibrate-app-svc
-              servicePort: 80
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: airqo-stage-calibrate-app-svc
+                port: 
+                  number: 80
