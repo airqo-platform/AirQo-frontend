@@ -5,7 +5,6 @@ import 'package:app/models/kya.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/profile.dart';
-import 'package:app/services/secure_storage.dart';
 import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -19,7 +18,6 @@ import 'package:flutter/foundation.dart';
 import '../models/enum_constants.dart';
 import '../utils/exception.dart';
 import '../utils/network.dart';
-import 'local_storage.dart';
 
 class CloudAnalytics {
   static Future<void> logEvent(
@@ -295,66 +293,6 @@ class CloudStore {
     }
   }
 
-  static Future<void> updatePreferenceFields(
-      String id, String field, dynamic value, String type) async {
-    await SharedPreferencesHelper.updatePreference(field, value, type);
-    var hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return;
-    }
-
-    try {
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection(Config.usersCollection)
-          .doc(id)
-          .get();
-      var data = userDoc.data();
-
-      if (data != null) {
-        var userDetails = Profile.fromJson(data as Map<String, dynamic>);
-        if (field == 'notifications') {
-          userDetails.preferences.notifications = value as bool;
-        } else if (field == 'location') {
-          userDetails.preferences.location = value as bool;
-        } else if (field == 'aqShares') {
-          userDetails.preferences.aqShares = value as int;
-        }
-        var userJson = userDetails.toJson();
-
-        await FirebaseFirestore.instance
-            .collection(Config.usersCollection)
-            .doc(id)
-            .update(userJson);
-      }
-    } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
-    }
-  }
-
-  static Future<void> updateProfileFields(
-      String id, Map<String, Object?> fields) async {
-    var hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return;
-    }
-
-    try {
-      await FirebaseFirestore.instance
-          .collection(Config.usersCollection)
-          .doc(id)
-          .update(fields);
-    } catch (exception, _) {
-      try {
-        await FirebaseFirestore.instance
-            .collection(Config.usersCollection)
-            .doc(id)
-            .set(fields);
-      } catch (exception, stackTrace) {
-        await logException(exception, stackTrace);
-      }
-    }
-  }
-
   static Future<String> uploadProfilePicture(String filePath) async {
     try {
       var userId = CustomAuth.getUserId();
@@ -600,27 +538,6 @@ class CustomAuth {
     }
   }
 
-  static Future<void> updateCredentials(String? phone, String? email) async {
-    var hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return;
-    }
-
-    try {
-      var id = getUserId();
-      if (phone != null) {
-        await CloudStore.updateProfileFields(id, {'phoneNumber': phone});
-        await SecureStorage().updateUserDetailsField('phoneNumber', phone);
-      }
-      if (email != null) {
-        await CloudStore.updateProfileFields(id, {'emailAddress': email});
-        await SecureStorage().updateUserDetailsField('emailAddress', email);
-      }
-    } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
-    }
-  }
-
   static Future<bool> updateEmailAddress(
       String emailAddress, BuildContext context) async {
     var hasConnection = await hasNetworkConnection();
@@ -628,8 +545,12 @@ class CustomAuth {
       return false;
     }
     try {
-      await FirebaseAuth.instance.currentUser!.updateEmail(emailAddress);
-      await updateCredentials(null, emailAddress);
+      final profile = await Profile.getProfile();
+      await FirebaseAuth.instance.currentUser!
+          .updateEmail(emailAddress)
+          .then((_) {
+        profile.saveProfile();
+      });
       return true;
     } on FirebaseAuthException catch (exception) {
       if (exception.code == 'email-already-in-use') {
@@ -655,10 +576,12 @@ class CustomAuth {
     }
 
     try {
+      final profile = await Profile.getProfile();
       await FirebaseAuth.instance.currentUser!
-          .updatePhoneNumber(authCredential);
-      await updateCredentials(
-          FirebaseAuth.instance.currentUser!.phoneNumber, null);
+          .updatePhoneNumber(authCredential)
+          .then((_) {
+        profile.saveProfile();
+      });
       return true;
     } on FirebaseAuthException catch (exception) {
       if (exception.code == 'credential-already-in-use') {

@@ -274,11 +274,8 @@ class LocationService {
   static Future<bool> revokePermission() async {
     // TODO: implement revoke permission
 
-    var id = CustomAuth.getUserId();
-
-    if (id != '') {
-      await CloudStore.updatePreferenceFields(id, 'location', false, 'bool');
-    }
+    final profile = await Profile.getProfile();
+    await profile.saveProfile();
     return false;
   }
 
@@ -583,8 +580,9 @@ class ShareService {
     var preferences = await SharedPreferencesHelper.getPreferences();
     var value = preferences.aqShares + 1;
     if (CustomAuth.isLoggedIn()) {
-      await CloudStore.updatePreferenceFields(
-          CustomAuth.getUserId(), 'aqShares', value, 'int');
+      var profile = await Profile.getProfile();
+      profile.preferences.aqShares = value;
+      await profile.saveProfile();
     } else {
       await SharedPreferencesHelper.updatePreference('aqShares', value, 'int');
     }

@@ -1,4 +1,3 @@
-import 'package:app/utils/extensions.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -23,48 +22,32 @@ class NotificationService {
     return false;
   }
 
-  static Future<void> updateNotificationSettings({String? token}) async {
-    try {
-      var user = CustomAuth.getUser();
-      if (user == null) {
-        return;
-      }
-      var device = token ?? await FirebaseMessaging.instance.getToken();
-      var utcOffset = DateTime.now().getUtcOffset();
-      debugPrint('deice token : $device');
-
-      if (device != null) {
-        await CloudStore.updateProfileFields(
-            user.uid, {'device': device, 'utcOffset': utcOffset});
-      }
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-  }
-
   static Future<bool> requestPermission() async {
     try {
-      var settings = await FirebaseMessaging.instance.requestPermission(
-        alert: true,
-        announcement: false,
-        badge: true,
-        carPlay: false,
-        criticalAlert: false,
-        provisional: false,
-        sound: true,
-      );
-      var status =
-          settings.authorizationStatus == AuthorizationStatus.authorized;
+      final profile = await Profile.getProfile();
+      var status = false;
 
-      var id = CustomAuth.getUserId();
+      await FirebaseMessaging.instance
+          .requestPermission(
+            alert: true,
+            announcement: false,
+            badge: true,
+            carPlay: false,
+            criticalAlert: false,
+            provisional: false,
+            sound: true,
+          )
+          .then((settings) async => {
+                if (settings.authorizationStatus ==
+                    AuthorizationStatus.authorized)
+                  {
+                    status = true,
+                    await CloudAnalytics.logEvent(
+                        AnalyticsEvent.allowNotification, true),
+                  },
+                await profile.saveProfile()
+              });
 
-      if (id != '') {
-        await CloudStore.updatePreferenceFields(
-            id, 'notifications', status, 'bool');
-      }
-      if (status) {
-        await CloudAnalytics.logEvent(AnalyticsEvent.allowNotification, true);
-      }
       return status;
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
@@ -75,16 +58,12 @@ class NotificationService {
 
   static Future<bool> revokePermission() async {
     // TODO: implement revoke permission
-    var id = CustomAuth.getUserId();
-
-    if (id != '') {
-      await CloudStore.updatePreferenceFields(
-          id, 'notifications', false, 'bool');
-    }
+    final profile = await Profile.getProfile();
+    await profile.saveProfile();
     return false;
   }
 
-  static Future<void> initNotifications(RemoteMessage message) async {
+  static Future<void> initNotifications() async {
     await requestPermission();
     await FirebaseMessaging.instance
         .setForegroundNotificationPresentationOptions(
@@ -92,9 +71,9 @@ class NotificationService {
       badge: true,
       sound: true,
     );
-    await NotificationService.notificationHandler(message);
-    FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) {
-      updateNotificationSettings(token: fcmToken);
+    FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) async {
+      var profile = await Profile.getProfile();
+      await profile.saveProfile();
     }).onError((err) {
       logException(err, '');
     });

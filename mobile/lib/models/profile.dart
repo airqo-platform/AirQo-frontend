@@ -142,10 +142,11 @@ class Profile extends HiveObject {
         ..preferences.notifications =
             await NotificationService.checkPermission()
         ..preferences.location = await LocationService.checkPermission();
+
+      await Hive.box<Profile>(HiveBox.profile)
+          .put(HiveBox.profile, this)
+          .then((_) => _updateCloudProfile());
     }
-    await Hive.box<Profile>(HiveBox.profile)
-        .put(HiveBox.profile, this)
-        .then((_) => _updateCloudProfile());
   }
 
   static Future<void> _updateCloudProfile() async {

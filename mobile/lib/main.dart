@@ -31,6 +31,7 @@ void main() async {
   );
 
   await SystemProperties.setDefault();
+  FirebaseMessaging.onMessage.listen(NotificationService.notificationHandler);
 
   if (Platform.isIOS) {
     FirebaseMessaging.onMessage.listen(NotificationService.notificationHandler);
