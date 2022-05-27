@@ -11,6 +11,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -337,20 +338,10 @@ class _DashboardViewState extends State<DashboardView> {
     }
   }
 
-  void _getKya() async {
-    var kya = await _appService.dbHelper.getKyas();
-
-    _completeKya = kya.where((element) => element.progress == -1).toList();
-    _loadCompleteKya(_completeKya);
-
-    setState(() => _incompleteKya =
-        kya.where((element) => element.progress != -1).toList());
-  }
-
   Future<void> _handleKyaOnClick(Kya kya) async {
     if (kya.progress >= kya.lessons.length) {
       kya.progress = -1;
-      await _appService.updateKya(kya, context);
+      await kya.saveKya();
     } else {
       await Navigator.push(context, MaterialPageRoute(builder: (context) {
         return KyaTitlePage(kya);
@@ -381,8 +372,9 @@ class _DashboardViewState extends State<DashboardView> {
     _buildAnalyticsCards(_analyticsCards);
     _setGreetings();
     _getAnalyticsCards();
-    _getKya();
-    Future.delayed(const Duration(seconds: 2), _getKya);
+    _loadKya();
+    await _initListeners();
+    // Future.delayed(const Duration(seconds: 2), _loadKya);
   }
 
   List<Widget> _initializeDashBoardItems() {
@@ -526,7 +518,7 @@ class _DashboardViewState extends State<DashboardView> {
     _setGreetings();
     await _appService.refreshDashboard(context);
     _getAnalyticsCards();
-    _getKya();
+    _loadKya();
     _loadFavourites(reload: true);
 
     setState(() => _isRefreshing = false);
@@ -536,5 +528,21 @@ class _DashboardViewState extends State<DashboardView> {
     if (mounted) {
       setState(() => _greetings = getGreetings(CustomAuth.getDisplayName()));
     }
+  }
+
+  void _loadKya() {
+    final kya = Hive.box<Kya>(HiveBox.kya).values.toList().cast<Kya>();
+    setState(() => _incompleteKya =
+        kya.where((element) => element.progress != -1).toList());
+
+    _completeKya = kya.where((element) => element.progress == -1).toList();
+    _loadCompleteKya(_completeKya);
+  }
+
+  Future<void> _initListeners() async {
+    Hive.box<Kya>(HiveBox.kya)
+        .watch()
+        .listen((_) => _loadKya())
+        .onDone(_loadKya);
   }
 }

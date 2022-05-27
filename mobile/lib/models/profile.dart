@@ -1,6 +1,4 @@
 import 'package:app/utils/extensions.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -9,7 +7,6 @@ import '../constants/config.dart';
 import '../services/firebase_service.dart';
 import '../services/native_api.dart';
 import '../services/notifications_svc.dart';
-import '../utils/exception.dart';
 import '../utils/network.dart';
 import 'enum_constants.dart';
 
@@ -144,35 +141,7 @@ class Profile extends HiveObject {
 
       await Hive.box<Profile>(HiveBox.profile)
           .put(HiveBox.profile, this)
-          .then((_) => _updateCloudProfile());
-    }
-  }
-
-  static Future<void> _updateCloudProfile() async {
-    try {
-      var profile = await getProfile();
-      var currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser != null) {
-        try {
-          await Future.wait([
-            currentUser.updateDisplayName(profile.firstName),
-            FirebaseFirestore.instance
-                .collection(Config.usersCollection)
-                .doc(profile.userId)
-                .update(profile.toJson())
-          ]);
-        } catch (exception) {
-          await Future.wait([
-            currentUser.updateDisplayName(profile.firstName),
-            FirebaseFirestore.instance
-                .collection(Config.usersCollection)
-                .doc(profile.userId)
-                .set(profile.toJson())
-          ]);
-        }
-      }
-    } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
+          .then((_) => CloudStore.updateCloudProfile());
     }
   }
 

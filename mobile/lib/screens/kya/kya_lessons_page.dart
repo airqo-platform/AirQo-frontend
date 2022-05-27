@@ -1,6 +1,5 @@
 import 'package:app/constants/config.dart';
 import 'package:app/models/kya.dart';
-import 'package:app/services/app_service.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -30,7 +29,6 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   double _tipsProgress = 0.1;
   int currentIndex = 0;
   late Kya kya;
-  final AppService _appService = AppService();
   final List<GlobalKey> _globalKeys = <GlobalKey>[];
 
   @override
@@ -204,7 +202,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
     }
   }
 
-  void updateProgress() {
+  Future<void> updateProgress() async {
     if (widget.kya.progress == -1) {
       return;
     }
@@ -212,7 +210,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
     if (kya.progress > kya.lessons.length || kya.progress < 0) {
       kya.progress = kya.lessons.length - 1;
     }
-    _appService.updateKya(kya, context);
+    await kya.saveKya();
   }
 
   Widget _kyaCard(KyaLesson kyaItem, int index) {

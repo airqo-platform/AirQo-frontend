@@ -2,14 +2,12 @@ import 'dart:async';
 
 import 'package:app/constants/config.dart';
 import 'package:app/models/insights.dart';
-import 'package:app/models/kya.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/profile.dart';
 import 'package:app/models/site.dart';
 import 'package:app/utils/distance.dart';
 import 'package:app/utils/extensions.dart';
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -34,7 +32,6 @@ class DBHelper {
   Future<void> clearAccount() async {
     try {
       final db = await database;
-      await db.delete(Kya.dbName());
       await db.delete(PlaceDetails.dbName());
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
@@ -61,8 +58,7 @@ class DBHelper {
         ..execute(Measurement.dropTableStmt())
         ..execute(Site.dropTableStmt())
         ..execute(PlaceDetails.dropTableStmt())
-        ..execute(Insights.dropTableStmt())
-        ..execute(Kya.dropTableStmt());
+        ..execute(Insights.dropTableStmt());
       await prefs.setBool(Config.prefReLoadDb, false);
     }
 
@@ -70,8 +66,7 @@ class DBHelper {
       ..execute(Measurement.createTableStmt())
       ..execute(Site.createTableStmt())
       ..execute(PlaceDetails.createTableStmt())
-      ..execute(Insights.createTableStmt())
-      ..execute(Kya.createTableStmt());
+      ..execute(Insights.createTableStmt());
 
     await batch.commit(noResult: true, continueOnError: true);
   }
@@ -110,33 +105,6 @@ class DBHelper {
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
       return <Insights>[];
-    }
-  }
-
-  Future<List<Kya>> getKyas() async {
-    try {
-      final db = await database;
-
-      var res = await db.query(Kya.dbName());
-
-      if (res.isEmpty) {
-        return [];
-      }
-
-      var collections = groupBy(res, (Map obj) => obj['id']);
-      var kyaList = <Kya>[];
-      for (var key in collections.keys) {
-        if (collections.containsKey(key)) {
-          var kya = Kya.fromDbJson(collections[key]);
-          if (kya.id.isNotEmpty) {
-            kyaList.add(kya);
-          }
-        }
-      }
-      return kyaList;
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      return <Kya>[];
     }
   }
 
@@ -328,35 +296,6 @@ class DBHelper {
     }
   }
 
-  Future<void> insertKyas(List<Kya> kyas) async {
-    try {
-      final db = await database;
-
-      if (kyas.isEmpty) {
-        return;
-      }
-      var batch = db.batch()..delete(Kya.dbName());
-
-      for (var kya in kyas) {
-        try {
-          var kyaJson = kya.parseKyaToDb();
-          for (var jsonBody in kyaJson) {
-            batch.insert(
-              Kya.dbName(),
-              jsonBody,
-              conflictAlgorithm: ConflictAlgorithm.replace,
-            );
-          }
-        } catch (exception, stackTrace) {
-          debugPrint('$exception\n$stackTrace');
-        }
-      }
-      await batch.commit(noResult: true, continueOnError: true);
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-  }
-
   Future<void> insertLatestMeasurements(List<Measurement> measurements) async {
     try {
       final db = await database;
@@ -461,13 +400,6 @@ class DBHelper {
     }
     return false;
   }
-
-  Future<void> updateKya(Kya kya) async {
-    final db = await database;
-
-    await db.update(Kya.dbName(), {'progress': kya.progress},
-        where: 'id = ?', whereArgs: [kya.id]);
-  }
 }
 
 class SharedPreferencesHelper {
@@ -531,14 +463,6 @@ class SharedPreferencesHelper {
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
-  }
-
-  static Future<void> updatePreferences(UserPreferences userPreferences) async {
-    var sharedPreferences = await SharedPreferences.getInstance();
-    await sharedPreferences.setBool(
-        'notifications', userPreferences.notifications);
-    await sharedPreferences.setBool('location', userPreferences.location);
-    await sharedPreferences.setInt('aqShares', userPreferences.aqShares);
   }
 }
 

@@ -117,7 +117,7 @@ class AppService {
     await Future.wait([
       checkNetworkConnection(buildContext, notifyUser: true),
       _fetchLatestMeasurements(),
-      _fetchKya(),
+      _loadKya(),
       _loadNotifications(),
       _loadFavPlaces(buildContext),
       fetchFavPlacesInsights(),
@@ -174,10 +174,25 @@ class AppService {
     return insights;
   }
 
-  Future<void> _fetchKya() async {
+  Future<void> _loadKya() async {
     try {
-      var kyas = await CloudStore.getKya(CustomAuth.getUserId());
-      await _dbHelper.insertKyas(kyas);
+      final offlineKyas =
+          Hive.box<Kya>(HiveBox.kya).values.toList().cast<Kya>();
+
+      var cloudKyas = await CloudStore.getKya();
+      var kyas = <Kya>[];
+      for (var offlineKya in offlineKyas) {
+        try {
+          var kya = cloudKyas
+              .where((element) => element.id.equalsIgnoreCase(offlineKya.id))
+              .first
+            ..progress = offlineKya.progress;
+          kyas.add(kya);
+        } catch (e) {
+          debugPrint(e.toString());
+        }
+      }
+      await Kya.load(kyas);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
@@ -329,7 +344,7 @@ class AppService {
     await Future.wait([
       checkNetworkConnection(buildContext, notifyUser: true),
       _fetchLatestMeasurements(),
-      _fetchKya(),
+      _loadKya(),
       _loadNotifications(),
       updateFavouritePlacesSites(buildContext),
     ]);
@@ -339,7 +354,7 @@ class AppService {
     await Future.wait([
       checkNetworkConnection(buildContext, notifyUser: true),
       _fetchLatestMeasurements(),
-      _fetchKya(),
+      _loadKya(),
       fetchFavPlacesInsights(),
     ]);
   }
@@ -347,7 +362,7 @@ class AppService {
   Future<void> refreshKyaView(BuildContext buildContext) async {
     await Future.wait([
       checkNetworkConnection(buildContext, notifyUser: true),
-      _fetchKya(),
+      _loadKya(),
     ]);
   }
 
@@ -389,17 +404,6 @@ class AppService {
     await _dbHelper
         .updateFavouritePlacesDetails(updatedFavPlaces)
         .then((value) => _loadFavPlaces(buildContext));
-  }
-
-  Future<void> updateKya(Kya kya, BuildContext buildContext) async {
-    await _dbHelper.updateKya(kya);
-    var connected = await checkNetworkConnection(buildContext);
-    if (CustomAuth.isLoggedIn() && connected) {
-      await CloudStore.updateKyaProgress(CustomAuth.getUserId(), kya);
-      if (kya.progress == kya.lessons.length) {
-        await logEvent(AnalyticsEvent.completeOneKYA);
-      }
-    }
   }
 
   Future<void> _logFavPlaces() async {

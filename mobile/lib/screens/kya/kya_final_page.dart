@@ -1,6 +1,5 @@
 import 'package:app/constants/config.dart';
 import 'package:app/models/kya.dart';
-import 'package:app/services/app_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -15,7 +14,6 @@ class KyaFinalPage extends StatefulWidget {
 }
 
 class _KyaFinalPageState extends State<KyaFinalPage> {
-  final AppService _appService = AppService();
   late Kya kya;
 
   @override
@@ -82,7 +80,7 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
     Future.delayed(const Duration(seconds: 4), () {
       Navigator.pop(context);
     });
-    await _appService.updateKya(kya, context);
+    await kya.saveKya();
   }
 
   Future<bool> _onWillPop() {

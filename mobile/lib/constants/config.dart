@@ -164,6 +164,7 @@ class Config {
 
 class HiveBox {
   static String get appNotifications => 'appNotifications';
+  static String get kya => 'kya';
   static String get profile => 'profile';
   static String get encryptionKey => 'hiveEncryptionKey';
 }

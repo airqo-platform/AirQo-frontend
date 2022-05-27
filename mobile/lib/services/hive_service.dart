@@ -7,6 +7,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../constants/config.dart';
 import '../models/enum_constants.dart';
+import '../models/kya.dart';
 import '../models/notification.dart';
 
 class HiveService {
@@ -17,10 +18,13 @@ class HiveService {
     Hive
       ..registerAdapter(AppNotificationAdapter())
       ..registerAdapter(ProfileAdapter())
+      ..registerAdapter(KyaAdapter())
       ..registerAdapter(AppNotificationTypeAdapter())
+      ..registerAdapter(KyaLessonAdapter())
       ..registerAdapter(UserPreferencesTypeAdapter());
 
     await Hive.openBox<AppNotification>(HiveBox.appNotifications);
+    await Hive.openBox<Kya>(HiveBox.kya);
     await Hive.openBox<Profile>(HiveBox.profile,
         encryptionCipher: HiveAesCipher(encryptionKey));
   }

@@ -1,6 +1,7 @@
 import 'package:app/constants/config.dart';
 import 'package:app/models/kya.dart';
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../services/app_service.dart';
 import '../../widgets/custom_widgets.dart';
@@ -16,7 +17,7 @@ class KnowYourAirView extends StatefulWidget {
 class _KnowYourAirViewState extends State<KnowYourAirView> {
   List<Kya> _kyaCards = [];
   final AppService _appService = AppService();
-  String _error = 'You haven\'t completed any lessons';
+  final String _error = 'You haven\'t completed any lessons';
 
   @override
   Widget build(BuildContext context) {
@@ -40,26 +41,23 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
   @override
   void initState() {
     super.initState();
-    _getKya();
+    _loadKya();
+    _initListeners();
   }
 
-  Future<void> _getKya() async {
-    var kya = await _appService.dbHelper.getKyas();
+  void _loadKya() {
+    setState(() =>
+        _kyaCards = Hive.box<Kya>(HiveBox.kya).values.toList().cast<Kya>());
+  }
 
-    if (kya.isEmpty) {
-      setState(() {
-        _kyaCards = [];
-        _error = 'Connect retrieve Know Your Air lessons. Try again later';
-      });
-      return;
-    }
-
-    if (mounted) {
-      setState(() => _kyaCards = kya);
-    }
+  Future<void> _initListeners() async {
+    Hive.box<Kya>(HiveBox.kya)
+        .watch()
+        .listen((_) => _loadKya())
+        .onDone(_loadKya);
   }
 
   Future<void> _refreshKya() async {
-    await _appService.refreshKyaView(context).then((_) => _getKya());
+    await _appService.refreshKyaView(context);
   }
 }

@@ -106,46 +106,47 @@ class CloudStore {
     return [];
   }
 
-  static Future<List<Kya>> getKya(String userId) async {
+  static Future<List<Kya>> getKya() async {
+    final userId = CustomAuth.getUserId();
+    if (userId.isEmpty) {
+      return [];
+    }
+
     try {
-      var kyasJson = await FirebaseFirestore.instance
-          .collection(Config.kyaCollection)
-          .get();
       var userKyas = <UserKya>[];
 
-      if (userId.isNotEmpty && userId.trim() != '') {
-        var userKyaJson = await FirebaseFirestore.instance
-            .collection(Config.usersKyaCollection)
-            .doc(userId)
-            .collection(userId)
-            .get();
+      var userKyaJson = await FirebaseFirestore.instance
+          .collection(Config.usersKyaCollection)
+          .doc(userId)
+          .collection(userId)
+          .get();
 
-        var userKyaDocs = userKyaJson.docs;
-        for (var userKyaDoc in userKyaDocs) {
-          try {
-            var userKyaData = userKyaDoc.data();
-            if (userKyaData.isEmpty) {
-              continue;
-            }
-            UserKya kya;
-            try {
-              kya = UserKya.fromJson(userKyaData);
-            } catch (e) {
-              userKyaData['progress'] =
-                  (userKyaData['progress'] as double).ceil();
-              kya = UserKya.fromJson(userKyaData);
-            }
-
-            userKyas.add(kya);
-          } catch (exception, stackTrace) {
-            debugPrint('$exception\n$stackTrace');
+      for (var userKyaDoc in userKyaJson.docs) {
+        try {
+          var userKyaData = userKyaDoc.data();
+          if (userKyaData.isEmpty) {
+            continue;
           }
+          UserKya kya;
+          try {
+            kya = UserKya.fromJson(userKyaData);
+          } catch (e) {
+            userKyaData['progress'] =
+                (userKyaData['progress'] as double).ceil();
+            kya = UserKya.fromJson(userKyaData);
+          }
+
+          userKyas.add(kya);
+        } catch (exception, stackTrace) {
+          debugPrint('$exception\n$stackTrace');
         }
       }
 
-      var kyaDocs = kyasJson.docs;
+      var kyasJson = await FirebaseFirestore.instance
+          .collection(Config.kyaCollection)
+          .get();
       var kyas = <Kya>[];
-      for (var kyaDoc in kyaDocs) {
+      for (var kyaDoc in kyasJson.docs) {
         try {
           var kyaData = kyaDoc.data();
           if (kyaData.isEmpty) {
@@ -161,6 +162,7 @@ class CloudStore {
           debugPrint('$exception\n$stackTrace');
         }
       }
+
       return kyas;
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
@@ -168,17 +170,13 @@ class CloudStore {
     return [];
   }
 
-  static String getUserId() {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null || uid.isEmpty) {
-      throw UserException('Not Logged in. Missing uuid');
-    }
-    return uid;
-  }
-
   static Future<List<AppNotification>> getNotifications() async {
+    final uid = CustomAuth.getUserId();
+    if (uid.isEmpty) {
+      return [];
+    }
+
     try {
-      final uid = CloudStore.getUserId();
       var notificationsJson = await FirebaseFirestore.instance
           .collection('${Config.usersNotificationCollection}/$uid/$uid')
           .get();
@@ -203,7 +201,7 @@ class CloudStore {
 
   static Future<Profile> getProfile() async {
     try {
-      final uuid = CloudStore.getUserId();
+      final uuid = CustomAuth.getUserId();
 
       var userJson = await FirebaseFirestore.instance
           .collection(Config.usersCollection)
@@ -265,26 +263,56 @@ class CloudStore {
     return batch.commit();
   }
 
-  static Future<void> updateKyaProgress(String userId, Kya kya) async {
-    if (userId.isEmpty || userId.trim() == '') {
+  static Future<void> updateCloudProfile() async {
+    try {
+      var profile = await getProfile();
+      var currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        try {
+          await Future.wait([
+            currentUser.updateDisplayName(profile.firstName),
+            FirebaseFirestore.instance
+                .collection(Config.usersCollection)
+                .doc(profile.userId)
+                .update(profile.toJson())
+          ]);
+        } catch (exception) {
+          await Future.wait([
+            currentUser.updateDisplayName(profile.firstName),
+            FirebaseFirestore.instance
+                .collection(Config.usersCollection)
+                .doc(profile.userId)
+                .set(profile.toJson())
+          ]);
+        }
+      }
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
+    }
+  }
+
+  static Future<void> updateKyaProgress(Kya kya) async {
+    final userId = CustomAuth.getUserId();
+
+    if (userId.isEmpty) {
       return;
     }
-
+    final userKya = UserKya(kya.id, kya.progress);
     try {
       await FirebaseFirestore.instance
           .collection(Config.usersKyaCollection)
           .doc(userId)
           .collection(userId)
           .doc(kya.id)
-          .update({'progress': kya.progress});
+          .update(userKya.toJson());
     } on FirebaseException catch (exception, stackTrace) {
-      if (exception.code == 'not-found') {
+      if (exception.code.contains('not-found')) {
         await FirebaseFirestore.instance
             .collection(Config.usersKyaCollection)
             .doc(userId)
             .collection(userId)
             .doc(kya.id)
-            .set({'progress': kya.progress, 'id': kya.id});
+            .set(userKya.toJson());
       } else {
         await logException(exception, stackTrace);
       }

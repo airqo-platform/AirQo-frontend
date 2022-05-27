@@ -1,12 +1,17 @@
+import 'package:app/services/firebase_service.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import '../utils/exception.dart';
+import '../constants/config.dart';
+import '../services/app_service.dart';
+import 'enum_constants.dart';
 
 part 'kya.g.dart';
 
 @JsonSerializable(explicitToJson: true)
-class Kya {
+@HiveType(typeId: 30, adapterName: 'KyaAdapter')
+class Kya extends HiveObject {
   factory Kya.fromDbJson(List<Map<String, Object?>>? json) {
     if (json == null) {
       return Kya(
@@ -64,69 +69,76 @@ class Kya {
       required this.progress,
       required this.completionMessage,
       required this.secondaryImageUrl});
+
+  @HiveField(1, defaultValue: 0)
   @JsonKey(defaultValue: 0)
   int progress;
+
+  @HiveField(2)
   String title;
+
+  @HiveField(3,
+      defaultValue: 'You just finished your first Know You Air Lesson')
   @JsonKey(defaultValue: 'You just finished your first Know You Air Lesson')
   String completionMessage;
+
+  @HiveField(4)
   String imageUrl;
+
+  @HiveField(5)
   @JsonKey(defaultValue: '')
   String secondaryImageUrl;
+
+  @HiveField(6)
   String id;
+
+  @HiveField(7)
   List<KyaLesson> lessons = [];
-
-  List<Map<String, dynamic>> parseKyaToDb() {
-    try {
-      var kyaLessons = lessons;
-      var kyaJson = toJson()..remove('lessons');
-      var kyaJsonList = <Map<String, dynamic>>[];
-
-      for (var lesson in kyaLessons) {
-        var lessonJson = <String, dynamic>{
-          'lesson_title': lesson.title,
-          'lesson_imageUrl': lesson.imageUrl,
-          'lesson_body': lesson.body,
-        };
-        var jsonBody = lessonJson..addAll(kyaJson);
-        kyaJsonList.add(jsonBody);
-      }
-      return kyaJsonList;
-    } catch (exception, stackTrace) {
-      logException(exception, stackTrace);
-    }
-    return [];
-  }
 
   Map<String, dynamic> toJson() => _$KyaToJson(this);
 
-  static String createTableStmt() => 'CREATE TABLE IF NOT EXISTS ${dbName()}('
-      'auto_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, id TEXT, '
-      'progress INTEGER, title TEXT, completionMessage TEXT, '
-      'secondaryImageUrl TEXT, imageUrl TEXT,'
-      'lesson_title TEXT, lesson_imageUrl TEXT, lesson_body TEXT)';
-
-  static String dbName() => 'kya_db';
-
-  static String dropTableStmt() => 'DROP TABLE IF EXISTS ${dbName()}';
-
-  static Kya? parseKya(dynamic jsonBody) {
-    try {
-      return Kya.fromJson(jsonBody);
-    } catch (exception, stackTrace) {
-      logException(exception, stackTrace);
+  Future<void> saveKya() async {
+    if (progress == lessons.length) {
+      await Future.wait([
+        Hive.box<Kya>(HiveBox.kya)
+            .put(id, this)
+            .then((_) => CloudStore.updateKyaProgress(this)),
+        AppService.logEvent(AnalyticsEvent.completeOneKYA)
+      ]);
+    } else {
+      await Hive.box<Kya>(HiveBox.kya)
+          .put(id, this)
+          .then((_) => CloudStore.updateKyaProgress(this));
     }
-    return null;
+  }
+
+  static Future<void> load(List<Kya> kyas) async {
+    await Hive.box<Kya>(HiveBox.kya).clear();
+    final newKyas = <dynamic, Kya>{};
+
+    for (var kya in kyas) {
+      newKyas[kya.id] = kya;
+    }
+
+    await Hive.box<Kya>(HiveBox.kya).putAll(newKyas);
   }
 }
 
 @JsonSerializable(explicitToJson: true)
+@HiveType(typeId: 130, adapterName: 'KyaLessonAdapter')
 class KyaLesson {
   KyaLesson(this.title, this.imageUrl, this.body);
 
   factory KyaLesson.fromJson(Map<String, dynamic> json) =>
       _$KyaLessonFromJson(json);
+
+  @HiveField(0)
   String title;
+
+  @HiveField(1)
   String imageUrl;
+
+  @HiveField(2)
   String body;
 
   Map<String, dynamic> toJson() => _$KyaLessonToJson(this);
