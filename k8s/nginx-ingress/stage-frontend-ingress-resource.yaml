@@ -9,7 +9,7 @@ metadata:
     nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
   rules:
-    - host: staging.platform.airqo.net
+    - host: staging-platform.airqo.net
       http:
         paths:
           - path: /calibrate
