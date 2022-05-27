@@ -106,9 +106,10 @@ class AppService {
           phoneNumber: phoneNumber, emailAddress: emailAddress);
     } catch (exception, stackTrace) {
       debugPrint('$exception \n $stackTrace');
-      await logException(exception, stackTrace);
-      await showSnackBar(
-          buildContext, 'Failed to perform action. Try again later');
+      await Future.wait([
+        logException(exception, stackTrace),
+        showSnackBar(buildContext, 'Failed to perform action. Try again later')
+      ]);
       return true;
     }
   }
@@ -136,7 +137,7 @@ class AppService {
       }
       await fetchInsights(placeIds, reloadDatabase: true);
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
+      await logException(exception, stackTrace);
     }
   }
 

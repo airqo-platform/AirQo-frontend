@@ -495,6 +495,22 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
       return;
     }
 
+    final action = await showDialog<ConfirmationAction>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return ConfirmationDialog(
+          title: 'Confirm Email Address',
+          message:
+              'We shall send a verification code to the email $_emailAddress',
+        );
+      },
+    );
+
+    if (action == null || action == ConfirmationAction.cancel) {
+      return;
+    }
+
     FocusScope.of(context).requestFocus(FocusNode());
     Future.delayed(const Duration(milliseconds: 400), () {
       setState(() {

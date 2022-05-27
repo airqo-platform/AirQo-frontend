@@ -1,8 +1,8 @@
 import 'package:app/utils/extensions.dart';
-import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../models/enum_constants.dart';
+import 'exception.dart';
 
 String dateToShareString(String formattedString) {
   try {
@@ -10,7 +10,7 @@ String dateToShareString(String formattedString) {
     var dateFormatter = DateFormat('EEE, d MMM yyyy hh:mm a');
     return dateFormatter.format(formattedDate);
   } catch (exception, stackTrace) {
-    debugPrint('$exception\n$stackTrace');
+    logException(exception, stackTrace);
     return dateToString(formattedString);
   }
 }
@@ -45,7 +45,7 @@ String dateToString(String formattedString) {
       }
     }
   } catch (exception, stackTrace) {
-    debugPrint('$exception\n$stackTrace');
+    logException(exception, stackTrace);
     return formattedString;
   }
 }
@@ -115,7 +115,7 @@ String insightsChartTitleDateTimeToString(
       return prefix == '' ? suffix : '$prefix, $suffix';
     }
   } catch (exception, stackTrace) {
-    debugPrint('$exception\n$stackTrace');
+    logException(exception, stackTrace);
     return dateTime.toString();
   }
 }

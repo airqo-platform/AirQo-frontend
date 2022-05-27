@@ -500,7 +500,7 @@ class _DashboardViewState extends State<DashboardView> {
           }
         } else {}
       } catch (exception, stackTrace) {
-        debugPrint('$exception\n$stackTrace');
+        await logException(exception, stackTrace);
       }
 
       if (mounted) {

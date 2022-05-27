@@ -282,13 +282,17 @@ Future<void> showSnackBar(context, String message) async {
 }
 
 class ConfirmationDialog extends StatelessWidget {
-  const ConfirmationDialog({Key? key}) : super(key: key);
+  const ConfirmationDialog(
+      {Key? key, required this.title, required this.message})
+      : super(key: key);
+  final String title;
+  final String message;
 
   @override
   Widget build(BuildContext context) {
     return CupertinoAlertDialog(
-      title: const Text('Confirm Number'),
-      content: const Text('We shall send a verification code to this number'),
+      title: Text(title),
+      content: Text(message),
       actions: <Widget>[
         CupertinoDialogAction(
           onPressed: () {

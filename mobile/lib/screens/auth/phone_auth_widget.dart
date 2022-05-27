@@ -556,85 +556,81 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
       return;
     }
 
-    if (_phoneFormKey.currentState!.validate()) {
-      var phoneNumber = '$_countryCode$_phoneNumber';
+    if (!_phoneFormKey.currentState!.validate()) {
+      return;
+    }
 
-      final action = await showDialog<ConfirmationAction>(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return const ConfirmationDialog();
-        },
-      );
+    var phoneNumber = '$_countryCode$_phoneNumber';
+    final action = await showDialog<ConfirmationAction>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return ConfirmationDialog(
+          title: 'Confirm Number',
+          message:
+              'We shall send a verification code to the number $phoneNumber',
+        );
+      },
+    );
 
-      if (action == null || action == ConfirmationAction.cancel) {
-        return;
-      }
+    if (action == null || action == ConfirmationAction.cancel) {
+      return;
+    }
 
-      FocusScope.of(context).requestFocus(FocusNode());
-      setState(() {
-        _nextBtnColor = Config.appColorDisabled;
-        _codeSent = false;
-        _showAuthOptions = true;
-      });
-      loadingScreen(_loadingContext);
+    FocusScope.of(context).requestFocus(FocusNode());
+    setState(() {
+      _nextBtnColor = Config.appColorDisabled;
+      _codeSent = false;
+      _showAuthOptions = true;
+    });
+    loadingScreen(_loadingContext);
 
-      var connected = await checkNetworkConnection(context, notifyUser: true);
-      if (!connected) {
+    if (widget.authProcedure == AuthProcedure.signup) {
+      var phoneNumberTaken = await _appService.doesUserExist(
+          phoneNumber: phoneNumber, buildContext: context);
+
+      if (phoneNumberTaken) {
+        setState(() {
+          _codeSent = true;
+        });
         Navigator.pop(_loadingContext);
-        setState(() {
-          _codeSent = true;
-        });
+        await showSnackBar(
+            context,
+            'You already have an '
+            'account with this phone number');
+        await Navigator.pushAndRemoveUntil(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  PhoneLoginWidget(
+                phoneNumber: '$_countryCode.$_phoneNumber',
+              ),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                return FadeTransition(
+                  opacity: animation.drive(Tween<double>(begin: 0, end: 1)),
+                  child: child,
+                );
+              },
+            ),
+            (r) => false);
         return;
       }
+    }
 
-      if (widget.authProcedure == AuthProcedure.signup) {
-        var phoneNumberTaken = await _appService.doesUserExist(
-            phoneNumber: phoneNumber, buildContext: context);
+    var success = await CustomAuth.requestPhoneVerification(
+        phoneNumber, context, verifyPhoneFn, autoVerifyPhoneFn);
 
-        if (phoneNumberTaken) {
-          setState(() {
-            _codeSent = true;
-          });
-          Navigator.pop(_loadingContext);
-          await showSnackBar(
-              context,
-              'You already have an '
-              'account with this phone number');
-          await Navigator.pushAndRemoveUntil(
-              context,
-              PageRouteBuilder(
-                pageBuilder: (context, animation, secondaryAnimation) =>
-                    PhoneLoginWidget(
-                  phoneNumber: '$_countryCode.$_phoneNumber',
-                ),
-                transitionsBuilder:
-                    (context, animation, secondaryAnimation, child) {
-                  return FadeTransition(
-                    opacity: animation.drive(Tween<double>(begin: 0, end: 1)),
-                    child: child,
-                  );
-                },
-              ),
-              (r) => false);
-          return;
-        }
-      }
+    Navigator.pop(_loadingContext);
 
-      var success = await CustomAuth.requestPhoneVerification(
-          phoneNumber, context, verifyPhoneFn, autoVerifyPhoneFn);
-
-      Navigator.pop(_loadingContext);
-
-      if (success) {
-        setState(() {
-          _codeSent = true;
-        });
-      } else {
-        setState(() {
-          _codeSent = false;
-        });
-      }
+    if (success) {
+      setState(() {
+        _codeSent = true;
+      });
+    } else {
+      setState(() {
+        _codeSent = false;
+      });
     }
 
     _startCodeSentCountDown();

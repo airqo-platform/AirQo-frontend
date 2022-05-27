@@ -9,7 +9,8 @@ class UserException implements Exception {
   String message;
 }
 
-Future<void> logException(exception, stackTrace) async {
+Future<void> logException(exception, stackTrace,
+    {bool remoteLogging = true}) async {
   final unHandledSentryExceptions = [
     SocketException,
     TimeoutException,
@@ -17,6 +18,7 @@ Future<void> logException(exception, stackTrace) async {
   ];
   debugPrint('$exception\n$stackTrace');
   if (kReleaseMode &&
+      remoteLogging &&
       !unHandledSentryExceptions.contains(exception.runtimeType)) {
     await Sentry.captureException(
       exception,

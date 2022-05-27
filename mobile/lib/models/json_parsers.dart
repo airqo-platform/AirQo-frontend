@@ -1,6 +1,6 @@
 import 'package:app/models/measurement_value.dart';
-import 'package:flutter/foundation.dart';
 
+import '../utils/exception.dart';
 import 'measurement.dart';
 
 String notificationIconFromJson(dynamic json) {
@@ -61,7 +61,7 @@ List<Measurement> parseMeasurements(dynamic jsonBody) {
         measurements.add(measurement);
       }
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
+      logException(exception, stackTrace, remoteLogging: false);
     }
   }
   measurements.sort((siteA, siteB) =>

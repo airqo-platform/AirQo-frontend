@@ -10,6 +10,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../models/enum_constants.dart';
 import '../../services/app_service.dart';
 import '../../services/firebase_service.dart';
+import '../../utils/exception.dart';
 import '../auth/change_email_screen.dart';
 import '../auth/change_phone_screen.dart';
 import '../auth/email_reauthenticate_screen.dart';
@@ -274,7 +275,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
           ]);
         }
       } catch (exception, stackTrace) {
-        debugPrint('$exception\n$stackTrace');
+        await logException(exception, stackTrace);
       }
     }
   }
