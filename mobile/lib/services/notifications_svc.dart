@@ -11,17 +11,7 @@ class NotificationService {
   static Future<bool> revokePermission() async {
     // TODO: implement revoke permission
     final profile = await Profile.getProfile();
-    await FirebaseMessaging.instance
-        .requestPermission(
-          alert: false,
-          announcement: false,
-          badge: false,
-          carPlay: false,
-          criticalAlert: false,
-          provisional: false,
-          sound: true,
-        )
-        .then((value) => profile.saveProfile());
+    await profile.saveProfile();
     return false;
   }
 

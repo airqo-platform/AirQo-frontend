@@ -2,12 +2,14 @@ import 'package:animations/animations.dart';
 import 'package:app/screens/on_boarding/profile_setup_screen.dart';
 import 'package:app/screens/on_boarding/setup_complete_screeen.dart';
 import 'package:app/screens/on_boarding/welcome_screen.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../models/enum_constants.dart';
 import '../../services/app_service.dart';
 import '../../services/local_storage.dart';
+import '../../services/notifications_svc.dart';
 import '../../utils/extensions.dart';
 import '../auth/phone_auth_widget.dart';
 import '../home_page.dart';
@@ -84,6 +86,13 @@ class SplashScreenV2State extends State<SplashScreenV2> {
     });
 
     await _appService.fetchData(context);
+
+    FirebaseMessaging.onBackgroundMessage(
+        NotificationService.notificationHandler);
+    FirebaseMessaging.onMessage.listen(NotificationService.notificationHandler);
+    FirebaseMessaging.onMessageOpenedApp.listen((_) {
+      // TODO: LOG EVENT
+    });
   }
 
   @override

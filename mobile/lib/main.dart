@@ -32,11 +32,6 @@ void main() async {
 
   await SystemProperties.setDefault();
 
-  FirebaseMessaging.onMessage.listen(NotificationService.notificationHandler);
-  FirebaseMessaging.onMessageOpenedApp.listen((_) {
-    // TODO: LOG EVENT
-  });
-
   if (kReleaseMode) {
     await SentryFlutter.init(
       (options) {

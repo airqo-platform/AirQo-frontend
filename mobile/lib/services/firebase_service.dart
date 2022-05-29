@@ -107,6 +107,7 @@ class CloudStore {
   }
 
   static Future<List<Kya>> getKya() async {
+    // TODO fix kya
     final userId = CustomAuth.getUserId();
     if (userId.isEmpty) {
       return [];
