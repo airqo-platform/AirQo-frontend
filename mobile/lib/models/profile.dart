@@ -6,7 +6,6 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import '../constants/config.dart';
 import '../services/firebase_service.dart';
 import '../services/native_api.dart';
-import '../services/notifications_svc.dart';
 import '../utils/network.dart';
 import 'enum_constants.dart';
 
@@ -136,8 +135,9 @@ class Profile extends HiveObject {
         ..device = logout ? '' : await CloudMessaging.getDeviceToken() ?? ''
         ..utcOffset = DateTime.now().getUtcOffset()
         ..preferences.notifications =
-            await NotificationService.checkPermission()
-        ..preferences.location = await LocationService.checkPermission();
+            await PermissionService.checkPermission(AppPermission.notification)
+        ..preferences.location =
+            await PermissionService.checkPermission(AppPermission.location);
 
       await Hive.box<Profile>(HiveBox.profile)
           .put(HiveBox.profile, this)
@@ -172,16 +172,6 @@ class Profile extends HiveObject {
         photoUrl: '');
     var user = CustomAuth.getUser();
     if (user != null) {
-      profile
-        ..userId = user.uid
-        ..phoneNumber = user.phoneNumber ?? ''
-        ..emailAddress = user.email ?? ''
-        ..device = await CloudMessaging.getDeviceToken() ?? ''
-        ..utcOffset = DateTime.now().getUtcOffset()
-        ..preferences.notifications =
-            await NotificationService.checkPermission()
-        ..preferences.location = await LocationService.checkPermission();
-      await Hive.box<Profile>(HiveBox.profile).put(HiveBox.profile, profile);
       await profile.saveProfile();
     }
     return profile;

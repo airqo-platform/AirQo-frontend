@@ -70,21 +70,14 @@ class _DashboardViewState extends State<DashboardView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Visibility(
-                visible: true,
-                child: AutoSizeText(
-                  _greetings,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: CustomTextStyle.headline7(context),
-                ),
+              AutoSizeText(
+                _greetings,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: CustomTextStyle.headline7(context),
               ),
-              const Visibility(
-                visible: true,
-                // visible: _showName,
-                child: SizedBox(
-                  height: 16,
-                ),
+              const SizedBox(
+                height: 16,
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,

@@ -21,6 +21,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:location/location.dart' as locate_api;
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -32,7 +33,9 @@ import 'firebase_service.dart';
 
 class LocationService {
   static Future<bool> allowLocationAccess() async {
-    var enabled = await requestLocationAccess();
+    var enabled = await PermissionService.checkPermission(
+        AppPermission.location,
+        request: true);
     if (enabled) {
       await Future.wait([
         CloudAnalytics.logEvent(AnalyticsEvent.allowLocation, true),
@@ -41,19 +44,6 @@ class LocationService {
     }
 
     return enabled;
-  }
-
-  static Future<bool> checkPermission() async {
-    final location = locate_api.Location();
-    try {
-      var status = await location.hasPermission();
-      if (status == locate_api.PermissionStatus.granted) {
-        return true;
-      }
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-    return false;
   }
 
   static Future<Measurement?> defaultLocationPlace() async {
@@ -259,16 +249,6 @@ class LocationService {
     }
 
     return nearestSites;
-  }
-
-  static Future<bool> requestLocationAccess() async {
-    try {
-      var status = await Geolocator.requestPermission();
-      return !(status == LocationPermission.denied);
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-    return false;
   }
 
   static Future<bool> revokePermission() async {
@@ -591,5 +571,37 @@ class ShareService {
       await CloudAnalytics.logEvent(
           AnalyticsEvent.shareAirQualityInformation, true);
     }
+  }
+}
+
+class PermissionService {
+  static Future<bool> checkPermission(AppPermission permission,
+      {bool request = false}) async {
+    PermissionStatus status;
+    switch (permission) {
+      case AppPermission.notification:
+        status = await Permission.notification.status;
+        break;
+      case AppPermission.location:
+        status = await Permission.location.status;
+        break;
+    }
+
+    if (status != PermissionStatus.granted && request) {
+      if (status == PermissionStatus.permanentlyDenied) {
+        return await openAppSettings();
+      } else {
+        switch (permission) {
+          case AppPermission.notification:
+            return await Permission.notification.request() ==
+                PermissionStatus.granted;
+          case AppPermission.location:
+            return await Permission.location.request() ==
+                PermissionStatus.granted;
+        }
+      }
+    }
+
+    return status == PermissionStatus.granted;
   }
 }

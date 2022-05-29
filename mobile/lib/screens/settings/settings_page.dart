@@ -1,4 +1,5 @@
 import 'package:app/constants/config.dart';
+import 'package:app/models/enum_constants.dart';
 import 'package:app/screens/settings/settings_page_widgets.dart';
 import 'package:app/screens/web_view_page.dart';
 import 'package:app/services/app_service.dart';
@@ -59,6 +60,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         trailing: CupertinoSwitch(
                           activeColor: Config.appColorBlue,
                           onChanged: (bool value) {
+                            setState(() => _allowLocation = value);
                             if (value) {
                               LocationService.allowLocationAccess().then(
                                   (response) => {
@@ -87,6 +89,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           activeColor: Config.appColorBlue,
                           onChanged: (bool value) {
                             if (value) {
+                              setState(() => _allowNotification = value);
                               NotificationService.allowNotifications().then(
                                   (response) => {
                                         setState(
@@ -252,12 +255,11 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _initialize() async {
-    await NotificationService.checkPermission().then((value) => {
-          setState(() => _allowNotification = value),
-        });
-
-    await LocationService.checkPermission().then((value) => {
-          setState(() => _allowLocation = value),
-        });
+    await Future.wait([
+      PermissionService.checkPermission(AppPermission.notification)
+          .then((value) => {setState(() => _allowNotification = value)}),
+      PermissionService.checkPermission(AppPermission.location)
+          .then((value) => {setState(() => _allowLocation = value)})
+    ]);
   }
 }

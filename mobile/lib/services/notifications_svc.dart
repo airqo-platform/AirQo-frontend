@@ -1,70 +1,32 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../models/enum_constants.dart';
 import '../models/profile.dart';
 import '../utils/exception.dart';
 import 'firebase_service.dart';
+import 'native_api.dart';
 
 class NotificationService {
-  static Future<bool> checkPermission() async {
-    try {
-      var settings = await FirebaseMessaging.instance.getNotificationSettings();
-
-      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-        return true;
-      }
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-
-    return false;
-  }
-
-  static Future<bool> requestPermission() async {
-    try {
-      final profile = await Profile.getProfile();
-      var status = false;
-
-      await FirebaseMessaging.instance
-          .requestPermission(
-            alert: true,
-            announcement: false,
-            badge: true,
-            carPlay: false,
-            criticalAlert: false,
-            provisional: false,
-            sound: true,
-          )
-          .then((settings) async => {
-                if (settings.authorizationStatus ==
-                    AuthorizationStatus.authorized)
-                  {
-                    status = true,
-                    await CloudAnalytics.logEvent(
-                        AnalyticsEvent.allowNotification, true),
-                  },
-                await profile.saveProfile()
-              });
-
-      return status;
-    } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
-    }
-
-    return false;
-  }
-
   static Future<bool> revokePermission() async {
     // TODO: implement revoke permission
     final profile = await Profile.getProfile();
-    await profile.saveProfile();
+    await FirebaseMessaging.instance
+        .requestPermission(
+          alert: false,
+          announcement: false,
+          badge: false,
+          carPlay: false,
+          criticalAlert: false,
+          provisional: false,
+          sound: true,
+        )
+        .then((value) => profile.saveProfile());
     return false;
   }
 
   static Future<void> initNotifications() async {
-    await requestPermission();
+    await PermissionService.checkPermission(AppPermission.notification);
     await FirebaseMessaging.instance
         .setForegroundNotificationPresentationOptions(
       alert: true,
@@ -118,7 +80,9 @@ class NotificationService {
   }
 
   static Future<bool> allowNotifications() async {
-    var enabled = await requestPermission();
+    var enabled = await PermissionService.checkPermission(
+        AppPermission.notification,
+        request: true);
     if (enabled) {
       await Future.wait([
         CloudAnalytics.logEvent(AnalyticsEvent.allowNotification, true),

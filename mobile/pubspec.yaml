@@ -70,7 +70,7 @@ dependencies:
   hive: ^2.2.1
   hive_flutter: ^1.1.0
   firebase_in_app_messaging: ^0.6.0+14
-  # https://pub.dev/packages/permission_handler
+  permission_handler: ^9.2.0
   # https://pub.dev/packages/flutter_cache_manager
   # https://pub.dev/packages/http_retry
   # https://pub.dev/packages/retry

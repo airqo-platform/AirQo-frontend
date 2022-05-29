@@ -23,6 +23,8 @@ enum AnalyticsEvent {
   deletedAccount
 }
 
+enum AppPermission { notification, location }
+
 @HiveType(typeId: 110, adapterName: 'AppNotificationTypeAdapter')
 enum AppNotificationType {
   @HiveField(0)

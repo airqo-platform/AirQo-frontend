@@ -1,4 +1,5 @@
 import 'package:app/constants/config.dart';
+import 'package:app/models/enum_constants.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/suggestion.dart';
@@ -359,7 +360,8 @@ class _SearchPageState extends State<SearchPage> {
           ),
           GestureDetector(
             onTap: () {
-              LocationService.requestLocationAccess()
+              PermissionService.checkPermission(AppPermission.location,
+                      request: true)
                   .then((value) => {getUserLocation()});
             },
             child: Container(
