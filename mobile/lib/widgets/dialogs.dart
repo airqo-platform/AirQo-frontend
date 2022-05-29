@@ -298,7 +298,9 @@ class ConfirmationDialog extends StatelessWidget {
           onPressed: () {
             Navigator.of(context).pop(ConfirmationAction.cancel);
           },
-          child: const Text('Cancel'),
+          child: Text('Cancel',
+              style: CustomTextStyle.caption4(context)
+                  ?.copyWith(color: Config.red)),
           isDefaultAction: true,
           isDestructiveAction: true,
         ),
@@ -306,7 +308,11 @@ class ConfirmationDialog extends StatelessWidget {
           onPressed: () {
             Navigator.of(context).pop(ConfirmationAction.ok);
           },
-          child: const Text('Proceed'),
+          child: Text(
+            'Proceed',
+            style: CustomTextStyle.caption4(context)
+                ?.copyWith(color: Config.appColorBlue),
+          ),
           isDefaultAction: true,
           isDestructiveAction: false,
         ),

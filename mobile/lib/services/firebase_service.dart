@@ -5,8 +5,8 @@ import 'package:app/models/kya.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/profile.dart';
-import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/extensions.dart';
+import 'package:app/widgets/dialogs.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -264,10 +264,10 @@ class CloudStore {
   }
 
   static Future<void> updateCloudProfile() async {
-    try {
-      var profile = await getProfile();
-      var currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser != null) {
+    var currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      try {
+        var profile = await Profile.getProfile();
         try {
           await Future.wait([
             currentUser.updateDisplayName(profile.firstName),
@@ -285,9 +285,9 @@ class CloudStore {
                 .set(profile.toJson())
           ]);
         }
+      } catch (exception, stackTrace) {
+        await logException(exception, stackTrace);
       }
-    } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
     }
   }
 

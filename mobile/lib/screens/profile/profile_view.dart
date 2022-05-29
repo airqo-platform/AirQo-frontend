@@ -3,8 +3,8 @@ import 'package:app/models/profile.dart';
 import 'package:app/screens/profile/profile_edit_page.dart';
 import 'package:app/screens/profile/profile_widgets.dart';
 import 'package:app/services/app_service.dart';
-import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/custom_shimmer.dart';
+import 'package:app/widgets/dialogs.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -123,8 +123,6 @@ class _ProfileViewState extends State<ProfileView> {
                               userDetails: _profile,
                             ),
                           ),
-                          // logoutSection('Logout', 'assets/icon/location.svg',
-                          //     Config.appColorBlue, logOut),
                         ],
                       )),
                   Visibility(

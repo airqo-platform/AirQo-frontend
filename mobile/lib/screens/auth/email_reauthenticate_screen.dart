@@ -1,7 +1,7 @@
 import 'package:app/constants/config.dart';
 import 'package:app/models/profile.dart';
-import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
+import 'package:app/widgets/dialogs.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:flutter/material.dart';
 

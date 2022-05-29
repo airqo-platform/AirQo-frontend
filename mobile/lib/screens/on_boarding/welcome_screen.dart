@@ -1,6 +1,6 @@
 import 'package:app/constants/config.dart';
-import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
+import 'package:app/widgets/dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 

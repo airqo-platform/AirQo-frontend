@@ -122,7 +122,7 @@ class Profile extends HiveObject {
     }
   }
 
-  Future<void> saveProfile() async {
+  Future<void> saveProfile({bool logout = false}) async {
     var user = CustomAuth.getUser();
     if (user != null) {
       Sentry.configureScope(
@@ -133,7 +133,7 @@ class Profile extends HiveObject {
         ..userId = user.uid
         ..phoneNumber = user.phoneNumber ?? ''
         ..emailAddress = user.email ?? ''
-        ..device = await CloudMessaging.getDeviceToken() ?? ''
+        ..device = logout ? '' : await CloudMessaging.getDeviceToken() ?? ''
         ..utcOffset = DateTime.now().getUtcOffset()
         ..preferences.notifications =
             await NotificationService.checkPermission()

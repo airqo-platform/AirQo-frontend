@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../constants/config.dart';
-import 'dialogs.dart';
+import '../widgets/dialogs.dart';
 
 Future<bool> hasNetworkConnection() async {
   try {

@@ -4,7 +4,7 @@ import 'package:app/models/enum_constants.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/screens/profile/profile_view.dart';
 import 'package:app/services/app_service.dart';
-import 'package:app/utils/dialogs.dart';
+import 'package:app/widgets/dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';

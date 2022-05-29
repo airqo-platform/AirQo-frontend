@@ -165,14 +165,11 @@ class LogoWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        SvgPicture.asset(
-          'assets/icon/splash_image.svg',
-          semanticsLabel: 'Splash image',
-        ),
-      ],
+    return Center(
+      child: SvgPicture.asset(
+        'assets/icon/splash_image.svg',
+        semanticsLabel: 'Splash image',
+      ),
     );
   }
 }

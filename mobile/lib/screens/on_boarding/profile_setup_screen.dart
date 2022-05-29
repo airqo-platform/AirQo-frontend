@@ -1,11 +1,11 @@
 import 'package:app/constants/config.dart';
 import 'package:app/models/profile.dart';
 import 'package:app/screens/home_page.dart';
-import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/exception.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/custom_shimmer.dart';
+import 'package:app/widgets/dialogs.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 

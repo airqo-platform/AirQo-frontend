@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:app/screens/on_boarding/spash_screen.dart';
+import 'package:app/screens/on_boarding/splash_screen_v2.dart';
 import 'package:app/services/hive_service.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/services/notifications_svc.dart';
@@ -71,7 +71,7 @@ class AirQoApp extends StatelessWidget {
           ],
           title: 'AirQo',
           theme: customTheme(),
-          home: const SplashScreen(),
+          home: const SplashScreenV2(),
         );
       },
     );

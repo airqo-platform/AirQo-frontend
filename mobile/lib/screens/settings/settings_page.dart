@@ -2,9 +2,9 @@ import 'package:app/constants/config.dart';
 import 'package:app/screens/settings/settings_page_widgets.dart';
 import 'package:app/screens/web_view_page.dart';
 import 'package:app/services/app_service.dart';
-import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/custom_widgets.dart';
+import 'package:app/widgets/dialogs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 

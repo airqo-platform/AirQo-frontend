@@ -2,8 +2,8 @@ import 'package:app/constants/config.dart';
 import 'package:app/models/enum_constants.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/screens/on_boarding/setup_complete_screeen.dart';
-import 'package:app/utils/dialogs.dart';
 import 'package:app/widgets/buttons.dart';
+import 'package:app/widgets/dialogs.dart';
 import 'package:flutter/material.dart';
 
 import '../../services/local_storage.dart';
