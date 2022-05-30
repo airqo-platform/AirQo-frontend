@@ -10,7 +10,7 @@ spec:
   selector:
     matchLabels:
       app: sta-platform-ui
-  replicas: 2
+  replicas: 3
   template:
     metadata:
       labels:
@@ -26,6 +26,13 @@ spec:
           envFrom:
             - configMapRef:
                 name: env-platform-staging
+          resources:
+            requests:
+              cpu: 100m
+              memory: 250Mi
+            limits:
+              cpu: 200m
+              memory: 700Mi
 
 ---
 kind: Service
@@ -42,3 +49,23 @@ spec:
       targetPort: 80
       nodePort: 31104
   type: NodePort
+
+---
+kind: HorizontalPodAutoscaler
+apiVersion: autoscaling/v2
+metadata:
+  name: airqo-stage-platform-frontend-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: airqo-stage-platform-frontend
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 80
