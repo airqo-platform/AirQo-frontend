@@ -710,7 +710,7 @@ const CustomisableChart = (props) => {
                     <TextField
                       autoFocus
                       margin="dense"
-                      label="Location Name"
+                      label="Chart Title"
                       variant="outlined"
                       value={tempState.subTitle}
                       onChange={(evt) =>
