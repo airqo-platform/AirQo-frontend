@@ -30,13 +30,11 @@
 .colored {
   color: $aq-blue-0;
   background-color: $aq-blue-5;
-  border-radius: 16px;
 }
 
 .filled {
   color: $aq-white-0;
   background: $aq-blue-0;
-  border-radius: 16px;
   margin-left: 16px;
 }
 
@@ -68,7 +66,6 @@
   .colored {
     color: $aq-blue-0;
     background-color: $aq-blue-5;
-    border-radius: 8px;
     margin-bottom: 24px;
     margin-left: 24px;
     padding: 12px 35%;
@@ -80,7 +77,6 @@
   .filled {
     color: $aq-white-0;
     background: $aq-blue-0;
-    border-radius: 8px;
     margin-left: 24px;
     margin-bottom: 44px;
     padding: 12px 26%;

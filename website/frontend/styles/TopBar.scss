@@ -10,7 +10,7 @@ h3, h4 {
   position: sticky;
   top: 0;
   width: 100%;
-  height: 80px;
+  height: 88px;
   background: $aq-white-0;
   box-shadow: 0 0 13px -11px #0000001a;
   padding-top: 16px;
@@ -36,7 +36,8 @@ h3, h4 {
 
       .nav-dropdown-item {
         .dropdown {
-          margin-top: 15px;
+          display: none;
+          margin-top: 3px;
           margin-left: 24px;
           position: absolute;
           width: 674px;
@@ -95,13 +96,17 @@ h3, h4 {
           }
         }
 
-        #african-cities-dropdown.dropdown, #our-work-dropdown.dropdown {
-          display: none;
-        }
+        // #african-cities-dropdown.dropdown, #our-work-dropdown.dropdown {
+        //   display: none;
+        // }
 
-        #african-cities-dropdown.toggle_dropdown, #our-work-dropdown.toggle_dropdown {
-          display: block;
-        }
+        // #african-cities-dropdown.toggle_dropdown, #our-work-dropdown.toggle_dropdown {
+        //   display: block;
+        // }
+      }
+
+      .nav-dropdown-item:hover .dropdown {
+        display: block;
       }
     }
   }
@@ -172,6 +177,10 @@ h3, h4 {
               display: none;
             }
           }
+        }
+
+        .nav-dropdown-item .dropdown {
+          display: none;
         }
         
       }
