@@ -1,12 +1,13 @@
 import 'package:app/constants/config.dart';
-import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
-import 'package:app/widgets/custom_shimmer.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
+import '../../models/analytics.dart';
+import '../../models/measurement.dart';
 import '../../services/app_service.dart';
 import '../../widgets/custom_widgets.dart';
-import 'analytics_card.dart';
+import 'analytics_widgets.dart';
 
 class AnalyticsView extends StatefulWidget {
   const AnalyticsView({Key? key}) : super(key: key);
@@ -23,27 +24,38 @@ class _AnalyticsViewState extends State<AnalyticsView> {
   Widget build(BuildContext context) {
     return Container(
         color: Config.appBodyColor,
-        child: _places.isEmpty
-            ? ListView.builder(
-                itemBuilder: (BuildContext context, int index) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 15),
-                    child:
-                        ContainerLoadingAnimation(height: 120.0, radius: 16.0),
-                  );
-                },
-                itemCount: 5,
-              )
-            : AppRefreshIndicator(
-                sliverChildDelegate:
-                    SliverChildBuilderDelegate((context, index) {
-                  return Padding(
-                      padding: EdgeInsets.only(
-                          top: Config.refreshIndicatorPadding(index)),
-                      child: MiniAnalyticsCard(
-                          PlaceDetails.measurementToPLace(_places[index])));
-                }, childCount: _places.length),
-                onRefresh: _refresh));
+        child: ValueListenableBuilder<Box>(
+          valueListenable: Hive.box<Analytics>(HiveBox.analytics).listenable(),
+          builder: (context, box, widget) {
+            if (box.isNotEmpty) {
+              final analytics = box.values.toList().cast<Analytics>();
+              return AppRefreshIndicator(
+                  sliverChildDelegate:
+                      SliverChildBuilderDelegate((context, index) {
+                    return Padding(
+                        padding: EdgeInsets.only(
+                            top: Config.refreshIndicatorPadding(index)),
+                        child: MiniAnalyticsCard(
+                            analytics[index].toPlaceDetails()));
+                  }, childCount: analytics.length),
+                  onRefresh: _refresh);
+            }
+
+            if (_places.isNotEmpty) {
+              return AppRefreshIndicator(
+                  sliverChildDelegate:
+                      SliverChildBuilderDelegate((context, index) {
+                    return Padding(
+                        padding: EdgeInsets.only(
+                            top: Config.refreshIndicatorPadding(index)),
+                        child: MiniAnalyticsCard(
+                            PlaceDetails.measurementToPLace(_places[index])));
+                  }, childCount: _places.length),
+                  onRefresh: _refresh);
+            }
+            return const EmptyAnalytics();
+          },
+        ));
   }
 
   @override

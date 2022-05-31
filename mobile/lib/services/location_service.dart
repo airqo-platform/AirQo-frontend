@@ -11,6 +11,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:location/location.dart' as locate_api;
 
+import '../models/analytics.dart';
 import '../models/enum_constants.dart';
 import '../models/profile.dart';
 import 'firebase_service.dart';
@@ -65,7 +66,25 @@ class LocationService {
       final location = locate_api.Location();
       await location.changeSettings(accuracy: locate_api.LocationAccuracy.high);
       await location.enableBackgroundMode(enable: true);
-      location.onLocationChanged.listen((locate_api.LocationData locationData) {
+      location.onLocationChanged
+          .listen((locate_api.LocationData locationData) async {
+        final latitude = locationData.latitude;
+        final longitude = locationData.longitude;
+
+        if (latitude != null && longitude != null) {
+          final site = await getNearestSite(latitude, longitude);
+          final addresses = await getAddresses(latitude, longitude);
+          if (site != null) {
+            final analytics = Analytics.init()
+              ..site = site.id
+              ..location = site.location
+              ..latitude = latitude
+              ..longitude = longitude
+              ..name = addresses.first;
+            await analytics.add();
+          }
+        }
+
         debugPrint('${locationData.longitude} : '
             '${locationData.longitude} : ${locationData.time}');
       });
@@ -93,7 +112,32 @@ class LocationService {
     }
 
     var locationData = await location.getLocation();
+    await updateAnalytics(locationData);
     return locationData;
+  }
+
+  static Future<void> updateAnalytics(
+      locate_api.LocationData? locationData) async {
+    if (locationData == null) {
+      return;
+    }
+
+    final latitude = locationData.latitude;
+    final longitude = locationData.longitude;
+
+    if (latitude != null && longitude != null) {
+      final site = await getNearestSite(latitude, longitude);
+      final addresses = await getAddresses(latitude, longitude);
+      if (site != null) {
+        final analytics = Analytics.init()
+          ..site = site.id
+          ..location = site.location
+          ..latitude = latitude
+          ..longitude = longitude
+          ..name = addresses.first;
+        await analytics.add();
+      }
+    }
   }
 
   static Future<Position> getLocationUsingGeoLocator() async {

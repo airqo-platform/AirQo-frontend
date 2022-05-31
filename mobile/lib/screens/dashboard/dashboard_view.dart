@@ -1,7 +1,7 @@
 import 'package:app/constants/config.dart';
 import 'package:app/models/kya.dart';
 import 'package:app/models/place_details.dart';
-import 'package:app/screens/analytics/analytics_card.dart';
+import 'package:app/screens/analytics/analytics_widgets.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/utils/dashboard.dart';
 import 'package:app/utils/date.dart';
@@ -17,7 +17,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/enum_constants.dart';
 import '../../services/firebase_service.dart';
-import '../../services/location_svc.dart';
+import '../../services/location_service.dart';
 import '../../themes/app_theme.dart';
 import '../../utils/exception.dart';
 import '../../widgets/custom_widgets.dart';

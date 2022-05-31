@@ -3,6 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../constants/config.dart';
+import '../services/firebase_service.dart';
 import 'enum_constants.dart';
 import 'json_parsers.dart';
 
@@ -56,6 +57,10 @@ class AppNotification extends HiveObject {
 
   @HiveField(10, defaultValue: AppNotificationType.welcomeMessage)
   AppNotificationType type;
+
+  Future<void> saveNotification() async {
+    await Future.wait([save(), CloudStore.updateCloudNotification(this)]);
+  }
 
   Map<String, dynamic> toJson() => _$AppNotificationToJson(this);
 

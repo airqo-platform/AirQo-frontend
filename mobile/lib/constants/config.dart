@@ -105,6 +105,9 @@ class Config {
   static String get usersNotificationCollection =>
       dotenv.env['USERS_NOTIFICATION_COLLECTION'] ?? '';
 
+  static String get usersAnalyticsCollection =>
+      dotenv.env['USERS_ANALYTICS_COLLECTION'] ?? '';
+
   static Color get orange => const Color(0xffFE9E35);
 
   static int get persistentNotificationId => 1294732;
@@ -167,4 +170,5 @@ class HiveBox {
   static String get kya => 'kya';
   static String get profile => 'profile';
   static String get encryptionKey => 'hiveEncryptionKey';
+  static String get analytics => 'analytics';
 }

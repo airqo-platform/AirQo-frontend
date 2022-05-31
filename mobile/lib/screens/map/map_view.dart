@@ -5,7 +5,7 @@ import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/suggestion.dart';
-import 'package:app/screens/analytics/analytics_card.dart';
+import 'package:app/screens/analytics/analytics_widgets.dart';
 import 'package:app/themes/app_theme.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/utils/pm.dart';
@@ -16,7 +16,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../models/enum_constants.dart';
 import '../../services/app_service.dart';
-import '../../services/location_svc.dart';
+import '../../services/location_service.dart';
 import 'map_widgets.dart';
 
 class MapView extends StatefulWidget {

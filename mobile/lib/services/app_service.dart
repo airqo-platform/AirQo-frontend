@@ -4,6 +4,7 @@ import 'package:app/constants/config.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/profile.dart';
 import 'package:app/services/firebase_service.dart';
+import 'package:app/services/hive_service.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/services/secure_storage.dart';
@@ -20,7 +21,7 @@ import '../models/insights.dart';
 import '../models/kya.dart';
 import '../models/notification.dart';
 import '../utils/exception.dart';
-import 'location_svc.dart';
+import 'location_service.dart';
 
 class AppService {
   final DBHelper _dbHelper = DBHelper();
@@ -294,7 +295,7 @@ class AppService {
             Provider.of<PlaceDetailsModel>(buildContext, listen: false)
                 .reloadFavouritePlaces()
           }),
-      HiveStore.clearUserData(),
+      HiveService.clearUserData(),
       SecureStorage.clearUserData()
     ]);
   }

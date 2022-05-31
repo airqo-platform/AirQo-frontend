@@ -14,7 +14,9 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
+import '../models/analytics.dart';
 import '../models/enum_constants.dart';
 import '../utils/exception.dart';
 import '../utils/network.dart';
@@ -284,6 +286,65 @@ class CloudStore {
                 .doc(profile.userId)
                 .set(profile.toJson())
           ]);
+        }
+      } catch (exception, stackTrace) {
+        await logException(exception, stackTrace);
+      }
+    }
+  }
+
+  static Future<void> updateCloudAnalytics() async {
+    var currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      try {
+        var analytics = Hive.box<Analytics>(HiveBox.analytics)
+            .values
+            .toList()
+            .cast<Analytics>();
+        var profile = await Profile.getProfile();
+        for (var x in analytics) {
+          try {
+            await FirebaseFirestore.instance
+                .collection(Config.usersAnalyticsCollection)
+                .doc(profile.userId)
+                .collection(profile.userId)
+                .doc(x.id)
+                .update(x.toJson());
+          } catch (exception) {
+            await FirebaseFirestore.instance
+                .collection(Config.usersAnalyticsCollection)
+                .doc(profile.userId)
+                .collection(profile.userId)
+                .doc(x.id)
+                .set(x.toJson());
+          }
+        }
+      } catch (exception, stackTrace) {
+        await logException(exception, stackTrace);
+      }
+    }
+  }
+
+  static Future<void> updateCloudNotification(
+      AppNotification notification) async {
+    var currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      try {
+        var profile = await Profile.getProfile();
+        try {
+          await FirebaseFirestore.instance
+              .collection(Config.usersNotificationCollection)
+              .doc(profile.userId)
+              .collection(profile.userId)
+              .doc(notification.id)
+              .update(notification.toJson());
+        } catch (exception) {
+          await FirebaseFirestore.instance
+              .collection(Config.usersNotificationCollection)
+              .doc(profile.userId)
+              .collection(profile.userId)
+              .doc(notification.id)
+              .set(notification.toJson());
         }
       } catch (exception, stackTrace) {
         await logException(exception, stackTrace);

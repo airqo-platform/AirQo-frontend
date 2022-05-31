@@ -10,14 +10,12 @@ import 'package:app/utils/distance.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../constants/config.dart';
 import '../models/enum_constants.dart';
-import '../models/notification.dart';
 
 class DBHelper {
   Database? _database;
@@ -463,14 +461,5 @@ class SharedPreferencesHelper {
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
-  }
-}
-
-class HiveStore {
-  static Future<void> clearUserData() async {
-    await Future.wait([
-      Hive.box<AppNotification>(HiveBox.appNotifications).clear(),
-      Hive.box<Profile>(HiveBox.profile).clear()
-    ]);
   }
 }
