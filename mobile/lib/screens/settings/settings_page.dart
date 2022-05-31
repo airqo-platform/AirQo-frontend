@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/profile.dart';
 import '../../services/firebase_service.dart';
+import '../../services/location_svc.dart';
 import '../../services/native_api.dart';
 import '../../services/notifications_svc.dart';
 import '../auth/email_reauthenticate_screen.dart';

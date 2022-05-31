@@ -42,7 +42,7 @@ Region getRegionConstant(String value) {
 }
 
 extension AnalyticsEventExtension on AnalyticsEvent {
-  String getName(String loggedInStatus) {
+  String getName() {
     var prefix = kReleaseMode ? 'prod_' : 'stage_';
 
     switch (this) {

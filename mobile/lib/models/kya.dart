@@ -4,7 +4,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../constants/config.dart';
-import '../services/app_service.dart';
 import 'enum_constants.dart';
 
 part 'kya.g.dart';
@@ -103,7 +102,7 @@ class Kya extends HiveObject {
         Hive.box<Kya>(HiveBox.kya)
             .put(id, this)
             .then((_) => CloudStore.updateKyaProgress(this)),
-        AppService.logEvent(AnalyticsEvent.completeOneKYA)
+        CloudAnalytics.logEvent(AnalyticsEvent.completeOneKYA)
       ]);
     } else {
       await Hive.box<Kya>(HiveBox.kya)

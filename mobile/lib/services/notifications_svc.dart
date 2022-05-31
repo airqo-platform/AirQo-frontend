@@ -9,20 +9,29 @@ import 'native_api.dart';
 
 class NotificationService {
   static Future<bool> revokePermission() async {
-    // TODO: implement revoke permission
     final profile = await Profile.getProfile();
-    await profile.saveProfile();
+    await profile.saveProfile(enableNotification: false);
     return false;
   }
 
   static Future<void> initNotifications() async {
-    await PermissionService.checkPermission(AppPermission.notification);
+    await PermissionService.checkPermission(AppPermission.notification,
+        request: true);
     await FirebaseMessaging.instance
         .setForegroundNotificationPresentationOptions(
       alert: true,
       badge: true,
       sound: true,
     );
+  }
+
+  static Future<void> listenToNotifications() async {
+    FirebaseMessaging.onBackgroundMessage(
+        NotificationService.notificationHandler);
+    FirebaseMessaging.onMessage.listen(NotificationService.notificationHandler);
+    FirebaseMessaging.onMessageOpenedApp.listen((_) {
+      // TODO: LOG EVENT
+    });
     FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) async {
       var profile = await Profile.getProfile();
       await profile.saveProfile();
@@ -32,25 +41,25 @@ class NotificationService {
   }
 
   static Future<void> notificationHandler(RemoteMessage message) async {
-    // TODO: LOG EVENT
     try {
-      const channel = AndroidNotificationChannel(
-        'high_importance_channel',
-        'High Importance Notifications',
-        description: 'This channel is used for important notifications.',
-        importance: Importance.max,
-      );
-
-      final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-
-      await flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
-          ?.createNotificationChannel(channel);
-
       var notification = message.notification;
 
       if (notification != null) {
+        const channel = AndroidNotificationChannel(
+          'high_importance_channel',
+          'High Importance Notifications',
+          description: 'This channel is used for important notifications.',
+          importance: Importance.max,
+        );
+
+        final flutterLocalNotificationsPlugin =
+            FlutterLocalNotificationsPlugin();
+
+        await flutterLocalNotificationsPlugin
+            .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin>()
+            ?.createNotificationChannel(channel);
+
         await flutterLocalNotificationsPlugin.show(
             notification.hashCode,
             notification.title,
@@ -75,7 +84,7 @@ class NotificationService {
         request: true);
     if (enabled) {
       await Future.wait([
-        CloudAnalytics.logEvent(AnalyticsEvent.allowNotification, true),
+        CloudAnalytics.logEvent(AnalyticsEvent.allowNotification),
         Profile.getProfile().then((profile) => profile.saveProfile())
       ]);
     }

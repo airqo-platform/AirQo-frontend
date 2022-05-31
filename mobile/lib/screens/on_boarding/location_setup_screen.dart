@@ -7,7 +7,7 @@ import 'package:app/widgets/dialogs.dart';
 import 'package:flutter/material.dart';
 
 import '../../services/local_storage.dart';
-import '../../services/native_api.dart';
+import '../../services/location_svc.dart';
 import '../../themes/app_theme.dart';
 import '../../widgets/custom_shimmer.dart';
 import 'on_boarding_widgets.dart';

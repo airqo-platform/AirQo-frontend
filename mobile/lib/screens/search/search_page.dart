@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../services/app_service.dart';
+import '../../services/location_svc.dart';
 import '../../services/native_api.dart';
 import '../../themes/app_theme.dart';
 import '../../utils/exception.dart';

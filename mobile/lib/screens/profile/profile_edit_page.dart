@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../models/enum_constants.dart';
-import '../../services/app_service.dart';
 import '../../services/firebase_service.dart';
 import '../../utils/exception.dart';
 import '../auth/change_email_screen.dart';
@@ -270,7 +269,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
         if (imageUrl.isNotEmpty) {
           _profile.photoUrl = imageUrl;
           await Future.wait([
-            AppService.logEvent(AnalyticsEvent.uploadProfilePicture),
+            CloudAnalytics.logEvent(AnalyticsEvent.uploadProfilePicture),
             _profile.saveProfile()
           ]);
         }

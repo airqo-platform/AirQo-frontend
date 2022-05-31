@@ -20,10 +20,9 @@ import '../utils/exception.dart';
 import '../utils/network.dart';
 
 class CloudAnalytics {
-  static Future<void> logEvent(
-      AnalyticsEvent analyticsEvent, bool loggedInUser) async {
+  static Future<void> logEvent(AnalyticsEvent analyticsEvent) async {
     await FirebaseAnalytics.instance.logEvent(
-      name: analyticsEvent.getName(''),
+      name: analyticsEvent.getName(),
     );
   }
 }

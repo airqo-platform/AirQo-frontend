@@ -17,7 +17,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/enum_constants.dart';
 import '../../services/firebase_service.dart';
-import '../../services/native_api.dart';
+import '../../services/location_svc.dart';
 import '../../themes/app_theme.dart';
 import '../../utils/exception.dart';
 import '../../widgets/custom_widgets.dart';

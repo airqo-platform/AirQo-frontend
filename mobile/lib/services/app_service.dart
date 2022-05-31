@@ -20,7 +20,7 @@ import '../models/insights.dart';
 import '../models/kya.dart';
 import '../models/notification.dart';
 import '../utils/exception.dart';
-import 'native_api.dart';
+import 'location_svc.dart';
 
 class AppService {
   final DBHelper _dbHelper = DBHelper();
@@ -82,7 +82,7 @@ class AppService {
     try {
       await Future.wait([
         CloudStore.deleteAccount(),
-        logEvent(AnalyticsEvent.deletedAccount),
+        CloudAnalytics.logEvent(AnalyticsEvent.deletedAccount),
         _clearUserLocalStorage(buildContext),
       ]).then((value) => CustomAuth.deleteAccount());
     } catch (exception, stackTrace) {
@@ -261,11 +261,6 @@ class AppService {
     }
   }
 
-  static Future<void> logEvent(AnalyticsEvent analyticsEvent) async {
-    var loggedIn = CustomAuth.isLoggedIn();
-    await CloudAnalytics.logEvent(analyticsEvent, loggedIn);
-  }
-
   Future<bool> logOut(buildContext) async {
     var hasConnection =
         await checkNetworkConnection(buildContext, notifyUser: true);
@@ -332,7 +327,7 @@ class AppService {
     try {
       await Future.wait([
         Profile.getProfile(),
-        logEvent(AnalyticsEvent.createUserProfile),
+        CloudAnalytics.logEvent(AnalyticsEvent.createUserProfile),
         logNetworkProvider(),
         logPlatformType(),
       ]);
@@ -410,7 +405,7 @@ class AppService {
   Future<void> _logFavPlaces() async {
     var favPlaces = await _dbHelper.getFavouritePlaces();
     if (favPlaces.length >= 5) {
-      await logEvent(AnalyticsEvent.savesFiveFavorites);
+      await CloudAnalytics.logEvent(AnalyticsEvent.savesFiveFavorites);
     }
   }
 
@@ -418,11 +413,11 @@ class AppService {
     var profile = Hive.box<Profile>(HiveBox.profile).getAt(0);
     if (profile != null) {
       if (profile.getGender() == Gender.male) {
-        await logEvent(AnalyticsEvent.maleUser);
+        await CloudAnalytics.logEvent(AnalyticsEvent.maleUser);
       } else if (profile.getGender() == Gender.female) {
-        await logEvent(AnalyticsEvent.femaleUser);
+        await CloudAnalytics.logEvent(AnalyticsEvent.femaleUser);
       } else {
-        await logEvent(AnalyticsEvent.undefinedGender);
+        await CloudAnalytics.logEvent(AnalyticsEvent.undefinedGender);
       }
     }
   }
@@ -432,20 +427,20 @@ class AppService {
     if (profile != null) {
       var carrier = await AirqoApiClient().getCarrier(profile.phoneNumber);
       if (carrier.toLowerCase().contains('airtel')) {
-        await logEvent(AnalyticsEvent.airtelUser);
+        await CloudAnalytics.logEvent(AnalyticsEvent.airtelUser);
       } else if (carrier.toLowerCase().contains('mtn')) {
-        await logEvent(AnalyticsEvent.mtnUser);
+        await CloudAnalytics.logEvent(AnalyticsEvent.mtnUser);
       } else {
-        await logEvent(AnalyticsEvent.otherNetwork);
+        await CloudAnalytics.logEvent(AnalyticsEvent.otherNetwork);
       }
     }
   }
 
   static Future<void> logPlatformType() async {
     if (Platform.isAndroid) {
-      await logEvent(AnalyticsEvent.androidUser);
+      await CloudAnalytics.logEvent(AnalyticsEvent.androidUser);
     } else if (Platform.isIOS) {
-      await logEvent(AnalyticsEvent.iosUser);
+      await CloudAnalytics.logEvent(AnalyticsEvent.iosUser);
     } else {
       debugPrint('Unknown Platform');
     }

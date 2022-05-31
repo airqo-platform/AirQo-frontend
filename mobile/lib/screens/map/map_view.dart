@@ -16,7 +16,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../models/enum_constants.dart';
 import '../../services/app_service.dart';
-import '../../services/native_api.dart';
+import '../../services/location_svc.dart';
 import 'map_widgets.dart';
 
 class MapView extends StatefulWidget {

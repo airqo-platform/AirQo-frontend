@@ -121,7 +121,10 @@ class Profile extends HiveObject {
     }
   }
 
-  Future<void> saveProfile({bool logout = false}) async {
+  Future<void> saveProfile(
+      {bool logout = false,
+      bool? enableNotification,
+      bool? enableLocation}) async {
     var user = CustomAuth.getUser();
     if (user != null) {
       Sentry.configureScope(
@@ -134,9 +137,9 @@ class Profile extends HiveObject {
         ..emailAddress = user.email ?? ''
         ..device = logout ? '' : await CloudMessaging.getDeviceToken() ?? ''
         ..utcOffset = DateTime.now().getUtcOffset()
-        ..preferences.notifications =
+        ..preferences.notifications = enableNotification ??
             await PermissionService.checkPermission(AppPermission.notification)
-        ..preferences.location =
+        ..preferences.location = enableLocation ??
             await PermissionService.checkPermission(AppPermission.location);
 
       await Hive.box<Profile>(HiveBox.profile)
