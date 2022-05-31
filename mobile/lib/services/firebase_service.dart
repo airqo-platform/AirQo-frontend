@@ -108,66 +108,86 @@ class CloudStore {
   }
 
   static Future<List<Kya>> getKya() async {
-    // TODO fix kya
     final userId = CustomAuth.getUserId();
     if (userId.isEmpty) {
       return [];
     }
 
     try {
-      var userKyas = <UserKya>[];
+      var userOnGoingKya = <UserKya>[];
 
-      var userKyaJson = await FirebaseFirestore.instance
-          .collection(Config.usersKyaCollection)
-          .doc(userId)
-          .collection(userId)
-          .get();
+      try {
+        var userKyaCollection = await FirebaseFirestore.instance
+            .collection(Config.usersKyaCollection)
+            .doc(userId)
+            .collection(userId)
+            .get();
 
-      for (var userKyaDoc in userKyaJson.docs) {
-        try {
-          var userKyaData = userKyaDoc.data();
-          if (userKyaData.isEmpty) {
-            continue;
-          }
-          UserKya kya;
+        for (var userKyaDoc in userKyaCollection.docs) {
           try {
-            kya = UserKya.fromJson(userKyaData);
-          } catch (e) {
-            userKyaData['progress'] =
-                (userKyaData['progress'] as double).ceil();
-            kya = UserKya.fromJson(userKyaData);
-          }
+            var userKyaData = userKyaDoc.data();
+            if (userKyaData.isEmpty) {
+              continue;
+            }
+            UserKya kya;
+            try {
+              kya = UserKya.fromJson(userKyaData);
+            } catch (e) {
+              userKyaData['progress'] =
+                  (userKyaData['progress'] as double).ceil();
+              kya = UserKya.fromJson(userKyaData);
+            }
 
-          userKyas.add(kya);
-        } catch (exception, stackTrace) {
-          debugPrint('$exception\n$stackTrace');
+            userOnGoingKya.add(kya);
+          } catch (exception, stackTrace) {
+            debugPrint('$exception\n$stackTrace');
+          }
         }
+      } catch (exception, stackTrace) {
+        debugPrint('$exception\n$stackTrace');
       }
 
-      var kyasJson = await FirebaseFirestore.instance
+      var referenceKyaCollection = await FirebaseFirestore.instance
           .collection(Config.kyaCollection)
           .get();
-      var kyas = <Kya>[];
-      for (var kyaDoc in kyasJson.docs) {
+      var referenceKya = <Kya>[];
+      for (var kyaDoc in referenceKyaCollection.docs) {
         try {
           var kyaData = kyaDoc.data();
           if (kyaData.isEmpty) {
             continue;
           }
           var kya = Kya.fromJson(kyaData);
-          var userKya = userKyas.firstWhere((element) => element.id == kya.id,
-              orElse: () => UserKya(kya.id, 0));
-
-          kya.progress = userKya.progress;
-          kyas.add(kya);
+          referenceKya.add(kya);
         } catch (exception, stackTrace) {
           debugPrint('$exception\n$stackTrace');
         }
       }
 
-      return kyas;
+      var userKya = <Kya>[];
+      if (userOnGoingKya.isEmpty) {
+        for (var kya in referenceKya) {
+          kya.progress = 0;
+          userKya.add(kya);
+        }
+      } else {
+        for (var kya in referenceKya) {
+          try {
+            var onGoingKya = userOnGoingKya.firstWhere(
+                (element) => element.id == kya.id,
+                orElse: () => UserKya(kya.id, 0));
+
+            kya.progress = onGoingKya.progress;
+            userKya.add(kya);
+          } catch (exception, stackTrace) {
+            debugPrint('$exception\n$stackTrace');
+          }
+        }
+      }
+
+      return userKya;
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
+      await logException(exception, stackTrace);
     }
     return [];
   }

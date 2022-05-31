@@ -1,17 +1,13 @@
 import 'package:app/constants/config.dart';
-import 'package:app/models/enum_constants.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:app/screens/search/search_widgets.dart';
 import 'package:app/widgets/dialogs.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 
 import '../../services/app_service.dart';
 import '../../services/location_service.dart';
-import '../../services/native_api.dart';
-import '../../themes/app_theme.dart';
 import '../../utils/exception.dart';
 import '../../widgets/buttons.dart';
 import '../insights/insights_page.dart';
@@ -81,17 +77,17 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Future<void> getSites() async {
+  Future<void> _getSites() async {
     await _appService.dbHelper.getLatestMeasurements().then((value) => {
           if (mounted) {setState(() => _allSites = value)}
         });
   }
 
-  Future<void> getUserLocation() async {
+  Future<void> _getUserLocation() async {
     try {
       var location = await LocationService.getLocation();
       if (location == null) {
-        await showSnackBar(context, Config.locationErrorMessage);
+        await showSnackBar(context, Config.allowLocationMessage);
         return;
       }
       var latitude = location.latitude;
@@ -122,18 +118,18 @@ class _SearchPageState extends State<SearchPage> {
       }
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace, remoteLogging: false);
-      var error = exception.toString().replaceAll('Exception :', '');
-      error = error.replaceAll('Exception', '');
-      error = error.replaceAll(':', '');
-      await showSnackBar(context, error);
+      await showSnackBar(context, Config.locationErrorMessage);
     }
   }
 
   @override
   void initState() {
     super.initState();
-    getSites();
-    getUserLocation();
+    _initialize();
+  }
+
+  void _initialize() async {
+    await Future.wait([_getSites(), _getUserLocation()]);
   }
 
   Widget loadMainView() {
@@ -228,8 +224,14 @@ class _SearchPageState extends State<SearchPage> {
             child: ListView(
               shrinkWrap: true,
               children: [
-                if (_nearbySites.isEmpty) requestLocationAccess(),
-                if (_nearbySites.isNotEmpty) nearByLocations(),
+                if (_nearbySites.isEmpty)
+                  RequestLocationAccess(
+                    getUserLocation: _getUserLocation,
+                  ),
+                if (_nearbySites.isNotEmpty)
+                  NearbyLocations(
+                    nearbyLocations: _nearbySites,
+                  ),
               ],
             )),
       );
@@ -240,154 +242,6 @@ class _SearchPageState extends State<SearchPage> {
         shrinkWrap: true,
         children: const [
           NoNearbyLocations(),
-        ],
-      ),
-    );
-  }
-
-  Widget nearByLocations() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(
-          height: 8.0,
-        ),
-        Container(
-            padding: const EdgeInsets.only(bottom: 8),
-            decoration: BoxDecoration(
-                color: Config.appBodyColor,
-                shape: BoxShape.rectangle,
-                borderRadius: const BorderRadius.all(Radius.circular(10.0))),
-            child: MediaQuery.removePadding(
-                context: context,
-                removeTop: true,
-                child: ListView.builder(
-                  controller: ScrollController(),
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) => GestureDetector(
-                      onTap: () {
-                        Navigator.push(context,
-                            MaterialPageRoute(builder: (context) {
-                          return InsightsPage(PlaceDetails.siteToPLace(
-                              _nearbySites[index].site));
-                        }));
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: SearchLocationTile(
-                            measurement: _nearbySites[index]),
-                      )),
-                  itemCount: _nearbySites.length,
-                  // separatorBuilder: (BuildContext context, int index) {
-                  //   return Divider(
-                  //     indent: 20,
-                  //     endIndent: 20,
-                  //     color: Config.appColor,
-                  //   );
-                  // }
-                ))),
-      ],
-    );
-  }
-
-  Widget requestLocationAccess() {
-    return Container(
-      padding: const EdgeInsets.all(40.0),
-      decoration: const BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.rectangle,
-          borderRadius: BorderRadius.all(Radius.circular(16.0))),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const SizedBox(
-            height: 84,
-          ),
-          Stack(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 23),
-                child: Image.asset(
-                  'assets/images/world-map.png',
-                  height: 119,
-                  width: 119,
-                ),
-              ),
-              Positioned(
-                  left: 0,
-                  top: 22,
-                  child: Container(
-                    height: 56,
-                    width: 56,
-                    decoration: BoxDecoration(
-                      color: Config.appColorBlue,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: SvgPicture.asset(
-                        'assets/icon/location.svg',
-                        color: Colors.white,
-                        semanticsLabel: 'AirQo Map',
-                        height: 29,
-                        width: 25,
-                      ),
-                    ),
-                  )),
-            ],
-          ),
-          const SizedBox(
-            height: 24,
-          ),
-          Text(
-            'Enable locations',
-            textAlign: TextAlign.start,
-            style: CustomTextStyle.headline7(context),
-          ),
-          const SizedBox(
-            height: 8,
-          ),
-          Text(
-            'Allow AirQo to show you location air '
-            'quality update near you.',
-            textAlign: TextAlign.center,
-            style: Theme.of(context)
-                .textTheme
-                .subtitle2
-                ?.copyWith(color: Config.appColorBlack.withOpacity(0.4)),
-          ),
-          const SizedBox(
-            height: 24,
-          ),
-          GestureDetector(
-            onTap: () {
-              PermissionService.checkPermission(AppPermission.location,
-                      request: true)
-                  .then((value) => {getUserLocation()});
-            },
-            child: Container(
-                decoration: BoxDecoration(
-                    color: Config.appColorBlue,
-                    borderRadius: const BorderRadius.all(Radius.circular(8.0))),
-                child: const Padding(
-                  padding: EdgeInsets.only(top: 12, bottom: 14),
-                  child: Center(
-                    child: Text(
-                      'Allow location',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.normal,
-                          fontSize: 14,
-                          height: 22 / 14,
-                          letterSpacing: 16 * -0.022),
-                    ),
-                  ),
-                )),
-          ),
-          const SizedBox(
-            height: 40,
-          ),
         ],
       ),
     );

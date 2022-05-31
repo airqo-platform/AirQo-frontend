@@ -30,7 +30,7 @@ class NotificationService {
         NotificationService.notificationHandler);
     FirebaseMessaging.onMessage.listen(NotificationService.notificationHandler);
     FirebaseMessaging.onMessageOpenedApp.listen((_) {
-      // TODO: LOG EVENT
+      CloudAnalytics.logEvent(AnalyticsEvent.notificationOpen);
     });
     FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) async {
       var profile = await Profile.getProfile();
@@ -60,18 +60,21 @@ class NotificationService {
                 AndroidFlutterLocalNotificationsPlugin>()
             ?.createNotificationChannel(channel);
 
-        await flutterLocalNotificationsPlugin.show(
-            notification.hashCode,
-            notification.title,
-            notification.body,
-            NotificationDetails(
-                android: AndroidNotificationDetails(channel.id, channel.name,
-                    channelDescription: channel.description,
-                    icon: 'notification_icon'),
-                iOS: const IOSNotificationDetails(
-                    presentAlert: true,
-                    presentSound: true,
-                    presentBadge: true)));
+        await Future.wait([
+          flutterLocalNotificationsPlugin.show(
+              notification.hashCode,
+              notification.title,
+              notification.body,
+              NotificationDetails(
+                  android: AndroidNotificationDetails(channel.id, channel.name,
+                      channelDescription: channel.description,
+                      icon: 'notification_icon'),
+                  iOS: const IOSNotificationDetails(
+                      presentAlert: true,
+                      presentSound: true,
+                      presentBadge: true))),
+          CloudAnalytics.logEvent(AnalyticsEvent.notificationReceive)
+        ]);
       }
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);

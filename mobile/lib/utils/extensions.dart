@@ -82,8 +82,13 @@ extension AnalyticsEventExtension on AnalyticsEvent {
         return '${prefix}other_network_user';
       case AnalyticsEvent.deletedAccount:
         return '${prefix}deleted_account';
+      case AnalyticsEvent.notificationOpen:
+        return '${prefix}notification_open';
+      case AnalyticsEvent.notificationReceive:
+        return '${prefix}notification_receive';
       default:
-        return '';
+        throw UnimplementedError(
+            '${toString()} does\'nt have a name implementation');
     }
   }
 }
@@ -222,7 +227,8 @@ extension DateTimeExtension on DateTime {
       case 12:
         return abbreviate ? 'Dec' : 'December';
       default:
-        return '';
+        throw UnimplementedError(
+            '$month does\'nt have a month string implementation');
     }
   }
 
@@ -235,22 +241,24 @@ extension DateTimeExtension on DateTime {
   }
 
   String getWeekday() {
-    if (weekday == 1) {
-      return 'monday';
-    } else if (weekday == 2) {
-      return 'tuesday';
-    } else if (weekday == 3) {
-      return 'wednesday';
-    } else if (weekday == 4) {
-      return 'thursday';
-    } else if (weekday == 5) {
-      return 'friday';
-    } else if (weekday == 6) {
-      return 'saturday';
-    } else if (weekday == 7) {
-      return 'sunday';
-    } else {
-      return '';
+    switch (weekday) {
+      case 1:
+        return 'monday';
+      case 2:
+        return 'tuesday';
+      case 3:
+        return 'wednesday';
+      case 4:
+        return 'thursday';
+      case 5:
+        return 'friday';
+      case 6:
+        return 'saturday';
+      case 7:
+        return 'sunday';
+      default:
+        throw UnimplementedError(
+            '$weekday does\'nt have a weekday string implementation');
     }
   }
 

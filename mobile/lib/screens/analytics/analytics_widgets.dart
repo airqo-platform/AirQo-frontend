@@ -192,6 +192,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                               },
                             ),
                             const SizedBox(width: 16.0),
+                            // TODO : investigate ellipsis
                             Flexible(
                                 child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,

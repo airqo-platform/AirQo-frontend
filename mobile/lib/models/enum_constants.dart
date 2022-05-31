@@ -20,7 +20,9 @@ enum AnalyticsEvent {
   mtnUser,
   airtelUser,
   otherNetwork,
-  deletedAccount
+  deletedAccount,
+  notificationOpen,
+  notificationReceive
 }
 
 enum AppPermission { notification, location }

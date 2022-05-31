@@ -95,8 +95,11 @@ class Config {
 
   static String get kyaCollection => dotenv.env['KYA_COLLECTION'] ?? '';
 
-  static String get locationErrorMessage =>
+  static String get allowLocationMessage =>
       'Turn on and allow location permissions';
+
+  static String get locationErrorMessage =>
+      'Cannot get you location at the moment';
 
   static Color get maroon => const Color(0xffA51F3F);
 
