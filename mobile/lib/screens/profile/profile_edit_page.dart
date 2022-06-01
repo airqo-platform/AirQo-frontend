@@ -30,7 +30,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   String _profilePic = '';
   final TextEditingController _phoneEditor = TextEditingController();
   final TextEditingController _emailEditor = TextEditingController();
-  bool changeImage = false;
+  bool _changeImage = false;
   late Profile _profile;
 
   @override
@@ -261,7 +261,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   }
 
   Future<void> _uploadPicture() async {
-    if (changeImage) {
+    if (_changeImage) {
       try {
         final imageUrl = await CloudStore.uploadProfilePicture(_profilePic);
 
@@ -288,7 +288,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       setState(() {
         _profile.photoUrl = pickedFile.path;
         _profilePic = pickedFile.path;
-        changeImage = true;
+        _changeImage = true;
       });
     }
   }

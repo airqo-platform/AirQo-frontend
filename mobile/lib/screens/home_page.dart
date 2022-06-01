@@ -33,14 +33,13 @@ class _HomePageState extends State<HomePage> {
     const ProfileView(),
   ];
   final AppService _appService = AppService();
-  List<AppNotification> _unreadAppNotifications = <AppNotification>[];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Config.appBodyColor,
       body: WillPopScope(
-        onWillPop: onWillPop,
+        onWillPop: _onWillPop,
         child: PageTransitionSwitcher(
           transitionBuilder: (
             Widget child,
@@ -105,19 +104,33 @@ class _HomePageState extends State<HomePage> {
                     color: _selectedIndex == 2
                         ? Config.appColorBlue
                         : Config.appColorBlack.withOpacity(0.3),
-                    semanticsLabel: 'Search',
+                    semanticsLabel: 'Profile',
                   ),
-                  Visibility(
-                      visible: _unreadAppNotifications.isNotEmpty,
-                      child: Positioned(
+                  ValueListenableBuilder<Box>(
+                    valueListenable:
+                        Hive.box<AppNotification>(HiveBox.appNotifications)
+                            .listenable(),
+                    builder: (context, box, widget) {
+                      final unreadNotifications = box.values
+                          .toList()
+                          .cast<AppNotification>()
+                          .where((element) => !element.read)
+                          .toList();
+
+                      return Positioned(
                         right: 0.0,
                         child: Container(
                           height: 4,
                           width: 4,
                           decoration: BoxDecoration(
-                              shape: BoxShape.circle, color: Config.red),
+                              shape: BoxShape.circle,
+                              color: unreadNotifications.isEmpty
+                                  ? Colors.transparent
+                                  : Config.red),
                         ),
-                      )),
+                      );
+                    },
+                  ),
                 ],
               ),
               label: 'Profile',
@@ -139,25 +152,23 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<void> initialize() async {
+  Future<void> _initialize() async {
     if (refresh) {
       await _appService.fetchData(context);
     } else {
       await checkNetworkConnection(context, notifyUser: true);
     }
-
-    await Future.wait(
-        [_updateOnBoardingPage(), _loadNotifications(), _initListeners()]);
+    await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.home);
   }
 
   @override
   void initState() {
     super.initState();
     refresh = widget.refresh ?? true;
-    initialize();
+    _initialize();
   }
 
-  Future<bool> onWillPop() {
+  Future<bool> _onWillPop() {
     final currentPage = _selectedIndex;
 
     if (currentPage != 0) {
@@ -175,26 +186,6 @@ class _HomePageState extends State<HomePage> {
       return Future.value(false);
     }
     return Future.value(true);
-  }
-
-  Future<void> _updateOnBoardingPage() async {
-    await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.home);
-  }
-
-  Future<void> _initListeners() async {
-    Hive.box<AppNotification>(HiveBox.appNotifications)
-        .watch()
-        .listen((_) => _loadNotifications())
-        .onDone(_loadNotifications);
-  }
-
-  Future<void> _loadNotifications() async {
-    setState(() => _unreadAppNotifications =
-        Hive.box<AppNotification>(HiveBox.appNotifications)
-            .values
-            .where((element) => !element.read)
-            .toList()
-            .cast<AppNotification>());
   }
 
   void _onItemTapped(int index) {

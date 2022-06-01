@@ -78,8 +78,8 @@ class _ForYouPageState extends State<ForYouPage>
 
   @override
   void dispose() {
-    super.dispose();
     _tabController.dispose();
+    super.dispose();
   }
 
   @override

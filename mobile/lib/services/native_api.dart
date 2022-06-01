@@ -246,7 +246,7 @@ class ShareService {
       recommendations = '$recommendations\n- ${value.body}';
     }
     Share.share(
-            '${measurement.site.name}, Current Air Quality. \n\n'
+            '${measurement.site.name}, Current Air Quality.\n\n'
             'PM2.5 : ${measurement.getPm2_5Value().toStringAsFixed(2)} µg/m\u00B3 (${pollutantValueString(value: measurement.getPm2_5Value(), pollutant: Pollutant.pm2_5)}) \n'
             'PM10 : ${measurement.getPm10Value().toStringAsFixed(2)} µg/m\u00B3 \n'
             '$recommendations\n\n'

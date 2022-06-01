@@ -661,7 +661,6 @@ class CustomAuth {
           },
           codeAutoRetrievalTimeout: (String verificationId) async {
             // TODO Implement auto code retrieval timeout
-            // await showSnackBar(context, 'codeAutoRetrievalTimeout');
           },
           timeout: const Duration(minutes: 2));
       return true;
