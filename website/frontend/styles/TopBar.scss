@@ -95,14 +95,6 @@ h3, h4 {
             }
           }
         }
-
-        // #african-cities-dropdown.dropdown, #our-work-dropdown.dropdown {
-        //   display: none;
-        // }
-
-        // #african-cities-dropdown.toggle_dropdown, #our-work-dropdown.toggle_dropdown {
-        //   display: block;
-        // }
       }
 
       .nav-dropdown-item:hover .dropdown {
@@ -175,6 +167,10 @@ h3, h4 {
 
             .title {
               display: none;
+            }
+
+            .dropdown-list {
+              margin-left: 0;
             }
           }
         }
