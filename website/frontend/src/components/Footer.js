@@ -94,12 +94,12 @@ const Footer = () => {
             <div className="body-section">
                 <div className="logo">
                     <AirQo />
-                    <div className="logo-text">Clean air for all <br/> African Cities!</div>
+                    <div className="logo-text">Clean air for all <br /> African Cities!</div>
                     <div className="social-links">
-                        <a target="_blank" href="https://www.linkedin.com/company/airqo/mycompany/"><LinkedInIcon style={{color:"#145DFF", height: "32px", width: "32px"}} /></a>
-                        <a target="_blank" href="https://www.facebook.com/AirQo"><Facebook /></a>
-                        <a target="_blank" href="https://www.youtube.com/channel/UCx7YtV55TcqKGeKsDdT5_XQ"><Youtube /></a>
-                        <a target="_blank" href="https://twitter.com/AirQoProject"><Twitter /></a>
+                        <a target="_blank" href="https://www.linkedin.com/company/airqo/mycompany/" rel="noreferrer"><LinkedInIcon style={{ color: '#145DFF', height: '32px', width: '32px' }} /></a>
+                        <a target="_blank" href="https://www.facebook.com/AirQo" rel="noreferrer"><Facebook /></a>
+                        <a target="_blank" href="https://www.youtube.com/channel/UCx7YtV55TcqKGeKsDdT5_XQ" rel="noreferrer"><Youtube /></a>
+                        <a target="_blank" href="https://twitter.com/AirQoProject" rel="noreferrer"><Twitter /></a>
                     </div>
                 </div>
                 <div className="content">
@@ -125,10 +125,10 @@ const Footer = () => {
                             <span><Link to="/about-us">About</Link></span>
                             <span><Link to="/contact">Contact</Link></span>
                             <span><Link to="/press">Press</Link></span>
-                            <span><a target="_blank" href="https://medium.com/@airqo">Blog</a></span>
+                            <span><a target="_blank" href="https://medium.com/@airqo" rel="noreferrer">Blog</a></span>
                         </div>
                         </span>
-                    </div>
+                </div>
                     <div className="airqlouds-summary" onClick={toggleOpen}>
                         <div className="airqloud-dropdown">
                             <Location />
@@ -145,7 +145,7 @@ const Footer = () => {
                             <span className="count-text">Monitors in {currentAirqloud}</span>
                         </div>
                     </div>
-                </div>
+            </div>
                 <div className="copyright-section">
                     <div className="copyright-container">
                         <div className="text-copyright">© {new Date().getFullYear()} AirQo</div>
