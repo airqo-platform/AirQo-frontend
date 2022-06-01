@@ -13,6 +13,7 @@ import 'package:app/widgets/tooltip.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
@@ -22,6 +23,62 @@ import '../../themes/app_theme.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/custom_shimmer.dart';
 import '../../widgets/custom_widgets.dart';
+
+class AnalyticsAvatar extends StatelessWidget {
+  const AnalyticsAvatar({Key? key, required this.measurement})
+      : super(key: key);
+  final Measurement measurement;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 104,
+      width: 104,
+      decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: pollutantValueColor(
+              value: measurement.getPm2_5Value(), pollutant: Pollutant.pm2_5),
+          border: Border.all(color: Colors.transparent)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Spacer(),
+          SvgPicture.asset(
+            'assets/icon/PM2.5.svg',
+            semanticsLabel: 'Pm2.5',
+            height: 9.7,
+            width: 32.45,
+            color: pollutantTextColor(
+                value: measurement.getPm2_5Value(), pollutant: Pollutant.pm2_5),
+          ),
+          Text(
+            measurement.getPm2_5Value().toStringAsFixed(0),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.robotoMono(
+                color: pollutantTextColor(
+                    value: measurement.getPm2_5Value(),
+                    pollutant: Pollutant.pm2_5),
+                fontStyle: FontStyle.normal,
+                fontSize: 40,
+                fontWeight: FontWeight.bold,
+                height: 48 / 40,
+                letterSpacing: 16 * -0.022),
+          ),
+          SvgPicture.asset(
+            'assets/icon/unit.svg',
+            semanticsLabel: 'Unit',
+            height: 12.14,
+            width: 32.45,
+            color: pollutantTextColor(
+                value: measurement.getPm2_5Value(), pollutant: Pollutant.pm2_5),
+          ),
+          const Spacer(),
+        ],
+      ),
+    );
+  }
+}
 
 class MapAnalyticsMoreInsights extends StatelessWidget {
   const MapAnalyticsMoreInsights({Key? key, required this.placeDetails})

@@ -379,7 +379,7 @@ String pmToInfoDialog(double pm2_5) {
 }
 
 Future<BitmapDescriptor> pmToMarker(double pm2_5) async {
-  final width = 80;
+  const width = 80;
   final value = pm2_5;
   final bgColor = pollutantValueColor(value: pm2_5, pollutant: Pollutant.pm2_5);
   final textColor =
@@ -388,9 +388,9 @@ Future<BitmapDescriptor> pmToMarker(double pm2_5) async {
   final pictureRecorder = PictureRecorder();
   final canvas = Canvas(pictureRecorder);
   final paint = Paint()..color = bgColor;
-  final radius = width / 2;
+  const radius = width / 2;
   canvas.drawCircle(
-    Offset(radius, radius),
+    const Offset(radius, radius),
     radius,
     paint,
   );
@@ -454,15 +454,15 @@ BitmapDescriptor pmToMarkerPoint(double pm2_5) {
 }
 
 Future<BitmapDescriptor> pmToSmallMarker(double pm2_5) async {
-  final width = 20;
+  const width = 20;
   final bgColor = pollutantValueColor(value: pm2_5, pollutant: Pollutant.pm2_5);
 
   final pictureRecorder = PictureRecorder();
   final canvas = Canvas(pictureRecorder);
   final paint = Paint()..color = bgColor;
-  final radius = width / 2;
+  const radius = width / 2;
   canvas.drawCircle(
-    Offset(radius, radius),
+    const Offset(radius, radius),
     radius,
     paint,
   );

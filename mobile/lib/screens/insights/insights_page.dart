@@ -18,7 +18,7 @@ class InsightsPage extends StatefulWidget {
 
 class _InsightsPageState extends State<InsightsPage>
     with AutomaticKeepAliveClientMixin, TickerProviderStateMixin {
-  TabController? _tabController;
+  late TabController _tabController;
   Frequency frequency = Frequency.hourly;
 
   @override
@@ -84,7 +84,7 @@ class _InsightsPageState extends State<InsightsPage>
 
   @override
   void dispose() {
-    _tabController!.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 

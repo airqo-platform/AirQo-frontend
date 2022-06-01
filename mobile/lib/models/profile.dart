@@ -212,9 +212,4 @@ class UserPreferences extends HiveObject {
   static UserPreferences initialize() {
     return UserPreferences(notifications: false, location: false, aqShares: 0);
   }
-
-  @override
-  String toString() {
-    return 'UserPreferences{notifications: $notifications, location: $location, aqShares: $aqShares}';
-  }
 }

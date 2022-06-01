@@ -43,7 +43,7 @@ Region getRegionConstant(String value) {
 
 extension AnalyticsEventExtension on AnalyticsEvent {
   String getName() {
-    final prefix = kReleaseMode ? 'prod_' : 'stage_';
+    const prefix = kReleaseMode ? 'prod_' : 'stage_';
 
     switch (this) {
       case AnalyticsEvent.browserAsAppGuest:

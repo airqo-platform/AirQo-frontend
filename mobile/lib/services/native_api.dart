@@ -8,7 +8,6 @@ import 'package:app/services/firebase_service.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/pm.dart';
-import 'package:app/widgets/custom_widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -21,6 +20,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../models/enum_constants.dart';
 import '../models/profile.dart';
+import '../screens/analytics/analytics_widgets.dart';
 import '../themes/app_theme.dart';
 import '../utils/exception.dart';
 import 'firebase_service.dart';

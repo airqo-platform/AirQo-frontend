@@ -1,5 +1,4 @@
 import 'package:app/services/firebase_service.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -11,53 +10,6 @@ part 'kya.g.dart';
 @JsonSerializable(explicitToJson: true)
 @HiveType(typeId: 30, adapterName: 'KyaAdapter')
 class Kya extends HiveObject {
-  factory Kya.fromDbJson(List<Map<String, Object?>>? json) {
-    if (json == null) {
-      return Kya(
-          title: '',
-          id: '',
-          imageUrl: '',
-          completionMessage: '',
-          lessons: [],
-          progress: 0,
-          secondaryImageUrl: '');
-    }
-
-    try {
-      final singleKya = json.first;
-      final kya = Kya(
-        title: singleKya['title'] as String,
-        imageUrl: singleKya['imageUrl'] as String,
-        id: singleKya['id'] as String,
-        lessons: [],
-        progress: singleKya['progress'] as int,
-        completionMessage: singleKya['completionMessage'] as String,
-        secondaryImageUrl: singleKya['secondaryImageUrl'] as String,
-      );
-
-      final kyaLessons = <KyaLesson>[];
-      for (final item in json) {
-        final kyaItem = KyaLesson(item['lesson_title'] as String,
-            item['lesson_imageUrl'] as String, item['lesson_body'] as String);
-        kyaLessons.add(kyaItem);
-      }
-
-      kya.lessons = kyaLessons;
-      return kya;
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-
-    return Kya(
-        title: '',
-        id: '',
-        imageUrl: '',
-        completionMessage: '',
-        lessons: [],
-        progress: 0,
-        secondaryImageUrl: '');
-  }
-
   factory Kya.fromJson(Map<String, dynamic> json) => _$KyaFromJson(json);
 
   Kya(
