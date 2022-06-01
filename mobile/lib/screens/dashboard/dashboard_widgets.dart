@@ -8,6 +8,7 @@ import '../../models/enum_constants.dart';
 import '../../models/kya.dart';
 import '../../models/measurement.dart';
 import '../../themes/app_theme.dart';
+import '../../utils/exception.dart';
 import '../../utils/pm.dart';
 import '../../widgets/custom_shimmer.dart';
 import '../kya/kya_widgets.dart';
@@ -239,4 +240,38 @@ class DashboardKyaCard extends StatelessWidget {
       ),
     );
   }
+}
+
+List<Widget> completeKyaWidgets(List<Kya> completeKya) {
+  var widgets = <Widget>[];
+
+  try {
+    switch (completeKya.length) {
+      case 0:
+        widgets.add(SvgPicture.asset(
+          'assets/icon/add_avator.svg',
+        ));
+        break;
+      case 1:
+        widgets.add(KyaDashboardAvatar(rightPadding: 7, kya: completeKya[0]));
+        break;
+      case 2:
+        widgets
+          ..add(KyaDashboardAvatar(rightPadding: 0, kya: completeKya[0]))
+          ..add(KyaDashboardAvatar(rightPadding: 7, kya: completeKya[1]));
+        break;
+      default:
+        if (completeKya.length >= 3) {
+          widgets
+            ..add(KyaDashboardAvatar(rightPadding: 0, kya: completeKya[0]))
+            ..add(KyaDashboardAvatar(rightPadding: 7, kya: completeKya[1]))
+            ..add(KyaDashboardAvatar(rightPadding: 14, kya: completeKya[2]));
+        }
+        break;
+    }
+  } catch (exception, stackTrace) {
+    logException(exception, stackTrace);
+  }
+
+  return widgets;
 }

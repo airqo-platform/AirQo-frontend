@@ -37,9 +37,6 @@ class _DashboardViewState extends State<DashboardView> {
   String _greetings = '';
 
   List<Widget> _favLocations = [];
-  List<Widget> _completeKyaWidgets = [];
-  List<Kya> _completeKya = [];
-  List<Kya> _incompleteKya = [];
 
   final AppService _appService = AppService();
   late SharedPreferences _preferences;
@@ -142,47 +139,60 @@ class _DashboardViewState extends State<DashboardView> {
                   ),
                   Expanded(
                       key: _kyaToolTipKey,
-                      child: GestureDetector(
-                        onTap: () async {
-                          if (_completeKya.isEmpty) {
-                            ToolTip(context, ToolTipType.forYou).show(
-                              widgetKey: _kyaToolTipKey,
-                            );
-                            return;
-                          }
-                          await Navigator.push(context,
-                              MaterialPageRoute(builder: (context) {
-                            return const ForYouPage(analytics: false);
-                          }));
+                      child: ValueListenableBuilder<Box>(
+                        valueListenable:
+                            Hive.box<Kya>(HiveBox.kya).listenable(),
+                        builder: (context, box, widget) {
+                          final completeKya = box.values
+                              .toList()
+                              .cast<Kya>()
+                              .where((element) => element.progress == -1)
+                              .toList();
+
+                          final kyaWidgets = completeKyaWidgets(completeKya);
+
+                          return GestureDetector(
+                            onTap: () async {
+                              if (completeKya.isEmpty) {
+                                ToolTip(context, ToolTipType.forYou).show(
+                                  widgetKey: _kyaToolTipKey,
+                                );
+                                return;
+                              }
+                              await Navigator.push(context,
+                                  MaterialPageRoute(builder: (context) {
+                                return const ForYouPage(analytics: false);
+                              }));
+                            },
+                            child: Container(
+                              height: 56,
+                              padding: const EdgeInsets.all(12.0),
+                              decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(8.0))),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SizedBox(
+                                      height: 32,
+                                      width: 47,
+                                      child: Stack(
+                                        children: kyaWidgets,
+                                      )),
+                                  const SizedBox(
+                                    width: 8,
+                                  ),
+                                  Text('For You',
+                                      style: CustomTextStyle.bodyText4(context)
+                                          ?.copyWith(
+                                        color: Config.appColorBlue,
+                                      ))
+                                ],
+                              ),
+                            ),
+                          );
                         },
-                        child: Container(
-                          height: 56,
-                          padding: const EdgeInsets.all(12.0),
-                          decoration: const BoxDecoration(
-                              color: Colors.white,
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(8.0))),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SizedBox(
-                                height: 32,
-                                width: 47,
-                                child: Stack(
-                                  children: _completeKyaWidgets,
-                                ),
-                              ),
-                              const SizedBox(
-                                width: 8,
-                              ),
-                              Text('For You',
-                                  style: CustomTextStyle.bodyText4(context)
-                                      ?.copyWith(
-                                    color: Config.appColorBlue,
-                                  ))
-                            ],
-                          ),
-                        ),
                       )),
                 ],
               ),
@@ -225,16 +235,38 @@ class _DashboardViewState extends State<DashboardView> {
           const SizedBox(
             height: 16,
           ),
-        if (_incompleteKya.isNotEmpty)
-          DashboardKyaCard(
-            kyaClickCallBack: _handleKyaOnClick,
-            kya: _incompleteKya[0],
-          ),
-        Visibility(
-          visible: _incompleteKya.isNotEmpty,
-          child: const SizedBox(
-            height: 16,
-          ),
+        ValueListenableBuilder<Box>(
+          valueListenable: Hive.box<Kya>(HiveBox.kya).listenable(),
+          builder: (context, box, widget) {
+            final incompleteKya = box.values
+                .toList()
+                .cast<Kya>()
+                .where((element) => element.progress != -1)
+                .toList();
+            if (incompleteKya.isEmpty) {
+              return const SizedBox();
+            }
+            return DashboardKyaCard(
+              kyaClickCallBack: _handleKyaOnClick,
+              kya: incompleteKya[0],
+            );
+          },
+        ),
+        ValueListenableBuilder<Box>(
+          valueListenable: Hive.box<Kya>(HiveBox.kya).listenable(),
+          builder: (context, box, widget) {
+            final incompleteKya = box.values
+                .toList()
+                .cast<Kya>()
+                .where((element) => element.progress != -1)
+                .toList();
+            if (incompleteKya.isEmpty) {
+              return const SizedBox();
+            }
+            return const SizedBox(
+              height: 16,
+            );
+          },
         ),
         if (cards.length >= 2) cards[1],
         Visibility(
@@ -361,13 +393,9 @@ class _DashboardViewState extends State<DashboardView> {
 
   Future<void> _initialize() async {
     _preferences = await SharedPreferences.getInstance();
-    _completeKyaWidgets.add(const CircularLoadingAnimation(size: 30));
     _buildAnalyticsCards(_analyticsCards);
     _setGreetings();
     _getAnalyticsCards();
-    _loadKya();
-    await _initListeners();
-    // Future.delayed(const Duration(seconds: 2), _loadKya);
   }
 
   List<Widget> _initializeDashBoardItems() {
@@ -391,43 +419,6 @@ class _DashboardViewState extends State<DashboardView> {
           visible: _analyticsCards.isEmpty,
           child: const CircularProgressIndicator()),
     ];
-  }
-
-  void _loadCompleteKya(List<Kya> completeKya) async {
-    var widgets = <Widget>[];
-
-    if (completeKya.isEmpty) {
-      widgets.add(SvgPicture.asset(
-        'assets/icon/add_avator.svg',
-      ));
-    } else {
-      setState(() => _completeKya = completeKya);
-      try {
-        if (completeKya.length == 1) {
-          widgets.add(KyaDashboardAvatar(rightPadding: 7, kya: completeKya[0]));
-        } else if (completeKya.length == 2) {
-          widgets
-            ..add(KyaDashboardAvatar(rightPadding: 0, kya: completeKya[0]))
-            ..add(KyaDashboardAvatar(rightPadding: 7, kya: completeKya[1]));
-        } else if (completeKya.length >= 3) {
-          widgets
-            ..add(KyaDashboardAvatar(rightPadding: 0, kya: completeKya[0]))
-            ..add(KyaDashboardAvatar(rightPadding: 7, kya: completeKya[1]))
-            ..add(KyaDashboardAvatar(rightPadding: 14, kya: completeKya[2]));
-        } else {}
-      } catch (exception, stackTrace) {
-        await logException(exception, stackTrace);
-      }
-    }
-
-    if (mounted) {
-      if (widgets.isEmpty) {
-        widgets.add(SvgPicture.asset(
-          'assets/icon/add_avator.svg',
-        ));
-      }
-      setState(() => _completeKyaWidgets = widgets);
-    }
   }
 
   void _loadFavourites({required bool reload}) async {
@@ -507,13 +498,10 @@ class _DashboardViewState extends State<DashboardView> {
 
   Future<void> _refresh() async {
     setState(() => _isRefreshing = true);
-
     _setGreetings();
     await _appService.refreshDashboard(context);
     _getAnalyticsCards();
-    _loadKya();
     _loadFavourites(reload: true);
-
     setState(() => _isRefreshing = false);
   }
 
@@ -521,21 +509,5 @@ class _DashboardViewState extends State<DashboardView> {
     if (mounted) {
       setState(() => _greetings = getGreetings(CustomAuth.getDisplayName()));
     }
-  }
-
-  void _loadKya() {
-    final kya = Hive.box<Kya>(HiveBox.kya).values.toList().cast<Kya>();
-    setState(() => _incompleteKya =
-        kya.where((element) => element.progress != -1).toList());
-
-    _completeKya = kya.where((element) => element.progress == -1).toList();
-    _loadCompleteKya(_completeKya);
-  }
-
-  Future<void> _initListeners() async {
-    Hive.box<Kya>(HiveBox.kya)
-        .watch()
-        .listen((_) => _loadKya)
-        .onDone(_loadKya);
   }
 }
