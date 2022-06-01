@@ -351,7 +351,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
   }
 
   Future<bool> onWillPop() {
-    var now = DateTime.now();
+    final now = DateTime.now();
 
     if (_exitTime == null ||
         now.difference(_exitTime!) > const Duration(seconds: 2)) {
@@ -374,7 +374,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     setState(() {
       _emailVerificationCode[position] = value;
     });
-    var code = _emailVerificationCode.join('');
+    final code = _emailVerificationCode.join('');
     if (code.length == 6) {
       setState(() {
         _nextBtnColor = Config.appColorBlue;
@@ -387,12 +387,12 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
   }
 
   Future<void> verifySentCode() async {
-    var connected = await checkNetworkConnection(context, notifyUser: true);
+    final connected = await checkNetworkConnection(context, notifyUser: true);
     if (!connected) {
       return;
     }
 
-    var code = _emailVerificationCode.join('');
+    final code = _emailVerificationCode.join('');
 
     if (code.length != 6) {
       await showSnackBar(context, 'Enter all the 6 digits');
@@ -486,7 +486,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
   }
 
   Future<void> _requestVerification() async {
-    var connected = await checkNetworkConnection(context, notifyUser: true);
+    final connected = await checkNetworkConnection(context, notifyUser: true);
     if (!connected) {
       return;
     }
@@ -524,7 +524,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     loadingScreen(loadingContext);
 
     if (widget.authProcedure == AuthProcedure.signup) {
-      var emailExists = await _appService.doesUserExist(
+      final emailExists = await _appService.doesUserExist(
           emailAddress: _emailAddress, buildContext: context);
 
       if (emailExists) {
@@ -555,7 +555,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
       }
     }
 
-    var emailSignupResponse = await _appService.apiClient
+    final emailSignupResponse = await _appService.apiClient
         .requestEmailVerificationCode(_emailAddress, false);
 
     Navigator.pop(loadingContext);
@@ -579,14 +579,14 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
   }
 
   Future<void> _resendVerificationCode() async {
-    var connected = await checkNetworkConnection(context, notifyUser: true);
+    final connected = await checkNetworkConnection(context, notifyUser: true);
     if (!connected) {
       return;
     }
 
     loadingScreen(loadingContext);
 
-    var emailSignupResponse = await _appService.apiClient
+    final emailSignupResponse = await _appService.apiClient
         .requestEmailVerificationCode(_emailAddress, false);
 
     Navigator.pop(loadingContext);

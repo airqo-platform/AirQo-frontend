@@ -26,8 +26,7 @@ class EmailAuthModel {
 
   static EmailAuthModel? parseEmailAuthModel(dynamic jsonBody) {
     try {
-      var emailSignupModel = EmailAuthModel.fromJson(jsonBody);
-      return emailSignupModel;
+      return EmailAuthModel.fromJson(jsonBody);
     } catch (exception, stackTrace) {
       logException(exception, stackTrace);
     }

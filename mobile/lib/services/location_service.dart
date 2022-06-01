@@ -19,7 +19,7 @@ import 'native_api.dart';
 
 class LocationService {
   static Future<bool> allowLocationAccess() async {
-    var enabled = await PermissionService.checkPermission(
+    final enabled = await PermissionService.checkPermission(
         AppPermission.location,
         request: true);
     if (enabled) {
@@ -34,7 +34,7 @@ class LocationService {
 
   static Future<Measurement?> defaultLocationPlace() async {
     final dbHelper = DBHelper();
-    var measurement = await dbHelper.getNearestMeasurement(
+    final measurement = await dbHelper.getNearestMeasurement(
         Config.defaultLatitude, Config.defaultLongitude);
 
     if (measurement == null) {
@@ -45,9 +45,9 @@ class LocationService {
   }
 
   static Future<List<String>> getAddresses(double lat, double lng) async {
-    var placeMarks = await placemarkFromCoordinates(lat, lng);
-    var addresses = <String>[];
-    for (var place in placeMarks) {
+    final placeMarks = await placemarkFromCoordinates(lat, lng);
+    final addresses = <String>[];
+    for (final place in placeMarks) {
       var name = place.thoroughfare ?? place.name;
       name = name ?? place.subLocality;
       name = name ?? place.locality;
@@ -111,7 +111,7 @@ class LocationService {
       }
     }
 
-    var locationData = await location.getLocation();
+    final locationData = await location.getLocation();
     await updateAnalytics(locationData);
     return locationData;
   }
@@ -167,22 +167,22 @@ class LocationService {
 
   static Future<List<Measurement>> getNearbyLocationReadings() async {
     try {
-      var nearestMeasurements = <Measurement>[];
+      final nearestMeasurements = <Measurement>[];
       double distanceInMeters;
 
-      var location = await getLocation();
+      final location = await getLocation();
       if (location == null) {
         return [];
       }
 
       if (location.longitude != null && location.latitude != null) {
-        var addresses =
+        final addresses =
             await getAddresses(location.latitude!, location.longitude!);
         Measurement? nearestMeasurement;
         final dbHelper = DBHelper();
-        var latestMeasurements = await dbHelper.getLatestMeasurements();
+        final latestMeasurements = await dbHelper.getLatestMeasurements();
 
-        for (var measurement in latestMeasurements) {
+        for (final measurement in latestMeasurements) {
           distanceInMeters = metersToKmDouble(Geolocator.distanceBetween(
               measurement.site.latitude,
               measurement.site.longitude,
@@ -194,19 +194,19 @@ class LocationService {
           }
         }
 
-        var measurements = <Measurement>[];
+        final measurements = <Measurement>[];
 
         /// Get Actual location measurements
         if (nearestMeasurements.isNotEmpty) {
           nearestMeasurement = nearestMeasurements.first;
-          for (var measurement in nearestMeasurements) {
+          for (final measurement in nearestMeasurements) {
             if (nearestMeasurement!.site.distance > measurement.site.distance) {
               nearestMeasurement = measurement;
             }
           }
           nearestMeasurements.remove(nearestMeasurement);
 
-          for (var address in addresses) {
+          for (final address in addresses) {
             nearestMeasurement?.site.name = address;
             measurements.add(nearestMeasurement!);
           }
@@ -215,7 +215,7 @@ class LocationService {
         /// Get Alternative location measurements
         if (nearestMeasurements.isNotEmpty) {
           nearestMeasurement = nearestMeasurements.first;
-          for (var measurement in nearestMeasurements) {
+          for (final measurement in nearestMeasurements) {
             if (nearestMeasurement!.site.distance > measurement.site.distance) {
               nearestMeasurement = measurement;
             }
@@ -240,14 +240,14 @@ class LocationService {
 
   static Future<Site?> getNearestSite(double latitude, double longitude) async {
     try {
-      var nearestSites = await getNearestSites(latitude, longitude);
+      final nearestSites = await getNearestSites(latitude, longitude);
       if (nearestSites.isEmpty) {
         return null;
       }
 
       var nearestSite = nearestSites.first;
 
-      for (var site in nearestSites) {
+      for (final site in nearestSites) {
         if (nearestSite.site.distance > site.site.distance) {
           nearestSite = site;
         }
@@ -262,12 +262,12 @@ class LocationService {
 
   static Future<List<Measurement>> getNearestSites(
       double latitude, double longitude) async {
-    var nearestSites = <Measurement>[];
+    final nearestSites = <Measurement>[];
     double distanceInMeters;
     final dbHelper = DBHelper();
-    var latestMeasurements = await dbHelper.getLatestMeasurements();
+    final latestMeasurements = await dbHelper.getLatestMeasurements();
 
-    for (var measurement in latestMeasurements) {
+    for (final measurement in latestMeasurements) {
       distanceInMeters = metersToKmDouble(Geolocator.distanceBetween(
           measurement.site.latitude,
           measurement.site.longitude,
@@ -290,12 +290,12 @@ class LocationService {
 
   static Future<List<Measurement>> searchNearestSites(
       double latitude, double longitude, String term) async {
-    var nearestSites = <Measurement>[];
+    final nearestSites = <Measurement>[];
     double distanceInMeters;
     final dbHelper = DBHelper();
-    var latestMeasurements = await dbHelper.getLatestMeasurements();
+    final latestMeasurements = await dbHelper.getLatestMeasurements();
 
-    for (var measurement in latestMeasurements) {
+    for (final measurement in latestMeasurements) {
       distanceInMeters = metersToKmDouble(Geolocator.distanceBetween(
           measurement.site.latitude,
           measurement.site.longitude,
@@ -317,9 +317,9 @@ class LocationService {
 
   static List<Measurement> textSearchNearestSites(
       String term, List<Measurement> measurements) {
-    var nearestSites = <Measurement>[];
+    final nearestSites = <Measurement>[];
 
-    for (var measurement in measurements) {
+    for (final measurement in measurements) {
       if (measurement.site.name
               .trim()
               .toLowerCase()

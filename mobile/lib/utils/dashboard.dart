@@ -4,7 +4,7 @@ import 'package:app/utils/extensions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Region getNextDashboardRegion(SharedPreferences sharedPreferences) {
-  var currentRegion = getRegionConstant(
+  final currentRegion = getRegionConstant(
       sharedPreferences.getString(Config.prefDashboardRegion) ?? '');
 
   if (currentRegion == Region.central) {

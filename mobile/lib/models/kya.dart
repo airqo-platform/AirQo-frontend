@@ -24,8 +24,8 @@ class Kya extends HiveObject {
     }
 
     try {
-      var singleKya = json.first;
-      var kya = Kya(
+      final singleKya = json.first;
+      final kya = Kya(
         title: singleKya['title'] as String,
         imageUrl: singleKya['imageUrl'] as String,
         id: singleKya['id'] as String,
@@ -35,9 +35,9 @@ class Kya extends HiveObject {
         secondaryImageUrl: singleKya['secondaryImageUrl'] as String,
       );
 
-      var kyaLessons = <KyaLesson>[];
-      for (var item in json) {
-        var kyaItem = KyaLesson(item['lesson_title'] as String,
+      final kyaLessons = <KyaLesson>[];
+      for (final item in json) {
+        final kyaItem = KyaLesson(item['lesson_title'] as String,
             item['lesson_imageUrl'] as String, item['lesson_body'] as String);
         kyaLessons.add(kyaItem);
       }
@@ -115,7 +115,7 @@ class Kya extends HiveObject {
     await Hive.box<Kya>(HiveBox.kya).clear();
     final newKyas = <dynamic, Kya>{};
 
-    for (var kya in kyas) {
+    for (final kya in kyas) {
       newKyas[kya.id] = kya;
     }
 

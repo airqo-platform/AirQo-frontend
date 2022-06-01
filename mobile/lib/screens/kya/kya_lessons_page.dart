@@ -33,7 +33,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
 
   @override
   Widget build(BuildContext context) {
-    var screenSize = MediaQuery.of(context).size;
+    final screenSize = MediaQuery.of(context).size;
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
@@ -148,7 +148,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
     super.initState();
     kya = widget.kya;
     currentIndex = 0;
-    for (var _ in widget.kya.lessons) {
+    for (final _ in widget.kya.lessons) {
       _globalKeys.add(GlobalKey());
     }
     itemPositionsListener.itemPositions.addListener(scrollListener);
@@ -206,7 +206,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
     if (widget.kya.progress == -1) {
       return;
     }
-    var kya = widget.kya..progress = currentIndex;
+    final kya = widget.kya..progress = currentIndex;
     if (kya.progress > kya.lessons.length || kya.progress < 0) {
       kya.progress = kya.lessons.length - 1;
     }

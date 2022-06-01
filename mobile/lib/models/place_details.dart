@@ -43,7 +43,7 @@ class PlaceDetails {
 
   static bool isFavouritePlace(
       List<PlaceDetails> favouritePlaces, PlaceDetails subject) {
-    for (var place in favouritePlaces) {
+    for (final place in favouritePlaces) {
       if (place.siteId == subject.siteId) {
         return true;
       }
@@ -52,9 +52,9 @@ class PlaceDetails {
   }
 
   static List<Map<String, dynamic>> listToJson(List<PlaceDetails> places) {
-    var placesJson = <Map<String, dynamic>>[];
-    for (var place in places) {
-      var placeJson = place.toJson();
+    final placesJson = <Map<String, dynamic>>[];
+    for (final place in places) {
+      final placeJson = place.toJson();
       placesJson.add(placeJson);
     }
     return placesJson;
@@ -71,11 +71,11 @@ class PlaceDetails {
   }
 
   static List<PlaceDetails> parseMultiPlaceDetails(dynamic jsonBody) {
-    var placeDetails = <PlaceDetails>[];
+    final placeDetails = <PlaceDetails>[];
 
-    for (var jsonElement in jsonBody) {
+    for (final jsonElement in jsonBody) {
       try {
-        var placeDetail = PlaceDetails.fromJson(jsonElement);
+        final placeDetail = PlaceDetails.fromJson(jsonElement);
         placeDetails.add(placeDetail);
       } catch (exception, stackTrace) {
         debugPrint('$exception\n$stackTrace');
@@ -124,7 +124,7 @@ class PlaceDetailsModel extends ChangeNotifier {
   Future<void> reloadFavouritePlaces() async {
     try {
       _favouritePlaces.clear();
-      var favPlaces = await _dbHelper.getFavouritePlaces();
+      final favPlaces = await _dbHelper.getFavouritePlaces();
       _favouritePlaces.addAll(favPlaces);
       notifyListeners();
     } catch (exception, stackTrace) {

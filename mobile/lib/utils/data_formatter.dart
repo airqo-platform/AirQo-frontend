@@ -20,13 +20,13 @@ charts.Color insightsChartBarColor(Insights series, Pollutant pollutant) {
 
 List<List<charts.Series<Insights, String>>> insightsChartData(
     List<Insights> insights, Pollutant pollutant, Frequency frequency) {
-  var data = <Insights>[...insights];
+  final data = <Insights>[...insights];
 
-  var insightsGraphs = <List<charts.Series<Insights, String>>>[];
+  final insightsGraphs = <List<charts.Series<Insights, String>>>[];
 
   if (frequency == Frequency.hourly) {
     while (data.isNotEmpty) {
-      var earliestDate = data.reduce((value, element) {
+      final earliestDate = data.reduce((value, element) {
         if (value.time.isBefore(element.time)) {
           return value;
         }
@@ -47,7 +47,7 @@ List<List<charts.Series<Insights, String>>> insightsChartData(
           colorFn: (Insights series, _) =>
               insightsChartBarColor(series, pollutant),
           domainFn: (Insights data, _) {
-            var hour = data.time.hour;
+            final hour = data.time.hour;
             return hour.toString().length == 1 ? '0$hour' : '$hour';
           },
           measureFn: (Insights data, _) => data.getChartValue(pollutant),
@@ -65,7 +65,7 @@ List<List<charts.Series<Insights, String>>> insightsChartData(
         return element;
       }).time;
 
-      var dateRanges = <DateTime>[];
+      final dateRanges = <DateTime>[];
       var filteredDates = <Insights>[];
 
       while (dateRanges.length != 7) {
@@ -100,15 +100,15 @@ List<List<charts.Series<Insights, String>>> insightsChartData(
 
 List<Insights> patchMissingData(
     List<Insights> data, Frequency frequency, bool full) {
-  var insights = <Insights>[...data];
+  final insights = <Insights>[...data];
   if (frequency == Frequency.daily && full) {
-    var referenceInsight = data.first;
+    final referenceInsight = data.first;
 
     var startDate = DateTime.now().getFirstDateOfCalendarMonth();
-    var lastDayOfCalendar = DateTime.now().getLastDateOfCalendarMonth();
+    final lastDayOfCalendar = DateTime.now().getLastDateOfCalendarMonth();
 
     while (startDate.isBefore(lastDayOfCalendar)) {
-      var checkDate = insights
+      final checkDate = insights
           .where((element) =>
               (element.time.day == startDate.day) &&
               (element.time.month == startDate.month))
@@ -128,16 +128,16 @@ List<Insights> patchMissingData(
       startDate = startDate.add(const Duration(days: 1));
     }
   } else if (frequency == Frequency.hourly && full) {
-    var referenceInsight = data.first;
+    final referenceInsight = data.first;
 
     var startDate = referenceInsight.time
         .getDateOfFirstDayOfWeek()
         .getDateOfFirstHourOfDay();
-    var lastDayOfWeek =
+    final lastDayOfWeek =
         referenceInsight.time.getDateOfLastDayOfWeek().getDateOfLastHourOfDay();
 
     while (startDate.isBefore(lastDayOfWeek)) {
-      var checkDate = insights
+      final checkDate = insights
           .where((element) =>
               (element.time.hour == startDate.hour) &&
               (element.time.day == startDate.day))
@@ -157,13 +157,13 @@ List<Insights> patchMissingData(
       startDate = startDate.add(const Duration(hours: 1));
     }
   } else if (frequency == Frequency.hourly && !full) {
-    var referenceInsight = data.first;
+    final referenceInsight = data.first;
 
     var startDate = referenceInsight.time.getDateOfFirstHourOfDay();
-    var lastDayOfWeek = referenceInsight.time.getDateOfLastHourOfDay();
+    final lastDayOfWeek = referenceInsight.time.getDateOfLastHourOfDay();
 
     while (startDate.isBefore(lastDayOfWeek)) {
-      var checkDate = insights
+      final checkDate = insights
           .where((element) =>
               (element.time.hour == startDate.hour) &&
               (element.time.day == startDate.day))
@@ -183,13 +183,13 @@ List<Insights> patchMissingData(
       startDate = startDate.add(const Duration(hours: 1));
     }
   } else if (frequency == Frequency.daily && !full) {
-    var referenceInsight = data.first;
+    final referenceInsight = data.first;
 
     var startDate = referenceInsight.time.getDateOfFirstDayOfWeek();
-    var lastDayOfWeek = referenceInsight.time.getDateOfLastDayOfWeek();
+    final lastDayOfWeek = referenceInsight.time.getDateOfLastDayOfWeek();
 
     while (startDate.isBefore(lastDayOfWeek)) {
-      var checkDate = insights
+      final checkDate = insights
           .where((element) =>
               (element.time.day == startDate.day) &&
               (element.time.month == startDate.month))

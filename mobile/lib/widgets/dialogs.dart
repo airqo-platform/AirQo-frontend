@@ -261,7 +261,7 @@ void pmInfoDialog(context, double pm2_5) {
 }
 
 Future<void> showSnackBar(context, String message) async {
-  var snackBar = SnackBar(
+  final snackBar = SnackBar(
     duration: const Duration(seconds: 2),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(10),

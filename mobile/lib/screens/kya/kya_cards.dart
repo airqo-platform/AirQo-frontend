@@ -88,7 +88,7 @@ Widget kyaCard(KyaLesson kyaItem, Size screenSize) {
 }
 
 Widget kyaDummyLessonCard(KyaLesson kyaItem, BuildContext context) {
-  var screenSize = MediaQuery.of(context).size;
+  final screenSize = MediaQuery.of(context).size;
   return kyaCard(kyaItem, screenSize);
 }
 
@@ -104,7 +104,7 @@ Positioned kyaLessonCard(
     Function addKyaLesson,
     Function swipeRight,
     Function swipeLeft) {
-  var screenSize = MediaQuery.of(context).size;
+  final screenSize = MediaQuery.of(context).size;
 
   return Positioned(
     right: flag == 0

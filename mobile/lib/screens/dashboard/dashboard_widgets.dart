@@ -243,7 +243,7 @@ class DashboardKyaCard extends StatelessWidget {
 }
 
 List<Widget> completeKyaWidgets(List<Kya> completeKya) {
-  var widgets = <Widget>[];
+  final widgets = <Widget>[];
 
   try {
     switch (completeKya.length) {

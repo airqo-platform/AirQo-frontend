@@ -232,7 +232,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                   await showSnackBar(
                                       context, 'Please provide your feedback');
                                 } else {
-                                  var feedback = UserFeedback(
+                                  final feedback = UserFeedback(
                                       _emailInputController.text,
                                       _emailFeedbackController.text,
                                       _feedbackType);
@@ -329,7 +329,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                               await showSnackBar(
                                   context, 'Please provide your feedback');
                             } else {
-                              var feedback = UserFeedback(
+                              final feedback = UserFeedback(
                                   _emailInputController.text,
                                   _emailFeedbackController.text,
                                   _feedbackType);
@@ -507,8 +507,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
   }
 
   void openWhatsapp() async {
-    var androidUrl = '${Config.appAndroidWhatsappUrl}$_feedbackType';
-    var iosUrl = '${Config.appIOSWhatsappUrl}${Uri.parse(_feedbackType)}';
+    final androidUrl = '${Config.appAndroidWhatsappUrl}$_feedbackType';
+    final iosUrl = '${Config.appIOSWhatsappUrl}${Uri.parse(_feedbackType)}';
     if (Platform.isIOS) {
       if (await canLaunchUrl(Uri.parse(iosUrl))) {
         await launchUrl(Uri.parse(iosUrl));

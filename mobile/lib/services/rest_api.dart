@@ -53,11 +53,11 @@ class AirqoApiClient {
     http.Response response;
 
     if (phoneNumber != null) {
-      var body = {'phoneNumber': phoneNumber};
+      final body = {'phoneNumber': phoneNumber};
       response = await httpClient.post(Uri.parse(AirQoUrls.checkUserExists),
           headers: headers, body: jsonEncode(body));
     } else if (emailAddress != null) {
-      var body = {'emailAddress': emailAddress};
+      final body = {'emailAddress': emailAddress};
       response = await httpClient.post(Uri.parse(AirQoUrls.checkUserExists),
           headers: headers, body: jsonEncode(body));
     } else {
@@ -73,7 +73,7 @@ class AirqoApiClient {
 
   Future<List<Measurement>> fetchLatestMeasurements() async {
     try {
-      var queryParams = <String, dynamic>{}
+      final queryParams = <String, dynamic>{}
         ..putIfAbsent('recent', () => 'yes')
         ..putIfAbsent('metadata', () => 'site_id')
         ..putIfAbsent('external', () => 'no')
@@ -100,12 +100,12 @@ class AirqoApiClient {
 
   Future<List<Insights>> fetchSitesInsights(String siteIds) async {
     try {
-      var startDateTime =
+      final startDateTime =
           '${DateFormat('yyyy-MM-dd').format(DateTime.now().toUtc().getFirstDateOfCalendarMonth())}T00:00:00Z';
-      var endDateTime =
+      final endDateTime =
           '${DateFormat('yyyy-MM-dd').format(DateTime.now().toUtc().getLastDateOfCalendarMonth())}T23:59:59Z';
 
-      var queryParams = <String, dynamic>{}
+      final queryParams = <String, dynamic>{}
         ..putIfAbsent('siteId', () => siteIds)
         ..putIfAbsent('startDateTime', () => startDateTime)
         ..putIfAbsent('endDateTime', () => endDateTime);
@@ -125,7 +125,7 @@ class AirqoApiClient {
   }
 
   Future<String> getCarrier(String phoneNumber) async {
-    var url = '${AirQoUrls.carrierSearchApi}$phoneNumber';
+    final url = '${AirQoUrls.carrierSearchApi}$phoneNumber';
     final responseBody = await _performGetRequest({}, url);
     if (responseBody != null) {
       try {
@@ -140,9 +140,9 @@ class AirqoApiClient {
   Future<String> imageUpload(String file, String? type, String name) async {
     type ??= 'jpeg';
 
-    var uploadStr = 'data:image/$type;base64,$file';
+    final uploadStr = 'data:image/$type;base64,$file';
     try {
-      var body = {
+      final body = {
         'file': uploadStr,
         'upload_preset': Config.imageUploadPreset,
       };
@@ -154,7 +154,7 @@ class AirqoApiClient {
           body: json.encode(body));
 
       if (response.statusCode == 200) {
-        var body = json.decode(response.body);
+        final body = json.decode(response.body);
         return body['url'];
       } else {
         throw Exception('Error');
@@ -171,9 +171,9 @@ class AirqoApiClient {
       Map<String, String> headers = HashMap()
         ..putIfAbsent('Content-Type', () => 'application/json');
 
-      var body = {'email': emailAddress};
+      final body = {'email': emailAddress};
 
-      var uri = reAuthenticate
+      final uri = reAuthenticate
           ? AirQoUrls.requestEmailReAuthentication
           : AirQoUrls.requestEmailVerification;
 
@@ -189,7 +189,7 @@ class AirqoApiClient {
   }
 
   Future<bool> sendFeedback(UserFeedback feedback) async {
-    var body = jsonEncode({
+    final body = jsonEncode({
       'personalizations': [
         {
           'to': [
@@ -246,7 +246,7 @@ class AirqoApiClient {
         return;
       }
 
-      var body = {
+      final body = {
         'firstName':
             userDetails.firstName.isNull() ? '' : userDetails.firstName,
         'platform': 'mobile',
@@ -299,7 +299,7 @@ class SearchApi {
 
   Future<List<Suggestion>> fetchSuggestions(String input) async {
     try {
-      var queryParams = <String, dynamic>{}
+      final queryParams = <String, dynamic>{}
         ..putIfAbsent('input', () => input)
         ..putIfAbsent('components', () => 'country:ug')
         ..putIfAbsent('key', () => apiKey)
@@ -320,7 +320,7 @@ class SearchApi {
 
   Future<Place?> getPlaceDetails(String placeId) async {
     try {
-      var queryParams = <String, dynamic>{}
+      final queryParams = <String, dynamic>{}
         ..putIfAbsent('place_id', () => placeId)
         ..putIfAbsent('fields', () => 'name,geometry')
         ..putIfAbsent('key', () => apiKey)
@@ -329,7 +329,7 @@ class SearchApi {
       final responseBody =
           await _performGetRequest(queryParams, AirQoUrls.placeSearchDetails);
 
-      var place = Place.fromJson(responseBody['result']);
+      final place = Place.fromJson(responseBody['result']);
 
       return place;
     } catch (exception, stackTrace) {

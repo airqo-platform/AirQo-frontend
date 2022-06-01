@@ -49,9 +49,9 @@ class SplashScreenV2State extends State<SplashScreenV2> {
   }
 
   Future<void> initialize() async {
-    var isLoggedIn = _appService.isLoggedIn();
+    final isLoggedIn = _appService.isLoggedIn();
 
-    var nextPage = getOnBoardingPageConstant(
+    final nextPage = getOnBoardingPageConstant(
         await SharedPreferencesHelper.getOnBoardingPage());
 
     Future.delayed(const Duration(seconds: 1), _updateWidget);

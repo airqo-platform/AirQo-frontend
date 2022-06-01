@@ -41,21 +41,20 @@ MeasurementValue measurementValueFromJson(dynamic json) {
 }
 
 Measurement parseMeasurement(dynamic jsonBody) {
-  var measurements = parseMeasurements(jsonBody);
-  return measurements.first;
+  return parseMeasurements(jsonBody).first;
 }
 
 List<Measurement> parseMeasurements(dynamic jsonBody) {
-  var measurements = <Measurement>[];
+  final measurements = <Measurement>[];
 
-  var jsonArray = jsonBody['measurements'];
-  var offSet = DateTime.now().timeZoneOffset.inHours;
-  for (var jsonElement in jsonArray) {
+  final jsonArray = jsonBody['measurements'];
+  final offSet = DateTime.now().timeZoneOffset.inHours;
+  for (final jsonElement in jsonArray) {
     try {
-      var measurement = Measurement.fromJson(jsonElement);
-      var value = measurement.getPm2_5Value();
+      final measurement = Measurement.fromJson(jsonElement);
+      final value = measurement.getPm2_5Value();
       if (value != -0.1 && value >= 0.00 && value <= 500.40) {
-        var formattedDate =
+        final formattedDate =
             DateTime.parse(measurement.time).add(Duration(hours: offSet));
         measurement.time = formattedDate.toString();
         measurements.add(measurement);
@@ -74,7 +73,7 @@ String regionFromJson(dynamic json) {
   if (json == null) {
     return 'Central Region';
   }
-  var regionJson = json as String;
+  final regionJson = json as String;
   if (regionJson.toLowerCase().contains('central')) {
     return 'Central Region';
   } else if (regionJson.toLowerCase().contains('east')) {

@@ -17,7 +17,7 @@ Future<bool> hasNetworkConnection() async {
 
 Future<bool> checkNetworkConnection(BuildContext buildContext,
     {bool notifyUser = false}) async {
-  var hasConnection = await hasNetworkConnection();
+  final hasConnection = await hasNetworkConnection();
   if (!hasConnection && notifyUser) {
     await showSnackBar(buildContext, Config.connectionErrorMessage);
   }

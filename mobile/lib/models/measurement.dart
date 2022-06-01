@@ -86,7 +86,7 @@ class Measurement {
   static String dropTableStmt() => 'DROP TABLE IF EXISTS ${measurementsDb()}';
 
   static Map<String, dynamic> mapFromDb(Map<String, dynamic> json) {
-    var siteDetails = Site.fromDbMap(json);
+    final siteDetails = Site.fromDbMap(json);
 
     return {
       'siteDetails': siteDetails,
@@ -101,7 +101,7 @@ class Measurement {
   }
 
   static Map<String, dynamic> mapToDb(Measurement measurement) {
-    var measurementMap = Site.toDbMap(measurement.site)
+    final measurementMap = Site.toDbMap(measurement.site)
       ..addAll({
         'time': measurement.time,
         'pm2_5': measurement.getPm2_5Value(),
@@ -120,7 +120,7 @@ class Measurement {
 
 extension ParseMeasurement on Measurement {
   String getTempValue() {
-    var tempValue = temperature.value.toStringAsFixed(2);
+    final tempValue = temperature.value.toStringAsFixed(2);
 
     return '$tempValue\u2103';
   }

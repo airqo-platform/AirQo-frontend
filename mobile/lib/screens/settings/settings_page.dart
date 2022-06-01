@@ -193,7 +193,7 @@ class _SettingsPageState extends State<SettingsPage> {
       },
     );
 
-    var alert = AlertDialog(
+    final alert = AlertDialog(
       title: const Text('Delete Account'),
       content: const Text('Are you sure about deleting your account ? '),
       actions: [okButton, cancelButton],
@@ -208,8 +208,8 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _deleteAccount() async {
-    var user = CustomAuth.getUser();
-    var dialogContext = context;
+    final user = CustomAuth.getUser();
+    final dialogContext = context;
 
     if (user == null) {
       await showSnackBar(context, Config.appErrorMessage);
@@ -217,7 +217,7 @@ class _SettingsPageState extends State<SettingsPage> {
     }
 
     bool authResponse;
-    var profile = await Profile.getProfile();
+    final profile = await Profile.getProfile();
     if (user.email != null) {
       profile.emailAddress = user.email!;
       authResponse =
@@ -237,7 +237,7 @@ class _SettingsPageState extends State<SettingsPage> {
     if (authResponse) {
       loadingScreen(dialogContext);
 
-      var success = await _appService.deleteAccount(context);
+      final success = await _appService.deleteAccount(context);
       if (success) {
         Navigator.pop(dialogContext);
         await Navigator.pushAndRemoveUntil(context,

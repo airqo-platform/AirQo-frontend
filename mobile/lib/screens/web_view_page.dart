@@ -21,7 +21,7 @@ class WebViewScreen extends StatefulWidget {
 
 class _WebViewScreenState extends State<WebViewScreen> {
   final controller = Completer<WebViewController>();
-  var loadingPercentage = 0;
+  int loadingPercentage = 0;
 
   @override
   Widget build(BuildContext context) {

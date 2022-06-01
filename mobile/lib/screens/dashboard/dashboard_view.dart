@@ -316,9 +316,9 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   void _getAnalyticsCards() async {
-    var region = getNextDashboardRegion(_preferences);
-    var measurements = await _appService.dbHelper.getRegionSites(region);
-    var dashboardCards = <AnalyticsCard>[];
+    final region = getNextDashboardRegion(_preferences);
+    final measurements = await _appService.dbHelper.getRegionSites(region);
+    final dashboardCards = <AnalyticsCard>[];
 
     if (measurements.isNotEmpty) {
       for (var i = 0; i <= 5; i++) {
@@ -326,7 +326,7 @@ class _DashboardViewState extends State<DashboardView> {
           break;
         }
 
-        var randomMeasurement = (measurements..shuffle()).first;
+        final randomMeasurement = (measurements..shuffle()).first;
 
         if (mounted) {
           dashboardCards.add(AnalyticsCard(
@@ -345,10 +345,10 @@ class _DashboardViewState extends State<DashboardView> {
       _buildAnalyticsCards(dashboardCards);
     }
 
-    var locationMeasurements =
+    final locationMeasurements =
         await LocationService.getNearbyLocationReadings();
 
-    for (var location in locationMeasurements) {
+    for (final location in locationMeasurements) {
       dashboardCards.add(AnalyticsCard(
           PlaceDetails.measurementToPLace(location),
           location,
@@ -422,11 +422,11 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   void _loadFavourites({required bool reload}) async {
-    var widgets = <Widget>[];
+    final widgets = <Widget>[];
 
     if (_favLocations.length != 3 || reload) {
       try {
-        var favouritePlaces = await _appService.dbHelper.getFavouritePlaces();
+        final favouritePlaces = await _appService.dbHelper.getFavouritePlaces();
 
         if (!reload) {
           if (_favLocations.length >= favouritePlaces.length) {
@@ -434,11 +434,12 @@ class _DashboardViewState extends State<DashboardView> {
           }
         }
 
-        var siteIds = <String>[];
-        for (var place in favouritePlaces) {
+        final siteIds = <String>[];
+        for (final place in favouritePlaces) {
           siteIds.add(place.siteId);
         }
-        var measurements = await _appService.dbHelper.getMeasurements(siteIds);
+        final measurements =
+            await _appService.dbHelper.getMeasurements(siteIds);
 
         if (favouritePlaces.length == 1) {
           if (measurements.isNotEmpty) {

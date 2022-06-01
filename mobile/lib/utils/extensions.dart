@@ -43,7 +43,7 @@ Region getRegionConstant(String value) {
 
 extension AnalyticsEventExtension on AnalyticsEvent {
   String getName() {
-    var prefix = kReleaseMode ? 'prod_' : 'stage_';
+    final prefix = kReleaseMode ? 'prod_' : 'stage_';
 
     switch (this) {
       case AnalyticsEvent.browserAsAppGuest:
@@ -96,10 +96,10 @@ extension AnalyticsEventExtension on AnalyticsEvent {
 extension DateTimeExtension on DateTime {
   DateTime getDateOfFirstDayOfWeek() {
     var firstDate = this;
-    var weekday = firstDate.weekday;
+    final weekday = firstDate.weekday;
 
     if (weekday != 1) {
-      var offset = weekday - 1;
+      final offset = weekday - 1;
       firstDate = firstDate.subtract(Duration(days: offset));
     }
 
@@ -107,17 +107,17 @@ extension DateTimeExtension on DateTime {
   }
 
   DateTime getDateOfFirstHourOfDay() {
-    var dateStr = '${DateFormat('yyyy-MM-dd').format(this)}T00:00:00Z';
+    final dateStr = '${DateFormat('yyyy-MM-dd').format(this)}T00:00:00Z';
 
     return timeFromJson(dateStr);
   }
 
   DateTime getDateOfLastDayOfWeek() {
     var lastDate = this;
-    var weekday = lastDate.weekday;
+    final weekday = lastDate.weekday;
 
     if (weekday != 7) {
-      var offset = 7 - weekday;
+      final offset = 7 - weekday;
       lastDate = lastDate.add(Duration(days: offset));
     }
 
@@ -125,13 +125,13 @@ extension DateTimeExtension on DateTime {
   }
 
   DateTime getDateOfLastHourOfDay() {
-    var dateStr = '${DateFormat('yyyy-MM-dd').format(this)}T23:00:00Z';
+    final dateStr = '${DateFormat('yyyy-MM-dd').format(this)}T23:00:00Z';
 
     return timeFromJson(dateStr);
   }
 
   String getDay(DateTime? datetime) {
-    var referenceDay = datetime != null ? datetime.day : day;
+    final referenceDay = datetime != null ? datetime.day : day;
     if (referenceDay.toString().length > 1) {
       return referenceDay.toString();
     }
@@ -149,7 +149,7 @@ extension DateTimeExtension on DateTime {
   }
 
   DateTime getFirstDateOfMonth() {
-    var firstDate = DateTime.parse('$year-${getMonth(null)}-01T00:00:00Z');
+    final firstDate = DateTime.parse('$year-${getMonth(null)}-01T00:00:00Z');
     return firstDate;
   }
 
@@ -166,7 +166,7 @@ extension DateTimeExtension on DateTime {
 
   DateTime getLastDateOfMonth() {
     var lastDate = DateTime.parse('$year-${getMonth(null)}-26T00:00:00Z');
-    var referenceMonth = month;
+    final referenceMonth = month;
 
     while (lastDate.month == referenceMonth) {
       lastDate = lastDate.add(const Duration(days: 1));
@@ -181,7 +181,7 @@ extension DateTimeExtension on DateTime {
   }
 
   String getMonth(DateTime? datetime) {
-    var referenceMonth = datetime != null ? datetime.month : month;
+    final referenceMonth = datetime != null ? datetime.month : month;
     if (referenceMonth.toString().length > 1) {
       return referenceMonth.toString();
     }
@@ -263,7 +263,7 @@ extension DateTimeExtension on DateTime {
   }
 
   bool isInWeek(String referenceWeek) {
-    var now = DateTime.now();
+    final now = DateTime.now();
     DateTime referenceDay;
     DateTime lastDay;
     if (referenceWeek.toLowerCase() == 'last') {
@@ -431,10 +431,10 @@ extension PollutantExtension on Pollutant {
 
 extension StringCasingExtension on String {
   bool inStatement(String statement) {
-    var terms = toLowerCase().split(' ');
-    var words = statement.toLowerCase().split(' ');
-    for (var word in words) {
-      for (var term in terms) {
+    final terms = toLowerCase().split(' ');
+    final words = statement.toLowerCase().split(' ');
+    for (final word in words) {
+      for (final term in terms) {
         if (term == word.trim()) {
           return true;
         }

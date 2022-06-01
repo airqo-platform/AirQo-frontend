@@ -203,7 +203,7 @@ class ToolTip {
     }
 
     if (dx + _popupWidth > _screenSize.width && dx > 10.0) {
-      var tempDx = _screenSize.width - _popupWidth - 10;
+      final tempDx = _screenSize.width - _popupWidth - 10;
       if (tempDx > 10) dx = tempDx;
     }
 
@@ -230,8 +230,8 @@ class ToolTip {
   }
 
   Rect _getWidgetGlobalRect(GlobalKey key) {
-    var renderBox = key.currentContext!.findRenderObject() as RenderBox;
-    var offset = renderBox.localToGlobal(Offset.zero);
+    final renderBox = key.currentContext!.findRenderObject() as RenderBox;
+    final offset = renderBox.localToGlobal(Offset.zero);
     return Rect.fromLTWH(
         offset.dx, offset.dy, renderBox.size.width, renderBox.size.height);
   }
@@ -244,8 +244,8 @@ class TrianglePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    var path = Path();
-    var paint = Paint()
+    final path = Path();
+    final paint = Paint()
       ..strokeWidth = 2.0
       ..color = color
       ..style = PaintingStyle.fill;

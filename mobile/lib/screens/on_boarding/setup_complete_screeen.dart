@@ -70,7 +70,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   @Deprecated('Functionality has been transferred to the backend')
   Future<void> sendWelcomeEmail() async {
     try {
-      var profile = await Profile.getProfile();
+      final profile = await Profile.getProfile();
       await AppService().apiClient.sendWelcomeMessage(profile);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');

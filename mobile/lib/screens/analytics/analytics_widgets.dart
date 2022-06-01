@@ -283,7 +283,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                       children: [
                         GestureDetector(
                           onTap: () {
-                            var shareMeasurement = widget.measurement;
+                            final shareMeasurement = widget.measurement;
                             shareMeasurement.site.name =
                                 widget.placeDetails.name;
                             ShareService.shareCard(
@@ -542,7 +542,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                       children: [
                         GestureDetector(
                           onTap: () {
-                            var shareMeasurement = widget.measurement;
+                            final shareMeasurement = widget.measurement;
                             shareMeasurement.site.name =
                                 widget.placeDetails.name;
                             ShareService.shareCard(

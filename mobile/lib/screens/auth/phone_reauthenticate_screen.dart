@@ -30,7 +30,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
   Color _nextBtnColor = Config.appColorDisabled;
 
   Future<void> autoVerifyPhoneFn(PhoneAuthCredential credential) async {
-    var success =
+    final success =
         await CustomAuth.reAuthenticateWithPhoneNumber(credential, context);
     if (success) {
       Navigator.pop(context, true);
@@ -139,7 +139,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
     setState(() {
       _phoneVerificationCode[position] = value;
     });
-    var code = _phoneVerificationCode.join('');
+    final code = _phoneVerificationCode.join('');
     if (code.length == 6) {
       setState(() {
         _nextBtnColor = Config.appColorBlue;
@@ -176,7 +176,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
   }
 
   Future<void> _requestVerification() async {
-    var connected = await checkNetworkConnection(context, notifyUser: true);
+    final connected = await checkNetworkConnection(context, notifyUser: true);
     if (!connected) {
       return;
     }
@@ -202,7 +202,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
   }
 
   Future<void> _resendVerificationCode() async {
-    var connected = await checkNetworkConnection(context, notifyUser: true);
+    final connected = await checkNetworkConnection(context, notifyUser: true);
     if (!connected) {
       return;
     }
@@ -230,12 +230,12 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
   }
 
   Future<void> _verifySentCode() async {
-    var connected = await checkNetworkConnection(context, notifyUser: true);
+    final connected = await checkNetworkConnection(context, notifyUser: true);
     if (!connected) {
       return;
     }
 
-    var code = _phoneVerificationCode.join('');
+    final code = _phoneVerificationCode.join('');
 
     if (code.length != 6) {
       await showSnackBar(context, 'Enter all the 6 digits');
@@ -251,11 +251,11 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
       _isVerifying = true;
     });
 
-    var credential = PhoneAuthProvider.credential(
+    final credential = PhoneAuthProvider.credential(
         verificationId: _verificationId,
         smsCode: _phoneVerificationCode.join(''));
     try {
-      var success =
+      final success =
           await CustomAuth.reAuthenticateWithPhoneNumber(credential, context);
       if (success) {
         Navigator.pop(context, true);

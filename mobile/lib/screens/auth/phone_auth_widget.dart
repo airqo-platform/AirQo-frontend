@@ -100,7 +100,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
   }
 
   Future<bool> onWillPop() {
-    var now = DateTime.now();
+    final now = DateTime.now();
 
     if (_exitTime == null ||
         now.difference(_exitTime!) > const Duration(seconds: 2)) {
@@ -452,7 +452,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
     setState(() {
       _phoneVerificationCode[position] = value;
     });
-    var code = _phoneVerificationCode.join('');
+    final code = _phoneVerificationCode.join('');
     if (code.length == 6) {
       setState(() {
         _nextBtnColor = Config.appColorBlue;
@@ -473,7 +473,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
 
   Future<void> _authenticatePhoneNumber(AuthCredential authCredential) async {
     if (widget.authProcedure == AuthProcedure.login) {
-      var loginSuccessful = await _appService.authenticateUser(
+      final loginSuccessful = await _appService.authenticateUser(
           authProcedure: AuthProcedure.login,
           buildContext: context,
           authMethod: AuthMethod.phone,
@@ -493,7 +493,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
         await showSnackBar(context, 'Login failed.');
       }
     } else {
-      var signUpSuccessful = await _appService.authenticateUser(
+      final signUpSuccessful = await _appService.authenticateUser(
           authProcedure: AuthProcedure.signup,
           buildContext: context,
           authMethod: AuthMethod.phone,
@@ -551,7 +551,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
   }
 
   Future<void> _requestVerification() async {
-    var connected = await checkNetworkConnection(context, notifyUser: true);
+    final connected = await checkNetworkConnection(context, notifyUser: true);
     if (!connected) {
       return;
     }
@@ -560,7 +560,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
       return;
     }
 
-    var phoneNumber = '$_countryCode$_phoneNumber';
+    final phoneNumber = '$_countryCode$_phoneNumber';
     final action = await showDialog<ConfirmationAction>(
       context: context,
       barrierDismissible: false,
@@ -586,7 +586,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
     loadingScreen(_loadingContext);
 
     if (widget.authProcedure == AuthProcedure.signup) {
-      var phoneNumberTaken = await _appService.doesUserExist(
+      final phoneNumberTaken = await _appService.doesUserExist(
           phoneNumber: phoneNumber, buildContext: context);
 
       if (phoneNumberTaken) {
@@ -618,7 +618,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
       }
     }
 
-    var success = await CustomAuth.requestPhoneVerification(
+    final success = await CustomAuth.requestPhoneVerification(
         phoneNumber, context, verifyPhoneFn, autoVerifyPhoneFn);
 
     Navigator.pop(_loadingContext);
@@ -637,14 +637,14 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
   }
 
   Future<void> _resendVerificationCode() async {
-    var connected = await checkNetworkConnection(context, notifyUser: true);
+    final connected = await checkNetworkConnection(context, notifyUser: true);
     if (!connected) {
       return;
     }
 
     loadingScreen(_loadingContext);
 
-    var success = await CustomAuth.requestPhoneVerification(
+    final success = await CustomAuth.requestPhoneVerification(
         '$_countryCode$_phoneNumber',
         context,
         verifyPhoneFn,
@@ -687,12 +687,12 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
   }
 
   Future<void> _verifySentCode() async {
-    var connected = await checkNetworkConnection(context, notifyUser: true);
+    final connected = await checkNetworkConnection(context, notifyUser: true);
     if (!connected) {
       return;
     }
 
-    var code = _phoneVerificationCode.join('');
+    final code = _phoneVerificationCode.join('');
 
     if (code.length != 6) {
       await showSnackBar(context, 'Enter all the 6 digits');
@@ -707,7 +707,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
 
     loadingScreen(_loadingContext);
 
-    var phoneCredential = PhoneAuthProvider.credential(
+    final phoneCredential = PhoneAuthProvider.credential(
         verificationId: _verificationId,
         smsCode: _phoneVerificationCode.join(''));
 

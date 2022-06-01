@@ -69,7 +69,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
   }
 
   Future<void> _initialize() async {
-    var places = await _appService.dbHelper.getLatestMeasurements();
+    final places = await _appService.dbHelper.getLatestMeasurements();
     setState(() => _places = places);
   }
 }

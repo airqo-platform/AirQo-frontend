@@ -21,14 +21,14 @@ class ChangeEmailScreen extends StatefulWidget {
 
 class ChangeEmailScreenState extends State<ChangeEmailScreen> {
   bool _emailFormValid = false;
-  var _emailAddress = '';
+  String _emailAddress = '';
   bool _isVerifying = false;
   bool _isResending = false;
   int _emailToken = 1;
-  var _requestCode = false;
-  var _showResendCode = false;
-  var _emailVerificationCode = <String>['', '', '', '', '', ''];
-  var _nextBtnColor = Config.appColorDisabled;
+  bool _requestCode = false;
+  bool _showResendCode = false;
+  List<String> _emailVerificationCode = <String>['', '', '', '', '', ''];
+  Color _nextBtnColor = Config.appColorDisabled;
 
   final _emailFormKey = GlobalKey<FormState>();
   User? _user;
@@ -227,7 +227,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
 
   void setCode(String value, int position) {
     setState(() => _emailVerificationCode[position] = value);
-    var code = _emailVerificationCode.join('');
+    final code = _emailVerificationCode.join('');
     if (code.length == 6) {
       setState(() => _nextBtnColor = Config.appColorBlue);
     } else {
@@ -330,7 +330,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
       _isVerifying = true;
     });
 
-    var emailVerificationResponse = await _appService.apiClient
+    final emailVerificationResponse = await _appService.apiClient
         .requestEmailVerificationCode(_emailAddress, false);
 
     if (emailVerificationResponse == null) {
@@ -357,7 +357,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
   Future<void> _resendVerificationCode() async {
     setState(() => _isResending = true);
 
-    var emailVerificationResponse = await _appService.apiClient
+    final emailVerificationResponse = await _appService.apiClient
         .requestEmailVerificationCode(_emailAddress, false);
 
     if (emailVerificationResponse == null) {
@@ -371,7 +371,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
   }
 
   Future<void> _verifySentCode() async {
-    var code = _emailVerificationCode.join('');
+    final code = _emailVerificationCode.join('');
 
     if (code.length != 6) {
       await showSnackBar(context, 'Enter all the 6 digits');
@@ -395,14 +395,14 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
       });
       return;
     }
-    var user = CustomAuth.getUser();
+    final user = CustomAuth.getUser();
 
     if (user == null) {
       await showSnackBar(context, 'Failed to update email address');
       return;
     }
 
-    var success = await CustomAuth.updateEmailAddress(_emailAddress, context);
+    final success = await CustomAuth.updateEmailAddress(_emailAddress, context);
 
     if (success) {
       Navigator.pop(context, true);

@@ -125,7 +125,7 @@ class Profile extends HiveObject {
       {bool logout = false,
       bool? enableNotification,
       bool? enableLocation}) async {
-    var user = CustomAuth.getUser();
+    final user = CustomAuth.getUser();
     if (user != null) {
       Sentry.configureScope(
         (scope) =>
@@ -149,7 +149,7 @@ class Profile extends HiveObject {
   }
 
   static List<String> getNames(String fullName) {
-    var namesArray = fullName.split(' ');
+    final namesArray = fullName.split(' ');
     if (namesArray.isEmpty) {
       return ['', ''];
     }
@@ -161,7 +161,7 @@ class Profile extends HiveObject {
   }
 
   static Future<Profile> _initialize() async {
-    var profile = Profile(
+    final profile = Profile(
         title: '',
         firstName: '',
         lastName: '',
@@ -173,7 +173,7 @@ class Profile extends HiveObject {
             UserPreferences(notifications: false, location: false, aqShares: 0),
         utcOffset: 0,
         photoUrl: '');
-    var user = CustomAuth.getUser();
+    final user = CustomAuth.getUser();
     if (user != null) {
       await profile.update();
     }

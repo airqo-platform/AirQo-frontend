@@ -31,8 +31,8 @@ class CircularKyaButton extends StatelessWidget {
 }
 
 String getKyaMessage({required Kya kya}) {
-  var kyaItems = kya.lessons.length;
-  var progress = kya.progress;
+  final kyaItems = kya.lessons.length;
+  final progress = kya.progress;
   if (progress > 0 && progress < kyaItems) {
     return 'Continue';
   } else if (progress >= kyaItems) {

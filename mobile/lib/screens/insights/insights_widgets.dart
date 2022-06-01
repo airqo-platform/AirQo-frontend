@@ -55,7 +55,7 @@ class InsightsGraph extends StatelessWidget {
                 changedListener: (charts.SelectionModel model) {
               if (model.hasDatumSelection) {
                 try {
-                  var value = model.selectedDatum[0].index;
+                  final value = model.selectedDatum[0].index;
                   if (value != null) {
                     onBarSelection(model.selectedSeries[0].data[value]);
                   }
@@ -76,10 +76,10 @@ class InsightsGraph extends StatelessWidget {
   }
 
   List<charts.TickSpec<String>> _dailyStaticTicks() {
-    var dailyTicks = <charts.TickSpec<String>>[];
-    var daysList = <String>['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    final dailyTicks = <charts.TickSpec<String>>[];
+    final daysList = <String>['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-    for (var day in daysList) {
+    for (final day in daysList) {
       dailyTicks.add(charts.TickSpec(day,
           label: day,
           style: charts.TextStyleSpec(
@@ -90,8 +90,8 @@ class InsightsGraph extends StatelessWidget {
   }
 
   List<charts.TickSpec<String>> _hourlyStaticTicks() {
-    var hourlyTicks = <charts.TickSpec<String>>[];
-    var labels = <int>[0, 6, 12, 18];
+    final hourlyTicks = <charts.TickSpec<String>>[];
+    final labels = <int>[0, 6, 12, 18];
 
     for (var i = 0; i <= 24; i++) {
       if (labels.contains(i)) {

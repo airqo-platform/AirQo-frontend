@@ -117,17 +117,17 @@ class _MapViewState extends State<MapView> {
   }
 
   LatLngBounds _getBounds(List<Marker> markers) {
-    var latitudes =
+    final latitudes =
         markers.map<double>((marker) => marker.position.latitude).toList();
-    var longitudes =
+    final longitudes =
         markers.map<double>((marker) => marker.position.longitude).toList();
 
-    var topMostMarker = longitudes.reduce(max);
-    var rightMostMarker = latitudes.reduce(max);
-    var leftMostMarker = latitudes.reduce(min);
-    var bottomMostMarker = longitudes.reduce(min);
+    final topMostMarker = longitudes.reduce(max);
+    final rightMostMarker = latitudes.reduce(max);
+    final leftMostMarker = latitudes.reduce(min);
+    final bottomMostMarker = longitudes.reduce(min);
 
-    var bounds = LatLngBounds(
+    final bounds = LatLngBounds(
       northeast: LatLng(rightMostMarker, topMostMarker),
       southwest: LatLng(leftMostMarker, bottomMostMarker),
     );
@@ -459,9 +459,9 @@ class _MapViewState extends State<MapView> {
 
       return;
     }
-    var markers = <String, Marker>{};
+    final markers = <String, Marker>{};
 
-    for (var measurement in measurements) {
+    for (final measurement in measurements) {
       BitmapDescriptor bitmapDescriptor;
 
       if (useSingleZoom) {
@@ -470,7 +470,7 @@ class _MapViewState extends State<MapView> {
         bitmapDescriptor = await pmToSmallMarker(measurement.getPm2_5Value());
       }
 
-      var marker = Marker(
+      final marker = Marker(
         markerId: MarkerId(measurement.site.id),
         icon: bitmapDescriptor,
         position:
@@ -496,10 +496,10 @@ class _MapViewState extends State<MapView> {
       if (useSingleZoom) {
         if (markers.length == 1) {}
 
-        var latLng = LatLng(measurements.first.site.latitude,
+        final latLng = LatLng(measurements.first.site.latitude,
             measurements.first.site.longitude);
 
-        var _cameraPosition = CameraPosition(target: latLng, zoom: zoom);
+        final _cameraPosition = CameraPosition(target: latLng, zoom: zoom);
 
         await controller
             .animateCamera(CameraUpdate.newCameraPosition(_cameraPosition));
@@ -539,14 +539,14 @@ class _MapViewState extends State<MapView> {
     }
 
     if (placeDetails != null) {
-      var places = _latestMeasurements
+      final places = _latestMeasurements
           .where((measurement) => measurement.site.id == placeDetails.siteId)
           .toList();
       if (places.isEmpty) {
         return;
       }
 
-      var place = places.first;
+      final place = places.first;
 
       _setMarkers([place], true, 14);
       setState(() {
@@ -598,7 +598,7 @@ class _MapViewState extends State<MapView> {
     }
 
     setState(() => _selectedRegion = region);
-    var sites = await _appService.dbHelper.getRegionSites(region);
+    final sites = await _appService.dbHelper.getRegionSites(region);
     setState(() {
       _showLocationDetails = false;
       _displayRegions = false;
@@ -614,9 +614,10 @@ class _MapViewState extends State<MapView> {
 
     setState(
         () => _searchController.text = suggestion.suggestionDetails.mainText);
-    var place = await _appService.searchApi.getPlaceDetails(suggestion.placeId);
+    final place =
+        await _appService.searchApi.getPlaceDetails(suggestion.placeId);
     if (place != null) {
-      var nearestSite = await LocationService.getNearestSite(
+      final nearestSite = await LocationService.getNearestSite(
           place.geometry.location.lat, place.geometry.location.lng);
 
       if (nearestSite == null) {
@@ -624,7 +625,7 @@ class _MapViewState extends State<MapView> {
         return;
       }
 
-      var placeDetails = PlaceDetails(
+      final placeDetails = PlaceDetails(
           name: suggestion.suggestionDetails.getMainText(),
           location: suggestion.suggestionDetails.getSecondaryText(),
           siteId: nearestSite.id,
@@ -690,14 +691,14 @@ class _MapViewState extends State<MapView> {
   }
 
   Future<void> _getLatestMeasurements() async {
-    var dbMeasurements = await _appService.dbHelper.getLatestMeasurements();
+    final dbMeasurements = await _appService.dbHelper.getLatestMeasurements();
 
     if (dbMeasurements.isNotEmpty && mounted) {
       setState(() => _latestMeasurements = dbMeasurements);
       await _setMarkers(dbMeasurements, false, 6.6);
     }
 
-    var measurements = await _appService.apiClient.fetchLatestMeasurements();
+    final measurements = await _appService.apiClient.fetchLatestMeasurements();
 
     if (measurements.isNotEmpty && mounted) {
       setState(() => _latestMeasurements = measurements);

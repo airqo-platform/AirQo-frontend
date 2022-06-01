@@ -190,14 +190,14 @@ class ShareService {
   static Future<void> shareCard(BuildContext buildContext, GlobalKey globalKey,
       Measurement measurement) async {
     try {
-      var boundary =
+      final boundary =
           globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-      var image = await boundary.toImage(pixelRatio: 10.0);
-      var byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-      var pngBytes = byteData!.buffer.asUint8List();
+      final image = await boundary.toImage(pixelRatio: 10.0);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      final pngBytes = byteData!.buffer.asUint8List();
 
       final directory = (await getApplicationDocumentsDirectory()).path;
-      var imgFile = File('$directory/airqo_analytics_card.png');
+      final imgFile = File('$directory/airqo_analytics_card.png');
       await imgFile.writeAsBytes(pngBytes);
 
       await Share.shareFiles([imgFile.path], text: getShareMessage())
@@ -209,14 +209,14 @@ class ShareService {
 
   static Future<void> shareGraph(BuildContext buildContext, GlobalKey globalKey,
       PlaceDetails placeDetails) async {
-    var boundary =
+    final boundary =
         globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-    var image = await boundary.toImage(pixelRatio: 10.0);
-    var byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    var pngBytes = byteData!.buffer.asUint8List();
+    final image = await boundary.toImage(pixelRatio: 10.0);
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    final pngBytes = byteData!.buffer.asUint8List();
 
     final directory = (await getApplicationDocumentsDirectory()).path;
-    var imgFile = File('$directory/airqo_analytics_graph.png');
+    final imgFile = File('$directory/airqo_analytics_graph.png');
     await imgFile.writeAsBytes(pngBytes);
 
     await Share.shareFiles([imgFile.path], text: getShareMessage())
@@ -225,13 +225,13 @@ class ShareService {
 
   static Future<void> shareKya(
       BuildContext buildContext, GlobalKey globalKey) async {
-    var boundary =
+    final boundary =
         globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-    var image = await boundary.toImage(pixelRatio: 10.0);
-    var byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    var pngBytes = byteData!.buffer.asUint8List();
+    final image = await boundary.toImage(pixelRatio: 10.0);
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    final pngBytes = byteData!.buffer.asUint8List();
     final directory = (await getApplicationDocumentsDirectory()).path;
-    var imgFile = File('$directory/analytics_graph.png');
+    final imgFile = File('$directory/analytics_graph.png');
     await imgFile.writeAsBytes(pngBytes);
 
     await Share.shareFiles([imgFile.path], text: getShareMessage())
@@ -239,10 +239,10 @@ class ShareService {
   }
 
   static void shareMeasurementText(Measurement measurement) {
-    var recommendationList =
+    final recommendationList =
         getHealthRecommendations(measurement.getPm2_5Value(), Pollutant.pm2_5);
     var recommendations = '';
-    for (var value in recommendationList) {
+    for (final value in recommendationList) {
       recommendations = '$recommendations\n- ${value.body}';
     }
     Share.share(
@@ -256,10 +256,10 @@ class ShareService {
   }
 
   static Future<void> updateUserShares() async {
-    var preferences = await SharedPreferencesHelper.getPreferences();
-    var value = preferences.aqShares + 1;
+    final preferences = await SharedPreferencesHelper.getPreferences();
+    final value = preferences.aqShares + 1;
     if (CustomAuth.isLoggedIn()) {
-      var profile = await Profile.getProfile();
+      final profile = await Profile.getProfile();
       profile.preferences.aqShares = value;
       await profile.update();
     } else {

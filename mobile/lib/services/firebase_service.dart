@@ -32,7 +32,7 @@ class CloudAnalytics {
 class CloudStore {
   static Future<void> addFavPlace(
       String userId, PlaceDetails placeDetails) async {
-    var hasConnection = await hasNetworkConnection();
+    final hasConnection = await hasNetworkConnection();
     if (!hasConnection || userId.trim().isEmpty) {
       return;
     }
@@ -51,7 +51,7 @@ class CloudStore {
 
   static Future<void> deleteAccount() async {
     try {
-      var id = CustomAuth.getUser()?.uid;
+      final id = CustomAuth.getUser()?.uid;
       await Future.wait([
         FirebaseFirestore.instance
             .collection(Config.usersCollection)
@@ -76,25 +76,25 @@ class CloudStore {
       return [];
     }
 
-    var hasConnection = await hasNetworkConnection();
+    final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return [];
     }
 
     try {
-      var placesJson = await FirebaseFirestore.instance
+      final placesJson = await FirebaseFirestore.instance
           .collection('${Config.favPlacesCollection}/$userId/$userId')
           .get();
 
-      var favPlaces = <PlaceDetails>[];
+      final favPlaces = <PlaceDetails>[];
 
-      var placesDocs = placesJson.docs;
-      for (var doc in placesDocs) {
-        var data = doc.data();
+      final placesDocs = placesJson.docs;
+      for (final doc in placesDocs) {
+        final data = doc.data();
         if (!data.keys.contains('placeId')) {
           data['placeId'] = doc.id;
         }
-        var place = await compute(PlaceDetails.parsePlaceDetails, data);
+        final place = await compute(PlaceDetails.parsePlaceDetails, data);
         if (place != null) {
           favPlaces.add(place);
         }
@@ -114,18 +114,18 @@ class CloudStore {
     }
 
     try {
-      var userOnGoingKya = <UserKya>[];
+      final userOnGoingKya = <UserKya>[];
 
       try {
-        var userKyaCollection = await FirebaseFirestore.instance
+        final userKyaCollection = await FirebaseFirestore.instance
             .collection(Config.usersKyaCollection)
             .doc(userId)
             .collection(userId)
             .get();
 
-        for (var userKyaDoc in userKyaCollection.docs) {
+        for (final userKyaDoc in userKyaCollection.docs) {
           try {
-            var userKyaData = userKyaDoc.data();
+            final userKyaData = userKyaDoc.data();
             if (userKyaData.isEmpty) {
               continue;
             }
@@ -147,33 +147,33 @@ class CloudStore {
         debugPrint('$exception\n$stackTrace');
       }
 
-      var referenceKyaCollection = await FirebaseFirestore.instance
+      final referenceKyaCollection = await FirebaseFirestore.instance
           .collection(Config.kyaCollection)
           .get();
-      var referenceKya = <Kya>[];
-      for (var kyaDoc in referenceKyaCollection.docs) {
+      final referenceKya = <Kya>[];
+      for (final kyaDoc in referenceKyaCollection.docs) {
         try {
-          var kyaData = kyaDoc.data();
+          final kyaData = kyaDoc.data();
           if (kyaData.isEmpty) {
             continue;
           }
-          var kya = Kya.fromJson(kyaData);
+          final kya = Kya.fromJson(kyaData);
           referenceKya.add(kya);
         } catch (exception, stackTrace) {
           debugPrint('$exception\n$stackTrace');
         }
       }
 
-      var userKya = <Kya>[];
+      final userKya = <Kya>[];
       if (userOnGoingKya.isEmpty) {
-        for (var kya in referenceKya) {
+        for (final kya in referenceKya) {
           kya.progress = 0;
           userKya.add(kya);
         }
       } else {
-        for (var kya in referenceKya) {
+        for (final kya in referenceKya) {
           try {
-            var onGoingKya = userOnGoingKya.firstWhere(
+            final onGoingKya = userOnGoingKya.firstWhere(
                 (element) => element.id == kya.id,
                 orElse: () => UserKya(kya.id, 0));
 
@@ -198,14 +198,14 @@ class CloudStore {
     }
 
     try {
-      var notificationsJson = await FirebaseFirestore.instance
+      final notificationsJson = await FirebaseFirestore.instance
           .collection('${Config.usersNotificationCollection}/$uid/$uid')
           .get();
 
       final notifications = <AppNotification>[];
 
-      for (var doc in notificationsJson.docs) {
-        var notification = AppNotification.parseAppNotification(doc.data());
+      for (final doc in notificationsJson.docs) {
+        final notification = AppNotification.parseAppNotification(doc.data());
         if (notification != null) {
           notifications.add(notification);
         }
@@ -227,14 +227,14 @@ class CloudStore {
     }
 
     try {
-      var analyticsCollection = await FirebaseFirestore.instance
+      final analyticsCollection = await FirebaseFirestore.instance
           .collection('${Config.usersAnalyticsCollection}/$uid/$uid')
           .get();
 
       final cloudAnalytics = <Analytics>[];
 
-      for (var doc in analyticsCollection.docs) {
-        var analytics = Analytics.parseAnalytics(doc.data());
+      for (final doc in analyticsCollection.docs) {
+        final analytics = Analytics.parseAnalytics(doc.data());
         if (analytics != null) {
           cloudAnalytics.add(analytics);
         }
@@ -253,14 +253,14 @@ class CloudStore {
     try {
       final uuid = CustomAuth.getUserId();
 
-      var userJson = await FirebaseFirestore.instance
+      final userJson = await FirebaseFirestore.instance
           .collection(Config.usersCollection)
           .doc(uuid)
           .get();
       return await compute(Profile.parseUserDetails, userJson.data());
     } on FirebaseException catch (exception, _) {
       if (exception.code == 'not-found') {
-        var profile = await CustomAuth.createProfile();
+        final profile = await CustomAuth.createProfile();
         return profile;
       } else {
         rethrow;
@@ -274,7 +274,7 @@ class CloudStore {
 
   static Future<void> removeFavPlace(
       String userId, PlaceDetails placeDetails) async {
-    var hasConnection = await hasNetworkConnection();
+    final hasConnection = await hasNetworkConnection();
     if (!hasConnection || userId.trim().isEmpty) {
       return;
     }
@@ -292,15 +292,15 @@ class CloudStore {
 
   static Future<void> updateFavPlaces(
       String userId, List<PlaceDetails> favPlaces) async {
-    var hasConnection = await hasNetworkConnection();
+    final hasConnection = await hasNetworkConnection();
     if (!hasConnection || userId.trim().isEmpty) {
       return;
     }
-    var batch = FirebaseFirestore.instance.batch();
+    final batch = FirebaseFirestore.instance.batch();
 
-    for (var place in favPlaces) {
+    for (final place in favPlaces) {
       try {
-        var document = FirebaseFirestore.instance
+        final document = FirebaseFirestore.instance
             .collection(Config.favPlacesCollection)
             .doc(userId)
             .collection(userId)
@@ -314,10 +314,10 @@ class CloudStore {
   }
 
   static Future<void> updateCloudProfile() async {
-    var currentUser = FirebaseAuth.instance.currentUser;
+    final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
       try {
-        var profile = await Profile.getProfile();
+        final profile = await Profile.getProfile();
         try {
           await Future.wait([
             currentUser.updateDisplayName(profile.firstName),
@@ -342,15 +342,15 @@ class CloudStore {
   }
 
   static Future<void> updateCloudAnalytics() async {
-    var currentUser = FirebaseAuth.instance.currentUser;
+    final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
       try {
-        var analytics = Hive.box<Analytics>(HiveBox.analytics)
+        final analytics = Hive.box<Analytics>(HiveBox.analytics)
             .values
             .toList()
             .cast<Analytics>();
-        var profile = await Profile.getProfile();
-        for (var x in analytics) {
+        final profile = await Profile.getProfile();
+        for (final x in analytics) {
           try {
             await FirebaseFirestore.instance
                 .collection(Config.usersAnalyticsCollection)
@@ -370,10 +370,10 @@ class CloudStore {
 
   static Future<void> updateCloudNotification(
       AppNotification notification) async {
-    var currentUser = FirebaseAuth.instance.currentUser;
+    final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
       try {
-        var profile = await Profile.getProfile();
+        final profile = await Profile.getProfile();
         try {
           await FirebaseFirestore.instance
               .collection(Config.usersNotificationCollection)
@@ -427,17 +427,17 @@ class CloudStore {
 
   static Future<String> uploadProfilePicture(String filePath) async {
     try {
-      var userId = CustomAuth.getUserId();
-      var file = File(filePath);
+      final userId = CustomAuth.getUserId();
+      final file = File(filePath);
 
-      var docRef = '${Config.usersProfilePictureStorage}/'
+      final docRef = '${Config.usersProfilePictureStorage}/'
           '$userId/avatar${file.getExtension()}';
 
-      var task = await firebase_storage.FirebaseStorage.instance
+      final task = await firebase_storage.FirebaseStorage.instance
           .ref(docRef)
           .putFile(file);
 
-      var downloadUrl = await task.storage.ref(docRef).getDownloadURL();
+      final downloadUrl = await task.storage.ref(docRef).getDownloadURL();
       return downloadUrl;
     } on Exception catch (exception, stackTrace) {
       await logException(exception, stackTrace);
@@ -449,14 +449,14 @@ class CloudStore {
 
 class CloudMessaging {
   static Future<String?> getDeviceToken() async {
-    var token = await FirebaseMessaging.instance.getToken();
+    final token = await FirebaseMessaging.instance.getToken();
     return token;
   }
 }
 
 class CustomAuth {
   static Future<Profile> createProfile() async {
-    var profile = await Profile.getProfile();
+    final profile = await Profile.getProfile();
     try {
       await FirebaseAuth.instance.currentUser
           ?.updateDisplayName(profile.firstName);
@@ -468,7 +468,7 @@ class CustomAuth {
 
   static Future<void> deleteAccount() async {
     try {
-      var user = getUser();
+      final user = getUser();
       await user?.delete();
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
@@ -478,7 +478,7 @@ class CustomAuth {
   static Future<bool> emailAuthentication(
       String emailAddress, String link, BuildContext context) async {
     try {
-      var userCredential = await FirebaseAuth.instance
+      final userCredential = await FirebaseAuth.instance
           .signInWithEmailLink(emailLink: link, email: emailAddress);
       return userCredential.user != null;
     } on FirebaseAuthException catch (exception, stackTrace) {
@@ -502,7 +502,7 @@ class CustomAuth {
   }
 
   static String getDisplayName() {
-    var authInstance = FirebaseAuth.instance;
+    final authInstance = FirebaseAuth.instance;
 
     if (authInstance.currentUser == null) {
       return '';
@@ -529,7 +529,7 @@ class CustomAuth {
       String subjectCode, String verificationLink) async {
     try {
       final signInLink = Uri.parse(verificationLink);
-      var code = signInLink.queryParameters['oobCode'];
+      final code = signInLink.queryParameters['oobCode'];
       if (code != null && code == subjectCode) {
         return true;
       }
@@ -551,7 +551,7 @@ class CustomAuth {
   static Future<bool> phoneNumberAuthentication(
       AuthCredential authCredential, BuildContext context) async {
     try {
-      var userCredential =
+      final userCredential =
           await FirebaseAuth.instance.signInWithCredential(authCredential);
       return userCredential.user != null;
     } on FirebaseAuthException catch (exception, stackTrace) {
@@ -584,13 +584,13 @@ class CustomAuth {
 
   static Future<bool> reAuthenticateWithEmailAddress(
       String emailAddress, String link, BuildContext context) async {
-    var hasConnection = await hasNetworkConnection();
+    final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return false;
     }
 
     try {
-      var userCredential = await FirebaseAuth.instance
+      final userCredential = await FirebaseAuth.instance
           .signInWithEmailLink(emailLink: link, email: emailAddress);
 
       return userCredential.user != null;
@@ -602,16 +602,16 @@ class CustomAuth {
 
   static Future<bool> reAuthenticateWithPhoneNumber(
       AuthCredential authCredential, BuildContext context) async {
-    var hasConnection = await hasNetworkConnection();
+    final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return false;
     }
 
     try {
-      var userCredentials = await FirebaseAuth.instance.currentUser!
+      final userCredentials = await FirebaseAuth.instance.currentUser!
           .reauthenticateWithCredential(authCredential);
 
-      // var userCredential =
+      // final userCredential =
       //     await _firebaseAuth.signInWithCredential(authCredential);
       return userCredentials.user != null;
     } on FirebaseAuthException catch (exception) {
@@ -633,7 +633,8 @@ class CustomAuth {
 
   static Future<bool> requestPhoneVerification(
       phoneNumber, context, callBackFn, autoVerificationFn) async {
-    var hasConnection = await checkNetworkConnection(context, notifyUser: true);
+    final hasConnection =
+        await checkNetworkConnection(context, notifyUser: true);
     if (!hasConnection) {
       return false;
     }
@@ -672,7 +673,7 @@ class CustomAuth {
 
   static Future<bool> updateEmailAddress(
       String emailAddress, BuildContext context) async {
-    var hasConnection = await hasNetworkConnection();
+    final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return false;
     }
@@ -702,7 +703,7 @@ class CustomAuth {
 
   static Future<bool> updatePhoneNumber(
       PhoneAuthCredential authCredential, BuildContext context) async {
-    var hasConnection = await hasNetworkConnection();
+    final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return false;
     }

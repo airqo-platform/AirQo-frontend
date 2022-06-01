@@ -146,9 +146,9 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   }
 
   List<GestureDetector> _getTitleOptions() {
-    var options = <GestureDetector>[];
+    final options = <GestureDetector>[];
 
-    for (var option in TitleOptions.values) {
+    for (final option in TitleOptions.values) {
       options.add(GestureDetector(
         onTap: () {
           _updateTitleCallback(option.getValue());
@@ -201,7 +201,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   }
 
   Future<bool> onWillPop() {
-    var now = DateTime.now();
+    final now = DateTime.now();
 
     if (_exitTime == null ||
         now.difference(_exitTime!) > const Duration(seconds: 2)) {

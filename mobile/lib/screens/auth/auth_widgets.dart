@@ -77,7 +77,7 @@ class SignUpOptions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var tween = Tween<double>(begin: 0, end: 1);
+    final tween = Tween<double>(begin: 0, end: 1);
     return Column(
       children: [
         GestureDetector(
@@ -153,7 +153,7 @@ class LoginOptions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var tween = Tween<double>(begin: 0, end: 1);
+    final tween = Tween<double>(begin: 0, end: 1);
     return Column(
       children: [
         GestureDetector(

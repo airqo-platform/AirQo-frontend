@@ -109,7 +109,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
   }
 
   Future<bool> onWillPop() {
-    var now = DateTime.now();
+    final now = DateTime.now();
 
     if (exitTime == null ||
         now.difference(exitTime!) > const Duration(seconds: 2)) {

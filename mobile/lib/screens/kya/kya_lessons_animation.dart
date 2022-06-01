@@ -178,7 +178,7 @@ class _KyaLessonAnimationState extends State<KyaLessonAnimation>
     rotate.addListener(() {
       setState(() {
         if (rotate.isCompleted) {
-          var i = kyaLessons.removeLast();
+          final i = kyaLessons.removeLast();
           kyaLessons.insert(0, i);
 
           _animationController.reset();

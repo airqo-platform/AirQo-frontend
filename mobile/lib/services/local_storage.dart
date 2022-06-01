@@ -46,10 +46,10 @@ class DBHelper {
   }
 
   Future<void> createDefaultTables(Database db) async {
-    var prefs = await SharedPreferences.getInstance();
-    var createDatabases = prefs.getBool(Config.prefReLoadDb) ?? true;
+    final prefs = await SharedPreferences.getInstance();
+    final createDatabases = prefs.getBool(Config.prefReLoadDb) ?? true;
 
-    var batch = db.batch();
+    final batch = db.batch();
 
     if (createDatabases) {
       batch
@@ -73,7 +73,7 @@ class DBHelper {
     try {
       final db = await database;
 
-      var res = await db.query(PlaceDetails.dbName());
+      final res = await db.query(PlaceDetails.dbName());
 
       return res.isNotEmpty
           ? List.generate(res.length, (i) {
@@ -91,7 +91,7 @@ class DBHelper {
     try {
       final db = await database;
 
-      var res = await db.query(Insights.dbName(),
+      final res = await db.query(Insights.dbName(),
           where: 'siteId = ? and frequency = ?',
           whereArgs: [siteId, frequency.getName()]);
 
@@ -110,7 +110,7 @@ class DBHelper {
     try {
       final db = await database;
 
-      var res = await db.query(Measurement.measurementsDb());
+      final res = await db.query(Measurement.measurementsDb());
 
       return res.isNotEmpty
           ? List.generate(res.length, (i) {
@@ -130,7 +130,7 @@ class DBHelper {
     try {
       final db = await database;
 
-      var res = await db.query(Measurement.measurementsDb(),
+      final res = await db.query(Measurement.measurementsDb(),
           where: 'id = ?', whereArgs: [siteId]);
 
       if (res.isEmpty) {
@@ -147,10 +147,10 @@ class DBHelper {
     try {
       final db = await database;
 
-      var res = [];
+      final res = [];
 
-      for (var siteId in siteIds) {
-        var siteRes = await db.query(Measurement.measurementsDb(),
+      for (final siteId in siteIds) {
+        final siteRes = await db.query(Measurement.measurementsDb(),
             where: 'id = ?', whereArgs: [siteId]);
 
         res.addAll(siteRes);
@@ -174,12 +174,12 @@ class DBHelper {
       double latitude, double longitude) async {
     try {
       Measurement? nearestMeasurement;
-      var nearestMeasurements = <Measurement>[];
+      final nearestMeasurements = <Measurement>[];
 
       double distanceInMeters;
 
       await getLatestMeasurements().then((measurements) => {
-            for (var measurement in measurements)
+            for (final measurement in measurements)
               {
                 distanceInMeters = metersToKmDouble(Geolocator.distanceBetween(
                     measurement.site.latitude,
@@ -195,7 +195,7 @@ class DBHelper {
             if (nearestMeasurements.isNotEmpty)
               {
                 nearestMeasurement = nearestMeasurements.first,
-                for (var m in nearestMeasurements)
+                for (final m in nearestMeasurements)
                   {
                     if (nearestMeasurement!.site.distance > m.site.distance)
                       {nearestMeasurement = m}
@@ -214,7 +214,7 @@ class DBHelper {
     try {
       final db = await database;
 
-      var res = await db.query(Measurement.measurementsDb(),
+      final res = await db.query(Measurement.measurementsDb(),
           where: 'region = ?', whereArgs: [region.getName().trim()]);
 
       return res.isNotEmpty
@@ -246,7 +246,7 @@ class DBHelper {
       final db = await database;
 
       try {
-        var jsonData = placeDetails.toJson();
+        final jsonData = placeDetails.toJson();
         await db.insert(
           PlaceDetails.dbName(),
           jsonData,
@@ -268,20 +268,20 @@ class DBHelper {
       if (insights.isEmpty) {
         return;
       }
-      var batch = db.batch();
+      final batch = db.batch();
 
       if (reloadDatabase) {
         batch.delete(Insights.dbName());
       } else {
-        for (var siteId in siteIds) {
+        for (final siteId in siteIds) {
           batch.delete(Insights.dbName(),
               where: 'siteId = ?', whereArgs: [siteId]);
         }
       }
 
-      for (var row in insights) {
+      for (final row in insights) {
         try {
-          var jsonData = row.toJson();
+          final jsonData = row.toJson();
           batch.insert(Insights.dbName(), jsonData,
               conflictAlgorithm: ConflictAlgorithm.replace);
         } catch (exception, stackTrace) {
@@ -298,14 +298,14 @@ class DBHelper {
     try {
       final db = await database;
 
-      var batch = db.batch();
+      final batch = db.batch();
 
       if (measurements.isNotEmpty) {
         batch.delete(Measurement.measurementsDb());
 
-        for (var measurement in measurements) {
+        for (final measurement in measurements) {
           try {
-            var jsonData = Measurement.mapToDb(measurement);
+            final jsonData = Measurement.mapToDb(measurement);
             batch.insert(
               Measurement.measurementsDb(),
               jsonData,
@@ -346,11 +346,11 @@ class DBHelper {
       final db = await database;
 
       if (placeDetails.isNotEmpty) {
-        var batch = db.batch()..delete(PlaceDetails.dbName());
+        final batch = db.batch()..delete(PlaceDetails.dbName());
 
-        for (var place in placeDetails) {
+        for (final place in placeDetails) {
           try {
-            var jsonData = place.toJson();
+            final jsonData = place.toJson();
             batch.insert(
               PlaceDetails.dbName(),
               jsonData,
@@ -370,7 +370,7 @@ class DBHelper {
   Future<bool> updateFavouritePlace(PlaceDetails placeDetails) async {
     final db = await database;
 
-    var res = await db.query(PlaceDetails.dbName(),
+    final res = await db.query(PlaceDetails.dbName(),
         where: 'placeId = ?', whereArgs: [placeDetails.placeId]);
 
     if (res.isEmpty) {
@@ -385,9 +385,9 @@ class DBHelper {
   Future<bool> updateFavouritePlacesDetails(
       List<PlaceDetails> placesDetails) async {
     final db = await database;
-    var batch = db.batch();
+    final batch = db.batch();
     try {
-      for (var favPlace in placesDetails) {
+      for (final favPlace in placesDetails) {
         batch.update(PlaceDetails.dbName(), {'siteId': favPlace.siteId},
             where: 'placeId = ?', whereArgs: [favPlace.placeId]);
       }
@@ -402,7 +402,7 @@ class DBHelper {
 
 class SharedPreferencesHelper {
   static Future<void> clearPreferences() async {
-    var sharedPreferences = await SharedPreferences.getInstance();
+    final sharedPreferences = await SharedPreferences.getInstance();
     if (sharedPreferences.containsKey('notifications')) {
       await sharedPreferences.remove('notifications');
     }
@@ -418,18 +418,18 @@ class SharedPreferencesHelper {
   }
 
   static Future<String> getOnBoardingPage() async {
-    var sharedPreferences = await SharedPreferences.getInstance();
-    var page =
+    final sharedPreferences = await SharedPreferences.getInstance();
+    final page =
         sharedPreferences.getString(Config.prefOnBoardingPage) ?? 'welcome';
 
     return page;
   }
 
   static Future<UserPreferences> getPreferences() async {
-    var sharedPreferences = await SharedPreferences.getInstance();
-    var notifications = sharedPreferences.getBool('notifications') ?? false;
-    var location = sharedPreferences.getBool('location') ?? false;
-    var aqShares = sharedPreferences.getInt('aqShares') ?? 0;
+    final sharedPreferences = await SharedPreferences.getInstance();
+    final notifications = sharedPreferences.getBool('notifications') ?? false;
+    final location = sharedPreferences.getBool('location') ?? false;
+    final aqShares = sharedPreferences.getInt('aqShares') ?? 0;
 
     return UserPreferences(
       location: location,
@@ -440,7 +440,7 @@ class SharedPreferencesHelper {
 
   static Future<void> updateOnBoardingPage(
       OnBoardingPage currentBoardingPage) async {
-    var sharedPreferences = await SharedPreferences.getInstance();
+    final sharedPreferences = await SharedPreferences.getInstance();
     await sharedPreferences.setString(
         Config.prefOnBoardingPage, currentBoardingPage.getName());
   }
@@ -448,7 +448,7 @@ class SharedPreferencesHelper {
   static Future<void> updatePreference(
       String key, dynamic value, String type) async {
     try {
-      var sharedPreferences = await SharedPreferences.getInstance();
+      final sharedPreferences = await SharedPreferences.getInstance();
       if (type == 'bool') {
         await sharedPreferences.setBool(key, value);
       } else if (type == 'double') {

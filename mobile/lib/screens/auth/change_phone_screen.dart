@@ -35,7 +35,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
   User? _user;
 
   Future<void> autoVerifyPhoneFn(PhoneAuthCredential credential) async {
-    var success = await CustomAuth.updatePhoneNumber(credential, context);
+    final success = await CustomAuth.updatePhoneNumber(credential, context);
 
     if (success) {
       Navigator.pop(context, true);
@@ -348,7 +348,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
   }
 
   Future<void> requestVerification() async {
-    var connected = await checkNetworkConnection(context, notifyUser: true);
+    final connected = await checkNetworkConnection(context, notifyUser: true);
     if (!connected) {
       return;
     }
@@ -381,7 +381,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
   }
 
   Future<void> resendVerificationCode() async {
-    var connected = await checkNetworkConnection(context, notifyUser: true);
+    final connected = await checkNetworkConnection(context, notifyUser: true);
     if (!connected) {
       return;
     }
@@ -400,7 +400,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
 
   void setCode(String value, int position) {
     setState(() => _phoneVerificationCode[position] = value);
-    var code = _phoneVerificationCode.join('');
+    final code = _phoneVerificationCode.join('');
     if (code.length == 6) {
       setState(() => _nextBtnColor = Config.appColorBlue);
     } else {
@@ -420,12 +420,12 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
   }
 
   Future<void> verifySentCode() async {
-    var connected = await checkNetworkConnection(context, notifyUser: true);
+    final connected = await checkNetworkConnection(context, notifyUser: true);
     if (!connected) {
       return;
     }
 
-    var code = _phoneVerificationCode.join('');
+    final code = _phoneVerificationCode.join('');
 
     if (code.length != 6) {
       await showSnackBar(context, 'Enter all the 6 digits');
@@ -441,11 +441,11 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
       _isVerifying = true;
     });
 
-    var credential = PhoneAuthProvider.credential(
+    final credential = PhoneAuthProvider.credential(
         verificationId: _verificationId,
         smsCode: _phoneVerificationCode.join(''));
     try {
-      var success = await CustomAuth.updatePhoneNumber(credential, context);
+      final success = await CustomAuth.updatePhoneNumber(credential, context);
 
       if (success) {
         Navigator.pop(context, true);

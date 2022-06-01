@@ -6,8 +6,8 @@ import 'exception.dart';
 
 String dateToShareString(String formattedString) {
   try {
-    var formattedDate = DateTime.parse(formattedString);
-    var dateFormatter = DateFormat('EEE, d MMM yyyy hh:mm a');
+    final formattedDate = DateTime.parse(formattedString);
+    final dateFormatter = DateFormat('EEE, d MMM yyyy hh:mm a');
     return dateFormatter.format(formattedDate);
   } catch (exception, stackTrace) {
     logException(exception, stackTrace);
@@ -17,26 +17,26 @@ String dateToShareString(String formattedString) {
 
 String dateToString(String formattedString) {
   try {
-    var now = DateTime.now();
-    var formattedDate = DateTime.parse(formattedString);
+    final now = DateTime.now();
+    final formattedDate = DateTime.parse(formattedString);
 
     if (now.day == formattedDate.day) {
       return 'Updated today at ${DateFormat('hh:mm a').format(formattedDate)}';
     } else {
       if (now.isAfter(formattedDate)) {
-        var yesterday = now.subtract(const Duration(hours: 24));
+        final yesterday = now.subtract(const Duration(hours: 24));
         if (formattedDate.day == yesterday.day) {
           return 'Updated yesterday at'
               ' ${DateFormat('hh:mm a').format(formattedDate)}';
         } else {
-          var daysAgo = now.difference(formattedDate).inDays;
+          final daysAgo = now.difference(formattedDate).inDays;
           if (daysAgo == 1) {
             return 'Updated $daysAgo day ago';
           }
           return 'Updated $daysAgo days ago';
         }
       } else {
-        var tomorrow = now.add(const Duration(hours: 24));
+        final tomorrow = now.add(const Duration(hours: 24));
         if (tomorrow.day == formattedDate.day) {
           return 'Tomorrow, ${DateFormat('hh:mm a').format(formattedDate)}';
         } else {
@@ -51,7 +51,7 @@ String dateToString(String formattedString) {
 }
 
 String getDateTime() {
-  var now = DateTime.now();
+  final now = DateTime.now();
   return '${now.getWeekday()} ${DateFormat('d').format(now)},'
           ' ${DateFormat('MMMM').format(now)}'
       .toUpperCase();
@@ -62,7 +62,7 @@ String getGreetings(String name) {
     name = '';
   }
 
-  var hour = DateTime.now().hour;
+  final hour = DateTime.now().hour;
   if (00 <= hour && hour < 12) {
     return 'Good morning $name'.trim();
   }
@@ -83,7 +83,7 @@ String insightsChartTitleDateTimeToString(
   try {
     if (frequency == Frequency.daily) {
       var prefix = '';
-      var suffix = '${dateTime.getDateOfFirstDayOfWeek().getShortDate()}'
+      final suffix = '${dateTime.getDateOfFirstDayOfWeek().getShortDate()}'
           ' - '
           '${dateTime.getDateOfLastDayOfWeek().getShortDate()}';
 
@@ -100,7 +100,7 @@ String insightsChartTitleDateTimeToString(
       return prefix == '' ? suffix : '$prefix, $suffix';
     } else {
       var prefix = '';
-      var suffix = dateTime.getLongDate();
+      final suffix = dateTime.getLongDate();
 
       if (dateTime.isToday()) {
         prefix = 'Today';

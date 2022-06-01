@@ -144,8 +144,8 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
 
   @override
   void didChangeDependencies() {
-    var futures = <Future>[];
-    for (var lesson in widget.kya.lessons) {
+    final futures = <Future>[];
+    for (final lesson in widget.kya.lessons) {
       futures.add(
           precacheImage(CachedNetworkImageProvider(lesson.imageUrl), context));
     }

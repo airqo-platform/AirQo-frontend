@@ -444,23 +444,23 @@ class _InsightsTabState extends State<InsightsTab> {
   }
 
   Future<void> _loadMiniCharts(DateTime defaultSelection) async {
-    var hourlyInsights = await _appService.dbHelper
+    final hourlyInsights = await _appService.dbHelper
         .getInsights(widget.placeDetails.siteId, Frequency.hourly);
 
     if (hourlyInsights.isNotEmpty) {
       while (hourlyInsights.isNotEmpty) {
-        var randomValue = hourlyInsights.first;
+        final randomValue = hourlyInsights.first;
 
-        var relatedDates = hourlyInsights.where((element) {
+        final relatedDates = hourlyInsights.where((element) {
           return element.time.day == randomValue.time.day &&
               element.time.month == randomValue.time.month;
         }).toList();
 
-        var pm2_5ChartData =
+        final pm2_5ChartData =
             insightsChartData(relatedDates, Pollutant.pm2_5, Frequency.hourly)
                 .first;
 
-        var pm10ChartData =
+        final pm10ChartData =
             insightsChartData(relatedDates, Pollutant.pm10, Frequency.hourly)
                 .first;
 
@@ -521,12 +521,12 @@ class _InsightsTabState extends State<InsightsTab> {
   }
 
   void _updateTitleDateTime(List<charts.Series<Insights, String>> data) {
-    var dateTime = data.first.data.first.time;
+    final dateTime = data.first.data.first.time;
 
     setState(() => _titleDateTime =
         insightsChartTitleDateTimeToString(dateTime, widget.frequency));
 
-    var insights = data.first.data
+    final insights = data.first.data
         .where((element) => !element.empty && !element.forecast)
         .toList();
 
@@ -539,7 +539,7 @@ class _InsightsTabState extends State<InsightsTab> {
       return;
     }
 
-    var lastAvailableInsight = insights.reduce((value, element) {
+    final lastAvailableInsight = insights.reduce((value, element) {
       if (value.time.isAfter(element.time)) {
         return value;
       }
@@ -567,7 +567,7 @@ class _InsightsTabState extends State<InsightsTab> {
   }
 
   Future<void> _fetchDBInsights() async {
-    var insights = await _appService.dbHelper
+    final insights = await _appService.dbHelper
         .getInsights(widget.placeDetails.siteId, widget.frequency);
     if (insights.isNotEmpty) {
       await _setInsights(insights);
@@ -575,7 +575,8 @@ class _InsightsTabState extends State<InsightsTab> {
   }
 
   Future<void> _fetchInsights() async {
-    var insights = await _appService.fetchInsights([widget.placeDetails.siteId],
+    final insights = await _appService.fetchInsights(
+        [widget.placeDetails.siteId],
         frequency: widget.frequency);
 
     if (!_hasMeasurements && insights.isNotEmpty) {
@@ -751,7 +752,8 @@ class _InsightsTabState extends State<InsightsTab> {
 
   Future<void> _refreshPage() async {
     await checkNetworkConnection(context, notifyUser: true);
-    var insights = await _appService.fetchInsights([widget.placeDetails.siteId],
+    final insights = await _appService.fetchInsights(
+        [widget.placeDetails.siteId],
         frequency: widget.frequency);
 
     insights.isNotEmpty
@@ -765,14 +767,14 @@ class _InsightsTabState extends State<InsightsTab> {
     }
 
     if (widget.frequency == Frequency.daily) {
-      var firstDay = DateTime.now()
+      final firstDay = DateTime.now()
           .getFirstDateOfCalendarMonth()
           .getDateOfFirstHourOfDay();
-      var lastDay =
+      final lastDay =
           DateTime.now().getLastDateOfCalendarMonth().getDateOfLastHourOfDay();
 
-      var dailyInsights = insightsData.where((element) {
-        var date = element.time;
+      final dailyInsights = insightsData.where((element) {
+        final date = element.time;
         if (date == firstDay ||
             date == lastDay ||
             (date.isAfter(firstDay) & date.isBefore(lastDay))) {
@@ -793,13 +795,13 @@ class _InsightsTabState extends State<InsightsTab> {
       await _scrollToTodayChart();
       await _loadMiniCharts(DateTime.now());
     } else {
-      var firstDay =
+      final firstDay =
           DateTime.now().getDateOfFirstDayOfWeek().getDateOfFirstHourOfDay();
-      var lastDay =
+      final lastDay =
           DateTime.now().getDateOfLastDayOfWeek().getDateOfLastHourOfDay();
 
-      var hourlyInsights = insightsData.where((element) {
-        var date = element.time;
+      final hourlyInsights = insightsData.where((element) {
+        final date = element.time;
         if (date == firstDay ||
             date == lastDay ||
             (date.isAfter(firstDay) & date.isBefore(lastDay))) {
@@ -822,13 +824,13 @@ class _InsightsTabState extends State<InsightsTab> {
   }
 
   Future<void> _scrollToTodayChart() async {
-    var referenceDate = widget.frequency == Frequency.daily
+    final referenceDate = widget.frequency == Frequency.daily
         ? DateTime.now().getDateOfFirstDayOfWeek()
         : DateTime.now();
-    var data = widget.frequency == Frequency.daily
+    final data = widget.frequency == Frequency.daily
         ? _dailyPm2_5ChartData
         : _hourlyPm2_5ChartData;
-    for (var element in data) {
+    for (final element in data) {
       if (element.first.data.first.time.day == referenceDate.day &&
           element.first.data.first.time.month == referenceDate.month) {
         setState(() {

@@ -45,7 +45,7 @@ class AppService {
     String? emailAuthLink,
     AuthCredential? authCredential,
   }) async {
-    var hasConnection =
+    final hasConnection =
         await checkNetworkConnection(buildContext, notifyUser: true);
     if (!hasConnection) {
       return false;
@@ -74,7 +74,7 @@ class AppService {
   }
 
   Future<bool> deleteAccount(BuildContext buildContext) async {
-    var hasConnection =
+    final hasConnection =
         await checkNetworkConnection(buildContext, notifyUser: true);
     if (!hasConnection) {
       return false;
@@ -99,7 +99,7 @@ class AppService {
       required BuildContext buildContext}) async {
     try {
       if (emailAddress != null) {
-        var methods = await FirebaseAuth.instance
+        final methods = await FirebaseAuth.instance
             .fetchSignInMethodsForEmail(emailAddress);
         return methods.isNotEmpty;
       }
@@ -130,10 +130,10 @@ class AppService {
 
   Future<void> fetchFavPlacesInsights() async {
     try {
-      var favPlaces = await _dbHelper.getFavouritePlaces();
-      var placeIds = <String>[];
+      final favPlaces = await _dbHelper.getFavouritePlaces();
+      final placeIds = <String>[];
 
-      for (var favPlace in favPlaces) {
+      for (final favPlace in favPlaces) {
         placeIds.add(favPlace.siteId);
       }
       await fetchInsights(placeIds, reloadDatabase: true);
@@ -144,21 +144,21 @@ class AppService {
 
   Future<List<Insights>> fetchInsights(List<String> siteIds,
       {Frequency? frequency, bool reloadDatabase = false}) async {
-    var insights = <Insights>[];
-    var futures = <Future>[];
+    final insights = <Insights>[];
+    final futures = <Future>[];
 
     for (var i = 0; i < siteIds.length; i = i + 2) {
-      var site1 = siteIds[i];
+      final site1 = siteIds[i];
       try {
-        var site2 = siteIds[i + 1];
+        final site2 = siteIds[i + 1];
         futures.add(_apiClient.fetchSitesInsights('$site1,$site2'));
       } catch (e) {
         futures.add(_apiClient.fetchSitesInsights(site1));
       }
     }
 
-    var sitesInsights = await Future.wait(futures);
-    for (var result in sitesInsights) {
+    final sitesInsights = await Future.wait(futures);
+    for (final result in sitesInsights) {
       insights.addAll(result);
     }
 
@@ -181,14 +181,14 @@ class AppService {
       final offlineKyas =
           Hive.box<Kya>(HiveBox.kya).values.toList().cast<Kya>();
 
-      var cloudKyas = await CloudStore.getKya();
+      final cloudKyas = await CloudStore.getKya();
       var kyas = <Kya>[];
       if (offlineKyas.isEmpty) {
         kyas = cloudKyas;
       } else {
-        for (var offlineKya in offlineKyas) {
+        for (final offlineKya in offlineKyas) {
           try {
-            var kya = cloudKyas
+            final kya = cloudKyas
                 .where((element) => element.id.equalsIgnoreCase(offlineKya.id))
                 .first
               ..progress = offlineKya.progress;
@@ -206,7 +206,7 @@ class AppService {
 
   Future<void> _fetchLatestMeasurements() async {
     try {
-      var measurements = await _apiClient.fetchLatestMeasurements();
+      final measurements = await _apiClient.fetchLatestMeasurements();
       if (measurements.isNotEmpty) {
         await _dbHelper.insertLatestMeasurements(measurements);
       }
@@ -221,16 +221,16 @@ class AppService {
 
   Future<void> _loadFavPlaces(BuildContext buildContext) async {
     try {
-      var _offlineFavPlaces = await _dbHelper.getFavouritePlaces();
-      var _cloudFavPlaces =
+      final _offlineFavPlaces = await _dbHelper.getFavouritePlaces();
+      final _cloudFavPlaces =
           await CloudStore.getFavPlaces(CustomAuth.getUserId());
 
-      for (var place in _offlineFavPlaces) {
+      for (final place in _offlineFavPlaces) {
         _cloudFavPlaces.removeWhere(
             (element) => element.placeId.equalsIgnoreCase(place.placeId));
       }
 
-      var favPlaces = [..._offlineFavPlaces, ..._cloudFavPlaces];
+      final favPlaces = [..._offlineFavPlaces, ..._cloudFavPlaces];
       await Future.wait([
         _dbHelper.setFavouritePlaces(favPlaces).then((value) => {
               Provider.of<PlaceDetailsModel>(buildContext, listen: false)
@@ -245,20 +245,20 @@ class AppService {
 
   Future<void> _loadNotifications() async {
     try {
-      var _offlineNotifications =
+      final _offlineNotifications =
           Hive.box<AppNotification>(HiveBox.appNotifications)
               .values
               .toList()
               .cast<AppNotification>();
 
-      var _cloudNotifications = await CloudStore.getNotifications();
+      final _cloudNotifications = await CloudStore.getNotifications();
 
-      for (var notification in _offlineNotifications) {
+      for (final notification in _offlineNotifications) {
         _cloudNotifications.removeWhere(
             (element) => element.id.equalsIgnoreCase(notification.id));
       }
 
-      var notifications = [..._offlineNotifications, ..._cloudNotifications];
+      final notifications = [..._offlineNotifications, ..._cloudNotifications];
 
       await AppNotification.load(notifications);
     } catch (exception, stackTrace) {
@@ -267,15 +267,15 @@ class AppService {
   }
 
   Future<bool> logOut(buildContext) async {
-    var hasConnection =
+    final hasConnection =
         await checkNetworkConnection(buildContext, notifyUser: true);
     if (!hasConnection) {
       return false;
     }
 
     try {
-      var userId = CustomAuth.getUserId();
-      var profile = await Profile.getProfile();
+      final userId = CustomAuth.getUserId();
+      final profile = await Profile.getProfile();
 
       await Future.wait([
         _dbHelper
@@ -379,7 +379,7 @@ class AppService {
 
   Future<void> updateFavouritePlace(
       PlaceDetails placeDetails, BuildContext context) async {
-    var isFav = await _dbHelper.updateFavouritePlace(placeDetails);
+    final isFav = await _dbHelper.updateFavouritePlace(placeDetails);
     if (isFav) {
       await CloudStore.addFavPlace(CustomAuth.getUserId(), placeDetails);
     } else {
@@ -394,10 +394,10 @@ class AppService {
   }
 
   Future<void> updateFavouritePlacesSites(BuildContext buildContext) async {
-    var favPlaces = await _dbHelper.getFavouritePlaces();
-    var updatedFavPlaces = <PlaceDetails>[];
-    for (var favPlace in favPlaces) {
-      var nearestSite = await LocationService.getNearestSite(
+    final favPlaces = await _dbHelper.getFavouritePlaces();
+    final updatedFavPlaces = <PlaceDetails>[];
+    for (final favPlace in favPlaces) {
+      final nearestSite = await LocationService.getNearestSite(
           favPlace.latitude, favPlace.longitude);
       if (nearestSite != null) {
         favPlace.siteId = nearestSite.id;
@@ -410,14 +410,14 @@ class AppService {
   }
 
   Future<void> _logFavPlaces() async {
-    var favPlaces = await _dbHelper.getFavouritePlaces();
+    final favPlaces = await _dbHelper.getFavouritePlaces();
     if (favPlaces.length >= 5) {
       await CloudAnalytics.logEvent(AnalyticsEvent.savesFiveFavorites);
     }
   }
 
   Future<void> logGender() async {
-    var profile = Hive.box<Profile>(HiveBox.profile).getAt(0);
+    final profile = Hive.box<Profile>(HiveBox.profile).getAt(0);
     if (profile != null) {
       if (profile.getGender() == Gender.male) {
         await CloudAnalytics.logEvent(AnalyticsEvent.maleUser);
@@ -430,9 +430,9 @@ class AppService {
   }
 
   static Future<void> logNetworkProvider() async {
-    var profile = Hive.box<Profile>(HiveBox.profile).getAt(0);
+    final profile = Hive.box<Profile>(HiveBox.profile).getAt(0);
     if (profile != null) {
-      var carrier = await AirqoApiClient().getCarrier(profile.phoneNumber);
+      final carrier = await AirqoApiClient().getCarrier(profile.phoneNumber);
       if (carrier.toLowerCase().contains('airtel')) {
         await CloudAnalytics.logEvent(AnalyticsEvent.airtelUser);
       } else if (carrier.toLowerCase().contains('mtn')) {

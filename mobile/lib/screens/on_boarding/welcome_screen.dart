@@ -95,7 +95,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
   }
 
   Future<bool> onWillPop() {
-    var now = DateTime.now();
+    final now = DateTime.now();
 
     if (_exitTime == null ||
         now.difference(_exitTime!) > const Duration(seconds: 2)) {

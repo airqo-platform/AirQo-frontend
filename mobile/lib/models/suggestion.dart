@@ -31,12 +31,12 @@ class Suggestion {
   static String dropTableStmt() => 'DROP TABLE IF EXISTS ${dbName()}';
 
   static List<Suggestion> parseSuggestions(dynamic jsonBody) {
-    var suggestions = <Suggestion>[];
+    final suggestions = <Suggestion>[];
 
-    var jsonArray = jsonBody['predictions'];
-    for (var jsonElement in jsonArray) {
+    final jsonArray = jsonBody['predictions'];
+    for (final jsonElement in jsonArray) {
       try {
-        var measurement = Suggestion.fromJson(jsonElement);
+        final measurement = Suggestion.fromJson(jsonElement);
         suggestions.add(measurement);
       } catch (exception, stackTrace) {
         debugPrint('$exception\n$stackTrace');

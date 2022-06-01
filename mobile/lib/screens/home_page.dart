@@ -158,14 +158,14 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<bool> onWillPop() {
-    var currentPage = _selectedIndex;
+    final currentPage = _selectedIndex;
 
     if (currentPage != 0) {
       setState(() => _selectedIndex = 0);
       return Future.value(false);
     }
 
-    var now = DateTime.now();
+    final now = DateTime.now();
 
     if (_exitTime == null ||
         now.difference(_exitTime!) > const Duration(seconds: 2)) {

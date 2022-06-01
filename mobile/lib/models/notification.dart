@@ -66,7 +66,7 @@ class AppNotification extends HiveObject {
 
   static AppNotification? parseAppNotification(dynamic jsonBody) {
     try {
-      var notification = AppNotification.fromJson(jsonBody);
+      final notification = AppNotification.fromJson(jsonBody);
       return notification;
     } catch (exception, stackTrace) {
       logException(exception, stackTrace);
@@ -84,7 +84,7 @@ class AppNotification extends HiveObject {
   static Future<void> load(List<AppNotification> notifications) async {
     final newNotifications = <dynamic, AppNotification>{};
 
-    for (var notification in notifications) {
+    for (final notification in notifications) {
       newNotifications[notification.id] = notification;
     }
 

@@ -10,7 +10,7 @@ import '../models/enum_constants.dart';
 List<Recommendation> getHealthRecommendations(
     double pm2_5, Pollutant pollutant) {
   // TODO add recommendations for pm10
-  var recommendations = <Recommendation>[];
+  final recommendations = <Recommendation>[];
   if (pm2_5 <= 12.09) {
     //good
     recommendations
@@ -379,10 +379,11 @@ String pmToInfoDialog(double pm2_5) {
 }
 
 Future<BitmapDescriptor> pmToMarker(double pm2_5) async {
-  var width = 80;
-  var value = pm2_5;
-  var bgColor = pollutantValueColor(value: pm2_5, pollutant: Pollutant.pm2_5);
-  var textColor = pollutantTextColor(value: pm2_5, pollutant: Pollutant.pm2_5);
+  final width = 80;
+  final value = pm2_5;
+  final bgColor = pollutantValueColor(value: pm2_5, pollutant: Pollutant.pm2_5);
+  final textColor =
+      pollutantTextColor(value: pm2_5, pollutant: Pollutant.pm2_5);
 
   final pictureRecorder = PictureRecorder();
   final canvas = Canvas(pictureRecorder);
@@ -394,7 +395,7 @@ Future<BitmapDescriptor> pmToMarker(double pm2_5) async {
     paint,
   );
 
-  var textPainter = TextPainter(
+  final textPainter = TextPainter(
     textDirection: TextDirection.ltr,
     text: TextSpan(
       text: value.toStringAsFixed(2),
@@ -453,8 +454,8 @@ BitmapDescriptor pmToMarkerPoint(double pm2_5) {
 }
 
 Future<BitmapDescriptor> pmToSmallMarker(double pm2_5) async {
-  var width = 20;
-  var bgColor = pollutantValueColor(value: pm2_5, pollutant: Pollutant.pm2_5);
+  final width = 20;
+  final bgColor = pollutantValueColor(value: pm2_5, pollutant: Pollutant.pm2_5);
 
   final pictureRecorder = PictureRecorder();
   final canvas = Canvas(pictureRecorder);

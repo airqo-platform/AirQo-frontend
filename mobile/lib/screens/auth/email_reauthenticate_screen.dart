@@ -24,10 +24,10 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
   bool _isVerifying = false;
   bool _isResending = false;
   int _emailToken = 1;
-  var _emailVerificationLink = '';
-  var _showResendCode = false;
-  var _emailVerificationCode = <String>['', '', '', '', '', ''];
-  var _nextBtnColor = Config.appColorDisabled;
+  String _emailVerificationLink = '';
+  bool _showResendCode = false;
+  List<String> _emailVerificationCode = <String>['', '', '', '', '', ''];
+  Color _nextBtnColor = Config.appColorDisabled;
   final AppService _appService = AppService();
 
   @override
@@ -147,7 +147,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
   Future<void> resendVerificationCode() async {
     setState(() => _isResending = true);
 
-    var emailVerificationResponse = await _appService.apiClient
+    final emailVerificationResponse = await _appService.apiClient
         .requestEmailVerificationCode(widget.userDetails.emailAddress, true);
 
     if (emailVerificationResponse == null) {
@@ -163,7 +163,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
 
   void setCode(String value, int position) {
     setState(() => _emailVerificationCode[position] = value);
-    var code = _emailVerificationCode.join('');
+    final code = _emailVerificationCode.join('');
     if (code.length == 6) {
       setState(() => _nextBtnColor = Config.appColorBlue);
     } else {
@@ -172,7 +172,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
   }
 
   Future<void> verifySentCode() async {
-    var code = _emailVerificationCode.join('');
+    final code = _emailVerificationCode.join('');
 
     if (code.length != 6) {
       await showSnackBar(context, 'Enter all the 6 digits');
@@ -196,14 +196,14 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
       });
       return;
     }
-    var user = CustomAuth.getUser();
+    final user = CustomAuth.getUser();
 
     if (user == null) {
       await showSnackBar(context, 'Failed to update email address');
       return;
     }
 
-    var success = await CustomAuth.reAuthenticateWithEmailAddress(
+    final success = await CustomAuth.reAuthenticateWithEmailAddress(
         widget.userDetails.emailAddress, _emailVerificationLink, context);
     if (success) {
       Navigator.pop(context, true);
@@ -229,7 +229,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
       _isVerifying = true;
     });
 
-    var emailVerificationResponse = await _appService.apiClient
+    final emailVerificationResponse = await _appService.apiClient
         .requestEmailVerificationCode(widget.userDetails.emailAddress, true);
 
     if (!mounted) {

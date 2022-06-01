@@ -128,14 +128,14 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                         ),
                         GestureDetector(
                           onTap: () async {
-                            var authResponse = await Navigator.push(context,
+                            final authResponse = await Navigator.push(context,
                                 MaterialPageRoute(builder: (context) {
                               return PhoneReAuthenticateScreen(_profile);
                             }));
                             if (!authResponse) {
                               return;
                             }
-                            var changeResponse = await Navigator.push(context,
+                            final changeResponse = await Navigator.push(context,
                                 MaterialPageRoute(builder: (context) {
                               return const ChangePhoneScreen();
                             }));
@@ -189,14 +189,14 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                         ),
                         GestureDetector(
                           onTap: () async {
-                            var authResponse = await Navigator.push(context,
+                            final authResponse = await Navigator.push(context,
                                 MaterialPageRoute(builder: (context) {
                               return EmailReAuthenticateScreen(_profile);
                             }));
                             if (!authResponse) {
                               return;
                             }
-                            var changeResponse = await Navigator.push(context,
+                            final changeResponse = await Navigator.push(context,
                                 MaterialPageRoute(builder: (context) {
                               return const ChangeEmailScreen();
                             }));
@@ -218,7 +218,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   }
 
   void getFromCamera() async {
-    var pickedFile = await _imagePicker.pickImage(
+    final pickedFile = await _imagePicker.pickImage(
       source: ImageSource.camera,
       maxWidth: 1800,
       maxHeight: 1800,
@@ -248,7 +248,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
 
   Future<void> _updateProfile() async {
     if (_formKey.currentState!.validate()) {
-      var dialogContext = context;
+      final dialogContext = context;
       loadingScreen(dialogContext);
       await Future.wait([_profile.update(), _uploadPicture()]).then((value) => {
             Navigator.pop(dialogContext),
@@ -263,7 +263,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   Future<void> _uploadPicture() async {
     if (changeImage) {
       try {
-        var imageUrl = await CloudStore.uploadProfilePicture(_profilePic);
+        final imageUrl = await CloudStore.uploadProfilePicture(_profilePic);
 
         if (imageUrl.isNotEmpty) {
           _profile.photoUrl = imageUrl;
@@ -279,7 +279,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   }
 
   void _getFromGallery() async {
-    var pickedFile = await _imagePicker.pickImage(
+    final pickedFile = await _imagePicker.pickImage(
       source: ImageSource.gallery,
       maxWidth: 1800,
       maxHeight: 1800,

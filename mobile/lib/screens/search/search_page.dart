@@ -85,13 +85,13 @@ class _SearchPageState extends State<SearchPage> {
 
   Future<void> _getUserLocation() async {
     try {
-      var location = await LocationService.getLocation();
+      final location = await LocationService.getLocation();
       if (location == null) {
         await showSnackBar(context, Config.allowLocationMessage);
         return;
       }
-      var latitude = location.latitude;
-      var longitude = location.longitude;
+      final latitude = location.latitude;
+      final longitude = location.longitude;
       if (longitude != null && latitude != null) {
         await LocationService.getNearestSites(latitude, longitude)
             .then((value) => {
@@ -382,9 +382,10 @@ class _SearchPageState extends State<SearchPage> {
     }
     setState(() =>
         _textEditingController.text = suggestion.suggestionDetails.mainText);
-    var place = await _appService.searchApi.getPlaceDetails(suggestion.placeId);
+    final place =
+        await _appService.searchApi.getPlaceDetails(suggestion.placeId);
     if (place != null) {
-      var nearestSite = await LocationService.getNearestSite(
+      final nearestSite = await LocationService.getNearestSite(
           place.geometry.location.lat, place.geometry.location.lng);
 
       if (nearestSite == null) {
@@ -392,7 +393,7 @@ class _SearchPageState extends State<SearchPage> {
         return;
       }
 
-      var placeDetails = PlaceDetails(
+      final placeDetails = PlaceDetails(
           name: suggestion.suggestionDetails.getMainText(),
           location: suggestion.suggestionDetails.getSecondaryText(),
           siteId: nearestSite.id,

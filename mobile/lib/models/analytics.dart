@@ -99,7 +99,7 @@ class Analytics extends HiveObject {
   static Future<void> load(List<Analytics> analytics) async {
     final newAnalytics = <dynamic, Analytics>{};
 
-    for (var analytic in analytics) {
+    for (final analytic in analytics) {
       newAnalytics[analytic.id] = analytic;
     }
 

@@ -33,7 +33,7 @@ class NotificationService {
       CloudAnalytics.logEvent(AnalyticsEvent.notificationOpen);
     });
     FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) async {
-      var profile = await Profile.getProfile();
+      final profile = await Profile.getProfile();
       await profile.update();
     }).onError((err) {
       logException(err, '');
@@ -42,7 +42,7 @@ class NotificationService {
 
   static Future<void> notificationHandler(RemoteMessage message) async {
     try {
-      var notification = message.notification;
+      final notification = message.notification;
 
       if (notification != null) {
         const channel = AndroidNotificationChannel(
@@ -82,7 +82,7 @@ class NotificationService {
   }
 
   static Future<bool> allowNotifications() async {
-    var enabled = await PermissionService.checkPermission(
+    final enabled = await PermissionService.checkPermission(
         AppPermission.notification,
         request: true);
     if (enabled) {

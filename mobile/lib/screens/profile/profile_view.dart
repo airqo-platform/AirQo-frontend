@@ -178,9 +178,9 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   Future<void> _logOut() async {
-    var loadingContext = context;
+    final loadingContext = context;
     loadingScreen(loadingContext);
-    var successful = await _appService.logOut(context);
+    final successful = await _appService.logOut(context);
     if (successful) {
       Navigator.pop(loadingContext);
       await Navigator.pushAndRemoveUntil(context,
