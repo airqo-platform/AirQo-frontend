@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import AirQo from 'icons/nav/AirQo';
 import NavTab from './NavTab';
 import MenuIcon from 'assets/svg/Menu.svg';
@@ -6,18 +6,6 @@ import CloseIcon from 'assets/svg/Close.svg';
 import { Link } from 'react-router-dom';
 
 const TopBar = () => {
-
-    const toggleDropdown = (dropdownId) => () => {
-        // var dropdownElems = document.getElementsByClassName("dropdown");
-
-        // for(let i=0; i<dropdownElems.length; i++){
-        //     if(dropdownElems[i] != document.getElementById(dropdownId)){
-        //         dropdownElems[i].classList.remove("toggle_dropdown");
-        //     }
-        // }
-
-        // document.getElementById(dropdownId).classList.toggle("toggle_dropdown");
-    }
 
     const toggleMenu = () => {
         document.getElementById("menu").classList.toggle("toggle_menu_btn");
@@ -73,10 +61,7 @@ const TopBar = () => {
                     <NavTab text="Get involved" path="/get-involved" hideArrow colored />
                     <NavTab text="Explore data"  hideArrow filled />
                 </div>
-                {/* <div className="nav-right" id="nav-right">
-                    <NavTab text="Sign In"  hideArrow colored />
-                    
-                </div> */}
+                
             </div>
             <MenuIcon className="menu-btn" id="menu" onClick={toggleMenu} />
             <CloseIcon className="close-menu-btn" id="close-menu" onClick={toggleCloseMenu} />

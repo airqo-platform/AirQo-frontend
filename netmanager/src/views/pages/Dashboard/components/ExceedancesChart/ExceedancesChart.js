@@ -136,6 +136,7 @@ const ExceedancesChart = (props) => {
       standard: tempStandard.value,
       startDate,
       endDate,
+      sites: flattenSiteOptions(airqloud.siteOptions),
     };
     setAnchorEl(null);
     setOpen(false);
