@@ -144,7 +144,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # This is where the files will be collected from when running `collectstatic`.
 # From Django's perspective, this is the input location.
-STATICFILES_DIRS = []
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'frontend/assets/')]
 
 STATIC_URL = STATIC_HOST + 'static/'
 
