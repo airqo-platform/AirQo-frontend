@@ -25,7 +25,7 @@ class LocationService {
     if (enabled) {
       await Future.wait([
         CloudAnalytics.logEvent(AnalyticsEvent.allowLocation),
-        Profile.getProfile().then((profile) => profile.saveProfile())
+        Profile.getProfile().then((profile) => profile.update())
       ]);
     }
 
@@ -284,7 +284,7 @@ class LocationService {
 
   static Future<bool> revokePermission() async {
     final profile = await Profile.getProfile();
-    await profile.saveProfile(enableLocation: false);
+    await profile.update(enableLocation: false);
     return false;
   }
 

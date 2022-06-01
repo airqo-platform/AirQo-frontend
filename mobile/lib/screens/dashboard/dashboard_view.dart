@@ -535,7 +535,7 @@ class _DashboardViewState extends State<DashboardView> {
   Future<void> _initListeners() async {
     Hive.box<Kya>(HiveBox.kya)
         .watch()
-        .listen((_) => _loadKya())
+        .listen((_) => _loadKya)
         .onDone(_loadKya);
   }
 }

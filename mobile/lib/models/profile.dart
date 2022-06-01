@@ -117,11 +117,11 @@ class Profile extends HiveObject {
     final hasConnection = await hasNetworkConnection();
     if (hasConnection && CustomAuth.isLoggedIn()) {
       final profile = await CloudStore.getProfile();
-      await profile.saveProfile();
+      await profile.update();
     }
   }
 
-  Future<void> saveProfile(
+  Future<void> update(
       {bool logout = false,
       bool? enableNotification,
       bool? enableLocation}) async {
@@ -175,18 +175,13 @@ class Profile extends HiveObject {
         photoUrl: '');
     var user = CustomAuth.getUser();
     if (user != null) {
-      await profile.saveProfile();
+      await profile.update();
     }
     return profile;
   }
 
   static Profile parseUserDetails(dynamic jsonBody) {
     return Profile.fromJson(jsonBody);
-  }
-
-  @override
-  String toString() {
-    return 'Profile{title: $title, firstName: $firstName, userId: $userId, lastName: $lastName, emailAddress: $emailAddress, phoneNumber: $phoneNumber, device: $device, utcOffset: $utcOffset, photoUrl: $photoUrl, preferences: $preferences}';
   }
 }
 

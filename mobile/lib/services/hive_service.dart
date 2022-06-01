@@ -29,7 +29,7 @@ class HiveService {
     await Future.wait([
       Hive.openBox<AppNotification>(HiveBox.appNotifications),
       Hive.openBox<Kya>(HiveBox.kya),
-      Hive.openBox<Kya>(HiveBox.analytics),
+      Hive.openBox<Analytics>(HiveBox.analytics),
       Hive.openBox<Profile>(HiveBox.profile,
           encryptionCipher: HiveAesCipher(encryptionKey))
     ]);

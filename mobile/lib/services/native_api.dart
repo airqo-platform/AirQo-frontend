@@ -261,7 +261,7 @@ class ShareService {
     if (CustomAuth.isLoggedIn()) {
       var profile = await Profile.getProfile();
       profile.preferences.aqShares = value;
-      await profile.saveProfile();
+      await profile.update();
     } else {
       await SharedPreferencesHelper.updatePreference('aqShares', value, 'int');
     }

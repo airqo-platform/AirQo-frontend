@@ -184,7 +184,6 @@ class CloudStore {
           }
         }
       }
-
       return userKya;
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
@@ -215,6 +214,35 @@ class CloudStore {
       await AppNotification.load(notifications);
 
       return notifications;
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
+    }
+    return [];
+  }
+
+  static Future<List<Analytics>> getCloudAnalytics() async {
+    final uid = CustomAuth.getUserId();
+    if (uid.isEmpty) {
+      return [];
+    }
+
+    try {
+      var analyticsCollection = await FirebaseFirestore.instance
+          .collection('${Config.usersAnalyticsCollection}/$uid/$uid')
+          .get();
+
+      final cloudAnalytics = <Analytics>[];
+
+      for (var doc in analyticsCollection.docs) {
+        var analytics = Analytics.parseAnalytics(doc.data());
+        if (analytics != null) {
+          cloudAnalytics.add(analytics);
+        }
+      }
+
+      await Analytics.load(cloudAnalytics);
+
+      return cloudAnalytics;
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
     }
@@ -329,14 +357,9 @@ class CloudStore {
                 .doc(profile.userId)
                 .collection(profile.userId)
                 .doc(x.id)
-                .update(x.toJson());
-          } catch (exception) {
-            await FirebaseFirestore.instance
-                .collection(Config.usersAnalyticsCollection)
-                .doc(profile.userId)
-                .collection(profile.userId)
-                .doc(x.id)
                 .set(x.toJson());
+          } catch (exception) {
+            debugPrint(exception.toString());
           }
         }
       } catch (exception, stackTrace) {
@@ -658,7 +681,7 @@ class CustomAuth {
       await FirebaseAuth.instance.currentUser!
           .updateEmail(emailAddress)
           .then((_) {
-        profile.saveProfile();
+        profile.update();
       });
       return true;
     } on FirebaseAuthException catch (exception) {
@@ -689,7 +712,7 @@ class CustomAuth {
       await FirebaseAuth.instance.currentUser!
           .updatePhoneNumber(authCredential)
           .then((_) {
-        profile.saveProfile();
+        profile.update();
       });
       return true;
     } on FirebaseAuthException catch (exception) {

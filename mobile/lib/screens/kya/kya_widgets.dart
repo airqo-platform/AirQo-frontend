@@ -178,3 +178,18 @@ class KyaViewWidget extends StatelessWidget {
     );
   }
 }
+
+class EmptyKya extends StatelessWidget {
+  const EmptyKya({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Config.appBodyColor,
+      padding: const EdgeInsets.all(40.0),
+      child: const Center(
+        child: Text('No Lessons at the moment'),
+      ),
+    );
+  }
+}

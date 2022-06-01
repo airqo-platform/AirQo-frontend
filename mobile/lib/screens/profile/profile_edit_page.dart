@@ -250,14 +250,13 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     if (_formKey.currentState!.validate()) {
       var dialogContext = context;
       loadingScreen(dialogContext);
-      await Future.wait([_profile.saveProfile(), _uploadPicture()])
-          .then((value) => {
-                Navigator.pop(dialogContext),
-                Navigator.pushAndRemoveUntil(context,
-                    MaterialPageRoute(builder: (context) {
-                  return const HomePage();
-                }), (r) => false)
-              });
+      await Future.wait([_profile.update(), _uploadPicture()]).then((value) => {
+            Navigator.pop(dialogContext),
+            Navigator.pushAndRemoveUntil(context,
+                MaterialPageRoute(builder: (context) {
+              return const HomePage();
+            }), (r) => false)
+          });
     }
   }
 
@@ -270,7 +269,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
           _profile.photoUrl = imageUrl;
           await Future.wait([
             CloudAnalytics.logEvent(AnalyticsEvent.uploadProfilePicture),
-            _profile.saveProfile()
+            _profile.update()
           ]);
         }
       } catch (exception, stackTrace) {

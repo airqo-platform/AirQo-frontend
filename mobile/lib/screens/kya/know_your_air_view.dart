@@ -15,46 +15,31 @@ class KnowYourAirView extends StatefulWidget {
 }
 
 class _KnowYourAirViewState extends State<KnowYourAirView> {
-  List<Kya> _kyaCards = [];
   final AppService _appService = AppService();
-  final String _error = 'You haven\'t completed any lessons';
 
   @override
   Widget build(BuildContext context) {
     return Container(
         color: Config.appBodyColor,
-        child: _kyaCards.isEmpty
-            ? Center(
-                child: Text(_error),
-              )
-            : AppRefreshIndicator(
+        child: ValueListenableBuilder<Box>(
+          valueListenable: Hive.box<Kya>(HiveBox.kya).listenable(),
+          builder: (context, box, widget) {
+            if (box.isEmpty) {
+              return const EmptyKya();
+            }
+
+            final kyaCards = box.values.toList().cast<Kya>();
+            return AppRefreshIndicator(
                 sliverChildDelegate:
                     SliverChildBuilderDelegate((context, index) {
                   return Padding(
                       padding: EdgeInsets.only(
                           top: Config.refreshIndicatorPadding(index)),
-                      child: KyaViewWidget(kya: _kyaCards[index]));
-                }, childCount: _kyaCards.length),
-                onRefresh: _refreshKya));
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _loadKya();
-    _initListeners();
-  }
-
-  void _loadKya() {
-    setState(() =>
-        _kyaCards = Hive.box<Kya>(HiveBox.kya).values.toList().cast<Kya>());
-  }
-
-  Future<void> _initListeners() async {
-    Hive.box<Kya>(HiveBox.kya)
-        .watch()
-        .listen((_) => _loadKya())
-        .onDone(_loadKya);
+                      child: KyaViewWidget(kya: kyaCards[index]));
+                }, childCount: kyaCards.length),
+                onRefresh: _refreshKya);
+          },
+        ));
   }
 
   Future<void> _refreshKya() async {

@@ -10,7 +10,7 @@ import 'native_api.dart';
 class NotificationService {
   static Future<bool> revokePermission() async {
     final profile = await Profile.getProfile();
-    await profile.saveProfile(enableNotification: false);
+    await profile.update(enableNotification: false);
     return false;
   }
 
@@ -34,7 +34,7 @@ class NotificationService {
     });
     FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) async {
       var profile = await Profile.getProfile();
-      await profile.saveProfile();
+      await profile.update();
     }).onError((err) {
       logException(err, '');
     });
@@ -88,7 +88,7 @@ class NotificationService {
     if (enabled) {
       await Future.wait([
         CloudAnalytics.logEvent(AnalyticsEvent.allowNotification),
-        Profile.getProfile().then((profile) => profile.saveProfile())
+        Profile.getProfile().then((profile) => profile.update())
       ]);
     }
     return enabled;

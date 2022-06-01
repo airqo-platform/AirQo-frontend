@@ -235,7 +235,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
             ..lastName = Profile.getNames(_fullName).last;
         });
 
-        await _profile.saveProfile();
+        await _profile.update();
 
         Navigator.pop(dialogContext);
         await Navigator.pushAndRemoveUntil(context,

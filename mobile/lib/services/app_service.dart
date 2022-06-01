@@ -183,15 +183,19 @@ class AppService {
 
       var cloudKyas = await CloudStore.getKya();
       var kyas = <Kya>[];
-      for (var offlineKya in offlineKyas) {
-        try {
-          var kya = cloudKyas
-              .where((element) => element.id.equalsIgnoreCase(offlineKya.id))
-              .first
-            ..progress = offlineKya.progress;
-          kyas.add(kya);
-        } catch (e) {
-          debugPrint(e.toString());
+      if (offlineKyas.isEmpty) {
+        kyas = cloudKyas;
+      } else {
+        for (var offlineKya in offlineKyas) {
+          try {
+            var kya = cloudKyas
+                .where((element) => element.id.equalsIgnoreCase(offlineKya.id))
+                .first
+              ..progress = offlineKya.progress;
+            kyas.add(kya);
+          } catch (e) {
+            debugPrint(e.toString());
+          }
         }
       }
       await Kya.load(kyas);
@@ -277,7 +281,8 @@ class AppService {
         _dbHelper
             .getFavouritePlaces()
             .then((value) => CloudStore.updateFavPlaces(userId, value)),
-        profile.saveProfile(logout: true),
+        profile.update(logout: true),
+        CloudStore.updateCloudAnalytics(),
       ]).then((value) {
         CustomAuth.logOut();
         _clearUserLocalStorage(buildContext);
@@ -316,6 +321,7 @@ class AppService {
                     }
                 }),
         CloudStore.getNotifications(),
+        CloudStore.getCloudAnalytics(),
         logPlatformType(),
         updateFavouritePlacesSites(buildContext)
       ]);
