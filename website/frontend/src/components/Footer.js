@@ -8,6 +8,7 @@ import Youtube from 'icons/footer/Youtube';
 import Twitter from 'icons/footer/Twitter';
 import Location from 'icons/footer/Location';
 import ArrowDown from 'icons/footer/ArrowDown';
+import LinkedInIcon from '@mui/icons-material/LinkedIn';
 
 const Footer = () => (
         <footer className="footer-wrapper">
@@ -17,10 +18,10 @@ const Footer = () => (
                     <AirQo />
                     <div className="logo-text">Clean air for all <br/> African Cities!</div>
                     <div className="social-links">
-                        <Instagram />
-                        <Facebook />
-                        <Youtube />
-                        <Twitter />
+                        <a target="_blank" href="https://www.linkedin.com/company/airqo/mycompany/"><LinkedInIcon style={{color:"#145DFF", height: "32px", width: "32px"}} /></a>
+                        <a target="_blank" href="https://www.facebook.com/AirQo"><Facebook /></a>
+                        <a target="_blank" href="https://www.youtube.com/channel/UCx7YtV55TcqKGeKsDdT5_XQ"><Youtube /></a>
+                        <a target="_blank" href="https://twitter.com/AirQoProject"><Twitter /></a>
                     </div>
                 </div>
                 <div className="content">
@@ -46,6 +47,7 @@ const Footer = () => (
                             <span><Link to="/about-us">About</Link></span>
                             <span><Link to="/contact">Contact</Link></span>
                             <span><Link to="/press">Press</Link></span>
+                            <span><a target="_blank" href="https://medium.com/@airqo">Blog</a></span>
                         </div>
                     </span>
                 </div>
