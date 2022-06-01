@@ -159,7 +159,14 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           cd website/
-          docker build --build-arg REACT_WEB_STATIC_HOST=${{ secrets.REACT_WEB_STATIC_HOST }} --target=deployment --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }} -f docker/Dockerfile .
+          docker build \
+          --target=deployment \
+          --build-arg REACT_WEB_STATIC_HOST=${{ secrets.REACT_WEB_STATIC_HOST }} \
+          --build-arg REACT_NETMANAGER_BASE_URL=${{ secrets.REACT_NETMANAGER_BASE_URL_PROD }} \
+          --build-arg REACT_APP_BASE_AIRQLOUDS_URL=${{ secrets.REACT_APP_BASE_AIRQLOUDS_URL }} \
+          --build-arg REACT_APP_BASE_NEWSLETTER_URL=${{ secrets.REACT_APP_BASE_NEWSLETTER_URL }} \
+          --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }} \
+          -f docker/Dockerfile .
           docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-website:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }}
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-website:latest
