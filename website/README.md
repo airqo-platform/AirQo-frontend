@@ -217,6 +217,9 @@ Populate the `.env` file with the following keys and their respective values
     DJANGO_ALLOWED_HOSTS      # alist od comma seperated hosts
     GS_BUCKET_NAME
     CONTAINER_ENV             # True for docker
+    REACT_NETMANAGER_BASE_URL
+    REACT_APP_BASE_AIRQLOUDS_URL
+    REACT_APP_BASE_NEWSLETTER_URL
 
 **Note**: Remove `DATABASE_URI` variable  if you are using docker.
 
