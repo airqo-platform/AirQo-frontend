@@ -100,10 +100,10 @@ class AirqoApiClient {
 
   Future<List<Insights>> fetchSitesInsights(String siteIds) async {
     try {
-      final startDateTime =
-          '${DateFormat('yyyy-MM-dd').format(DateTime.now().toUtc().getFirstDateOfCalendarMonth())}T00:00:00Z';
+      final utcNow = DateTime.now().toUtc();
+      final startDateTime = utcNow.getFirstDateOfCalendarMonth().toApiString();
       final endDateTime =
-          '${DateFormat('yyyy-MM-dd').format(DateTime.now().toUtc().getLastDateOfCalendarMonth())}T23:59:59Z';
+          '${DateFormat('yyyy-MM-dd').format(utcNow.getLastDateOfCalendarMonth())}T23:59:59Z';
 
       final queryParams = <String, dynamic>{}
         ..putIfAbsent('siteId', () => siteIds)
@@ -135,34 +135,6 @@ class AirqoApiClient {
       }
     }
     return '';
-  }
-
-  Future<String> imageUpload(String file, String? type, String name) async {
-    type ??= 'jpeg';
-
-    final uploadStr = 'data:image/$type;base64,$file';
-    try {
-      final body = {
-        'file': uploadStr,
-        'upload_preset': Config.imageUploadPreset,
-      };
-      // 'public_id': name,
-      // 'api_key': Config.imageUploadApiKey
-
-      final response = await http.post(Uri.parse(Config.imageUploadUrl),
-          headers: {'Content-Type': 'application/json'},
-          body: json.encode(body));
-
-      if (response.statusCode == 200) {
-        final body = json.decode(response.body);
-        return body['url'];
-      } else {
-        throw Exception('Error');
-      }
-    } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
-      return '';
-    }
   }
 
   Future<EmailAuthModel?> requestEmailVerificationCode(

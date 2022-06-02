@@ -6,41 +6,6 @@ import 'package:intl/intl.dart';
 
 import '../models/enum_constants.dart';
 
-OnBoardingPage getOnBoardingPageConstant(String value) {
-  switch (value) {
-    case 'signup':
-      return OnBoardingPage.signup;
-    case 'profile':
-      return OnBoardingPage.profile;
-    case 'notification':
-      return OnBoardingPage.notification;
-    case 'location':
-      return OnBoardingPage.location;
-    case 'complete':
-      return OnBoardingPage.complete;
-    case 'home':
-      return OnBoardingPage.home;
-    case 'welcome':
-      return OnBoardingPage.welcome;
-    default:
-      return OnBoardingPage.signup;
-  }
-}
-
-Region getRegionConstant(String value) {
-  if (value.toLowerCase().contains('central')) {
-    return Region.central;
-  } else if (value.toLowerCase().contains('northern')) {
-    return Region.northern;
-  } else if (value.toLowerCase().contains('eastern')) {
-    return Region.eastern;
-  } else if (value.toLowerCase().contains('western')) {
-    return Region.western;
-  } else {
-    return Region.central;
-  }
-}
-
 extension AnalyticsEventExtension on AnalyticsEvent {
   String getName() {
     const prefix = kReleaseMode ? 'prod_' : 'stage_';
@@ -130,16 +95,13 @@ extension DateTimeExtension on DateTime {
     return timeFromJson(dateStr);
   }
 
-  String getDay(DateTime? datetime) {
+  String getDay({DateTime? datetime}) {
     final referenceDay = datetime != null ? datetime.day : day;
-    if (referenceDay.toString().length > 1) {
-      return referenceDay.toString();
-    }
-    return '0$referenceDay';
+    return formatToString(referenceDay);
   }
 
   DateTime getFirstDateOfCalendarMonth() {
-    var firstDate = DateTime.parse('$year-${getMonth(null)}-01T00:00:00Z');
+    var firstDate = DateTime.parse('$year-${getMonth()}-01T00:00:00Z');
 
     while (firstDate.weekday != 1) {
       firstDate = firstDate.subtract(const Duration(days: 1));
@@ -148,14 +110,28 @@ extension DateTimeExtension on DateTime {
     return firstDate;
   }
 
+  String toApiString() {
+    return '$year-${formatToString(month)}-'
+        '${formatToString(day)}T'
+        '${formatToString(hour)}:${formatToString(minute)}:'
+        '${formatToString(second)}Z';
+  }
+
+  String formatToString(int value) {
+    if (value.toString().length > 1) {
+      return value.toString();
+    }
+    return '0$value';
+  }
+
   DateTime getFirstDateOfMonth() {
-    final firstDate = DateTime.parse('$year-${getMonth(null)}-01T00:00:00Z');
+    final firstDate = DateTime.parse('$year-${getMonth()}-01T00:00:00Z');
     return firstDate;
   }
 
   DateTime getLastDateOfCalendarMonth() {
-    var lastDate = DateTime.parse('$year-${getMonth(null)}'
-        '-${getDay(getLastDateOfMonth())}T00:00:00Z');
+    var lastDate = DateTime.parse('$year-${getMonth()}'
+        '-${getDay(datetime: getLastDateOfMonth())}T00:00:00Z');
 
     while (lastDate.weekday != 7) {
       lastDate = lastDate.add(const Duration(days: 1));
@@ -165,7 +141,7 @@ extension DateTimeExtension on DateTime {
   }
 
   DateTime getLastDateOfMonth() {
-    var lastDate = DateTime.parse('$year-${getMonth(null)}-26T00:00:00Z');
+    var lastDate = DateTime.parse('$year-${getMonth()}-26T00:00:00Z');
     final referenceMonth = month;
 
     while (lastDate.month == referenceMonth) {
@@ -180,12 +156,9 @@ extension DateTimeExtension on DateTime {
     return '${getDayPostfix()} ${getMonthString(abbreviate: false)}';
   }
 
-  String getMonth(DateTime? datetime) {
+  String getMonth({DateTime? datetime}) {
     final referenceMonth = datetime != null ? datetime.month : month;
-    if (referenceMonth.toString().length > 1) {
-      return referenceMonth.toString();
-    }
-    return '0$referenceMonth';
+    return formatToString(referenceMonth);
   }
 
   String getDayPostfix() {

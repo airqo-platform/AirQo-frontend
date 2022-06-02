@@ -300,7 +300,7 @@ class ConfirmationDialog extends StatelessWidget {
           },
           child: Text('Cancel',
               style: CustomTextStyle.caption4(context)
-                  ?.copyWith(color: CustomColors.red)),
+                  ?.copyWith(color: CustomColors.aqiRed)),
           isDefaultAction: true,
           isDestructiveAction: true,
         ),

@@ -1,9 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../models/enum_constants.dart';
 import '../../models/profile.dart';
 import '../../themes/colors.dart';
 import '../../widgets/text_fields.dart';
+
+OnBoardingPage getOnBoardingPageConstant(String value) {
+  switch (value) {
+    case 'signup':
+      return OnBoardingPage.signup;
+    case 'profile':
+      return OnBoardingPage.profile;
+    case 'notification':
+      return OnBoardingPage.notification;
+    case 'location':
+      return OnBoardingPage.location;
+    case 'complete':
+      return OnBoardingPage.complete;
+    case 'home':
+      return OnBoardingPage.home;
+    case 'welcome':
+      return OnBoardingPage.welcome;
+    default:
+      return OnBoardingPage.signup;
+  }
+}
 
 class OnBoardingAppBar extends StatelessWidget implements PreferredSizeWidget {
   const OnBoardingAppBar({Key? key}) : super(key: key);

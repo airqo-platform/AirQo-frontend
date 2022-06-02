@@ -240,7 +240,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                     imageUrl: kyaItem.imageUrl,
                     errorWidget: (context, url, error) => Icon(
                       Icons.error_outline,
-                      color: CustomColors.red,
+                      color: CustomColors.aqiRed,
                     ),
                   )),
             ),

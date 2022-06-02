@@ -231,7 +231,7 @@ class DashboardKyaCard extends StatelessWidget {
                 imageUrl: kya.imageUrl,
                 errorWidget: (context, url, error) => Icon(
                   Icons.error_outline,
-                  color: CustomColors.red,
+                  color: CustomColors.aqiRed,
                 ),
               ),
             ),

@@ -32,18 +32,6 @@ class LocationService {
     return enabled;
   }
 
-  static Future<Measurement?> defaultLocationPlace() async {
-    final dbHelper = DBHelper();
-    final measurement = await dbHelper.getNearestMeasurement(
-        Config.defaultLatitude, Config.defaultLongitude);
-
-    if (measurement == null) {
-      return null;
-    }
-
-    return measurement;
-  }
-
   static Future<List<String>> getAddresses(double lat, double lng) async {
     final placeMarks = await placemarkFromCoordinates(lat, lng);
     final addresses = <String>[];

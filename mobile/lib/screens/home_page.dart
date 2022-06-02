@@ -126,7 +126,7 @@ class _HomePageState extends State<HomePage> {
                               shape: BoxShape.circle,
                               color: unreadNotifications.isEmpty
                                   ? Colors.transparent
-                                  : CustomColors.red),
+                                  : CustomColors.aqiRed),
                         ),
                       );
                     },
