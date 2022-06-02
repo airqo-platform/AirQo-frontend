@@ -14,6 +14,7 @@ import '../../services/firebase_service.dart';
 import '../../services/location_service.dart';
 import '../../services/native_api.dart';
 import '../../services/notification_service.dart';
+import '../../themes/colors.dart';
 import '../auth/email_reauthenticate_screen.dart';
 import '../auth/phone_auth_widget.dart';
 import '../auth/phone_reauthenticate_screen.dart';
@@ -38,7 +39,7 @@ class _SettingsPageState extends State<SettingsPage> {
     return Scaffold(
         appBar: const AppTopBar('Settings'),
         body: Container(
-            color: Config.appBodyColor,
+            color: CustomColors.appBodyColor,
             padding:
                 const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: Column(
@@ -59,7 +60,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             overflow: TextOverflow.ellipsis,
                             style: Theme.of(context).textTheme.bodyText1),
                         trailing: CupertinoSwitch(
-                          activeColor: Config.appColorBlue,
+                          activeColor: CustomColors.appColorBlue,
                           onChanged: (bool value) {
                             setState(() => _allowLocation = value);
                             if (value) {
@@ -80,14 +81,14 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                       ),
                       Divider(
-                        color: Config.appBodyColor,
+                        color: CustomColors.appBodyColor,
                       ),
                       ListTile(
                         title: Text('Notification',
                             overflow: TextOverflow.ellipsis,
                             style: Theme.of(context).textTheme.bodyText1),
                         trailing: CupertinoSwitch(
-                          activeColor: Config.appColorBlue,
+                          activeColor: CustomColors.appColorBlue,
                           onChanged: (bool value) {
                             if (value) {
                               setState(() => _allowNotification = value);
@@ -108,7 +109,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                       ),
                       Divider(
-                        color: Config.appBodyColor,
+                        color: CustomColors.appBodyColor,
                       ),
                       GestureDetector(
                         onTap: () async {
@@ -123,7 +124,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         child: const SettingsCard(text: 'FAQs'),
                       ),
                       Divider(
-                        color: Config.appBodyColor,
+                        color: CustomColors.appBodyColor,
                       ),
                       GestureDetector(
                         onTap: () async {
@@ -135,7 +136,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         child: const SettingsCard(text: 'Send feedback'),
                       ),
                       Divider(
-                        color: Config.appBodyColor,
+                        color: CustomColors.appBodyColor,
                       ),
                       GestureDetector(
                         onTap: () async {
@@ -146,7 +147,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                       ),
                       Divider(
-                        color: Config.appBodyColor,
+                        color: CustomColors.appBodyColor,
                       ),
                       GestureDetector(
                         onTap: () async {

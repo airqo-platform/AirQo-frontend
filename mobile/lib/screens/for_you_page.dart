@@ -1,7 +1,7 @@
-import 'package:app/constants/config.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
 
+import '../themes/colors.dart';
 import '../widgets/buttons.dart';
 import 'analytics/analytics_view.dart';
 import 'kya/know_your_air_view.dart';
@@ -25,7 +25,7 @@ class _ForYouPageState extends State<ForYouPage>
       appBar: const AppTopBar('For You'),
       body: Container(
         padding: const EdgeInsets.only(right: 16, left: 16),
-        color: Config.appBodyColor,
+        color: CustomColors.appBodyColor,
         child: Column(
           children: [
             Padding(

@@ -1,7 +1,8 @@
-import 'package:app/constants/config.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
+
+import '../themes/colors.dart';
 
 class CircularLoadingAnimation extends StatelessWidget {
   const CircularLoadingAnimation({Key? key, required this.size})
@@ -14,11 +15,11 @@ class CircularLoadingAnimation extends StatelessWidget {
         height: size,
         width: size,
         child: Shimmer.fromColors(
-          baseColor: Config.appLoadingColor,
+          baseColor: CustomColors.appLoadingColor,
           highlightColor: Colors.white,
           child: Container(
             decoration: BoxDecoration(
-              color: Config.appLoadingColor,
+              color: CustomColors.appLoadingColor,
               shape: BoxShape.circle,
             ),
           ),
@@ -38,12 +39,12 @@ class ContainerLoadingAnimation extends StatelessWidget {
     return SizedBox(
       height: height,
       child: Shimmer.fromColors(
-        baseColor: Config.appLoadingColor,
+        baseColor: CustomColors.appLoadingColor,
         highlightColor: Colors.white,
         child: Container(
             constraints: BoxConstraints(minHeight: height, maxHeight: height),
             decoration: BoxDecoration(
-                color: Config.appLoadingColor,
+                color: CustomColors.appLoadingColor,
                 borderRadius: BorderRadius.all(Radius.circular(radius)))),
       ),
     );
@@ -57,7 +58,7 @@ void loadingScreen(BuildContext _context) async {
       barrierDismissible: false,
       builder: (ctx) => CupertinoActivityIndicator(
             radius: 20,
-            color: Config.appColorBlue,
+            color: CustomColors.appColorBlue,
           ));
 }
 
@@ -67,11 +68,11 @@ class LoadingWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Config.appBodyColor,
+      color: CustomColors.appBodyColor,
       child: Center(
         child: CupertinoActivityIndicator(
           radius: 20,
-          color: Config.appColorBlue,
+          color: CustomColors.appColorBlue,
         ),
       ),
     );
@@ -95,7 +96,7 @@ class SizedContainerLoadingAnimation extends StatelessWidget {
       height: height,
       width: width,
       child: Shimmer.fromColors(
-        baseColor: Config.appLoadingColor,
+        baseColor: CustomColors.appLoadingColor,
         highlightColor: Colors.white,
         child: Container(
             constraints: BoxConstraints(
@@ -104,7 +105,7 @@ class SizedContainerLoadingAnimation extends StatelessWidget {
                 maxWidth: width,
                 maxHeight: height),
             decoration: BoxDecoration(
-                color: Config.appLoadingColor,
+                color: CustomColors.appLoadingColor,
                 borderRadius: BorderRadius.all(Radius.circular(radius)))),
       ),
     );
@@ -124,7 +125,7 @@ class TextLoadingAnimation extends StatelessWidget {
       height: height,
       width: width,
       child: Shimmer.fromColors(
-        baseColor: Config.appLoadingColor,
+        baseColor: CustomColors.appLoadingColor,
         highlightColor: Colors.white,
         child: Container(
             constraints: BoxConstraints(
@@ -133,7 +134,7 @@ class TextLoadingAnimation extends StatelessWidget {
                 maxWidth: width,
                 maxHeight: height),
             decoration: BoxDecoration(
-                color: Config.appLoadingColor,
+                color: CustomColors.appLoadingColor,
                 borderRadius: const BorderRadius.all(Radius.circular(2)))),
       ),
     );

@@ -1,10 +1,10 @@
-import 'package:app/constants/config.dart';
 import 'package:app/models/kya.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../themes/app_theme.dart';
+import '../../themes/colors.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/custom_widgets.dart';
 import 'kya_lessons_page.dart';
@@ -25,7 +25,7 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
       appBar: const KnowYourAirAppBar(),
       body: Stack(fit: StackFit.expand, children: [
         Container(
-          color: Config.appBodyColor,
+          color: CustomColors.appBodyColor,
           height: double.infinity,
           width: double.infinity,
         ),
@@ -56,8 +56,8 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
                   }));
                 });
               },
-              child:
-                  NextButton(text: 'Begin', buttonColor: Config.appColorBlue),
+              child: NextButton(
+                  text: 'Begin', buttonColor: CustomColors.appColorBlue),
             ),
           ),
         ),
@@ -108,7 +108,8 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
                                   widget.kya.title,
                                   textAlign: TextAlign.center,
                                   style: CustomTextStyle.headline11(context)
-                                      ?.copyWith(color: Config.appColorBlack),
+                                      ?.copyWith(
+                                          color: CustomColors.appColorBlack),
                                 ),
                               ),
                               const SizedBox(
@@ -132,12 +133,12 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
       width: 48,
       padding: const EdgeInsets.all(15.0),
       decoration: BoxDecoration(
-        color: Config.appColorBlue.withOpacity(0.24),
+        color: CustomColors.appColorBlue.withOpacity(0.24),
         shape: BoxShape.circle,
       ),
       child: SvgPicture.asset(
         icon,
-        color: Config.appColorBlue,
+        color: CustomColors.appColorBlue,
       ),
     );
   }

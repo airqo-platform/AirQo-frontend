@@ -1,6 +1,7 @@
-import 'package:app/constants/config.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+
+import '../../themes/colors.dart';
 
 class DeleteAccountButton extends StatelessWidget {
   const DeleteAccountButton({Key? key, required this.deleteAccount})
@@ -20,10 +21,8 @@ class DeleteAccountButton extends StatelessWidget {
             title: AutoSizeText(
               'Delete your account',
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyText2
-                  ?.copyWith(color: Config.appColorBlack.withOpacity(0.6)),
+              style: Theme.of(context).textTheme.bodyText2?.copyWith(
+                  color: CustomColors.appColorBlack.withOpacity(0.6)),
             ),
           )),
     );

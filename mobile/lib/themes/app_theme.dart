@@ -1,5 +1,6 @@
-import 'package:app/constants/config.dart';
 import 'package:flutter/material.dart';
+
+import 'colors.dart';
 
 const googleMapsTheme = [
   {
@@ -273,13 +274,13 @@ ThemeData customTheme() {
           fontSize: 48.0,
           fontWeight: FontWeight.bold,
           fontStyle: FontStyle.normal,
-          color: Config.appColorBlack,
+          color: CustomColors.appColorBlack,
           height: 56.0 / 48.0),
       headline6: TextStyle(
         fontSize: 32.0,
         fontWeight: FontWeight.bold,
         fontStyle: FontStyle.normal,
-        color: Config.appColorBlack,
+        color: CustomColors.appColorBlack,
         height: 40.0 / 32.0,
         letterSpacing: 16 * -0.01,
       ),
@@ -287,56 +288,56 @@ ThemeData customTheme() {
         fontSize: 16.0,
         fontWeight: FontWeight.normal,
         fontStyle: FontStyle.normal,
-        color: Config.appColorBlack,
+        color: CustomColors.appColorBlack,
         height: 24.0 / 16.0,
       ),
       bodyText2: TextStyle(
         fontSize: 14.0,
         fontWeight: FontWeight.normal,
         fontStyle: FontStyle.normal,
-        color: Config.appColorBlack,
+        color: CustomColors.appColorBlack,
         height: 18.0 / 14.0,
       ),
       caption: TextStyle(
         fontSize: 12.0,
         fontWeight: FontWeight.normal,
         fontStyle: FontStyle.normal,
-        color: Config.appColorBlack,
+        color: CustomColors.appColorBlack,
         height: 16.0 / 12.0,
       ),
       overline: TextStyle(
           fontSize: 8.0,
           fontWeight: FontWeight.w500,
           fontStyle: FontStyle.normal,
-          color: Config.appColorBlack,
+          color: CustomColors.appColorBlack,
           height: 12.0 / 8.0,
           letterSpacing: 16 * -0.24),
       subtitle1: TextStyle(
         fontSize: 16.0,
         fontWeight: FontWeight.normal,
         fontStyle: FontStyle.normal,
-        color: Config.appColorBlack,
+        color: CustomColors.appColorBlack,
         height: 24.0 / 16.0,
       ),
       subtitle2: TextStyle(
         fontSize: 14.0,
         fontWeight: FontWeight.normal,
         fontStyle: FontStyle.normal,
-        color: Config.appColorBlack,
+        color: CustomColors.appColorBlack,
         height: 18.0 / 14.0,
       ),
     ).apply(
       fontFamily: 'Inter',
-      bodyColor: Config.appColorBlack,
-      displayColor: Config.appColorBlack,
+      bodyColor: CustomColors.appColorBlack,
+      displayColor: CustomColors.appColorBlack,
     ),
     primaryTextTheme: ThemeData.light().textTheme.apply(
           fontFamily: 'Inter',
-          bodyColor: Config.appColor,
-          displayColor: Config.appColor,
+          bodyColor: CustomColors.appColor,
+          displayColor: CustomColors.appColor,
         ),
     iconTheme: IconThemeData(
-      color: Config.appColor,
+      color: CustomColors.appColor,
     ),
     appBarTheme: const AppBarTheme(elevation: 0.0),
   );
@@ -367,7 +368,7 @@ class CustomTextStyle {
         fontWeight: FontWeight.w500,
         fontStyle: FontStyle.normal,
         height: 13.0 / 10.0,
-        color: Config.appColorBlue);
+        color: CustomColors.appColorBlue);
   }
 
   static TextStyle? button2(BuildContext context) {

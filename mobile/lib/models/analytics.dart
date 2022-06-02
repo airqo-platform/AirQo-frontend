@@ -5,7 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:uuid/uuid.dart';
 
-import '../constants/config.dart';
+import '../services/hive_service.dart';
 
 part 'analytics.g.dart';
 
@@ -74,7 +74,7 @@ class Analytics extends HiveObject {
       ..where((element) => element.site == site).toList();
     if (analytics.isEmpty) {
       await Hive.box<Analytics>(HiveBox.analytics)
-          .put(id, this)
+          .put(site, this)
           .then((value) => CloudStore.updateCloudAnalytics());
       // TODO send notification
     }
@@ -100,7 +100,7 @@ class Analytics extends HiveObject {
     final newAnalytics = <dynamic, Analytics>{};
 
     for (final analytic in analytics) {
-      newAnalytics[analytic.id] = analytic;
+      newAnalytics[analytic.site] = analytic;
     }
 
     await Hive.box<Analytics>(HiveBox.analytics).putAll(newAnalytics);

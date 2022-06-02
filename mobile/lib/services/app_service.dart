@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:app/constants/config.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/profile.dart';
 import 'package:app/services/firebase_service.dart';

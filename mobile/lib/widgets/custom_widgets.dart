@@ -12,6 +12,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../models/enum_constants.dart';
 import '../themes/app_theme.dart';
+import '../themes/colors.dart';
 import 'buttons.dart';
 
 class AppRefreshIndicator extends StatelessWidget {
@@ -52,7 +53,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
       toolbarHeight: 72,
       centerTitle: centerTitle ?? true,
       elevation: 0,
-      backgroundColor: Config.appBodyColor,
+      backgroundColor: CustomColors.appBodyColor,
       automaticallyImplyLeading: false,
       leading: const Padding(
         padding: EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
@@ -79,7 +80,7 @@ class AppIconTopBar extends StatelessWidget implements PreferredSizeWidget {
       toolbarHeight: 72,
       centerTitle: true,
       elevation: 0,
-      backgroundColor: Config.appBodyColor,
+      backgroundColor: CustomColors.appBodyColor,
       automaticallyImplyLeading: false,
       leading: const Padding(
         padding: EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),

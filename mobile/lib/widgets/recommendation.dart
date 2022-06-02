@@ -1,9 +1,9 @@
-import 'package:app/constants/config.dart';
 import 'package:app/utils/pm.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
 import '../themes/app_theme.dart';
+import '../themes/colors.dart';
 
 class RecommendationContainer extends StatelessWidget {
   const RecommendationContainer(this.recommendation, {Key? key})
@@ -66,7 +66,7 @@ class RecommendationContainer extends StatelessWidget {
                     maxLines: 4,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.subtitle2?.copyWith(
-                        color: Config.appColorBlack.withOpacity(0.5)),
+                        color: CustomColors.appColorBlack.withOpacity(0.5)),
                   )
                 ],
               ),

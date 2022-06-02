@@ -1,4 +1,3 @@
-import 'package:app/constants/config.dart';
 import 'package:app/screens/auth/phone_auth_widget.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/firebase_service.dart';
@@ -6,6 +5,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/enum_constants.dart';
+import '../../themes/colors.dart';
 
 class ProceedAsGuest extends StatelessWidget {
   const ProceedAsGuest({Key? key}) : super(key: key);
@@ -27,10 +27,8 @@ class ProceedAsGuest extends StatelessWidget {
         children: [
           Text('Proceed as',
               textAlign: TextAlign.center,
-              style: Theme.of(context)
-                  .textTheme
-                  .caption
-                  ?.copyWith(color: Config.appColorBlack.withOpacity(0.6))),
+              style: Theme.of(context).textTheme.caption?.copyWith(
+                  color: CustomColors.appColorBlack.withOpacity(0.6))),
           const SizedBox(
             width: 2,
           ),
@@ -39,7 +37,7 @@ class ProceedAsGuest extends StatelessWidget {
               style: Theme.of(context)
                   .textTheme
                   .caption
-                  ?.copyWith(color: Config.appColorBlue))
+                  ?.copyWith(color: CustomColors.appColorBlue))
         ],
       ),
     );
@@ -67,7 +65,7 @@ class SignUpButton extends StatelessWidget {
               style: Theme.of(context)
                   .textTheme
                   .caption
-                  ?.copyWith(color: Config.appColorBlue)),
+                  ?.copyWith(color: CustomColors.appColorBlue)),
         )));
   }
 }
@@ -102,10 +100,8 @@ class SignUpOptions extends StatelessWidget {
             children: [
               Text('Already have an account',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context)
-                      .textTheme
-                      .caption
-                      ?.copyWith(color: Config.appColorBlack.withOpacity(0.6))),
+                  style: Theme.of(context).textTheme.caption?.copyWith(
+                      color: CustomColors.appColorBlack.withOpacity(0.6))),
               const SizedBox(
                 width: 2,
               ),
@@ -114,7 +110,7 @@ class SignUpOptions extends StatelessWidget {
                   style: Theme.of(context)
                       .textTheme
                       .caption
-                      ?.copyWith(color: Config.appColorBlue))
+                      ?.copyWith(color: CustomColors.appColorBlue))
             ],
           ),
         ),
@@ -142,7 +138,7 @@ class CancelOption extends StatelessWidget {
         style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: Config.appColorBlue),
+            color: CustomColors.appColorBlue),
       ),
     );
   }
@@ -178,10 +174,8 @@ class LoginOptions extends StatelessWidget {
             children: [
               Text('Don\'t have an account',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context)
-                      .textTheme
-                      .caption
-                      ?.copyWith(color: Config.appColorBlack.withOpacity(0.6))),
+                  style: Theme.of(context).textTheme.caption?.copyWith(
+                      color: CustomColors.appColorBlack.withOpacity(0.6))),
               const SizedBox(
                 width: 2,
               ),
@@ -190,7 +184,7 @@ class LoginOptions extends StatelessWidget {
                   style: Theme.of(context)
                       .textTheme
                       .caption
-                      ?.copyWith(color: Config.appColorBlue))
+                      ?.copyWith(color: CustomColors.appColorBlue))
             ],
           ),
         ),

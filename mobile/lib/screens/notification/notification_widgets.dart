@@ -1,4 +1,3 @@
-import 'package:app/constants/config.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/custom_widgets.dart';
@@ -7,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../themes/app_theme.dart';
+import '../../themes/colors.dart';
 
 class NotificationView extends StatefulWidget {
   const NotificationView({Key? key, required this.appNotification})
@@ -32,7 +32,7 @@ class _NotificationViewState extends State<NotificationView> {
           duration: const Duration(milliseconds: 100),
           child: Container(
             padding: const EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 8.0),
-            color: Config.appBodyColor,
+            color: CustomColors.appBodyColor,
             child: Column(
               children: [
                 Container(
@@ -71,7 +71,8 @@ class _NotificationViewState extends State<NotificationView> {
                               Container(
                                 padding: const EdgeInsets.all(15.0),
                                 decoration: BoxDecoration(
-                                  color: Config.appColorBlue.withOpacity(0.1),
+                                  color: CustomColors.appColorBlue
+                                      .withOpacity(0.1),
                                   shape: BoxShape.circle,
                                 ),
                                 child: SvgPicture.asset(
@@ -99,7 +100,7 @@ class _NotificationViewState extends State<NotificationView> {
                                     .textTheme
                                     .bodyText2
                                     ?.copyWith(
-                                        color: Config.appColorBlack
+                                        color: CustomColors.appColorBlack
                                             .withOpacity(0.4)),
                               ),
                             ],
@@ -146,7 +147,7 @@ class NotificationCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10.0),
             decoration: BoxDecoration(
-              color: Config.appColorBlue.withOpacity(0.1),
+              color: CustomColors.appColorBlue.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: SvgPicture.asset(
@@ -173,10 +174,8 @@ class NotificationCard extends StatelessWidget {
                   appNotification.subTitle,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context)
-                      .textTheme
-                      .caption
-                      ?.copyWith(color: Config.appColorBlack.withOpacity(0.4)),
+                  style: Theme.of(context).textTheme.caption?.copyWith(
+                      color: CustomColors.appColorBlack.withOpacity(0.4)),
                 )
               ],
             ),
@@ -193,7 +192,7 @@ class NotificationCard extends StatelessWidget {
                     maxWidth: 43.35,
                   ),
                   decoration: BoxDecoration(
-                      color: Config.appColorBlue.withOpacity(0.1),
+                      color: CustomColors.appColorBlue.withOpacity(0.1),
                       borderRadius:
                           const BorderRadius.all(Radius.circular(535.87))),
                   child: Text(
@@ -214,7 +213,7 @@ class NotificationCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                            fontSize: 10, color: Config.appColorBlack),
+                            fontSize: 10, color: CustomColors.appColorBlack),
                       ),
                     ],
                   )))
@@ -230,7 +229,7 @@ class EmptyNotifications extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Config.appBodyColor,
+      color: CustomColors.appBodyColor,
       padding: const EdgeInsets.all(40.0),
       child: Center(
         child: Text('No Notifications',

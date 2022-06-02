@@ -1,4 +1,3 @@
-import 'package:app/constants/config.dart';
 import 'package:app/models/enum_constants.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/screens/on_boarding/setup_complete_screeen.dart';
@@ -9,6 +8,7 @@ import 'package:flutter/material.dart';
 import '../../services/local_storage.dart';
 import '../../services/location_service.dart';
 import '../../themes/app_theme.dart';
+import '../../themes/colors.dart';
 import '../../widgets/custom_shimmer.dart';
 import 'on_boarding_widgets.dart';
 
@@ -25,7 +25,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Config.appBodyColor,
+        backgroundColor: CustomColors.appBodyColor,
         body: WillPopScope(
           onWillPop: onWillPop,
           child:
@@ -62,7 +62,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
                 onTap: _allowLocation,
                 child: NextButton(
                     text: 'Yes, keep me safe',
-                    buttonColor: Config.appColorBlue),
+                    buttonColor: CustomColors.appColorBlue),
               ),
             ),
             const SizedBox(
@@ -81,7 +81,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
                 style: Theme.of(context)
                     .textTheme
                     .caption
-                    ?.copyWith(color: Config.appColorBlue),
+                    ?.copyWith(color: CustomColors.appColorBlue),
               ),
             ),
             const SizedBox(

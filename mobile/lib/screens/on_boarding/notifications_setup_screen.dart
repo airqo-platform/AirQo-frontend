@@ -1,4 +1,3 @@
-import 'package:app/constants/config.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/dialogs.dart';
@@ -8,6 +7,7 @@ import '../../models/enum_constants.dart';
 import '../../services/local_storage.dart';
 import '../../services/notification_service.dart';
 import '../../themes/app_theme.dart';
+import '../../themes/colors.dart';
 import '../../widgets/custom_shimmer.dart';
 import 'location_setup_screen.dart';
 import 'on_boarding_widgets.dart';
@@ -26,7 +26,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Config.appBodyColor,
+        backgroundColor: CustomColors.appBodyColor,
         body: WillPopScope(
           onWillPop: onWillPop,
           child:
@@ -61,7 +61,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
                 onTap: _allowNotifications,
                 child: NextButton(
                     text: 'Yes, keep me updated',
-                    buttonColor: Config.appColorBlue),
+                    buttonColor: CustomColors.appColorBlue),
               ),
             ),
             const SizedBox(
@@ -80,7 +80,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
                 style: Theme.of(context)
                     .textTheme
                     .caption
-                    ?.copyWith(color: Config.appColorBlue),
+                    ?.copyWith(color: CustomColors.appColorBlue),
               ),
             ),
             const SizedBox(

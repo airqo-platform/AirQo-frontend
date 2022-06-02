@@ -6,6 +6,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../../models/analytics.dart';
 import '../../models/measurement.dart';
 import '../../services/app_service.dart';
+import '../../services/hive_service.dart';
+import '../../themes/colors.dart';
 import '../../widgets/custom_widgets.dart';
 import 'analytics_widgets.dart';
 
@@ -23,7 +25,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
   @override
   Widget build(BuildContext context) {
     return Container(
-        color: Config.appBodyColor,
+        color: CustomColors.appBodyColor,
         child: ValueListenableBuilder<Box>(
           valueListenable: Hive.box<Analytics>(HiveBox.analytics).listenable(),
           builder: (context, box, widget) {

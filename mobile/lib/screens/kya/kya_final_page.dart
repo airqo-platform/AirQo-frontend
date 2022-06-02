@@ -1,9 +1,9 @@
-import 'package:app/constants/config.dart';
 import 'package:app/models/kya.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../themes/app_theme.dart';
+import '../../themes/colors.dart';
 
 class KyaFinalPage extends StatefulWidget {
   const KyaFinalPage({Key? key, required this.kya}) : super(key: key);
@@ -24,10 +24,10 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
         appBar: AppBar(
           elevation: 0,
           toolbarHeight: 0,
-          backgroundColor: Config.appBodyColor,
+          backgroundColor: CustomColors.appBodyColor,
         ),
         body: Container(
-            color: Config.appBodyColor,
+            color: CustomColors.appBodyColor,
             child: Center(
               child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -59,8 +59,8 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
                               .textTheme
                               .subtitle1
                               ?.copyWith(
-                                  color:
-                                      Config.appColorBlack.withOpacity(0.5))),
+                                  color: CustomColors.appColorBlack
+                                      .withOpacity(0.5))),
                     ),
                   ]),
             )),

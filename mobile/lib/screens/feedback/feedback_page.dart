@@ -12,6 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../services/app_service.dart';
 import '../../themes/app_theme.dart';
+import '../../themes/colors.dart';
 import 'feedback_page_widgets.dart';
 
 class FeedbackPage extends StatefulWidget {
@@ -38,7 +39,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
         appBar: const AppTopBar('Send Feedback'),
         body: Container(
             padding: const EdgeInsets.only(left: 16, right: 16),
-            color: Config.appBodyColor,
+            color: CustomColors.appBodyColor,
             child: Column(
               children: [
                 ListView(
@@ -54,32 +55,32 @@ class _FeedbackPageState extends State<FeedbackPage> {
                           width: 16,
                           decoration: BoxDecoration(
                               color: _feedbackType == ''
-                                  ? Config.greyColor
-                                  : Config.appColorBlue,
+                                  ? CustomColors.greyColor
+                                  : CustomColors.appColorBlue,
                               shape: BoxShape.circle),
                         ),
                         Expanded(
                             child: Divider(
                           thickness: 2,
                           color: _index >= 1
-                              ? Config.appColorBlue
-                              : Config.greyColor,
+                              ? CustomColors.appColorBlue
+                              : CustomColors.greyColor,
                         )),
                         Container(
                           height: 16,
                           width: 16,
                           decoration: BoxDecoration(
                               color: _feedbackChannel != '' && _index >= 1
-                                  ? Config.appColorBlue
-                                  : Config.greyColor,
+                                  ? CustomColors.appColorBlue
+                                  : CustomColors.greyColor,
                               shape: BoxShape.circle),
                         ),
                         Expanded(
                             child: Divider(
                           thickness: 2,
                           color: _index >= 2 || _feedbackChannel == 'WhatsApp'
-                              ? Config.appColorBlue
-                              : Config.greyColor,
+                              ? CustomColors.appColorBlue
+                              : CustomColors.greyColor,
                         )),
                         Container(
                           height: 16,
@@ -87,8 +88,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
                           decoration: BoxDecoration(
                               color:
                                   _index >= 2 || _feedbackChannel == 'WhatsApp'
-                                      ? Config.appColorBlue
-                                      : Config.greyColor,
+                                      ? CustomColors.appColorBlue
+                                      : CustomColors.greyColor,
                               shape: BoxShape.circle),
                         ),
                       ],
@@ -192,8 +193,9 @@ class _FeedbackPageState extends State<FeedbackPage> {
                         child: _feedbackType == ''
                             ? NextButton(
                                 buttonColor:
-                                    Config.appColorBlue.withOpacity(0.24))
-                            : NextButton(buttonColor: Config.appColorBlue),
+                                    CustomColors.appColorBlue.withOpacity(0.24))
+                            : NextButton(
+                                buttonColor: CustomColors.appColorBlue),
                       ),
                     ),
 
@@ -266,11 +268,12 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                 ? FeedbackNextButton(
                                     text: 'Send',
                                     buttonColor: _isSendingFeedback
-                                        ? Config.appColorBlue.withOpacity(0.24)
-                                        : Config.appColorBlue)
+                                        ? CustomColors.appColorBlue
+                                            .withOpacity(0.24)
+                                        : CustomColors.appColorBlue)
                                 : FeedbackNextButton(
                                     text: 'Next',
-                                    buttonColor: Config.appColorBlue),
+                                    buttonColor: CustomColors.appColorBlue),
                           )
                         ],
                       ),
@@ -288,8 +291,9 @@ class _FeedbackPageState extends State<FeedbackPage> {
                     },
                     child: _feedbackType == ''
                         ? NextButton(
-                            buttonColor: Config.appColorBlue.withOpacity(0.24))
-                        : NextButton(buttonColor: Config.appColorBlue),
+                            buttonColor:
+                                CustomColors.appColorBlue.withOpacity(0.24))
+                        : NextButton(buttonColor: CustomColors.appColorBlue),
                   ),
                 ),
                 Visibility(
@@ -367,10 +371,12 @@ class _FeedbackPageState extends State<FeedbackPage> {
                             ? FeedbackNextButton(
                                 text: 'Send',
                                 buttonColor: _isSendingFeedback
-                                    ? Config.appColorBlue.withOpacity(0.24)
-                                    : Config.appColorBlue)
+                                    ? CustomColors.appColorBlue
+                                        .withOpacity(0.24)
+                                    : CustomColors.appColorBlue)
                             : FeedbackNextButton(
-                                text: 'Next', buttonColor: Config.appColorBlue),
+                                text: 'Next',
+                                buttonColor: CustomColors.appColorBlue),
                       )
                     ],
                   ),
@@ -438,7 +444,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
           enableSuggestions: false,
           cursorWidth: 1,
           maxLines: 12,
-          cursorColor: Config.appColorBlue,
+          cursorColor: CustomColors.appColorBlue,
           keyboardType: TextInputType.emailAddress,
           onChanged: (text) {},
           validator: (value) {
@@ -454,10 +460,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
               focusedBorder: InputBorder.none,
               enabledBorder: InputBorder.none,
               hintText: 'Please tell us the details',
-              hintStyle: Theme.of(context)
-                  .textTheme
-                  .bodyText2
-                  ?.copyWith(color: Config.appColorBlack.withOpacity(0.32)),
+              hintStyle: Theme.of(context).textTheme.bodyText2?.copyWith(
+                  color: CustomColors.appColorBlack.withOpacity(0.32)),
               counterStyle: Theme.of(context).textTheme.bodyText2),
         )));
   }
@@ -478,7 +482,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
           style: Theme.of(context).textTheme.bodyText2,
           enableSuggestions: false,
           cursorWidth: 1,
-          cursorColor: Config.appColorBlue,
+          cursorColor: CustomColors.appColorBlue,
           keyboardType: TextInputType.emailAddress,
           onChanged: (text) {},
           validator: (value) {
@@ -501,7 +505,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
             hintStyle: Theme.of(context)
                 .textTheme
                 .bodyText2
-                ?.copyWith(color: Config.appColorBlack.withOpacity(0.32)),
+                ?.copyWith(color: CustomColors.appColorBlack.withOpacity(0.32)),
           ),
         )));
   }
@@ -529,11 +533,11 @@ class _FeedbackPageState extends State<FeedbackPage> {
       height: 24,
       width: 24,
       decoration: BoxDecoration(
-          color: isActive ? Config.appColorBlue : Colors.white,
+          color: isActive ? CustomColors.appColorBlue : Colors.white,
           shape: BoxShape.circle,
           border: isActive
-              ? Border.all(color: Config.appColorBlue, width: 0)
-              : Border.all(color: Config.greyColor, width: 3)),
+              ? Border.all(color: CustomColors.appColorBlue, width: 0)
+              : Border.all(color: CustomColors.greyColor, width: 3)),
     );
   }
 }

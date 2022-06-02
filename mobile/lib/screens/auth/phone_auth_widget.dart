@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:app/constants/config.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/widgets/buttons.dart';
@@ -13,6 +12,7 @@ import 'package:flutter/material.dart';
 import '../../models/enum_constants.dart';
 import '../../services/firebase_service.dart';
 import '../../themes/app_theme.dart';
+import '../../themes/colors.dart';
 import '../../utils/network.dart';
 import '../../widgets/custom_shimmer.dart';
 import '../on_boarding/profile_setup_screen.dart';
@@ -78,7 +78,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
     setState(() {
       _phoneNumber = '';
       _phoneInputController.text = '';
-      _nextBtnColor = Config.appColorDisabled;
+      _nextBtnColor = CustomColors.appColorDisabled;
     });
   }
 
@@ -146,39 +146,38 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
       enableSuggestions: false,
       cursorWidth: 1,
       autofocus: false,
-      cursorColor: Config.appColorBlue,
+      cursorColor: CustomColors.appColorBlue,
       keyboardType: TextInputType.number,
       decoration: InputDecoration(
         contentPadding: const EdgeInsets.fromLTRB(16, 12, 0, 12),
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Config.appColorBlue, width: 1.0),
+          borderSide: BorderSide(color: CustomColors.appColorBlue, width: 1.0),
           borderRadius: BorderRadius.circular(8.0),
         ),
         enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Config.appColorBlue, width: 1.0),
+          borderSide: BorderSide(color: CustomColors.appColorBlue, width: 1.0),
           borderRadius: BorderRadius.circular(8.0),
         ),
         border: OutlineInputBorder(
-            borderSide: BorderSide(color: Config.appColorBlue, width: 1.0),
+            borderSide:
+                BorderSide(color: CustomColors.appColorBlue, width: 1.0),
             borderRadius: BorderRadius.circular(8.0)),
         hintText: '0700000000',
         prefixIcon: Padding(
             padding: const EdgeInsets.fromLTRB(8, 11, 0, 15),
             child: Text(
               '$_countryCode ',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyText1
-                  ?.copyWith(color: Config.appColorBlack.withOpacity(0.32)),
+              style: Theme.of(context).textTheme.bodyText1?.copyWith(
+                  color: CustomColors.appColorBlack.withOpacity(0.32)),
             )),
         hintStyle: Theme.of(context)
             .textTheme
             .bodyText1
-            ?.copyWith(color: Config.appColorBlack.withOpacity(0.32)),
+            ?.copyWith(color: CustomColors.appColorBlack.withOpacity(0.32)),
         prefixStyle: Theme.of(context)
             .textTheme
             .bodyText1
-            ?.copyWith(color: Config.appColorBlack.withOpacity(0.32)),
+            ?.copyWith(color: CustomColors.appColorBlack.withOpacity(0.32)),
         suffixIcon: GestureDetector(
           onTap: clearPhoneCallBack,
           child: const TextInputCloseButton(),
@@ -217,7 +216,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
             style: Theme.of(context)
                 .textTheme
                 .bodyText2
-                ?.copyWith(color: Config.appColorBlack.withOpacity(0.6))),
+                ?.copyWith(color: CustomColors.appColorBlack.withOpacity(0.6))),
       ),
       const SizedBox(
         height: 32,
@@ -315,11 +314,11 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
   void phoneValueChange(text) {
     if (text.toString().isEmpty) {
       setState(() {
-        _nextBtnColor = Config.appColorDisabled;
+        _nextBtnColor = CustomColors.appColorDisabled;
       });
     } else {
       setState(() {
-        _nextBtnColor = Config.appColorBlue;
+        _nextBtnColor = CustomColors.appColorBlue;
       });
     }
 
@@ -360,7 +359,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
             style: Theme.of(context)
                 .textTheme
                 .bodyText2
-                ?.copyWith(color: Config.appColorBlack.withOpacity(0.6))),
+                ?.copyWith(color: CustomColors.appColorBlack.withOpacity(0.6))),
       ),
       const SizedBox(
         height: 32,
@@ -379,7 +378,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
             style: Theme.of(context)
                 .textTheme
                 .caption
-                ?.copyWith(color: Config.appColorBlack.withOpacity(0.5))),
+                ?.copyWith(color: CustomColors.appColorBlack.withOpacity(0.5))),
       ),
       Visibility(
         visible: _codeSentCountDown <= 0,
@@ -392,7 +391,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
               style: Theme.of(context)
                   .textTheme
                   .caption
-                  ?.copyWith(color: Config.appColorBlue)),
+                  ?.copyWith(color: CustomColors.appColorBlue)),
         ),
       ),
       const SizedBox(
@@ -429,7 +428,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
           style: Theme.of(context)
               .textTheme
               .caption
-              ?.copyWith(color: Config.appColorBlue),
+              ?.copyWith(color: CustomColors.appColorBlue),
         ),
       ),
       const Spacer(),
@@ -455,11 +454,11 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
     final code = _phoneVerificationCode.join('');
     if (code.length == 6) {
       setState(() {
-        _nextBtnColor = Config.appColorBlue;
+        _nextBtnColor = CustomColors.appColorBlue;
       });
     } else {
       setState(() {
-        _nextBtnColor = Config.appColorDisabled;
+        _nextBtnColor = CustomColors.appColorDisabled;
       });
     }
   }
@@ -488,7 +487,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
         Navigator.pop(_loadingContext);
         setState(() {
           _codeSent = true;
-          _nextBtnColor = Config.appColorBlue;
+          _nextBtnColor = CustomColors.appColorBlue;
         });
         await showSnackBar(context, 'Login failed.');
       }
@@ -509,7 +508,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
         Navigator.pop(_loadingContext);
         setState(() {
           _codeSent = true;
-          _nextBtnColor = Config.appColorBlue;
+          _nextBtnColor = CustomColors.appColorBlue;
         });
         await showSnackBar(context, 'Signup failed.');
       }
@@ -534,8 +533,8 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
           : widget.phoneNumber?.split('.').first)!;
       _phoneVerificationCode = <String>['', '', '', '', '', ''];
       _nextBtnColor = widget.phoneNumber == null
-          ? Config.appColorDisabled
-          : Config.appColorBlue;
+          ? CustomColors.appColorDisabled
+          : CustomColors.appColorBlue;
       _verifyCode = false;
       _verificationId = '';
       _codeSent = false;
@@ -579,7 +578,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
 
     FocusScope.of(context).requestFocus(FocusNode());
     setState(() {
-      _nextBtnColor = Config.appColorDisabled;
+      _nextBtnColor = CustomColors.appColorDisabled;
       _codeSent = false;
       _showAuthOptions = true;
     });
@@ -701,7 +700,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
 
     FocusScope.of(context).requestFocus(FocusNode());
     setState(() {
-      _nextBtnColor = Config.appColorDisabled;
+      _nextBtnColor = CustomColors.appColorDisabled;
       _showAuthOptions = true;
     });
 

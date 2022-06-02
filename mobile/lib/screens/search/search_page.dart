@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 
 import '../../services/app_service.dart';
 import '../../services/location_service.dart';
+import '../../themes/colors.dart';
 import '../../utils/exception.dart';
 import '../../widgets/buttons.dart';
 import '../insights/insights_page.dart';
@@ -37,7 +38,7 @@ class _SearchPageState extends State<SearchPage> {
       appBar: AppBar(
         toolbarHeight: 72,
         elevation: 0,
-        backgroundColor: Config.appBodyColor,
+        backgroundColor: CustomColors.appBodyColor,
         automaticallyImplyLeading: false,
         leading: const Padding(
           padding: EdgeInsets.only(top: 5, bottom: 6.5, left: 16),
@@ -53,7 +54,7 @@ class _SearchPageState extends State<SearchPage> {
       ),
       body: Container(
         padding: const EdgeInsets.only(left: 16.0, right: 16.0),
-        color: Config.appBodyColor,
+        color: CustomColors.appBodyColor,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -67,7 +68,8 @@ class _SearchPageState extends State<SearchPage> {
               child: Text(
                 'Locations near you',
                 textAlign: TextAlign.start,
-                style: TextStyle(color: Config.inactiveColor, fontSize: 12),
+                style:
+                    TextStyle(color: CustomColors.inactiveColor, fontSize: 12),
               ),
             ),
             loadMainView(),
@@ -158,7 +160,7 @@ class _SearchPageState extends State<SearchPage> {
                 ),
                 Container(
                   decoration: BoxDecoration(
-                    color: Config.appColorBlue,
+                    color: CustomColors.appColorBlue,
                     shape: BoxShape.circle,
                   ),
                   child: const Padding(
@@ -295,7 +297,7 @@ class _SearchPageState extends State<SearchPage> {
                       ),
                       Container(
                         decoration: BoxDecoration(
-                          color: Config.appColorBlue,
+                          color: CustomColors.appColorBlue,
                           shape: BoxShape.circle,
                         ),
                         child: const Padding(

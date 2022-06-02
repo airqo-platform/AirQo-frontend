@@ -1,12 +1,12 @@
 import 'dart:core';
 import 'dart:ui';
 
-import 'package:app/constants/config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../models/enum_constants.dart';
 import '../themes/app_theme.dart';
+import '../themes/colors.dart';
 
 class ToolTip {
   ToolTip(this.context, this._tipType,
@@ -53,7 +53,8 @@ class ToolTip {
                 child: CustomPaint(
                   size: Size(15.0, arrowHeight),
                   painter: TrianglePainter(
-                      isDownArrow: _isDownArrow, color: Config.appColorBlack),
+                      isDownArrow: _isDownArrow,
+                      color: CustomColors.appColorBlack),
                 ),
               ),
               // popup content
@@ -69,7 +70,7 @@ class ToolTip {
                   height: 64,
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8.0),
-                      color: Config.appColorBlack),
+                      color: CustomColors.appColorBlack),
                   child: Row(
                     children: [
                       Expanded(
@@ -81,7 +82,7 @@ class ToolTip {
                       Container(
                         padding: const EdgeInsets.all(2),
                         decoration: BoxDecoration(
-                          color: Config.toolTipGreyColor,
+                          color: CustomColors.toolTipGreyColor,
                           shape: BoxShape.circle,
                         ),
                         child: SvgPicture.asset(

@@ -5,7 +5,6 @@ import 'package:app/models/profile.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../constants/config.dart';
 import '../models/analytics.dart';
 import '../models/enum_constants.dart';
 import '../models/kya.dart';
@@ -57,4 +56,12 @@ class HiveService {
       Hive.box<Kya>(HiveBox.kya).clear()
     ]);
   }
+}
+
+class HiveBox {
+  static String get appNotifications => 'appNotifications';
+  static String get kya => 'kya';
+  static String get profile => 'profile';
+  static String get encryptionKey => 'hiveEncryptionKey';
+  static String get analytics => 'analytics';
 }

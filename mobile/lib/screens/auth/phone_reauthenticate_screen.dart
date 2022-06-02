@@ -1,4 +1,3 @@
-import 'package:app/constants/config.dart';
 import 'package:app/models/profile.dart';
 import 'package:app/services/firebase_service.dart';
 import 'package:app/widgets/buttons.dart';
@@ -7,6 +6,7 @@ import 'package:app/widgets/text_fields.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../themes/colors.dart';
 import '../../utils/network.dart';
 import 'auth_widgets.dart';
 
@@ -27,7 +27,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
   bool _isVerifying = false;
 
   List<String> _phoneVerificationCode = <String>['', '', '', '', '', ''];
-  Color _nextBtnColor = Config.appColorDisabled;
+  Color _nextBtnColor = CustomColors.appColorDisabled;
 
   Future<void> autoVerifyPhoneFn(PhoneAuthCredential credential) async {
     final success =
@@ -36,7 +36,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
       Navigator.pop(context, true);
     } else {
       setState(() {
-        _nextBtnColor = Config.appColorBlue;
+        _nextBtnColor = CustomColors.appColorBlue;
         _isVerifying = false;
       });
       await showSnackBar(
@@ -106,7 +106,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
                   fontSize: 12,
                   color: _isResending
                       ? Colors.black.withOpacity(0.5)
-                      : Config.appColorBlue),
+                      : CustomColors.appColorBlue),
             ),
           ),
         ),
@@ -142,11 +142,11 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
     final code = _phoneVerificationCode.join('');
     if (code.length == 6) {
       setState(() {
-        _nextBtnColor = Config.appColorBlue;
+        _nextBtnColor = CustomColors.appColorBlue;
       });
     } else {
       setState(() {
-        _nextBtnColor = Config.appColorDisabled;
+        _nextBtnColor = CustomColors.appColorDisabled;
       });
     }
   }
@@ -171,7 +171,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
       _isResending = false;
       _isVerifying = false;
       _phoneVerificationCode = <String>['', '', '', '', '', ''];
-      _nextBtnColor = Config.appColorDisabled;
+      _nextBtnColor = CustomColors.appColorDisabled;
     });
   }
 
@@ -181,7 +181,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
       return;
     }
     setState(() {
-      _nextBtnColor = Config.appColorDisabled;
+      _nextBtnColor = CustomColors.appColorDisabled;
       _isVerifying = true;
       _codeSent = false;
     });
@@ -247,7 +247,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
     }
 
     setState(() {
-      _nextBtnColor = Config.appColorDisabled;
+      _nextBtnColor = CustomColors.appColorDisabled;
       _isVerifying = true;
     });
 
@@ -261,7 +261,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
         Navigator.pop(context, true);
       } else {
         setState(() {
-          _nextBtnColor = Config.appColorBlue;
+          _nextBtnColor = CustomColors.appColorBlue;
           _isVerifying = false;
         });
         await showSnackBar(
@@ -274,7 +274,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
       if (exception.code == 'invalid-verification-code') {
         await showSnackBar(context, 'Invalid Code');
         setState(() {
-          _nextBtnColor = Config.appColorBlue;
+          _nextBtnColor = CustomColors.appColorBlue;
           _isVerifying = false;
         });
       }
@@ -290,14 +290,14 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
             'has timed out. we have sent your'
             ' another verification code');
         setState(() {
-          _nextBtnColor = Config.appColorBlue;
+          _nextBtnColor = CustomColors.appColorBlue;
           _isVerifying = false;
         });
       }
     } catch (exception, stackTrace) {
       await showSnackBar(context, 'Try again later');
       setState(() {
-        _nextBtnColor = Config.appColorBlue;
+        _nextBtnColor = CustomColors.appColorBlue;
         _isVerifying = false;
       });
       debugPrint('$exception\n$stackTrace');

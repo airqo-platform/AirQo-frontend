@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/models/suggestion.dart';
@@ -17,6 +16,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../models/enum_constants.dart';
 import '../../services/app_service.dart';
 import '../../services/location_service.dart';
+import '../../themes/colors.dart';
 import 'map_widgets.dart';
 
 class MapView extends StatefulWidget {
@@ -247,7 +247,7 @@ class _MapViewState extends State<MapView> {
             height: 32,
             constraints: const BoxConstraints(minWidth: double.maxFinite),
             decoration: BoxDecoration(
-                color: Config.appBodyColor,
+                color: CustomColors.appBodyColor,
                 shape: BoxShape.rectangle,
                 borderRadius: const BorderRadius.all(Radius.circular(8.0))),
             child: TextFormField(
@@ -262,7 +262,7 @@ class _MapViewState extends State<MapView> {
               enableSuggestions: true,
               cursorWidth: 1,
               autofocus: false,
-              cursorColor: Config.appColorBlack,
+              cursorColor: CustomColors.appColorBlack,
               decoration: InputDecoration(
                 fillColor: Colors.white,
                 prefixIcon: Padding(
@@ -289,7 +289,7 @@ class _MapViewState extends State<MapView> {
                         const BorderSide(color: Colors.transparent, width: 1.0),
                     borderRadius: BorderRadius.circular(8.0)),
                 hintStyle: Theme.of(context).textTheme.caption?.copyWith(
-                      color: Config.appColorBlack.withOpacity(0.32),
+                      color: CustomColors.appColorBlack.withOpacity(0.32),
                       fontSize: 14,
                       fontWeight: FontWeight.w400,
                     ),
@@ -310,7 +310,7 @@ class _MapViewState extends State<MapView> {
                 height: 32,
                 width: 32,
                 decoration: BoxDecoration(
-                    color: Config.appBodyColor,
+                    color: CustomColors.appBodyColor,
                     borderRadius: const BorderRadius.all(Radius.circular(8.0))),
                 child: SvgPicture.asset(
                   'assets/icon/map_clear_text.svg',
@@ -334,7 +334,7 @@ class _MapViewState extends State<MapView> {
         onChanged: _searchChanged,
         cursorWidth: 1,
         maxLines: 1,
-        cursorColor: Config.appColorBlue,
+        cursorColor: CustomColors.appColorBlue,
         autofocus: false,
         decoration: const InputDecoration(
           contentPadding: EdgeInsets.only(right: 8, left: 8, bottom: 15),
@@ -373,7 +373,7 @@ class _MapViewState extends State<MapView> {
                           ),
                           Container(
                             decoration: BoxDecoration(
-                              color: Config.appColorBlue,
+                              color: CustomColors.appColorBlue,
                               shape: BoxShape.circle,
                             ),
                             child: const Padding(
@@ -654,8 +654,8 @@ class _MapViewState extends State<MapView> {
               visible: _regionSites.isNotEmpty,
               child: Text(
                 _selectedRegion.getName(),
-                style: CustomTextStyle.overline1(context)
-                    ?.copyWith(color: Config.appColorBlack.withOpacity(0.32)),
+                style: CustomTextStyle.overline1(context)?.copyWith(
+                    color: CustomColors.appColorBlack.withOpacity(0.32)),
               ),
             ),
             Visibility(

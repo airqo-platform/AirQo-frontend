@@ -1,11 +1,11 @@
 import 'dart:ui';
 
-import 'package:app/constants/config.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../models/enum_constants.dart';
+import '../themes/colors.dart';
 
 List<Recommendation> getHealthRecommendations(
     double pm2_5, Pollutant pollutant) {
@@ -161,11 +161,11 @@ Color pollutantTextColor(
       } else if (value >= 250.5) {
         // hazardous
         if (graph != null && graph) {
-          return Config.maroon;
+          return CustomColors.maroon;
         }
         return const Color(0xffDBA5B2);
       } else {
-        return Config.appColor;
+        return CustomColors.appColor;
       }
     case Pollutant.pm10:
       if (value <= 50.99) {
@@ -186,11 +186,11 @@ Color pollutantTextColor(
       } else if (value >= 431.00) {
         // hazardous
         if (graph != null && graph) {
-          return Config.maroon;
+          return CustomColors.maroon;
         }
         return const Color(0xffDBA5B2);
       } else {
-        return Config.appColor;
+        return CustomColors.appColor;
       }
   }
 }
@@ -201,46 +201,46 @@ Color pollutantValueColor(
     case Pollutant.pm2_5:
       if (value <= 12.09) {
         //good
-        return Config.green;
+        return CustomColors.green;
       } else if (value >= 12.1 && value <= 35.49) {
         //moderate
-        return Config.yellow;
+        return CustomColors.yellow;
       } else if (value >= 35.5 && value <= 55.49) {
         //sensitive
-        return Config.orange;
+        return CustomColors.orange;
       } else if (value >= 55.5 && value <= 150.49) {
         // unhealthy
-        return Config.red;
+        return CustomColors.red;
       } else if (value >= 150.5 && value <= 250.49) {
         // very unhealthy
-        return Config.purple;
+        return CustomColors.purple;
       } else if (value >= 250.5) {
         // hazardous
-        return Config.maroon;
+        return CustomColors.maroon;
       } else {
-        return Config.appColor;
+        return CustomColors.appColor;
       }
     case Pollutant.pm10:
       if (value <= 50.99) {
         //good
-        return Config.green;
+        return CustomColors.green;
       } else if (value >= 51.00 && value <= 100.99) {
         //moderate
-        return Config.yellow;
+        return CustomColors.yellow;
       } else if (value >= 101.00 && value <= 250.99) {
         //sensitive
-        return Config.orange;
+        return CustomColors.orange;
       } else if (value >= 251.00 && value <= 350.99) {
         // unhealthy
-        return Config.red;
+        return CustomColors.red;
       } else if (value >= 351.00 && value <= 430.99) {
         // very unhealthy
-        return Config.purple;
+        return CustomColors.purple;
       } else if (value >= 431.00) {
         // hazardous
-        return Config.maroon;
+        return CustomColors.maroon;
       } else {
-        return Config.appColor;
+        return CustomColors.appColor;
       }
   }
 }
@@ -299,46 +299,46 @@ charts.Color pollutantChartValueColor(double value, Pollutant pollutant) {
   if (pollutant == Pollutant.pm2_5) {
     if (value <= 12.09) {
       //good
-      return charts.ColorUtil.fromDartColor(Config.green);
+      return charts.ColorUtil.fromDartColor(CustomColors.green);
     } else if (value >= 12.1 && value <= 35.49) {
       //moderate
-      return charts.ColorUtil.fromDartColor(Config.yellow);
+      return charts.ColorUtil.fromDartColor(CustomColors.yellow);
     } else if (value >= 35.5 && value <= 55.49) {
       //sensitive
-      return charts.ColorUtil.fromDartColor(Config.orange);
+      return charts.ColorUtil.fromDartColor(CustomColors.orange);
     } else if (value >= 55.5 && value <= 150.49) {
       // unhealthy
-      return charts.ColorUtil.fromDartColor(Config.red);
+      return charts.ColorUtil.fromDartColor(CustomColors.red);
     } else if (value >= 150.5 && value <= 250.49) {
       // very unhealthy
-      return charts.ColorUtil.fromDartColor(Config.purple);
+      return charts.ColorUtil.fromDartColor(CustomColors.purple);
     } else if (value >= 250.5) {
       // hazardous
-      return charts.ColorUtil.fromDartColor(Config.maroon);
+      return charts.ColorUtil.fromDartColor(CustomColors.maroon);
     } else {
-      return charts.ColorUtil.fromDartColor(Config.appColor);
+      return charts.ColorUtil.fromDartColor(CustomColors.appColor);
     }
   } else {
     if (value <= 50.99) {
       //good
-      return charts.ColorUtil.fromDartColor(Config.green);
+      return charts.ColorUtil.fromDartColor(CustomColors.green);
     } else if (value >= 51.00 && value <= 100.99) {
       //moderate
-      return charts.ColorUtil.fromDartColor(Config.yellow);
+      return charts.ColorUtil.fromDartColor(CustomColors.yellow);
     } else if (value >= 101.00 && value <= 250.99) {
       //sensitive
-      return charts.ColorUtil.fromDartColor(Config.orange);
+      return charts.ColorUtil.fromDartColor(CustomColors.orange);
     } else if (value >= 251.00 && value <= 350.99) {
       // unhealthy
-      return charts.ColorUtil.fromDartColor(Config.red);
+      return charts.ColorUtil.fromDartColor(CustomColors.red);
     } else if (value >= 351.00 && value <= 430.99) {
       // very unhealthy
-      return charts.ColorUtil.fromDartColor(Config.purple);
+      return charts.ColorUtil.fromDartColor(CustomColors.purple);
     } else if (value >= 431.00) {
       // hazardous
-      return charts.ColorUtil.fromDartColor(Config.maroon);
+      return charts.ColorUtil.fromDartColor(CustomColors.maroon);
     } else {
-      return charts.ColorUtil.fromDartColor(Config.appColor);
+      return charts.ColorUtil.fromDartColor(CustomColors.appColor);
     }
   }
 }
@@ -427,27 +427,27 @@ BitmapDescriptor pmToMarkerPoint(double pm2_5) {
   if (pm2_5 <= 12.09) {
     //good
     return BitmapDescriptor.defaultMarkerWithHue(
-        HSVColor.fromColor(Config.green).hue);
+        HSVColor.fromColor(CustomColors.green).hue);
   } else if (pm2_5 >= 12.10 && pm2_5 <= 35.49) {
     //moderate
     return BitmapDescriptor.defaultMarkerWithHue(
-        HSVColor.fromColor(Config.yellow).hue);
+        HSVColor.fromColor(CustomColors.yellow).hue);
   } else if (pm2_5 >= 35.50 && pm2_5 <= 55.49) {
     //sensitive
     return BitmapDescriptor.defaultMarkerWithHue(
-        HSVColor.fromColor(Config.orange).hue);
+        HSVColor.fromColor(CustomColors.orange).hue);
   } else if (pm2_5 >= 55.50 && pm2_5 <= 150.49) {
     // unhealthy
     return BitmapDescriptor.defaultMarkerWithHue(
-        HSVColor.fromColor(Config.red).hue);
+        HSVColor.fromColor(CustomColors.red).hue);
   } else if (pm2_5 >= 150.50 && pm2_5 <= 250.49) {
     // very unhealthy
     return BitmapDescriptor.defaultMarkerWithHue(
-        HSVColor.fromColor(Config.purple).hue);
+        HSVColor.fromColor(CustomColors.purple).hue);
   } else if (pm2_5 >= 250.5) {
     // hazardous
     return BitmapDescriptor.defaultMarkerWithHue(
-        HSVColor.fromColor(Config.maroon).hue);
+        HSVColor.fromColor(CustomColors.maroon).hue);
   } else {
     return BitmapDescriptor.defaultMarker;
   }

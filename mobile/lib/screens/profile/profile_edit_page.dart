@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:app/constants/config.dart';
 import 'package:app/models/profile.dart';
 import 'package:app/screens/profile/profile_widgets.dart';
 import 'package:app/widgets/custom_shimmer.dart';
@@ -9,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../models/enum_constants.dart';
 import '../../services/firebase_service.dart';
+import '../../themes/colors.dart';
 import '../../utils/exception.dart';
 import '../auth/change_email_screen.dart';
 import '../auth/change_phone_screen.dart';
@@ -44,7 +44,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
         ),
         body: Container(
           padding: const EdgeInsets.only(left: 16.0, right: 16.0),
-          color: Config.appBodyColor,
+          color: CustomColors.appBodyColor,
           child: Form(
             key: _formKey,
             child: ListView(
@@ -62,7 +62,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                 ),
                 Text(
                   'First Name',
-                  style: TextStyle(fontSize: 12, color: Config.inactiveColor),
+                  style: TextStyle(
+                      fontSize: 12, color: CustomColors.inactiveColor),
                 ),
                 const SizedBox(
                   height: 4,
@@ -78,7 +79,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                 ),
                 Text(
                   'Last Name',
-                  style: TextStyle(fontSize: 12, color: Config.inactiveColor),
+                  style: TextStyle(
+                      fontSize: 12, color: CustomColors.inactiveColor),
                 ),
                 const SizedBox(
                   height: 4,
@@ -99,7 +101,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                   visible: _phoneEditor.text.isNotEmpty,
                   child: Text(
                     'Phone Number',
-                    style: TextStyle(fontSize: 12, color: Config.inactiveColor),
+                    style: TextStyle(
+                        fontSize: 12, color: CustomColors.inactiveColor),
                   ),
                 ),
                 Visibility(
@@ -119,7 +122,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                             controller: _phoneEditor,
                             enableSuggestions: false,
                             readOnly: true,
-                            style: TextStyle(color: Config.inactiveColor),
+                            style: TextStyle(color: CustomColors.inactiveColor),
                             decoration: inactiveFormFieldDecoration(),
                           ),
                         ),
@@ -160,7 +163,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                   visible: _emailEditor.text.isNotEmpty,
                   child: Text(
                     'Email',
-                    style: TextStyle(fontSize: 12, color: Config.inactiveColor),
+                    style: TextStyle(
+                        fontSize: 12, color: CustomColors.inactiveColor),
                   ),
                 ),
                 Visibility(
@@ -180,7 +184,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                             controller: _emailEditor,
                             enableSuggestions: false,
                             readOnly: true,
-                            style: TextStyle(color: Config.inactiveColor),
+                            style: TextStyle(color: CustomColors.inactiveColor),
                             decoration: inactiveFormFieldDecoration(),
                           ),
                         ),

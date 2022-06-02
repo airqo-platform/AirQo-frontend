@@ -2,13 +2,13 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../constants/config.dart';
 import '../../models/enum_constants.dart';
 import '../../models/measurement.dart';
 import '../../models/place_details.dart';
 import '../../models/suggestion.dart';
 import '../../services/native_api.dart';
 import '../../themes/app_theme.dart';
+import '../../themes/colors.dart';
 import '../../widgets/custom_widgets.dart';
 import '../insights/insights_page.dart';
 
@@ -38,7 +38,7 @@ class SearchPlaceTile extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: CustomTextStyle.bodyText4(context)
-                ?.copyWith(color: Config.appColorBlack.withOpacity(0.3)),
+                ?.copyWith(color: CustomColors.appColorBlack.withOpacity(0.3)),
           ),
           trailing: SvgPicture.asset(
             'assets/icon/more_arrow.svg',
@@ -50,11 +50,11 @@ class SearchPlaceTile extends StatelessWidget {
               height: 40,
               width: 40,
               decoration: BoxDecoration(
-                  color: Config.appColorBlue.withOpacity(0.15),
+                  color: CustomColors.appColorBlue.withOpacity(0.15),
                   shape: BoxShape.circle),
               child: Center(
                 child: SvgPicture.asset('assets/icon/location.svg',
-                    color: Config.appColorBlue),
+                    color: CustomColors.appColorBlue),
               ))),
     );
   }
@@ -87,7 +87,7 @@ class SearchInputField extends StatelessWidget {
         enableSuggestions: true,
         cursorWidth: 1,
         autofocus: false,
-        cursorColor: Config.appColorBlack,
+        cursorColor: CustomColors.appColorBlack,
         decoration: InputDecoration(
           fillColor: Colors.white,
           prefixIcon: Padding(
@@ -115,7 +115,7 @@ class SearchInputField extends StatelessWidget {
               borderRadius: BorderRadius.circular(8.0)),
           hintText: 'Search locations',
           hintStyle: Theme.of(context).textTheme.caption?.copyWith(
-                color: Config.appColorBlack.withOpacity(0.32),
+                color: CustomColors.appColorBlack.withOpacity(0.32),
                 fontSize: 14,
                 fontWeight: FontWeight.w400,
               ),
@@ -154,7 +154,7 @@ class NoNearbyLocations extends StatelessWidget {
                   ),
                   Container(
                     decoration: BoxDecoration(
-                      color: Config.appColorBlue,
+                      color: CustomColors.appColorBlue,
                       shape: BoxShape.circle,
                     ),
                     child: const Padding(
@@ -213,7 +213,7 @@ class SearchLocationTile extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: CustomTextStyle.bodyText4(context)
-              ?.copyWith(color: Config.appColorBlack.withOpacity(0.3)),
+              ?.copyWith(color: CustomColors.appColorBlack.withOpacity(0.3)),
         ),
         trailing: SvgPicture.asset(
           'assets/icon/more_arrow.svg',
@@ -264,7 +264,7 @@ class RequestLocationAccess extends StatelessWidget {
                     height: 56,
                     width: 56,
                     decoration: BoxDecoration(
-                      color: Config.appColorBlue,
+                      color: CustomColors.appColorBlue,
                       shape: BoxShape.circle,
                     ),
                     child: Padding(
@@ -298,7 +298,7 @@ class RequestLocationAccess extends StatelessWidget {
             style: Theme.of(context)
                 .textTheme
                 .subtitle2
-                ?.copyWith(color: Config.appColorBlack.withOpacity(0.4)),
+                ?.copyWith(color: CustomColors.appColorBlack.withOpacity(0.4)),
           ),
           const SizedBox(
             height: 24,
@@ -311,7 +311,7 @@ class RequestLocationAccess extends StatelessWidget {
             },
             child: Container(
                 decoration: BoxDecoration(
-                    color: Config.appColorBlue,
+                    color: CustomColors.appColorBlue,
                     borderRadius: const BorderRadius.all(Radius.circular(8.0))),
                 child: const Padding(
                   padding: EdgeInsets.only(top: 12, bottom: 14),
@@ -355,7 +355,7 @@ class NearbyLocations extends StatelessWidget {
         Container(
             padding: const EdgeInsets.only(bottom: 8),
             decoration: BoxDecoration(
-                color: Config.appBodyColor,
+                color: CustomColors.appBodyColor,
                 shape: BoxShape.rectangle,
                 borderRadius: const BorderRadius.all(Radius.circular(10.0))),
             child: MediaQuery.removePadding(

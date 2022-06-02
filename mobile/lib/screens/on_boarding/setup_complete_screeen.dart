@@ -1,4 +1,3 @@
-import 'package:app/constants/config.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/app_service.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../models/enum_constants.dart';
 import '../../models/profile.dart';
 import '../../services/local_storage.dart';
+import '../../themes/colors.dart';
 
 class SetUpCompleteScreen extends StatefulWidget {
   const SetUpCompleteScreen({Key? key}) : super(key: key);
@@ -18,7 +18,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Config.appBodyColor,
+        backgroundColor: CustomColors.appBodyColor,
         body: WillPopScope(
           onWillPop: onWillPop,
           child: Center(
@@ -35,7 +35,7 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
                     'Breathe',
                     textAlign: TextAlign.center,
                     style: _setUpCompleteTextStyle()
-                        ?.copyWith(color: Config.appColorBlue),
+                        ?.copyWith(color: CustomColors.appColorBlue),
                   ),
                 ]),
           ),

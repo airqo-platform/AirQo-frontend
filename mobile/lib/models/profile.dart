@@ -3,8 +3,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-import '../constants/config.dart';
 import '../services/firebase_service.dart';
+import '../services/hive_service.dart';
 import '../services/native_api.dart';
 import '../utils/network.dart';
 import 'enum_constants.dart';

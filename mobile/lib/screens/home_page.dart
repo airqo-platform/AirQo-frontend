@@ -1,5 +1,4 @@
 import 'package:animations/animations.dart';
-import 'package:app/constants/config.dart';
 import 'package:app/models/enum_constants.dart';
 import 'package:app/models/notification.dart';
 import 'package:app/screens/profile/profile_view.dart';
@@ -9,7 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../services/hive_service.dart';
 import '../services/local_storage.dart';
+import '../themes/colors.dart';
 import '../utils/network.dart';
 import 'dashboard/dashboard_view.dart';
 import 'map/map_view.dart';
@@ -37,7 +38,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Config.appBodyColor,
+      backgroundColor: CustomColors.appBodyColor,
       body: WillPopScope(
         onWillPop: _onWillPop,
         child: PageTransitionSwitcher(
@@ -63,26 +64,25 @@ class _HomePageState extends State<HomePage> {
       ),
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
-            canvasColor: Config.appBodyColor,
-            primaryColor: Config.appColorBlack,
-            textTheme: Theme.of(context)
-                .textTheme
-                .copyWith(caption: TextStyle(color: Config.appColorBlack))),
+            canvasColor: CustomColors.appBodyColor,
+            primaryColor: CustomColors.appColorBlack,
+            textTheme: Theme.of(context).textTheme.copyWith(
+                caption: TextStyle(color: CustomColors.appColorBlack))),
         child: BottomNavigationBar(
           selectedIconTheme: Theme.of(context)
               .iconTheme
-              .copyWith(color: Config.appColorBlue, opacity: 0.3),
+              .copyWith(color: CustomColors.appColorBlue, opacity: 0.3),
           unselectedIconTheme: Theme.of(context)
               .iconTheme
-              .copyWith(color: Config.appColorBlack, opacity: 0.3),
+              .copyWith(color: CustomColors.appColorBlack, opacity: 0.3),
           items: <BottomNavigationBarItem>[
             BottomNavigationBarItem(
               icon: SvgPicture.asset(
                 'assets/icon/home_icon.svg',
                 semanticsLabel: 'Home',
                 color: _selectedIndex == 0
-                    ? Config.appColorBlue
-                    : Config.appColorBlack.withOpacity(0.3),
+                    ? CustomColors.appColorBlue
+                    : CustomColors.appColorBlack.withOpacity(0.3),
               ),
               label: 'Home',
             ),
@@ -90,8 +90,8 @@ class _HomePageState extends State<HomePage> {
               icon: SvgPicture.asset(
                 'assets/icon/location.svg',
                 color: _selectedIndex == 1
-                    ? Config.appColorBlue
-                    : Config.appColorBlack.withOpacity(0.3),
+                    ? CustomColors.appColorBlue
+                    : CustomColors.appColorBlack.withOpacity(0.3),
                 semanticsLabel: 'AirQo Map',
               ),
               label: 'AirQo Map',
@@ -102,8 +102,8 @@ class _HomePageState extends State<HomePage> {
                   SvgPicture.asset(
                     'assets/icon/profile.svg',
                     color: _selectedIndex == 2
-                        ? Config.appColorBlue
-                        : Config.appColorBlack.withOpacity(0.3),
+                        ? CustomColors.appColorBlue
+                        : CustomColors.appColorBlack.withOpacity(0.3),
                     semanticsLabel: 'Profile',
                   ),
                   ValueListenableBuilder<Box>(
@@ -126,7 +126,7 @@ class _HomePageState extends State<HomePage> {
                               shape: BoxShape.circle,
                               color: unreadNotifications.isEmpty
                                   ? Colors.transparent
-                                  : Config.red),
+                                  : CustomColors.red),
                         ),
                       );
                     },
@@ -137,10 +137,10 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
           currentIndex: _selectedIndex,
-          selectedItemColor: Config.appColorBlue,
-          unselectedItemColor: Config.appColorBlack.withOpacity(0.3),
+          selectedItemColor: CustomColors.appColorBlue,
+          unselectedItemColor: CustomColors.appColorBlack.withOpacity(0.3),
           elevation: 0.0,
-          backgroundColor: Config.appBodyColor,
+          backgroundColor: CustomColors.appBodyColor,
           onTap: _onItemTapped,
           showSelectedLabels: true,
           showUnselectedLabels: true,

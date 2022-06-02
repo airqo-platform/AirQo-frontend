@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:app/constants/config.dart';
 import 'package:app/screens/auth/phone_auth_widget.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/app_service.dart';
@@ -14,6 +13,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/enum_constants.dart';
 import '../../themes/app_theme.dart';
+import '../../themes/colors.dart';
 import '../../widgets/custom_shimmer.dart';
 import '../on_boarding/profile_setup_screen.dart';
 import 'auth_widgets.dart';
@@ -71,7 +71,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     setState(() {
       _emailAddress = '';
       _emailInputController.text = '';
-      _nextBtnColor = Config.appColorDisabled;
+      _nextBtnColor = CustomColors.appColorDisabled;
     });
   }
 
@@ -102,30 +102,31 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
       enableSuggestions: true,
       cursorWidth: 1,
       autofocus: false,
-      cursorColor: Config.appColorBlue,
+      cursorColor: CustomColors.appColorBlue,
       keyboardType: TextInputType.emailAddress,
       decoration: InputDecoration(
         contentPadding: const EdgeInsets.fromLTRB(16, 12, 0, 12),
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Config.appColorBlue, width: 1.0),
+          borderSide: BorderSide(color: CustomColors.appColorBlue, width: 1.0),
           borderRadius: BorderRadius.circular(8.0),
         ),
         enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Config.appColorBlue, width: 1.0),
+          borderSide: BorderSide(color: CustomColors.appColorBlue, width: 1.0),
           borderRadius: BorderRadius.circular(8.0),
         ),
         border: OutlineInputBorder(
-            borderSide: BorderSide(color: Config.appColorBlue, width: 1.0),
+            borderSide:
+                BorderSide(color: CustomColors.appColorBlue, width: 1.0),
             borderRadius: BorderRadius.circular(8.0)),
         hintText: 'Enter your email',
         hintStyle: Theme.of(context)
             .textTheme
             .bodyText1
-            ?.copyWith(color: Config.appColorBlack.withOpacity(0.32)),
+            ?.copyWith(color: CustomColors.appColorBlack.withOpacity(0.32)),
         prefixStyle: Theme.of(context)
             .textTheme
             .bodyText1
-            ?.copyWith(color: Config.appColorBlack.withOpacity(0.32)),
+            ?.copyWith(color: CustomColors.appColorBlack.withOpacity(0.32)),
         suffixIcon: GestureDetector(
           onTap: clearEmailCallBack,
           child: const TextInputCloseButton(),
@@ -159,7 +160,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
           style: Theme.of(context)
               .textTheme
               .bodyText2
-              ?.copyWith(color: Config.appColorBlack.withOpacity(0.6))),
+              ?.copyWith(color: CustomColors.appColorBlack.withOpacity(0.6))),
       const SizedBox(
         height: 32,
       ),
@@ -223,11 +224,11 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
   void emailValueChange(text) {
     if (text.toString().isEmpty || !_emailInputController.text.isValidEmail()) {
       setState(() {
-        _nextBtnColor = Config.appColorDisabled;
+        _nextBtnColor = CustomColors.appColorDisabled;
       });
     } else {
       setState(() {
-        _nextBtnColor = Config.appColorBlue;
+        _nextBtnColor = CustomColors.appColorBlue;
       });
     }
     setState(() {
@@ -259,7 +260,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
           style: Theme.of(context)
               .textTheme
               .bodyText2
-              ?.copyWith(color: Config.appColorBlack.withOpacity(0.6))),
+              ?.copyWith(color: CustomColors.appColorBlack.withOpacity(0.6))),
       const SizedBox(
         height: 32,
       ),
@@ -277,7 +278,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
             style: Theme.of(context)
                 .textTheme
                 .caption
-                ?.copyWith(color: Config.appColorBlack.withOpacity(0.5))),
+                ?.copyWith(color: CustomColors.appColorBlack.withOpacity(0.5))),
       ),
       Visibility(
         visible: _codeSentCountDown <= 0,
@@ -290,7 +291,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
               style: Theme.of(context)
                   .textTheme
                   .caption
-                  ?.copyWith(color: Config.appColorBlue)),
+                  ?.copyWith(color: CustomColors.appColorBlue)),
         ),
       ),
       const SizedBox(
@@ -327,7 +328,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
           style: Theme.of(context)
               .textTheme
               .caption
-              ?.copyWith(color: Config.appColorBlue),
+              ?.copyWith(color: CustomColors.appColorBlue),
         ),
       ),
       const Spacer(),
@@ -377,11 +378,11 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     final code = _emailVerificationCode.join('');
     if (code.length == 6) {
       setState(() {
-        _nextBtnColor = Config.appColorBlue;
+        _nextBtnColor = CustomColors.appColorBlue;
       });
     } else {
       setState(() {
-        _nextBtnColor = Config.appColorDisabled;
+        _nextBtnColor = CustomColors.appColorDisabled;
       });
     }
   }
@@ -400,13 +401,13 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     }
 
     setState(() {
-      _nextBtnColor = Config.appColorDisabled;
+      _nextBtnColor = CustomColors.appColorDisabled;
     });
 
     if (code != _emailToken.toString()) {
       await showSnackBar(context, 'Invalid Code');
       setState(() {
-        _nextBtnColor = Config.appColorBlue;
+        _nextBtnColor = CustomColors.appColorBlue;
       });
       return;
     }
@@ -447,7 +448,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
       }
     } else {
       setState(() {
-        _nextBtnColor = Config.appColorBlue;
+        _nextBtnColor = CustomColors.appColorBlue;
         _codeSent = true;
       });
       await showSnackBar(context, 'Authentication failed');
@@ -465,8 +466,8 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     setState(() {
       _emailAddress = widget.emailAddress ?? '';
       _nextBtnColor = widget.emailAddress == null
-          ? Config.appColorDisabled
-          : Config.appColorBlue;
+          ? CustomColors.appColorDisabled
+          : CustomColors.appColorBlue;
       _emailVerificationLink = '';
       _emailToken = 1;
       _verifyCode = false;
@@ -519,7 +520,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     });
 
     setState(() {
-      _nextBtnColor = Config.appColorDisabled;
+      _nextBtnColor = CustomColors.appColorDisabled;
     });
     loadingScreen(loadingContext);
 
@@ -529,7 +530,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
 
       if (emailExists) {
         setState(() {
-          _nextBtnColor = Config.appColorBlue;
+          _nextBtnColor = CustomColors.appColorBlue;
         });
         Navigator.pop(loadingContext);
         await showSnackBar(
@@ -563,7 +564,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     if (emailSignupResponse == null) {
       await showSnackBar(context, 'email signup verification failed');
       setState(() {
-        _nextBtnColor = Config.appColorBlue;
+        _nextBtnColor = CustomColors.appColorBlue;
       });
       return;
     }

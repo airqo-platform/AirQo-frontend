@@ -6,7 +6,7 @@ import 'package:app/widgets/dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-import '../constants/config.dart';
+import '../themes/colors.dart';
 import '../widgets/custom_widgets.dart';
 
 class WebViewScreen extends StatefulWidget {
@@ -34,7 +34,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
         body: Stack(
           children: [
             WebView(
-              backgroundColor: Config.appBodyColor,
+              backgroundColor: CustomColors.appBodyColor,
               initialUrl: widget.url,
               onWebViewCreated: controller.complete,
               javascriptMode: JavascriptMode.unrestricted,
@@ -57,8 +57,8 @@ class _WebViewScreenState extends State<WebViewScreen> {
             if (loadingPercentage < 100)
               LinearProgressIndicator(
                 value: loadingPercentage / 100.0,
-                color: Config.appColorBlue,
-                backgroundColor: Config.appColorDisabled,
+                color: CustomColors.appColorBlue,
+                backgroundColor: CustomColors.appColorDisabled,
               ),
           ],
         ));
@@ -89,15 +89,15 @@ class NavigationControls extends StatelessWidget {
             children: <Widget>[
               Icon(
                 Icons.arrow_back_ios,
-                color: Config.appColorBlue,
+                color: CustomColors.appColorBlue,
               ),
               Icon(
                 Icons.arrow_forward_ios,
-                color: Config.appColorBlue,
+                color: CustomColors.appColorBlue,
               ),
               Icon(
                 Icons.replay,
-                color: Config.appColorBlue,
+                color: CustomColors.appColorBlue,
               ),
             ],
           );
@@ -108,7 +108,7 @@ class NavigationControls extends StatelessWidget {
             IconButton(
               icon: Icon(
                 Icons.arrow_back_ios,
-                color: Config.appColorBlue,
+                color: CustomColors.appColorBlue,
               ),
               onPressed: () async {
                 if (await controller.canGoBack()) {
@@ -122,7 +122,7 @@ class NavigationControls extends StatelessWidget {
             IconButton(
               icon: Icon(
                 Icons.arrow_forward_ios,
-                color: Config.appColorBlue,
+                color: CustomColors.appColorBlue,
               ),
               onPressed: () async {
                 if (await controller.canGoForward()) {
@@ -136,7 +136,7 @@ class NavigationControls extends StatelessWidget {
             IconButton(
               icon: Icon(
                 Icons.replay,
-                color: Config.appColorBlue,
+                color: CustomColors.appColorBlue,
               ),
               onPressed: controller.reload,
             ),

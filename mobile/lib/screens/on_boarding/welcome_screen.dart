@@ -1,4 +1,3 @@
-import 'package:app/constants/config.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/dialogs.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +6,7 @@ import 'package:flutter_svg/svg.dart';
 import '../../models/enum_constants.dart';
 import '../../services/local_storage.dart';
 import '../../themes/app_theme.dart';
+import '../../themes/colors.dart';
 import '../auth/phone_auth_widget.dart';
 import 'on_boarding_widgets.dart';
 
@@ -24,7 +24,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: const OnBoardingAppBar(),
-        backgroundColor: Config.appBodyColor,
+        backgroundColor: CustomColors.appBodyColor,
         body: WillPopScope(
           onWillPop: onWillPop,
           child: Padding(
@@ -43,7 +43,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
                 style: Theme.of(context)
                     .textTheme
                     .headline6
-                    ?.copyWith(color: Config.appColorBlue),
+                    ?.copyWith(color: CustomColors.appColorBlue),
               ),
               const SizedBox(
                 height: 21,
@@ -77,7 +77,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
                 },
                 child: NextButton(
                   text: 'Let\'s go',
-                  buttonColor: Config.appColorBlue,
+                  buttonColor: CustomColors.appColorBlue,
                 ),
               ),
               const SizedBox(
@@ -137,7 +137,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
             style: Theme.of(context)
                 .textTheme
                 .bodyText2
-                ?.copyWith(color: Config.appColorBlack.withOpacity(0.5)),
+                ?.copyWith(color: CustomColors.appColorBlack.withOpacity(0.5)),
           ),
         ));
   }

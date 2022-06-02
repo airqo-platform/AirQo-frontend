@@ -65,8 +65,10 @@ class DefaultFirebaseOptions {
     projectId: 'airqo-250220',
     databaseURL: 'https://airqo-250220.firebaseio.com',
     storageBucket: 'airqo-250220.appspot.com',
-    androidClientId: '702081712633-2m55tnj0njsgt4hnekmavgpf8js67a3r.apps.googleusercontent.com',
-    iosClientId: '702081712633-3tgp25ii9bktfrtjbcm1ubn5s43dmu9t.apps.googleusercontent.com',
+    androidClientId:
+        '702081712633-2m55tnj0njsgt4hnekmavgpf8js67a3r.apps.googleusercontent.com',
+    iosClientId:
+        '702081712633-3tgp25ii9bktfrtjbcm1ubn5s43dmu9t.apps.googleusercontent.com',
     iosBundleId: 'com.airqo.net',
   );
 }

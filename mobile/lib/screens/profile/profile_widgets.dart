@@ -6,9 +6,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../constants/config.dart';
 import '../../models/profile.dart';
 import '../../themes/app_theme.dart';
+import '../../themes/colors.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/custom_shimmer.dart';
 import '../auth/phone_auth_widget.dart';
@@ -25,12 +25,12 @@ class LogoutButton extends StatelessWidget {
       height: 48,
       padding: const EdgeInsets.only(top: 12, bottom: 12),
       decoration: BoxDecoration(
-          color: Config.appColorBlue.withOpacity(0.1),
+          color: CustomColors.appColorBlue.withOpacity(0.1),
           borderRadius: const BorderRadius.all(Radius.circular(8.0))),
       child: Center(
         child: Text(
           'Log Out',
-          style: TextStyle(fontSize: 16, color: Config.appColorBlue),
+          style: TextStyle(fontSize: 16, color: CustomColors.appColorBlue),
         ),
       ),
     );
@@ -74,10 +74,8 @@ class SignUpSection extends StatelessWidget {
                 maxLines: 6,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .subtitle2
-                    ?.copyWith(color: Config.appColorBlack.withOpacity(0.4))),
+                style: Theme.of(context).textTheme.subtitle2?.copyWith(
+                    color: CustomColors.appColorBlack.withOpacity(0.4))),
           ),
           const SizedBox(
             height: 24,
@@ -94,7 +92,7 @@ class SignUpSection extends StatelessWidget {
               child: Container(
                   constraints: const BoxConstraints(minWidth: double.infinity),
                   decoration: BoxDecoration(
-                      color: Config.appColorBlue,
+                      color: CustomColors.appColorBlue,
                       borderRadius:
                           const BorderRadius.all(Radius.circular(8.0))),
                   child: const Center(
@@ -142,11 +140,11 @@ class SettingsButton extends StatelessWidget {
               height: 40,
               width: 40,
               decoration: BoxDecoration(
-                  color: Config.appColorBlue.withOpacity(0.15),
+                  color: CustomColors.appColorBlue.withOpacity(0.15),
                   shape: BoxShape.circle),
               child: Center(
                 child: SvgPicture.asset('assets/icon/cog.svg',
-                    color: Config.appColorBlue),
+                    color: CustomColors.appColorBlue),
               )),
           title: AutoSizeText(
             'Settings',
@@ -175,7 +173,7 @@ class ProfilePicture extends StatelessWidget {
               padding: const EdgeInsets.all(2.0),
               decoration: BoxDecoration(
                   color: userDetails.photoUrl == ''
-                      ? Config.appPicColor
+                      ? CustomColors.appPicColor
                       : Colors.transparent,
                   shape: BoxShape.rectangle,
                   borderRadius: const BorderRadius.all(Radius.circular(27.0))),
@@ -238,7 +236,7 @@ class CardSection extends StatelessWidget {
             height: 40,
             width: 40,
             decoration: BoxDecoration(
-                color: Config.appColorBlue.withOpacity(0.15),
+                color: CustomColors.appColorBlue.withOpacity(0.15),
                 shape: BoxShape.circle),
             child: Center(
               child: SvgPicture.asset(icon, color: iconColor),
@@ -282,10 +280,10 @@ class _ProfileSectionState extends State<ProfileSection> {
             child: CardSection(
                 text: 'Profile',
                 icon: 'assets/icon/profile.svg',
-                iconColor: Config.appColorBlue),
+                iconColor: CustomColors.appColorBlue),
           ),
           Divider(
-            color: Config.appBodyColor,
+            color: CustomColors.appBodyColor,
           ),
           GestureDetector(
             onTap: () async {
@@ -300,7 +298,7 @@ class _ProfileSectionState extends State<ProfileSection> {
                 iconColor: null),
           ),
           Divider(
-            color: Config.appBodyColor,
+            color: CustomColors.appBodyColor,
           ),
           GestureDetector(
             onTap: () async {
@@ -312,10 +310,10 @@ class _ProfileSectionState extends State<ProfileSection> {
             child: CardSection(
                 text: 'For you',
                 icon: 'assets/icon/sparkles.svg',
-                iconColor: Config.appColorBlue),
+                iconColor: CustomColors.appColorBlue),
           ),
           Divider(
-            color: Config.appBodyColor,
+            color: CustomColors.appBodyColor,
           ),
           GestureDetector(
             onTap: () async {
@@ -327,7 +325,7 @@ class _ProfileSectionState extends State<ProfileSection> {
             child: CardSection(
                 text: 'Settings',
                 icon: 'assets/icon/cog.svg',
-                iconColor: Config.appColorBlue),
+                iconColor: CustomColors.appColorBlue),
           ),
         ],
       ),
@@ -357,7 +355,7 @@ class EditProfilePicSection extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(2.0),
                       decoration: BoxDecoration(
-                          color: Config.appPicColor,
+                          color: CustomColors.appPicColor,
                           shape: BoxShape.rectangle,
                           borderRadius:
                               const BorderRadius.all(Radius.circular(35.0))),
@@ -371,16 +369,16 @@ class EditProfilePicSection extends StatelessWidget {
                 : profile.photoUrl.startsWith('http')
                     ? CircleAvatar(
                         radius: 44,
-                        backgroundColor: Config.appPicColor,
-                        foregroundColor: Config.appPicColor,
+                        backgroundColor: CustomColors.appPicColor,
+                        foregroundColor: CustomColors.appPicColor,
                         backgroundImage: CachedNetworkImageProvider(
                           profile.photoUrl,
                         ),
                       )
                     : CircleAvatar(
                         radius: 44,
-                        backgroundColor: Config.appPicColor,
-                        foregroundColor: Config.appPicColor,
+                        backgroundColor: CustomColors.appPicColor,
+                        foregroundColor: CustomColors.appPicColor,
                         backgroundImage: FileImage(File(profile.photoUrl)),
                       ),
             if (profile.photoUrl == '')
@@ -400,7 +398,7 @@ class EditProfilePicSection extends StatelessWidget {
                     padding: const EdgeInsets.all(2.0),
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.white),
-                      color: Config.appColorBlue,
+                      color: CustomColors.appColorBlue,
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -443,7 +441,7 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
         toolbarHeight: 72,
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Config.appBodyColor,
+        backgroundColor: CustomColors.appBodyColor,
         automaticallyImplyLeading: false,
         title: Row(
           children: [
@@ -457,10 +455,8 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
             GestureDetector(
               onTap: updateProfile,
               child: Text('Save',
-                  style: Theme.of(context)
-                      .textTheme
-                      .subtitle2
-                      ?.copyWith(color: Config.appColorBlack.withOpacity(0.2))),
+                  style: Theme.of(context).textTheme.subtitle2?.copyWith(
+                      color: CustomColors.appColorBlack.withOpacity(0.2))),
             ),
           ],
         ));
@@ -483,7 +479,7 @@ class NameEditField extends StatelessWidget {
       initialValue: value,
       enableSuggestions: false,
       cursorWidth: 1,
-      cursorColor: Config.appColorBlue,
+      cursorColor: CustomColors.appColorBlue,
       keyboardType: TextInputType.name,
       decoration: InputDecoration(
         filled: true,

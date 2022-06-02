@@ -1,7 +1,7 @@
-import 'package:app/constants/config.dart';
 import 'package:country_list_pick/country_list_pick.dart';
 import 'package:flutter/material.dart';
 
+import '../themes/colors.dart';
 import 'custom_widgets.dart';
 
 class CountryCodePickerField extends StatelessWidget {
@@ -26,10 +26,10 @@ class CountryCodePickerField extends StatelessWidget {
           isShowCode: false,
           isDownIcon: true,
           showEnglishName: false,
-          labelColor: Config.appColorBlue,
-          alphabetSelectedBackgroundColor: Config.appColorBlue,
-          alphabetTextColor: Config.appColorBlue,
-          alphabetSelectedTextColor: Config.appColorBlue,
+          labelColor: CustomColors.appColorBlue,
+          alphabetSelectedBackgroundColor: CustomColors.appColorBlue,
+          alphabetTextColor: CustomColors.appColorBlue,
+          alphabetSelectedTextColor: CustomColors.appColorBlue,
         ), //show down icon on dropdown
         initialSelection: placeholder,
         onChanged: (CountryCode? code) {
@@ -67,12 +67,12 @@ class OptField extends StatelessWidget {
         enableSuggestions: false,
         cursorWidth: 1,
         autofocus: true,
-        cursorColor: Config.appColorBlue,
+        cursorColor: CustomColors.appColorBlue,
         keyboardType: TextInputType.number,
         style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.w500,
-            color: Config.appColorBlue,
+            color: CustomColors.appColorBlue,
             letterSpacing: 16 * 0.41,
             height: 40 / 32),
         decoration: InputDecoration(
@@ -83,11 +83,13 @@ class OptField extends StatelessWidget {
               ? Colors.white
               : const Color(0xff8D8D8D).withOpacity(0.1),
           focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Config.appColorBlue, width: 1.0),
+            borderSide:
+                BorderSide(color: CustomColors.appColorBlue, width: 1.0),
             borderRadius: BorderRadius.circular(8.0),
           ),
           enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Config.appColorBlue, width: 1.0),
+            borderSide:
+                BorderSide(color: CustomColors.appColorBlue, width: 1.0),
             borderRadius: BorderRadius.circular(8.0),
           ),
           errorStyle: const TextStyle(
@@ -108,7 +110,7 @@ class TextInputCloseButton extends StatelessWidget {
       padding: const EdgeInsets.all(15),
       child: Container(
         decoration: BoxDecoration(
-            color: Config.greyColor.withOpacity(0.7),
+            color: CustomColors.greyColor.withOpacity(0.7),
             borderRadius: const BorderRadius.all(Radius.circular(5.0))),
         height: 15,
         width: 15,

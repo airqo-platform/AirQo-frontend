@@ -3,11 +3,11 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../constants/config.dart';
 import '../../models/enum_constants.dart';
 import '../../models/measurement.dart';
 import '../../models/suggestion.dart';
 import '../../themes/app_theme.dart';
+import '../../themes/colors.dart';
 import '../../widgets/custom_widgets.dart';
 
 class DraggingHandle extends StatelessWidget {
@@ -33,11 +33,11 @@ class RegionAvatar extends StatelessWidget {
         height: 40,
         width: 40,
         decoration: BoxDecoration(
-            color: Config.appColorBlue.withOpacity(0.15),
+            color: CustomColors.appColorBlue.withOpacity(0.15),
             shape: BoxShape.circle),
         child: Center(
           child: SvgPicture.asset('assets/icon/location.svg',
-              color: Config.appColorBlue),
+              color: CustomColors.appColorBlue),
         ));
   }
 }
@@ -87,7 +87,7 @@ class SiteTile extends StatelessWidget {
           maxLines: 1,
           minFontSize: 14.0,
           style: CustomTextStyle.bodyText4(context)
-              ?.copyWith(color: Config.appColorBlack.withOpacity(0.4))),
+              ?.copyWith(color: CustomColors.appColorBlack.withOpacity(0.4))),
       trailing: SvgPicture.asset(
         'assets/icon/more_arrow.svg',
         semanticsLabel: 'more',
@@ -123,7 +123,7 @@ class RegionTile extends StatelessWidget {
       subtitle: AutoSizeText(
         'Uganda',
         style: CustomTextStyle.bodyText4(context)
-            ?.copyWith(color: Config.appColorBlack.withOpacity(0.3)),
+            ?.copyWith(color: CustomColors.appColorBlack.withOpacity(0.3)),
       ),
       trailing: SvgPicture.asset(
         'assets/icon/more_arrow.svg',
@@ -161,7 +161,7 @@ class SearchTile extends StatelessWidget {
           minFontSize: 14.0,
           overflow: TextOverflow.ellipsis,
           style: CustomTextStyle.bodyText4(context)
-              ?.copyWith(color: Config.appColorBlack.withOpacity(0.3))),
+              ?.copyWith(color: CustomColors.appColorBlack.withOpacity(0.3))),
       trailing: SvgPicture.asset(
         'assets/icon/more_arrow.svg',
         semanticsLabel: 'more',
@@ -198,7 +198,7 @@ class EmptyView extends StatelessWidget {
                     height: 32,
                     width: 32,
                     decoration: BoxDecoration(
-                        color: Config.appBodyColor,
+                        color: CustomColors.appBodyColor,
                         borderRadius:
                             const BorderRadius.all(Radius.circular(8.0))),
                     child: Center(
@@ -206,7 +206,7 @@ class EmptyView extends StatelessWidget {
                         iconSize: 10,
                         icon: Icon(
                           Icons.clear,
-                          color: Config.appColor,
+                          color: CustomColors.appColor,
                         ),
                         onPressed: showRegions,
                       ),
@@ -241,10 +241,8 @@ class EmptyView extends StatelessWidget {
               'We currently do not support air quality '
               'monitoring in this $bodyInnerText, but we’re working on it.',
               textAlign: TextAlign.center,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyText2
-                  ?.copyWith(color: Config.appColorBlack.withOpacity(0.4)),
+              style: Theme.of(context).textTheme.bodyText2?.copyWith(
+                  color: CustomColors.appColorBlack.withOpacity(0.4)),
             )),
         const SizedBox(
           height: 158,

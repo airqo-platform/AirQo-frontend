@@ -3,11 +3,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../constants/config.dart';
 import '../../models/enum_constants.dart';
 import '../../models/kya.dart';
 import '../../models/measurement.dart';
 import '../../themes/app_theme.dart';
+import '../../themes/colors.dart';
 import '../../utils/exception.dart';
 import '../../utils/pm.dart';
 import '../../widgets/custom_shimmer.dart';
@@ -30,7 +30,7 @@ class DashboardFavPlaceAvatar extends StatelessWidget {
           width: 32.0,
           padding: const EdgeInsets.all(2.0),
           decoration: BoxDecoration(
-            border: Border.all(color: Config.appBodyColor, width: 2),
+            border: Border.all(color: CustomColors.appBodyColor, width: 2),
             color: pollutantValueColor(
                 value: measurement.getPm2_5Value(), pollutant: Pollutant.pm2_5),
             shape: BoxShape.circle,
@@ -65,8 +65,8 @@ class KyaDashboardAvatar extends StatelessWidget {
           width: 32.0,
           padding: const EdgeInsets.all(2.0),
           decoration: BoxDecoration(
-            border: Border.all(color: Config.appBodyColor, width: 2),
-            color: Config.greyColor,
+            border: Border.all(color: CustomColors.appBodyColor, width: 2),
+            color: CustomColors.greyColor,
             shape: BoxShape.circle,
             image: DecorationImage(
               fit: BoxFit.cover,
@@ -93,8 +93,8 @@ class DashboardEmptyAvatar extends StatelessWidget {
           width: 32.0,
           padding: const EdgeInsets.all(2.0),
           decoration: BoxDecoration(
-            border: Border.all(color: Config.appBodyColor, width: 2),
-            color: Config.greyColor,
+            border: Border.all(color: CustomColors.appBodyColor, width: 2),
+            color: CustomColors.greyColor,
             shape: BoxShape.circle,
           ),
         ));
@@ -145,7 +145,7 @@ class DashboardTopBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       elevation: 0,
       toolbarHeight: 65,
-      backgroundColor: Config.appBodyColor,
+      backgroundColor: CustomColors.appBodyColor,
     );
   }
 
@@ -231,7 +231,7 @@ class DashboardKyaCard extends StatelessWidget {
                 imageUrl: kya.imageUrl,
                 errorWidget: (context, url, error) => Icon(
                   Icons.error_outline,
-                  color: Config.red,
+                  color: CustomColors.red,
                 ),
               ),
             ),

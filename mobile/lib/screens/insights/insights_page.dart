@@ -1,10 +1,10 @@
-import 'package:app/constants/config.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/screens/insights/insights_tab.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/enum_constants.dart';
+import '../../themes/colors.dart';
 import '../../utils/network.dart';
 import '../../widgets/buttons.dart';
 
@@ -31,7 +31,7 @@ class _InsightsPageState extends State<InsightsPage>
       appBar: const AppTopBar('More Insights'),
       body: Container(
         padding: const EdgeInsets.only(right: 0, left: 0),
-        color: Config.appBodyColor,
+        color: CustomColors.appBodyColor,
         child: Column(
           children: [
             Padding(

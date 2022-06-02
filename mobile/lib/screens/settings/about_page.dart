@@ -6,6 +6,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../themes/app_theme.dart';
+import '../../themes/colors.dart';
 
 class AboutAirQo extends StatefulWidget {
   const AboutAirQo({Key? key}) : super(key: key);
@@ -28,7 +29,7 @@ class _AboutAirQoState extends State<AboutAirQo> {
     return Scaffold(
         appBar: const AppTopBar('About'),
         body: Container(
-            color: Config.appBodyColor,
+            color: CustomColors.appBodyColor,
             child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -54,7 +55,7 @@ class _AboutAirQoState extends State<AboutAirQo> {
                   Text(
                     _packageInfo.version,
                     style: Theme.of(context).textTheme.subtitle1?.copyWith(
-                        color: Config.appColorBlack.withOpacity(0.5)),
+                        color: CustomColors.appColorBlack.withOpacity(0.5)),
                   ),
                   const Spacer(),
                   GestureDetector(
@@ -72,7 +73,7 @@ class _AboutAirQoState extends State<AboutAirQo> {
                       style: Theme.of(context)
                           .textTheme
                           .subtitle1
-                          ?.copyWith(color: Config.appColorBlue),
+                          ?.copyWith(color: CustomColors.appColorBlue),
                     ),
                   ),
                   const SizedBox(

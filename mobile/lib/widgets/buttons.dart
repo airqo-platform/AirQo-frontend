@@ -1,7 +1,7 @@
+import 'package:app/themes/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../constants/config.dart';
 import '../themes/app_theme.dart';
 
 class NextButton extends StatelessWidget {
@@ -78,7 +78,7 @@ class IconTextButton extends StatelessWidget {
         Text(
           text,
           style: TextStyle(
-              fontSize: 14, color: Config.appColorBlack, height: 18 / 14),
+              fontSize: 14, color: CustomColors.appColorBlack, height: 18 / 14),
         )
       ],
     );
@@ -103,7 +103,7 @@ class TabButton extends StatelessWidget {
           const BoxConstraints(minWidth: double.infinity, maxHeight: 32),
       decoration: BoxDecoration(
           color: tabController?.index == index
-              ? Config.appColorBlue
+              ? CustomColors.appColorBlue
               : Colors.white,
           borderRadius: const BorderRadius.all(Radius.circular(4.0))),
       child: Tab(
@@ -111,7 +111,7 @@ class TabButton extends StatelessWidget {
               style: CustomTextStyle.button1(context)?.copyWith(
                 color: tabController?.index == index
                     ? Colors.white
-                    : Config.appColorBlue,
+                    : CustomColors.appColorBlue,
               ))),
     );
   }

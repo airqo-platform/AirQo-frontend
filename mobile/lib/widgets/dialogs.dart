@@ -1,4 +1,3 @@
-import 'package:app/constants/config.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/utils/pm.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -8,6 +7,7 @@ import 'package:flutter_svg/svg.dart';
 
 import '../models/enum_constants.dart';
 import '../themes/app_theme.dart';
+import '../themes/colors.dart';
 
 void pmInfoDialog(context, double pm2_5) {
   showGeneralDialog(
@@ -56,7 +56,7 @@ void pmInfoDialog(context, double pm2_5) {
                           Text(
                             'Know Your Air',
                             style: CustomTextStyle.headline10(context)
-                                ?.copyWith(color: Config.appColorBlue),
+                                ?.copyWith(color: CustomColors.appColorBlue),
                           ),
                           GestureDetector(
                             onTap: () => Navigator.pop(context, 'OK'),
@@ -75,7 +75,7 @@ void pmInfoDialog(context, double pm2_5) {
                     ),
                     Divider(
                       height: 1,
-                      color: Config.appColorBlack.withOpacity(0.2),
+                      color: CustomColors.appColorBlack.withOpacity(0.2),
                     ),
                     const SizedBox(
                       height: 8,
@@ -92,7 +92,7 @@ void pmInfoDialog(context, double pm2_5) {
                                   text: 'PM',
                                   style: TextStyle(
                                       fontSize: 14,
-                                      color: Config.appColorBlack,
+                                      color: CustomColors.appColorBlack,
                                       fontWeight: FontWeight.bold,
                                       height: 18 / 14),
                                 ),
@@ -100,7 +100,7 @@ void pmInfoDialog(context, double pm2_5) {
                                   text: '2.5',
                                   style: TextStyle(
                                       fontSize: 12,
-                                      color: Config.appColorBlack,
+                                      color: CustomColors.appColorBlack,
                                       fontWeight: FontWeight.bold,
                                       height: 12 / 9),
                                 )
@@ -119,14 +119,14 @@ void pmInfoDialog(context, double pm2_5) {
                                       fontSize: 10,
                                       fontWeight: FontWeight.w500,
                                       height: 14 / 10,
-                                      color: Config.appColorBlack),
+                                      color: CustomColors.appColorBlack),
                                 ),
                                 TextSpan(
                                   text: 'is a complex mixture of extremely'
                                       ' small particles and liquid droplets.',
                                   style: TextStyle(
-                                      color:
-                                          Config.appColorBlack.withOpacity(0.7),
+                                      color: CustomColors.appColorBlack
+                                          .withOpacity(0.7),
                                       fontSize: 10,
                                       height: 14 / 10),
                                 )
@@ -144,8 +144,8 @@ void pmInfoDialog(context, double pm2_5) {
                                       'When measuring particles there are two '
                                       'size categories commonly used: ',
                                   style: TextStyle(
-                                      color:
-                                          Config.appColorBlack.withOpacity(0.7),
+                                      color: CustomColors.appColorBlack
+                                          .withOpacity(0.7),
                                       fontSize: 10,
                                       height: 14 / 10),
                                 ),
@@ -154,7 +154,7 @@ void pmInfoDialog(context, double pm2_5) {
                                   style: TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w500,
-                                      color: Config.appColorBlack,
+                                      color: CustomColors.appColorBlack,
                                       height: 14 / 10),
                                 ),
                                 TextSpan(
@@ -162,15 +162,15 @@ void pmInfoDialog(context, double pm2_5) {
                                   style: TextStyle(
                                     fontSize: 7,
                                     fontWeight: FontWeight.w800,
-                                    color: Config.appColorBlack,
+                                    color: CustomColors.appColorBlack,
                                   ),
                                 ),
                                 TextSpan(
                                   text: ' and ',
                                   style: TextStyle(
                                       fontSize: 10,
-                                      color:
-                                          Config.appColorBlack.withOpacity(0.7),
+                                      color: CustomColors.appColorBlack
+                                          .withOpacity(0.7),
                                       height: 14 / 10),
                                 ),
                                 TextSpan(
@@ -178,7 +178,7 @@ void pmInfoDialog(context, double pm2_5) {
                                   style: TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w500,
-                                      color: Config.appColorBlack,
+                                      color: CustomColors.appColorBlack,
                                       height: 14 / 10),
                                 ),
                                 TextSpan(
@@ -186,7 +186,7 @@ void pmInfoDialog(context, double pm2_5) {
                                   style: TextStyle(
                                     fontSize: 7,
                                     fontWeight: FontWeight.w800,
-                                    color: Config.appColorBlack,
+                                    color: CustomColors.appColorBlack,
                                   ),
                                 ),
                               ],
@@ -234,13 +234,13 @@ void pmInfoDialog(context, double pm2_5) {
                                       fontSize: 10,
                                       fontWeight: FontWeight.w500,
                                       height: 14 / 10,
-                                      color: Config.appColorBlack),
+                                      color: CustomColors.appColorBlack),
                                 ),
                                 TextSpan(
                                   text: pmToInfoDialog(pm2_5),
                                   style: TextStyle(
-                                      color:
-                                          Config.appColorBlack.withOpacity(0.7),
+                                      color: CustomColors.appColorBlack
+                                          .withOpacity(0.7),
                                       fontSize: 10,
                                       height: 14 / 10),
                                 )
@@ -276,7 +276,7 @@ Future<void> showSnackBar(context, String message) async {
         color: Colors.white,
       ),
     ),
-    backgroundColor: Config.snackBarBgColor,
+    backgroundColor: CustomColors.snackBarBgColor,
   );
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
@@ -300,7 +300,7 @@ class ConfirmationDialog extends StatelessWidget {
           },
           child: Text('Cancel',
               style: CustomTextStyle.caption4(context)
-                  ?.copyWith(color: Config.red)),
+                  ?.copyWith(color: CustomColors.red)),
           isDefaultAction: true,
           isDestructiveAction: true,
         ),
@@ -311,7 +311,7 @@ class ConfirmationDialog extends StatelessWidget {
           child: Text(
             'Proceed',
             style: CustomTextStyle.caption4(context)
-                ?.copyWith(color: Config.appColorBlue),
+                ?.copyWith(color: CustomColors.appColorBlue),
           ),
           isDefaultAction: true,
           isDestructiveAction: false,

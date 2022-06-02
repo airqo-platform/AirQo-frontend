@@ -3,9 +3,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../constants/config.dart';
 import '../../models/kya.dart';
 import '../../themes/app_theme.dart';
+import '../../themes/colors.dart';
 import 'kya_title_page.dart';
 
 class CircularKyaButton extends StatelessWidget {
@@ -19,12 +19,12 @@ class CircularKyaButton extends StatelessWidget {
       width: 48,
       padding: const EdgeInsets.all(15.0),
       decoration: BoxDecoration(
-        color: Config.appColorBlue.withOpacity(0.24),
+        color: CustomColors.appColorBlue.withOpacity(0.24),
         shape: BoxShape.circle,
       ),
       child: SvgPicture.asset(
         icon,
-        color: Config.appColorBlue,
+        color: CustomColors.appColorBlue,
       ),
     );
   }
@@ -60,7 +60,7 @@ class KyaMessage extends StatelessWidget {
             TextSpan(
                 text: 'For You',
                 style: CustomTextStyle.caption3(context)
-                    ?.copyWith(color: Config.appColorBlue)),
+                    ?.copyWith(color: CustomColors.appColorBlue)),
           ]));
     }
     return AutoSizeText(getKyaMessage(kya: kya),
@@ -68,7 +68,7 @@ class KyaMessage extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
         textAlign: TextAlign.center,
         style: CustomTextStyle.caption3(context)
-            ?.copyWith(color: Config.appColorBlue));
+            ?.copyWith(color: CustomColors.appColorBlue));
   }
 }
 
@@ -86,9 +86,9 @@ class KyaProgressBar extends StatelessWidget {
             borderRadius: BorderRadius.all(Radius.circular(8.0)),
           ),
           child: LinearProgressIndicator(
-            color: Config.appColorBlue,
+            color: CustomColors.appColorBlue,
             value: kya.progress / kya.lessons.length,
-            backgroundColor: Config.appColorDisabled.withOpacity(0.2),
+            backgroundColor: CustomColors.appColorDisabled.withOpacity(0.2),
           )),
     );
   }
@@ -185,7 +185,7 @@ class EmptyKya extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Config.appBodyColor,
+      color: CustomColors.appBodyColor,
       padding: const EdgeInsets.all(40.0),
       child: const Center(
         child: Text('No Lessons at the moment'),

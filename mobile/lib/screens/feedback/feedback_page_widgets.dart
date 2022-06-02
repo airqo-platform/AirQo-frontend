@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../constants/config.dart';
+import '../../themes/colors.dart';
 
 class FeedbackBackButton extends StatelessWidget {
   const FeedbackBackButton({
@@ -15,7 +15,7 @@ class FeedbackBackButton extends StatelessWidget {
       width: 120,
       padding: const EdgeInsets.all(13),
       decoration: BoxDecoration(
-          color: Config.appColorBlue.withOpacity(0.1),
+          color: CustomColors.appColorBlue.withOpacity(0.1),
           borderRadius: const BorderRadius.all(Radius.circular(8.0))),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -24,7 +24,7 @@ class FeedbackBackButton extends StatelessWidget {
           Text(
             'Back',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Config.appColorBlue, fontSize: 14),
+            style: TextStyle(color: CustomColors.appColorBlue, fontSize: 14),
           ),
         ],
       ),

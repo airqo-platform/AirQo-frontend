@@ -1,4 +1,3 @@
-import 'package:app/constants/config.dart';
 import 'package:app/models/kya.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -8,6 +7,7 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import '../../services/native_api.dart';
 import '../../themes/app_theme.dart';
+import '../../themes/colors.dart';
 import '../../utils/exception.dart';
 import '../../widgets/custom_shimmer.dart';
 import 'kya_final_page.dart';
@@ -40,7 +40,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
           appBar: AppBar(
             automaticallyImplyLeading: false,
             elevation: 0,
-            backgroundColor: Config.appBodyColor,
+            backgroundColor: CustomColors.appBodyColor,
             centerTitle: false,
             titleSpacing: 0,
             title: Row(
@@ -61,9 +61,9 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                 ),
                 Expanded(
                     child: LinearProgressIndicator(
-                  color: Config.appColorBlue,
+                  color: CustomColors.appColorBlue,
                   value: _tipsProgress,
-                  backgroundColor: Config.appColorBlue.withOpacity(0.2),
+                  backgroundColor: CustomColors.appColorBlue.withOpacity(0.2),
                 )),
                 GestureDetector(
                   onTap: () async {
@@ -78,7 +78,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                     padding: const EdgeInsets.only(left: 7, right: 24),
                     child: SvgPicture.asset(
                       'assets/icon/share_icon.svg',
-                      color: Config.greyColor,
+                      color: CustomColors.greyColor,
                       height: 16,
                       width: 16,
                     ),
@@ -88,7 +88,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
             ),
           ),
           body: Container(
-              color: Config.appBodyColor,
+              color: CustomColors.appBodyColor,
               child: Column(
                 children: [
                   const Spacer(),
@@ -218,7 +218,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
       color: Colors.white,
       elevation: 5,
       margin: EdgeInsets.zero,
-      shadowColor: Config.appBodyColor,
+      shadowColor: CustomColors.appBodyColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -240,7 +240,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                     imageUrl: kyaItem.imageUrl,
                     errorWidget: (context, url, error) => Icon(
                       Icons.error_outline,
-                      color: Config.red,
+                      color: CustomColors.red,
                     ),
                   )),
             ),
@@ -262,10 +262,8 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
                   minFontSize: 16,
-                  style: Theme.of(context)
-                      .textTheme
-                      .subtitle1
-                      ?.copyWith(color: Config.appColorBlack.withOpacity(0.5))),
+                  style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                      color: CustomColors.appColorBlack.withOpacity(0.5))),
             ),
             const Spacer(),
             SvgPicture.asset(

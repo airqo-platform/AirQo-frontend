@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../services/app_service.dart';
+import '../../services/hive_service.dart';
+import '../../themes/colors.dart';
 import '../../widgets/custom_widgets.dart';
 import 'kya_widgets.dart';
 
@@ -20,7 +22,7 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
   @override
   Widget build(BuildContext context) {
     return Container(
-        color: Config.appBodyColor,
+        color: CustomColors.appBodyColor,
         child: ValueListenableBuilder<Box>(
           valueListenable: Hive.box<Kya>(HiveBox.kya).listenable(),
           builder: (context, box, widget) {

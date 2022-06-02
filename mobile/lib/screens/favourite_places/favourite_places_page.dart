@@ -5,6 +5,7 @@ import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../themes/colors.dart';
 import '../analytics/analytics_widgets.dart';
 import 'favourite_places_widgets.dart';
 
@@ -23,7 +24,7 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
     return Scaffold(
       appBar: const AppTopBar('Favorites'),
       body: Container(
-          color: Config.appBodyColor,
+          color: CustomColors.appBodyColor,
           child: Consumer<PlaceDetailsModel>(
             builder: (context, placeDetailsModel, child) {
               if (placeDetailsModel.favouritePlaces.isEmpty) {

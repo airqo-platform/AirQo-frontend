@@ -1,4 +1,3 @@
-import 'package:app/constants/config.dart';
 import 'package:app/models/profile.dart';
 import 'package:app/screens/profile/profile_edit_page.dart';
 import 'package:app/screens/profile/profile_widgets.dart';
@@ -13,7 +12,9 @@ import 'package:hive/hive.dart';
 
 import '../../models/notification.dart';
 import '../../services/firebase_service.dart';
+import '../../services/hive_service.dart';
 import '../../themes/app_theme.dart';
+import '../../themes/colors.dart';
 import '../auth/phone_auth_widget.dart';
 import '../notification/notification_page.dart';
 
@@ -41,7 +42,7 @@ class _ProfileViewState extends State<ProfileView> {
             toolbarHeight: 72,
             centerTitle: true,
             elevation: 0,
-            backgroundColor: Config.appBodyColor,
+            backgroundColor: CustomColors.appBodyColor,
             automaticallyImplyLeading: false,
             title: Row(
               children: [
@@ -79,7 +80,7 @@ class _ProfileViewState extends State<ProfileView> {
               ],
             )),
         body: Container(
-            color: Config.appBodyColor,
+            color: CustomColors.appBodyColor,
             child: Padding(
               padding: const EdgeInsets.only(left: 16.0, top: 8.0, right: 16.0),
               child: Column(
@@ -111,7 +112,8 @@ class _ProfileViewState extends State<ProfileView> {
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyText2
-                                    ?.copyWith(color: Config.appColorBlue)),
+                                    ?.copyWith(
+                                        color: CustomColors.appColorBlue)),
                           ),
                           const SizedBox(
                             height: 40,

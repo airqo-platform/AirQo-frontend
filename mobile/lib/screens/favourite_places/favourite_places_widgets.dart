@@ -1,7 +1,8 @@
-import 'package:app/constants/config.dart';
 import 'package:app/screens/search/search_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+
+import '../../themes/colors.dart';
 
 class EmptyFavouritePlaces extends StatelessWidget {
   const EmptyFavouritePlaces({Key? key}) : super(key: key);
@@ -9,7 +10,7 @@ class EmptyFavouritePlaces extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Config.appBodyColor,
+      color: CustomColors.appBodyColor,
       padding: const EdgeInsets.all(40.0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -48,7 +49,7 @@ class EmptyFavouritePlaces extends StatelessWidget {
             ),
             child: Text(
               'Add',
-              style: TextStyle(color: Config.appColor),
+              style: TextStyle(color: CustomColors.appColor),
             ),
           )
         ],

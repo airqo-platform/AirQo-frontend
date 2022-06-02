@@ -1,4 +1,3 @@
-import 'package:app/constants/config.dart';
 import 'package:app/models/kya.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
@@ -17,8 +16,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/enum_constants.dart';
 import '../../services/firebase_service.dart';
+import '../../services/hive_service.dart';
 import '../../services/location_service.dart';
 import '../../themes/app_theme.dart';
+import '../../themes/colors.dart';
 import '../../utils/exception.dart';
 import '../../widgets/custom_widgets.dart';
 import '../favourite_places/favourite_places_page.dart';
@@ -63,7 +64,7 @@ class _DashboardViewState extends State<DashboardView> {
       appBar: const DashboardTopBar(),
       body: Container(
           padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 24),
-          color: Config.appBodyColor,
+          color: CustomColors.appBodyColor,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -128,7 +129,7 @@ class _DashboardViewState extends State<DashboardView> {
                               Text('Favorites',
                                   style: CustomTextStyle.bodyText4(context)
                                       ?.copyWith(
-                                    color: Config.appColorBlue,
+                                    color: CustomColors.appColorBlue,
                                   ))
                             ],
                           ),
@@ -186,7 +187,7 @@ class _DashboardViewState extends State<DashboardView> {
                                   Text('For You',
                                       style: CustomTextStyle.bodyText4(context)
                                           ?.copyWith(
-                                        color: Config.appColorBlue,
+                                        color: CustomColors.appColorBlue,
                                       ))
                                 ],
                               ),

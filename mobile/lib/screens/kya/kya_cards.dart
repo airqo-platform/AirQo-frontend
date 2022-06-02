@@ -2,8 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../constants/config.dart';
 import '../../models/kya.dart';
+import '../../themes/colors.dart';
 
 Widget kyaCard(KyaLesson kyaItem, Size screenSize) {
   return Padding(
@@ -51,7 +51,7 @@ Widget kyaCard(KyaLesson kyaItem, Size screenSize) {
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    color: Config.appColorBlack,
+                    color: CustomColors.appColorBlack,
                     fontSize: 20,
                     fontWeight: FontWeight.bold),
               ),

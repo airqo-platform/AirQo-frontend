@@ -22,6 +22,7 @@ import '../models/enum_constants.dart';
 import '../models/profile.dart';
 import '../screens/analytics/analytics_widgets.dart';
 import '../themes/app_theme.dart';
+import '../themes/colors.dart';
 import '../utils/exception.dart';
 import 'firebase_service.dart';
 
@@ -109,7 +110,7 @@ class ShareService {
                       overflow: TextOverflow.ellipsis,
                       minFontSize: 12,
                       style: CustomTextStyle.bodyText4(context)?.copyWith(
-                          color: Config.appColorBlack.withOpacity(0.3)),
+                          color: CustomColors.appColorBlack.withOpacity(0.3)),
                     ),
                     const SizedBox(
                       height: 12,
@@ -162,7 +163,7 @@ class ShareService {
                 '© ${DateTime.now().year} AirQo',
                 style: TextStyle(
                   fontSize: 9,
-                  color: Config.appColorBlack.withOpacity(0.5),
+                  color: CustomColors.appColorBlack.withOpacity(0.5),
                   height: 32 / 9,
                   fontWeight: FontWeight.w500,
                 ),
@@ -171,7 +172,7 @@ class ShareService {
                 'www.airqo.africa',
                 style: TextStyle(
                   fontSize: 9,
-                  color: Config.appColorBlack.withOpacity(0.5),
+                  color: CustomColors.appColorBlack.withOpacity(0.5),
                   height: 32 / 9,
                   fontWeight: FontWeight.w500,
                 ),

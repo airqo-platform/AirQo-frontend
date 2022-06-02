@@ -20,6 +20,7 @@ import '../models/analytics.dart';
 import '../models/enum_constants.dart';
 import '../utils/exception.dart';
 import '../utils/network.dart';
+import 'hive_service.dart';
 
 class CloudAnalytics {
   static Future<void> logEvent(AnalyticsEvent analyticsEvent) async {
@@ -356,7 +357,7 @@ class CloudStore {
                 .collection(Config.usersAnalyticsCollection)
                 .doc(profile.userId)
                 .collection(profile.userId)
-                .doc(x.id)
+                .doc(x.site)
                 .set(x.toJson());
           } catch (exception) {
             debugPrint(exception.toString());

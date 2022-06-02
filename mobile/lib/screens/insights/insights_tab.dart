@@ -1,4 +1,3 @@
-import 'package:app/constants/config.dart';
 import 'package:app/models/insights.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/services/app_service.dart';
@@ -23,6 +22,7 @@ import 'package:visibility_detector/visibility_detector.dart';
 import '../../models/enum_constants.dart';
 import '../../services/native_api.dart';
 import '../../themes/app_theme.dart';
+import '../../themes/colors.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/custom_shimmer.dart';
 import '../../widgets/custom_widgets.dart';
@@ -142,7 +142,7 @@ class _InsightsTabState extends State<InsightsTab> {
                               overflow: TextOverflow.ellipsis,
                               style: CustomTextStyle.bodyText4(context)
                                   ?.copyWith(
-                                      color: Config.appColorBlack
+                                      color: CustomColors.appColorBlack
                                           .withOpacity(0.3)),
                             ),
                             AutoSizeText(
@@ -150,7 +150,7 @@ class _InsightsTabState extends State<InsightsTab> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: CustomTextStyle.headline8(context)
-                                  ?.copyWith(color: Config.appColorBlack),
+                                  ?.copyWith(color: CustomColors.appColorBlack),
                             ),
                             AutoSizeText(widget.placeDetails.location,
                                 maxLines: 1,
@@ -159,7 +159,7 @@ class _InsightsTabState extends State<InsightsTab> {
                                     .textTheme
                                     .caption
                                     ?.copyWith(
-                                        color: Config.appColorBlack
+                                        color: CustomColors.appColorBlack
                                             .withOpacity(0.3))),
                           ],
                         ),
@@ -320,7 +320,7 @@ class _InsightsTabState extends State<InsightsTab> {
                             borderRadius:
                                 const BorderRadius.all(Radius.circular(40.0)),
                             color: _selectedMeasurement!.forecast
-                                ? Config.appColorBlue.withOpacity(0.24)
+                                ? CustomColors.appColorBlue.withOpacity(0.24)
                                 : _pollutant == Pollutant.pm2_5
                                     ? pollutantValueColor(
                                             value: _selectedMeasurement!
@@ -351,7 +351,7 @@ class _InsightsTabState extends State<InsightsTab> {
                             overflow: TextOverflow.ellipsis,
                             style: CustomTextStyle.button2(context)?.copyWith(
                               color: _selectedMeasurement!.forecast
-                                  ? Config.appColorBlue
+                                  ? CustomColors.appColorBlue
                                   : _pollutant == Pollutant.pm2_5
                                       ? pollutantTextColor(
                                           value: _selectedMeasurement!
@@ -374,7 +374,7 @@ class _InsightsTabState extends State<InsightsTab> {
                       decoration: BoxDecoration(
                           borderRadius:
                               const BorderRadius.all(Radius.circular(40.0)),
-                          color: Config.greyColor.withOpacity(0.4),
+                          color: CustomColors.greyColor.withOpacity(0.4),
                           border: Border.all(color: Colors.transparent)),
                       child: Text(
                         'Not Available',
@@ -383,7 +383,7 @@ class _InsightsTabState extends State<InsightsTab> {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 14,
-                          color: Config.darkGreyColor,
+                          color: CustomColors.darkGreyColor,
                         ),
                       ),
                     ),
@@ -416,8 +416,8 @@ class _InsightsTabState extends State<InsightsTab> {
                           decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: _selectedMeasurement!.forecast
-                                  ? Config.appColorBlue
-                                  : Config.appColorBlue.withOpacity(0.24),
+                                  ? CustomColors.appColorBlue
+                                  : CustomColors.appColorBlue.withOpacity(0.24),
                               border: Border.all(color: Colors.transparent))),
                       const SizedBox(
                         width: 8.0,
@@ -431,7 +431,7 @@ class _InsightsTabState extends State<InsightsTab> {
                         child: Text(
                           'Forecast',
                           style: TextStyle(
-                              fontSize: 12, color: Config.appColorBlue),
+                              fontSize: 12, color: CustomColors.appColorBlue),
                         ),
                       ),
                     ],
@@ -601,10 +601,8 @@ class _InsightsTabState extends State<InsightsTab> {
               visible: _hasMeasurements,
               child: Text(
                 'AIR QUALITY',
-                style: Theme.of(context)
-                    .textTheme
-                    .caption
-                    ?.copyWith(color: Config.appColorBlack.withOpacity(0.3)),
+                style: Theme.of(context).textTheme.caption?.copyWith(
+                    color: CustomColors.appColorBlack.withOpacity(0.3)),
               ),
             ),
             Visibility(
@@ -684,7 +682,7 @@ class _InsightsTabState extends State<InsightsTab> {
                       iconWidget: SvgPicture.asset(
                         'assets/icon/share_icon.svg',
                         semanticsLabel: 'Share',
-                        color: Config.greyColor,
+                        color: CustomColors.greyColor,
                       ),
                       text: 'Share'),
                 ),

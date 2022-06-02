@@ -1,4 +1,3 @@
-import 'package:app/constants/config.dart';
 import 'package:app/models/profile.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/utils/exception.dart';
@@ -12,6 +11,7 @@ import 'package:flutter/material.dart';
 import '../../models/enum_constants.dart';
 import '../../services/local_storage.dart';
 import '../../themes/app_theme.dart';
+import '../../themes/colors.dart';
 import 'notifications_setup_screen.dart';
 import 'on_boarding_widgets.dart';
 
@@ -25,7 +25,7 @@ class ProfileSetupScreen extends StatefulWidget {
 class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   String _fullName = '';
   DateTime? _exitTime;
-  Color nextBtnColor = Config.appColorDisabled;
+  Color nextBtnColor = CustomColors.appColorDisabled;
   bool _showDropDown = false;
   late Profile _profile;
 
@@ -37,7 +37,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Config.appBodyColor,
+        backgroundColor: CustomColors.appBodyColor,
         body: WillPopScope(
           onWillPop: onWillPop,
           child: Container(
@@ -129,7 +129,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                           style: Theme.of(context)
                               .textTheme
                               .caption
-                              ?.copyWith(color: Config.appColorBlue),
+                              ?.copyWith(color: CustomColors.appColorBlue),
                         ),
                       ),
                     ),
@@ -157,8 +157,8 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
           option.getDisplayName(),
           style: Theme.of(context).textTheme.bodyText1?.copyWith(
               color: _profile.title == option.getValue()
-                  ? Config.appColorBlack
-                  : Config.appColorBlack.withOpacity(0.32)),
+                  ? CustomColors.appColorBlack
+                  : CustomColors.appColorBlack.withOpacity(0.32)),
         ),
       ));
     }
@@ -189,12 +189,12 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
       setState(() {
         _fullName = '';
         _controller.text = '';
-        nextBtnColor = Config.appColorDisabled;
+        nextBtnColor = CustomColors.appColorDisabled;
         _controller.text = '';
       });
     } else {
       setState(() {
-        nextBtnColor = Config.appColorBlue;
+        nextBtnColor = CustomColors.appColorBlue;
         _fullName = name;
       });
     }
@@ -229,7 +229,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
         });
 
         setState(() {
-          nextBtnColor = Config.appColorDisabled;
+          nextBtnColor = CustomColors.appColorDisabled;
           _profile
             ..firstName = Profile.getNames(_fullName).first
             ..lastName = Profile.getNames(_fullName).last;
@@ -246,7 +246,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
     } on Exception catch (exception, stackTrace) {
       Navigator.pop(dialogContext);
       setState(() {
-        nextBtnColor = Config.appColorBlue;
+        nextBtnColor = CustomColors.appColorBlue;
       });
       await showSnackBar(context, 'Failed to update profile. Try again later');
       await logException(exception, stackTrace);

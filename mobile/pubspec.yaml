@@ -75,7 +75,6 @@ dependencies:
   # https://pub.dev/packages/flutter_cache_manager
   # https://pub.dev/packages/http_retry
   # https://pub.dev/packages/retry
-  # https://pub.dev/packages/flutter_native_splash
   
 flutter_native_splash:
   # flutter pub run flutter_native_splash:create

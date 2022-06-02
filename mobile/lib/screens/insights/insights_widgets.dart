@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../constants/config.dart';
 import '../../models/enum_constants.dart';
 import '../../models/insights.dart';
+import '../../themes/colors.dart';
 import '../../utils/pm.dart';
 
 class InsightsGraph extends StatelessWidget {
@@ -83,7 +83,7 @@ class InsightsGraph extends StatelessWidget {
       dailyTicks.add(charts.TickSpec(day,
           label: day,
           style: charts.TextStyleSpec(
-              color: charts.ColorUtil.fromDartColor(Config.greyColor))));
+              color: charts.ColorUtil.fromDartColor(CustomColors.greyColor))));
     }
 
     return dailyTicks;
@@ -98,7 +98,8 @@ class InsightsGraph extends StatelessWidget {
         hourlyTicks.add(charts.TickSpec(i.toString().length == 1 ? '0$i' : '$i',
             label: i.toString().length == 1 ? '0$i' : '$i',
             style: charts.TextStyleSpec(
-                color: charts.ColorUtil.fromDartColor(Config.greyColor))));
+                color:
+                    charts.ColorUtil.fromDartColor(CustomColors.greyColor))));
       } else {
         hourlyTicks.add(charts.TickSpec(i.toString().length == 1 ? '0$i' : '$i',
             label: i.toString().length == 1 ? '0$i' : '$i',
@@ -115,19 +116,24 @@ class InsightsGraph extends StatelessWidget {
         <charts.TickSpec<double>>[
           charts.TickSpec<double>(0,
               style: charts.TextStyleSpec(
-                  color: charts.ColorUtil.fromDartColor(Config.greyColor))),
+                  color:
+                      charts.ColorUtil.fromDartColor(CustomColors.greyColor))),
           charts.TickSpec<double>(125,
               style: charts.TextStyleSpec(
-                  color: charts.ColorUtil.fromDartColor(Config.greyColor))),
+                  color:
+                      charts.ColorUtil.fromDartColor(CustomColors.greyColor))),
           charts.TickSpec<double>(250,
               style: charts.TextStyleSpec(
-                  color: charts.ColorUtil.fromDartColor(Config.greyColor))),
+                  color:
+                      charts.ColorUtil.fromDartColor(CustomColors.greyColor))),
           charts.TickSpec<double>(375,
               style: charts.TextStyleSpec(
-                  color: charts.ColorUtil.fromDartColor(Config.greyColor))),
+                  color:
+                      charts.ColorUtil.fromDartColor(CustomColors.greyColor))),
           charts.TickSpec<double>(500,
               style: charts.TextStyleSpec(
-                  color: charts.ColorUtil.fromDartColor(Config.greyColor))),
+                  color:
+                      charts.ColorUtil.fromDartColor(CustomColors.greyColor))),
         ],
       ),
     );
@@ -158,7 +164,7 @@ class InsightsAvatar extends StatelessWidget {
         width: size,
         decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Config.greyColor,
+            color: CustomColors.greyColor,
             border: Border.all(color: Colors.transparent)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -171,7 +177,7 @@ class InsightsAvatar extends StatelessWidget {
               semanticsLabel: 'Pm2.5',
               height: 6,
               width: 32.45,
-              color: Config.darkGreyColor,
+              color: CustomColors.darkGreyColor,
             ),
             Text(
               '--',
@@ -180,7 +186,7 @@ class InsightsAvatar extends StatelessWidget {
               style: GoogleFonts.robotoMono(
                 fontStyle: FontStyle.normal,
                 fontSize: 32,
-                color: Config.darkGreyColor,
+                color: CustomColors.darkGreyColor,
               ),
             ),
             SvgPicture.asset(
@@ -188,7 +194,7 @@ class InsightsAvatar extends StatelessWidget {
               semanticsLabel: 'UNit',
               height: 6,
               width: 32,
-              color: Config.darkGreyColor,
+              color: CustomColors.darkGreyColor,
             ),
             const Spacer(),
           ],
@@ -201,7 +207,7 @@ class InsightsAvatar extends StatelessWidget {
       decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: measurement.forecast
-              ? Config.appColorBlue.withOpacity(0.24)
+              ? CustomColors.appColorBlue.withOpacity(0.24)
               : pollutant == Pollutant.pm2_5
                   ? pollutantValueColor(
                       value: measurement.getChartValue(pollutant),
@@ -222,7 +228,7 @@ class InsightsAvatar extends StatelessWidget {
             height: 6,
             width: 32.45,
             color: measurement.forecast
-                ? Config.appColorBlue
+                ? CustomColors.appColorBlue
                 : pollutant == Pollutant.pm2_5
                     ? pollutantTextColor(
                         value: measurement.getChartValue(pollutant),
@@ -241,7 +247,7 @@ class InsightsAvatar extends StatelessWidget {
               height: 1,
               fontSize: 32,
               color: measurement.forecast
-                  ? Config.appColorBlue
+                  ? CustomColors.appColorBlue
                   : pollutant == Pollutant.pm2_5
                       ? pollutantTextColor(
                           value: measurement.getChartValue(pollutant),
@@ -257,7 +263,7 @@ class InsightsAvatar extends StatelessWidget {
             height: 6,
             width: 32,
             color: measurement.forecast
-                ? Config.appColorBlue
+                ? CustomColors.appColorBlue
                 : pollutant == Pollutant.pm2_5
                     ? pollutantTextColor(
                         value: measurement.getChartValue(pollutant),

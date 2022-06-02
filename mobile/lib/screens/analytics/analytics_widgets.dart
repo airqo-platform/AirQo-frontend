@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/screens/insights/insights_page.dart';
@@ -20,6 +19,7 @@ import 'package:provider/provider.dart';
 import '../../models/enum_constants.dart';
 import '../../services/native_api.dart';
 import '../../themes/app_theme.dart';
+import '../../themes/colors.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/custom_shimmer.dart';
 import '../../widgets/custom_widgets.dart';
@@ -102,7 +102,7 @@ class MapAnalyticsMoreInsights extends StatelessWidget {
             const SizedBox(width: 8.0),
             Text(
               'View More Insights',
-              style: TextStyle(fontSize: 12, color: Config.appColorBlue),
+              style: TextStyle(fontSize: 12, color: CustomColors.appColorBlue),
             ),
             const Spacer(),
             SvgPicture.asset(
@@ -137,7 +137,7 @@ class AnalyticsMoreInsights extends StatelessWidget {
         Text(
           'View More Insights',
           style: CustomTextStyle.caption4(context)
-              ?.copyWith(color: Config.appColorBlue),
+              ?.copyWith(color: CustomColors.appColorBlue),
         ),
         const Spacer(),
         SvgPicture.asset(
@@ -266,7 +266,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                   overflow: TextOverflow.ellipsis,
                                   style: CustomTextStyle.bodyText4(context)
                                       ?.copyWith(
-                                          color: Config.appColorBlack
+                                          color: CustomColors.appColorBlack
                                               .withOpacity(0.3)),
                                 ),
                                 const SizedBox(
@@ -352,7 +352,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                               iconWidget: SvgPicture.asset(
                                 'assets/icon/share_icon.svg',
                                 semanticsLabel: 'Share',
-                                color: Config.greyColor,
+                                color: CustomColors.greyColor,
                                 height: 16,
                                 width: 16,
                               ),
@@ -608,7 +608,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                           child: IconTextButton(
                               iconWidget: SvgPicture.asset(
                                 'assets/icon/share_icon.svg',
-                                color: Config.greyColor,
+                                color: CustomColors.greyColor,
                                 semanticsLabel: 'Share',
                               ),
                               text: 'Share'),
@@ -739,7 +739,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                               overflow: TextOverflow.ellipsis,
                               style: CustomTextStyle.bodyText4(context)
                                   ?.copyWith(
-                                      color: Config.appColorBlack
+                                      color: CustomColors.appColorBlack
                                           .withOpacity(0.3)),
                             ),
                           ],
@@ -775,7 +775,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                         height: 16,
                         width: 16,
                         decoration: BoxDecoration(
-                            color: Config.appColorBlue,
+                            color: CustomColors.appColorBlue,
                             borderRadius:
                                 const BorderRadius.all(Radius.circular(3.0)),
                             border: Border.all(color: Colors.transparent)),
@@ -789,7 +789,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                       Text(
                         'View More Insights',
                         style: CustomTextStyle.caption3(context)
-                            ?.copyWith(color: Config.appColorBlue),
+                            ?.copyWith(color: CustomColors.appColorBlue),
                       ),
                       const Spacer(),
                       Container(
@@ -797,7 +797,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                         width: 16,
                         padding: const EdgeInsets.all(5),
                         decoration: BoxDecoration(
-                            color: Config.appColorBlue.withOpacity(0.24),
+                            color: CustomColors.appColorBlue.withOpacity(0.24),
                             borderRadius:
                                 const BorderRadius.all(Radius.circular(3.0)),
                             border: Border.all(color: Colors.transparent)),
@@ -891,7 +891,7 @@ class EmptyAnalytics extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Config.appBodyColor,
+      color: CustomColors.appBodyColor,
       padding: const EdgeInsets.all(40.0),
       child: const Center(
         child: Text('No Analytics'),

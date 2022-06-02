@@ -1,4 +1,3 @@
-import 'package:app/constants/config.dart';
 import 'package:app/models/insights.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/utils/pm.dart';
@@ -7,12 +6,14 @@ import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/enum_constants.dart';
+import '../themes/colors.dart';
 
 charts.Color insightsChartBarColor(Insights series, Pollutant pollutant) {
   if (series.empty) {
-    return charts.ColorUtil.fromDartColor(Config.greyColor);
+    return charts.ColorUtil.fromDartColor(CustomColors.greyColor);
   } else if (series.forecast) {
-    return charts.ColorUtil.fromDartColor(Config.appColorBlue.withOpacity(0.5));
+    return charts.ColorUtil.fromDartColor(
+        CustomColors.appColorBlue.withOpacity(0.5));
   } else {
     return pollutantChartValueColor(series.getChartValue(pollutant), pollutant);
   }

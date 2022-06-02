@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../constants/config.dart';
 import '../../models/profile.dart';
+import '../../themes/colors.dart';
 import '../../widgets/text_fields.dart';
 
 class OnBoardingAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -14,7 +14,7 @@ class OnBoardingAppBar extends StatelessWidget implements PreferredSizeWidget {
       automaticallyImplyLeading: false,
       elevation: 0,
       toolbarHeight: 0,
-      backgroundColor: Config.appBodyColor,
+      backgroundColor: CustomColors.appBodyColor,
     );
   }
 
@@ -90,7 +90,7 @@ class ProfileSetupNameInputField extends StatelessWidget {
       },
       enableSuggestions: false,
       cursorWidth: 1,
-      cursorColor: Config.appColorBlue,
+      cursorColor: CustomColors.appColorBlue,
       keyboardType: TextInputType.name,
       onChanged: nameChangeCallBack,
       validator: (value) {
@@ -102,15 +102,16 @@ class ProfileSetupNameInputField extends StatelessWidget {
       decoration: InputDecoration(
         contentPadding: const EdgeInsets.fromLTRB(16, 12, 0, 12),
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Config.appColorBlue, width: 1.0),
+          borderSide: BorderSide(color: CustomColors.appColorBlue, width: 1.0),
           borderRadius: BorderRadius.circular(8.0),
         ),
         enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Config.appColorBlue, width: 1.0),
+          borderSide: BorderSide(color: CustomColors.appColorBlue, width: 1.0),
           borderRadius: BorderRadius.circular(8.0),
         ),
         border: OutlineInputBorder(
-            borderSide: BorderSide(color: Config.appColorBlue, width: 1.0),
+            borderSide:
+                BorderSide(color: CustomColors.appColorBlue, width: 1.0),
             borderRadius: BorderRadius.circular(8.0)),
         hintText: 'Enter your name',
         errorStyle: const TextStyle(

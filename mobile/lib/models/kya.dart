@@ -2,7 +2,7 @@ import 'package:app/services/firebase_service.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import '../constants/config.dart';
+import '../services/hive_service.dart';
 import 'enum_constants.dart';
 
 part 'kya.g.dart';

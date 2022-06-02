@@ -2,8 +2,8 @@ import 'package:app/utils/exception.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import '../constants/config.dart';
 import '../services/firebase_service.dart';
+import '../services/hive_service.dart';
 import 'enum_constants.dart';
 import 'json_parsers.dart';
 
