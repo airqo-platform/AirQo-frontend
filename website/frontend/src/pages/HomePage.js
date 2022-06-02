@@ -20,7 +20,7 @@ const HomePage = () => {
                 <ApiSection />
                 <MapSection />
                 <GetApp />
-                <AirQommunitiesSection />
+                {/* <AirQommunitiesSection /> */}
             </div>
         </Page>
     );
