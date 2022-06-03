@@ -32,6 +32,8 @@ flutter run
 ```bash
 flutter packages pub run build_runner build --delete-conflicting-outputs
 flutter build appbundle [--analyze-size]
+flutter build appbundle --obfuscate --split-debug-info=/aiqo-mobile-app/obfuscate
+flutter build ipa --obfuscate --split-debug-info=/aiqo-mobile-app/obfuscate
 flutter build ipa
 dart fix --dry-run
 dart fix --apply

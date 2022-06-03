@@ -356,14 +356,25 @@ class BackgroundService {
   }
 
   void registerAirQualityRefreshTask() {
-    workmanager.Workmanager().registerPeriodicTask(
-      BackgroundService.airQualityUpdates,
-      BackgroundService.airQualityUpdates,
-      frequency: const Duration(minutes: 15),
-      constraints: workmanager.Constraints(
-        networkType: workmanager.NetworkType.connected,
-      ),
-    );
+    if (Platform.isAndroid) {
+      workmanager.Workmanager().registerPeriodicTask(
+        BackgroundService.airQualityUpdates,
+        BackgroundService.airQualityUpdates,
+        frequency: const Duration(minutes: 15),
+        constraints: workmanager.Constraints(
+          networkType: workmanager.NetworkType.connected,
+        ),
+      );
+    }
+    if (Platform.isIOS) {
+      workmanager.Workmanager().registerOneOffTask(
+        BackgroundService.airQualityUpdates,
+        BackgroundService.airQualityUpdates,
+        constraints: workmanager.Constraints(
+          networkType: workmanager.NetworkType.connected,
+        ),
+      );
+    }
   }
 
   Future<void> initialize() async {
@@ -384,23 +395,6 @@ class BackgroundService {
     port.listen((dynamic data) async {
       await DBHelper().insertLatestMeasurements(data);
     });
-  }
-
-  static Future<void> initializeTasks() async {
-    if (Platform.isAndroid) {
-      await workmanager.Workmanager().initialize(
-        backgroundCallbackDispatcher,
-        isInDebugMode: kReleaseMode ? false : true,
-      );
-      await workmanager.Workmanager().registerPeriodicTask(
-        BackgroundService.airQualityUpdates,
-        BackgroundService.airQualityUpdates,
-        frequency: const Duration(minutes: 20),
-        constraints: workmanager.Constraints(
-          networkType: workmanager.NetworkType.connected,
-        ),
-      );
-    }
   }
 }
 

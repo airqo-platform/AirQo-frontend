@@ -618,6 +618,15 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin BackgroundModes section */
+        SystemCapabilities = {
+            com.apple.BackgroundModes = {
+                enabled = 1;
+            };
+        };
+/* End BackgroundModes section */
+
 	};
 	rootObject = 97C146E61CF9000F007C117D /* Project object */;
 }
