@@ -1,24 +1,33 @@
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:ui' as ui;
+import 'dart:ui';
 
 import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/services/firebase_service.dart';
 import 'package:app/services/local_storage.dart';
+import 'package:app/services/rest_api.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/pm.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart'
+    as cache_manager;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:workmanager/workmanager.dart' as workmanager;
 
 import '../models/enum_constants.dart';
+import '../models/kya.dart';
 import '../models/profile.dart';
 import '../screens/analytics/analytics_widgets.dart';
 import '../themes/app_theme.dart';
@@ -302,5 +311,126 @@ class PermissionService {
     }
 
     return status == PermissionStatus.granted;
+  }
+}
+
+void backgroundCallbackDispatcher() {
+  workmanager.Workmanager().executeTask((task, inputData) async {
+    await dotenv.load(fileName: Config.environmentFile);
+    try {
+      switch (task) {
+        case BackgroundService.airQualityUpdates:
+          final measurements = await AirqoApiClient().fetchLatestMeasurements();
+          final sendPort = IsolateNameServer.lookupPortByName(
+              BackgroundService.taskChannel(task));
+          if (sendPort != null) {
+            sendPort.send(measurements);
+          } else {
+            // final SharedPreferences prefs = await SharedPreferences.getInstance();
+            // await prefs.setString('measurements', 'measurements');
+          }
+          break;
+      }
+
+      return Future.value(true);
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
+      return Future.value(false);
+    }
+  });
+}
+
+class BackgroundService {
+  factory BackgroundService() {
+    return _instance;
+  }
+
+  BackgroundService._internal();
+
+  static final BackgroundService _instance = BackgroundService._internal();
+
+  static const airQualityUpdates = 'Air Quality Updates';
+
+  static String taskChannel(String task) {
+    return 'channel_${task.toLowerCase().replaceAll(' ', '_')}';
+  }
+
+  void registerAirQualityRefreshTask() {
+    workmanager.Workmanager().registerPeriodicTask(
+      BackgroundService.airQualityUpdates,
+      BackgroundService.airQualityUpdates,
+      frequency: const Duration(minutes: 15),
+      constraints: workmanager.Constraints(
+        networkType: workmanager.NetworkType.connected,
+      ),
+    );
+  }
+
+  Future<void> initialize() async {
+    await workmanager.Workmanager().initialize(
+      backgroundCallbackDispatcher,
+      isInDebugMode: kReleaseMode ? false : true,
+    );
+  }
+
+  void listenToTask(String task) {
+    var port = ReceivePort();
+    // if (IsolateNameServer.lookupPortByName('bChannel') != null) {
+    //   IsolateNameServer.removePortNameMapping('bChannel');
+    // }
+
+    IsolateNameServer.registerPortWithName(
+        port.sendPort, BackgroundService.taskChannel(task));
+    port.listen((dynamic data) async {
+      await DBHelper().insertLatestMeasurements(data);
+    });
+  }
+
+  static Future<void> initializeTasks() async {
+    if (Platform.isAndroid) {
+      await workmanager.Workmanager().initialize(
+        backgroundCallbackDispatcher,
+        isInDebugMode: kReleaseMode ? false : true,
+      );
+      await workmanager.Workmanager().registerPeriodicTask(
+        BackgroundService.airQualityUpdates,
+        BackgroundService.airQualityUpdates,
+        frequency: const Duration(minutes: 20),
+        constraints: workmanager.Constraints(
+          networkType: workmanager.NetworkType.connected,
+        ),
+      );
+    }
+  }
+}
+
+class CacheService {
+  static cache_manager.Config cacheConfig(String key) {
+    return cache_manager.Config(
+      key,
+      stalePeriod: const Duration(days: 7),
+    );
+  }
+
+  static Future<void> cacheKyaImages(Kya kya) async {
+    // await Future.wait([
+    //   cache_manager.DefaultCacheManager()
+    //       .downloadFile(kya.imageUrl, key: kya.imageUrlCacheKey()),
+    //   cache_manager.DefaultCacheManager().downloadFile(kya.secondaryImageUrl,
+    //       key: kya.secondaryImageUrlCacheKey())
+    // ]);
+    //
+    // for (final lesson in kya.lessons) {
+    //   await cache_manager.DefaultCacheManager()
+    //       .downloadFile(lesson.imageUrl, key: lesson.imageUrlCacheKey(kya));
+    // }
+  }
+}
+
+Future<void> initializeBackgroundServices() async {
+  if (Platform.isAndroid) {
+    await BackgroundService().initialize();
+    BackgroundService().listenToTask(BackgroundService.airQualityUpdates);
+    BackgroundService().registerAirQualityRefreshTask();
   }
 }

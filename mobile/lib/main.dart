@@ -34,6 +34,8 @@ void main() async {
 
   await NotificationService.listenToNotifications();
 
+  await initializeBackgroundServices();
+
   if (kReleaseMode) {
     FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
     await SentryFlutter.init(
@@ -62,7 +64,7 @@ class AirQoApp extends StatelessWidget {
       ],
       builder: (context, child) {
         return MaterialApp(
-          debugShowCheckedModeBanner: false,
+          debugShowCheckedModeBanner: kReleaseMode ? false : true,
           navigatorObservers: [
             FirebaseAnalyticsObserver(analytics: analytics),
             SentryNavigatorObserver(),

@@ -7,6 +7,7 @@ import '../../models/analytics.dart';
 import '../../models/measurement.dart';
 import '../../services/app_service.dart';
 import '../../services/hive_service.dart';
+import '../../services/local_storage.dart';
 import '../../themes/colors.dart';
 import '../../widgets/custom_widgets.dart';
 import 'analytics_widgets.dart';
@@ -71,7 +72,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
   }
 
   Future<void> _initialize() async {
-    final places = await _appService.dbHelper.getLatestMeasurements();
+    final places = await DBHelper().getLatestMeasurements();
     setState(() => _places = places);
   }
 }

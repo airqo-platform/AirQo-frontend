@@ -34,6 +34,12 @@ String addQueryParameters(Map<String, dynamic> queryParams, String url) {
 }
 
 class AirqoApiClient {
+  factory AirqoApiClient() {
+    return _instance;
+  }
+  AirqoApiClient._internal();
+  static final AirqoApiClient _instance = AirqoApiClient._internal();
+
   final httpClient = SentryHttpClient(
       client: http.Client(),
       failedRequestStatusCodes: [
@@ -266,6 +272,12 @@ class AirqoApiClient {
 }
 
 class SearchApi {
+  factory SearchApi() {
+    return _instance;
+  }
+  SearchApi._internal();
+  static final SearchApi _instance = SearchApi._internal();
+
   final String sessionToken = const Uuid().v4();
   final apiKey = Config.googleApiKey;
 

@@ -1,8 +1,11 @@
 import 'package:app/models/kya.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../services/native_api.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
 import '../../widgets/buttons.dart';
@@ -39,6 +42,9 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
               fit: BoxFit.cover,
               image: CachedNetworkImageProvider(
                 widget.kya.imageUrl,
+                cacheKey: widget.kya.imageUrlCacheKey(),
+                cacheManager: CacheManager(
+                    CacheService.cacheConfig(widget.kya.imageUrlCacheKey())),
               ),
             ),
           )),

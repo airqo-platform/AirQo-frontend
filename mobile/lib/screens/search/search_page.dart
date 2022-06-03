@@ -6,8 +6,9 @@ import 'package:app/screens/search/search_widgets.dart';
 import 'package:app/widgets/dialogs.dart';
 import 'package:flutter/material.dart';
 
-import '../../services/app_service.dart';
+import '../../services/local_storage.dart';
 import '../../services/location_service.dart';
+import '../../services/rest_api.dart';
 import '../../themes/colors.dart';
 import '../../utils/exception.dart';
 import '../../widgets/buttons.dart';
@@ -29,7 +30,6 @@ class _SearchPageState extends State<SearchPage> {
   bool _emptyView = false;
   bool _hasNearbyLocations = true;
 
-  final AppService _appService = AppService();
   final TextEditingController _textEditingController = TextEditingController();
 
   @override
@@ -80,7 +80,7 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Future<void> _getSites() async {
-    await _appService.dbHelper.getLatestMeasurements().then((value) => {
+    await DBHelper().getLatestMeasurements().then((value) => {
           if (mounted) {setState(() => _allSites = value)}
         });
   }
@@ -261,7 +261,7 @@ class _SearchPageState extends State<SearchPage> {
         _emptyView = false;
       });
 
-      _appService.searchApi.fetchSuggestions(text).then((value) => {
+      SearchApi().fetchSuggestions(text).then((value) => {
             if (mounted) {setState(() => _searchSuggestions = value)}
           });
 
@@ -384,8 +384,7 @@ class _SearchPageState extends State<SearchPage> {
     }
     setState(() =>
         _textEditingController.text = suggestion.suggestionDetails.mainText);
-    final place =
-        await _appService.searchApi.getPlaceDetails(suggestion.placeId);
+    final place = await SearchApi().getPlaceDetails(suggestion.placeId);
     if (place != null) {
       final nearestSite = await LocationService.getNearestSite(
           place.geometry.location.lat, place.geometry.location.lng);

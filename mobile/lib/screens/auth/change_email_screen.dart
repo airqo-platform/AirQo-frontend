@@ -5,8 +5,8 @@ import 'package:app/widgets/text_fields.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../../services/app_service.dart';
 import '../../services/firebase_service.dart';
+import '../../services/rest_api.dart';
 import '../../themes/colors.dart';
 import 'auth_widgets.dart';
 
@@ -33,7 +33,6 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
   final _emailFormKey = GlobalKey<FormState>();
   User? _user;
   final TextEditingController _emailInputController = TextEditingController();
-  final AppService _appService = AppService();
 
   @override
   Widget build(BuildContext context) {
@@ -330,7 +329,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
       _isVerifying = true;
     });
 
-    final emailVerificationResponse = await _appService.apiClient
+    final emailVerificationResponse = await AirqoApiClient()
         .requestEmailVerificationCode(_emailAddress, false);
 
     if (emailVerificationResponse == null) {
@@ -357,7 +356,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
   Future<void> _resendVerificationCode() async {
     setState(() => _isResending = true);
 
-    final emailVerificationResponse = await _appService.apiClient
+    final emailVerificationResponse = await AirqoApiClient()
         .requestEmailVerificationCode(_emailAddress, false);
 
     if (emailVerificationResponse == null) {

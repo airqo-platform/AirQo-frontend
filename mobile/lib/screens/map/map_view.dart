@@ -14,8 +14,9 @@ import 'package:flutter_svg/svg.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../models/enum_constants.dart';
-import '../../services/app_service.dart';
+import '../../services/local_storage.dart';
 import '../../services/location_service.dart';
+import '../../services/rest_api.dart';
 import '../../themes/colors.dart';
 import 'map_widgets.dart';
 
@@ -43,7 +44,6 @@ class _MapViewState extends State<MapView> {
       const CameraPosition(target: LatLng(1.6183002, 32.504365), zoom: 6.6);
   late GoogleMapController _mapController;
   Map<String, Marker> _markers = {};
-  final AppService _appService = AppService();
   double _bottomPadding = 0.15;
 
   @override
@@ -230,7 +230,7 @@ class _MapViewState extends State<MapView> {
             LocationService.textSearchNearestSites(text, _latestMeasurements);
       });
 
-      _appService.searchApi
+      SearchApi()
           .fetchSuggestions(text)
           .then((value) => {setState(() => _searchSuggestions = value)});
 
@@ -598,7 +598,7 @@ class _MapViewState extends State<MapView> {
     }
 
     setState(() => _selectedRegion = region);
-    final sites = await _appService.dbHelper.getRegionSites(region);
+    final sites = await DBHelper().getRegionSites(region);
     setState(() {
       _showLocationDetails = false;
       _displayRegions = false;
@@ -614,8 +614,7 @@ class _MapViewState extends State<MapView> {
 
     setState(
         () => _searchController.text = suggestion.suggestionDetails.mainText);
-    final place =
-        await _appService.searchApi.getPlaceDetails(suggestion.placeId);
+    final place = await SearchApi().getPlaceDetails(suggestion.placeId);
     if (place != null) {
       final nearestSite = await LocationService.getNearestSite(
           place.geometry.location.lat, place.geometry.location.lng);
@@ -691,21 +690,20 @@ class _MapViewState extends State<MapView> {
   }
 
   Future<void> _getLatestMeasurements() async {
-    final dbMeasurements = await _appService.dbHelper.getLatestMeasurements();
+    final dbMeasurements = await DBHelper().getLatestMeasurements();
 
     if (dbMeasurements.isNotEmpty && mounted) {
       setState(() => _latestMeasurements = dbMeasurements);
       await _setMarkers(dbMeasurements, false, 6.6);
     }
 
-    final measurements = await _appService.apiClient.fetchLatestMeasurements();
+    final measurements = await AirqoApiClient().fetchLatestMeasurements();
 
     if (measurements.isNotEmpty && mounted) {
       setState(() => _latestMeasurements = measurements);
       await _setMarkers(measurements, false, 6.6);
     }
-
-    await _appService.dbHelper.insertLatestMeasurements(measurements);
+    await DBHelper().insertLatestMeasurements(measurements);
   }
 
   Future<void> _loadTheme() async {

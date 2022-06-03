@@ -23,18 +23,11 @@ import '../utils/exception.dart';
 import 'location_service.dart';
 
 class AppService {
-  final DBHelper _dbHelper = DBHelper();
-  final SecureStorage _secureStorage = SecureStorage();
-  final AirqoApiClient _apiClient = AirqoApiClient();
-  final SearchApi _searchApi = SearchApi();
-
-  AirqoApiClient get apiClient => _apiClient;
-
-  DBHelper get dbHelper => _dbHelper;
-
-  SearchApi get searchApi => _searchApi;
-
-  SecureStorage get secureStorage => _secureStorage;
+  factory AppService() {
+    return _instance;
+  }
+  AppService._internal();
+  static final AppService _instance = AppService._internal();
 
   Future<bool> authenticateUser({
     required AuthMethod authMethod,
@@ -102,7 +95,7 @@ class AppService {
             .fetchSignInMethodsForEmail(emailAddress);
         return methods.isNotEmpty;
       }
-      return _apiClient.checkIfUserExists(
+      return AirqoApiClient().checkIfUserExists(
           phoneNumber: phoneNumber, emailAddress: emailAddress);
     } catch (exception, stackTrace) {
       debugPrint('$exception \n $stackTrace');
@@ -117,7 +110,7 @@ class AppService {
   Future<void> fetchData(BuildContext buildContext) async {
     await Future.wait([
       checkNetworkConnection(buildContext, notifyUser: true),
-      _fetchLatestMeasurements(),
+      fetchLatestMeasurements(),
       _loadKya(),
       _loadNotifications(),
       _loadFavPlaces(buildContext),
@@ -129,7 +122,7 @@ class AppService {
 
   Future<void> fetchFavPlacesInsights() async {
     try {
-      final favPlaces = await _dbHelper.getFavouritePlaces();
+      final favPlaces = await DBHelper().getFavouritePlaces();
       final placeIds = <String>[];
 
       for (final favPlace in favPlaces) {
@@ -150,9 +143,9 @@ class AppService {
       final site1 = siteIds[i];
       try {
         final site2 = siteIds[i + 1];
-        futures.add(_apiClient.fetchSitesInsights('$site1,$site2'));
+        futures.add(AirqoApiClient().fetchSitesInsights('$site1,$site2'));
       } catch (e) {
-        futures.add(_apiClient.fetchSitesInsights(site1));
+        futures.add(AirqoApiClient().fetchSitesInsights(site1));
       }
     }
 
@@ -161,8 +154,8 @@ class AppService {
       insights.addAll(result);
     }
 
-    await dbHelper.insertInsights(insights, siteIds,
-        reloadDatabase: reloadDatabase);
+    await DBHelper()
+        .insertInsights(insights, siteIds, reloadDatabase: reloadDatabase);
 
     if (frequency != null) {
       var frequencyInsights = <Insights>[];
@@ -203,11 +196,11 @@ class AppService {
     }
   }
 
-  Future<void> _fetchLatestMeasurements() async {
+  Future<void> fetchLatestMeasurements() async {
     try {
-      final measurements = await _apiClient.fetchLatestMeasurements();
+      final measurements = await AirqoApiClient().fetchLatestMeasurements();
       if (measurements.isNotEmpty) {
-        await _dbHelper.insertLatestMeasurements(measurements);
+        await DBHelper().insertLatestMeasurements(measurements);
       }
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
@@ -220,7 +213,7 @@ class AppService {
 
   Future<void> _loadFavPlaces(BuildContext buildContext) async {
     try {
-      final _offlineFavPlaces = await _dbHelper.getFavouritePlaces();
+      final _offlineFavPlaces = await DBHelper().getFavouritePlaces();
       final _cloudFavPlaces =
           await CloudStore.getFavPlaces(CustomAuth.getUserId());
 
@@ -231,7 +224,7 @@ class AppService {
 
       final favPlaces = [..._offlineFavPlaces, ..._cloudFavPlaces];
       await Future.wait([
-        _dbHelper.setFavouritePlaces(favPlaces).then((value) => {
+        DBHelper().setFavouritePlaces(favPlaces).then((value) => {
               Provider.of<PlaceDetailsModel>(buildContext, listen: false)
                   .reloadFavouritePlaces(),
             }),
@@ -277,7 +270,7 @@ class AppService {
       final profile = await Profile.getProfile();
 
       await Future.wait([
-        _dbHelper
+        DBHelper()
             .getFavouritePlaces()
             .then((value) => CloudStore.updateFavPlaces(userId, value)),
         profile.update(logout: true),
@@ -295,12 +288,12 @@ class AppService {
   Future<void> _clearUserLocalStorage(BuildContext buildContext) async {
     await Future.wait([
       SharedPreferencesHelper.clearPreferences(),
-      _dbHelper.clearAccount().then((value) => {
+      DBHelper().clearAccount().then((value) => {
             Provider.of<PlaceDetailsModel>(buildContext, listen: false)
                 .reloadFavouritePlaces()
           }),
       HiveService.clearUserData(),
-      SecureStorage.clearUserData()
+      SecureStorage().clearUserData()
     ]);
   }
 
@@ -313,7 +306,7 @@ class AppService {
             .then((value) => {
                   if (value.isNotEmpty)
                     {
-                      _dbHelper.setFavouritePlaces(value),
+                      DBHelper().setFavouritePlaces(value),
                       Provider.of<PlaceDetailsModel>(buildContext,
                               listen: false)
                           .reloadFavouritePlaces(),
@@ -322,6 +315,7 @@ class AppService {
         CloudStore.getNotifications(),
         CloudStore.getCloudAnalytics(),
         logPlatformType(),
+        _loadKya(),
         updateFavouritePlacesSites(buildContext)
       ]);
     } catch (exception, stackTrace) {
@@ -345,7 +339,7 @@ class AppService {
   Future<void> refreshDashboard(BuildContext buildContext) async {
     await Future.wait([
       checkNetworkConnection(buildContext, notifyUser: true),
-      _fetchLatestMeasurements(),
+      fetchLatestMeasurements(),
       _loadKya(),
       _loadNotifications(),
       updateFavouritePlacesSites(buildContext),
@@ -355,7 +349,7 @@ class AppService {
   Future<void> refreshAnalytics(BuildContext buildContext) async {
     await Future.wait([
       checkNetworkConnection(buildContext, notifyUser: true),
-      _fetchLatestMeasurements(),
+      fetchLatestMeasurements(),
       _loadKya(),
       fetchFavPlacesInsights(),
     ]);
@@ -378,7 +372,7 @@ class AppService {
 
   Future<void> updateFavouritePlace(
       PlaceDetails placeDetails, BuildContext context) async {
-    final isFav = await _dbHelper.updateFavouritePlace(placeDetails);
+    final isFav = await DBHelper().updateFavouritePlace(placeDetails);
     if (isFav) {
       await CloudStore.addFavPlace(CustomAuth.getUserId(), placeDetails);
     } else {
@@ -393,7 +387,7 @@ class AppService {
   }
 
   Future<void> updateFavouritePlacesSites(BuildContext buildContext) async {
-    final favPlaces = await _dbHelper.getFavouritePlaces();
+    final favPlaces = await DBHelper().getFavouritePlaces();
     final updatedFavPlaces = <PlaceDetails>[];
     for (final favPlace in favPlaces) {
       final nearestSite = await LocationService.getNearestSite(
@@ -403,13 +397,13 @@ class AppService {
       }
       updatedFavPlaces.add(favPlace);
     }
-    await _dbHelper
+    await DBHelper()
         .updateFavouritePlacesDetails(updatedFavPlaces)
         .then((value) => _loadFavPlaces(buildContext));
   }
 
   Future<void> _logFavPlaces() async {
-    final favPlaces = await _dbHelper.getFavouritePlaces();
+    final favPlaces = await DBHelper().getFavouritePlaces();
     if (favPlaces.length >= 5) {
       await CloudAnalytics.logEvent(AnalyticsEvent.savesFiveFavorites);
     }

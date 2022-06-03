@@ -12,6 +12,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/enum_constants.dart';
+import '../../services/rest_api.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
 import '../../widgets/custom_shimmer.dart';
@@ -556,7 +557,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
       }
     }
 
-    final emailSignupResponse = await _appService.apiClient
+    final emailSignupResponse = await AirqoApiClient()
         .requestEmailVerificationCode(_emailAddress, false);
 
     Navigator.pop(loadingContext);
@@ -587,7 +588,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
 
     loadingScreen(loadingContext);
 
-    final emailSignupResponse = await _appService.apiClient
+    final emailSignupResponse = await AirqoApiClient()
         .requestEmailVerificationCode(_emailAddress, false);
 
     Navigator.pop(loadingContext);

@@ -3,6 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../services/hive_service.dart';
+import '../services/native_api.dart';
 import 'enum_constants.dart';
 
 part 'kya.g.dart';
@@ -72,6 +73,10 @@ class Kya extends HiveObject {
     }
 
     await Hive.box<Kya>(HiveBox.kya).putAll(newKyas);
+
+    for (final kya in kyas) {
+      await CacheService.cacheKyaImages(kya);
+    }
   }
 }
 

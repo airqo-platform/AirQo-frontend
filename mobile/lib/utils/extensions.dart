@@ -5,6 +5,23 @@ import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 
 import '../models/enum_constants.dart';
+import '../models/kya.dart';
+
+extension KyaExtension on Kya {
+  String imageUrlCacheKey() {
+    return 'kya-$id-image-url';
+  }
+
+  String secondaryImageUrlCacheKey() {
+    return 'kya-$id-secondary-image_url';
+  }
+}
+
+extension KyaLessonExtension on KyaLesson {
+  String imageUrlCacheKey(Kya kya) {
+    return 'kya-${kya.id}-${kya.lessons.indexOf(this)}-lesson-image-url';
+  }
+}
 
 extension AnalyticsEventExtension on AnalyticsEvent {
   String getName() {

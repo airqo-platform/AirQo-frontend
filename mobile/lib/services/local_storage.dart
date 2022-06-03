@@ -18,6 +18,12 @@ import '../constants/config.dart';
 import '../models/enum_constants.dart';
 
 class DBHelper {
+  factory DBHelper() {
+    return _instance;
+  }
+  DBHelper._internal();
+  static final DBHelper _instance = DBHelper._internal();
+
   Database? _database;
 
   Future<Database> get database async {

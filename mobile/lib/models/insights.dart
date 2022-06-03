@@ -13,7 +13,6 @@ class Insights {
 
   Insights(this.time, this.pm2_5, this.pm10, this.empty, this.forecast,
       this.siteId, this.frequency);
-  @JsonKey(fromJson: timeFromJson, toJson: timeToJson)
   DateTime time;
   double pm2_5;
   double pm10;

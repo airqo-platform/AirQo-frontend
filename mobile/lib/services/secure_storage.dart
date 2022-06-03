@@ -3,9 +3,15 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../utils/exception.dart';
 
 class SecureStorage {
+  factory SecureStorage() {
+    return _instance;
+  }
+  SecureStorage._internal();
+  static final SecureStorage _instance = SecureStorage._internal();
+
   final _secureStorage = const FlutterSecureStorage();
 
-  static Future<void> clearUserData() async {
+  Future<void> clearUserData() async {
     const secureStorage = FlutterSecureStorage();
     await secureStorage.deleteAll();
   }

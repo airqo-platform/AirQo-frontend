@@ -4,8 +4,8 @@ import 'package:app/widgets/dialogs.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:flutter/material.dart';
 
-import '../../services/app_service.dart';
 import '../../services/firebase_service.dart';
+import '../../services/rest_api.dart';
 import '../../themes/colors.dart';
 
 class EmailReAuthenticateScreen extends StatefulWidget {
@@ -28,7 +28,6 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
   bool _showResendCode = false;
   List<String> _emailVerificationCode = <String>['', '', '', '', '', ''];
   Color _nextBtnColor = CustomColors.appColorDisabled;
-  final AppService _appService = AppService();
 
   @override
   Widget build(BuildContext context) {
@@ -147,7 +146,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
   Future<void> resendVerificationCode() async {
     setState(() => _isResending = true);
 
-    final emailVerificationResponse = await _appService.apiClient
+    final emailVerificationResponse = await AirqoApiClient()
         .requestEmailVerificationCode(widget.userDetails.emailAddress, true);
 
     if (emailVerificationResponse == null) {
@@ -229,7 +228,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
       _isVerifying = true;
     });
 
-    final emailVerificationResponse = await _appService.apiClient
+    final emailVerificationResponse = await AirqoApiClient()
         .requestEmailVerificationCode(widget.userDetails.emailAddress, true);
 
     if (!mounted) {

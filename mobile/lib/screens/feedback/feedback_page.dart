@@ -10,7 +10,7 @@ import 'package:app/widgets/text_fields.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../services/app_service.dart';
+import '../../services/rest_api.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
 import 'feedback_page_widgets.dart';
@@ -27,7 +27,6 @@ class _FeedbackPageState extends State<FeedbackPage> {
   String _feedbackType = '';
   String _feedbackChannel = '';
   bool _isSendingFeedback = false;
-  final AppService _appService = AppService();
   final TextEditingController _emailInputController = TextEditingController();
   final TextEditingController _emailFeedbackController =
       TextEditingController();
@@ -239,7 +238,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                       _emailFeedbackController.text,
                                       _feedbackType);
                                   setState(() => _isSendingFeedback = true);
-                                  await _appService.apiClient
+                                  await AirqoApiClient()
                                       .sendFeedback(feedback)
                                       .then((value) => {
                                             if (value)
@@ -340,7 +339,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                               setState(() {
                                 _isSendingFeedback = true;
                               });
-                              await _appService.apiClient
+                              await AirqoApiClient()
                                   .sendFeedback(feedback)
                                   .then((value) => {
                                         if (value)

@@ -20,6 +20,7 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 import '../../models/enum_constants.dart';
+import '../../services/local_storage.dart';
 import '../../services/native_api.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
@@ -444,7 +445,7 @@ class _InsightsTabState extends State<InsightsTab> {
   }
 
   Future<void> _loadMiniCharts(DateTime defaultSelection) async {
-    final hourlyInsights = await _appService.dbHelper
+    final hourlyInsights = await DBHelper()
         .getInsights(widget.placeDetails.siteId, Frequency.hourly);
 
     if (hourlyInsights.isNotEmpty) {
@@ -567,7 +568,7 @@ class _InsightsTabState extends State<InsightsTab> {
   }
 
   Future<void> _fetchDBInsights() async {
-    final insights = await _appService.dbHelper
+    final insights = await DBHelper()
         .getInsights(widget.placeDetails.siteId, widget.frequency);
     if (insights.isNotEmpty) {
       await _setInsights(insights);

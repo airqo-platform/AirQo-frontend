@@ -1,11 +1,14 @@
+import 'package:app/utils/extensions.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../models/enum_constants.dart';
 import '../../models/kya.dart';
 import '../../models/measurement.dart';
+import '../../services/native_api.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
 import '../../utils/exception.dart';
@@ -72,6 +75,9 @@ class KyaDashboardAvatar extends StatelessWidget {
               fit: BoxFit.cover,
               image: CachedNetworkImageProvider(
                 kya.imageUrl,
+                cacheKey: kya.imageUrlCacheKey(),
+                cacheManager: CacheManager(
+                    CacheService.cacheConfig(kya.imageUrlCacheKey())),
               ),
             ),
           ),
@@ -233,6 +239,9 @@ class DashboardKyaCard extends StatelessWidget {
                   Icons.error_outline,
                   color: CustomColors.aqiRed,
                 ),
+                cacheKey: kya.imageUrlCacheKey(),
+                cacheManager: CacheManager(
+                    CacheService.cacheConfig(kya.imageUrlCacheKey())),
               ),
             ),
           ],

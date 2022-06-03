@@ -1,7 +1,9 @@
 import 'package:app/models/kya.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
@@ -233,16 +235,19 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
               child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: CachedNetworkImage(
-                    fit: BoxFit.fill,
-                    placeholder: (context, url) => const SizedBox(
-                      child: ContainerLoadingAnimation(height: 180, radius: 8),
-                    ),
-                    imageUrl: kyaItem.imageUrl,
-                    errorWidget: (context, url, error) => Icon(
-                      Icons.error_outline,
-                      color: CustomColors.aqiRed,
-                    ),
-                  )),
+                      fit: BoxFit.fill,
+                      placeholder: (context, url) => const SizedBox(
+                            child: ContainerLoadingAnimation(
+                                height: 180, radius: 8),
+                          ),
+                      imageUrl: kyaItem.imageUrl,
+                      errorWidget: (context, url, error) => Icon(
+                            Icons.error_outline,
+                            color: CustomColors.aqiRed,
+                          ),
+                      cacheKey: kyaItem.imageUrlCacheKey(kya),
+                      cacheManager: CacheManager(CacheService.cacheConfig(
+                          kyaItem.imageUrlCacheKey(kya))))),
             ),
             Padding(
               padding: const EdgeInsets.only(left: 36, right: 36, top: 12.0),

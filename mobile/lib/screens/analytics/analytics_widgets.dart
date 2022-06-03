@@ -17,6 +17,7 @@ import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/enum_constants.dart';
+import '../../services/local_storage.dart';
 import '../../services/native_api.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
@@ -852,17 +853,15 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
   }
 
   void getMeasurement() {
-    _appService.dbHelper
-        .getMeasurement(widget.placeDetails.siteId)
-        .then((value) => {
-              if (value != null && mounted)
-                {
-                  setState(() {
-                    measurement = value;
-                    isNull = false;
-                  })
-                }
-            });
+    DBHelper().getMeasurement(widget.placeDetails.siteId).then((value) => {
+          if (value != null && mounted)
+            {
+              setState(() {
+                measurement = value;
+                isNull = false;
+              })
+            }
+        });
   }
 
   @override

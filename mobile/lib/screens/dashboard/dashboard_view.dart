@@ -17,6 +17,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/enum_constants.dart';
 import '../../services/firebase_service.dart';
 import '../../services/hive_service.dart';
+import '../../services/local_storage.dart';
 import '../../services/location_service.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
@@ -318,7 +319,7 @@ class _DashboardViewState extends State<DashboardView> {
 
   void _getAnalyticsCards() async {
     final region = getNextDashboardRegion(_preferences);
-    final measurements = await _appService.dbHelper.getRegionSites(region);
+    final measurements = await DBHelper().getRegionSites(region);
     final dashboardCards = <AnalyticsCard>[];
 
     if (measurements.isNotEmpty) {
@@ -427,7 +428,7 @@ class _DashboardViewState extends State<DashboardView> {
 
     if (_favLocations.length != 3 || reload) {
       try {
-        final favouritePlaces = await _appService.dbHelper.getFavouritePlaces();
+        final favouritePlaces = await DBHelper().getFavouritePlaces();
 
         if (!reload) {
           if (_favLocations.length >= favouritePlaces.length) {
@@ -439,8 +440,7 @@ class _DashboardViewState extends State<DashboardView> {
         for (final place in favouritePlaces) {
           siteIds.add(place.siteId);
         }
-        final measurements =
-            await _appService.dbHelper.getMeasurements(siteIds);
+        final measurements = await DBHelper().getMeasurements(siteIds);
 
         if (favouritePlaces.length == 1) {
           if (measurements.isNotEmpty) {
