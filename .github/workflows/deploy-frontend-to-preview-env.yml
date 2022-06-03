@@ -349,6 +349,6 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'Website changes in this PR available for preview [here](${{ needs.calibrate-app.outputs.url }})'
+              body: 'Calibrate app changes in this PR available for preview [here](${{ needs.calibrate-app.outputs.url }})'
             })
   
