@@ -4,10 +4,6 @@ on:
   pull_request:
     branches:
       - staging
-
-env:
-  PROJECT_ID: ${{ secrets.PROJECT_ID }}
-  REGION: ${{ secrets.REGION }}
   
 jobs:
   branch-name:
