@@ -221,8 +221,8 @@ jobs:
             --concurrency=10 \
             --image=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/website-pr-previews:${{ github.sha }} \
             --port=8000 \
-            --cpu=1000m \
-            --memory=512Mi \
+            --cpu=2000m \
+            --memory=1024Mi \
             --update-secrets=/etc/env/.env=sta-env-website:latest,/etc/config/google_application_credentials.json=sta-key-website-service-account:latest \
             --command="/bin/sh","-c","cat /etc/env/.env >> /app/.env; /app/wsgi-entrypoint.sh" \
             --allow-unauthenticated
