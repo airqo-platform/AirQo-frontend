@@ -6,6 +6,7 @@ on:
       - staging
     types:
       - closed
+      
 jobs:
   image-tag:
     name: create image tag

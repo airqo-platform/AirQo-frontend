@@ -130,7 +130,7 @@ jobs:
             --cpu=1000m \
             --memory=256Mi \
             --update-secrets=/etc/env/.env=sta-env-netmanager:latest \
-            --command="/bin/sh","-c","cat /etc/env/.env >> /etc/environment; nginx -g daemon off;" \
+            --command="/bin/sh","-c","cat /etc/env/.env >> /etc/environment; nginx -g 'daemon off;'" \
             --allow-unauthenticated
 
       - name: Get preview service url
@@ -318,7 +318,7 @@ jobs:
             --cpu=1000m \
             --memory=256Mi \
             --update-secrets=/etc/env/.env=sta-env-calibrate-app:latest \
-            --command="/bin/sh","-c","cat /etc/env/.env >> /etc/environment; nginx -g daemon off;" \
+            --command="/bin/sh","-c","cat /etc/env/.env >> /etc/environment; nginx -g 'daemon off;'" \
             --allow-unauthenticated
 
       - name: Get preview service url
