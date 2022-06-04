@@ -2,6 +2,7 @@ import React from 'react';
 import useWindowSize from 'utils/customHooks';
 import HeroCityImg from 'icons/homepage/hero-city.png';
 import HeroCityLargeImg from 'icons/homepage/hero-city-full.png';
+import HeroImg from 'assets/img/hero-img.png';
 import Location from 'icons/homepage/hero/location.svg';
 import Reload from 'icons/homepage/hero/reload.svg';
 import ArrowDown from 'icons/homepage/hero/arrow-down.svg';
@@ -16,7 +17,7 @@ const Hero = () => {
   return (
         <div className="Hero">
             <span>
-                <img src={size.width <= breakPoint ? HeroCityImg : HeroCityLargeImg} alt="Hero image" />
+                <img src={size.width <= breakPoint ? HeroCityImg : HeroImg} alt="Hero image" />
                 {/* <div className="air-quality-reading">
                     <div className="top-reading">
                         <span className="name-wrapper">
@@ -47,9 +48,7 @@ const Hero = () => {
             <div className="hero-content">
                 <div>
                 <p className="hero-title">Clean air for <br />all African cities </p>
-                <p className="hero-sub">We empower communities with accurate, hyperlocal and timely air quality data to
-                    drive air pollution mitigation actions.
-                </p>
+                <p className="hero-sub"> <span style={{color:"#135DFF"}}>“9 out of 10 people breathe polluted air”.</span> <br/>We empower communities with accurate, hyperlocal and timely air quality data to drive air pollution mitigation actions.</p>
                 <div className="hero-buttons">
                     <Button label="Explore data" />
                     <Button className="button-get-involved" label="Get Involved" />
