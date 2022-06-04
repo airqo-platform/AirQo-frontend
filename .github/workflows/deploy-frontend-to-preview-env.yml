@@ -224,10 +224,7 @@ jobs:
             --cpu=1000m \
             --memory=256Mi \
             --update-secrets=/etc/env/.env=sta-env-website:latest,/etc/config/google_application_credentials.json=sta-key-website-service-account:latest \
-            --command="/bin/sh","-c","cat /etc/env/.env >> /app/.env; \
-              /app/manage.py migrate; \
-              /app/manage.py collectstatic --noinput; \
-              gunicorn backend.wsgi --bind=0.0.0.0:8000" \
+            --command="/bin/sh","-c","cat /etc/env/.env >> /app/.env; /app/wsgi-entrypoint.sh" \
             --allow-unauthenticated
 
       - name: Get preview service url
