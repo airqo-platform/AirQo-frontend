@@ -227,7 +227,7 @@ jobs:
             --command="/bin/sh","-c","cat /etc/env/.env >> /app/.env; \
               /app/manage.py migrate; \
               /app/manage.py collectstatic --noinput; \
-              gunicorn backend.wsgi --bind 0.0.0.0:8000 --workers 4 --threads 4" \
+              gunicorn backend.wsgi --bind=0.0.0.0:8000" \
             --allow-unauthenticated
 
       - name: Get preview service url
