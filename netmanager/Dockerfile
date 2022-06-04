@@ -9,5 +9,4 @@ COPY ./build /usr/share/nginx/html
 # expose the product on port 80
 EXPOSE 80
 
-
 CMD ["nginx", "-g", "daemon off;"]
