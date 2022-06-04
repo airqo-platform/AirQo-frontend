@@ -4,10 +4,6 @@ on:
   pull_request:
     branches:
       - staging
-
-env:
-  PROJECT_ID: ${{ secrets.PROJECT_ID }}
-  REGION: ${{ secrets.REGION }}
   
 jobs:
   branch-name:
@@ -134,7 +130,7 @@ jobs:
             --cpu=1000m \
             --memory=256Mi \
             --update-secrets=/etc/env/.env=sta-env-netmanager:latest \
-            --command="/bin/sh","-c","cat /etc/env/.env >> /etc/environment; nginx -g daemon off;" \
+            --command="/bin/sh","-c","cat /etc/env/.env >> /etc/environment; nginx -g 'daemon off;'" \
             --allow-unauthenticated
 
       - name: Get preview service url
@@ -159,7 +155,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'Netmanager changes in this PR available for preview [here](${{ needs.netmanager.outputs.url }})'
+              body: 'New netmanager changes available for preview [here](${{ needs.netmanager.outputs.url }})'
             })
   
   ### deploy website preview ###
@@ -225,8 +221,8 @@ jobs:
             --concurrency=10 \
             --image=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/website-pr-previews:${{ github.sha }} \
             --port=8000 \
-            --cpu=1000m \
-            --memory=256Mi \
+            --cpu=2000m \
+            --memory=1024Mi \
             --update-secrets=/etc/env/.env=sta-env-website:latest,/etc/config/google_application_credentials.json=sta-key-website-service-account:latest \
             --command="/bin/sh","-c","cat /etc/env/.env >> /app/.env; /app/wsgi-entrypoint.sh" \
             --allow-unauthenticated
@@ -253,7 +249,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'Website changes in this PR available for preview [here](${{ needs.website.outputs.url }})'
+              body: 'New website changes available for preview [here](${{ needs.website.outputs.url }})'
             })
     
   ### deploy calibrate-app preview ###
@@ -322,7 +318,7 @@ jobs:
             --cpu=1000m \
             --memory=256Mi \
             --update-secrets=/etc/env/.env=sta-env-calibrate-app:latest \
-            --command="/bin/sh","-c","cat /etc/env/.env >> /etc/environment; nginx -g daemon off;" \
+            --command="/bin/sh","-c","cat /etc/env/.env >> /etc/environment; nginx -g 'daemon off;'" \
             --allow-unauthenticated
 
       - name: Get preview service url
@@ -347,6 +343,6 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'Calibrate app changes in this PR available for preview [here](${{ needs.calibrate-app.outputs.url }})'
+              body: 'New calibrate app changes available for preview [here](${{ needs.calibrate-app.outputs.url }})'
             })
   
