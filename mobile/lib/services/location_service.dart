@@ -266,8 +266,7 @@ class LocationService {
         nearestSites.add(measurement);
       }
     }
-
-    return nearestSites;
+    return Measurement.sortNearestPlaces(nearestSites);
   }
 
   static Future<bool> revokePermission() async {

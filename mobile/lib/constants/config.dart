@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -41,12 +39,6 @@ class Config {
 
   static String get dbName => dotenv.env['DATABASE_NAME'] ?? '';
 
-  static double get defaultLatitude =>
-      double.parse('${dotenv.env['DEFAULT_LATITUDE']}');
-
-  static double get defaultLongitude =>
-      double.parse('${dotenv.env['DEFAULT_LONGITUDE']}');
-
   static String get environmentFile => kReleaseMode ? '.env.prod' : '.env.dev';
 
   static String get faqsUrl => dotenv.env['FAQS_URL'] ?? '';
@@ -54,19 +46,7 @@ class Config {
   static String get favPlacesCollection =>
       dotenv.env['FAV_PLACES_COLLECTION'] ?? '';
 
-  static String get googleApiKey =>
-      (Platform.isAndroid
-          ? dotenv.env['GOOGLE_ANDROID_API_KEY']
-          : dotenv.env['GOOGLE_IOS_API_KEY']) ??
-      '';
-
-  static String get imageUploadApiKey =>
-      dotenv.env['IMAGE_UPLOAD_API_KEY'] ?? '';
-
-  static String get imageUploadPreset =>
-      dotenv.env['IMAGE_UPLOAD_PRESET'] ?? '';
-
-  static String get imageUploadUrl => dotenv.env['IMAGE_UPLOAD_URL'] ?? '';
+  static String get searchApiKey => dotenv.env['SEARCH_API_KEY'] ?? '';
 
   static String get iosStoreId => dotenv.env['IOS_STORE_ID'] ?? '';
 
@@ -76,7 +56,7 @@ class Config {
       'Turn on and allow location permissions';
 
   static String get locationErrorMessage =>
-      'Cannot get you location at the moment';
+      'Cannot get your location at the moment';
 
   static int get maxSearchRadius => searchRadius * 2;
 
@@ -86,13 +66,9 @@ class Config {
   static String get usersAnalyticsCollection =>
       dotenv.env['USERS_ANALYTICS_COLLECTION'] ?? '';
 
-  static int get persistentNotificationId => 1294732;
-
   static String get placesSearchUrl => dotenv.env['PLACES_SEARCH_URL'] ?? '';
 
   static String get playStoreUrl => dotenv.env['PLAY_STORE_URL'] ?? '';
-
-  static String get prefAppTheme => dotenv.env['PREF_APP_THEME'] ?? '';
 
   static String get prefDashboardRegion =>
       dotenv.env['PREF_DASHBOARD_REGION'] ?? '';
@@ -102,15 +78,9 @@ class Config {
 
   static String get prefReLoadDb => dotenv.env['PREF_RELOAD_DB'] ?? '';
 
-  static int get progressNotificationId => 482842;
-
-  static int get pushNotificationId => 9239203;
-
   static int get searchRadius => int.parse('${dotenv.env['SEARCH_RADIUS']}');
 
   static String get sentryDsn => dotenv.env['SENTRY_DSN'] ?? '';
-
-  static int get smartNotificationId => 4877231;
 
   static String get termsUrl => dotenv.env['TERMS_URL'] ?? '';
 

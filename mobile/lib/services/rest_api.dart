@@ -279,7 +279,7 @@ class SearchApi {
   static final SearchApi _instance = SearchApi._internal();
 
   final String sessionToken = const Uuid().v4();
-  final apiKey = Config.googleApiKey;
+  final apiKey = Config.searchApiKey;
 
   Future<List<Suggestion>> fetchSuggestions(String input) async {
     try {

@@ -259,7 +259,7 @@ class InsightsAvatar extends StatelessWidget {
           ),
           SvgPicture.asset(
             'assets/icon/unit.svg',
-            semanticsLabel: 'UNit',
+            semanticsLabel: 'Unit',
             height: 6,
             width: 32,
             color: measurement.forecast

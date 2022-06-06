@@ -258,7 +258,7 @@ class CloudStore {
           .collection(Config.usersCollection)
           .doc(uuid)
           .get();
-      return await compute(Profile.parseUserDetails, userJson.data());
+      return Profile.parseUserDetails(userJson.data());
     } on FirebaseException catch (exception, _) {
       if (exception.code == 'not-found') {
         final profile = await CustomAuth.createProfile();

@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:app/models/json_parsers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 
@@ -89,9 +88,7 @@ extension DateTimeExtension on DateTime {
   }
 
   DateTime getDateOfFirstHourOfDay() {
-    final dateStr = '${DateFormat('yyyy-MM-dd').format(this)}T00:00:00Z';
-
-    return timeFromJson(dateStr);
+    return DateTime.parse('${DateFormat('yyyy-MM-dd').format(this)}T00:00:00Z');
   }
 
   DateTime getDateOfLastDayOfWeek() {
@@ -107,9 +104,7 @@ extension DateTimeExtension on DateTime {
   }
 
   DateTime getDateOfLastHourOfDay() {
-    final dateStr = '${DateFormat('yyyy-MM-dd').format(this)}T23:00:00Z';
-
-    return timeFromJson(dateStr);
+    return DateTime.parse('${DateFormat('yyyy-MM-dd').format(this)}T23:00:00Z');
   }
 
   String getDay({DateTime? datetime}) {
@@ -389,30 +384,6 @@ extension OnBoardingPageExtension on OnBoardingPage {
         return 'home';
       case OnBoardingPage.welcome:
         return 'welcome';
-      default:
-        return '';
-    }
-  }
-}
-
-extension PollutantExtension on Pollutant {
-  String asString() {
-    switch (this) {
-      case Pollutant.pm2_5:
-        return 'pm 2.5';
-      case Pollutant.pm10:
-        return 'pm 10';
-      default:
-        return '';
-    }
-  }
-
-  String toTitleCase() {
-    switch (this) {
-      case Pollutant.pm2_5:
-        return 'pm2_5'.toTitleCase();
-      case Pollutant.pm10:
-        return 'pm10'.toTitleCase();
       default:
         return '';
     }

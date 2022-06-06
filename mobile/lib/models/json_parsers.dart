@@ -40,10 +40,6 @@ MeasurementValue measurementValueFromJson(dynamic json) {
   return MeasurementValue.fromJson(json);
 }
 
-Measurement parseMeasurement(dynamic jsonBody) {
-  return parseMeasurements(jsonBody).first;
-}
-
 List<Measurement> parseMeasurements(dynamic jsonBody) {
   final measurements = <Measurement>[];
 
@@ -85,12 +81,4 @@ String regionFromJson(dynamic json) {
   } else {
     return 'Central Region';
   }
-}
-
-DateTime timeFromJson(dynamic json) {
-  return DateTime.parse('$json');
-}
-
-String timeToJson(DateTime dateTime) {
-  return dateTime.toString();
 }

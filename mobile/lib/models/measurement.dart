@@ -100,6 +100,13 @@ class Measurement {
     };
   }
 
+  static List<Measurement> sortNearestPlaces(List<Measurement> measurements) {
+    measurements.sort((x, y) {
+      return x.site.distance.compareTo(y.site.distance);
+    });
+    return measurements;
+  }
+
   static Map<String, dynamic> mapToDb(Measurement measurement) {
     final measurementMap = Site.toDbMap(measurement.site)
       ..addAll({
@@ -116,22 +123,4 @@ class Measurement {
   }
 
   static String measurementsDb() => 'measurements';
-}
-
-extension ParseMeasurement on Measurement {
-  String getTempValue() {
-    final tempValue = temperature.value.toStringAsFixed(2);
-
-    return '$tempValue\u2103';
-  }
-
-  bool hasWeatherData() {
-    if (humidity.value != -0.1 &&
-        temperature.value != -0.1 &&
-        humidity.value != 0.0 &&
-        temperature.value != 0.0) {
-      return true;
-    }
-    return false;
-  }
 }
