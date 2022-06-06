@@ -1,5 +1,5 @@
 import React from 'react';
-import GetappImg from 'assets/img/get-app.png';
+import GetappImg from 'assets/img/Get-app.png';
 import GetappImgSm from 'assets/img/get-app-sm.png';
 import AppleStore from 'assets/svg/apple_app_store.svg';
 import AndroidStore from 'assets/svg/android_play_store.svg';
@@ -10,7 +10,7 @@ const GetApp = () => {
             <div className='back-drop'>
                 <div className='get-content'>
                     <div className='get-text'>
-                        <h2>Get the app</h2>
+                        <h2>Download the app</h2>
                         <span>Discover the quality of the air you are breathing</span>
                     </div>
                     <div className='get-btns'>
