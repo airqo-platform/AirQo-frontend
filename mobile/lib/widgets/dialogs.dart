@@ -198,24 +198,21 @@ void pmInfoDialog(context, double pm2_5) {
                           Container(
                             padding: const EdgeInsets.fromLTRB(12, 2.0, 12, 2),
                             decoration: BoxDecoration(
-                                color: pollutantValueColor(
-                                        value: pm2_5,
-                                        pollutant: Pollutant.pm2_5)
+                                color: Pollutant.pm2_5
+                                    .color(pm2_5)
                                     .withOpacity(0.4),
                                 borderRadius: const BorderRadius.all(
                                     Radius.circular(537.0))),
                             child: AutoSizeText(
-                              pollutantValueString(
-                                      value: pm2_5, pollutant: Pollutant.pm2_5)
-                                  .trimEllipsis(),
+                              Pollutant.pm2_5.stringValue(pm2_5).trimEllipsis(),
                               maxLines: 2,
                               minFontSize: 10,
                               maxFontSize: 10,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                   fontSize: 10,
-                                  color: pollutantTextColor(
-                                      value: pm2_5, pollutant: Pollutant.pm2_5),
+                                  color:
+                                      Pollutant.pm2_5.textColor(value: pm2_5),
                                   height: 14 / 10,
                                   fontWeight: FontWeight.w500),
                             ),
@@ -227,8 +224,7 @@ void pmInfoDialog(context, double pm2_5) {
                             text: TextSpan(
                               children: [
                                 TextSpan(
-                                  text:
-                                      '${pollutantValueString(value: pm2_5, pollutant: Pollutant.pm2_5)}'
+                                  text: '${Pollutant.pm2_5.stringValue(pm2_5)}'
                                       ' means; ',
                                   style: TextStyle(
                                       fontSize: 10,

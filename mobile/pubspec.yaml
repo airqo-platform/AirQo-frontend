@@ -78,9 +78,6 @@ dependencies:
   # https://pub.dev/packages/retry
   
 flutter_native_splash:
-  # flutter pub run flutter_native_splash:create
-  # flutter pub run flutter_native_splash:remove
-
   color: "#FFFFFF"
   color_dark: "#FFFFFF"
   image: assets/icon/splash_image.png

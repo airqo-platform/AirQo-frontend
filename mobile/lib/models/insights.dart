@@ -24,7 +24,7 @@ class Insights {
   @JsonKey(fromJson: frequencyFromJson)
   String frequency;
 
-  double getChartValue(Pollutant pollutant) {
+  double chartValue(Pollutant pollutant) {
     return pollutant == Pollutant.pm2_5
         ? double.parse(pm2_5.toStringAsFixed(2))
         : double.parse(pm10.toStringAsFixed(2));

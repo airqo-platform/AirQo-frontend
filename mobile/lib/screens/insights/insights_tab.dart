@@ -323,28 +323,24 @@ class _InsightsTabState extends State<InsightsTab> {
                             color: _selectedMeasurement!.forecast
                                 ? CustomColors.appColorBlue.withOpacity(0.24)
                                 : _pollutant == Pollutant.pm2_5
-                                    ? pollutantValueColor(
-                                            value: _selectedMeasurement!
-                                                .getChartValue(_pollutant),
-                                            pollutant: Pollutant.pm2_5)
+                                    ? Pollutant.pm2_5
+                                        .color(_selectedMeasurement!
+                                            .chartValue(_pollutant))
                                         .withOpacity(0.4)
-                                    : pollutantValueColor(
-                                            value: _selectedMeasurement!
-                                                .getChartValue(_pollutant),
-                                            pollutant: Pollutant.pm10)
+                                    : Pollutant.pm10
+                                        .color(_selectedMeasurement!
+                                            .chartValue(_pollutant))
                                         .withOpacity(0.4),
                             border: Border.all(color: Colors.transparent)),
                         child: AutoSizeText(
                             _pollutant == Pollutant.pm2_5
-                                ? pollutantValueString(
-                                        value: _selectedMeasurement!
-                                            .getChartValue(_pollutant),
-                                        pollutant: Pollutant.pm2_5)
+                                ? Pollutant.pm2_5
+                                    .stringValue(_selectedMeasurement!
+                                        .chartValue(_pollutant))
                                     .trimEllipsis()
-                                : pollutantValueString(
-                                        value: _selectedMeasurement!
-                                            .getChartValue(_pollutant),
-                                        pollutant: Pollutant.pm10)
+                                : Pollutant.pm10
+                                    .stringValue(_selectedMeasurement!
+                                        .chartValue(_pollutant))
                                     .trimEllipsis(),
                             maxLines: 1,
                             maxFontSize: 14,
@@ -354,15 +350,13 @@ class _InsightsTabState extends State<InsightsTab> {
                               color: _selectedMeasurement!.forecast
                                   ? CustomColors.appColorBlue
                                   : _pollutant == Pollutant.pm2_5
-                                      ? pollutantTextColor(
+                                      ? Pollutant.pm2_5.textColor(
                                           value: _selectedMeasurement!
-                                              .getChartValue(_pollutant),
-                                          pollutant: Pollutant.pm2_5,
+                                              .chartValue(_pollutant),
                                           graph: true)
-                                      : pollutantTextColor(
+                                      : Pollutant.pm10.textColor(
                                           value: _selectedMeasurement!
-                                              .getChartValue(_pollutant),
-                                          pollutant: Pollutant.pm10,
+                                              .chartValue(_pollutant),
                                           graph: true),
                             )),
                       ),
@@ -397,7 +391,7 @@ class _InsightsTabState extends State<InsightsTab> {
                       child: GestureDetector(
                         onTap: () {
                           pmInfoDialog(context,
-                              _selectedMeasurement!.getChartValue(_pollutant));
+                              _selectedMeasurement!.chartValue(_pollutant));
                         },
                         child: SvgPicture.asset(
                           'assets/icon/info_icon.svg',

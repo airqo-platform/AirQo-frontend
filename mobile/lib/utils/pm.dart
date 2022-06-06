@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:app/utils/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -139,210 +139,6 @@ List<Recommendation> getHealthRecommendations(
   return recommendations;
 }
 
-Color pollutantTextColor(
-    {required double value, required Pollutant pollutant, bool? graph}) {
-  switch (pollutant) {
-    case Pollutant.pm2_5:
-      if (value <= 12.09) {
-        //good
-        return CustomColors.aqiGreenTextColor;
-      } else if (value >= 12.1 && value <= 35.49) {
-        //moderate
-        return CustomColors.aqiYellowTextColor;
-      } else if (value >= 35.5 && value <= 55.49) {
-        //sensitive
-        return CustomColors.aqiOrangeTextColor;
-      } else if (value >= 55.5 && value <= 150.49) {
-        // unhealthy
-        return CustomColors.aqiRedTextColor;
-      } else if (value >= 150.5 && value <= 250.49) {
-        // very unhealthy
-        return CustomColors.aqiPurpleTextColor;
-      } else if (value >= 250.5) {
-        // hazardous
-        if (graph != null && graph) {
-          return CustomColors.aqiMaroon;
-        }
-        return CustomColors.aqiMaroonTextColor;
-      } else {
-        return CustomColors.appColor;
-      }
-    case Pollutant.pm10:
-      if (value <= 50.99) {
-        //good
-        return CustomColors.aqiGreenTextColor;
-      } else if (value >= 51.00 && value <= 100.99) {
-        //moderate
-        return CustomColors.aqiYellowTextColor;
-      } else if (value >= 101.00 && value <= 250.99) {
-        //sensitive
-        return CustomColors.aqiOrangeTextColor;
-      } else if (value >= 251.00 && value <= 350.99) {
-        // unhealthy
-        return CustomColors.aqiRedTextColor;
-      } else if (value >= 351.00 && value <= 430.99) {
-        // very unhealthy
-        return CustomColors.aqiPurpleTextColor;
-      } else if (value >= 431.00) {
-        // hazardous
-        if (graph != null && graph) {
-          return CustomColors.aqiMaroon;
-        }
-        return CustomColors.aqiMaroonTextColor;
-      } else {
-        return CustomColors.appColor;
-      }
-  }
-}
-
-Color pollutantValueColor(
-    {required double value, required Pollutant pollutant}) {
-  switch (pollutant) {
-    case Pollutant.pm2_5:
-      if (value <= 12.09) {
-        //good
-        return CustomColors.aqiGreen;
-      } else if (value >= 12.1 && value <= 35.49) {
-        //moderate
-        return CustomColors.aqiYellow;
-      } else if (value >= 35.5 && value <= 55.49) {
-        //sensitive
-        return CustomColors.aqiOrange;
-      } else if (value >= 55.5 && value <= 150.49) {
-        // unhealthy
-        return CustomColors.aqiRed;
-      } else if (value >= 150.5 && value <= 250.49) {
-        // very unhealthy
-        return CustomColors.aqiPurple;
-      } else if (value >= 250.5) {
-        // hazardous
-        return CustomColors.aqiMaroon;
-      } else {
-        return CustomColors.appColor;
-      }
-    case Pollutant.pm10:
-      if (value <= 50.99) {
-        //good
-        return CustomColors.aqiGreen;
-      } else if (value >= 51.00 && value <= 100.99) {
-        //moderate
-        return CustomColors.aqiYellow;
-      } else if (value >= 101.00 && value <= 250.99) {
-        //sensitive
-        return CustomColors.aqiOrange;
-      } else if (value >= 251.00 && value <= 350.99) {
-        // unhealthy
-        return CustomColors.aqiRed;
-      } else if (value >= 351.00 && value <= 430.99) {
-        // very unhealthy
-        return CustomColors.aqiPurple;
-      } else if (value >= 431.00) {
-        // hazardous
-        return CustomColors.aqiMaroon;
-      } else {
-        return CustomColors.appColor;
-      }
-  }
-}
-
-String pollutantValueString(
-    {required double value, required Pollutant pollutant}) {
-  switch (pollutant) {
-    case Pollutant.pm2_5:
-      if (value <= 12.09) {
-        //good
-        return 'Good';
-      } else if (value >= 12.1 && value <= 35.49) {
-        //moderate
-        return 'Moderate';
-      } else if (value >= 35.5 && value <= 55.49) {
-        //sensitive
-        return 'Unhealthy For Sensitive Groups';
-      } else if (value >= 55.5 && value <= 150.49) {
-        // unhealthy
-        return 'Unhealthy';
-      } else if (value >= 150.5 && value <= 250.49) {
-        // very unhealthy
-        return 'Very Unhealthy';
-      } else if (value >= 250.5) {
-        // hazardous
-        return 'Hazardous';
-      } else {
-        return '';
-      }
-    case Pollutant.pm10:
-      if (value <= 50.99) {
-        //good
-        return 'Good';
-      } else if (value >= 51.00 && value <= 100.99) {
-        //moderate
-        return 'Moderate';
-      } else if (value >= 101.00 && value <= 250.99) {
-        //sensitive
-        return 'Unhealthy For Sensitive Groups';
-      } else if (value >= 251.00 && value <= 350.99) {
-        // unhealthy
-        return 'Unhealthy';
-      } else if (value >= 351.00 && value <= 430.99) {
-        // very unhealthy
-        return 'Very Unhealthy';
-      } else if (value >= 431.00) {
-        // hazardous
-        return 'Hazardous';
-      } else {
-        return '';
-      }
-  }
-}
-
-charts.Color pollutantChartValueColor(double value, Pollutant pollutant) {
-  if (pollutant == Pollutant.pm2_5) {
-    if (value <= 12.09) {
-      //good
-      return charts.ColorUtil.fromDartColor(CustomColors.aqiGreen);
-    } else if (value >= 12.1 && value <= 35.49) {
-      //moderate
-      return charts.ColorUtil.fromDartColor(CustomColors.aqiYellow);
-    } else if (value >= 35.5 && value <= 55.49) {
-      //sensitive
-      return charts.ColorUtil.fromDartColor(CustomColors.aqiOrange);
-    } else if (value >= 55.5 && value <= 150.49) {
-      // unhealthy
-      return charts.ColorUtil.fromDartColor(CustomColors.aqiRed);
-    } else if (value >= 150.5 && value <= 250.49) {
-      // very unhealthy
-      return charts.ColorUtil.fromDartColor(CustomColors.aqiPurple);
-    } else if (value >= 250.5) {
-      // hazardous
-      return charts.ColorUtil.fromDartColor(CustomColors.aqiMaroon);
-    } else {
-      return charts.ColorUtil.fromDartColor(CustomColors.appColor);
-    }
-  } else {
-    if (value <= 50.99) {
-      //good
-      return charts.ColorUtil.fromDartColor(CustomColors.aqiGreen);
-    } else if (value >= 51.00 && value <= 100.99) {
-      //moderate
-      return charts.ColorUtil.fromDartColor(CustomColors.aqiYellow);
-    } else if (value >= 101.00 && value <= 250.99) {
-      //sensitive
-      return charts.ColorUtil.fromDartColor(CustomColors.aqiOrange);
-    } else if (value >= 251.00 && value <= 350.99) {
-      // unhealthy
-      return charts.ColorUtil.fromDartColor(CustomColors.aqiRed);
-    } else if (value >= 351.00 && value <= 430.99) {
-      // very unhealthy
-      return charts.ColorUtil.fromDartColor(CustomColors.aqiPurple);
-    } else if (value >= 431.00) {
-      // hazardous
-      return charts.ColorUtil.fromDartColor(CustomColors.aqiMaroon);
-    } else {
-      return charts.ColorUtil.fromDartColor(CustomColors.appColor);
-    }
-  }
-}
-
 String pmToInfoDialog(double pm2_5) {
   if (pm2_5 <= 12.09) {
     //good
@@ -381,9 +177,8 @@ String pmToInfoDialog(double pm2_5) {
 Future<BitmapDescriptor> pmToMarker(double pm2_5) async {
   const width = 80;
   final value = pm2_5;
-  final bgColor = pollutantValueColor(value: pm2_5, pollutant: Pollutant.pm2_5);
-  final textColor =
-      pollutantTextColor(value: pm2_5, pollutant: Pollutant.pm2_5);
+  final bgColor = Pollutant.pm2_5.color(pm2_5);
+  final textColor = Pollutant.pm2_5.textColor(value: pm2_5);
 
   final pictureRecorder = PictureRecorder();
   final canvas = Canvas(pictureRecorder);
@@ -455,7 +250,7 @@ BitmapDescriptor pmToMarkerPoint(double pm2_5) {
 
 Future<BitmapDescriptor> pmToSmallMarker(double pm2_5) async {
   const width = 20;
-  final bgColor = pollutantValueColor(value: pm2_5, pollutant: Pollutant.pm2_5);
+  final bgColor = Pollutant.pm2_5.color(pm2_5);
 
   final pictureRecorder = PictureRecorder();
   final canvas = Canvas(pictureRecorder);

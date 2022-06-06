@@ -1,10 +1,13 @@
 import 'dart:io';
+import 'dart:ui';
 
+import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 
 import '../models/enum_constants.dart';
 import '../models/kya.dart';
+import '../themes/colors.dart';
 
 extension KyaExtension on Kya {
   String imageUrlCacheKey() {
@@ -19,6 +22,149 @@ extension KyaExtension on Kya {
 extension KyaLessonExtension on KyaLesson {
   String imageUrlCacheKey(Kya kya) {
     return 'kya-${kya.id}-${kya.lessons.indexOf(this)}-lesson-image-url';
+  }
+}
+
+extension AirQualityExtension on AirQuality {
+  String valueAsString() {
+    switch (this) {
+      case AirQuality.good:
+        return 'Good';
+      case AirQuality.moderate:
+        return 'Moderate';
+      case AirQuality.ufsgs:
+        return 'Unhealthy For Sensitive Groups';
+      case AirQuality.unhealthy:
+        return 'Unhealthy';
+      case AirQuality.veryUnhealthy:
+        return 'Very Unhealthy';
+      case AirQuality.hazardous:
+        return 'Hazardous';
+    }
+  }
+}
+
+extension PollutantExtension on Pollutant {
+  AirQuality airQuality(double value) {
+    switch (this) {
+      case Pollutant.pm2_5:
+        if (value <= 12.09) {
+          return AirQuality.good;
+        } else if (value >= 12.1 && value <= 35.49) {
+          return AirQuality.moderate;
+        } else if (value >= 35.5 && value <= 55.49) {
+          return AirQuality.ufsgs;
+        } else if (value >= 55.5 && value <= 150.49) {
+          return AirQuality.unhealthy;
+        } else if (value >= 150.5 && value <= 250.49) {
+          return AirQuality.veryUnhealthy;
+        } else if (value >= 250.5) {
+          return AirQuality.hazardous;
+        } else {
+          return AirQuality.good;
+        }
+      case Pollutant.pm10:
+        if (value <= 50.99) {
+          return AirQuality.good;
+        } else if (value >= 51.00 && value <= 100.99) {
+          return AirQuality.moderate;
+        } else if (value >= 101.00 && value <= 250.99) {
+          return AirQuality.ufsgs;
+        } else if (value >= 251.00 && value <= 350.99) {
+          return AirQuality.unhealthy;
+        } else if (value >= 351.00 && value <= 430.99) {
+          return AirQuality.veryUnhealthy;
+        } else if (value >= 431.00) {
+          return AirQuality.hazardous;
+        } else {
+          return AirQuality.good;
+        }
+    }
+  }
+
+  String infoDialogText(double value) {
+    switch (airQuality(value)) {
+      case AirQuality.good:
+        return 'Air quality is safe for everyone!';
+      case AirQuality.moderate:
+        return 'Unusually sensitive people should consider reducing '
+            'prolonged or intense outdoor activities.';
+      case AirQuality.ufsgs:
+        return 'The elderly and children should limit intense outdoor '
+            'activities. Sensitive people should reduce prolonged or '
+            'intense outdoor activities.';
+      case AirQuality.unhealthy:
+        return 'People with respiratory or heart disease,'
+            ' the elderly and children should avoid '
+            'intense outdoor activities.'
+            'Everyone else should limit intense outdoor activities.';
+      case AirQuality.veryUnhealthy:
+        return 'People with respiratory or heart disease, '
+            'the elderly and children should avoid any outdoor activity.'
+            'Everyone else should limit intense outdoor activities.';
+      case AirQuality.hazardous:
+        return 'Everyone should avoid any intense outdoor activities. '
+            'People with respiratory or heart disease,'
+            ' the elderly and children should remain indoors.';
+    }
+  }
+
+  Color color(double value) {
+    switch (airQuality(value)) {
+      case AirQuality.good:
+        return CustomColors.aqiGreen;
+      case AirQuality.moderate:
+        return CustomColors.aqiYellow;
+      case AirQuality.ufsgs:
+        return CustomColors.aqiOrange;
+      case AirQuality.unhealthy:
+        return CustomColors.aqiRed;
+      case AirQuality.veryUnhealthy:
+        return CustomColors.aqiPurple;
+      case AirQuality.hazardous:
+        return CustomColors.aqiMaroon;
+    }
+  }
+
+  String stringValue(double value) {
+    return airQuality(value).valueAsString();
+  }
+
+  charts.Color chartColor(double value) {
+    switch (airQuality(value)) {
+      case AirQuality.good:
+        return charts.ColorUtil.fromDartColor(CustomColors.aqiGreen);
+      case AirQuality.moderate:
+        return charts.ColorUtil.fromDartColor(CustomColors.aqiYellow);
+      case AirQuality.ufsgs:
+        return charts.ColorUtil.fromDartColor(CustomColors.aqiOrange);
+      case AirQuality.unhealthy:
+        return charts.ColorUtil.fromDartColor(CustomColors.aqiRed);
+      case AirQuality.veryUnhealthy:
+        return charts.ColorUtil.fromDartColor(CustomColors.aqiPurple);
+      case AirQuality.hazardous:
+        return charts.ColorUtil.fromDartColor(CustomColors.aqiMaroon);
+    }
+  }
+
+  Color textColor({required double value, bool? graph}) {
+    switch (airQuality(value)) {
+      case AirQuality.good:
+        return CustomColors.aqiGreenTextColor;
+      case AirQuality.moderate:
+        return CustomColors.aqiYellowTextColor;
+      case AirQuality.ufsgs:
+        return CustomColors.aqiOrangeTextColor;
+      case AirQuality.unhealthy:
+        return CustomColors.aqiRedTextColor;
+      case AirQuality.veryUnhealthy:
+        return CustomColors.aqiPurpleTextColor;
+      case AirQuality.hazardous:
+        if (graph != null && graph) {
+          return CustomColors.aqiMaroon;
+        }
+        return CustomColors.aqiMaroonTextColor;
+    }
   }
 }
 

@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/utils/extensions.dart';
-import 'package:app/utils/pm.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -110,25 +109,21 @@ class AqiStringContainer extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
       decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(40.0)),
-          color: pollutantValueColor(
-                  value: measurement.getPm2_5Value(),
-                  pollutant: Pollutant.pm2_5)
+          color: Pollutant.pm2_5
+              .color(measurement.getPm2_5Value())
               .withOpacity(0.4),
           border: Border.all(color: Colors.transparent)),
       child: AutoSizeText(
-          pollutantValueString(
-                  value: measurement.getPm2_5Value(),
-                  pollutant: Pollutant.pm2_5)
+          Pollutant.pm2_5
+              .stringValue(measurement.getPm2_5Value())
               .trimEllipsis(),
           maxFontSize: 14,
           maxLines: 1,
           textAlign: TextAlign.start,
           overflow: TextOverflow.ellipsis,
           style: CustomTextStyle.button2(context)?.copyWith(
-            color: pollutantTextColor(
-                value: measurement.getPm2_5Value(),
-                pollutant: Pollutant.pm2_5,
-                graph: true),
+            color: Pollutant.pm2_5
+                .textColor(value: measurement.getPm2_5Value(), graph: true),
           )),
     );
   }
@@ -174,8 +169,7 @@ class MiniAnalyticsAvatar extends StatelessWidget {
       width: 40,
       decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: pollutantValueColor(
-              value: measurement.getPm2_5Value(), pollutant: Pollutant.pm2_5),
+          color: Pollutant.pm2_5.color(measurement.getPm2_5Value()),
           border: Border.all(color: Colors.transparent)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -186,17 +180,16 @@ class MiniAnalyticsAvatar extends StatelessWidget {
             semanticsLabel: 'Pm2.5',
             height: 5,
             width: 32.45,
-            color: pollutantTextColor(
-                value: measurement.getPm2_5Value(), pollutant: Pollutant.pm2_5),
+            color:
+                Pollutant.pm2_5.textColor(value: measurement.getPm2_5Value()),
           ),
           Text(
             measurement.getPm2_5Value().toStringAsFixed(0),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: GoogleFonts.robotoMono(
-                color: pollutantTextColor(
-                    value: measurement.getPm2_5Value(),
-                    pollutant: Pollutant.pm2_5),
+                color: Pollutant.pm2_5
+                    .textColor(value: measurement.getPm2_5Value()),
                 fontStyle: FontStyle.normal,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -208,8 +201,8 @@ class MiniAnalyticsAvatar extends StatelessWidget {
             semanticsLabel: 'Unit',
             height: 5,
             width: 32,
-            color: pollutantTextColor(
-                value: measurement.getPm2_5Value(), pollutant: Pollutant.pm2_5),
+            color:
+                Pollutant.pm2_5.textColor(value: measurement.getPm2_5Value()),
           ),
           const Spacer(),
         ],

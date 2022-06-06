@@ -44,6 +44,15 @@ enum Region {
   western,
 }
 
+enum AirQuality {
+  good,
+  moderate,
+  ufsgs,
+  unhealthy,
+  veryUnhealthy,
+  hazardous,
+}
+
 enum AuthMethod { phone, email }
 
 enum AuthProcedure { login, signup }

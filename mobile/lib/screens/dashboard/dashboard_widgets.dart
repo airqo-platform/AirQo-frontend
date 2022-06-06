@@ -12,7 +12,6 @@ import '../../services/native_api.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
 import '../../utils/exception.dart';
-import '../../utils/pm.dart';
 import '../../widgets/custom_shimmer.dart';
 import '../kya/kya_widgets.dart';
 import '../search/search_page.dart';
@@ -34,8 +33,7 @@ class DashboardFavPlaceAvatar extends StatelessWidget {
           padding: const EdgeInsets.all(2.0),
           decoration: BoxDecoration(
             border: Border.all(color: CustomColors.appBodyColor, width: 2),
-            color: pollutantValueColor(
-                value: measurement.getPm2_5Value(), pollutant: Pollutant.pm2_5),
+            color: Pollutant.pm2_5.color(measurement.getPm2_5Value()),
             shape: BoxShape.circle,
           ),
           child: Center(
@@ -43,9 +41,8 @@ class DashboardFavPlaceAvatar extends StatelessWidget {
               '${measurement.getPm2_5Value()}',
               style: TextStyle(
                   fontSize: 7,
-                  color: pollutantTextColor(
-                      value: measurement.getPm2_5Value(),
-                      pollutant: Pollutant.pm2_5)),
+                  color: Pollutant.pm2_5
+                      .textColor(value: measurement.getPm2_5Value())),
             ),
           ),
         ));

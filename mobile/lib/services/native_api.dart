@@ -10,6 +10,7 @@ import 'package:app/services/firebase_service.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/utils/date.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:app/utils/pm.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/foundation.dart';
@@ -129,23 +130,20 @@ class ShareService {
                       decoration: BoxDecoration(
                           borderRadius:
                               const BorderRadius.all(Radius.circular(40.0)),
-                          color: pollutantValueColor(
-                                  value: measurement.getPm2_5Value(),
-                                  pollutant: Pollutant.pm2_5)
+                          color: Pollutant.pm2_5
+                              .color(measurement.getPm2_5Value())
                               .withOpacity(0.4),
                           border: Border.all(color: Colors.transparent)),
                       child: AutoSizeText(
-                        pollutantValueString(
-                            value: measurement.getPm2_5Value(),
-                            pollutant: Pollutant.pm2_5),
+                        Pollutant.pm2_5
+                            .stringValue(measurement.getPm2_5Value()),
                         maxLines: 2,
                         textAlign: TextAlign.start,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 12,
-                          color: pollutantTextColor(
-                              value: measurement.getPm2_5Value(),
-                              pollutant: Pollutant.pm2_5),
+                          color: Pollutant.pm2_5
+                              .textColor(value: measurement.getPm2_5Value()),
                         ),
                       ),
                     ),
@@ -257,7 +255,7 @@ class ShareService {
     }
     Share.share(
             '${measurement.site.name}, Current Air Quality.\n\n'
-            'PM2.5 : ${measurement.getPm2_5Value().toStringAsFixed(2)} µg/m\u00B3 (${pollutantValueString(value: measurement.getPm2_5Value(), pollutant: Pollutant.pm2_5)}) \n'
+            'PM2.5 : ${measurement.getPm2_5Value().toStringAsFixed(2)} µg/m\u00B3 (${Pollutant.pm2_5.stringValue(measurement.getPm2_5Value())}) \n'
             'PM10 : ${measurement.getPm10Value().toStringAsFixed(2)} µg/m\u00B3 \n'
             '$recommendations\n\n'
             'Source: AirQo App',

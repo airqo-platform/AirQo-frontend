@@ -6,7 +6,6 @@ import 'package:app/screens/insights/insights_page.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/utils/extensions.dart';
-import 'package:app/utils/pm.dart';
 import 'package:app/widgets/dialogs.dart';
 import 'package:app/widgets/tooltip.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -37,8 +36,7 @@ class AnalyticsAvatar extends StatelessWidget {
       width: 104,
       decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: pollutantValueColor(
-              value: measurement.getPm2_5Value(), pollutant: Pollutant.pm2_5),
+          color: Pollutant.pm2_5.color(measurement.getPm2_5Value()),
           border: Border.all(color: Colors.transparent)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -49,17 +47,17 @@ class AnalyticsAvatar extends StatelessWidget {
             semanticsLabel: 'Pm2.5',
             height: 9.7,
             width: 32.45,
-            color: pollutantTextColor(
-                value: measurement.getPm2_5Value(), pollutant: Pollutant.pm2_5),
+            color:
+                Pollutant.pm2_5.textColor(value: measurement.getPm2_5Value()),
           ),
           Text(
             measurement.getPm2_5Value().toStringAsFixed(0),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: GoogleFonts.robotoMono(
-                color: pollutantTextColor(
-                    value: measurement.getPm2_5Value(),
-                    pollutant: Pollutant.pm2_5),
+                color: Pollutant.pm2_5.textColor(
+                  value: measurement.getPm2_5Value(),
+                ),
                 fontStyle: FontStyle.normal,
                 fontSize: 40,
                 fontWeight: FontWeight.bold,
@@ -71,8 +69,8 @@ class AnalyticsAvatar extends StatelessWidget {
             semanticsLabel: 'Unit',
             height: 12.14,
             width: 32.45,
-            color: pollutantTextColor(
-                value: measurement.getPm2_5Value(), pollutant: Pollutant.pm2_5),
+            color:
+                Pollutant.pm2_5.textColor(value: measurement.getPm2_5Value()),
           ),
           const Spacer(),
         ],
@@ -513,18 +511,16 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                       decoration: BoxDecoration(
                                           borderRadius: const BorderRadius.all(
                                               Radius.circular(40.0)),
-                                          color: pollutantValueColor(
-                                                  value: widget.measurement
-                                                      .getPm2_5Value(),
-                                                  pollutant: Pollutant.pm2_5)
+                                          color: Pollutant.pm2_5
+                                              .color(widget.measurement
+                                                  .getPm2_5Value())
                                               .withOpacity(0.4),
                                           border: Border.all(
                                               color: Colors.transparent)),
                                       child: AutoSizeText(
-                                        pollutantValueString(
-                                                value: widget.measurement
-                                                    .getPm2_5Value(),
-                                                pollutant: Pollutant.pm2_5)
+                                        Pollutant.pm2_5
+                                            .stringValue(widget.measurement
+                                                .getPm2_5Value())
                                             .trimEllipsis(),
                                         maxLines: 1,
                                         maxFontSize: 14,
@@ -532,10 +528,9 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
                                           fontSize: 14,
-                                          color: pollutantTextColor(
+                                          color: Pollutant.pm2_5.textColor(
                                               value: widget.measurement
                                                   .getPm2_5Value(),
-                                              pollutant: Pollutant.pm2_5,
                                               graph: true),
                                         ),
                                       ),

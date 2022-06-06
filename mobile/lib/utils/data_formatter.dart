@@ -1,6 +1,5 @@
 import 'package:app/models/insights.dart';
 import 'package:app/utils/extensions.dart';
-import 'package:app/utils/pm.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
@@ -15,7 +14,7 @@ charts.Color insightsChartBarColor(Insights series, Pollutant pollutant) {
     return charts.ColorUtil.fromDartColor(
         CustomColors.appColorBlue.withOpacity(0.5));
   } else {
-    return pollutantChartValueColor(series.getChartValue(pollutant), pollutant);
+    return pollutant.chartColor(series.chartValue(pollutant));
   }
 }
 
@@ -51,7 +50,7 @@ List<List<charts.Series<Insights, String>>> insightsChartData(
             final hour = data.time.hour;
             return hour.toString().length == 1 ? '0$hour' : '$hour';
           },
-          measureFn: (Insights data, _) => data.getChartValue(pollutant),
+          measureFn: (Insights data, _) => data.chartValue(pollutant),
           data: Insights.formatData(filteredDates, frequency),
         )
       ]);
@@ -89,7 +88,7 @@ List<List<charts.Series<Insights, String>>> insightsChartData(
           colorFn: (Insights series, _) =>
               insightsChartBarColor(series, pollutant),
           domainFn: (Insights data, _) => DateFormat('EEE').format(data.time),
-          measureFn: (Insights data, _) => data.getChartValue(pollutant),
+          measureFn: (Insights data, _) => data.chartValue(pollutant),
           data: Insights.formatData(filteredDates, frequency),
         )
       ]);

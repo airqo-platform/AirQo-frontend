@@ -1,3 +1,4 @@
+import 'package:app/utils/extensions.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -6,7 +7,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../models/enum_constants.dart';
 import '../../models/insights.dart';
 import '../../themes/colors.dart';
-import '../../utils/pm.dart';
 
 class InsightsGraph extends StatelessWidget {
   const InsightsGraph(
@@ -209,12 +209,8 @@ class InsightsAvatar extends StatelessWidget {
           color: measurement.forecast
               ? CustomColors.appColorBlue.withOpacity(0.24)
               : pollutant == Pollutant.pm2_5
-                  ? pollutantValueColor(
-                      value: measurement.getChartValue(pollutant),
-                      pollutant: Pollutant.pm2_5)
-                  : pollutantValueColor(
-                      value: measurement.getChartValue(pollutant),
-                      pollutant: Pollutant.pm10),
+                  ? Pollutant.pm2_5.color(measurement.chartValue(pollutant))
+                  : Pollutant.pm10.color(measurement.chartValue(pollutant)),
           border: Border.all(color: Colors.transparent)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -230,15 +226,13 @@ class InsightsAvatar extends StatelessWidget {
             color: measurement.forecast
                 ? CustomColors.appColorBlue
                 : pollutant == Pollutant.pm2_5
-                    ? pollutantTextColor(
-                        value: measurement.getChartValue(pollutant),
-                        pollutant: Pollutant.pm2_5)
-                    : pollutantTextColor(
-                        value: measurement.getChartValue(pollutant),
-                        pollutant: Pollutant.pm10),
+                    ? Pollutant.pm2_5
+                        .textColor(value: measurement.chartValue(pollutant))
+                    : Pollutant.pm10
+                        .textColor(value: measurement.chartValue(pollutant)),
           ),
           Text(
-            measurement.getChartValue(pollutant).toStringAsFixed(0),
+            measurement.chartValue(pollutant).toStringAsFixed(0),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: GoogleFonts.robotoMono(
@@ -249,12 +243,10 @@ class InsightsAvatar extends StatelessWidget {
               color: measurement.forecast
                   ? CustomColors.appColorBlue
                   : pollutant == Pollutant.pm2_5
-                      ? pollutantTextColor(
-                          value: measurement.getChartValue(pollutant),
-                          pollutant: Pollutant.pm2_5)
-                      : pollutantTextColor(
-                          value: measurement.getChartValue(pollutant),
-                          pollutant: Pollutant.pm10),
+                      ? Pollutant.pm2_5
+                          .textColor(value: measurement.chartValue(pollutant))
+                      : Pollutant.pm10
+                          .textColor(value: measurement.chartValue(pollutant)),
             ),
           ),
           SvgPicture.asset(
@@ -265,12 +257,10 @@ class InsightsAvatar extends StatelessWidget {
             color: measurement.forecast
                 ? CustomColors.appColorBlue
                 : pollutant == Pollutant.pm2_5
-                    ? pollutantTextColor(
-                        value: measurement.getChartValue(pollutant),
-                        pollutant: Pollutant.pm2_5)
-                    : pollutantTextColor(
-                        value: measurement.getChartValue(pollutant),
-                        pollutant: Pollutant.pm10),
+                    ? Pollutant.pm2_5
+                        .textColor(value: measurement.chartValue(pollutant))
+                    : Pollutant.pm10
+                        .textColor(value: measurement.chartValue(pollutant)),
           ),
         ],
       ),
