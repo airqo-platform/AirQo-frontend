@@ -19,6 +19,36 @@ extension KyaExtension on Kya {
   }
 }
 
+extension FeedbackTypeExtension on FeedbackType {
+  String stringValue() {
+    switch (this) {
+      case FeedbackType.inquiry:
+        return 'Inquiry';
+      case FeedbackType.suggestion:
+        return 'Suggestion';
+      case FeedbackType.appBugs:
+        return 'App Bugs';
+      case FeedbackType.reportAirPollution:
+        return 'Report Air Pollution';
+      case FeedbackType.none:
+        return '';
+    }
+  }
+}
+
+extension FeedbackChannelExtension on FeedbackChannel {
+  String stringValue() {
+    switch (this) {
+      case FeedbackChannel.whatsApp:
+        return 'Whatsapp';
+      case FeedbackChannel.email:
+        return 'Email';
+      case FeedbackChannel.none:
+        return '';
+    }
+  }
+}
+
 extension KyaLessonExtension on KyaLesson {
   String imageUrlCacheKey(Kya kya) {
     return 'kya-${kya.id}-${kya.lessons.indexOf(this)}-lesson-image-url';

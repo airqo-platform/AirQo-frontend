@@ -53,7 +53,9 @@ enum AirQuality {
   hazardous,
 }
 
-enum FeedbackType { inquiry, suggestion, appBugs, reportAirPollution }
+enum FeedbackType { inquiry, suggestion, appBugs, reportAirPollution, none }
+
+enum FeedbackChannel { whatsApp, email, none }
 
 enum AuthMethod { phone, email }
 

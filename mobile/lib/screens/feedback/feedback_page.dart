@@ -3,15 +3,13 @@ import 'dart:io';
 import 'package:app/constants/config.dart';
 import 'package:app/models/feedback.dart';
 import 'package:app/utils/extensions.dart';
-import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/widgets/dialogs.dart';
-import 'package:app/widgets/text_fields.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../models/enum_constants.dart';
 import '../../services/rest_api.dart';
-import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
 import 'feedback_page_widgets.dart';
 
@@ -23,13 +21,90 @@ class FeedbackPage extends StatefulWidget {
 }
 
 class _FeedbackPageState extends State<FeedbackPage> {
-  int _index = 0;
-  String _feedbackType = '';
-  String _feedbackChannel = '';
-  bool _isSendingFeedback = false;
-  final TextEditingController _emailInputController = TextEditingController();
-  final TextEditingController _emailFeedbackController =
-      TextEditingController();
+  int _step = 0;
+  FeedbackType _feedbackType = FeedbackType.none;
+  FeedbackChannel _feedbackChannel = FeedbackChannel.none;
+
+  bool _loading = false;
+  String _emailAddress = '';
+  String _feedback = '';
+
+  void _onFeedbackTypeChange(FeedbackType feedbackType) {
+    setState(() => _feedbackType = feedbackType);
+  }
+
+  void _updateStep(int step) {
+    setState(() => _step = step);
+  }
+
+  void _onFeedbackChannelChange(FeedbackChannel feedbackChannel) {
+    setState(() => _feedbackChannel = feedbackChannel);
+  }
+
+  void _onEmailAddressChange(String emailAddress) {
+    setState(() => _emailAddress = emailAddress);
+  }
+
+  void _onFeedbackChange(String feedback) {
+    setState(() => _feedback = feedback);
+  }
+
+  void _onNextButtonClick() async {
+    if (_step == 1 && _feedbackChannel != FeedbackChannel.none) {
+      switch (_feedbackChannel) {
+        case FeedbackChannel.whatsApp:
+          _openWhatsapp();
+          Future.delayed(const Duration(seconds: 2), () {
+            Navigator.of(context).pop();
+          });
+          return;
+        case FeedbackChannel.email:
+          if (!_emailAddress.isValidEmail()) {
+            await showSnackBar(context, 'Invalid email address');
+          } else {
+            setState(() => _step = _step + 1);
+          }
+          return;
+        case FeedbackChannel.none:
+          return;
+      }
+    }
+    if (_step == 2 && _feedbackChannel == FeedbackChannel.email) {
+      if (_feedback.isEmpty) {
+        await showSnackBar(context, 'Enter your feedback');
+      } else {
+        setState(() => _loading = true);
+        final success = await AirqoApiClient().sendFeedback(
+            UserFeedback(_emailAddress, _feedback, _feedbackType));
+        if (success) {
+          await showSnackBar(context, Config.feedbackSuccessMessage);
+          Navigator.of(context).pop();
+          setState(() => _loading = false);
+        } else {
+          await showSnackBar(context, Config.feedbackFailureMessage);
+          setState(() => _loading = false);
+        }
+      }
+    }
+  }
+
+  void _openWhatsapp() async {
+    final androidUrl =
+        '${Config.appAndroidWhatsappUrl}${_feedbackType.stringValue()}';
+    final iosUrl = '${Config.appIOSWhatsappUrl}${_feedbackType.stringValue()}';
+    if (Platform.isIOS) {
+      if (await canLaunchUrl(Uri.parse(iosUrl))) {
+        await launchUrl(Uri.parse(iosUrl));
+        return;
+      }
+    } else {
+      if (await canLaunchUrl(Uri.parse(androidUrl))) {
+        await launchUrl(Uri.parse(androidUrl));
+        return;
+      }
+    }
+    await showSnackBar(context, 'Failed to open Whatsapp. Try again later');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,489 +116,48 @@ class _FeedbackPageState extends State<FeedbackPage> {
             color: CustomColors.appBodyColor,
             child: Column(
               children: [
-                ListView(
-                  shrinkWrap: true,
-                  children: [
-                    const SizedBox(
-                      height: 37,
-                    ),
-                    Row(
-                      children: [
-                        Container(
-                          height: 16,
-                          width: 16,
-                          decoration: BoxDecoration(
-                              color: _feedbackType == ''
-                                  ? CustomColors.greyColor
-                                  : CustomColors.appColorBlue,
-                              shape: BoxShape.circle),
-                        ),
-                        Expanded(
-                            child: Divider(
-                          thickness: 2,
-                          color: _index >= 1
-                              ? CustomColors.appColorBlue
-                              : CustomColors.greyColor,
-                        )),
-                        Container(
-                          height: 16,
-                          width: 16,
-                          decoration: BoxDecoration(
-                              color: _feedbackChannel != '' && _index >= 1
-                                  ? CustomColors.appColorBlue
-                                  : CustomColors.greyColor,
-                              shape: BoxShape.circle),
-                        ),
-                        Expanded(
-                            child: Divider(
-                          thickness: 2,
-                          color: _index >= 2 || _feedbackChannel == 'WhatsApp'
-                              ? CustomColors.appColorBlue
-                              : CustomColors.greyColor,
-                        )),
-                        Container(
-                          height: 16,
-                          width: 16,
-                          decoration: BoxDecoration(
-                              color:
-                                  _index >= 2 || _feedbackChannel == 'WhatsApp'
-                                      ? CustomColors.appColorBlue
-                                      : CustomColors.greyColor,
-                              shape: BoxShape.circle),
-                        ),
-                      ],
-                    ),
-
-                    // Step 0 (Feedback type)
-                    Visibility(
-                        visible: _index == 0,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(
-                              height: 32,
-                            ),
-                            Text(
-                              'What Type Of Feedback?',
-                              style: CustomTextStyle.headline9(context),
-                            ),
-                            const SizedBox(
-                              height: 16,
-                            ),
-                            cardContainer('Report air pollution'),
-                            const SizedBox(
-                              height: 4,
-                            ),
-                            cardContainer('Inquiry'),
-                            const SizedBox(
-                              height: 4,
-                            ),
-                            cardContainer('Suggestion'),
-                            const SizedBox(
-                              height: 4,
-                            ),
-                            cardContainer('App Bugs'),
-                          ],
-                        )),
-
-                    // Step 1 (Feedback channel)
-                    Visibility(
-                        visible: _index == 1,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(
-                              height: 32,
-                            ),
-                            Text(
-                              'Send Us Feedback Via Email Or Whatsapp',
-                              style: CustomTextStyle.headline9(context),
-                            ),
-                            const SizedBox(
-                              height: 16,
-                            ),
-                            cardContainer('Email'),
-                            const SizedBox(
-                              height: 4,
-                            ),
-                            Visibility(
-                              visible: _feedbackChannel == 'Email',
-                              child: emailInputField(),
-                            ),
-                            const SizedBox(
-                              height: 16,
-                            ),
-                            cardContainer('WhatsApp'),
-                          ],
-                        )),
-
-                    // Step 2 (Email Feedback channel)
-                    Visibility(
-                        visible: _index == 2 && _feedbackChannel == 'Email',
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(
-                              height: 32,
-                            ),
-                            Text(
-                              'Go Ahead, Tell Us More?',
-                              style: CustomTextStyle.headline9(context),
-                            ),
-                            const SizedBox(
-                              height: 16,
-                            ),
-                            emailFeedbackInputField(),
-                          ],
-                        )),
-
-                    // Action buttons
-                    Visibility(
-                      visible: false,
-                      child: GestureDetector(
-                        onTap: () {
-                          if (_feedbackType != '') {
-                            setState(() => _index = 1);
-                          }
-                        },
-                        child: _feedbackType == ''
-                            ? NextButton(
-                                buttonColor:
-                                    CustomColors.appColorBlue.withOpacity(0.24))
-                            : NextButton(
-                                buttonColor: CustomColors.appColorBlue),
-                      ),
-                    ),
-
-                    Visibility(
-                      visible: false,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          GestureDetector(
-                            child: const FeedbackBackButton(),
-                            onTap: () {
-                              setState(() => _index = _index - 1);
-                            },
-                          ),
-                          GestureDetector(
-                            onTap: () async {
-                              if (_index == 1 && _feedbackChannel != '') {
-                                if (_feedbackChannel == 'Email') {
-                                  if (!_emailInputController.text
-                                      .isValidEmail()) {
-                                    await showSnackBar(context,
-                                        'Please enter a valid email address');
-                                  } else {
-                                    setState(() => _index = _index + 1);
-                                  }
-                                } else if (_feedbackChannel == 'WhatsApp') {
-                                  openWhatsapp();
-                                  Future.delayed(const Duration(seconds: 2),
-                                      () {
-                                    Navigator.of(context).pop();
-                                  });
-                                }
-                              } else if (_index == 2 &&
-                                  _feedbackChannel == 'Email') {
-                                if (_emailFeedbackController.text == '') {
-                                  await showSnackBar(
-                                      context, 'Please provide your feedback');
-                                } else {
-                                  final feedback = UserFeedback(
-                                      _emailInputController.text,
-                                      _emailFeedbackController.text,
-                                      _feedbackType);
-                                  setState(() => _isSendingFeedback = true);
-                                  await AirqoApiClient()
-                                      .sendFeedback(feedback)
-                                      .then((value) => {
-                                            if (value)
-                                              {
-                                                showSnackBar(context,
-                                                    'Thanks for the feedback'),
-                                                Navigator.of(context).pop(),
-                                                setState(() =>
-                                                    _isSendingFeedback = false)
-                                              }
-                                            else
-                                              {
-                                                showSnackBar(
-                                                    context,
-                                                    'Could not capture'
-                                                    ' your feedback.'
-                                                    ' Try again later'),
-                                                setState(() =>
-                                                    _isSendingFeedback = false)
-                                              }
-                                          });
-                                }
-                              }
-                            },
-                            child: _index == 2 || _feedbackChannel == 'WhatsApp'
-                                ? FeedbackNextButton(
-                                    text: 'Send',
-                                    buttonColor: _isSendingFeedback
-                                        ? CustomColors.appColorBlue
-                                            .withOpacity(0.24)
-                                        : CustomColors.appColorBlue)
-                                : FeedbackNextButton(
-                                    text: 'Next',
-                                    buttonColor: CustomColors.appColorBlue),
-                          )
-                        ],
-                      ),
-                    ),
-                  ],
+                const SizedBox(
+                  height: 37,
                 ),
+                FeedbackProgressBar(
+                  feedbackType: _feedbackType,
+                  index: _step,
+                  feedbackChannel: _feedbackChannel,
+                ),
+                Visibility(
+                    visible: _step == 0,
+                    child: FeedbackTypeStep(
+                      feedbackType: _onFeedbackTypeChange,
+                      initialSelection: _feedbackType,
+                    )),
+                Visibility(
+                    visible: _step == 1,
+                    child: FeedbackChannelStep(
+                      feedbackChannel: _onFeedbackChannelChange,
+                      onEmailChange: _onEmailAddressChange,
+                      initialSelection: _feedbackChannel,
+                      initialEmailValue: _emailAddress,
+                    )),
+                Visibility(
+                    visible:
+                        _step == 2 && _feedbackChannel == FeedbackChannel.email,
+                    child: FeedbackForm(
+                      onFeedbackChange: _onFeedbackChange,
+                      initialValue: _feedback,
+                    )),
                 const Spacer(),
-                Visibility(
-                  visible: _index == 0,
-                  child: GestureDetector(
-                    onTap: () {
-                      if (_feedbackType != '') {
-                        setState(() => _index = 1);
-                      }
-                    },
-                    child: _feedbackType == ''
-                        ? NextButton(
-                            buttonColor:
-                                CustomColors.appColorBlue.withOpacity(0.24))
-                        : NextButton(buttonColor: CustomColors.appColorBlue),
-                  ),
-                ),
-                Visibility(
-                  visible: _index > 0,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      GestureDetector(
-                        child: const FeedbackBackButton(),
-                        onTap: () {
-                          setState(() {
-                            _index = _index - 1;
-                          });
-                        },
-                      ),
-                      GestureDetector(
-                        onTap: () async {
-                          if (_index == 1 && _feedbackChannel != '') {
-                            if (_feedbackChannel == 'Email') {
-                              if (!_emailInputController.text.isValidEmail()) {
-                                await showSnackBar(context,
-                                    'Please enter a valid email address');
-                              } else {
-                                setState(() {
-                                  _index = _index + 1;
-                                });
-                              }
-                            } else if (_feedbackChannel == 'WhatsApp') {
-                              openWhatsapp();
-                              Future.delayed(const Duration(seconds: 2), () {
-                                Navigator.of(context).pop();
-                              });
-                            }
-                          } else if (_index == 2 &&
-                              _feedbackChannel == 'Email') {
-                            if (_emailFeedbackController.text == '') {
-                              await showSnackBar(
-                                  context, 'Please provide your feedback');
-                            } else {
-                              final feedback = UserFeedback(
-                                  _emailInputController.text,
-                                  _emailFeedbackController.text,
-                                  _feedbackType);
-                              setState(() {
-                                _isSendingFeedback = true;
-                              });
-                              await AirqoApiClient()
-                                  .sendFeedback(feedback)
-                                  .then((value) => {
-                                        if (value)
-                                          {
-                                            showSnackBar(context,
-                                                'Thanks for the feedback'),
-                                            Navigator.of(context).pop(),
-                                            setState(() {
-                                              _isSendingFeedback = false;
-                                            })
-                                          }
-                                        else
-                                          {
-                                            showSnackBar(
-                                                context,
-                                                'Could not capture'
-                                                ' your feedback.'
-                                                ' Try again later'),
-                                            setState(() {
-                                              _isSendingFeedback = false;
-                                            })
-                                          }
-                                      });
-                            }
-                          }
-                        },
-                        child: _index == 2 || _feedbackChannel == 'WhatsApp'
-                            ? FeedbackNextButton(
-                                text: 'Send',
-                                buttonColor: _isSendingFeedback
-                                    ? CustomColors.appColorBlue
-                                        .withOpacity(0.24)
-                                    : CustomColors.appColorBlue)
-                            : FeedbackNextButton(
-                                text: 'Next',
-                                buttonColor: CustomColors.appColorBlue),
-                      )
-                    ],
-                  ),
+                FeedbackNavigationButtons(
+                  feedbackType: _feedbackType,
+                  onNextButtonClick: _onNextButtonClick,
+                  feedbackChannel: _feedbackChannel,
+                  isLoading: _loading,
+                  updateStep: _updateStep,
+                  step: _step,
                 ),
                 const SizedBox(
                   height: 37,
                 ),
               ],
             )));
-  }
-
-  Widget cardContainer(text) {
-    return GestureDetector(
-      onTap: () {
-        if (_index == 0) {
-          setState(() {
-            _feedbackType = text;
-          });
-        } else if (_index == 1) {
-          setState(() {
-            _feedbackChannel = text;
-          });
-        }
-      },
-      child: Container(
-        padding: const EdgeInsets.only(left: 16, right: 16),
-        height: 56,
-        decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.all(Radius.circular(8.0))),
-        child: Row(
-          children: [
-            Visibility(
-              visible: _index == 0,
-              child: FeedbackTypeAvatar(active: _feedbackType == text),
-            ),
-            Visibility(
-              visible: _index == 1,
-              child: FeedbackTypeAvatar(active: _feedbackChannel == text),
-            ),
-            const SizedBox(
-              width: 16,
-            ),
-            Text(text, style: Theme.of(context).textTheme.bodyText1)
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget emailFeedbackInputField() {
-    return Container(
-        height: 255,
-        alignment: Alignment.center,
-        padding: const EdgeInsets.only(left: 15, right: 15),
-        decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: const BorderRadius.all(Radius.circular(8.0)),
-            border: Border.all(color: Colors.white)),
-        child: Center(
-            child: TextFormField(
-          controller: _emailFeedbackController,
-          autofocus: true,
-          style: Theme.of(context).textTheme.bodyText2,
-          enableSuggestions: false,
-          cursorWidth: 1,
-          maxLines: 12,
-          cursorColor: CustomColors.appColorBlue,
-          keyboardType: TextInputType.emailAddress,
-          onChanged: (text) {},
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              showSnackBar(context, 'Please enter your email address');
-            }
-            if (!value!.isValidEmail()) {
-              showSnackBar(context, 'Please enter a valid email address');
-            }
-            return null;
-          },
-          decoration: InputDecoration(
-              focusedBorder: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              hintText: 'Please tell us the details',
-              hintStyle: Theme.of(context).textTheme.bodyText2?.copyWith(
-                  color: CustomColors.appColorBlack.withOpacity(0.32)),
-              counterStyle: Theme.of(context).textTheme.bodyText2),
-        )));
-  }
-
-  Widget emailInputField() {
-    return Container(
-        height: 56,
-        alignment: Alignment.center,
-        padding: const EdgeInsets.only(left: 15),
-        decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: const BorderRadius.all(Radius.circular(8.0)),
-            border: Border.all(color: Colors.white)),
-        child: Center(
-            child: TextFormField(
-          controller: _emailInputController,
-          autofocus: true,
-          style: Theme.of(context).textTheme.bodyText2,
-          enableSuggestions: false,
-          cursorWidth: 1,
-          cursorColor: CustomColors.appColorBlue,
-          keyboardType: TextInputType.emailAddress,
-          onChanged: (text) {},
-          validator: (value) {
-            return null;
-          },
-          decoration: InputDecoration(
-            focusedBorder: InputBorder.none,
-            enabledBorder: InputBorder.none,
-            hintText: 'Enter your email',
-            suffixIcon: GestureDetector(
-                onTap: () {
-                  _emailInputController.text = '';
-                },
-                child: GestureDetector(
-                  onTap: () {
-                    _emailInputController.text = '';
-                  },
-                  child: const TextInputCloseButton(),
-                )),
-            hintStyle: Theme.of(context)
-                .textTheme
-                .bodyText2
-                ?.copyWith(color: CustomColors.appColorBlack.withOpacity(0.32)),
-          ),
-        )));
-  }
-
-  void openWhatsapp() async {
-    final androidUrl = '${Config.appAndroidWhatsappUrl}$_feedbackType';
-    final iosUrl = '${Config.appIOSWhatsappUrl}${Uri.parse(_feedbackType)}';
-    if (Platform.isIOS) {
-      if (await canLaunchUrl(Uri.parse(iosUrl))) {
-        await launchUrl(Uri.parse(iosUrl));
-      } else {
-        await showSnackBar(context, 'Failed to open Whatsapp. Try again later');
-      }
-    } else {
-      if (await canLaunchUrl(Uri.parse(androidUrl))) {
-        await launchUrl(Uri.parse(androidUrl));
-      } else {
-        await showSnackBar(context, 'Failed to open Whatsapp. Try again later');
-      }
-    }
   }
 }
