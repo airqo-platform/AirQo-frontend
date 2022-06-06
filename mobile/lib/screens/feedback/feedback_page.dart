@@ -410,11 +410,11 @@ class _FeedbackPageState extends State<FeedbackPage> {
           children: [
             Visibility(
               visible: _index == 0,
-              child: unselectedCircle(_feedbackType == text),
+              child: FeedbackTypeAvatar(active: _feedbackType == text),
             ),
             Visibility(
               visible: _index == 1,
-              child: unselectedCircle(_feedbackChannel == text),
+              child: FeedbackTypeAvatar(active: _feedbackChannel == text),
             ),
             const SizedBox(
               width: 16,
@@ -525,18 +525,5 @@ class _FeedbackPageState extends State<FeedbackPage> {
         await showSnackBar(context, 'Failed to open Whatsapp. Try again later');
       }
     }
-  }
-
-  Widget unselectedCircle(bool isActive) {
-    return Container(
-      height: 24,
-      width: 24,
-      decoration: BoxDecoration(
-          color: isActive ? CustomColors.appColorBlue : Colors.white,
-          shape: BoxShape.circle,
-          border: isActive
-              ? Border.all(color: CustomColors.appColorBlue, width: 0)
-              : Border.all(color: CustomColors.greyColor, width: 3)),
-    );
   }
 }

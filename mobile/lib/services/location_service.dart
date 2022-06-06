@@ -155,75 +155,43 @@ class LocationService {
 
   static Future<List<Measurement>> getNearbyLocationReadings() async {
     try {
-      final nearestMeasurements = <Measurement>[];
-      double distanceInMeters;
-
       final location = await getLocation();
-      if (location == null) {
+      if (location == null ||
+          location.longitude == null ||
+          location.latitude == null) {
         return [];
       }
 
-      if (location.longitude != null && location.latitude != null) {
-        final addresses =
-            await getAddresses(location.latitude!, location.longitude!);
-        Measurement? nearestMeasurement;
-        final dbHelper = DBHelper();
-        final latestMeasurements = await dbHelper.getLatestMeasurements();
+      final addresses =
+          await getAddresses(location.latitude!, location.longitude!);
+      final latestMeasurements = await DBHelper().getLatestMeasurements();
 
-        for (final measurement in latestMeasurements) {
-          distanceInMeters = metersToKmDouble(Geolocator.distanceBetween(
-              measurement.site.latitude,
-              measurement.site.longitude,
-              location.latitude!,
-              location.longitude!));
-          if (distanceInMeters < (Config.maxSearchRadius.toDouble() * 2)) {
-            measurement.site.distance = distanceInMeters;
-            nearestMeasurements.add(measurement);
-          }
+      final nearestMeasurements = <Measurement>[];
+
+      for (final measurement in latestMeasurements) {
+        final distanceInMeters = metersToKmDouble(Geolocator.distanceBetween(
+            measurement.site.latitude,
+            measurement.site.longitude,
+            location.latitude!,
+            location.longitude!));
+        if (distanceInMeters < (Config.maxSearchRadius.toDouble() * 2)) {
+          measurement.site.distance = distanceInMeters;
+          nearestMeasurements.add(measurement);
         }
-
-        final measurements = <Measurement>[];
-
-        /// Get Actual location measurements
-        if (nearestMeasurements.isNotEmpty) {
-          nearestMeasurement = nearestMeasurements.first;
-          for (final measurement in nearestMeasurements) {
-            if (nearestMeasurement!.site.distance > measurement.site.distance) {
-              nearestMeasurement = measurement;
-            }
-          }
-          nearestMeasurements.remove(nearestMeasurement);
-
-          for (final address in addresses) {
-            nearestMeasurement?.site.name = address;
-            measurements.add(nearestMeasurement!);
-          }
-        }
-
-        /// Get Alternative location measurements
-        if (nearestMeasurements.isNotEmpty) {
-          nearestMeasurement = nearestMeasurements.first;
-          for (final measurement in nearestMeasurements) {
-            if (nearestMeasurement!.site.distance > measurement.site.distance) {
-              nearestMeasurement = measurement;
-            }
-          }
-          final exists = measurements
-              .where(
-                  (element) => element.site.id == nearestMeasurement?.site.id)
-              .toList();
-          if (exists.isEmpty) {
-            measurements.add(nearestMeasurement!);
-          }
-        }
-
-        return measurements;
       }
+
+      if (nearestMeasurements.isEmpty) {
+        return [];
+      }
+
+      final measurements =
+          Measurement.sortByDistance(nearestMeasurements).take(2).toList();
+      measurements[0].site.name = addresses[0];
+      return measurements;
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
       return [];
     }
-    return [];
   }
 
   static Future<Site?> getNearestSite(double latitude, double longitude) async {
@@ -266,7 +234,7 @@ class LocationService {
         nearestSites.add(measurement);
       }
     }
-    return Measurement.sortNearestPlaces(nearestSites);
+    return Measurement.sortByDistance(nearestSites);
   }
 
   static Future<bool> revokePermission() async {

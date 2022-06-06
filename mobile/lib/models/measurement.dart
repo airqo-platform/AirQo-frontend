@@ -100,7 +100,7 @@ class Measurement {
     };
   }
 
-  static List<Measurement> sortNearestPlaces(List<Measurement> measurements) {
+  static List<Measurement> sortByDistance(List<Measurement> measurements) {
     measurements.sort((x, y) {
       return x.site.distance.compareTo(y.site.distance);
     });

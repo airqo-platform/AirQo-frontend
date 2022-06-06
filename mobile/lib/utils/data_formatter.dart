@@ -38,7 +38,7 @@ List<List<charts.Series<Insights, String>>> insightsChartData(
           .toList();
 
       if (filteredDates.length != 24) {
-        filteredDates = patchMissingData(filteredDates, frequency, false);
+        filteredDates = fillMissingData(filteredDates, frequency);
       }
 
       insightsGraphs.add([
@@ -77,7 +77,7 @@ List<List<charts.Series<Insights, String>>> insightsChartData(
           data.where((element) => dateRanges.contains(element.time)).toList());
 
       if (filteredDates.length != 7) {
-        filteredDates = patchMissingData(filteredDates, frequency, false);
+        filteredDates = fillMissingData(filteredDates, frequency);
       }
 
       data.removeWhere((element) => dateRanges.contains(element.time));
@@ -98,119 +98,68 @@ List<List<charts.Series<Insights, String>>> insightsChartData(
   return insightsGraphs;
 }
 
-List<Insights> patchMissingData(
-    List<Insights> data, Frequency frequency, bool full) {
+List<Insights> fillMissingData(List<Insights> data, Frequency frequency) {
   final insights = <Insights>[...data];
-  if (frequency == Frequency.daily && full) {
-    final referenceInsight = data.first;
 
-    var startDate = DateTime.now().getFirstDateOfCalendarMonth();
-    final lastDayOfCalendar = DateTime.now().getLastDateOfCalendarMonth();
+  switch (frequency) {
+    case Frequency.daily:
+      final referenceInsight = data.first;
 
-    while (startDate.isBefore(lastDayOfCalendar)) {
-      final checkDate = insights
-          .where((element) =>
-              (element.time.day == startDate.day) &&
-              (element.time.month == startDate.month))
-          .toList();
+      var startDate = DateTime.now().getFirstDateOfCalendarMonth();
+      final lastDayOfCalendar = DateTime.now().getLastDateOfCalendarMonth();
 
-      if (checkDate.isEmpty) {
-        insights.add(Insights(
-            startDate,
-            referenceInsight.pm2_5,
-            referenceInsight.pm10,
-            true,
-            false,
-            referenceInsight.siteId,
-            referenceInsight.frequency));
+      while (startDate.isBefore(lastDayOfCalendar)) {
+        final checkDate = insights
+            .where((element) =>
+                (element.time.day == startDate.day) &&
+                (element.time.month == startDate.month))
+            .toList();
+
+        if (checkDate.isEmpty) {
+          insights.add(Insights(
+              startDate,
+              referenceInsight.pm2_5,
+              referenceInsight.pm10,
+              true,
+              false,
+              referenceInsight.siteId,
+              referenceInsight.frequency));
+        }
+
+        startDate = startDate.add(const Duration(days: 1));
       }
+      break;
+    case Frequency.hourly:
+      final referenceInsight = data.first;
 
-      startDate = startDate.add(const Duration(days: 1));
-    }
-  } else if (frequency == Frequency.hourly && full) {
-    final referenceInsight = data.first;
+      var startDate = referenceInsight.time
+          .getDateOfFirstDayOfWeek()
+          .getDateOfFirstHourOfDay();
+      final lastDayOfWeek = referenceInsight.time
+          .getDateOfLastDayOfWeek()
+          .getDateOfLastHourOfDay();
 
-    var startDate = referenceInsight.time
-        .getDateOfFirstDayOfWeek()
-        .getDateOfFirstHourOfDay();
-    final lastDayOfWeek =
-        referenceInsight.time.getDateOfLastDayOfWeek().getDateOfLastHourOfDay();
+      while (startDate.isBefore(lastDayOfWeek)) {
+        final checkDate = insights
+            .where((element) =>
+                (element.time.hour == startDate.hour) &&
+                (element.time.day == startDate.day))
+            .toList();
 
-    while (startDate.isBefore(lastDayOfWeek)) {
-      final checkDate = insights
-          .where((element) =>
-              (element.time.hour == startDate.hour) &&
-              (element.time.day == startDate.day))
-          .toList();
+        if (checkDate.isEmpty) {
+          insights.add(Insights(
+              startDate,
+              referenceInsight.pm2_5,
+              referenceInsight.pm10,
+              true,
+              false,
+              referenceInsight.siteId,
+              referenceInsight.frequency));
+        }
 
-      if (checkDate.isEmpty) {
-        insights.add(Insights(
-            startDate,
-            referenceInsight.pm2_5,
-            referenceInsight.pm10,
-            true,
-            false,
-            referenceInsight.siteId,
-            referenceInsight.frequency));
+        startDate = startDate.add(const Duration(hours: 1));
       }
-
-      startDate = startDate.add(const Duration(hours: 1));
-    }
-  } else if (frequency == Frequency.hourly && !full) {
-    final referenceInsight = data.first;
-
-    var startDate = referenceInsight.time.getDateOfFirstHourOfDay();
-    final lastDayOfWeek = referenceInsight.time.getDateOfLastHourOfDay();
-
-    while (startDate.isBefore(lastDayOfWeek)) {
-      final checkDate = insights
-          .where((element) =>
-              (element.time.hour == startDate.hour) &&
-              (element.time.day == startDate.day))
-          .toList();
-
-      if (checkDate.isEmpty) {
-        insights.add(Insights(
-            startDate,
-            referenceInsight.pm2_5,
-            referenceInsight.pm10,
-            true,
-            false,
-            referenceInsight.siteId,
-            referenceInsight.frequency));
-      }
-
-      startDate = startDate.add(const Duration(hours: 1));
-    }
-  } else if (frequency == Frequency.daily && !full) {
-    final referenceInsight = data.first;
-
-    var startDate = referenceInsight.time.getDateOfFirstDayOfWeek();
-    final lastDayOfWeek = referenceInsight.time.getDateOfLastDayOfWeek();
-
-    while (startDate.isBefore(lastDayOfWeek)) {
-      final checkDate = insights
-          .where((element) =>
-              (element.time.day == startDate.day) &&
-              (element.time.month == startDate.month))
-          .toList();
-
-      if (checkDate.isEmpty) {
-        insights.add(Insights(
-            startDate,
-            referenceInsight.pm2_5,
-            referenceInsight.pm10,
-            true,
-            false,
-            referenceInsight.siteId,
-            referenceInsight.frequency));
-      }
-
-      startDate = startDate.add(const Duration(days: 1));
-    }
-  } else {
-    return insights;
+      break;
   }
-
   return Insights.formatData(insights, frequency);
 }

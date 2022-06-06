@@ -108,88 +108,93 @@ class CloudStore {
     return [];
   }
 
-  static Future<List<Kya>> getKya() async {
+  static Future<List<Kya>> _getReferenceKya() async {
+    final referenceKyaCollection =
+        await FirebaseFirestore.instance.collection(Config.kyaCollection).get();
+    final referenceKya = <Kya>[];
+    for (final kyaDoc in referenceKyaCollection.docs) {
+      try {
+        final kyaData = kyaDoc.data();
+        if (kyaData.isEmpty) {
+          continue;
+        }
+        referenceKya.add(Kya.fromJson(kyaData));
+      } catch (exception, stackTrace) {
+        debugPrint('$exception\n$stackTrace');
+      }
+    }
+    return referenceKya;
+  }
+
+  static Future<List<UserKya>> _getUserKya() async {
     final userId = CustomAuth.getUserId();
     if (userId.isEmpty) {
       return [];
     }
 
+    final userOnGoingKya = <UserKya>[];
+
     try {
-      final userOnGoingKya = <UserKya>[];
-
-      try {
-        final userKyaCollection = await FirebaseFirestore.instance
-            .collection(Config.usersKyaCollection)
-            .doc(userId)
-            .collection(userId)
-            .get();
-
-        for (final userKyaDoc in userKyaCollection.docs) {
-          try {
-            final userKyaData = userKyaDoc.data();
-            if (userKyaData.isEmpty) {
-              continue;
-            }
-            UserKya kya;
-            try {
-              kya = UserKya.fromJson(userKyaData);
-            } catch (e) {
-              userKyaData['progress'] =
-                  (userKyaData['progress'] as double).ceil();
-              kya = UserKya.fromJson(userKyaData);
-            }
-
-            userOnGoingKya.add(kya);
-          } catch (exception, stackTrace) {
-            debugPrint('$exception\n$stackTrace');
-          }
-        }
-      } catch (exception, stackTrace) {
-        debugPrint('$exception\n$stackTrace');
-      }
-
-      final referenceKyaCollection = await FirebaseFirestore.instance
-          .collection(Config.kyaCollection)
+      final userKyaCollection = await FirebaseFirestore.instance
+          .collection(Config.usersKyaCollection)
+          .doc(userId)
+          .collection(userId)
           .get();
-      final referenceKya = <Kya>[];
-      for (final kyaDoc in referenceKyaCollection.docs) {
+
+      for (final userKyaDoc in userKyaCollection.docs) {
         try {
-          final kyaData = kyaDoc.data();
-          if (kyaData.isEmpty) {
+          if (userKyaDoc.data().isEmpty) {
             continue;
           }
-          final kya = Kya.fromJson(kyaData);
-          referenceKya.add(kya);
+          try {
+            userOnGoingKya.add(UserKya.fromJson(userKyaDoc.data()));
+          } catch (e) {
+            final userKyaData = userKyaDoc.data();
+            userKyaData['progress'] =
+                (userKyaData['progress'] as double).ceil();
+            userOnGoingKya.add(UserKya.fromJson(userKyaData));
+          }
         } catch (exception, stackTrace) {
           debugPrint('$exception\n$stackTrace');
         }
       }
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+    }
 
-      final userKya = <Kya>[];
-      if (userOnGoingKya.isEmpty) {
-        for (final kya in referenceKya) {
-          kya.progress = 0;
+    return userOnGoingKya;
+  }
+
+  static Future<List<Kya>> getKya() async {
+    final userId = CustomAuth.getUserId();
+    if (userId.isEmpty) {
+      return [];
+    }
+    final userKya = <Kya>[];
+    final userOnGoingKya = await _getUserKya();
+    final referenceKya = await _getReferenceKya();
+
+    if (userOnGoingKya.isEmpty) {
+      for (final kya in referenceKya) {
+        kya.progress = 0;
+        userKya.add(kya);
+      }
+    } else {
+      for (final kya in referenceKya) {
+        try {
+          final onGoingKya = userOnGoingKya.firstWhere(
+              (element) => element.id == kya.id,
+              orElse: () => UserKya(kya.id, 0));
+
+          kya.progress = onGoingKya.progress;
           userKya.add(kya);
-        }
-      } else {
-        for (final kya in referenceKya) {
-          try {
-            final onGoingKya = userOnGoingKya.firstWhere(
-                (element) => element.id == kya.id,
-                orElse: () => UserKya(kya.id, 0));
-
-            kya.progress = onGoingKya.progress;
-            userKya.add(kya);
-          } catch (exception, stackTrace) {
-            debugPrint('$exception\n$stackTrace');
-          }
+        } catch (exception, stackTrace) {
+          debugPrint('$exception\n$stackTrace');
         }
       }
-      return userKya;
-    } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
     }
-    return [];
+
+    return userKya;
   }
 
   static Future<List<AppNotification>> getNotifications() async {

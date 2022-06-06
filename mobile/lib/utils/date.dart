@@ -22,27 +22,22 @@ String dateToString(String formattedString) {
 
     if (now.day == formattedDate.day) {
       return 'Updated today at ${DateFormat('hh:mm a').format(formattedDate)}';
-    } else {
-      if (now.isAfter(formattedDate)) {
-        final yesterday = now.subtract(const Duration(hours: 24));
-        if (formattedDate.day == yesterday.day) {
-          return 'Updated yesterday at'
-              ' ${DateFormat('hh:mm a').format(formattedDate)}';
-        } else {
-          final daysAgo = now.difference(formattedDate).inDays;
-          if (daysAgo == 1) {
-            return 'Updated $daysAgo day ago';
-          }
-          return 'Updated $daysAgo days ago';
-        }
+    } else if (now.isAfter(formattedDate)) {
+      final yesterday = now.subtract(const Duration(hours: 24));
+      if (formattedDate.day == yesterday.day) {
+        return 'Updated yesterday at'
+            ' ${DateFormat('hh:mm a').format(formattedDate)}';
       } else {
-        final tomorrow = now.add(const Duration(hours: 24));
-        if (tomorrow.day == formattedDate.day) {
-          return 'Tomorrow, ${DateFormat('hh:mm a').format(formattedDate)}';
-        } else {
-          return DateFormat('d MMM, hh:mm a').format(formattedDate);
-        }
+        final daysAgo = now.difference(formattedDate).inDays;
+        return daysAgo == 1
+            ? 'Updated $daysAgo day ago'
+            : 'Updated $daysAgo days ago';
       }
+    } else {
+      final tomorrow = now.add(const Duration(hours: 24));
+      return tomorrow.day == formattedDate.day
+          ? 'Tomorrow, ${DateFormat('hh:mm a').format(formattedDate)}'
+          : DateFormat('d MMM, hh:mm a').format(formattedDate);
     }
   } catch (exception, stackTrace) {
     logException(exception, stackTrace);

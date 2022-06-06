@@ -71,3 +71,22 @@ class FeedbackNextButton extends StatelessWidget {
     );
   }
 }
+
+class FeedbackTypeAvatar extends StatelessWidget {
+  const FeedbackTypeAvatar({Key? key, required this.active}) : super(key: key);
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 24,
+      width: 24,
+      decoration: BoxDecoration(
+          color: active ? CustomColors.appColorBlue : Colors.white,
+          shape: BoxShape.circle,
+          border: active
+              ? Border.all(color: CustomColors.appColorBlue, width: 0)
+              : Border.all(color: CustomColors.greyColor, width: 3)),
+    );
+  }
+}

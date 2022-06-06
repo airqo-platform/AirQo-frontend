@@ -53,6 +53,8 @@ enum AirQuality {
   hazardous,
 }
 
+enum FeedbackType { inquiry, suggestion, appBugs, reportAirPollution }
+
 enum AuthMethod { phone, email }
 
 enum AuthProcedure { login, signup }
