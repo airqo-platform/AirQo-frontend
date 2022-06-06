@@ -1,0 +1,20 @@
+name: Dart Code Metrics
+
+on: [push]
+
+jobs:
+  check:
+    name: App code metrics
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+          
+      - name: dart-code-metrics
+        uses: dart-code-checker/dart-code-metrics-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          relative_path: mobile/
+          pull_request_comment: true
+          check_unused_files: true

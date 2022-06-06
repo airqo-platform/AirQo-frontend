@@ -74,19 +74,25 @@ extension AirQualityExtension on AirQuality {
   }
 }
 
+extension DoubleExtension on double {
+  bool isWithin(double start, double end) {
+    return this >= start && this <= end;
+  }
+}
+
 extension PollutantExtension on Pollutant {
   AirQuality airQuality(double value) {
     switch (this) {
       case Pollutant.pm2_5:
         if (value <= 12.09) {
           return AirQuality.good;
-        } else if (value >= 12.1 && value <= 35.49) {
+        } else if (value.isWithin(12.1, 35.49)) {
           return AirQuality.moderate;
-        } else if (value >= 35.5 && value <= 55.49) {
+        } else if (value.isWithin(35.5, 55.49)) {
           return AirQuality.ufsgs;
-        } else if (value >= 55.5 && value <= 150.49) {
+        } else if (value.isWithin(55.5, 150.49)) {
           return AirQuality.unhealthy;
-        } else if (value >= 150.5 && value <= 250.49) {
+        } else if (value.isWithin(150.5, 250.49)) {
           return AirQuality.veryUnhealthy;
         } else if (value >= 250.5) {
           return AirQuality.hazardous;
@@ -96,13 +102,13 @@ extension PollutantExtension on Pollutant {
       case Pollutant.pm10:
         if (value <= 50.99) {
           return AirQuality.good;
-        } else if (value >= 51.00 && value <= 100.99) {
+        } else if (value.isWithin(51.00, 100.99)) {
           return AirQuality.moderate;
-        } else if (value >= 101.00 && value <= 250.99) {
+        } else if (value.isWithin(101.00, 250.99)) {
           return AirQuality.ufsgs;
-        } else if (value >= 251.00 && value <= 350.99) {
+        } else if (value.isWithin(251.00, 350.99)) {
           return AirQuality.unhealthy;
-        } else if (value >= 351.00 && value <= 430.99) {
+        } else if (value.isWithin(351.00, 430.99)) {
           return AirQuality.veryUnhealthy;
         } else if (value >= 431.00) {
           return AirQuality.hazardous;
@@ -177,7 +183,7 @@ extension PollutantExtension on Pollutant {
     }
   }
 
-  Color textColor({required double value, bool? graph}) {
+  Color textColor({required double value, bool graph = false}) {
     switch (airQuality(value)) {
       case AirQuality.good:
         return CustomColors.aqiGreenTextColor;
@@ -190,7 +196,7 @@ extension PollutantExtension on Pollutant {
       case AirQuality.veryUnhealthy:
         return CustomColors.aqiPurpleTextColor;
       case AirQuality.hazardous:
-        if (graph != null && graph) {
+        if (graph) {
           return CustomColors.aqiMaroon;
         }
         return CustomColors.aqiMaroonTextColor;
@@ -341,7 +347,7 @@ extension DateTimeExtension on DateTime {
   }
 
   String getLongDate() {
-    return '${getDayPostfix()} ${getMonthString(abbreviate: false)}';
+    return '${getDayPostfix()} ${getMonthString()}';
   }
 
   String getMonth({DateTime? datetime}) {
@@ -361,7 +367,7 @@ extension DateTimeExtension on DateTime {
     }
   }
 
-  String getMonthString({required bool abbreviate}) {
+  String getMonthString({bool abbreviate = false}) {
     switch (month) {
       case 1:
         return abbreviate ? 'Jan' : 'January';
