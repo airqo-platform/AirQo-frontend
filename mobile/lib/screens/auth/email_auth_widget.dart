@@ -45,8 +45,6 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
   DateTime? _exitTime;
   late BuildContext loadingContext;
   bool _showAuthOptions = true;
-  String _authOptionsText = '';
-  String _authOptionsButtonText = '';
   int _codeSentCountDown = 0;
 
   @override
@@ -145,7 +143,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
         height: 56,
       ),
       AutoSizeText(
-        _authOptionsText,
+        AuthMethod.email.optionsText(widget.authProcedure),
         textAlign: TextAlign.center,
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
@@ -178,12 +176,10 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
             Navigator.pushAndRemoveUntil(
                 context,
                 PageRouteBuilder(
-                  pageBuilder: (context, animation, secondaryAnimation) {
-                    if (widget.authProcedure == AuthProcedure.login) {
-                      return const PhoneLoginWidget();
-                    }
-                    return const PhoneSignUpWidget();
-                  },
+                  pageBuilder: (context, animation, secondaryAnimation) =>
+                      widget.authProcedure == AuthProcedure.login
+                          ? const PhoneLoginWidget()
+                          : const PhoneSignUpWidget(),
                   transitionsBuilder:
                       (context, animation, secondaryAnimation, child) {
                     return FadeTransition(
@@ -195,7 +191,8 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                 (r) => false);
           });
         },
-        child: SignUpButton(text: _authOptionsButtonText),
+        child: SignUpButton(
+            text: AuthMethod.email.optionsButtonText(widget.authProcedure)),
       ),
       const Spacer(),
       GestureDetector(
@@ -223,16 +220,11 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
   }
 
   void emailValueChange(text) {
-    if (text.toString().isEmpty || !_emailInputController.text.isValidEmail()) {
-      setState(() {
-        _nextBtnColor = CustomColors.appColorDisabled;
-      });
-    } else {
-      setState(() {
-        _nextBtnColor = CustomColors.appColorBlue;
-      });
-    }
     setState(() {
+      _nextBtnColor =
+          text.toString().isEmpty || !_emailInputController.text.isValidEmail()
+              ? CustomColors.appColorDisabled
+              : CustomColors.appColorBlue;
       _emailAddress = text;
     });
   }
@@ -474,16 +466,8 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
       _verifyCode = false;
       _codeSent = false;
       _emailVerificationCode = <String>['', '', '', '', '', ''];
-
       _emailInputController = TextEditingController(text: _emailAddress);
-
       _showAuthOptions = true;
-      _authOptionsText = widget.authProcedure == AuthProcedure.login
-          ? 'Login with your email or mobile number'
-          : 'Sign up with your email or mobile number';
-      _authOptionsButtonText = widget.authProcedure == AuthProcedure.login
-          ? 'Login with a mobile number instead'
-          : 'Sign up with a mobile number instead';
     });
   }
 
@@ -501,10 +485,9 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return ConfirmationDialog(
-          title: 'Confirm Email Address',
-          message:
-              'We shall send a verification code to the email $_emailAddress',
+        return AuthConfirmationDialog(
+          credentials: _emailAddress,
+          authMethod: AuthMethod.email,
         );
       },
     );

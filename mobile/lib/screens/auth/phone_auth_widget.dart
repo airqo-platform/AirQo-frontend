@@ -2,12 +2,14 @@ import 'dart:async';
 
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/app_service.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/dialogs.dart';
 import 'package:app/widgets/text_fields.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../models/enum_constants.dart';
 import '../../services/firebase_service.dart';
@@ -43,8 +45,6 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
   late Color _nextBtnColor;
   DateTime? _exitTime;
   late BuildContext _loadingContext;
-  String _authOptionsText = '';
-  String _authOptionsButtonText = '';
 
   late TextEditingController _phoneInputController;
   final _phoneFormKey = GlobalKey<FormState>();
@@ -122,6 +122,10 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
   Widget phoneInputField() {
     return TextFormField(
       controller: _phoneInputController,
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
+        PhoneNumberInputFormatter()
+      ],
       onEditingComplete: () async {
         FocusScope.of(context).requestFocus(FocusNode());
         Future.delayed(const Duration(milliseconds: 400), () {
@@ -197,7 +201,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
       Padding(
         padding: const EdgeInsets.only(left: 40, right: 40),
         child: AutoSizeText(
-          _authOptionsText,
+          AuthMethod.phone.optionsText(widget.authProcedure),
           textAlign: TextAlign.center,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
@@ -256,12 +260,10 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
               Navigator.pushAndRemoveUntil(
                   context,
                   PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) {
-                      if (widget.authProcedure == AuthProcedure.login) {
-                        return const EmailLoginWidget();
-                      }
-                      return const EmailSignUpWidget();
-                    },
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        widget.authProcedure == AuthProcedure.login
+                            ? const EmailLoginWidget()
+                            : const EmailSignUpWidget(),
                     transitionsBuilder:
                         (context, animation, secondaryAnimation, child) {
                       return FadeTransition(
@@ -274,7 +276,8 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                   (r) => false);
             });
           },
-          child: SignUpButton(text: _authOptionsButtonText),
+          child: SignUpButton(
+              text: AuthMethod.phone.optionsButtonText(widget.authProcedure)),
         ),
       ),
       const Spacer(),
@@ -348,11 +351,8 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
       Padding(
         padding: const EdgeInsets.only(left: 40, right: 40),
         child: AutoSizeText(
-            // 'Enter the 6 digits code sent to your\n'
-            //     'number that ends with ...'
-            //     '${phoneNumber.substring(phoneNumber.length - 3)}',
             'Enter the 6 digits code sent to your '
-            'number $_countryCode$_phoneNumber',
+            'number $_countryCode $_phoneNumber',
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -540,12 +540,6 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
       _codeSent = false;
       _phoneInputController = TextEditingController(text: _phoneNumber);
       _showAuthOptions = true;
-      _authOptionsText = widget.authProcedure == AuthProcedure.login
-          ? 'Login with your mobile number or email'
-          : 'Sign up with your mobile number or email';
-      _authOptionsButtonText = widget.authProcedure == AuthProcedure.login
-          ? 'Login with an email instead'
-          : 'Sign up with an email instead';
     });
   }
 
@@ -559,15 +553,14 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
       return;
     }
 
-    final phoneNumber = '$_countryCode$_phoneNumber';
+    final phoneNumber = '$_countryCode $_phoneNumber';
     final action = await showDialog<ConfirmationAction>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return ConfirmationDialog(
-          title: 'Confirm Number',
-          message:
-              'We shall send a verification code to the number $phoneNumber',
+        return AuthConfirmationDialog(
+          credentials: phoneNumber,
+          authMethod: AuthMethod.phone,
         );
       },
     );

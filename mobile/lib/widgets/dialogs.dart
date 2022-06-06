@@ -281,26 +281,50 @@ Future<void> showSnackBar(context, String message) async {
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
 
-class ConfirmationDialog extends StatelessWidget {
-  const ConfirmationDialog(
-      {Key? key, required this.title, required this.message})
+class AuthConfirmationDialog extends StatelessWidget {
+  const AuthConfirmationDialog(
+      {Key? key, required this.authMethod, required this.credentials})
       : super(key: key);
-  final String title;
-  final String message;
+  final AuthMethod authMethod;
+  final String credentials;
 
   @override
   Widget build(BuildContext context) {
     return CupertinoAlertDialog(
-      title: Text(title),
-      content: Text(message),
+      title: Text(
+        authMethod == AuthMethod.email
+            ? 'Confirm Email Address'
+            : 'Confirm Phone Number',
+        textAlign: TextAlign.center,
+      ),
+      content: Column(
+        children: [
+          const SizedBox(
+            height: 7,
+          ),
+          Text(
+            credentials,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+                fontSize: 20, fontWeight: FontWeight.bold, height: 18 / 16),
+          ),
+          const SizedBox(
+            height: 7,
+          ),
+          Text(
+            'Is the ${authMethod == AuthMethod.email ? 'email address' : ' phone number'} above correct?',
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
       actions: <Widget>[
         CupertinoDialogAction(
           onPressed: () {
             Navigator.of(context).pop(ConfirmationAction.cancel);
           },
-          child: Text('Cancel',
+          child: Text('Edit',
               style: CustomTextStyle.caption4(context)
-                  ?.copyWith(color: CustomColors.aqiRed)),
+                  ?.copyWith(color: CustomColors.appColorBlue)),
           isDefaultAction: true,
           isDestructiveAction: true,
         ),
@@ -309,7 +333,7 @@ class ConfirmationDialog extends StatelessWidget {
             Navigator.of(context).pop(ConfirmationAction.ok);
           },
           child: Text(
-            'Proceed',
+            'Yes',
             style: CustomTextStyle.caption4(context)
                 ?.copyWith(color: CustomColors.appColorBlue),
           ),

@@ -1,8 +1,35 @@
 import 'package:country_list_pick/country_list_pick.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../themes/colors.dart';
 import 'custom_widgets.dart';
+
+class PhoneNumberInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    final number = newValue.text;
+
+    if (newValue.selection.baseOffset == 0) {
+      return newValue;
+    }
+
+    final stringBuffer = StringBuffer();
+    for (var i = 0; i < number.length; i++) {
+      stringBuffer.write(number[i]);
+      var nonZeroIndex = i + 1;
+      if (nonZeroIndex % 3 == 0 && nonZeroIndex != number.length) {
+        stringBuffer.write(' ');
+      }
+    }
+
+    final string = stringBuffer.toString();
+    return newValue.copyWith(
+        text: string,
+        selection: TextSelection.collapsed(offset: string.length));
+  }
+}
 
 class CountryCodePickerField extends StatelessWidget {
   const CountryCodePickerField(

@@ -458,6 +458,40 @@ extension StringCasingExtension on String {
   }
 }
 
+extension AuthMethodExtension on AuthMethod {
+  String optionsText(AuthProcedure procedure) {
+    switch (this) {
+      case AuthMethod.phone:
+        return procedure == AuthProcedure.login
+            ? 'Login with your mobile number or email'
+            : 'Sign up with your mobile number or email';
+      case AuthMethod.email:
+        return procedure == AuthProcedure.login
+            ? 'Login with your email or mobile number'
+            : 'Sign up with your email or mobile number';
+      default:
+        throw UnimplementedError(
+            '$name does\'nt have options text implementation');
+    }
+  }
+
+  String optionsButtonText(AuthProcedure procedure) {
+    switch (this) {
+      case AuthMethod.phone:
+        return procedure == AuthProcedure.login
+            ? 'Login with an email instead'
+            : 'Sign up with an email instead';
+      case AuthMethod.email:
+        return procedure == AuthProcedure.login
+            ? 'Login with a mobile number instead'
+            : 'Sign up with a mobile number instead';
+      default:
+        throw UnimplementedError(
+            '$name does\'nt have options button text implementation');
+    }
+  }
+}
+
 extension TitleOptionsExtension on TitleOptions {
   String getDisplayName() {
     switch (this) {
