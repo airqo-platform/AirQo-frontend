@@ -3,20 +3,50 @@
 ## Prerequisites
 
 - [Flutter](https://docs.flutter.dev/get-started/install). Make sure all checks pass when you run `flutter doctor`
+- [Android Sdk Tools](https://developer.android.com/studio)
+- An emulator or phyiscal device. This app isn't configured to run in the browser.
 
-### Set the secret keys
+### Setup
 
-Add [.env.dev file](https://drive.google.com/file/d/1ff6PUDjWJw_uiIC-oYoBOqiUiTyPzRho/view?usp=sharing) to this directory
+#### Add the configuration files to the respective directories
 
-### Set Google maps Key
+| File                                   | Directory      |
+|---------------------------------------|------------------|
+| [google-services.json]()        | App directory under android folder (`android/app/`) |
+| [firebase_app_id_file.json]()        | Android folder (`android/`) |
+| [key.properties]()                   | Android folder (`android/`) |
+| [local.properties]()      | Android folder (`android/`) |
+| [.env.dev]()      | APP root directory (this directory) |
+| [.env.prod]()      | APP root directory (this directory) |
+| [airqo-dev-keystore.jks]()      | Place it in any secure directory on your computer |
 
-For IOS, add the [GOOGLE MAPS API Key](https://docs.google.com/document/d/1QawFn5Sfp3eOUODb38dLFsIVrU-erFpJeC7OEbWS_9Q/edit?usp=sharing),  in  `ios/Runner/AppDelegate.swift`
-`GMSServices.provideAPIKey("<INSERT KEY HERE>")`
+\
+![Project structure](resources/project-structure.png)
+
+#### Android signing certificates
+
+Run the command below to get your SHA-1 signing-certificate fingerprint. Share the Key with an AirQo team member to add it to the application restricted fingerprints.
+
+```bash
+keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android
+```
+
+#### Updating configuration variables paths
+
+- Update `sdk.dir` and `flutter.sdk` to point to the correct paths for your android Sdk anf flutter respectively
+  - Path for `flutter.sdk` can be gotten from running `flutter doctor -v`.
+  \
+  For example `flutter.sdk=/opt/homebrew/Caskroom/flutter/2.5.1/flutter`
+  \
+  \
+  ![Project structure](resources/flutter-path.png)
+  
+- Update `storeFile` variable in `key.properties` file to point to where you put `airqo-dev-keystore.jks`.
+For example if `airqo-dev-keystore.jks` is located under `/Users/example/` then `storeFile=/Users/example/airqo-dev-keystore.jks`
 
 ### Running the application
 
 ```bash
-cd AirQo-frontend/mobile
 flutter run
 ```
 
@@ -41,10 +71,4 @@ flutter build appbundle --obfuscate --split-debug-info=${PWD}/obfuscate
 flutter build ipa --obfuscate --split-debug-info=${PWD}/obfuscate
 flutter build appbundle [--analyze-size]
 flutter build ipa [--analyze-size]
-```
-
-#### Keystore SHA values
-
-```bash
-keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android
 ```
