@@ -5,14 +5,14 @@ on: [push]
 jobs:
   check:
     name: App code metrics
-
     runs-on: ubuntu-latest
-
+    # container:
+    #   image:  google/dart:latest
     steps:
-      - uses: actions/checkout@v2
-          
-      - name: dart-code-metrics
-        uses: dart-code-checker/dart-code-metrics-action@v1
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Dart Code Metrics Action
+        uses: dart-code-checker/dart-code-metrics-action@v2.0.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           relative_path: mobile/
