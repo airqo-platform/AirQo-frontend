@@ -8,9 +8,9 @@ const MapSection = () => {
         <div className='backdrop'>
             <div className='map-content'>
                 <span id='first-pill'><p>Air Quality Map</p></span>
-                <h3 className='content-h'>Live timely air quality analytics across Africa</h3>
+                  <h3 className='content-h'>Live air quality insights across Africa</h3>
                 <span className='content-p'>
-                    <p>A better way to visualize hourly air quality information with a single click over our growing network across African cities</p>
+                      <p>Visualize hourly air quality information with a single click, over our growing network across African cities.</p>
                 </span>
                 {/* <span id='second-pill'><p>View map</p> <i> <ArrowRight/> </i></span> */}
             </div>
