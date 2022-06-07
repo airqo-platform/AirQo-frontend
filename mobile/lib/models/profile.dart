@@ -17,17 +17,18 @@ class Profile extends HiveObject {
   factory Profile.fromJson(Map<String, dynamic> json) =>
       _$ProfileFromJson(json);
 
-  Profile(
-      {required this.title,
-      required this.firstName,
-      required this.lastName,
-      required this.userId,
-      required this.emailAddress,
-      required this.phoneNumber,
-      required this.device,
-      required this.preferences,
-      required this.photoUrl,
-      required this.utcOffset});
+  Profile({
+    required this.title,
+    required this.firstName,
+    required this.lastName,
+    required this.userId,
+    required this.emailAddress,
+    required this.phoneNumber,
+    required this.device,
+    required this.preferences,
+    required this.photoUrl,
+    required this.utcOffset,
+  });
   @HiveField(0)
   @JsonKey(defaultValue: '')
   String title = '';
@@ -121,10 +122,11 @@ class Profile extends HiveObject {
     }
   }
 
-  Future<void> update(
-      {bool logout = false,
-      bool? enableNotification,
-      bool? enableLocation}) async {
+  Future<void> update({
+    bool logout = false,
+    bool? enableNotification,
+    bool? enableLocation,
+  }) async {
     final user = CustomAuth.getUser();
     if (user != null) {
       Sentry.configureScope(
@@ -150,33 +152,36 @@ class Profile extends HiveObject {
 
   static List<String> getNames(String fullName) {
     final namesArray = fullName.split(' ');
-    if (namesArray.isEmpty) {
-      return ['', ''];
-    }
-    if (namesArray.length >= 2) {
-      return [namesArray.first, namesArray[1]];
-    } else {
-      return [namesArray.first, ''];
+
+    switch (namesArray.length) {
+      case 0:
+        return ['', ''];
+      case 1:
+        return [namesArray.first, ''];
+      default:
+        return [namesArray.first, namesArray[1]];
     }
   }
 
   static Future<Profile> _initialize() async {
     final profile = Profile(
-        title: '',
-        firstName: '',
-        lastName: '',
-        userId: '',
-        emailAddress: '',
-        phoneNumber: '',
-        device: '',
-        preferences:
-            UserPreferences(notifications: false, location: false, aqShares: 0),
-        utcOffset: 0,
-        photoUrl: '');
+      title: '',
+      firstName: '',
+      lastName: '',
+      userId: '',
+      emailAddress: '',
+      phoneNumber: '',
+      device: '',
+      preferences:
+          UserPreferences(notifications: false, location: false, aqShares: 0),
+      utcOffset: 0,
+      photoUrl: '',
+    );
     final user = CustomAuth.getUser();
     if (user != null) {
       await profile.update();
     }
+
     return profile;
   }
 
@@ -188,10 +193,11 @@ class Profile extends HiveObject {
 @JsonSerializable(explicitToJson: true)
 @HiveType(typeId: 120, adapterName: 'UserPreferencesTypeAdapter')
 class UserPreferences extends HiveObject {
-  UserPreferences(
-      {required this.notifications,
-      required this.location,
-      required this.aqShares});
+  UserPreferences({
+    required this.notifications,
+    required this.location,
+    required this.aqShares,
+  });
 
   factory UserPreferences.fromJson(Map<String, dynamic> json) =>
       _$UserPreferencesFromJson(json);
@@ -210,6 +216,10 @@ class UserPreferences extends HiveObject {
   Map<String, dynamic> toJson() => _$UserPreferencesToJson(this);
 
   static UserPreferences initialize() {
-    return UserPreferences(notifications: false, location: false, aqShares: 0);
+    return UserPreferences(
+      notifications: false,
+      location: false,
+      aqShares: 0,
+    );
   }
 }

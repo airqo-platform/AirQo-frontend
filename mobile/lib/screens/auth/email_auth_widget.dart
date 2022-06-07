@@ -20,9 +20,11 @@ import '../on_boarding/profile_setup_screen.dart';
 import 'auth_widgets.dart';
 
 class EmailAuthWidget extends StatefulWidget {
-  const EmailAuthWidget(
-      {Key? key, this.emailAddress, required this.authProcedure})
-      : super(key: key);
+  const EmailAuthWidget({
+    Key? key,
+    this.emailAddress,
+    required this.authProcedure,
+  }) : super(key: key);
   final String? emailAddress;
   final AuthProcedure authProcedure;
 
@@ -50,28 +52,39 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: WillPopScope(
-            onWillPop: onWillPop,
-            child: Container(
-              color: Colors.white,
-              padding: const EdgeInsets.only(left: 24, right: 24),
-              child: Center(child: Column(children: _getColumnWidget())),
-            )));
+      body: WillPopScope(
+        onWillPop: onWillPop,
+        child: Container(
+          color: Colors.white,
+          padding: const EdgeInsets.only(left: 24, right: 24),
+          child: Center(
+            child: Column(
+              children: _getColumnWidget(),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   void clearEmailCallBack() {
     if (_emailAddress == '') {
       FocusScope.of(context).unfocus();
-      Future.delayed(const Duration(milliseconds: 400), () {
-        setState(() => _showAuthOptions = true);
-      });
+      Future.delayed(
+        const Duration(milliseconds: 400),
+        () {
+          setState(() => _showAuthOptions = true);
+        },
+      );
     }
 
-    setState(() {
-      _emailAddress = '';
-      _emailInputController.text = '';
-      _nextBtnColor = CustomColors.appColorDisabled;
-    });
+    setState(
+      () {
+        _emailAddress = '';
+        _emailInputController.text = '';
+        _nextBtnColor = CustomColors.appColorDisabled;
+      },
+    );
   }
 
   Widget emailInputField() {
@@ -81,10 +94,15 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
         setState(() => _showAuthOptions = false);
       },
       onEditingComplete: () async {
-        FocusScope.of(context).requestFocus(FocusNode());
-        Future.delayed(const Duration(milliseconds: 400), () {
-          setState(() => _showAuthOptions = true);
-        });
+        FocusScope.of(context).requestFocus(
+          FocusNode(),
+        );
+        Future.delayed(
+          const Duration(milliseconds: 400),
+          () {
+            setState(() => _showAuthOptions = true);
+          },
+        );
       },
       onChanged: emailValueChange,
       style: Theme.of(context).textTheme.bodyText1,
@@ -93,6 +111,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
           return 'Enter your email address';
         } else if (!value.isValidEmail()) {
           showSnackBar(context, 'Invalid email address');
+
           return 'Invalid email address';
         } else {
           return null;
@@ -114,18 +133,16 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
           borderRadius: BorderRadius.circular(8.0),
         ),
         border: OutlineInputBorder(
-            borderSide:
-                BorderSide(color: CustomColors.appColorBlue, width: 1.0),
-            borderRadius: BorderRadius.circular(8.0)),
+          borderSide: BorderSide(color: CustomColors.appColorBlue, width: 1.0),
+          borderRadius: BorderRadius.circular(8.0),
+        ),
         hintText: 'Enter your email',
-        hintStyle: Theme.of(context)
-            .textTheme
-            .bodyText1
-            ?.copyWith(color: CustomColors.appColorBlack.withOpacity(0.32)),
-        prefixStyle: Theme.of(context)
-            .textTheme
-            .bodyText1
-            ?.copyWith(color: CustomColors.appColorBlack.withOpacity(0.32)),
+        hintStyle: Theme.of(context).textTheme.bodyText1?.copyWith(
+              color: CustomColors.appColorBlack.withOpacity(0.32),
+            ),
+        prefixStyle: Theme.of(context).textTheme.bodyText1?.copyWith(
+              color: CustomColors.appColorBlack.withOpacity(0.32),
+            ),
         suffixIcon: GestureDetector(
           onTap: clearEmailCallBack,
           child: const TextInputCloseButton(),
@@ -152,14 +169,15 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
       const SizedBox(
         height: 8,
       ),
-      AutoSizeText('We’ll send you a verification code',
-          textAlign: TextAlign.center,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: Theme.of(context)
-              .textTheme
-              .bodyText2
-              ?.copyWith(color: CustomColors.appColorBlack.withOpacity(0.6))),
+      AutoSizeText(
+        'We’ll send you a verification code',
+        textAlign: TextAlign.center,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: Theme.of(context).textTheme.bodyText2?.copyWith(
+              color: CustomColors.appColorBlack.withOpacity(0.6),
+            ),
+      ),
       const SizedBox(
         height: 32,
       ),
@@ -172,8 +190,9 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
       ),
       GestureDetector(
         onTap: () {
-          setState(() {
-            Navigator.pushAndRemoveUntil(
+          setState(
+            () {
+              Navigator.pushAndRemoveUntil(
                 context,
                 PageRouteBuilder(
                   pageBuilder: (context, animation, secondaryAnimation) =>
@@ -183,16 +202,21 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                   transitionsBuilder:
                       (context, animation, secondaryAnimation, child) {
                     return FadeTransition(
-                      opacity: animation.drive(Tween<double>(begin: 0, end: 1)),
+                      opacity: animation.drive(
+                        Tween<double>(begin: 0, end: 1),
+                      ),
                       child: child,
                     );
                   },
                 ),
-                (r) => false);
-          });
+                (r) => false,
+              );
+            },
+          );
         },
         child: SignUpButton(
-            text: AuthMethod.email.optionsButtonText(widget.authProcedure)),
+          text: AuthMethod.email.optionsButtonText(widget.authProcedure),
+        ),
       ),
       const Spacer(),
       GestureDetector(
@@ -220,13 +244,15 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
   }
 
   void emailValueChange(text) {
-    setState(() {
-      _nextBtnColor =
-          text.toString().isEmpty || !_emailInputController.text.isValidEmail()
-              ? CustomColors.appColorDisabled
-              : CustomColors.appColorBlue;
-      _emailAddress = text;
-    });
+    setState(
+      () {
+        _nextBtnColor = text.toString().isEmpty ||
+                !_emailInputController.text.isValidEmail()
+            ? CustomColors.appColorDisabled
+            : CustomColors.appColorBlue;
+        _emailAddress = text;
+      },
+    );
   }
 
   List<Widget> emailVerificationWidget() {
@@ -245,33 +271,38 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
         height: 8,
       ),
       AutoSizeText(
-          'Enter the 6 digit code sent to your email\n'
-          '$_emailAddress',
-          textAlign: TextAlign.center,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: Theme.of(context)
-              .textTheme
-              .bodyText2
-              ?.copyWith(color: CustomColors.appColorBlack.withOpacity(0.6))),
+        'Enter the 6 digit code sent to your email\n'
+        '$_emailAddress',
+        textAlign: TextAlign.center,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: Theme.of(context).textTheme.bodyText2?.copyWith(
+              color: CustomColors.appColorBlack.withOpacity(0.6),
+            ),
+      ),
       const SizedBox(
         height: 32,
       ),
       Padding(
-          padding: const EdgeInsets.only(left: 36, right: 36),
-          child:
-              OptField(codeSent: _codeSent, position: 0, callbackFn: setCode)),
+        padding: const EdgeInsets.only(left: 36, right: 36),
+        child: OptField(
+          codeSent: _codeSent,
+          position: 0,
+          callbackFn: setCode,
+        ),
+      ),
       const SizedBox(
         height: 16,
       ),
       Visibility(
         visible: _codeSentCountDown > 0,
-        child: Text('The code should arrive with in $_codeSentCountDown sec',
-            textAlign: TextAlign.center,
-            style: Theme.of(context)
-                .textTheme
-                .caption
-                ?.copyWith(color: CustomColors.appColorBlack.withOpacity(0.5))),
+        child: Text(
+          'The code should arrive with in $_codeSentCountDown sec',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.caption?.copyWith(
+                color: CustomColors.appColorBlack.withOpacity(0.5),
+              ),
+        ),
       ),
       Visibility(
         visible: _codeSentCountDown <= 0,
@@ -279,12 +310,13 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
           onTap: () async {
             await _resendVerificationCode();
           },
-          child: Text('Resend code',
-              textAlign: TextAlign.center,
-              style: Theme.of(context)
-                  .textTheme
-                  .caption
-                  ?.copyWith(color: CustomColors.appColorBlue)),
+          child: Text(
+            'Resend code',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.caption?.copyWith(
+                  color: CustomColors.appColorBlue,
+                ),
+          ),
         ),
       ),
       const SizedBox(
@@ -300,13 +332,15 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
               color: Colors.black.withOpacity(0.05),
             ),
             Container(
-                color: Colors.white,
-                padding: const EdgeInsets.only(left: 5, right: 5),
-                child: Text('Or',
-                    style: Theme.of(context)
-                        .textTheme
-                        .caption
-                        ?.copyWith(color: const Color(0xffD1D3D9)))),
+              color: Colors.white,
+              padding: const EdgeInsets.only(left: 5, right: 5),
+              child: Text(
+                'Or',
+                style: Theme.of(context).textTheme.caption?.copyWith(
+                      color: const Color(0xffD1D3D9),
+                    ),
+              ),
+            ),
           ],
         ),
       ),
@@ -318,10 +352,9 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
         child: Text(
           'Change your email',
           textAlign: TextAlign.center,
-          style: Theme.of(context)
-              .textTheme
-              .caption
-              ?.copyWith(color: CustomColors.appColorBlue),
+          style: Theme.of(context).textTheme.caption?.copyWith(
+                color: CustomColors.appColorBlue,
+              ),
         ),
       ),
       const Spacer(),
@@ -351,37 +384,54 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
         now.difference(_exitTime!) > const Duration(seconds: 2)) {
       _exitTime = now;
 
-      showSnackBar(context, 'Tap again to cancel !');
+      showSnackBar(
+        context,
+        'Tap again to cancel !',
+      );
+
       return Future.value(false);
     }
 
     Navigator.pop(loadingContext);
 
-    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) {
-      return const HomePage();
-    }), (r) => false);
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) {
+        return const HomePage();
+      }),
+      (r) => false,
+    );
 
     return Future.value(false);
   }
 
   void setCode(String value, int position) {
-    setState(() {
-      _emailVerificationCode[position] = value;
-    });
+    setState(
+      () {
+        _emailVerificationCode[position] = value;
+      },
+    );
     final code = _emailVerificationCode.join('');
     if (code.length == 6) {
-      setState(() {
-        _nextBtnColor = CustomColors.appColorBlue;
-      });
+      setState(
+        () {
+          _nextBtnColor = CustomColors.appColorBlue;
+        },
+      );
     } else {
-      setState(() {
-        _nextBtnColor = CustomColors.appColorDisabled;
-      });
+      setState(
+        () {
+          _nextBtnColor = CustomColors.appColorDisabled;
+        },
+      );
     }
   }
 
   Future<void> verifySentCode() async {
-    final connected = await checkNetworkConnection(context, notifyUser: true);
+    final connected = await checkNetworkConnection(
+      context,
+      notifyUser: true,
+    );
     if (!connected) {
       return;
     }
@@ -389,62 +439,73 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     final code = _emailVerificationCode.join('');
 
     if (code.length != 6) {
-      await showSnackBar(context, 'Enter all the 6 digits');
+      await showSnackBar(
+        context,
+        'Enter all the 6 digits',
+      );
+
       return;
     }
 
-    setState(() {
-      _nextBtnColor = CustomColors.appColorDisabled;
-    });
+    setState(() => _nextBtnColor = CustomColors.appColorDisabled);
 
     if (code != _emailToken.toString()) {
       await showSnackBar(context, 'Invalid Code');
-      setState(() {
-        _nextBtnColor = CustomColors.appColorBlue;
-      });
+      setState(() => _nextBtnColor = CustomColors.appColorBlue);
+
       return;
     }
 
     loadingScreen(loadingContext);
 
-    bool success;
-    if (widget.authProcedure == AuthProcedure.signup) {
-      success = await _appService.authenticateUser(
-          emailAuthLink: _emailVerificationLink,
-          emailAddress: _emailAddress,
-          authMethod: AuthMethod.email,
-          authProcedure: AuthProcedure.signup,
-          buildContext: context);
-    } else {
-      success = await _appService.authenticateUser(
-          emailAuthLink: _emailVerificationLink,
-          emailAddress: _emailAddress,
-          authMethod: AuthMethod.email,
-          authProcedure: AuthProcedure.login,
-          buildContext: context);
-    }
+    final success = widget.authProcedure == AuthProcedure.signup
+        ? await _appService.authenticateUser(
+            emailAuthLink: _emailVerificationLink,
+            emailAddress: _emailAddress,
+            authMethod: AuthMethod.email,
+            authProcedure: AuthProcedure.signup,
+            buildContext: context,
+          )
+        : await _appService.authenticateUser(
+            emailAuthLink: _emailVerificationLink,
+            emailAddress: _emailAddress,
+            authMethod: AuthMethod.email,
+            authProcedure: AuthProcedure.login,
+            buildContext: context,
+          );
 
     Navigator.pop(loadingContext);
 
     if (success) {
       if (widget.authProcedure == AuthProcedure.signup) {
         await AppService.postSignUpActions();
-        await Navigator.pushAndRemoveUntil(context,
-            MaterialPageRoute(builder: (context) {
-          return const ProfileSetupScreen();
-        }), (r) => false);
+        await Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) {
+            return const ProfileSetupScreen();
+          }),
+          (r) => false,
+        );
       } else {
-        await Navigator.pushAndRemoveUntil(context,
-            MaterialPageRoute(builder: (context) {
-          return const HomePage();
-        }), (r) => false);
+        await Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) {
+            return const HomePage();
+          }),
+          (r) => false,
+        );
       }
     } else {
-      setState(() {
-        _nextBtnColor = CustomColors.appColorBlue;
-        _codeSent = true;
-      });
-      await showSnackBar(context, 'Authentication failed');
+      setState(
+        () {
+          _nextBtnColor = CustomColors.appColorBlue;
+          _codeSent = true;
+        },
+      );
+      await showSnackBar(
+        context,
+        'Authentication failed',
+      );
     }
   }
 
@@ -452,27 +513,35 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     if (_verifyCode) {
       return emailVerificationWidget();
     }
+
     return emailInputWidget();
   }
 
   void _initialize() {
-    setState(() {
-      _emailAddress = widget.emailAddress ?? '';
-      _nextBtnColor = widget.emailAddress == null
-          ? CustomColors.appColorDisabled
-          : CustomColors.appColorBlue;
-      _emailVerificationLink = '';
-      _emailToken = 1;
-      _verifyCode = false;
-      _codeSent = false;
-      _emailVerificationCode = <String>['', '', '', '', '', ''];
-      _emailInputController = TextEditingController(text: _emailAddress);
-      _showAuthOptions = true;
-    });
+    setState(
+      () {
+        _emailAddress = widget.emailAddress ?? '';
+        _nextBtnColor = widget.emailAddress == null
+            ? CustomColors.appColorDisabled
+            : CustomColors.appColorBlue;
+        _emailVerificationLink = '';
+        _emailToken = 1;
+        _verifyCode = false;
+        _codeSent = false;
+        _emailVerificationCode = <String>['', '', '', '', '', ''];
+        _emailInputController = TextEditingController(
+          text: _emailAddress,
+        );
+        _showAuthOptions = true;
+      },
+    );
   }
 
   Future<void> _requestVerification() async {
-    final connected = await checkNetworkConnection(context, notifyUser: true);
+    final connected = await checkNetworkConnection(
+      context,
+      notifyUser: true,
+    );
     if (!connected) {
       return;
     }
@@ -496,45 +565,60 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
       return;
     }
 
-    FocusScope.of(context).requestFocus(FocusNode());
-    Future.delayed(const Duration(milliseconds: 400), () {
-      setState(() {
-        _showAuthOptions = true;
-      });
-    });
+    FocusScope.of(context).requestFocus(
+      FocusNode(),
+    );
+    Future.delayed(
+      const Duration(
+        milliseconds: 400,
+      ),
+      () {
+        setState(() => _showAuthOptions = true);
+      },
+    );
 
-    setState(() {
-      _nextBtnColor = CustomColors.appColorDisabled;
-    });
+    setState(
+      () {
+        _nextBtnColor = CustomColors.appColorDisabled;
+      },
+    );
     loadingScreen(loadingContext);
 
     if (widget.authProcedure == AuthProcedure.signup) {
       final emailExists = await _appService.doesUserExist(
-          emailAddress: _emailAddress, buildContext: context);
+        emailAddress: _emailAddress,
+        buildContext: context,
+      );
 
       if (emailExists) {
-        setState(() {
-          _nextBtnColor = CustomColors.appColorBlue;
-        });
+        setState(
+          () {
+            _nextBtnColor = CustomColors.appColorBlue;
+          },
+        );
         Navigator.pop(loadingContext);
         await showSnackBar(
-            context,
-            'You already have an '
-            'account with this email address');
+          context,
+          'You already have an '
+          'account with this email address',
+        );
         await Navigator.pushAndRemoveUntil(
-            context,
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) =>
-                  EmailLoginWidget(emailAddress: _emailAddress),
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) {
-                return FadeTransition(
-                  opacity: animation.drive(Tween<double>(begin: 0, end: 1)),
-                  child: child,
-                );
-              },
-            ),
-            (r) => false);
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                EmailLoginWidget(emailAddress: _emailAddress),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              return FadeTransition(
+                opacity: animation.drive(
+                  Tween<double>(begin: 0, end: 1),
+                ),
+                child: child,
+              );
+            },
+          ),
+          (r) => false,
+        );
 
         return;
       }
@@ -546,25 +630,32 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     Navigator.pop(loadingContext);
 
     if (emailSignupResponse == null) {
-      await showSnackBar(context, 'email signup verification failed');
-      setState(() {
-        _nextBtnColor = CustomColors.appColorBlue;
-      });
+      await showSnackBar(
+        context,
+        'email signup verification failed',
+      );
+      setState(() => _nextBtnColor = CustomColors.appColorBlue);
+
       return;
     }
 
-    setState(() {
-      _emailVerificationLink = emailSignupResponse.loginLink;
-      _emailToken = emailSignupResponse.token;
-      _verifyCode = true;
-      _codeSent = false;
-    });
+    setState(
+      () {
+        _emailVerificationLink = emailSignupResponse.loginLink;
+        _emailToken = emailSignupResponse.token;
+        _verifyCode = true;
+        _codeSent = false;
+      },
+    );
 
     _startCodeSentCountDown();
   }
 
   Future<void> _resendVerificationCode() async {
-    final connected = await checkNetworkConnection(context, notifyUser: true);
+    final connected = await checkNetworkConnection(
+      context,
+      notifyUser: true,
+    );
     if (!connected) {
       return;
     }
@@ -577,33 +668,45 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     Navigator.pop(loadingContext);
 
     if (emailSignupResponse == null) {
-      await showSnackBar(context, 'Email signup verification failed');
+      await showSnackBar(
+        context,
+        'Email signup verification failed',
+      );
+
       return;
     }
 
-    setState(() {
-      _emailVerificationLink = emailSignupResponse.loginLink;
-      _emailToken = emailSignupResponse.token;
-    });
+    setState(
+      () {
+        _emailVerificationLink = emailSignupResponse.loginLink;
+        _emailToken = emailSignupResponse.token;
+      },
+    );
     _startCodeSentCountDown();
   }
 
   void _startCodeSentCountDown() {
-    setState(() {
-      _codeSentCountDown = 5;
-    });
+    setState(
+      () {
+        _codeSentCountDown = 5;
+      },
+    );
     Timer.periodic(
       const Duration(milliseconds: 1200),
       (Timer timer) {
         if (_codeSentCountDown == 0) {
-          setState(() {
-            timer.cancel();
-            _codeSent = true;
-          });
+          setState(
+            () {
+              timer.cancel();
+              _codeSent = true;
+            },
+          );
         } else {
-          setState(() {
-            _codeSentCountDown--;
-          });
+          setState(
+            () {
+              _codeSentCountDown--;
+            },
+          );
         }
       },
     );
@@ -613,9 +716,10 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
 class EmailLoginWidget extends EmailAuthWidget {
   const EmailLoginWidget({Key? key, String? emailAddress})
       : super(
-            key: key,
-            emailAddress: emailAddress,
-            authProcedure: AuthProcedure.login);
+          key: key,
+          emailAddress: emailAddress,
+          authProcedure: AuthProcedure.login,
+        );
 
   @override
   EmailLoginWidgetState createState() => EmailLoginWidgetState();

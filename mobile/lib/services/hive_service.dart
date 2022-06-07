@@ -25,13 +25,19 @@ class HiveService {
 
     final encryptionKey = await getEncryptionKey();
 
-    await Future.wait([
-      Hive.openBox<AppNotification>(HiveBox.appNotifications),
-      Hive.openBox<Kya>(HiveBox.kya),
-      Hive.openBox<Analytics>(HiveBox.analytics),
-      Hive.openBox<Profile>(HiveBox.profile,
-          encryptionCipher: HiveAesCipher(encryptionKey))
-    ]);
+    await Future.wait(
+      [
+        Hive.openBox<AppNotification>(HiveBox.appNotifications),
+        Hive.openBox<Kya>(HiveBox.kya),
+        Hive.openBox<Analytics>(HiveBox.analytics),
+        Hive.openBox<Profile>(
+          HiveBox.profile,
+          encryptionCipher: HiveAesCipher(
+            encryptionKey,
+          ),
+        ),
+      ],
+    );
   }
 
   static Future<Uint8List> getEncryptionKey() async {
@@ -45,6 +51,7 @@ class HiveService {
       );
     }
     encodedKey = await secureStorage.read(key: HiveBox.encryptionKey);
+
     return base64Url.decode(encodedKey!);
   }
 
@@ -53,7 +60,7 @@ class HiveService {
       Hive.box<AppNotification>(HiveBox.appNotifications).clear(),
       Hive.box<Profile>(HiveBox.profile).clear(),
       Hive.box<Analytics>(HiveBox.analytics).clear(),
-      Hive.box<Kya>(HiveBox.kya).clear()
+      Hive.box<Kya>(HiveBox.kya).clear(),
     ]);
   }
 }

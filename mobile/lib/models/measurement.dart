@@ -11,8 +11,16 @@ class Measurement {
   factory Measurement.fromJson(Map<String, dynamic> json) =>
       _$MeasurementFromJson(json);
 
-  Measurement(this.time, this.pm2_5, this.pm10, this.altitude, this.speed,
-      this.temperature, this.humidity, this.site);
+  Measurement(
+    this.time,
+    this.pm2_5,
+    this.pm10,
+    this.altitude,
+    this.speed,
+    this.temperature,
+    this.humidity,
+    this.site,
+  );
   @JsonKey(required: true)
   String time;
 
@@ -22,22 +30,30 @@ class Measurement {
   @JsonKey(required: true)
   final MeasurementValue pm10;
 
-  @JsonKey(required: false, fromJson: measurementValueFromJson)
+  @JsonKey(
+    required: false,
+    fromJson: measurementValueFromJson,
+  )
   final MeasurementValue altitude;
 
-  @JsonKey(required: false, fromJson: measurementValueFromJson)
+  @JsonKey(
+    required: false,
+    fromJson: measurementValueFromJson,
+  )
   final MeasurementValue speed;
 
   @JsonKey(
-      required: false,
-      name: 'externalTemperature',
-      fromJson: measurementValueFromJson)
+    required: false,
+    name: 'externalTemperature',
+    fromJson: measurementValueFromJson,
+  )
   final MeasurementValue temperature;
 
   @JsonKey(
-      required: false,
-      name: 'externalHumidity',
-      fromJson: measurementValueFromJson)
+    required: false,
+    name: 'externalHumidity',
+    fromJson: measurementValueFromJson,
+  )
   final MeasurementValue humidity;
 
   @JsonKey(required: true, name: 'siteDetails')
@@ -48,6 +64,7 @@ class Measurement {
     if (humidity.value <= 0.99) {
       humidityValue = (humidity.value * 100).round();
     }
+
     return '$humidityValue%';
   }
 
@@ -55,6 +72,7 @@ class Measurement {
     if (pm10.calibratedValue == -0.1) {
       return double.parse(pm10.value.toStringAsFixed(2));
     }
+
     return double.parse(pm10.calibratedValue.toStringAsFixed(2));
   }
 
@@ -62,6 +80,7 @@ class Measurement {
     if (pm2_5.calibratedValue == -0.1) {
       return double.parse(pm2_5.value.toStringAsFixed(2));
     }
+
     return double.parse(pm2_5.calibratedValue.toStringAsFixed(2));
   }
 
@@ -101,23 +120,28 @@ class Measurement {
   }
 
   static List<Measurement> sortByDistance(List<Measurement> measurements) {
-    measurements.sort((x, y) {
-      return x.site.distance.compareTo(y.site.distance);
-    });
+    measurements.sort(
+      (x, y) {
+        return x.site.distance.compareTo(y.site.distance);
+      },
+    );
+
     return measurements;
   }
 
   static Map<String, dynamic> mapToDb(Measurement measurement) {
     final measurementMap = Site.toDbMap(measurement.site)
-      ..addAll({
-        'time': measurement.time,
-        'pm2_5': measurement.getPm2_5Value(),
-        'pm10': measurement.getPm10Value(),
-        'altitude': measurement.altitude.value,
-        'speed': measurement.speed.value,
-        'temperature': measurement.temperature.value,
-        'humidity': measurement.humidity.value,
-      });
+      ..addAll(
+        {
+          'time': measurement.time,
+          'pm2_5': measurement.getPm2_5Value(),
+          'pm10': measurement.getPm10Value(),
+          'altitude': measurement.altitude.value,
+          'speed': measurement.speed.value,
+          'temperature': measurement.temperature.value,
+          'humidity': measurement.humidity.value,
+        },
+      );
 
     return measurementMap;
   }

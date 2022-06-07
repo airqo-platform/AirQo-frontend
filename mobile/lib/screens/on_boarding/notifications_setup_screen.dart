@@ -13,7 +13,9 @@ import 'location_setup_screen.dart';
 import 'on_boarding_widgets.dart';
 
 class NotificationsSetupScreen extends StatefulWidget {
-  const NotificationsSetupScreen({Key? key}) : super(key: key);
+  const NotificationsSetupScreen({
+    Key? key,
+  }) : super(key: key);
 
   @override
   NotificationsSetupScreenState createState() =>
@@ -26,11 +28,12 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: CustomColors.appBodyColor,
-        body: WillPopScope(
-          onWillPop: onWillPop,
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
+      backgroundColor: CustomColors.appBodyColor,
+      body: WillPopScope(
+        onWillPop: onWillPop,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
             const Spacer(),
             const OnBoardingNotificationIcon(),
             const SizedBox(
@@ -50,9 +53,10 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
             Padding(
               padding: const EdgeInsets.only(left: 40, right: 40),
               child: Text(
-                  'Get notified when air quality is getting better or worse',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyText1),
+                'Get notified when air quality is getting better or worse',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyText1,
+              ),
             ),
             const Spacer(),
             Padding(
@@ -60,8 +64,9 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
               child: GestureDetector(
                 onTap: _allowNotifications,
                 child: NextButton(
-                    text: 'Yes, keep me updated',
-                    buttonColor: CustomColors.appColorBlue),
+                  text: 'Yes, keep me updated',
+                  buttonColor: CustomColors.appColorBlue,
+                ),
               ),
             ),
             const SizedBox(
@@ -69,25 +74,29 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
             ),
             GestureDetector(
               onTap: () {
-                Navigator.pushAndRemoveUntil(context,
-                    MaterialPageRoute(builder: (context) {
-                  return const LocationSetupScreen();
-                }), (r) => false);
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) {
+                    return const LocationSetupScreen();
+                  }),
+                  (r) => false,
+                );
               },
               child: Text(
                 'No, thanks',
                 textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .caption
-                    ?.copyWith(color: CustomColors.appColorBlue),
+                style: Theme.of(context).textTheme.caption?.copyWith(
+                      color: CustomColors.appColorBlue,
+                    ),
               ),
             ),
             const SizedBox(
               height: 40,
             ),
-          ]),
-        ));
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -98,13 +107,18 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
 
   Future<void> _allowNotifications() async {
     loadingScreen(context);
-    await NotificationService.allowNotifications().then((_) {
-      Navigator.pop(context);
-      Navigator.pushAndRemoveUntil(context,
+    await NotificationService.allowNotifications().then(
+      (_) {
+        Navigator.pop(context);
+        Navigator.pushAndRemoveUntil(
+          context,
           MaterialPageRoute(builder: (context) {
-        return const LocationSetupScreen();
-      }), (r) => false);
-    });
+            return const LocationSetupScreen();
+          }),
+          (r) => false,
+        );
+      },
+    );
   }
 
   Future<bool> onWillPop() {
@@ -114,19 +128,28 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
         now.difference(exitTime!) > const Duration(seconds: 2)) {
       exitTime = now;
 
-      showSnackBar(context, 'Tap again to exit !');
+      showSnackBar(
+        context,
+        'Tap again to exit !',
+      );
+
       return Future.value(false);
     }
 
-    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) {
-      return const HomePage();
-    }), (r) => false);
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) {
+        return const HomePage();
+      }),
+      (r) => false,
+    );
 
     return Future.value(false);
   }
 
   void _updateOnBoardingPage() async {
     await SharedPreferencesHelper.updateOnBoardingPage(
-        OnBoardingPage.notification);
+      OnBoardingPage.notification,
+    );
   }
 }

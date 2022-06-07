@@ -17,90 +17,115 @@ import '../kya/kya_widgets.dart';
 import '../search/search_page.dart';
 
 class DashboardFavPlaceAvatar extends StatelessWidget {
-  const DashboardFavPlaceAvatar(
-      {Key? key, required this.rightPadding, required this.measurement})
-      : super(key: key);
+  const DashboardFavPlaceAvatar({
+    Key? key,
+    required this.rightPadding,
+    required this.measurement,
+  }) : super(key: key);
   final double rightPadding;
   final Measurement measurement;
 
   @override
   Widget build(BuildContext context) {
     return Positioned(
-        right: rightPadding,
-        child: Container(
-          height: 32.0,
-          width: 32.0,
-          padding: const EdgeInsets.all(2.0),
-          decoration: BoxDecoration(
-            border: Border.all(color: CustomColors.appBodyColor, width: 2),
-            color: Pollutant.pm2_5.color(measurement.getPm2_5Value()),
-            shape: BoxShape.circle,
+      right: rightPadding,
+      child: Container(
+        height: 32.0,
+        width: 32.0,
+        padding: const EdgeInsets.all(2.0),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: CustomColors.appBodyColor,
+            width: 2,
           ),
-          child: Center(
-            child: Text(
-              '${measurement.getPm2_5Value()}',
-              style: TextStyle(
-                  fontSize: 7,
-                  color: Pollutant.pm2_5
-                      .textColor(value: measurement.getPm2_5Value())),
+          color: Pollutant.pm2_5.color(
+            measurement.getPm2_5Value(),
+          ),
+          shape: BoxShape.circle,
+        ),
+        child: Center(
+          child: Text(
+            '${measurement.getPm2_5Value()}',
+            style: TextStyle(
+              fontSize: 7,
+              color: Pollutant.pm2_5.textColor(
+                value: measurement.getPm2_5Value(),
+              ),
             ),
           ),
-        ));
+        ),
+      ),
+    );
   }
 }
 
 class KyaDashboardAvatar extends StatelessWidget {
-  const KyaDashboardAvatar(
-      {Key? key, required this.kya, required this.rightPadding})
-      : super(key: key);
+  const KyaDashboardAvatar({
+    Key? key,
+    required this.kya,
+    required this.rightPadding,
+  }) : super(key: key);
   final Kya kya;
   final double rightPadding;
 
   @override
   Widget build(BuildContext context) {
     return Positioned(
-        right: rightPadding,
-        child: Container(
-          height: 32.0,
-          width: 32.0,
-          padding: const EdgeInsets.all(2.0),
-          decoration: BoxDecoration(
-            border: Border.all(color: CustomColors.appBodyColor, width: 2),
-            color: CustomColors.greyColor,
-            shape: BoxShape.circle,
-            image: DecorationImage(
-              fit: BoxFit.cover,
-              image: CachedNetworkImageProvider(
-                kya.imageUrl,
-                cacheKey: kya.imageUrlCacheKey(),
-                cacheManager: CacheManager(
-                    CacheService.cacheConfig(kya.imageUrlCacheKey())),
+      right: rightPadding,
+      child: Container(
+        height: 32.0,
+        width: 32.0,
+        padding: const EdgeInsets.all(2.0),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: CustomColors.appBodyColor,
+            width: 2,
+          ),
+          color: CustomColors.greyColor,
+          shape: BoxShape.circle,
+          image: DecorationImage(
+            fit: BoxFit.cover,
+            image: CachedNetworkImageProvider(
+              kya.imageUrl,
+              cacheKey: kya.imageUrlCacheKey(),
+              cacheManager: CacheManager(
+                CacheService.cacheConfig(
+                  kya.imageUrlCacheKey(),
+                ),
               ),
             ),
           ),
-        ));
+        ),
+      ),
+    );
   }
 }
 
 class DashboardEmptyAvatar extends StatelessWidget {
-  const DashboardEmptyAvatar({Key? key, required this.rightPadding})
-      : super(key: key);
+  const DashboardEmptyAvatar({
+    Key? key,
+    required this.rightPadding,
+  }) : super(key: key);
   final double rightPadding;
 
   @override
   Widget build(BuildContext context) {
     return Positioned(
-        right: rightPadding,
-        child: Container(
-          height: 32.0,
-          width: 32.0,
-          padding: const EdgeInsets.all(2.0),
-          decoration: BoxDecoration(
-            border: Border.all(color: CustomColors.appBodyColor, width: 2),
-            color: CustomColors.greyColor,
-            shape: BoxShape.circle,
+      right: rightPadding,
+      child: Container(
+        height: 32.0,
+        width: 32.0,
+        padding: const EdgeInsets.all(2.0),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: CustomColors.appBodyColor,
+            width: 2,
           ),
-        ));
+          color: CustomColors.greyColor,
+          shape: BoxShape.circle,
+        ),
+      ),
+    );
   }
 }
 
@@ -124,19 +149,26 @@ class DashboardTopBar extends StatelessWidget implements PreferredSizeWidget {
             const Spacer(),
             GestureDetector(
               onTap: () async {
-                await Navigator.push(context,
-                    MaterialPageRoute(builder: (context) {
-                  return const SearchPage();
-                }));
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return const SearchPage();
+                    },
+                  ),
+                );
               },
               child: Container(
                 height: 40,
                 width: 40,
                 padding: const EdgeInsets.all(10),
                 decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.rectangle,
-                    borderRadius: BorderRadius.all(Radius.circular(10.0))),
+                  color: Colors.white,
+                  shape: BoxShape.rectangle,
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(10.0),
+                  ),
+                ),
                 child: SvgPicture.asset(
                   'assets/icon/search.svg',
                   semanticsLabel: 'Search',
@@ -157,9 +189,11 @@ class DashboardTopBar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class DashboardKyaCard extends StatelessWidget {
-  const DashboardKyaCard(
-      {Key? key, required this.kya, required this.kyaClickCallBack})
-      : super(key: key);
+  const DashboardKyaCard({
+    Key? key,
+    required this.kya,
+    required this.kyaClickCallBack,
+  }) : super(key: key);
   final Kya kya;
   final Function(Kya) kyaClickCallBack;
 
@@ -172,8 +206,11 @@ class DashboardKyaCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
         decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.all(Radius.circular(16.0))),
+          color: Colors.white,
+          borderRadius: BorderRadius.all(
+            Radius.circular(16.0),
+          ),
+        ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -182,10 +219,12 @@ class DashboardKyaCard extends StatelessWidget {
                 children: [
                   SizedBox(
                     height: 40,
-                    child: AutoSizeText(kya.title,
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                        style: CustomTextStyle.headline8(context)),
+                    child: AutoSizeText(
+                      kya.title,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: CustomTextStyle.headline8(context),
+                    ),
                   ),
                   const SizedBox(
                     height: 28,
@@ -238,7 +277,10 @@ class DashboardKyaCard extends StatelessWidget {
                 ),
                 cacheKey: kya.imageUrlCacheKey(),
                 cacheManager: CacheManager(
-                    CacheService.cacheConfig(kya.imageUrlCacheKey())),
+                  CacheService.cacheConfig(
+                    kya.imageUrlCacheKey(),
+                  ),
+                ),
               ),
             ),
           ],
@@ -254,24 +296,32 @@ List<Widget> completeKyaWidgets(List<Kya> completeKya) {
   try {
     switch (completeKya.length) {
       case 0:
-        widgets.add(SvgPicture.asset(
-          'assets/icon/add_avator.svg',
-        ));
+        widgets.add(
+          SvgPicture.asset(
+            'assets/icon/add_avator.svg',
+          ),
+        );
         break;
       case 1:
-        widgets.add(KyaDashboardAvatar(rightPadding: 7, kya: completeKya[0]));
+        widgets.add(
+          KyaDashboardAvatar(rightPadding: 7, kya: completeKya[0]),
+        );
         break;
       case 2:
         widgets
           ..add(KyaDashboardAvatar(rightPadding: 0, kya: completeKya[0]))
-          ..add(KyaDashboardAvatar(rightPadding: 7, kya: completeKya[1]));
+          ..add(
+            KyaDashboardAvatar(rightPadding: 7, kya: completeKya[1]),
+          );
         break;
       default:
         if (completeKya.length >= 3) {
           widgets
             ..add(KyaDashboardAvatar(rightPadding: 0, kya: completeKya[0]))
             ..add(KyaDashboardAvatar(rightPadding: 7, kya: completeKya[1]))
-            ..add(KyaDashboardAvatar(rightPadding: 14, kya: completeKya[2]));
+            ..add(
+              KyaDashboardAvatar(rightPadding: 14, kya: completeKya[2]),
+            );
         }
         break;
     }

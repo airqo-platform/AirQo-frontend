@@ -9,8 +9,10 @@ import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
 
 class NotificationView extends StatefulWidget {
-  const NotificationView({Key? key, required this.appNotification})
-      : super(key: key);
+  const NotificationView({
+    Key? key,
+    required this.appNotification,
+  }) : super(key: key);
   final AppNotification appNotification;
 
   @override
@@ -36,78 +38,86 @@ class _NotificationViewState extends State<NotificationView> {
             child: Column(
               children: [
                 Container(
-                    padding: const EdgeInsets.all(8.0),
-                    decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.all(Radius.circular(16.0))),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          mainAxisAlignment: MainAxisAlignment.end,
+                  padding: const EdgeInsets.all(8.0),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(16.0),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pop(context);
+                            },
+                            child: SvgPicture.asset(
+                              'assets/icon/close.svg',
+                              semanticsLabel: 'Pm2.5',
+                              height: 20,
+                              width: 20,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(
+                        height: 12,
+                      ),
+                      Container(
+                        padding: const EdgeInsets.only(
+                          left: 54.0,
+                          right: 54.0,
+                          bottom: 54.0,
+                        ),
+                        child: Column(
                           children: [
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.pop(context);
-                              },
-                              child: SvgPicture.asset(
-                                'assets/icon/close.svg',
-                                semanticsLabel: 'Pm2.5',
-                                height: 20,
-                                width: 20,
+                            Container(
+                              padding: const EdgeInsets.all(15.0),
+                              decoration: BoxDecoration(
+                                color:
+                                    CustomColors.appColorBlue.withOpacity(0.1),
+                                shape: BoxShape.circle,
                               ),
+                              child: SvgPicture.asset(
+                                widget.appNotification.icon,
+                                height: 24,
+                                width: 36,
+                              ),
+                            ),
+                            const SizedBox(
+                              height: 17,
+                            ),
+                            AutoSizeText(
+                              widget.appNotification.title,
+                              textAlign: TextAlign.center,
+                              style: CustomTextStyle.headline10(context),
+                            ),
+                            const SizedBox(
+                              height: 8.0,
+                            ),
+                            AutoSizeText(
+                              widget.appNotification.body,
+                              textAlign: TextAlign.center,
+                              maxLines: 4,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyText2
+                                  ?.copyWith(
+                                    color: CustomColors.appColorBlack
+                                        .withOpacity(0.4),
+                                  ),
                             ),
                           ],
                         ),
-                        const SizedBox(
-                          height: 12,
-                        ),
-                        Container(
-                          padding: const EdgeInsets.only(
-                              left: 54.0, right: 54.0, bottom: 54.0),
-                          child: Column(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(15.0),
-                                decoration: BoxDecoration(
-                                  color: CustomColors.appColorBlue
-                                      .withOpacity(0.1),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: SvgPicture.asset(
-                                  widget.appNotification.icon,
-                                  height: 24,
-                                  width: 36,
-                                ),
-                              ),
-                              const SizedBox(
-                                height: 17,
-                              ),
-                              AutoSizeText(
-                                widget.appNotification.title,
-                                textAlign: TextAlign.center,
-                                style: CustomTextStyle.headline10(context),
-                              ),
-                              const SizedBox(
-                                height: 8.0,
-                              ),
-                              AutoSizeText(
-                                widget.appNotification.body,
-                                textAlign: TextAlign.center,
-                                maxLines: 4,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyText2
-                                    ?.copyWith(
-                                        color: CustomColors.appColorBlack
-                                            .withOpacity(0.4)),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ))
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -130,8 +140,10 @@ class _NotificationViewState extends State<NotificationView> {
 }
 
 class NotificationCard extends StatelessWidget {
-  const NotificationCard({Key? key, required this.appNotification})
-      : super(key: key);
+  const NotificationCard({
+    Key? key,
+    required this.appNotification,
+  }) : super(key: key);
   final AppNotification appNotification;
 
   @override
@@ -139,8 +151,11 @@ class NotificationCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 24.0),
       decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(16.0))),
+        color: Colors.white,
+        borderRadius: BorderRadius.all(
+          Radius.circular(16.0),
+        ),
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -175,8 +190,9 @@ class NotificationCard extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.caption?.copyWith(
-                      color: CustomColors.appColorBlack.withOpacity(0.4)),
-                )
+                        color: CustomColors.appColorBlack.withOpacity(0.4),
+                      ),
+                ),
               ],
             ),
           ),
@@ -184,39 +200,47 @@ class NotificationCard extends StatelessWidget {
             width: 12,
           ),
           Visibility(
-              visible: !appNotification.read,
-              child: Container(
-                  padding: const EdgeInsets.fromLTRB(8.0, 1.0, 8.0, 1.0),
-                  constraints: const BoxConstraints(
-                    maxHeight: 16,
-                    maxWidth: 43.35,
-                  ),
-                  decoration: BoxDecoration(
-                      color: CustomColors.appColorBlue.withOpacity(0.1),
-                      borderRadius:
-                          const BorderRadius.all(Radius.circular(535.87))),
-                  child: Text(
-                    'New',
-                    style: CustomTextStyle.newNotification(context),
-                  ))),
+            visible: !appNotification.read,
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(8.0, 1.0, 8.0, 1.0),
+              constraints: const BoxConstraints(
+                maxHeight: 16,
+                maxWidth: 43.35,
+              ),
+              decoration: BoxDecoration(
+                color: CustomColors.appColorBlue.withOpacity(0.1),
+                borderRadius: const BorderRadius.all(
+                  Radius.circular(535.87),
+                ),
+              ),
+              child: Text(
+                'New',
+                style: CustomTextStyle.newNotification(context),
+              ),
+            ),
+          ),
           Visibility(
-              visible: appNotification.read,
-              child: Container(
-                  constraints: const BoxConstraints(
-                    maxHeight: 16,
-                    maxWidth: 43.35,
+            visible: appNotification.read,
+            child: Container(
+              constraints: const BoxConstraints(
+                maxHeight: 16,
+                maxWidth: 43.35,
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    appNotification.dateTime.notificationDisplayDate(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: CustomColors.appColorBlack,
+                    ),
                   ),
-                  child: Column(
-                    children: [
-                      Text(
-                        appNotification.dateTime.notificationDisplayDate(),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                            fontSize: 10, color: CustomColors.appColorBlack),
-                      ),
-                    ],
-                  )))
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -224,7 +248,9 @@ class NotificationCard extends StatelessWidget {
 }
 
 class EmptyNotifications extends StatelessWidget {
-  const EmptyNotifications({Key? key}) : super(key: key);
+  const EmptyNotifications({
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -232,8 +258,10 @@ class EmptyNotifications extends StatelessWidget {
       color: CustomColors.appBodyColor,
       padding: const EdgeInsets.all(40.0),
       child: Center(
-        child: Text('No Notifications',
-            style: Theme.of(context).textTheme.bodyText1),
+        child: Text(
+          'No Notifications',
+          style: Theme.of(context).textTheme.bodyText1,
+        ),
       ),
     );
   }

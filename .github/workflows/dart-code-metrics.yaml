@@ -6,8 +6,6 @@ jobs:
   check:
     name: App code metrics
     runs-on: ubuntu-latest
-    # container:
-    #   image:  google/dart:latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -18,3 +16,5 @@ jobs:
           relative_path: mobile/
           pull_request_comment: true
           check_unused_files: true
+          check_unused_files_folders: true
+          fatal_performance: true

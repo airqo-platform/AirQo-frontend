@@ -16,7 +16,10 @@ import 'dashboard/dashboard_view.dart';
 import 'map/map_view.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key, this.refresh}) : super(key: key);
+  const HomePage({
+    Key? key,
+    this.refresh,
+  }) : super(key: key);
   final bool? refresh;
 
   @override
@@ -64,10 +67,14 @@ class _HomePageState extends State<HomePage> {
       ),
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
-            canvasColor: CustomColors.appBodyColor,
-            primaryColor: CustomColors.appColorBlack,
-            textTheme: Theme.of(context).textTheme.copyWith(
-                caption: TextStyle(color: CustomColors.appColorBlack))),
+          canvasColor: CustomColors.appBodyColor,
+          primaryColor: CustomColors.appColorBlack,
+          textTheme: Theme.of(context).textTheme.copyWith(
+                caption: TextStyle(
+                  color: CustomColors.appColorBlack,
+                ),
+              ),
+        ),
         child: BottomNavigationBar(
           selectedIconTheme: Theme.of(context)
               .iconTheme
@@ -123,10 +130,11 @@ class _HomePageState extends State<HomePage> {
                           height: 4,
                           width: 4,
                           decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: unreadNotifications.isEmpty
-                                  ? Colors.transparent
-                                  : CustomColors.aqiRed),
+                            shape: BoxShape.circle,
+                            color: unreadNotifications.isEmpty
+                                ? Colors.transparent
+                                : CustomColors.aqiRed,
+                          ),
                         ),
                       );
                     },
@@ -156,7 +164,10 @@ class _HomePageState extends State<HomePage> {
     if (refresh) {
       await _appService.fetchData(context);
     } else {
-      await checkNetworkConnection(context, notifyUser: true);
+      await checkNetworkConnection(
+        context,
+        notifyUser: true,
+      );
     }
     await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.home);
   }
@@ -173,6 +184,7 @@ class _HomePageState extends State<HomePage> {
 
     if (currentPage != 0) {
       setState(() => _selectedIndex = 0);
+
       return Future.value(false);
     }
 
@@ -182,9 +194,14 @@ class _HomePageState extends State<HomePage> {
         now.difference(_exitTime!) > const Duration(seconds: 2)) {
       _exitTime = now;
 
-      showSnackBar(context, 'Tap again to exit !');
+      showSnackBar(
+        context,
+        'Tap again to exit !',
+      );
+
       return Future.value(false);
     }
+
     return Future.value(true);
   }
 

@@ -15,10 +15,18 @@ Measurement _$MeasurementFromJson(Map<String, dynamic> json) {
     json['time'] as String,
     MeasurementValue.fromJson(json['pm2_5'] as Map<String, dynamic>),
     MeasurementValue.fromJson(json['pm10'] as Map<String, dynamic>),
-    measurementValueFromJson(json['altitude']),
-    measurementValueFromJson(json['speed']),
-    measurementValueFromJson(json['externalTemperature']),
-    measurementValueFromJson(json['externalHumidity']),
+    measurementValueFromJson(
+      json['altitude'],
+    ),
+    measurementValueFromJson(
+      json['speed'],
+    ),
+    measurementValueFromJson(
+      json['externalTemperature'],
+    ),
+    measurementValueFromJson(
+      json['externalHumidity'],
+    ),
     Site.fromJson(json['siteDetails'] as Map<String, dynamic>),
   );
 }

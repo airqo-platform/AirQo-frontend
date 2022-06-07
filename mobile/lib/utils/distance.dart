@@ -1,4 +1,3 @@
 double metersToKmDouble(double meters) {
-  final km = meters / 1000;
-  return km;
+  return meters / 1000;
 }

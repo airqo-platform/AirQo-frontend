@@ -13,29 +13,37 @@ Region getRegionConstant(String value) {
   } else if (value.toLowerCase().contains('western')) {
     return Region.western;
   } else {
-    return Region.central;
+    return Region.none;
   }
 }
 
 Region getNextDashboardRegion(SharedPreferences sharedPreferences) {
   final currentRegion = getRegionConstant(
-      sharedPreferences.getString(Config.prefDashboardRegion) ?? '');
+    sharedPreferences.getString(Config.prefDashboardRegion) ?? '',
+  );
 
   if (currentRegion == Region.central) {
     sharedPreferences.setString(
-        Config.prefDashboardRegion, Region.eastern.getName());
+      Config.prefDashboardRegion,
+      Region.eastern.getName(),
+    );
+
     return Region.eastern;
   } else if (currentRegion == Region.eastern) {
     sharedPreferences.setString(
-        Config.prefDashboardRegion, Region.western.getName());
+      Config.prefDashboardRegion,
+      Region.western.getName(),
+    );
+
     return Region.western;
-  } else if (currentRegion == Region.western) {
+  } else if (currentRegion == Region.western || currentRegion == Region.none) {
     sharedPreferences.setString(
-        Config.prefDashboardRegion, Region.central.getName());
-    return Region.central;
-  } else {
-    sharedPreferences.setString(
-        Config.prefDashboardRegion, Region.central.getName());
+      Config.prefDashboardRegion,
+      Region.central.getName(),
+    );
+
     return Region.central;
   }
+
+  return Region.central;
 }

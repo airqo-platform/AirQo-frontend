@@ -53,7 +53,8 @@ class _MapViewState extends State<MapView> {
         children: <Widget>[
           Padding(
             padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).size.height * _bottomPadding),
+              bottom: MediaQuery.of(context).size.height * _bottomPadding,
+            ),
             child: mapWidget(),
           ),
           Visibility(
@@ -65,12 +66,14 @@ class _MapViewState extends State<MapView> {
               builder:
                   (BuildContext context, ScrollController scrollController) {
                 return MapCardWidget(
-                    widget: SingleChildScrollView(
-                        physics: const ScrollPhysics(),
-                        padding: EdgeInsets.zero,
-                        controller: scrollController,
-                        child: locationContent()),
-                    padding: 16.0);
+                  widget: SingleChildScrollView(
+                    physics: const ScrollPhysics(),
+                    padding: EdgeInsets.zero,
+                    controller: scrollController,
+                    child: locationContent(),
+                  ),
+                  padding: 16.0,
+                );
               },
             ),
           ),
@@ -83,31 +86,32 @@ class _MapViewState extends State<MapView> {
               builder:
                   (BuildContext context, ScrollController scrollController) {
                 return MapCardWidget(
-                    widget: SingleChildScrollView(
-                      controller: scrollController,
-                      physics: const BouncingScrollPhysics(),
-                      child: Column(
-                        children: <Widget>[
-                          const SizedBox(height: 8),
-                          const DraggingHandle(),
-                          const SizedBox(height: 16),
-                          searchContainer(),
-                          Visibility(
-                            visible: _displayRegions && !_isSearching,
-                            child: regionsList(),
-                          ),
-                          Visibility(
-                            visible: !_displayRegions && !_isSearching,
-                            child: sitesList(),
-                          ),
-                          Visibility(
-                            visible: _isSearching,
-                            child: searchResultsList(),
-                          ),
-                        ],
-                      ),
+                  widget: SingleChildScrollView(
+                    controller: scrollController,
+                    physics: const BouncingScrollPhysics(),
+                    child: Column(
+                      children: <Widget>[
+                        const SizedBox(height: 8),
+                        const DraggingHandle(),
+                        const SizedBox(height: 16),
+                        searchContainer(),
+                        Visibility(
+                          visible: _displayRegions && !_isSearching,
+                          child: regionsList(),
+                        ),
+                        Visibility(
+                          visible: !_displayRegions && !_isSearching,
+                          child: sitesList(),
+                        ),
+                        Visibility(
+                          visible: _isSearching,
+                          child: searchResultsList(),
+                        ),
+                      ],
                     ),
-                    padding: 32);
+                  ),
+                  padding: 32,
+                );
               },
             ),
           ),
@@ -138,14 +142,18 @@ class _MapViewState extends State<MapView> {
   Widget getLocationDisplay() {
     if (_locationMeasurement != null && _locationPlaceMeasurement != null) {
       return MapAnalyticsCard(
-          _locationPlaceMeasurement!, _locationMeasurement!, _showLocation);
+        _locationPlaceMeasurement!,
+        _locationMeasurement!,
+        _showLocation,
+      );
     }
 
     return EmptyView(
-        title: '',
-        topBars: true,
-        bodyInnerText: 'area',
-        showRegions: _showRegions);
+      title: '',
+      topBars: true,
+      bodyInnerText: 'area',
+      showRegions: _showRegions,
+    );
   }
 
   Widget locationContent() {
@@ -158,18 +166,19 @@ class _MapViewState extends State<MapView> {
         ),
         const SizedBox(height: 16),
         MediaQuery.removePadding(
-            context: context,
-            removeTop: true,
-            removeLeft: true,
-            removeRight: true,
-            child: ListView(
-              shrinkWrap: true,
-              physics: const ScrollPhysics(),
-              controller: ScrollController(),
-              children: <Widget>[
-                getLocationDisplay(),
-              ],
-            )),
+          context: context,
+          removeTop: true,
+          removeLeft: true,
+          removeRight: true,
+          child: ListView(
+            shrinkWrap: true,
+            physics: const ScrollPhysics(),
+            controller: ScrollController(),
+            children: <Widget>[
+              getLocationDisplay(),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -187,55 +196,67 @@ class _MapViewState extends State<MapView> {
       zoomControlsEnabled: true,
       initialCameraPosition: _defaultCameraPosition,
       markers: _markers.values.toSet(),
-      onTap: (_) {
-        // showRegions();
-        // setState(() {
-        //   _showInfoWindow = false;
-        //   _isSearching = false;
-        // });
-      },
     );
   }
 
   Widget regionsList() {
     return MediaQuery.removePadding(
-        removeTop: true,
-        context: context,
-        child: ListView(
-          shrinkWrap: true,
-          physics: const BouncingScrollPhysics(),
-          children: <Widget>[
-            const SizedBox(
-              height: 5,
-            ),
-            RegionTile(
-                region: Region.central, showRegionSites: _showRegionSites),
-            RegionTile(
-                region: Region.western, showRegionSites: _showRegionSites),
-            RegionTile(
-                region: Region.eastern, showRegionSites: _showRegionSites),
-            RegionTile(
-                region: Region.northern, showRegionSites: _showRegionSites),
-          ],
-        ));
+      removeTop: true,
+      context: context,
+      child: ListView(
+        shrinkWrap: true,
+        physics: const BouncingScrollPhysics(),
+        children: <Widget>[
+          const SizedBox(
+            height: 5,
+          ),
+          RegionTile(
+            region: Region.central,
+            showRegionSites: _showRegionSites,
+          ),
+          RegionTile(
+            region: Region.western,
+            showRegionSites: _showRegionSites,
+          ),
+          RegionTile(
+            region: Region.eastern,
+            showRegionSites: _showRegionSites,
+          ),
+          RegionTile(
+            region: Region.northern,
+            showRegionSites: _showRegionSites,
+          ),
+        ],
+      ),
+    );
   }
 
   void _searchChanged(String text) {
     if (text.isEmpty) {
       setState(() => _isSearching = false);
     } else {
-      setState(() {
-        _isSearching = true;
-        _searchSites =
-            LocationService.textSearchNearestSites(text, _latestMeasurements);
-      });
+      setState(
+        () {
+          _isSearching = true;
+          _searchSites = LocationService.textSearchNearestSites(
+            text,
+            _latestMeasurements,
+          );
+        },
+      );
 
-      SearchApi()
-          .fetchSuggestions(text)
-          .then((value) => {setState(() => _searchSuggestions = value)});
+      SearchApi().fetchSuggestions(text).then(
+            (value) => {
+              setState(() => _searchSuggestions = value),
+            },
+          );
 
-      setState(() => _searchSites =
-          LocationService.textSearchNearestSites(text, _latestMeasurements));
+      setState(
+        () => _searchSites = LocationService.textSearchNearestSites(
+          text,
+          _latestMeasurements,
+        ),
+      );
     }
   }
 
@@ -247,9 +268,12 @@ class _MapViewState extends State<MapView> {
             height: 32,
             constraints: const BoxConstraints(minWidth: double.maxFinite),
             decoration: BoxDecoration(
-                color: CustomColors.appBodyColor,
-                shape: BoxShape.rectangle,
-                borderRadius: const BorderRadius.all(Radius.circular(8.0))),
+              color: CustomColors.appBodyColor,
+              shape: BoxShape.rectangle,
+              borderRadius: const BorderRadius.all(
+                Radius.circular(8.0),
+              ),
+            ),
             child: TextFormField(
               controller: _searchController,
               onChanged: _searchChanged,
@@ -267,7 +291,11 @@ class _MapViewState extends State<MapView> {
                 fillColor: Colors.white,
                 prefixIcon: Padding(
                   padding: const EdgeInsets.only(
-                      right: 0, top: 7, bottom: 7, left: 0),
+                    right: 0,
+                    top: 7,
+                    bottom: 7,
+                    left: 0,
+                  ),
                   child: SvgPicture.asset(
                     'assets/icon/search.svg',
                     semanticsLabel: 'Search',
@@ -285,9 +313,10 @@ class _MapViewState extends State<MapView> {
                   borderRadius: BorderRadius.circular(8.0),
                 ),
                 border: OutlineInputBorder(
-                    borderSide:
-                        const BorderSide(color: Colors.transparent, width: 1.0),
-                    borderRadius: BorderRadius.circular(8.0)),
+                  borderSide:
+                      const BorderSide(color: Colors.transparent, width: 1.0),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
                 hintStyle: Theme.of(context).textTheme.caption?.copyWith(
                       color: CustomColors.appColorBlack.withOpacity(0.32),
                       fontSize: 14,
@@ -298,150 +327,166 @@ class _MapViewState extends State<MapView> {
           ),
         ),
         Visibility(
-            visible: !_displayRegions,
-            child: const SizedBox(
-              width: 8.0,
-            )),
+          visible: !_displayRegions,
+          child: const SizedBox(
+            width: 8.0,
+          ),
+        ),
         Visibility(
-            visible: !_displayRegions,
-            child: GestureDetector(
-              onTap: _showRegions,
-              child: Container(
-                height: 32,
-                width: 32,
-                decoration: BoxDecoration(
-                    color: CustomColors.appBodyColor,
-                    borderRadius: const BorderRadius.all(Radius.circular(8.0))),
-                child: SvgPicture.asset(
-                  'assets/icon/map_clear_text.svg',
-                  height: 15,
-                  width: 15,
+          visible: !_displayRegions,
+          child: GestureDetector(
+            onTap: _showRegions,
+            child: Container(
+              height: 32,
+              width: 32,
+              decoration: BoxDecoration(
+                color: CustomColors.appBodyColor,
+                borderRadius: const BorderRadius.all(
+                  Radius.circular(8.0),
                 ),
               ),
-            )),
+              child: SvgPicture.asset(
+                'assets/icon/map_clear_text.svg',
+                height: 15,
+                width: 15,
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
 
   Widget searchField() {
     return Expanded(
-        child: Center(
-      child: TextFormField(
-        controller: _searchController,
-        onTap: () {
-          setState(() => _scrollSheetHeight = 0.7);
-        },
-        onChanged: _searchChanged,
-        cursorWidth: 1,
-        maxLines: 1,
-        cursorColor: CustomColors.appColorBlue,
-        autofocus: false,
-        decoration: const InputDecoration(
-          contentPadding: EdgeInsets.only(right: 8, left: 8, bottom: 15),
-          hintText: '',
-          focusedBorder: InputBorder.none,
-          enabledBorder: InputBorder.none,
+      child: Center(
+        child: TextFormField(
+          controller: _searchController,
+          onTap: () {
+            setState(() => _scrollSheetHeight = 0.7);
+          },
+          onChanged: _searchChanged,
+          cursorWidth: 1,
+          maxLines: 1,
+          cursorColor: CustomColors.appColorBlue,
+          autofocus: false,
+          decoration: const InputDecoration(
+            contentPadding: EdgeInsets.only(right: 8, left: 8, bottom: 15),
+            hintText: '',
+            focusedBorder: InputBorder.none,
+            enabledBorder: InputBorder.none,
+          ),
         ),
       ),
-    ));
+    );
   }
 
   Widget searchResultsList() {
     return MediaQuery.removePadding(
-        removeTop: true,
-        context: context,
-        child: ListView(
-          shrinkWrap: true,
-          physics: const BouncingScrollPhysics(),
-          children: [
-            Visibility(
-                visible: _searchSites.isEmpty && _searchSuggestions.isEmpty,
-                child: Center(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
+      removeTop: true,
+      context: context,
+      child: ListView(
+        shrinkWrap: true,
+        physics: const BouncingScrollPhysics(),
+        children: [
+          Visibility(
+            visible: _searchSites.isEmpty && _searchSuggestions.isEmpty,
+            child: Center(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Stack(
                     children: [
-                      const SizedBox(
-                        height: 10,
+                      Image.asset(
+                        'assets/images/world-map.png',
+                        height: 130,
+                        width: 130,
                       ),
-                      Stack(
-                        children: [
-                          Image.asset(
-                            'assets/images/world-map.png',
-                            height: 130,
-                            width: 130,
+                      Container(
+                        decoration: BoxDecoration(
+                          color: CustomColors.appColorBlue,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.all(12.0),
+                          child: Icon(
+                            Icons.map_outlined,
+                            size: 30,
+                            color: Colors.white,
                           ),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: CustomColors.appColorBlue,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Padding(
-                              padding: EdgeInsets.all(12.0),
-                              child: Icon(
-                                Icons.map_outlined,
-                                size: 30,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(
-                        height: 52,
-                      ),
-                      const Text(
-                        'Not found',
-                        textAlign: TextAlign.start,
-                        style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(
-                        height: 52,
+                        ),
                       ),
                     ],
                   ),
-                )),
-            Visibility(
-                visible: _searchSites.isNotEmpty && _searchSuggestions.isEmpty,
-                child: Center(
-                  child: MediaQuery.removePadding(
-                      context: context,
-                      removeTop: true,
-                      child: ListView.builder(
-                        physics: const BouncingScrollPhysics(),
-                        shrinkWrap: true,
-                        itemBuilder: (context, index) => SiteTile(
-                            measurement: _searchSites[index],
-                            onSiteTileTap: _onSiteTileTap),
-                        itemCount: _searchSites.length,
-                      )),
-                )),
-            Visibility(
-                visible: _searchSuggestions.isNotEmpty,
-                child: Center(
-                  child: MediaQuery.removePadding(
-                      context: context,
-                      removeTop: true,
-                      removeLeft: true,
-                      child: ListView.builder(
-                        physics: const BouncingScrollPhysics(),
-                        shrinkWrap: true,
-                        itemBuilder: (context, index) => SearchTile(
-                            suggestion: _searchSuggestions[index],
-                            onSearchTileTap: _onSearchTileTap),
-                        itemCount: _searchSuggestions.length,
-                      )),
-                )),
-            const SizedBox(
-              height: 8,
+                  const SizedBox(
+                    height: 52,
+                  ),
+                  const Text(
+                    'Not found',
+                    textAlign: TextAlign.start,
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(
+                    height: 52,
+                  ),
+                ],
+              ),
             ),
-          ],
-        ));
+          ),
+          Visibility(
+            visible: _searchSites.isNotEmpty && _searchSuggestions.isEmpty,
+            child: Center(
+              child: MediaQuery.removePadding(
+                context: context,
+                removeTop: true,
+                child: ListView.builder(
+                  physics: const BouncingScrollPhysics(),
+                  shrinkWrap: true,
+                  itemBuilder: (context, index) => SiteTile(
+                    measurement: _searchSites[index],
+                    onSiteTileTap: _onSiteTileTap,
+                  ),
+                  itemCount: _searchSites.length,
+                ),
+              ),
+            ),
+          ),
+          Visibility(
+            visible: _searchSuggestions.isNotEmpty,
+            child: Center(
+              child: MediaQuery.removePadding(
+                context: context,
+                removeTop: true,
+                removeLeft: true,
+                child: ListView.builder(
+                  physics: const BouncingScrollPhysics(),
+                  shrinkWrap: true,
+                  itemBuilder: (context, index) => SearchTile(
+                    suggestion: _searchSuggestions[index],
+                    onSearchTileTap: _onSearchTileTap,
+                  ),
+                  itemCount: _searchSuggestions.length,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(
+            height: 8,
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _setMarkers(
-      List<Measurement> measurements, bool useSingleZoom, double zoom) async {
+    List<Measurement> measurements,
+    bool useSingleZoom,
+    double zoom,
+  ) async {
     if (!mounted) {
       return;
     }
@@ -450,31 +495,36 @@ class _MapViewState extends State<MapView> {
       final controller = _mapController;
 
       await controller.animateCamera(
-          CameraUpdate.newCameraPosition(_defaultCameraPosition));
+        CameraUpdate.newCameraPosition(_defaultCameraPosition),
+      );
 
-      setState(() {
-        _markers.clear();
-        _markers = {};
-      });
+      setState(
+        () {
+          _markers.clear();
+          _markers = {};
+        },
+      );
 
       return;
     }
     final markers = <String, Marker>{};
 
     for (final measurement in measurements) {
-      BitmapDescriptor bitmapDescriptor;
-
-      if (useSingleZoom) {
-        bitmapDescriptor = await pmToMarker(measurement.getPm2_5Value());
-      } else {
-        bitmapDescriptor = await pmToSmallMarker(measurement.getPm2_5Value());
-      }
+      final bitmapDescriptor = useSingleZoom
+          ? await pmToMarker(
+              measurement.getPm2_5Value(),
+            )
+          : await pmToSmallMarker(
+              measurement.getPm2_5Value(),
+            );
 
       final marker = Marker(
         markerId: MarkerId(measurement.site.id),
         icon: bitmapDescriptor,
-        position:
-            LatLng((measurement.site.latitude), measurement.site.longitude),
+        position: LatLng(
+          (measurement.site.latitude),
+          measurement.site.longitude,
+        ),
         // infoWindow: InfoWindow(
         //   title: measurement.getPm2_5Value().toStringAsFixed(2),
         //   snippet: node.location,
@@ -484,7 +534,10 @@ class _MapViewState extends State<MapView> {
             return;
           }
           setState(() => _searchController.text = measurement.site.name);
-          _showLocationContent(measurement, null);
+          _showLocationContent(
+            measurement,
+            null,
+          );
         },
       );
       markers[measurement.site.id] = marker;
@@ -494,22 +547,33 @@ class _MapViewState extends State<MapView> {
       final controller = _mapController;
 
       if (useSingleZoom) {
-        if (markers.length == 1) {}
+        final latLng = LatLng(
+          measurements.first.site.latitude,
+          measurements.first.site.longitude,
+        );
 
-        final latLng = LatLng(measurements.first.site.latitude,
-            measurements.first.site.longitude);
+        final _cameraPosition = CameraPosition(
+          target: latLng,
+          zoom: zoom,
+        );
 
-        final _cameraPosition = CameraPosition(target: latLng, zoom: zoom);
-
-        await controller
-            .animateCamera(CameraUpdate.newCameraPosition(_cameraPosition));
+        await controller.animateCamera(
+          CameraUpdate.newCameraPosition(_cameraPosition),
+        );
       } else {
         if (_displayRegions) {
           await controller.animateCamera(
-              CameraUpdate.newCameraPosition(_defaultCameraPosition));
+            CameraUpdate.newCameraPosition(_defaultCameraPosition),
+          );
         } else {
-          await controller.animateCamera(CameraUpdate.newLatLngBounds(
-              _getBounds(markers.values.toList()), 40.0));
+          await controller.animateCamera(
+            CameraUpdate.newLatLngBounds(
+              _getBounds(
+                markers.values.toList(),
+              ),
+              40.0,
+            ),
+          );
         }
       }
 
@@ -533,7 +597,9 @@ class _MapViewState extends State<MapView> {
   }
 
   void _showLocationContent(
-      Measurement? measurement, PlaceDetails? placeDetails) {
+    Measurement? measurement,
+    PlaceDetails? placeDetails,
+  ) {
     if (!mounted) {
       return;
     }
@@ -549,25 +615,31 @@ class _MapViewState extends State<MapView> {
       final place = places.first;
 
       _setMarkers([place], true, 14);
-      setState(() {
-        _locationPlaceMeasurement = placeDetails;
-        _locationMeasurement = place;
-        _showLocationDetails = true;
-      });
+      setState(
+        () {
+          _locationPlaceMeasurement = placeDetails;
+          _locationMeasurement = place;
+          _showLocationDetails = true;
+        },
+      );
     } else if (measurement != null) {
       _setMarkers([measurement], true, 14);
-      setState(() {
-        _locationPlaceMeasurement =
-            PlaceDetails.measurementToPLace(measurement);
-        _locationMeasurement = measurement;
-        _showLocationDetails = true;
-      });
+      setState(
+        () {
+          _locationPlaceMeasurement =
+              PlaceDetails.measurementToPlace(measurement);
+          _locationMeasurement = measurement;
+          _showLocationDetails = true;
+        },
+      );
     } else {
-      setState(() {
-        _locationMeasurement = null;
-        _locationPlaceMeasurement = null;
-        _showLocationDetails = true;
-      });
+      setState(
+        () {
+          _locationMeasurement = null;
+          _locationPlaceMeasurement = null;
+          _showLocationDetails = true;
+        },
+      );
     }
   }
 
@@ -576,17 +648,22 @@ class _MapViewState extends State<MapView> {
       return;
     }
 
-    setState(() {
-      _searchController.text = '';
-      _isSearching = false;
-      _searchSites = [];
-      _regionSites = [];
-      _showLocationDetails = false;
-      _displayRegions = true;
-    });
+    setState(
+      () {
+        _searchController.text = '';
+        _isSearching = false;
+        _searchSites = [];
+        _regionSites = [];
+        _showLocationDetails = false;
+        _displayRegions = true;
+      },
+    );
     if (_latestMeasurements.isEmpty) {
-      _getLatestMeasurements()
-          .then((value) => {_setMarkers(_latestMeasurements, false, 6.6)});
+      _getLatestMeasurements().then(
+        (value) => {
+          _setMarkers(_latestMeasurements, false, 6.6),
+        },
+      );
     } else {
       _setMarkers(_latestMeasurements, false, 6.6);
     }
@@ -599,12 +676,18 @@ class _MapViewState extends State<MapView> {
 
     setState(() => _selectedRegion = region);
     final sites = await DBHelper().getRegionSites(region);
-    setState(() {
-      _showLocationDetails = false;
-      _displayRegions = false;
-      _regionSites = sites;
-    });
-    await _setMarkers(sites, false, 10);
+    setState(
+      () {
+        _showLocationDetails = false;
+        _displayRegions = false;
+        _regionSites = sites;
+      },
+    );
+    await _setMarkers(
+      sites,
+      false,
+      10,
+    );
   }
 
   Future<void> _onSearchTileTap(Suggestion suggestion) async {
@@ -613,72 +696,90 @@ class _MapViewState extends State<MapView> {
     }
 
     setState(
-        () => _searchController.text = suggestion.suggestionDetails.mainText);
+      () => _searchController.text = suggestion.suggestionDetails.mainText,
+    );
     final place = await SearchApi().getPlaceDetails(suggestion.placeId);
     if (place != null) {
       final nearestSite = await LocationService.getNearestSite(
-          place.geometry.location.lat, place.geometry.location.lng);
+        place.geometry.location.lat,
+        place.geometry.location.lng,
+      );
 
       if (nearestSite == null) {
-        _showLocationContent(null, null);
+        _showLocationContent(
+          null,
+          null,
+        );
+
         return;
       }
 
       final placeDetails = PlaceDetails(
-          name: suggestion.suggestionDetails.getMainText(),
-          location: suggestion.suggestionDetails.getSecondaryText(),
-          siteId: nearestSite.id,
-          placeId: suggestion.placeId,
-          latitude: place.geometry.location.lat,
-          longitude: place.geometry.location.lng);
+        name: suggestion.suggestionDetails.getMainText(),
+        location: suggestion.suggestionDetails.getSecondaryText(),
+        siteId: nearestSite.id,
+        placeId: suggestion.placeId,
+        latitude: place.geometry.location.lat,
+        longitude: place.geometry.location.lng,
+      );
 
       _showLocationContent(null, placeDetails);
     } else {
-      await showSnackBar(context, 'Try again later');
+      await showSnackBar(
+        context,
+        'Try again later',
+      );
     }
   }
 
   Widget sitesList() {
     return MediaQuery.removePadding(
-        removeTop: true,
-        context: context,
-        child: ListView(
-          shrinkWrap: true,
-          physics: const BouncingScrollPhysics(),
-          children: [
-            const SizedBox(
-              height: 10,
-            ),
-            Visibility(
-              visible: _regionSites.isNotEmpty,
-              child: Text(
-                _selectedRegion.getName(),
-                style: CustomTextStyle.overline1(context)?.copyWith(
-                    color: CustomColors.appColorBlack.withOpacity(0.32)),
+      removeTop: true,
+      context: context,
+      child: ListView(
+        shrinkWrap: true,
+        physics: const BouncingScrollPhysics(),
+        children: [
+          const SizedBox(
+            height: 10,
+          ),
+          Visibility(
+            visible: _regionSites.isNotEmpty,
+            child: Text(
+              _selectedRegion.getName(),
+              style: CustomTextStyle.overline1(context)?.copyWith(
+                color: CustomColors.appColorBlack.withOpacity(0.32),
               ),
             ),
-            Visibility(
-                visible: _regionSites.isNotEmpty,
-                child: MediaQuery.removePadding(
-                    context: context,
-                    removeTop: true,
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      controller: ScrollController(),
-                      itemBuilder: (context, index) => SiteTile(
-                          measurement: _regionSites[index],
-                          onSiteTileTap: _onSiteTileTap),
-                      itemCount: _regionSites.length,
-                    ))),
-            Visibility(
-                visible: _regionSites.isEmpty,
-                child: EmptyView(
-                    title: _selectedRegion.getName(),
-                    topBars: false,
-                    bodyInnerText: 'region',
-                    showRegions: _showRegions))
-          ],
-        ));
+          ),
+          Visibility(
+            visible: _regionSites.isNotEmpty,
+            child: MediaQuery.removePadding(
+              context: context,
+              removeTop: true,
+              child: ListView.builder(
+                shrinkWrap: true,
+                controller: ScrollController(),
+                itemBuilder: (context, index) => SiteTile(
+                  measurement: _regionSites[index],
+                  onSiteTileTap: _onSiteTileTap,
+                ),
+                itemCount: _regionSites.length,
+              ),
+            ),
+          ),
+          Visibility(
+            visible: _regionSites.isEmpty,
+            child: EmptyView(
+              title: _selectedRegion.getName(),
+              topBars: false,
+              bodyInnerText: 'region',
+              showRegions: _showRegions,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _onSiteTileTap(Measurement measurement) {
@@ -707,7 +808,9 @@ class _MapViewState extends State<MapView> {
   }
 
   Future<void> _loadTheme() async {
-    await _mapController.setMapStyle(jsonEncode(googleMapsTheme));
+    await _mapController.setMapStyle(
+      jsonEncode(googleMapsTheme),
+    );
   }
 
   Future<void> _onMapCreated(GoogleMapController controller) async {
@@ -715,9 +818,11 @@ class _MapViewState extends State<MapView> {
       return;
     }
 
-    setState(() {
-      _mapController = controller;
-    });
+    setState(
+      () {
+        _mapController = controller;
+      },
+    );
 
     await _loadTheme();
     await _getLatestMeasurements();

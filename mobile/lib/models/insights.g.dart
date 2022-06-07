@@ -10,8 +10,12 @@ Insights _$InsightsFromJson(Map<String, dynamic> json) => Insights(
       DateTime.parse(json['time'] as String),
       (json['pm2_5'] as num).toDouble(),
       (json['pm10'] as num).toDouble(),
-      boolFromJson(json['empty']),
-      boolFromJson(json['forecast']),
+      boolFromJson(
+        json['empty'],
+      ),
+      boolFromJson(
+        json['forecast'],
+      ),
       json['siteId'] as String,
       frequencyFromJson(json['frequency'] as String),
     );

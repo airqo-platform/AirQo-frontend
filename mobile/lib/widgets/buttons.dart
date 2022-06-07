@@ -5,8 +5,11 @@ import 'package:flutter_svg/svg.dart';
 import '../themes/app_theme.dart';
 
 class NextButton extends StatelessWidget {
-  const NextButton({Key? key, required this.buttonColor, this.text})
-      : super(key: key);
+  const NextButton({
+    Key? key,
+    required this.buttonColor,
+    this.text,
+  }) : super(key: key);
   final String? text;
   final Color buttonColor;
 
@@ -14,10 +17,15 @@ class NextButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 48,
-      constraints: const BoxConstraints(minWidth: double.infinity),
+      constraints: const BoxConstraints(
+        minWidth: double.infinity,
+      ),
       decoration: BoxDecoration(
-          color: buttonColor,
-          borderRadius: const BorderRadius.all(Radius.circular(8.0))),
+        color: buttonColor,
+        borderRadius: const BorderRadius.all(
+          Radius.circular(8.0),
+        ),
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,
@@ -25,7 +33,10 @@ class NextButton extends StatelessWidget {
           Text(
             text ?? 'Next',
             style: const TextStyle(
-                color: Colors.white, fontSize: 14, letterSpacing: 16 * -0.022),
+              color: Colors.white,
+              fontSize: 14,
+              letterSpacing: 16 * -0.022,
+            ),
           ),
           const SizedBox(
             width: 11,
@@ -43,7 +54,9 @@ class NextButton extends StatelessWidget {
 }
 
 class AppBackButton extends StatelessWidget {
-  const AppBackButton({Key? key}) : super(key: key);
+  const AppBackButton({
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -62,8 +75,11 @@ class AppBackButton extends StatelessWidget {
 }
 
 class IconTextButton extends StatelessWidget {
-  const IconTextButton({Key? key, required this.iconWidget, required this.text})
-      : super(key: key);
+  const IconTextButton({
+    Key? key,
+    required this.iconWidget,
+    required this.text,
+  }) : super(key: key);
   final Widget iconWidget;
   final String text;
 
@@ -78,8 +94,11 @@ class IconTextButton extends StatelessWidget {
         Text(
           text,
           style: TextStyle(
-              fontSize: 14, color: CustomColors.appColorBlack, height: 18 / 14),
-        )
+            fontSize: 14,
+            color: CustomColors.appColorBlack,
+            height: 18 / 14,
+          ),
+        ),
       ],
     );
   }
@@ -99,20 +118,28 @@ class TabButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints:
-          const BoxConstraints(minWidth: double.infinity, maxHeight: 32),
+      constraints: const BoxConstraints(
+        minWidth: double.infinity,
+        maxHeight: 32,
+      ),
       decoration: BoxDecoration(
-          color: tabController?.index == index
-              ? CustomColors.appColorBlue
-              : Colors.white,
-          borderRadius: const BorderRadius.all(Radius.circular(4.0))),
+        color: tabController?.index == index
+            ? CustomColors.appColorBlue
+            : Colors.white,
+        borderRadius: const BorderRadius.all(
+          Radius.circular(4.0),
+        ),
+      ),
       child: Tab(
-          child: Text(text,
-              style: CustomTextStyle.button1(context)?.copyWith(
-                color: tabController?.index == index
-                    ? Colors.white
-                    : CustomColors.appColorBlue,
-              ))),
+        child: Text(
+          text,
+          style: CustomTextStyle.button1(context)?.copyWith(
+            color: tabController?.index == index
+                ? Colors.white
+                : CustomColors.appColorBlue,
+          ),
+        ),
+      ),
     );
   }
 }

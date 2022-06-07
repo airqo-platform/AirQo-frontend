@@ -7,7 +7,10 @@ import 'analytics/analytics_view.dart';
 import 'kya/know_your_air_view.dart';
 
 class ForYouPage extends StatefulWidget {
-  const ForYouPage({Key? key, this.analytics}) : super(key: key);
+  const ForYouPage({
+    Key? key,
+    this.analytics,
+  }) : super(key: key);
   final bool? analytics;
 
   @override
@@ -32,44 +35,48 @@ class _ForYouPageState extends State<ForYouPage>
               padding: const EdgeInsets.only(top: 10, bottom: 10),
               child: Material(
                 color: Colors.white,
-                borderRadius: const BorderRadius.all(Radius.circular(7.0)),
+                borderRadius: const BorderRadius.all(
+                  Radius.circular(7.0),
+                ),
                 child: TabBar(
-                    controller: _tabController,
-                    indicatorColor: Colors.transparent,
-                    labelColor: Colors.transparent,
-                    unselectedLabelColor: Colors.transparent,
-                    labelPadding: const EdgeInsets.all(3.0),
-                    physics: const NeverScrollableScrollPhysics(),
-                    onTap: (value) {
-                      if (value == 0) {
-                        setState(() => _analytics = true);
-                      } else {
-                        setState(() => _analytics = false);
-                      }
-                    },
-                    tabs: <Widget>[
-                      TabButton(
-                        text: 'Analytics',
-                        index: 0,
-                        tabController: _tabController,
-                      ),
-                      TabButton(
-                        text: 'Know your Air',
-                        index: 1,
-                        tabController: _tabController,
-                      )
-                    ]),
+                  controller: _tabController,
+                  indicatorColor: Colors.transparent,
+                  labelColor: Colors.transparent,
+                  unselectedLabelColor: Colors.transparent,
+                  labelPadding: const EdgeInsets.all(3.0),
+                  physics: const NeverScrollableScrollPhysics(),
+                  onTap: (value) {
+                    if (value == 0) {
+                      setState(() => _analytics = true);
+                    } else {
+                      setState(() => _analytics = false);
+                    }
+                  },
+                  tabs: <Widget>[
+                    TabButton(
+                      text: 'Analytics',
+                      index: 0,
+                      tabController: _tabController,
+                    ),
+                    TabButton(
+                      text: 'Know your Air',
+                      index: 1,
+                      tabController: _tabController,
+                    ),
+                  ],
+                ),
               ),
             ),
             Expanded(
-                child: TabBarView(
-              controller: _tabController,
-              physics: const NeverScrollableScrollPhysics(),
-              children: const <Widget>[
-                AnalyticsView(),
-                KnowYourAirView(),
-              ],
-            )),
+              child: TabBarView(
+                controller: _tabController,
+                physics: const NeverScrollableScrollPhysics(),
+                children: const <Widget>[
+                  AnalyticsView(),
+                  KnowYourAirView(),
+                ],
+              ),
+            ),
           ],
         ),
       ),

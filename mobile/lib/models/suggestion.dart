@@ -9,7 +9,10 @@ class Suggestion {
   factory Suggestion.fromJson(Map<String, dynamic> json) =>
       _$SuggestionFromJson(json);
 
-  Suggestion(this.placeId, this.suggestionDetails);
+  Suggestion(
+    this.placeId,
+    this.suggestionDetails,
+  );
   @JsonKey(name: 'place_id', required: true)
   final String placeId;
 
@@ -42,13 +45,17 @@ class Suggestion {
         debugPrint('$exception\n$stackTrace');
       }
     }
+
     return suggestions;
   }
 }
 
 @JsonSerializable()
 class SuggestionDetails {
-  SuggestionDetails(this.mainText, this.secondaryText);
+  SuggestionDetails(
+    this.mainText,
+    this.secondaryText,
+  );
 
   factory SuggestionDetails.fromJson(Map<String, dynamic> json) =>
       _$SuggestionDetailsFromJson(json);

@@ -8,7 +8,9 @@ import '../../services/rest_api.dart';
 import '../../themes/colors.dart';
 
 class SetUpCompleteScreen extends StatefulWidget {
-  const SetUpCompleteScreen({Key? key}) : super(key: key);
+  const SetUpCompleteScreen({
+    Key? key,
+  }) : super(key: key);
 
   @override
   SetUpCompleteScreenState createState() => SetUpCompleteScreenState();
@@ -18,28 +20,31 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: CustomColors.appBodyColor,
-        body: WillPopScope(
-          onWillPop: onWillPop,
-          child: Center(
-            child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    'All Set!',
-                    textAlign: TextAlign.center,
-                    style: _setUpCompleteTextStyle(),
-                  ),
-                  Text(
-                    'Breathe',
-                    textAlign: TextAlign.center,
-                    style: _setUpCompleteTextStyle()
-                        ?.copyWith(color: CustomColors.appColorBlue),
-                  ),
-                ]),
+      backgroundColor: CustomColors.appBodyColor,
+      body: WillPopScope(
+        onWillPop: onWillPop,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                'All Set!',
+                textAlign: TextAlign.center,
+                style: _setUpCompleteTextStyle(),
+              ),
+              Text(
+                'Breathe',
+                textAlign: TextAlign.center,
+                style: _setUpCompleteTextStyle()?.copyWith(
+                  color: CustomColors.appColorBlue,
+                ),
+              ),
+            ],
           ),
-        ));
+        ),
+      ),
+    );
   }
 
   Future<void> initialize() async {
@@ -55,15 +60,21 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
 
   Future<bool> onWillPop() {
     _goToHome();
+
     return Future.value(false);
   }
 
   void _goToHome() {
     if (mounted) {
-      Navigator.pushAndRemoveUntil(context,
-          MaterialPageRoute(builder: (context) {
-        return const HomePage();
-      }), (r) => false);
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) {
+            return const HomePage();
+          },
+        ),
+        (r) => false,
+      );
     }
   }
 
@@ -79,10 +90,11 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
 
   TextStyle? _setUpCompleteTextStyle() {
     return Theme.of(context).textTheme.bodyText1?.copyWith(
-        fontWeight: FontWeight.bold,
-        fontStyle: FontStyle.normal,
-        fontSize: 48,
-        height: 56 / 48,
-        letterSpacing: 16 * -0.022);
+          fontWeight: FontWeight.bold,
+          fontStyle: FontStyle.normal,
+          fontSize: 48,
+          height: 56 / 48,
+          letterSpacing: 16 * -0.022,
+        );
   }
 }

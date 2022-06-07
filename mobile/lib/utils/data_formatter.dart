@@ -9,17 +9,23 @@ import '../themes/colors.dart';
 
 charts.Color insightsChartBarColor(Insights series, Pollutant pollutant) {
   if (series.empty) {
-    return charts.ColorUtil.fromDartColor(CustomColors.greyColor);
+    return charts.ColorUtil.fromDartColor(
+      CustomColors.greyColor,
+    );
   } else if (series.forecast) {
     return charts.ColorUtil.fromDartColor(
-        CustomColors.appColorBlue.withOpacity(0.5));
+      CustomColors.appColorBlue.withOpacity(0.5),
+    );
   } else {
     return pollutant.chartColor(series.chartValue(pollutant));
   }
 }
 
 List<List<charts.Series<Insights, String>>> insightsChartData(
-    List<Insights> insights, Pollutant pollutant, Frequency frequency) {
+  List<Insights> insights,
+  Pollutant pollutant,
+  Frequency frequency,
+) {
   final data = <Insights>[...insights];
 
   final insightsGraphs = <List<charts.Series<Insights, String>>>[];
@@ -30,6 +36,7 @@ List<List<charts.Series<Insights, String>>> insightsChartData(
         if (value.time.isBefore(element.time)) {
           return value;
         }
+
         return element;
       }).time;
 
@@ -48,13 +55,19 @@ List<List<charts.Series<Insights, String>>> insightsChartData(
               insightsChartBarColor(series, pollutant),
           domainFn: (Insights data, _) {
             final hour = data.time.hour;
+
             return hour.toString().length == 1 ? '0$hour' : '$hour';
           },
           measureFn: (Insights data, _) => data.chartValue(pollutant),
-          data: Insights.formatData(filteredDates, frequency),
-        )
+          data: Insights.formatData(
+            filteredDates,
+            frequency,
+          ),
+        ),
       ]);
-      data.removeWhere((element) => element.time.day == earliestDate.day);
+      data.removeWhere(
+        (element) => element.time.day == earliestDate.day,
+      );
     }
   } else {
     while (data.isNotEmpty) {
@@ -62,6 +75,7 @@ List<List<charts.Series<Insights, String>>> insightsChartData(
         if (value.time.isBefore(element.time)) {
           return value;
         }
+
         return element;
       }).time;
 
@@ -74,7 +88,8 @@ List<List<charts.Series<Insights, String>>> insightsChartData(
       }
 
       filteredDates.addAll(
-          data.where((element) => dateRanges.contains(element.time)).toList());
+        data.where((element) => dateRanges.contains(element.time)).toList(),
+      );
 
       if (filteredDates.length != 7) {
         filteredDates = fillMissingData(filteredDates, frequency);
@@ -90,7 +105,7 @@ List<List<charts.Series<Insights, String>>> insightsChartData(
           domainFn: (Insights data, _) => DateFormat('EEE').format(data.time),
           measureFn: (Insights data, _) => data.chartValue(pollutant),
           data: Insights.formatData(filteredDates, frequency),
-        )
+        ),
       ]);
     }
   }
@@ -110,23 +125,30 @@ List<Insights> fillMissingData(List<Insights> data, Frequency frequency) {
 
       while (startDate.isBefore(lastDayOfCalendar)) {
         final checkDate = insights
-            .where((element) =>
-                (element.time.day == startDate.day) &&
-                (element.time.month == startDate.month))
+            .where(
+              (element) =>
+                  (element.time.day == startDate.day) &&
+                  (element.time.month == startDate.month),
+            )
             .toList();
 
         if (checkDate.isEmpty) {
-          insights.add(Insights(
+          insights.add(
+            Insights(
               startDate,
               referenceInsight.pm2_5,
               referenceInsight.pm10,
               true,
               false,
               referenceInsight.siteId,
-              referenceInsight.frequency));
+              referenceInsight.frequency,
+            ),
+          );
         }
 
-        startDate = startDate.add(const Duration(days: 1));
+        startDate = startDate.add(
+          const Duration(days: 1),
+        );
       }
       break;
     case Frequency.hourly:
@@ -147,19 +169,25 @@ List<Insights> fillMissingData(List<Insights> data, Frequency frequency) {
             .toList();
 
         if (checkDate.isEmpty) {
-          insights.add(Insights(
+          insights.add(
+            Insights(
               startDate,
               referenceInsight.pm2_5,
               referenceInsight.pm10,
               true,
               false,
               referenceInsight.siteId,
-              referenceInsight.frequency));
+              referenceInsight.frequency,
+            ),
+          );
         }
 
-        startDate = startDate.add(const Duration(hours: 1));
+        startDate = startDate.add(
+          const Duration(hours: 1),
+        );
       }
       break;
   }
+
   return Insights.formatData(insights, frequency);
 }

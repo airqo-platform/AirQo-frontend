@@ -13,14 +13,15 @@ part 'kya.g.dart';
 class Kya extends HiveObject {
   factory Kya.fromJson(Map<String, dynamic> json) => _$KyaFromJson(json);
 
-  Kya(
-      {required this.title,
-      required this.imageUrl,
-      required this.id,
-      required this.lessons,
-      required this.progress,
-      required this.completionMessage,
-      required this.secondaryImageUrl});
+  Kya({
+    required this.title,
+    required this.imageUrl,
+    required this.id,
+    required this.lessons,
+    required this.progress,
+    required this.completionMessage,
+    required this.secondaryImageUrl,
+  });
 
   @HiveField(1, defaultValue: 0)
   @JsonKey(defaultValue: 0)
@@ -29,8 +30,10 @@ class Kya extends HiveObject {
   @HiveField(2)
   String title;
 
-  @HiveField(3,
-      defaultValue: 'You just finished your first Know You Air Lesson')
+  @HiveField(
+    3,
+    defaultValue: 'You just finished your first Know You Air Lesson',
+  )
   @JsonKey(defaultValue: 'You just finished your first Know You Air Lesson')
   String completionMessage;
 
@@ -52,10 +55,12 @@ class Kya extends HiveObject {
   Future<void> saveKya() async {
     if (progress == lessons.length) {
       await Future.wait([
-        Hive.box<Kya>(HiveBox.kya)
-            .put(id, this)
-            .then((_) => CloudStore.updateKyaProgress(this)),
-        CloudAnalytics.logEvent(AnalyticsEvent.completeOneKYA)
+        Hive.box<Kya>(HiveBox.kya).put(id, this).then(
+              (_) => CloudStore.updateKyaProgress(this),
+            ),
+        CloudAnalytics.logEvent(
+          AnalyticsEvent.completeOneKYA,
+        ),
       ]);
     } else {
       await Hive.box<Kya>(HiveBox.kya)
@@ -83,7 +88,11 @@ class Kya extends HiveObject {
 @JsonSerializable(explicitToJson: true)
 @HiveType(typeId: 130, adapterName: 'KyaLessonAdapter')
 class KyaLesson {
-  KyaLesson(this.title, this.imageUrl, this.body);
+  KyaLesson(
+    this.title,
+    this.imageUrl,
+    this.body,
+  );
 
   factory KyaLesson.fromJson(Map<String, dynamic> json) =>
       _$KyaLessonFromJson(json);
@@ -105,7 +114,10 @@ class UserKya {
   factory UserKya.fromJson(Map<String, dynamic> json) =>
       _$UserKyaFromJson(json);
 
-  UserKya(this.id, this.progress);
+  UserKya(
+    this.id,
+    this.progress,
+  );
   @JsonKey(defaultValue: 0)
   int progress;
   String id;

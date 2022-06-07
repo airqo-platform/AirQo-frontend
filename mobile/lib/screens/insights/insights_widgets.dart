@@ -9,14 +9,14 @@ import '../../models/insights.dart';
 import '../../themes/colors.dart';
 
 class InsightsGraph extends StatelessWidget {
-  const InsightsGraph(
-      {Key? key,
-      required this.pm2_5ChartData,
-      required this.pm10ChartData,
-      required this.pollutant,
-      required this.frequency,
-      required this.onBarSelection})
-      : super(key: key);
+  const InsightsGraph({
+    Key? key,
+    required this.pm2_5ChartData,
+    required this.pm10ChartData,
+    required this.pollutant,
+    required this.frequency,
+    required this.onBarSelection,
+  }) : super(key: key);
   final List<charts.Series<Insights, String>> pm2_5ChartData;
   final List<charts.Series<Insights, String>> pm10ChartData;
   final Pollutant pollutant;
@@ -26,53 +26,61 @@ class InsightsGraph extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
-        builder: (BuildContext buildContext, BoxConstraints constraints) {
-      return SizedBox(
-        width: MediaQuery.of(buildContext).size.width - 50,
-        height: 150,
-        child: charts.BarChart(
-          pollutant == Pollutant.pm2_5 ? pm2_5ChartData : pm10ChartData,
-          animate: true,
-          defaultRenderer: charts.BarRendererConfig<String>(
-            strokeWidthPx: 20,
-            stackedBarPaddingPx: 0,
-            cornerStrategy: charts.ConstCornerStrategy(
-                frequency == Frequency.daily ? 5 : 3),
-          ),
-          defaultInteractions: true,
-          behaviors: [
-            charts.LinePointHighlighter(
+      builder: (BuildContext buildContext, BoxConstraints constraints) {
+        return SizedBox(
+          width: MediaQuery.of(buildContext).size.width - 50,
+          height: 150,
+          child: charts.BarChart(
+            pollutant == Pollutant.pm2_5 ? pm2_5ChartData : pm10ChartData,
+            animate: true,
+            defaultRenderer: charts.BarRendererConfig<String>(
+              strokeWidthPx: 20,
+              stackedBarPaddingPx: 0,
+              cornerStrategy: charts.ConstCornerStrategy(
+                frequency == Frequency.daily ? 5 : 3,
+              ),
+            ),
+            defaultInteractions: true,
+            behaviors: [
+              charts.LinePointHighlighter(
                 showHorizontalFollowLine:
                     charts.LinePointHighlighterFollowLineType.none,
                 showVerticalFollowLine:
-                    charts.LinePointHighlighterFollowLineType.nearest),
-            charts.DomainHighlighter(),
-            charts.SelectNearest(
-                eventTrigger: charts.SelectionTrigger.tapAndDrag),
-          ],
-          selectionModels: [
-            charts.SelectionModelConfig(
+                    charts.LinePointHighlighterFollowLineType.nearest,
+              ),
+              charts.DomainHighlighter(),
+              charts.SelectNearest(
+                eventTrigger: charts.SelectionTrigger.tapAndDrag,
+              ),
+            ],
+            selectionModels: [
+              charts.SelectionModelConfig(
                 changedListener: (charts.SelectionModel model) {
-              if (model.hasDatumSelection) {
-                try {
-                  final value = model.selectedDatum[0].index;
-                  if (value != null) {
-                    onBarSelection(model.selectedSeries[0].data[value]);
+                  if (model.hasDatumSelection) {
+                    try {
+                      final value = model.selectedDatum[0].index;
+                      if (value != null) {
+                        onBarSelection(model.selectedSeries[0].data[value]);
+                      }
+                    } catch (exception, stackTrace) {
+                      debugPrint(
+                        '${exception.toString()}\n${stackTrace.toString()}',
+                      );
+                    }
                   }
-                } catch (exception, stackTrace) {
-                  debugPrint(
-                      '${exception.toString()}\n${stackTrace.toString()}');
-                }
-              }
-            })
-          ],
-          domainAxis: _yAxisScale(frequency == Frequency.daily
-              ? _dailyStaticTicks()
-              : _hourlyStaticTicks()),
-          primaryMeasureAxis: _xAxisScale(),
-        ),
-      );
-    });
+                },
+              ),
+            ],
+            domainAxis: _yAxisScale(
+              frequency == Frequency.daily
+                  ? _dailyStaticTicks()
+                  : _hourlyStaticTicks(),
+            ),
+            primaryMeasureAxis: _xAxisScale(),
+          ),
+        );
+      },
+    );
   }
 
   List<charts.TickSpec<String>> _dailyStaticTicks() {
@@ -80,10 +88,17 @@ class InsightsGraph extends StatelessWidget {
     final daysList = <String>['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
     for (final day in daysList) {
-      dailyTicks.add(charts.TickSpec(day,
+      dailyTicks.add(
+        charts.TickSpec(
+          day,
           label: day,
           style: charts.TextStyleSpec(
-              color: charts.ColorUtil.fromDartColor(CustomColors.greyColor))));
+            color: charts.ColorUtil.fromDartColor(
+              CustomColors.greyColor,
+            ),
+          ),
+        ),
+      );
     }
 
     return dailyTicks;
@@ -95,18 +110,32 @@ class InsightsGraph extends StatelessWidget {
 
     for (var i = 0; i <= 24; i++) {
       if (labels.contains(i)) {
-        hourlyTicks.add(charts.TickSpec(i.toString().length == 1 ? '0$i' : '$i',
+        hourlyTicks.add(
+          charts.TickSpec(
+            i.toString().length == 1 ? '0$i' : '$i',
             label: i.toString().length == 1 ? '0$i' : '$i',
             style: charts.TextStyleSpec(
-                color:
-                    charts.ColorUtil.fromDartColor(CustomColors.greyColor))));
+              color: charts.ColorUtil.fromDartColor(
+                CustomColors.greyColor,
+              ),
+            ),
+          ),
+        );
       } else {
-        hourlyTicks.add(charts.TickSpec(i.toString().length == 1 ? '0$i' : '$i',
+        hourlyTicks.add(
+          charts.TickSpec(
+            i.toString().length == 1 ? '0$i' : '$i',
             label: i.toString().length == 1 ? '0$i' : '$i',
             style: charts.TextStyleSpec(
-                color: charts.ColorUtil.fromDartColor(Colors.transparent))));
+              color: charts.ColorUtil.fromDartColor(
+                Colors.transparent,
+              ),
+            ),
+          ),
+        );
       }
     }
+
     return hourlyTicks;
   }
 
@@ -114,26 +143,44 @@ class InsightsGraph extends StatelessWidget {
     return charts.NumericAxisSpec(
       tickProviderSpec: charts.StaticNumericTickProviderSpec(
         <charts.TickSpec<double>>[
-          charts.TickSpec<double>(0,
-              style: charts.TextStyleSpec(
-                  color:
-                      charts.ColorUtil.fromDartColor(CustomColors.greyColor))),
-          charts.TickSpec<double>(125,
-              style: charts.TextStyleSpec(
-                  color:
-                      charts.ColorUtil.fromDartColor(CustomColors.greyColor))),
-          charts.TickSpec<double>(250,
-              style: charts.TextStyleSpec(
-                  color:
-                      charts.ColorUtil.fromDartColor(CustomColors.greyColor))),
-          charts.TickSpec<double>(375,
-              style: charts.TextStyleSpec(
-                  color:
-                      charts.ColorUtil.fromDartColor(CustomColors.greyColor))),
-          charts.TickSpec<double>(500,
-              style: charts.TextStyleSpec(
-                  color:
-                      charts.ColorUtil.fromDartColor(CustomColors.greyColor))),
+          charts.TickSpec<double>(
+            0,
+            style: charts.TextStyleSpec(
+              color: charts.ColorUtil.fromDartColor(
+                CustomColors.greyColor,
+              ),
+            ),
+          ),
+          charts.TickSpec<double>(
+            125,
+            style: charts.TextStyleSpec(
+              color: charts.ColorUtil.fromDartColor(
+                CustomColors.greyColor,
+              ),
+            ),
+          ),
+          charts.TickSpec<double>(
+            250,
+            style: charts.TextStyleSpec(
+              color: charts.ColorUtil.fromDartColor(CustomColors.greyColor),
+            ),
+          ),
+          charts.TickSpec<double>(
+            375,
+            style: charts.TextStyleSpec(
+              color: charts.ColorUtil.fromDartColor(
+                CustomColors.greyColor,
+              ),
+            ),
+          ),
+          charts.TickSpec<double>(
+            500,
+            style: charts.TextStyleSpec(
+              color: charts.ColorUtil.fromDartColor(
+                CustomColors.greyColor,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -141,17 +188,18 @@ class InsightsGraph extends StatelessWidget {
 
   charts.OrdinalAxisSpec _yAxisScale(List<charts.TickSpec<String>> ticks) {
     return charts.OrdinalAxisSpec(
-        tickProviderSpec: charts.StaticOrdinalTickProviderSpec(ticks));
+      tickProviderSpec: charts.StaticOrdinalTickProviderSpec(ticks),
+    );
   }
 }
 
 class InsightsAvatar extends StatelessWidget {
-  const InsightsAvatar(
-      {Key? key,
-      required this.measurement,
-      required this.size,
-      required this.pollutant})
-      : super(key: key);
+  const InsightsAvatar({
+    Key? key,
+    required this.measurement,
+    required this.size,
+    required this.pollutant,
+  }) : super(key: key);
   final Insights measurement;
   final double size;
   final Pollutant pollutant;
@@ -163,9 +211,10 @@ class InsightsAvatar extends StatelessWidget {
         height: size,
         width: size,
         decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: CustomColors.greyColor,
-            border: Border.all(color: Colors.transparent)),
+          shape: BoxShape.circle,
+          color: CustomColors.greyColor,
+          border: Border.all(color: Colors.transparent),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -201,17 +250,21 @@ class InsightsAvatar extends StatelessWidget {
         ),
       );
     }
+
     return Container(
       height: size,
       width: size,
       decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: measurement.forecast
-              ? CustomColors.appColorBlue.withOpacity(0.24)
-              : pollutant == Pollutant.pm2_5
-                  ? Pollutant.pm2_5.color(measurement.chartValue(pollutant))
-                  : Pollutant.pm10.color(measurement.chartValue(pollutant)),
-          border: Border.all(color: Colors.transparent)),
+        shape: BoxShape.circle,
+        color: measurement.forecast
+            ? CustomColors.appColorBlue.withOpacity(0.24)
+            : pollutant == Pollutant.pm2_5
+                ? Pollutant.pm2_5.color(measurement.chartValue(pollutant))
+                : Pollutant.pm10.color(
+                    measurement.chartValue(pollutant),
+                  ),
+        border: Border.all(color: Colors.transparent),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,
@@ -228,8 +281,9 @@ class InsightsAvatar extends StatelessWidget {
                 : pollutant == Pollutant.pm2_5
                     ? Pollutant.pm2_5
                         .textColor(value: measurement.chartValue(pollutant))
-                    : Pollutant.pm10
-                        .textColor(value: measurement.chartValue(pollutant)),
+                    : Pollutant.pm10.textColor(
+                        value: measurement.chartValue(pollutant),
+                      ),
           ),
           Text(
             measurement.chartValue(pollutant).toStringAsFixed(0),
@@ -245,8 +299,9 @@ class InsightsAvatar extends StatelessWidget {
                   : pollutant == Pollutant.pm2_5
                       ? Pollutant.pm2_5
                           .textColor(value: measurement.chartValue(pollutant))
-                      : Pollutant.pm10
-                          .textColor(value: measurement.chartValue(pollutant)),
+                      : Pollutant.pm10.textColor(
+                          value: measurement.chartValue(pollutant),
+                        ),
             ),
           ),
           SvgPicture.asset(
@@ -259,8 +314,9 @@ class InsightsAvatar extends StatelessWidget {
                 : pollutant == Pollutant.pm2_5
                     ? Pollutant.pm2_5
                         .textColor(value: measurement.chartValue(pollutant))
-                    : Pollutant.pm10
-                        .textColor(value: measurement.chartValue(pollutant)),
+                    : Pollutant.pm10.textColor(
+                        value: measurement.chartValue(pollutant),
+                      ),
           ),
         ],
       ),

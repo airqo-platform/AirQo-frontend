@@ -35,7 +35,10 @@ class Location {
 class Place {
   factory Place.fromJson(Map<String, dynamic> json) => _$PlaceFromJson(json);
 
-  Place(this.geometry, this.name);
+  Place(
+    this.geometry,
+    this.name,
+  );
   String name;
   Geometry geometry;
 

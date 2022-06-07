@@ -26,39 +26,58 @@ class _AnalyticsViewState extends State<AnalyticsView> {
   @override
   Widget build(BuildContext context) {
     return Container(
-        color: CustomColors.appBodyColor,
-        child: ValueListenableBuilder<Box>(
-          valueListenable: Hive.box<Analytics>(HiveBox.analytics).listenable(),
-          builder: (context, box, widget) {
-            if (box.isNotEmpty) {
-              final analytics = box.values.toList().cast<Analytics>();
-              return AppRefreshIndicator(
-                  sliverChildDelegate:
-                      SliverChildBuilderDelegate((context, index) {
-                    return Padding(
-                        padding: EdgeInsets.only(
-                            top: Config.refreshIndicatorPadding(index)),
-                        child: MiniAnalyticsCard(
-                            analytics[index].toPlaceDetails()));
-                  }, childCount: analytics.length),
-                  onRefresh: _refresh);
-            }
+      color: CustomColors.appBodyColor,
+      child: ValueListenableBuilder<Box>(
+        valueListenable: Hive.box<Analytics>(HiveBox.analytics).listenable(),
+        builder: (context, box, widget) {
+          if (box.isNotEmpty) {
+            final analytics = box.values.toList().cast<Analytics>();
 
-            if (_places.isNotEmpty) {
-              return AppRefreshIndicator(
-                  sliverChildDelegate:
-                      SliverChildBuilderDelegate((context, index) {
-                    return Padding(
-                        padding: EdgeInsets.only(
-                            top: Config.refreshIndicatorPadding(index)),
-                        child: MiniAnalyticsCard(
-                            PlaceDetails.measurementToPLace(_places[index])));
-                  }, childCount: _places.length),
-                  onRefresh: _refresh);
-            }
-            return const EmptyAnalytics();
-          },
-        ));
+            return AppRefreshIndicator(
+              sliverChildDelegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      top: Config.refreshIndicatorPadding(
+                        index,
+                      ),
+                    ),
+                    child: MiniAnalyticsCard(
+                      analytics[index].toPlaceDetails(),
+                    ),
+                  );
+                },
+                childCount: analytics.length,
+              ),
+              onRefresh: _refresh,
+            );
+          }
+
+          if (_places.isNotEmpty) {
+            return AppRefreshIndicator(
+              sliverChildDelegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      top: Config.refreshIndicatorPadding(index),
+                    ),
+                    child: MiniAnalyticsCard(
+                      PlaceDetails.measurementToPlace(
+                        _places[index],
+                      ),
+                    ),
+                  );
+                },
+                childCount: _places.length,
+              ),
+              onRefresh: _refresh,
+            );
+          }
+
+          return const EmptyAnalytics();
+        },
+      ),
+    );
   }
 
   @override
@@ -68,7 +87,9 @@ class _AnalyticsViewState extends State<AnalyticsView> {
   }
 
   Future<void> _refresh() async {
-    await _appService.refreshAnalytics(context).then((value) => _initialize());
+    await _appService.refreshAnalytics(context).then(
+          (value) => _initialize(),
+        );
   }
 
   Future<void> _initialize() async {

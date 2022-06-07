@@ -22,10 +22,13 @@ enum AnalyticsEvent {
   otherNetwork,
   deletedAccount,
   notificationOpen,
-  notificationReceive
+  notificationReceive,
 }
 
-enum AppPermission { notification, location }
+enum AppPermission {
+  notification,
+  location,
+}
 
 @HiveType(typeId: 110, adapterName: 'AppNotificationTypeAdapter')
 enum AppNotificationType {
@@ -37,12 +40,7 @@ enum AppNotificationType {
   welcomeMessage,
 }
 
-enum Region {
-  central,
-  eastern,
-  northern,
-  western,
-}
+enum Region { central, eastern, northern, western, none }
 
 enum AirQuality {
   good,
@@ -53,19 +51,45 @@ enum AirQuality {
   hazardous,
 }
 
-enum FeedbackType { inquiry, suggestion, appBugs, reportAirPollution, none }
+enum FeedbackType {
+  inquiry,
+  suggestion,
+  appBugs,
+  reportAirPollution,
+  none,
+}
 
-enum FeedbackChannel { whatsApp, email, none }
+enum FeedbackChannel {
+  whatsApp,
+  email,
+  none,
+}
 
-enum AuthMethod { phone, email }
+enum AuthMethod {
+  phone,
+  email,
+}
 
-enum AuthProcedure { login, signup }
+enum AuthProcedure {
+  login,
+  signup,
+}
 
-enum Frequency { daily, hourly }
+enum Frequency {
+  daily,
+  hourly,
+}
 
-enum Gender { male, female, undefined }
+enum Gender {
+  male,
+  female,
+  undefined,
+}
 
-enum ConfirmationAction { cancel, ok }
+enum ConfirmationAction {
+  cancel,
+  ok,
+}
 
 enum OnBoardingPage {
   signup,
@@ -74,11 +98,23 @@ enum OnBoardingPage {
   location,
   complete,
   home,
-  welcome
+  welcome,
 }
 
-enum Pollutant { pm2_5, pm10 }
+enum Pollutant {
+  pm2_5,
+  pm10,
+}
 
-enum TitleOptions { ms, mr, undefined }
+enum TitleOptions {
+  ms,
+  mr,
+  undefined,
+}
 
-enum ToolTipType { favouritePlaces, info, forYou, forecast }
+enum ToolTipType {
+  favouritePlaces,
+  info,
+  forYou,
+  forecast,
+}

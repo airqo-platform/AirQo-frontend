@@ -14,14 +14,16 @@ import 'location_setup_screen.dart';
 import 'notifications_setup_screen.dart';
 import 'on_boarding_widgets.dart';
 
-class SplashScreenV2 extends StatefulWidget {
-  const SplashScreenV2({Key? key}) : super(key: key);
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({
+    Key? key,
+  }) : super(key: key);
 
   @override
-  SplashScreenV2State createState() => SplashScreenV2State();
+  SplashScreenState createState() => SplashScreenState();
 }
 
-class SplashScreenV2State extends State<SplashScreenV2> {
+class SplashScreenState extends State<SplashScreen> {
   int _widgetId = 0;
   bool _visible = false;
   final AppService _appService = AppService();
@@ -52,36 +54,43 @@ class SplashScreenV2State extends State<SplashScreenV2> {
     final isLoggedIn = _appService.isLoggedIn();
 
     final nextPage = getOnBoardingPageConstant(
-        await SharedPreferencesHelper.getOnBoardingPage());
+      await SharedPreferencesHelper.getOnBoardingPage(),
+    );
 
     Future.delayed(const Duration(seconds: 1), _updateWidget);
 
     /// TODO add loading indicator to all onboarding pages
-    Future.delayed(const Duration(seconds: 5), () {
-      Navigator.pushAndRemoveUntil(context,
+    Future.delayed(
+      const Duration(seconds: 5),
+      () {
+        Navigator.pushAndRemoveUntil(
+          context,
           MaterialPageRoute(builder: (context) {
-        if (!isLoggedIn) {
-          return const WelcomeScreen();
-        } else {
-          switch (nextPage) {
-            case OnBoardingPage.signup:
-              return const PhoneSignUpWidget();
-            case OnBoardingPage.profile:
-              return const ProfileSetupScreen();
-            case OnBoardingPage.notification:
-              return const NotificationsSetupScreen();
-            case OnBoardingPage.location:
-              return const LocationSetupScreen();
-            case OnBoardingPage.complete:
-              return const SetUpCompleteScreen();
-            case OnBoardingPage.home:
-              return const HomePage(refresh: false);
-            default:
+            if (!isLoggedIn) {
               return const WelcomeScreen();
-          }
-        }
-      }), (r) => false);
-    });
+            } else {
+              switch (nextPage) {
+                case OnBoardingPage.signup:
+                  return const PhoneSignUpWidget();
+                case OnBoardingPage.profile:
+                  return const ProfileSetupScreen();
+                case OnBoardingPage.notification:
+                  return const NotificationsSetupScreen();
+                case OnBoardingPage.location:
+                  return const LocationSetupScreen();
+                case OnBoardingPage.complete:
+                  return const SetUpCompleteScreen();
+                case OnBoardingPage.home:
+                  return const HomePage(refresh: false);
+                default:
+                  return const WelcomeScreen();
+              }
+            }
+          }),
+          (r) => false,
+        );
+      },
+    );
 
     await _appService.fetchData(context);
   }
@@ -117,23 +126,26 @@ class SplashScreenV2State extends State<SplashScreenV2> {
       duration: const Duration(milliseconds: 500),
       // The green box must be a child of the AnimatedOpacity widget.
       child: Center(
-        child: Stack(alignment: AlignmentDirectional.center, children: [
-          Image.asset(
-            'assets/images/splash-image.png',
-            fit: BoxFit.cover,
-            height: double.infinity,
-            width: double.infinity,
-            alignment: Alignment.center,
-          ),
-          Text(
-            'Breathe\nClean.',
-            textAlign: TextAlign.center,
-            style: Theme.of(context)
-                .textTheme
-                .headline4
-                ?.copyWith(color: Colors.white),
-          ),
-        ]),
+        child: Stack(
+          alignment: AlignmentDirectional.center,
+          children: [
+            Image.asset(
+              'assets/images/splash-image.png',
+              fit: BoxFit.cover,
+              height: double.infinity,
+              width: double.infinity,
+              alignment: Alignment.center,
+            ),
+            Text(
+              'Breathe\nClean.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context)
+                  .textTheme
+                  .headline4
+                  ?.copyWith(color: Colors.white),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -143,9 +155,11 @@ class SplashScreenV2State extends State<SplashScreenV2> {
   }
 
   void _updateWidget() {
-    setState(() {
-      _visible = true;
-      _widgetId = _widgetId == 0 ? 1 : 0;
-    });
+    setState(
+      () {
+        _visible = true;
+        _widgetId = _widgetId == 0 ? 1 : 0;
+      },
+    );
   }
 }

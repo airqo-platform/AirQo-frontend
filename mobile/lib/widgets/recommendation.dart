@@ -13,38 +13,45 @@ class RecommendationContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        width: 304,
-        height: 128,
-        constraints: const BoxConstraints(
-            minWidth: 304, minHeight: 128, maxWidth: 304, maxHeight: 128),
-        padding: const EdgeInsets.all(8.0),
-        decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.all(Radius.circular(16.0))),
-        child: Row(
-          children: [
-            Container(
-              constraints: const BoxConstraints(
-                maxWidth: 83,
-                maxHeight: 112,
-                minWidth: 83,
-                minHeight: 112,
-              ),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8.0),
-                image: DecorationImage(
-                  fit: BoxFit.cover,
-                  image: AssetImage(
-                    recommendation.imageUrl,
-                  ),
+      width: 304,
+      height: 128,
+      constraints: const BoxConstraints(
+        minWidth: 304,
+        minHeight: 128,
+        maxWidth: 304,
+        maxHeight: 128,
+      ),
+      padding: const EdgeInsets.all(8.0),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.all(
+          Radius.circular(16.0),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            constraints: const BoxConstraints(
+              maxWidth: 83,
+              maxHeight: 112,
+              minWidth: 83,
+              minHeight: 112,
+            ),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8.0),
+              image: DecorationImage(
+                fit: BoxFit.cover,
+                image: AssetImage(
+                  recommendation.imageUrl,
                 ),
               ),
             ),
-            const SizedBox(
-              width: 12,
-            ),
-            Expanded(
-                child: Container(
+          ),
+          const SizedBox(
+            width: 12,
+          ),
+          Expanded(
+            child: Container(
               constraints: BoxConstraints(
                 maxWidth: MediaQuery.of(context).size.width,
               ),
@@ -66,15 +73,18 @@ class RecommendationContainer extends StatelessWidget {
                     maxLines: 4,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.subtitle2?.copyWith(
-                        color: CustomColors.appColorBlack.withOpacity(0.5)),
-                  )
+                          color: CustomColors.appColorBlack.withOpacity(0.5),
+                        ),
+                  ),
                 ],
               ),
-            )),
-            const SizedBox(
-              width: 12,
             ),
-          ],
-        ));
+          ),
+          const SizedBox(
+            width: 12,
+          ),
+        ],
+      ),
+    );
   }
 }

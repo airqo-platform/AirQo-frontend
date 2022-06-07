@@ -37,6 +37,7 @@ MeasurementValue measurementValueFromJson(dynamic json) {
   if (json == null) {
     return MeasurementValue(value: -0.1, calibratedValue: -0.1);
   }
+
   return MeasurementValue.fromJson(json);
 }
 
@@ -59,8 +60,11 @@ List<Measurement> parseMeasurements(dynamic jsonBody) {
       logException(exception, stackTrace, remoteLogging: false);
     }
   }
-  measurements.sort((siteA, siteB) =>
-      siteA.site.name.toLowerCase().compareTo(siteB.site.name.toLowerCase()));
+  measurements.sort(
+    (siteA, siteB) => siteA.site.name.toLowerCase().compareTo(
+          siteB.site.name.toLowerCase(),
+        ),
+  );
 
   return measurements;
 }

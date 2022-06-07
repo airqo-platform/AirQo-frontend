@@ -11,7 +11,9 @@ import '../../themes/colors.dart';
 import '../../widgets/custom_widgets.dart';
 
 class DraggingHandle extends StatelessWidget {
-  const DraggingHandle({Key? key}) : super(key: key);
+  const DraggingHandle({
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -19,32 +21,43 @@ class DraggingHandle extends StatelessWidget {
       height: 4,
       width: 32,
       decoration: BoxDecoration(
-          color: Colors.grey[200], borderRadius: BorderRadius.circular(16)),
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(16),
+      ),
     );
   }
 }
 
 class RegionAvatar extends StatelessWidget {
-  const RegionAvatar({Key? key}) : super(key: key);
+  const RegionAvatar({
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-        height: 40,
-        width: 40,
-        decoration: BoxDecoration(
-            color: CustomColors.appColorBlue.withOpacity(0.15),
-            shape: BoxShape.circle),
-        child: Center(
-          child: SvgPicture.asset('assets/icon/location.svg',
-              color: CustomColors.appColorBlue),
-        ));
+      height: 40,
+      width: 40,
+      decoration: BoxDecoration(
+        color: CustomColors.appColorBlue.withOpacity(0.15),
+        shape: BoxShape.circle,
+      ),
+      child: Center(
+        child: SvgPicture.asset(
+          'assets/icon/location.svg',
+          color: CustomColors.appColorBlue,
+        ),
+      ),
+    );
   }
 }
 
 class MapCardWidget extends StatelessWidget {
-  const MapCardWidget({Key? key, required this.widget, required this.padding})
-      : super(key: key);
+  const MapCardWidget({
+    Key? key,
+    required this.widget,
+    required this.padding,
+  }) : super(key: key);
   final Widget widget;
   final double padding;
 
@@ -54,8 +67,11 @@ class MapCardWidget extends StatelessWidget {
       margin: EdgeInsets.zero,
       elevation: 12.0,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(16), topRight: Radius.circular(16))),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(16),
+          topRight: Radius.circular(16),
+        ),
+      ),
       child: Container(
         padding: EdgeInsets.fromLTRB(padding, 0, padding, 16.0),
         child: widget,
@@ -65,9 +81,11 @@ class MapCardWidget extends StatelessWidget {
 }
 
 class SiteTile extends StatelessWidget {
-  const SiteTile(
-      {Key? key, required this.measurement, required this.onSiteTileTap})
-      : super(key: key);
+  const SiteTile({
+    Key? key,
+    required this.measurement,
+    required this.onSiteTileTap,
+  }) : super(key: key);
   final Measurement measurement;
   final Function(Measurement) onSiteTileTap;
 
@@ -83,11 +101,14 @@ class SiteTile extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
         style: CustomTextStyle.headline8(context),
       ),
-      subtitle: AutoSizeText(measurement.site.location.trimEllipsis(),
-          maxLines: 1,
-          minFontSize: 14.0,
-          style: CustomTextStyle.bodyText4(context)
-              ?.copyWith(color: CustomColors.appColorBlack.withOpacity(0.4))),
+      subtitle: AutoSizeText(
+        measurement.site.location.trimEllipsis(),
+        maxLines: 1,
+        minFontSize: 14.0,
+        style: CustomTextStyle.bodyText4(context)?.copyWith(
+          color: CustomColors.appColorBlack.withOpacity(0.4),
+        ),
+      ),
       trailing: SvgPicture.asset(
         'assets/icon/more_arrow.svg',
         semanticsLabel: 'more',
@@ -100,9 +121,11 @@ class SiteTile extends StatelessWidget {
 }
 
 class RegionTile extends StatelessWidget {
-  const RegionTile(
-      {Key? key, required this.showRegionSites, required this.region})
-      : super(key: key);
+  const RegionTile({
+    Key? key,
+    required this.showRegionSites,
+    required this.region,
+  }) : super(key: key);
   final Function(Region) showRegionSites;
   final Region region;
 
@@ -122,8 +145,9 @@ class RegionTile extends StatelessWidget {
       ),
       subtitle: AutoSizeText(
         'Uganda',
-        style: CustomTextStyle.bodyText4(context)
-            ?.copyWith(color: CustomColors.appColorBlack.withOpacity(0.3)),
+        style: CustomTextStyle.bodyText4(context)?.copyWith(
+          color: CustomColors.appColorBlack.withOpacity(0.3),
+        ),
       ),
       trailing: SvgPicture.asset(
         'assets/icon/more_arrow.svg',
@@ -136,9 +160,11 @@ class RegionTile extends StatelessWidget {
 }
 
 class SearchTile extends StatelessWidget {
-  const SearchTile(
-      {Key? key, required this.suggestion, required this.onSearchTileTap})
-      : super(key: key);
+  const SearchTile({
+    Key? key,
+    required this.suggestion,
+    required this.onSearchTileTap,
+  }) : super(key: key);
   final Suggestion suggestion;
   final Function(Suggestion) onSearchTileTap;
 
@@ -156,12 +182,14 @@ class SearchTile extends StatelessWidget {
         style: CustomTextStyle.headline8(context),
       ),
       subtitle: AutoSizeText(
-          suggestion.suggestionDetails.secondaryText.trimEllipsis(),
-          maxLines: 1,
-          minFontSize: 14.0,
-          overflow: TextOverflow.ellipsis,
-          style: CustomTextStyle.bodyText4(context)
-              ?.copyWith(color: CustomColors.appColorBlack.withOpacity(0.3))),
+        suggestion.suggestionDetails.secondaryText.trimEllipsis(),
+        maxLines: 1,
+        minFontSize: 14.0,
+        overflow: TextOverflow.ellipsis,
+        style: CustomTextStyle.bodyText4(context)?.copyWith(
+          color: CustomColors.appColorBlack.withOpacity(0.3),
+        ),
+      ),
       trailing: SvgPicture.asset(
         'assets/icon/more_arrow.svg',
         semanticsLabel: 'more',
@@ -173,13 +201,13 @@ class SearchTile extends StatelessWidget {
 }
 
 class EmptyView extends StatelessWidget {
-  const EmptyView(
-      {Key? key,
-      required this.title,
-      required this.bodyInnerText,
-      required this.topBars,
-      required this.showRegions})
-      : super(key: key);
+  const EmptyView({
+    Key? key,
+    required this.title,
+    required this.bodyInnerText,
+    required this.topBars,
+    required this.showRegions,
+  }) : super(key: key);
   final String title;
   final String bodyInnerText;
   final bool topBars;
@@ -190,29 +218,33 @@ class EmptyView extends StatelessWidget {
     return Column(
       children: [
         Visibility(
-            visible: topBars,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Container(
-                    height: 32,
-                    width: 32,
-                    decoration: BoxDecoration(
-                        color: CustomColors.appBodyColor,
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(8.0))),
-                    child: Center(
-                      child: IconButton(
-                        iconSize: 10,
-                        icon: Icon(
-                          Icons.clear,
-                          color: CustomColors.appColor,
-                        ),
-                        onPressed: showRegions,
-                      ),
-                    ))
-              ],
-            )),
+          visible: topBars,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Container(
+                height: 32,
+                width: 32,
+                decoration: BoxDecoration(
+                  color: CustomColors.appBodyColor,
+                  borderRadius: const BorderRadius.all(
+                    Radius.circular(8.0),
+                  ),
+                ),
+                child: Center(
+                  child: IconButton(
+                    iconSize: 10,
+                    icon: Icon(
+                      Icons.clear,
+                      color: CustomColors.appColor,
+                    ),
+                    onPressed: showRegions,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
         const SizedBox(
           height: 80,
         ),
@@ -225,25 +257,28 @@ class EmptyView extends StatelessWidget {
           height: 16,
         ),
         Padding(
-            padding: const EdgeInsets.only(left: 30, right: 30),
-            child: Text(
-              '$title\nComing soon on the network'.trim(),
-              textAlign: TextAlign.center,
-              style: CustomTextStyle.headline7(context)
-                  ?.copyWith(letterSpacing: 16 * -0.01),
-            )),
+          padding: const EdgeInsets.only(left: 30, right: 30),
+          child: Text(
+            '$title\nComing soon on the network'.trim(),
+            textAlign: TextAlign.center,
+            style: CustomTextStyle.headline7(context)
+                ?.copyWith(letterSpacing: 16 * -0.01),
+          ),
+        ),
         const SizedBox(
           height: 8,
         ),
         Padding(
-            padding: const EdgeInsets.only(left: 20, right: 20),
-            child: Text(
-              'We currently do not support air quality '
-              'monitoring in this $bodyInnerText, but we’re working on it.',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyText2?.copyWith(
-                  color: CustomColors.appColorBlack.withOpacity(0.4)),
-            )),
+          padding: const EdgeInsets.only(left: 20, right: 20),
+          child: Text(
+            'We currently do not support air quality '
+            'monitoring in this $bodyInnerText, but we’re working on it.',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyText2?.copyWith(
+                  color: CustomColors.appColorBlack.withOpacity(0.4),
+                ),
+          ),
+        ),
         const SizedBox(
           height: 158,
         ),

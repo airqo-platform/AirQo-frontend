@@ -50,23 +50,25 @@ class Analytics extends HiveObject {
 
   static Analytics init() {
     return Analytics(
-        id: const Uuid().v4(),
-        site: '',
-        name: '',
-        location: '',
-        latitude: 0.0,
-        longitude: 0.0,
-        createdAt: DateTime.now().toUtc());
+      id: const Uuid().v4(),
+      site: '',
+      name: '',
+      location: '',
+      latitude: 0.0,
+      longitude: 0.0,
+      createdAt: DateTime.now().toUtc(),
+    );
   }
 
   PlaceDetails toPlaceDetails() {
     return PlaceDetails(
-        name: name,
-        location: location,
-        siteId: site,
-        placeId: id,
-        latitude: latitude,
-        longitude: longitude);
+      name: name,
+      location: location,
+      siteId: site,
+      placeId: id,
+      latitude: latitude,
+      longitude: longitude,
+    );
   }
 
   Future<void> add() async {
@@ -85,14 +87,18 @@ class Analytics extends HiveObject {
       return Analytics.fromJson(jsonBody);
     } catch (exception, stackTrace) {
       logException(exception, stackTrace);
+
       return null;
     }
   }
 
   static List<Analytics> sort(List<Analytics> analytics) {
-    analytics.sort((x, y) {
-      return -(x.createdAt.compareTo(y.createdAt));
-    });
+    analytics.sort(
+      (x, y) {
+        return -(x.createdAt.compareTo(y.createdAt));
+      },
+    );
+
     return analytics;
   }
 

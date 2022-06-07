@@ -13,8 +13,10 @@ import '../../widgets/custom_widgets.dart';
 import '../insights/insights_page.dart';
 
 class SearchPlaceTile extends StatelessWidget {
-  const SearchPlaceTile({Key? key, required this.searchSuggestion})
-      : super(key: key);
+  const SearchPlaceTile({
+    Key? key,
+    required this.searchSuggestion,
+  }) : super(key: key);
   final Suggestion searchSuggestion;
 
   @override
@@ -22,50 +24,59 @@ class SearchPlaceTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.only(left: 16.0, right: 30.0),
       decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: const BorderRadius.all(Radius.circular(8.0)),
-          border: Border.all(color: Colors.transparent)),
+        color: Colors.white,
+        borderRadius: const BorderRadius.all(
+          Radius.circular(8.0),
+        ),
+        border: Border.all(color: Colors.transparent),
+      ),
       child: ListTile(
-          contentPadding: const EdgeInsets.only(left: 0.0),
-          title: Text(
-            searchSuggestion.suggestionDetails.getMainText(),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: CustomTextStyle.headline8(context),
+        contentPadding: const EdgeInsets.only(left: 0.0),
+        title: Text(
+          searchSuggestion.suggestionDetails.getMainText(),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: CustomTextStyle.headline8(context),
+        ),
+        subtitle: Text(
+          searchSuggestion.suggestionDetails.getSecondaryText(),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: CustomTextStyle.bodyText4(context)?.copyWith(
+            color: CustomColors.appColorBlack.withOpacity(0.3),
           ),
-          subtitle: Text(
-            searchSuggestion.suggestionDetails.getSecondaryText(),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: CustomTextStyle.bodyText4(context)
-                ?.copyWith(color: CustomColors.appColorBlack.withOpacity(0.3)),
+        ),
+        trailing: SvgPicture.asset(
+          'assets/icon/more_arrow.svg',
+          semanticsLabel: 'more',
+          height: 6.99,
+          width: 4,
+        ),
+        leading: Container(
+          height: 40,
+          width: 40,
+          decoration: BoxDecoration(
+            color: CustomColors.appColorBlue.withOpacity(0.15),
+            shape: BoxShape.circle,
           ),
-          trailing: SvgPicture.asset(
-            'assets/icon/more_arrow.svg',
-            semanticsLabel: 'more',
-            height: 6.99,
-            width: 4,
+          child: Center(
+            child: SvgPicture.asset(
+              'assets/icon/location.svg',
+              color: CustomColors.appColorBlue,
+            ),
           ),
-          leading: Container(
-              height: 40,
-              width: 40,
-              decoration: BoxDecoration(
-                  color: CustomColors.appColorBlue.withOpacity(0.15),
-                  shape: BoxShape.circle),
-              child: Center(
-                child: SvgPicture.asset('assets/icon/location.svg',
-                    color: CustomColors.appColorBlue),
-              ))),
+        ),
+      ),
     );
   }
 }
 
 class SearchInputField extends StatelessWidget {
-  const SearchInputField(
-      {Key? key,
-      required this.textEditingController,
-      required this.searchChanged})
-      : super(key: key);
+  const SearchInputField({
+    Key? key,
+    required this.textEditingController,
+    required this.searchChanged,
+  }) : super(key: key);
   final TextEditingController textEditingController;
   final Function(String) searchChanged;
 
@@ -75,9 +86,12 @@ class SearchInputField extends StatelessWidget {
       height: 40,
       constraints: const BoxConstraints(minWidth: double.maxFinite),
       decoration: const BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.rectangle,
-          borderRadius: BorderRadius.all(Radius.circular(10.0))),
+        color: Colors.white,
+        shape: BoxShape.rectangle,
+        borderRadius: BorderRadius.all(
+          Radius.circular(10.0),
+        ),
+      ),
       child: TextFormField(
         controller: textEditingController,
         onChanged: searchChanged,
@@ -102,17 +116,26 @@ class SearchInputField extends StatelessWidget {
           ),
           contentPadding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
           focusedBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Colors.transparent, width: 1.0),
+            borderSide: const BorderSide(
+              color: Colors.transparent,
+              width: 1.0,
+            ),
             borderRadius: BorderRadius.circular(8.0),
           ),
           enabledBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Colors.transparent, width: 1.0),
+            borderSide: const BorderSide(
+              color: Colors.transparent,
+              width: 1.0,
+            ),
             borderRadius: BorderRadius.circular(8.0),
           ),
           border: OutlineInputBorder(
-              borderSide:
-                  const BorderSide(color: Colors.transparent, width: 1.0),
-              borderRadius: BorderRadius.circular(8.0)),
+            borderSide: const BorderSide(
+              color: Colors.transparent,
+              width: 1.0,
+            ),
+            borderRadius: BorderRadius.circular(8.0),
+          ),
           hintText: 'Search locations',
           hintStyle: Theme.of(context).textTheme.caption?.copyWith(
                 color: CustomColors.appColorBlack.withOpacity(0.32),
@@ -126,7 +149,9 @@ class SearchInputField extends StatelessWidget {
 }
 
 class NoNearbyLocations extends StatelessWidget {
-  const NoNearbyLocations({Key? key}) : super(key: key);
+  const NoNearbyLocations({
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -136,9 +161,12 @@ class NoNearbyLocations extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(40.0),
           decoration: const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.rectangle,
-              borderRadius: BorderRadius.all(Radius.circular(10.0))),
+            color: Colors.white,
+            shape: BoxShape.rectangle,
+            borderRadius: BorderRadius.all(
+              Radius.circular(10.0),
+            ),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -181,15 +209,17 @@ class NoNearbyLocations extends StatelessWidget {
               ),
             ],
           ),
-        )
+        ),
       ],
     );
   }
 }
 
 class SearchLocationTile extends StatelessWidget {
-  const SearchLocationTile({Key? key, required this.measurement})
-      : super(key: key);
+  const SearchLocationTile({
+    Key? key,
+    required this.measurement,
+  }) : super(key: key);
   final Measurement measurement;
 
   @override
@@ -197,9 +227,12 @@ class SearchLocationTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.only(left: 16.0, right: 30.0),
       decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: const BorderRadius.all(Radius.circular(8.0)),
-          border: Border.all(color: Colors.transparent)),
+        color: Colors.white,
+        borderRadius: const BorderRadius.all(
+          Radius.circular(8.0),
+        ),
+        border: Border.all(color: Colors.transparent),
+      ),
       child: ListTile(
         contentPadding: const EdgeInsets.only(left: 0.0),
         title: AutoSizeText(
@@ -212,8 +245,9 @@ class SearchLocationTile extends StatelessWidget {
           measurement.site.location,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: CustomTextStyle.bodyText4(context)
-              ?.copyWith(color: CustomColors.appColorBlack.withOpacity(0.3)),
+          style: CustomTextStyle.bodyText4(context)?.copyWith(
+            color: CustomColors.appColorBlack.withOpacity(0.3),
+          ),
         ),
         trailing: SvgPicture.asset(
           'assets/icon/more_arrow.svg',
@@ -221,15 +255,19 @@ class SearchLocationTile extends StatelessWidget {
           height: 6.99,
           width: 4,
         ),
-        leading: MiniAnalyticsAvatar(measurement: measurement),
+        leading: MiniAnalyticsAvatar(
+          measurement: measurement,
+        ),
       ),
     );
   }
 }
 
 class RequestLocationAccess extends StatelessWidget {
-  const RequestLocationAccess({Key? key, required this.getUserLocation})
-      : super(key: key);
+  const RequestLocationAccess({
+    Key? key,
+    required this.getUserLocation,
+  }) : super(key: key);
 
   final VoidCallback getUserLocation;
 
@@ -238,9 +276,12 @@ class RequestLocationAccess extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(40.0),
       decoration: const BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.rectangle,
-          borderRadius: BorderRadius.all(Radius.circular(16.0))),
+        color: Colors.white,
+        shape: BoxShape.rectangle,
+        borderRadius: BorderRadius.all(
+          Radius.circular(16.0),
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -258,26 +299,27 @@ class RequestLocationAccess extends StatelessWidget {
                 ),
               ),
               Positioned(
-                  left: 0,
-                  top: 22,
-                  child: Container(
-                    height: 56,
-                    width: 56,
-                    decoration: BoxDecoration(
-                      color: CustomColors.appColorBlue,
-                      shape: BoxShape.circle,
+                left: 0,
+                top: 22,
+                child: Container(
+                  height: 56,
+                  width: 56,
+                  decoration: BoxDecoration(
+                    color: CustomColors.appColorBlue,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: SvgPicture.asset(
+                      'assets/icon/location.svg',
+                      color: Colors.white,
+                      semanticsLabel: 'AirQo Map',
+                      height: 29,
+                      width: 25,
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: SvgPicture.asset(
-                        'assets/icon/location.svg',
-                        color: Colors.white,
-                        semanticsLabel: 'AirQo Map',
-                        height: 29,
-                        width: 25,
-                      ),
-                    ),
-                  )),
+                  ),
+                ),
+              ),
             ],
           ),
           const SizedBox(
@@ -295,39 +337,48 @@ class RequestLocationAccess extends StatelessWidget {
             'Allow AirQo to show you location air '
             'quality update near you.',
             textAlign: TextAlign.center,
-            style: Theme.of(context)
-                .textTheme
-                .subtitle2
-                ?.copyWith(color: CustomColors.appColorBlack.withOpacity(0.4)),
+            style: Theme.of(context).textTheme.subtitle2?.copyWith(
+                  color: CustomColors.appColorBlack.withOpacity(0.4),
+                ),
           ),
           const SizedBox(
             height: 24,
           ),
           GestureDetector(
             onTap: () {
-              PermissionService.checkPermission(AppPermission.location,
-                      request: true)
-                  .then((value) => {getUserLocation()});
+              PermissionService.checkPermission(
+                AppPermission.location,
+                request: true,
+              ).then(
+                (value) => {
+                  getUserLocation(),
+                },
+              );
             },
             child: Container(
-                decoration: BoxDecoration(
-                    color: CustomColors.appColorBlue,
-                    borderRadius: const BorderRadius.all(Radius.circular(8.0))),
-                child: const Padding(
-                  padding: EdgeInsets.only(top: 12, bottom: 14),
-                  child: Center(
-                    child: Text(
-                      'Allow location',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.normal,
-                          fontSize: 14,
-                          height: 22 / 14,
-                          letterSpacing: 16 * -0.022),
+              decoration: BoxDecoration(
+                color: CustomColors.appColorBlue,
+                borderRadius: const BorderRadius.all(
+                  Radius.circular(8.0),
+                ),
+              ),
+              child: const Padding(
+                padding: EdgeInsets.only(top: 12, bottom: 14),
+                child: Center(
+                  child: Text(
+                    'Allow location',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.normal,
+                      fontSize: 14,
+                      height: 22 / 14,
+                      letterSpacing: 16 * -0.022,
                     ),
                   ),
-                )),
+                ),
+              ),
+            ),
           ),
           const SizedBox(
             height: 40,
@@ -339,8 +390,10 @@ class RequestLocationAccess extends StatelessWidget {
 }
 
 class NearbyLocations extends StatelessWidget {
-  const NearbyLocations({Key? key, required this.nearbyLocations})
-      : super(key: key);
+  const NearbyLocations({
+    Key? key,
+    required this.nearbyLocations,
+  }) : super(key: key);
 
   final List<Measurement> nearbyLocations;
 
@@ -353,32 +406,44 @@ class NearbyLocations extends StatelessWidget {
           height: 8.0,
         ),
         Container(
-            padding: const EdgeInsets.only(bottom: 8),
-            decoration: BoxDecoration(
-                color: CustomColors.appBodyColor,
-                shape: BoxShape.rectangle,
-                borderRadius: const BorderRadius.all(Radius.circular(10.0))),
-            child: MediaQuery.removePadding(
-                context: context,
-                removeTop: true,
-                child: ListView.builder(
-                  controller: ScrollController(),
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) => GestureDetector(
-                      onTap: () {
-                        Navigator.push(context,
-                            MaterialPageRoute(builder: (context) {
-                          return InsightsPage(PlaceDetails.siteToPLace(
-                              nearbyLocations[index].site));
-                        }));
+          padding: const EdgeInsets.only(bottom: 8),
+          decoration: BoxDecoration(
+            color: CustomColors.appBodyColor,
+            shape: BoxShape.rectangle,
+            borderRadius: const BorderRadius.all(
+              Radius.circular(10.0),
+            ),
+          ),
+          child: MediaQuery.removePadding(
+            context: context,
+            removeTop: true,
+            child: ListView.builder(
+              controller: ScrollController(),
+              shrinkWrap: true,
+              itemBuilder: (context, index) => GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return InsightsPage(
+                          PlaceDetails.siteToPLace(nearbyLocations[index].site),
+                        );
                       },
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: SearchLocationTile(
-                            measurement: nearbyLocations[index]),
-                      )),
-                  itemCount: nearbyLocations.length,
-                ))),
+                    ),
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: SearchLocationTile(
+                    measurement: nearbyLocations[index],
+                  ),
+                ),
+              ),
+              itemCount: nearbyLocations.length,
+            ),
+          ),
+        ),
       ],
     );
   }

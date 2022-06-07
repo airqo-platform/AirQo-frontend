@@ -29,7 +29,9 @@ import '../kya/kya_title_page.dart';
 import 'dashboard_widgets.dart';
 
 class DashboardView extends StatefulWidget {
-  const DashboardView({Key? key}) : super(key: key);
+  const DashboardView({
+    Key? key,
+  }) : super(key: key);
 
   @override
   _DashboardViewState createState() => _DashboardViewState();
@@ -54,7 +56,7 @@ class _DashboardViewState extends State<DashboardView> {
     const AnalyticsCardLoading(),
     const AnalyticsCardLoading(),
     const AnalyticsCardLoading(),
-    const AnalyticsCardLoading()
+    const AnalyticsCardLoading(),
   ];
 
   List<Widget> _dashBoardItems = [];
@@ -64,153 +66,176 @@ class _DashboardViewState extends State<DashboardView> {
     return Scaffold(
       appBar: const DashboardTopBar(),
       body: Container(
-          padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 24),
-          color: CustomColors.appBodyColor,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              AutoSizeText(
-                _greetings,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: CustomTextStyle.headline7(context),
-              ),
-              const SizedBox(
-                height: 16,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Expanded(
-                      key: _favToolTipKey,
-                      child: GestureDetector(
+        padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 24),
+        color: CustomColors.appBodyColor,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            AutoSizeText(
+              _greetings,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: CustomTextStyle.headline7(context),
+            ),
+            const SizedBox(
+              height: 16,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Expanded(
+                  key: _favToolTipKey,
+                  child: GestureDetector(
+                    onTap: () async {
+                      if (_favLocations.isEmpty) {
+                        ToolTip(context, ToolTipType.favouritePlaces).show(
+                          widgetKey: _favToolTipKey,
+                        );
+
+                        return;
+                      }
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) {
+                            return const FavouritePlaces();
+                          },
+                        ),
+                      );
+                    },
+                    child: Container(
+                      height: 56,
+                      padding: const EdgeInsets.all(12.0),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(8.0),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Consumer<PlaceDetailsModel>(
+                            builder: (context, placeDetailsModel, child) {
+                              if (placeDetailsModel.favouritePlaces.isEmpty) {
+                                return SvgPicture.asset(
+                                  'assets/icon/add_avator.svg',
+                                );
+                              }
+                              _loadFavourites(reload: false);
+
+                              return SizedBox(
+                                height: 32,
+                                width: 47,
+                                child: Stack(
+                                  children: _favLocations,
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(
+                            width: 8,
+                          ),
+                          Text(
+                            'Favorites',
+                            style: CustomTextStyle.bodyText4(context)?.copyWith(
+                              color: CustomColors.appColorBlue,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                  width: 16,
+                ),
+                Expanded(
+                  key: _kyaToolTipKey,
+                  child: ValueListenableBuilder<Box>(
+                    valueListenable: Hive.box<Kya>(HiveBox.kya).listenable(),
+                    builder: (context, box, widget) {
+                      final completeKya = box.values
+                          .toList()
+                          .cast<Kya>()
+                          .where((element) => element.progress == -1)
+                          .toList();
+
+                      final kyaWidgets = completeKyaWidgets(completeKya);
+
+                      return GestureDetector(
                         onTap: () async {
-                          if (_favLocations.isEmpty) {
-                            ToolTip(context, ToolTipType.favouritePlaces).show(
-                              widgetKey: _favToolTipKey,
+                          if (completeKya.isEmpty) {
+                            ToolTip(context, ToolTipType.forYou).show(
+                              widgetKey: _kyaToolTipKey,
                             );
+
                             return;
                           }
-                          await Navigator.push(context,
-                              MaterialPageRoute(builder: (context) {
-                            return const FavouritePlaces();
-                          }));
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) {
+                                return const ForYouPage(analytics: false);
+                              },
+                            ),
+                          );
                         },
                         child: Container(
                           height: 56,
                           padding: const EdgeInsets.all(12.0),
                           decoration: const BoxDecoration(
-                              color: Colors.white,
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(8.0))),
+                            color: Colors.white,
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(8.0),
+                            ),
+                          ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Consumer<PlaceDetailsModel>(
-                                builder: (context, placeDetailsModel, child) {
-                                  if (placeDetailsModel
-                                      .favouritePlaces.isEmpty) {
-                                    return SvgPicture.asset(
-                                      'assets/icon/add_avator.svg',
-                                    );
-                                  }
-                                  _loadFavourites(reload: false);
-                                  return SizedBox(
-                                    height: 32,
-                                    width: 47,
-                                    child: Stack(
-                                      children: _favLocations,
-                                    ),
-                                  );
-                                },
+                              SizedBox(
+                                height: 32,
+                                width: 47,
+                                child: Stack(
+                                  children: kyaWidgets,
+                                ),
                               ),
                               const SizedBox(
                                 width: 8,
                               ),
-                              Text('Favorites',
-                                  style: CustomTextStyle.bodyText4(context)
-                                      ?.copyWith(
-                                    color: CustomColors.appColorBlue,
-                                  ))
+                              Text(
+                                'For You',
+                                style: CustomTextStyle.bodyText4(context)
+                                    ?.copyWith(
+                                  color: CustomColors.appColorBlue,
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                      )),
-                  const SizedBox(
-                    width: 16,
+                      );
+                    },
                   ),
-                  Expanded(
-                      key: _kyaToolTipKey,
-                      child: ValueListenableBuilder<Box>(
-                        valueListenable:
-                            Hive.box<Kya>(HiveBox.kya).listenable(),
-                        builder: (context, box, widget) {
-                          final completeKya = box.values
-                              .toList()
-                              .cast<Kya>()
-                              .where((element) => element.progress == -1)
-                              .toList();
-
-                          final kyaWidgets = completeKyaWidgets(completeKya);
-
-                          return GestureDetector(
-                            onTap: () async {
-                              if (completeKya.isEmpty) {
-                                ToolTip(context, ToolTipType.forYou).show(
-                                  widgetKey: _kyaToolTipKey,
-                                );
-                                return;
-                              }
-                              await Navigator.push(context,
-                                  MaterialPageRoute(builder: (context) {
-                                return const ForYouPage(analytics: false);
-                              }));
-                            },
-                            child: Container(
-                              height: 56,
-                              padding: const EdgeInsets.all(12.0),
-                              decoration: const BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(8.0))),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  SizedBox(
-                                      height: 32,
-                                      width: 47,
-                                      child: Stack(
-                                        children: kyaWidgets,
-                                      )),
-                                  const SizedBox(
-                                    width: 8,
-                                  ),
-                                  Text('For You',
-                                      style: CustomTextStyle.bodyText4(context)
-                                          ?.copyWith(
-                                        color: CustomColors.appColorBlue,
-                                      ))
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      )),
-                ],
+                ),
+              ],
+            ),
+            const SizedBox(
+              height: 8,
+            ),
+            Expanded(
+              child: AppRefreshIndicator(
+                sliverChildDelegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    return _dashBoardItems[index];
+                  },
+                  childCount: _dashBoardItems.length,
+                ),
+                onRefresh: _refresh,
               ),
-              const SizedBox(
-                height: 8,
-              ),
-              Expanded(
-                child: AppRefreshIndicator(
-                    sliverChildDelegate:
-                        SliverChildBuilderDelegate((context, index) {
-                      return _dashBoardItems[index];
-                    }, childCount: _dashBoardItems.length),
-                    onRefresh: _refresh),
-              ),
-            ],
-          )),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -230,91 +255,102 @@ class _DashboardViewState extends State<DashboardView> {
   void _buildAnalyticsCards(List<Widget> cards) {
     cards.shuffle();
 
-    setState(() {
-      _analyticsCards = [
-        if (cards.isNotEmpty) cards[0],
-        if (cards.isNotEmpty)
-          const SizedBox(
-            height: 16,
-          ),
-        ValueListenableBuilder<Box>(
-          valueListenable: Hive.box<Kya>(HiveBox.kya).listenable(),
-          builder: (context, box, widget) {
-            final incompleteKya = box.values
-                .toList()
-                .cast<Kya>()
-                .where((element) => element.progress != -1)
-                .toList();
-            if (incompleteKya.isEmpty) {
-              return const SizedBox();
-            }
-            return DashboardKyaCard(
-              kyaClickCallBack: _handleKyaOnClick,
-              kya: incompleteKya[0],
-            );
-          },
-        ),
-        ValueListenableBuilder<Box>(
-          valueListenable: Hive.box<Kya>(HiveBox.kya).listenable(),
-          builder: (context, box, widget) {
-            final incompleteKya = box.values
-                .toList()
-                .cast<Kya>()
-                .where((element) => element.progress != -1)
-                .toList();
-            if (incompleteKya.isEmpty) {
-              return const SizedBox();
-            }
-            return const SizedBox(
+    setState(
+      () {
+        _analyticsCards = [
+          if (cards.isNotEmpty) cards[0],
+          if (cards.isNotEmpty)
+            const SizedBox(
               height: 16,
-            );
-          },
-        ),
-        if (cards.length >= 2) cards[1],
-        Visibility(
+            ),
+          ValueListenableBuilder<Box>(
+            valueListenable: Hive.box<Kya>(HiveBox.kya).listenable(),
+            builder: (context, box, widget) {
+              final incompleteKya = box.values
+                  .toList()
+                  .cast<Kya>()
+                  .where((element) => element.progress != -1)
+                  .toList();
+              if (incompleteKya.isEmpty) {
+                return const SizedBox();
+              }
+
+              return DashboardKyaCard(
+                kyaClickCallBack: _handleKyaOnClick,
+                kya: incompleteKya[0],
+              );
+            },
+          ),
+          ValueListenableBuilder<Box>(
+            valueListenable: Hive.box<Kya>(HiveBox.kya).listenable(),
+            builder: (context, box, widget) {
+              final incompleteKya = box.values
+                  .toList()
+                  .cast<Kya>()
+                  .where((element) => element.progress != -1)
+                  .toList();
+              if (incompleteKya.isEmpty) {
+                return const SizedBox();
+              }
+
+              return const SizedBox(
+                height: 16,
+              );
+            },
+          ),
+          if (cards.length >= 2) cards[1],
+          Visibility(
             visible: cards.length >= 2,
             child: const SizedBox(
               height: 16,
-            )),
-        if (cards.length >= 3) cards[2],
-        Visibility(
+            ),
+          ),
+          if (cards.length >= 3) cards[2],
+          Visibility(
             visible: cards.length >= 3,
             child: const SizedBox(
               height: 16,
-            )),
-        if (cards.length >= 4) cards[3],
-        Visibility(
+            ),
+          ),
+          if (cards.length >= 4) cards[3],
+          Visibility(
             visible: cards.length >= 4,
             child: const SizedBox(
               height: 16,
-            )),
-        if (cards.length >= 5) cards[4],
-        Visibility(
+            ),
+          ),
+          if (cards.length >= 5) cards[4],
+          Visibility(
             visible: cards.length >= 5,
             child: const SizedBox(
               height: 16,
-            )),
-        if (cards.length >= 6) cards[5],
-        Visibility(
+            ),
+          ),
+          if (cards.length >= 6) cards[5],
+          Visibility(
             visible: cards.length >= 6,
             child: const SizedBox(
               height: 16,
-            )),
-        if (cards.length >= 7) cards[6],
-        Visibility(
+            ),
+          ),
+          if (cards.length >= 7) cards[6],
+          Visibility(
             visible: cards.length >= 7,
             child: const SizedBox(
               height: 16,
-            )),
-        if (cards.length >= 8) cards[7],
-        Visibility(
+            ),
+          ),
+          if (cards.length >= 8) cards[7],
+          Visibility(
             visible: cards.length >= 8,
             child: const SizedBox(
               height: 16,
-            )),
-      ];
-      _dashBoardItems = _initializeDashBoardItems();
-    });
+            ),
+          ),
+        ];
+        _dashBoardItems = _initializeDashBoardItems();
+      },
+    );
   }
 
   void _getAnalyticsCards() async {
@@ -331,11 +367,14 @@ class _DashboardViewState extends State<DashboardView> {
         final randomMeasurement = (measurements..shuffle()).first;
 
         if (mounted) {
-          dashboardCards.add(AnalyticsCard(
-              PlaceDetails.measurementToPLace(randomMeasurement),
+          dashboardCards.add(
+            AnalyticsCard(
+              PlaceDetails.measurementToPlace(randomMeasurement),
               randomMeasurement,
               _isRefreshing,
-              false));
+              false,
+            ),
+          );
         }
 
         measurements.remove(randomMeasurement);
@@ -351,11 +390,14 @@ class _DashboardViewState extends State<DashboardView> {
         await LocationService.getNearbyLocationReadings();
 
     for (final location in locationMeasurements) {
-      dashboardCards.add(AnalyticsCard(
-          PlaceDetails.measurementToPLace(location),
+      dashboardCards.add(
+        AnalyticsCard(
+          PlaceDetails.measurementToPlace(location),
           location,
           _isRefreshing,
-          false));
+          false,
+        ),
+      );
     }
     if (!mounted) {
       return;
@@ -370,9 +412,14 @@ class _DashboardViewState extends State<DashboardView> {
       kya.progress = -1;
       await kya.saveKya();
     } else {
-      await Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return KyaTitlePage(kya);
-      }));
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) {
+            return KyaTitlePage(kya);
+          },
+        ),
+      );
     }
     await _refresh();
   }
@@ -380,12 +427,9 @@ class _DashboardViewState extends State<DashboardView> {
   void _scrollListener() {
     if (mounted) {
       if (_scrollController.position.userScrollDirection ==
-          ScrollDirection.reverse) {
-      } else if (_scrollController.position.userScrollDirection ==
-          ScrollDirection.forward) {
-      } else {
-        return;
-      }
+          ScrollDirection.reverse) {}
+
+      return;
     }
   }
 
@@ -405,25 +449,33 @@ class _DashboardViewState extends State<DashboardView> {
       const SizedBox(
         height: 24,
       ),
-      Text(getDateTime(),
-          style: Theme.of(context).textTheme.caption?.copyWith(
-                color: Colors.black.withOpacity(0.5),
-              )),
+      Text(
+        getDateTime(),
+        style: Theme.of(context).textTheme.caption?.copyWith(
+              color: Colors.black.withOpacity(0.5),
+            ),
+      ),
       const SizedBox(
         height: 4,
       ),
-      Text('Today’s air quality', style: CustomTextStyle.headline11(context)),
+      Text(
+        'Today’s air quality',
+        style: CustomTextStyle.headline11(context),
+      ),
       const SizedBox(
         height: 24,
       ),
       ..._analyticsCards,
       Visibility(
-          visible: _analyticsCards.isEmpty,
-          child: const CircularProgressIndicator()),
+        visible: _analyticsCards.isEmpty,
+        child: const CircularProgressIndicator(),
+      ),
     ];
   }
 
-  void _loadFavourites({required bool reload}) async {
+  void _loadFavourites({
+    required bool reload,
+  }) async {
     final widgets = <Widget>[];
 
     if (_favLocations.length != 3 || reload) {
@@ -444,56 +496,107 @@ class _DashboardViewState extends State<DashboardView> {
 
         if (favouritePlaces.length == 1) {
           if (measurements.isNotEmpty) {
-            widgets.add(DashboardFavPlaceAvatar(
-                rightPadding: 7, measurement: measurements[0]));
+            widgets.add(
+              DashboardFavPlaceAvatar(
+                rightPadding: 7,
+                measurement: measurements[0],
+              ),
+            );
           } else {
-            widgets.add(const DashboardEmptyAvatar(rightPadding: 0));
+            widgets.add(
+              const DashboardEmptyAvatar(
+                rightPadding: 0,
+              ),
+            );
           }
         } else if (favouritePlaces.length == 2) {
           if (measurements.isNotEmpty) {
-            widgets.add(DashboardFavPlaceAvatar(
-                rightPadding: 0, measurement: measurements[0]));
+            widgets.add(
+              DashboardFavPlaceAvatar(
+                rightPadding: 0,
+                measurement: measurements[0],
+              ),
+            );
           } else {
-            widgets.add(const DashboardEmptyAvatar(rightPadding: 0));
+            widgets.add(
+              const DashboardEmptyAvatar(
+                rightPadding: 0,
+              ),
+            );
           }
 
           if (measurements.length >= 2) {
-            widgets.add(DashboardFavPlaceAvatar(
-                rightPadding: 7, measurement: measurements[1]));
+            widgets.add(
+              DashboardFavPlaceAvatar(
+                rightPadding: 7,
+                measurement: measurements[1],
+              ),
+            );
           } else {
-            widgets.add(const DashboardEmptyAvatar(rightPadding: 7));
+            widgets.add(
+              const DashboardEmptyAvatar(rightPadding: 7),
+            );
           }
         } else if (favouritePlaces.length >= 3) {
           if (measurements.isNotEmpty) {
-            widgets.add(DashboardFavPlaceAvatar(
-                rightPadding: 0, measurement: measurements[0]));
+            widgets.add(
+              DashboardFavPlaceAvatar(
+                rightPadding: 0,
+                measurement: measurements[0],
+              ),
+            );
           } else {
-            widgets.add(const DashboardEmptyAvatar(rightPadding: 0));
+            widgets.add(
+              const DashboardEmptyAvatar(
+                rightPadding: 0,
+              ),
+            );
           }
 
           if (measurements.length >= 2) {
-            widgets.add(DashboardFavPlaceAvatar(
-                rightPadding: 7, measurement: measurements[1]));
+            widgets.add(
+              DashboardFavPlaceAvatar(
+                rightPadding: 7,
+                measurement: measurements[1],
+              ),
+            );
           } else {
-            widgets.add(const DashboardEmptyAvatar(rightPadding: 7));
+            widgets.add(
+              const DashboardEmptyAvatar(
+                rightPadding: 7,
+              ),
+            );
           }
 
           if (measurements.length >= 3) {
-            widgets.add(DashboardFavPlaceAvatar(
-                rightPadding: 14, measurement: measurements[2]));
+            widgets.add(
+              DashboardFavPlaceAvatar(
+                rightPadding: 14,
+                measurement: measurements[2],
+              ),
+            );
           } else {
-            widgets.add(const DashboardEmptyAvatar(rightPadding: 14));
+            widgets.add(
+              const DashboardEmptyAvatar(
+                rightPadding: 14,
+              ),
+            );
           }
-        } else {}
+        }
       } catch (exception, stackTrace) {
-        await logException(exception, stackTrace);
+        await logException(
+          exception,
+          stackTrace,
+        );
       }
 
       if (mounted) {
-        setState(() {
-          _favLocations.clear();
-          _favLocations = widgets;
-        });
+        setState(
+          () {
+            _favLocations.clear();
+            _favLocations = widgets;
+          },
+        );
       }
     }
   }
@@ -509,7 +612,11 @@ class _DashboardViewState extends State<DashboardView> {
 
   void _setGreetings() {
     if (mounted) {
-      setState(() => _greetings = getGreetings(CustomAuth.getDisplayName()));
+      setState(
+        () => _greetings = getGreetings(
+          CustomAuth.getDisplayName(),
+        ),
+      );
     }
   }
 }

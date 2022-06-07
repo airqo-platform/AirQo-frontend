@@ -251,7 +251,8 @@ extension AnalyticsEventExtension on AnalyticsEvent {
         return '${prefix}notification_receive';
       default:
         throw UnimplementedError(
-            '${toString()} does\'nt have a name implementation');
+          '${toString()} does\'nt have a name implementation',
+        );
     }
   }
 }
@@ -291,6 +292,7 @@ extension DateTimeExtension on DateTime {
 
   String getDay({DateTime? datetime}) {
     final referenceDay = datetime != null ? datetime.day : day;
+
     return formatToString(referenceDay);
   }
 
@@ -315,12 +317,12 @@ extension DateTimeExtension on DateTime {
     if (value.toString().length > 1) {
       return value.toString();
     }
+
     return '0$value';
   }
 
   DateTime getFirstDateOfMonth() {
-    final firstDate = DateTime.parse('$year-${getMonth()}-01T00:00:00Z');
-    return firstDate;
+    return DateTime.parse('$year-${getMonth()}-01T00:00:00Z');
   }
 
   DateTime getLastDateOfCalendarMonth() {
@@ -352,6 +354,7 @@ extension DateTimeExtension on DateTime {
 
   String getMonth({DateTime? datetime}) {
     final referenceMonth = datetime != null ? datetime.month : month;
+
     return formatToString(referenceMonth);
   }
 
@@ -378,7 +381,7 @@ extension DateTimeExtension on DateTime {
       case 4:
         return abbreviate ? 'Apr' : 'April';
       case 5:
-        return abbreviate ? 'May' : 'May';
+        return 'May';
       case 6:
         return abbreviate ? 'Jun' : 'June';
       case 7:
@@ -395,7 +398,8 @@ extension DateTimeExtension on DateTime {
         return abbreviate ? 'Dec' : 'December';
       default:
         throw UnimplementedError(
-            '$month does\'nt have a month string implementation');
+          '$month does\'nt have a month string implementation',
+        );
     }
   }
 
@@ -425,7 +429,8 @@ extension DateTimeExtension on DateTime {
         return 'sunday';
       default:
         throw UnimplementedError(
-            '$weekday does\'nt have a weekday string implementation');
+          '$weekday does\'nt have a weekday string implementation',
+        );
     }
   }
 
@@ -433,16 +438,22 @@ extension DateTimeExtension on DateTime {
     final now = DateTime.now();
     DateTime referenceDay;
     DateTime lastDay;
-    if (referenceWeek.toLowerCase() == 'last') {
-      referenceDay =
-          now.subtract(const Duration(days: 7)).getDateOfFirstDayOfWeek();
-      lastDay = now.subtract(const Duration(days: 7)).getDateOfLastDayOfWeek();
-    } else if (referenceWeek.toLowerCase() == 'next') {
-      referenceDay = now.add(const Duration(days: 7)).getDateOfFirstDayOfWeek();
-      lastDay = now.add(const Duration(days: 7)).getDateOfLastDayOfWeek();
-    } else {
-      referenceDay = now.getDateOfFirstDayOfWeek();
-      lastDay = now.getDateOfLastDayOfWeek();
+    switch (referenceWeek.toLowerCase()) {
+      case 'last':
+        referenceDay =
+            now.subtract(const Duration(days: 7)).getDateOfFirstDayOfWeek();
+        lastDay =
+            now.subtract(const Duration(days: 7)).getDateOfLastDayOfWeek();
+        break;
+      case 'next':
+        referenceDay =
+            now.add(const Duration(days: 7)).getDateOfFirstDayOfWeek();
+        lastDay = now.add(const Duration(days: 7)).getDateOfLastDayOfWeek();
+        break;
+      default:
+        referenceDay = now.getDateOfFirstDayOfWeek();
+        lastDay = now.getDateOfLastDayOfWeek();
+        break;
     }
 
     while (referenceDay != lastDay) {
@@ -498,6 +509,7 @@ extension DateTimeExtension on DateTime {
       if (minutes.length <= 1) {
         minutes = '0$minutes';
       }
+
       return '$hours:$minutes';
     } else {
       return '$day ${getMonthString(abbreviate: true)}';
@@ -583,6 +595,7 @@ extension StringCasingExtension on String {
         }
       }
     }
+
     return false;
   }
 
@@ -590,6 +603,7 @@ extension StringCasingExtension on String {
     if (toLowerCase() == value.toLowerCase()) {
       return true;
     }
+
     return false;
   }
 
@@ -609,9 +623,10 @@ extension StringCasingExtension on String {
     if (isNull()) {
       return false;
     }
+
     return RegExp(
-            r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$')
-        .hasMatch(this);
+      r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$',
+    ).hasMatch(this);
   }
 
   bool isValidUri() {
@@ -623,11 +638,13 @@ extension StringCasingExtension on String {
       if (trim().toLowerCase() == 'ii' || trim().toLowerCase() == 'iv') {
         return toUpperCase();
       }
+
       return isNotEmpty
           ? '${this[0].toUpperCase()}${substring(1).toLowerCase()}'
           : '';
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
+
       return this;
     }
   }
@@ -653,7 +670,8 @@ extension AuthMethodExtension on AuthMethod {
             : 'Sign up with your email or mobile number';
       default:
         throw UnimplementedError(
-            '$name does\'nt have options text implementation');
+          '$name does\'nt have options text implementation',
+        );
     }
   }
 
@@ -669,7 +687,8 @@ extension AuthMethodExtension on AuthMethod {
             : 'Sign up with a mobile number instead';
       default:
         throw UnimplementedError(
-            '$name does\'nt have options button text implementation');
+          '$name does\'nt have options button text implementation',
+        );
     }
   }
 }

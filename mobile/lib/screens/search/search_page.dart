@@ -15,7 +15,9 @@ import '../../widgets/buttons.dart';
 import '../insights/insights_page.dart';
 
 class SearchPage extends StatefulWidget {
-  const SearchPage({Key? key}) : super(key: key);
+  const SearchPage({
+    Key? key,
+  }) : super(key: key);
 
   @override
   _SearchPageState createState() => _SearchPageState();
@@ -41,7 +43,11 @@ class _SearchPageState extends State<SearchPage> {
         backgroundColor: CustomColors.appBodyColor,
         automaticallyImplyLeading: false,
         leading: const Padding(
-          padding: EdgeInsets.only(top: 5, bottom: 6.5, left: 16),
+          padding: EdgeInsets.only(
+            top: 5,
+            bottom: 6.5,
+            left: 16,
+          ),
           child: AppBackButton(),
         ),
         title: Padding(
@@ -68,8 +74,10 @@ class _SearchPageState extends State<SearchPage> {
               child: Text(
                 'Locations near you',
                 textAlign: TextAlign.start,
-                style:
-                    TextStyle(color: CustomColors.inactiveColor, fontSize: 12),
+                style: TextStyle(
+                  color: CustomColors.inactiveColor,
+                  fontSize: 12,
+                ),
               ),
             ),
             loadMainView(),
@@ -80,47 +88,60 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Future<void> _getSites() async {
-    await DBHelper().getLatestMeasurements().then((value) => {
-          if (mounted) {setState(() => _allSites = value)}
-        });
+    await DBHelper().getLatestMeasurements().then(
+          (value) => {
+            if (mounted)
+              {
+                setState(() => _allSites = value),
+              },
+          },
+        );
   }
 
   Future<void> _getUserLocation() async {
     try {
       final location = await LocationService.getLocation();
       if (location == null) {
-        await showSnackBar(context, Config.allowLocationMessage);
+        await showSnackBar(
+          context,
+          Config.allowLocationMessage,
+        );
+
         return;
       }
       final latitude = location.latitude;
       final longitude = location.longitude;
       if (longitude != null && latitude != null) {
-        await LocationService.getNearestSites(latitude, longitude)
-            .then((value) => {
-                  if (mounted)
-                    {
-                      if (value.isEmpty)
-                        {
-                          setState(() {
-                            _nearbySites = [];
-                            _hasNearbyLocations = false;
-                          })
-                        }
-                      else
-                        {
-                          setState(() {
-                            _nearbySites = value;
-                            _hasNearbyLocations = true;
-                          })
-                        }
-                    }
-                });
+        await LocationService.getNearestSites(latitude, longitude).then(
+          (value) => {
+            if (mounted)
+              {
+                if (value.isEmpty)
+                  {
+                    setState(() {
+                      _nearbySites = [];
+                      _hasNearbyLocations = false;
+                    }),
+                  }
+                else
+                  {
+                    setState(() {
+                      _nearbySites = value;
+                      _hasNearbyLocations = true;
+                    }),
+                  },
+              },
+          },
+        );
       } else {
         throw Exception('Failed to get your location');
       }
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace, remoteLogging: false);
-      await showSnackBar(context, Config.locationErrorMessage);
+      await showSnackBar(
+        context,
+        Config.locationErrorMessage,
+      );
     }
   }
 
@@ -131,7 +152,10 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   void _initialize() async {
-    await Future.wait([_getSites(), _getUserLocation()]);
+    await Future.wait([
+      _getSites(),
+      _getUserLocation(),
+    ]);
   }
 
   Widget loadMainView() {
@@ -179,27 +203,31 @@ class _SearchPageState extends State<SearchPage> {
             height: 16,
           ),
           const Padding(
-              padding: EdgeInsets.only(left: 30, right: 30),
-              child: Text(
-                'Coming soon on the network',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              )),
+            padding: EdgeInsets.only(left: 30, right: 30),
+            child: Text(
+              'Coming soon on the network',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
           const SizedBox(
             height: 8,
           ),
           Padding(
-              padding: const EdgeInsets.only(left: 20, right: 20),
-              child: Text(
-                'We currently do not support air quality '
-                'monitoring in this area, but we’re working on it.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: 14, color: Colors.black.withOpacity(0.4)),
-              )),
+            padding: const EdgeInsets.only(left: 20, right: 20),
+            child: Text(
+              'We currently do not support air quality '
+              'monitoring in this area, but we’re working on it.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.black.withOpacity(0.4),
+              ),
+            ),
+          ),
         ],
       );
     }
@@ -207,35 +235,37 @@ class _SearchPageState extends State<SearchPage> {
     if (_isSearching) {
       return Expanded(
         child: MediaQuery.removePadding(
-            context: context,
-            removeTop: true,
-            child: ListView(
-              shrinkWrap: true,
-              children: [
-                searchLocations(),
-              ],
-            )),
+          context: context,
+          removeTop: true,
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              searchLocations(),
+            ],
+          ),
+        ),
       );
     }
 
     if (_hasNearbyLocations) {
       return Expanded(
         child: MediaQuery.removePadding(
-            context: context,
-            removeTop: true,
-            child: ListView(
-              shrinkWrap: true,
-              children: [
-                if (_nearbySites.isEmpty)
-                  RequestLocationAccess(
-                    getUserLocation: _getUserLocation,
-                  ),
-                if (_nearbySites.isNotEmpty)
-                  NearbyLocations(
-                    nearbyLocations: _nearbySites,
-                  ),
-              ],
-            )),
+          context: context,
+          removeTop: true,
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              if (_nearbySites.isEmpty)
+                RequestLocationAccess(
+                  getUserLocation: _getUserLocation,
+                ),
+              if (_nearbySites.isNotEmpty)
+                NearbyLocations(
+                  nearbyLocations: _nearbySites,
+                ),
+            ],
+          ),
+        ),
       );
     }
 
@@ -251,26 +281,37 @@ class _SearchPageState extends State<SearchPage> {
 
   void _searchChanged(String text) {
     if (text.isEmpty) {
-      setState(() {
-        _isSearching = false;
-        _emptyView = false;
-      });
+      setState(
+        () {
+          _isSearching = false;
+          _emptyView = false;
+        },
+      );
     } else {
-      setState(() {
-        _isSearching = true;
-        _emptyView = false;
-      });
+      setState(
+        () {
+          _isSearching = true;
+          _emptyView = false;
+        },
+      );
 
-      SearchApi().fetchSuggestions(text).then((value) => {
-            if (mounted) {setState(() => _searchSuggestions = value)}
-          });
+      SearchApi().fetchSuggestions(text).then(
+            (value) => {
+              if (mounted)
+                {
+                  setState(() => _searchSuggestions = value),
+                },
+            },
+          );
 
       if (!mounted) {
         return;
       }
 
-      setState(() => _searchSites =
-          LocationService.textSearchNearestSites(text, _allSites));
+      setState(
+        () => _searchSites =
+            LocationService.textSearchNearestSites(text, _allSites),
+      );
     }
   }
 
@@ -279,98 +320,112 @@ class _SearchPageState extends State<SearchPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Visibility(
-            visible: _searchSites.isEmpty && _searchSuggestions.isEmpty,
-            child: Center(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(
-                    height: 84,
-                  ),
-                  Stack(
-                    children: [
-                      Image.asset(
-                        'assets/images/world-map.png',
-                        height: 130,
-                        width: 130,
+          visible: _searchSites.isEmpty && _searchSuggestions.isEmpty,
+          child: Center(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(
+                  height: 84,
+                ),
+                Stack(
+                  children: [
+                    Image.asset(
+                      'assets/images/world-map.png',
+                      height: 130,
+                      width: 130,
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: CustomColors.appColorBlue,
+                        shape: BoxShape.circle,
                       ),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: CustomColors.appColorBlue,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Padding(
-                          padding: EdgeInsets.all(12.0),
-                          child: Icon(
-                            Icons.map_outlined,
-                            size: 30,
-                            color: Colors.white,
-                          ),
+                      child: const Padding(
+                        padding: EdgeInsets.all(12.0),
+                        child: Icon(
+                          Icons.map_outlined,
+                          size: 30,
+                          color: Colors.white,
                         ),
                       ),
-                    ],
+                    ),
+                  ],
+                ),
+                const SizedBox(
+                  height: 52,
+                ),
+                const Text(
+                  'Not found',
+                  textAlign: TextAlign.start,
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(
+                  height: 52,
+                ),
+              ],
+            ),
+          ),
+        ),
+        Visibility(
+          visible: _searchSites.isNotEmpty && _searchSuggestions.isEmpty,
+          child: Center(
+            child: MediaQuery.removePadding(
+              context: context,
+              removeTop: true,
+              child: ListView.builder(
+                controller: ScrollController(),
+                shrinkWrap: true,
+                itemBuilder: (context, index) => GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) {
+                          return InsightsPage(
+                            PlaceDetails.siteToPLace(_searchSites[index].site),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: SearchLocationTile(
+                      measurement: _searchSites[index],
+                    ),
                   ),
-                  const SizedBox(
-                    height: 52,
-                  ),
-                  const Text(
-                    'Not found',
-                    textAlign: TextAlign.start,
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(
-                    height: 52,
-                  ),
-                ],
+                ),
+                itemCount: _searchSites.length,
               ),
-            )),
+            ),
+          ),
+        ),
         Visibility(
-            visible: _searchSites.isNotEmpty && _searchSuggestions.isEmpty,
-            child: Center(
-              child: MediaQuery.removePadding(
-                  context: context,
-                  removeTop: true,
-                  child: ListView.builder(
-                    controller: ScrollController(),
-                    shrinkWrap: true,
-                    itemBuilder: (context, index) => GestureDetector(
-                        onTap: () {
-                          Navigator.push(context,
-                              MaterialPageRoute(builder: (context) {
-                            return InsightsPage(PlaceDetails.siteToPLace(
-                                _searchSites[index].site));
-                          }));
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: SearchLocationTile(
-                              measurement: _searchSites[index]),
-                        )),
-                    itemCount: _searchSites.length,
-                  )),
-            )),
-        Visibility(
-            visible: _searchSuggestions.isNotEmpty,
-            child: Center(
-              child: MediaQuery.removePadding(
-                  context: context,
-                  removeTop: true,
-                  child: ListView.builder(
-                    controller: ScrollController(),
-                    shrinkWrap: true,
-                    itemBuilder: (context, index) => GestureDetector(
-                        onTap: () {
-                          showPlaceDetails(_searchSuggestions[index]);
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: SearchPlaceTile(
-                              searchSuggestion: _searchSuggestions[index]),
-                        )),
-                    itemCount: _searchSuggestions.length,
-                  )),
-            )),
+          visible: _searchSuggestions.isNotEmpty,
+          child: Center(
+            child: MediaQuery.removePadding(
+              context: context,
+              removeTop: true,
+              child: ListView.builder(
+                controller: ScrollController(),
+                shrinkWrap: true,
+                itemBuilder: (context, index) => GestureDetector(
+                  onTap: () {
+                    showPlaceDetails(_searchSuggestions[index]);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: SearchPlaceTile(
+                      searchSuggestion: _searchSuggestions[index],
+                    ),
+                  ),
+                ),
+                itemCount: _searchSuggestions.length,
+              ),
+            ),
+          ),
+        ),
         const SizedBox(
           height: 8,
         ),
@@ -387,26 +442,38 @@ class _SearchPageState extends State<SearchPage> {
     final place = await SearchApi().getPlaceDetails(suggestion.placeId);
     if (place != null) {
       final nearestSite = await LocationService.getNearestSite(
-          place.geometry.location.lat, place.geometry.location.lng);
+        place.geometry.location.lat,
+        place.geometry.location.lng,
+      );
 
       if (nearestSite == null) {
         setState(() => _emptyView = true);
+
         return;
       }
 
       final placeDetails = PlaceDetails(
-          name: suggestion.suggestionDetails.getMainText(),
-          location: suggestion.suggestionDetails.getSecondaryText(),
-          siteId: nearestSite.id,
-          placeId: suggestion.placeId,
-          latitude: place.geometry.location.lat,
-          longitude: place.geometry.location.lng);
+        name: suggestion.suggestionDetails.getMainText(),
+        location: suggestion.suggestionDetails.getSecondaryText(),
+        siteId: nearestSite.id,
+        placeId: suggestion.placeId,
+        latitude: place.geometry.location.lat,
+        longitude: place.geometry.location.lng,
+      );
 
-      await Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return InsightsPage(placeDetails);
-      }));
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) {
+            return InsightsPage(placeDetails);
+          },
+        ),
+      );
     } else {
-      await showSnackBar(context, 'Try again later');
+      await showSnackBar(
+        context,
+        'Try again later',
+      );
     }
   }
 }

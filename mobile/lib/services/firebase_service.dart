@@ -32,7 +32,9 @@ class CloudAnalytics {
 
 class CloudStore {
   static Future<void> addFavPlace(
-      String userId, PlaceDetails placeDetails) async {
+    String userId,
+    PlaceDetails placeDetails,
+  ) async {
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection || userId.trim().isEmpty) {
       return;
@@ -44,9 +46,14 @@ class CloudStore {
           .doc(userId)
           .collection(userId)
           .doc(placeDetails.placeId)
-          .set(placeDetails.toJson());
+          .set(
+            placeDetails.toJson(),
+          );
     } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
+      await logException(
+        exception,
+        stackTrace,
+      );
     }
   }
 
@@ -65,10 +72,13 @@ class CloudStore {
         FirebaseFirestore.instance
             .collection(Config.usersNotificationCollection)
             .doc(id)
-            .delete()
+            .delete(),
       ]);
     } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
+      await logException(
+        exception,
+        stackTrace,
+      );
     }
   }
 
@@ -100,9 +110,13 @@ class CloudStore {
           favPlaces.add(place);
         }
       }
+
       return favPlaces;
     } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
+      await logException(
+        exception,
+        stackTrace,
+      );
     }
 
     return [];
@@ -123,6 +137,7 @@ class CloudStore {
         debugPrint('$exception\n$stackTrace');
       }
     }
+
     return referenceKya;
   }
 
@@ -147,7 +162,11 @@ class CloudStore {
             continue;
           }
           try {
-            userOnGoingKya.add(UserKya.fromJson(userKyaDoc.data()));
+            userOnGoingKya.add(
+              UserKya.fromJson(
+                userKyaDoc.data(),
+              ),
+            );
           } catch (e) {
             final userKyaData = userKyaDoc.data();
             userKyaData['progress'] =
@@ -183,8 +202,9 @@ class CloudStore {
       for (final kya in referenceKya) {
         try {
           final onGoingKya = userOnGoingKya.firstWhere(
-              (element) => element.id == kya.id,
-              orElse: () => UserKya(kya.id, 0));
+            (element) => element.id == kya.id,
+            orElse: () => UserKya(kya.id, 0),
+          );
 
           kya.progress = onGoingKya.progress;
           userKya.add(kya);
@@ -211,18 +231,23 @@ class CloudStore {
       final notifications = <AppNotification>[];
 
       for (final doc in notificationsJson.docs) {
-        final notification = AppNotification.parseAppNotification(doc.data());
+        final notification = AppNotification.parseAppNotification(
+          doc.data(),
+        );
         if (notification != null) {
           notifications.add(notification);
         }
       }
-
       await AppNotification.load(notifications);
 
       return notifications;
     } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
+      await logException(
+        exception,
+        stackTrace,
+      );
     }
+
     return [];
   }
 
@@ -240,18 +265,23 @@ class CloudStore {
       final cloudAnalytics = <Analytics>[];
 
       for (final doc in analyticsCollection.docs) {
-        final analytics = Analytics.parseAnalytics(doc.data());
+        final analytics = Analytics.parseAnalytics(
+          doc.data(),
+        );
         if (analytics != null) {
           cloudAnalytics.add(analytics);
         }
       }
-
       await Analytics.load(cloudAnalytics);
 
       return cloudAnalytics;
     } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
+      await logException(
+        exception,
+        stackTrace,
+      );
     }
+
     return [];
   }
 
@@ -263,23 +293,30 @@ class CloudStore {
           .collection(Config.usersCollection)
           .doc(uuid)
           .get();
-      return Profile.parseUserDetails(userJson.data());
+
+      return Profile.parseUserDetails(
+        userJson.data(),
+      );
     } on FirebaseException catch (exception, _) {
       if (exception.code == 'not-found') {
-        final profile = await CustomAuth.createProfile();
-        return profile;
+        return await CustomAuth.createProfile();
       } else {
         rethrow;
       }
     } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
+      await logException(
+        exception,
+        stackTrace,
+      );
     }
 
     return Profile.getProfile();
   }
 
   static Future<void> removeFavPlace(
-      String userId, PlaceDetails placeDetails) async {
+    String userId,
+    PlaceDetails placeDetails,
+  ) async {
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection || userId.trim().isEmpty) {
       return;
@@ -292,12 +329,17 @@ class CloudStore {
           .doc(placeDetails.placeId)
           .delete();
     } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
+      await logException(
+        exception,
+        stackTrace,
+      );
     }
   }
 
   static Future<void> updateFavPlaces(
-      String userId, List<PlaceDetails> favPlaces) async {
+    String userId,
+    List<PlaceDetails> favPlaces,
+  ) async {
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection || userId.trim().isEmpty) {
       return;
@@ -311,11 +353,18 @@ class CloudStore {
             .doc(userId)
             .collection(userId)
             .doc(place.placeId);
-        batch.set(document, place.toJson());
+        batch.set(
+          document,
+          place.toJson(),
+        );
       } catch (exception, stackTrace) {
-        await logException(exception, stackTrace);
+        await logException(
+          exception,
+          stackTrace,
+        );
       }
     }
+
     return batch.commit();
   }
 
@@ -330,7 +379,9 @@ class CloudStore {
             FirebaseFirestore.instance
                 .collection(Config.usersCollection)
                 .doc(profile.userId)
-                .update(profile.toJson())
+                .update(
+                  profile.toJson(),
+                ),
           ]);
         } catch (exception) {
           await Future.wait([
@@ -338,11 +389,16 @@ class CloudStore {
             FirebaseFirestore.instance
                 .collection(Config.usersCollection)
                 .doc(profile.userId)
-                .set(profile.toJson())
+                .set(
+                  profile.toJson(),
+                ),
           ]);
         }
       } catch (exception, stackTrace) {
-        await logException(exception, stackTrace);
+        await logException(
+          exception,
+          stackTrace,
+        );
       }
     }
   }
@@ -363,19 +419,25 @@ class CloudStore {
                 .doc(profile.userId)
                 .collection(profile.userId)
                 .doc(x.site)
-                .set(x.toJson());
+                .set(
+                  x.toJson(),
+                );
           } catch (exception) {
             debugPrint(exception.toString());
           }
         }
       } catch (exception, stackTrace) {
-        await logException(exception, stackTrace);
+        await logException(
+          exception,
+          stackTrace,
+        );
       }
     }
   }
 
   static Future<void> updateCloudNotification(
-      AppNotification notification) async {
+    AppNotification notification,
+  ) async {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
       try {
@@ -386,17 +448,24 @@ class CloudStore {
               .doc(profile.userId)
               .collection(profile.userId)
               .doc(notification.id)
-              .update(notification.toJson());
+              .update(
+                notification.toJson(),
+              );
         } catch (exception) {
           await FirebaseFirestore.instance
               .collection(Config.usersNotificationCollection)
               .doc(profile.userId)
               .collection(profile.userId)
               .doc(notification.id)
-              .set(notification.toJson());
+              .set(
+                notification.toJson(),
+              );
         }
       } catch (exception, stackTrace) {
-        await logException(exception, stackTrace);
+        await logException(
+          exception,
+          stackTrace,
+        );
       }
     }
   }
@@ -414,7 +483,9 @@ class CloudStore {
           .doc(userId)
           .collection(userId)
           .doc(kya.id)
-          .update(userKya.toJson());
+          .update(
+            userKya.toJson(),
+          );
     } on FirebaseException catch (exception, stackTrace) {
       if (exception.code.contains('not-found')) {
         await FirebaseFirestore.instance
@@ -422,12 +493,20 @@ class CloudStore {
             .doc(userId)
             .collection(userId)
             .doc(kya.id)
-            .set(userKya.toJson());
+            .set(
+              userKya.toJson(),
+            );
       } else {
-        await logException(exception, stackTrace);
+        await logException(
+          exception,
+          stackTrace,
+        );
       }
     } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
+      await logException(
+        exception,
+        stackTrace,
+      );
     }
   }
 
@@ -443,10 +522,12 @@ class CloudStore {
           .ref(docRef)
           .putFile(file);
 
-      final downloadUrl = await task.storage.ref(docRef).getDownloadURL();
-      return downloadUrl;
+      return await task.storage.ref(docRef).getDownloadURL();
     } on Exception catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
+      await logException(
+        exception,
+        stackTrace,
+      );
     }
 
     return '';
@@ -455,8 +536,7 @@ class CloudStore {
 
 class CloudMessaging {
   static Future<String?> getDeviceToken() async {
-    final token = await FirebaseMessaging.instance.getToken();
-    return token;
+    return await FirebaseMessaging.instance.getToken();
   }
 }
 
@@ -467,42 +547,66 @@ class CustomAuth {
       await FirebaseAuth.instance.currentUser
           ?.updateDisplayName(profile.firstName);
     } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
+      await logException(
+        exception,
+        stackTrace,
+      );
     }
+
     return profile;
   }
 
   static Future<void> deleteAccount() async {
     try {
-      final user = getUser();
-      await user?.delete();
+      await getUser()?.delete();
     } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
+      await logException(
+        exception,
+        stackTrace,
+      );
     }
   }
 
   static Future<bool> emailAuthentication(
-      String emailAddress, String link, BuildContext context) async {
+    String emailAddress,
+    String link,
+    BuildContext context,
+  ) async {
     try {
       final userCredential = await FirebaseAuth.instance
           .signInWithEmailLink(emailLink: link, email: emailAddress);
+
       return userCredential.user != null;
     } on FirebaseAuthException catch (exception, stackTrace) {
       if (exception.code == 'invalid-email') {
-        await showSnackBar(context, 'Invalid Email. Try again');
+        await showSnackBar(
+          context,
+          'Invalid Email. Try again',
+        );
       } else if (exception.code == 'expired-action-code') {
         await showSnackBar(
-            context, 'Your verification has timed out. Try again later');
+          context,
+          'Your verification has timed out. Try again later',
+        );
       } else if (exception.code == 'user-disabled') {
         await showSnackBar(
-            context, 'Account has been disabled. PLease contact support');
+          context,
+          'Account has been disabled. PLease contact support',
+        );
       } else {
-        await showSnackBar(context, Config.appErrorMessage);
+        await showSnackBar(
+          context,
+          Config.appErrorMessage,
+        );
       }
       debugPrint('$exception\n$stackTrace');
       if (!['invalid-email', 'expired-action-code'].contains(exception.code)) {
-        await logException(exception, stackTrace);
+        await logException(
+          exception,
+          stackTrace,
+        );
       }
+
       return false;
     }
   }
@@ -513,6 +617,7 @@ class CustomAuth {
     if (authInstance.currentUser == null) {
       return '';
     }
+
     return authInstance.currentUser!.displayName ?? 'Guest';
   }
 
@@ -524,6 +629,7 @@ class CustomAuth {
     if (!isLoggedIn()) {
       return '';
     }
+
     return FirebaseAuth.instance.currentUser!.uid;
   }
 
@@ -532,17 +638,24 @@ class CustomAuth {
   }
 
   static Future<bool> isValidEmailCode(
-      String subjectCode, String verificationLink) async {
+    String subjectCode,
+    String verificationLink,
+  ) async {
     try {
       final signInLink = Uri.parse(verificationLink);
       final code = signInLink.queryParameters['oobCode'];
       if (code != null && code == subjectCode) {
         return true;
       }
+
       return false;
     } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
+      await logException(
+        exception,
+        stackTrace,
+      );
     }
+
     return false;
   }
 
@@ -550,64 +663,97 @@ class CustomAuth {
     try {
       await FirebaseAuth.instance.signOut();
     } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
+      await logException(
+        exception,
+        stackTrace,
+      );
     }
   }
 
   static Future<bool> phoneNumberAuthentication(
-      AuthCredential authCredential, BuildContext context) async {
+    AuthCredential authCredential,
+    BuildContext context,
+  ) async {
     try {
       final userCredential =
           await FirebaseAuth.instance.signInWithCredential(authCredential);
+
       return userCredential.user != null;
     } on FirebaseAuthException catch (exception, stackTrace) {
       if (exception.code == 'invalid-verification-code') {
-        await showSnackBar(context, 'Invalid Code');
+        await showSnackBar(
+          context,
+          'Invalid Code',
+        );
       } else if (exception.code == 'session-expired') {
         await showSnackBar(
-            context, 'Your verification has timed out. Try again later');
+          context,
+          'Your verification has timed out. Try again later',
+        );
       } else if (exception.code == 'account-exists-with-different-credential') {
         await showSnackBar(
-            context, 'Phone number is already linked to an email.');
+          context,
+          'Phone number is already linked to an email.',
+        );
       } else if (exception.code == 'user-disabled') {
         await showSnackBar(
-            context, 'Account has been disabled. PLease contact support');
+          context,
+          'Account has been disabled. PLease contact support',
+        );
       } else {
-        await showSnackBar(context, Config.appErrorMessage);
+        await showSnackBar(
+          context,
+          Config.appErrorMessage,
+        );
       }
 
       debugPrint('$exception\n$stackTrace');
       if (![
         'invalid-verification-code',
         'invalid-verification-code',
-        'account-exists-with-different-credential'
+        'account-exists-with-different-credential',
       ].contains(exception.code)) {
-        await logException(exception, stackTrace);
+        await logException(
+          exception,
+          stackTrace,
+        );
       }
+
       return false;
     }
   }
 
   static Future<bool> reAuthenticateWithEmailAddress(
-      String emailAddress, String link, BuildContext context) async {
+    String emailAddress,
+    String link,
+    BuildContext context,
+  ) async {
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return false;
     }
 
     try {
-      final userCredential = await FirebaseAuth.instance
-          .signInWithEmailLink(emailLink: link, email: emailAddress);
+      final userCredential = await FirebaseAuth.instance.signInWithEmailLink(
+        emailLink: link,
+        email: emailAddress,
+      );
 
       return userCredential.user != null;
     } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
+      await logException(
+        exception,
+        stackTrace,
+      );
     }
+
     return false;
   }
 
   static Future<bool> reAuthenticateWithPhoneNumber(
-      AuthCredential authCredential, BuildContext context) async {
+    AuthCredential authCredential,
+    BuildContext context,
+  ) async {
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return false;
@@ -622,92 +768,132 @@ class CustomAuth {
       return userCredentials.user != null;
     } on FirebaseAuthException catch (exception) {
       if (exception.code == 'invalid-verification-code') {
-        await showSnackBar(context, 'Invalid Code');
+        await showSnackBar(
+          context,
+          'Invalid Code',
+        );
       }
       if (exception.code == 'session-expired') {
         await showSnackBar(
-            context,
-            'Your verification '
-            'has timed out. we have sent your'
-            ' another verification code');
+          context,
+          'Your verification '
+          'has timed out. we have sent your'
+          ' another verification code',
+        );
       }
     } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
+      await logException(
+        exception,
+        stackTrace,
+      );
     }
+
     return false;
   }
 
   static Future<bool> requestPhoneVerification(
-      phoneNumber, context, callBackFn, autoVerificationFn) async {
-    final hasConnection =
-        await checkNetworkConnection(context, notifyUser: true);
+    phoneNumber,
+    context,
+    callBackFn,
+    autoVerificationFn,
+  ) async {
+    final hasConnection = await checkNetworkConnection(
+      context,
+      notifyUser: true,
+    );
     if (!hasConnection) {
       return false;
     }
 
     try {
       await FirebaseAuth.instance.verifyPhoneNumber(
-          phoneNumber: phoneNumber,
-          verificationCompleted: (PhoneAuthCredential credential) {
-            autoVerificationFn(credential);
-          },
-          verificationFailed: (FirebaseAuthException exception) async {
-            if (exception.code == 'invalid-phone-number') {
-              await showSnackBar(context, 'Invalid phone number.');
-            } else {
-              await showSnackBar(
-                  context,
-                  'Cannot process your request.'
-                  ' Try again later');
-              debugPrint(exception.toString());
-            }
-          },
-          codeSent: (String verificationId, int? resendToken) async {
-            callBackFn(verificationId);
-          },
-          codeAutoRetrievalTimeout: (String verificationId) async {
-            // TODO Implement auto code retrieval timeout
-          },
-          timeout: const Duration(minutes: 2));
+        phoneNumber: phoneNumber,
+        verificationCompleted: (PhoneAuthCredential credential) {
+          autoVerificationFn(credential);
+        },
+        verificationFailed: (FirebaseAuthException exception) async {
+          if (exception.code == 'invalid-phone-number') {
+            await showSnackBar(
+              context,
+              'Invalid phone number.',
+            );
+          } else {
+            await showSnackBar(
+              context,
+              'Cannot process your request.'
+              ' Try again later',
+            );
+            debugPrint(exception.toString());
+          }
+        },
+        codeSent: (String verificationId, int? resendToken) async {
+          callBackFn(verificationId);
+        },
+        codeAutoRetrievalTimeout: (String verificationId) async {
+          // TODO Implement auto code retrieval timeout
+        },
+        timeout: const Duration(minutes: 2),
+      );
+
       return true;
     } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
+      await logException(
+        exception,
+        stackTrace,
+      );
+
       return false;
     }
   }
 
   static Future<bool> updateEmailAddress(
-      String emailAddress, BuildContext context) async {
+    String emailAddress,
+    BuildContext context,
+  ) async {
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return false;
     }
     try {
       final profile = await Profile.getProfile();
-      await FirebaseAuth.instance.currentUser!
-          .updateEmail(emailAddress)
-          .then((_) {
-        profile.update();
-      });
+      await FirebaseAuth.instance.currentUser!.updateEmail(emailAddress).then(
+        (_) {
+          profile.update();
+        },
+      );
+
       return true;
     } on FirebaseAuthException catch (exception) {
       if (exception.code == 'email-already-in-use') {
-        await showSnackBar(context, 'Email Address already taken');
+        await showSnackBar(
+          context,
+          'Email Address already taken',
+        );
+
         return false;
       }
       if (exception.code == 'invalid-email') {
-        await showSnackBar(context, 'Invalid email address');
+        await showSnackBar(
+          context,
+          'Invalid email address',
+        );
+
         return false;
       }
     } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
+      await logException(
+        exception,
+        stackTrace,
+      );
     }
 
     return false;
   }
 
   static Future<bool> updatePhoneNumber(
-      PhoneAuthCredential authCredential, BuildContext context) async {
+    PhoneAuthCredential authCredential,
+    BuildContext context,
+  ) async {
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return false;
@@ -717,24 +903,41 @@ class CustomAuth {
       final profile = await Profile.getProfile();
       await FirebaseAuth.instance.currentUser!
           .updatePhoneNumber(authCredential)
-          .then((_) {
-        profile.update();
-      });
+          .then(
+        (_) {
+          profile.update();
+        },
+      );
+
       return true;
     } on FirebaseAuthException catch (exception) {
       if (exception.code == 'credential-already-in-use') {
-        await showSnackBar(context, 'Phone number already taken');
+        await showSnackBar(
+          context,
+          'Phone number already taken',
+        );
+
         return false;
       } else if (exception.code == 'invalid-verification-id') {
         await showSnackBar(
-            context, 'Failed to change phone number. Try again later');
+          context,
+          'Failed to change phone number. Try again later',
+        );
+
         return false;
       } else if (exception.code == 'session-expired') {
-        await showSnackBar(context, 'Your code has expired. Try again later');
+        await showSnackBar(
+          context,
+          'Your code has expired. Try again later',
+        );
+
         return false;
       }
     } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
+      await logException(
+        exception,
+        stackTrace,
+      );
     }
 
     return false;

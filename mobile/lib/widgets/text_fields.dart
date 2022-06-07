@@ -8,7 +8,9 @@ import 'custom_widgets.dart';
 class PhoneNumberInputFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
     final number = newValue.text;
 
     if (newValue.selection.baseOffset == 0) {
@@ -25,16 +27,20 @@ class PhoneNumberInputFormatter extends TextInputFormatter {
     }
 
     final string = stringBuffer.toString();
+
     return newValue.copyWith(
-        text: string,
-        selection: TextSelection.collapsed(offset: string.length));
+      text: string,
+      selection: TextSelection.collapsed(offset: string.length),
+    );
   }
 }
 
 class CountryCodePickerField extends StatelessWidget {
-  const CountryCodePickerField(
-      {Key? key, required this.placeholder, required this.valueChange})
-      : super(key: key);
+  const CountryCodePickerField({
+    Key? key,
+    required this.placeholder,
+    required this.valueChange,
+  }) : super(key: key);
   final String placeholder;
   final Function(String?) valueChange;
 
@@ -43,8 +49,11 @@ class CountryCodePickerField extends StatelessWidget {
     return Container(
       constraints: const BoxConstraints(minWidth: double.infinity),
       decoration: BoxDecoration(
-          color: const Color(0xff8D8D8D).withOpacity(0.1),
-          borderRadius: const BorderRadius.all(Radius.circular(10.0))),
+        color: const Color(0xff8D8D8D).withOpacity(0.1),
+        borderRadius: const BorderRadius.all(
+          Radius.circular(10.0),
+        ),
+      ),
       child: CountryListPick(
         appBar: const AppTopBar('Select Country'),
         theme: CountryTheme(
@@ -70,12 +79,12 @@ class CountryCodePickerField extends StatelessWidget {
 }
 
 class OptField extends StatelessWidget {
-  const OptField(
-      {Key? key,
-      required this.codeSent,
-      required this.callbackFn,
-      required this.position})
-      : super(key: key);
+  const OptField({
+    Key? key,
+    required this.codeSent,
+    required this.callbackFn,
+    required this.position,
+  }) : super(key: key);
   final bool codeSent;
   final Function(String value, int position) callbackFn;
   final int position;
@@ -97,26 +106,33 @@ class OptField extends StatelessWidget {
         cursorColor: CustomColors.appColorBlue,
         keyboardType: TextInputType.number,
         style: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.w500,
-            color: CustomColors.appColorBlue,
-            letterSpacing: 16 * 0.41,
-            height: 40 / 32),
+          fontSize: 32,
+          fontWeight: FontWeight.w500,
+          color: CustomColors.appColorBlue,
+          letterSpacing: 16 * 0.41,
+          height: 40 / 32,
+        ),
         decoration: InputDecoration(
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 10, horizontal: 0),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 10,
+            horizontal: 0,
+          ),
           counter: const Offstage(),
           fillColor: codeSent
               ? Colors.white
               : const Color(0xff8D8D8D).withOpacity(0.1),
           focusedBorder: OutlineInputBorder(
-            borderSide:
-                BorderSide(color: CustomColors.appColorBlue, width: 1.0),
+            borderSide: BorderSide(
+              color: CustomColors.appColorBlue,
+              width: 1.0,
+            ),
             borderRadius: BorderRadius.circular(8.0),
           ),
           enabledBorder: OutlineInputBorder(
-            borderSide:
-                BorderSide(color: CustomColors.appColorBlue, width: 1.0),
+            borderSide: BorderSide(
+              color: CustomColors.appColorBlue,
+              width: 1.0,
+            ),
             borderRadius: BorderRadius.circular(8.0),
           ),
           errorStyle: const TextStyle(
@@ -137,8 +153,11 @@ class TextInputCloseButton extends StatelessWidget {
       padding: const EdgeInsets.all(15),
       child: Container(
         decoration: BoxDecoration(
-            color: CustomColors.greyColor.withOpacity(0.7),
-            borderRadius: const BorderRadius.all(Radius.circular(5.0))),
+          color: CustomColors.greyColor.withOpacity(0.7),
+          borderRadius: const BorderRadius.all(
+            Radius.circular(5.0),
+          ),
+        ),
         height: 15,
         width: 15,
         child: const Center(

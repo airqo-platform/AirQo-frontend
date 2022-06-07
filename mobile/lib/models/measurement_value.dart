@@ -7,7 +7,10 @@ class MeasurementValue {
   factory MeasurementValue.fromJson(Map<String, dynamic> json) =>
       _$MeasurementValueFromJson(json);
 
-  MeasurementValue({required this.value, required this.calibratedValue});
+  MeasurementValue({
+    required this.value,
+    required this.calibratedValue,
+  });
   @JsonKey(required: false, defaultValue: -0.1, name: 'calibratedValue')
   double calibratedValue = -0.1;
 

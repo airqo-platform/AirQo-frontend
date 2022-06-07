@@ -15,9 +15,11 @@ import '../themes/colors.dart';
 import 'buttons.dart';
 
 class AppRefreshIndicator extends StatelessWidget {
-  const AppRefreshIndicator(
-      {Key? key, this.onRefresh, required this.sliverChildDelegate})
-      : super(key: key);
+  const AppRefreshIndicator({
+    Key? key,
+    this.onRefresh,
+    required this.sliverChildDelegate,
+  }) : super(key: key);
   final Future Function()? onRefresh;
   final SliverChildDelegate sliverChildDelegate;
 
@@ -40,8 +42,12 @@ class AppRefreshIndicator extends StatelessWidget {
 }
 
 class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
-  const AppTopBar(this.title, {Key? key, this.actions, this.centerTitle})
-      : super(key: key);
+  const AppTopBar(
+    this.title, {
+    Key? key,
+    this.actions,
+    this.centerTitle,
+  }) : super(key: key);
   final String title;
   final List<Widget>? actions;
   final bool? centerTitle;
@@ -55,7 +61,11 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: CustomColors.appBodyColor,
       automaticallyImplyLeading: false,
       leading: const Padding(
-        padding: EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
+        padding: EdgeInsets.only(
+          top: 6.5,
+          bottom: 6.5,
+          left: 16,
+        ),
         child: AppBackButton(),
       ),
       title: Text(
@@ -82,7 +92,11 @@ class AppIconTopBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: CustomColors.appBodyColor,
       automaticallyImplyLeading: false,
       leading: const Padding(
-        padding: EdgeInsets.only(top: 6.5, bottom: 6.5, left: 16),
+        padding: EdgeInsets.only(
+          top: 6.5,
+          bottom: 6.5,
+          left: 16,
+        ),
         child: AppBackButton(),
       ),
       title: SvgPicture.asset(
@@ -99,32 +113,49 @@ class AppIconTopBar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class AqiStringContainer extends StatelessWidget {
-  const AqiStringContainer({Key? key, required this.measurement})
-      : super(key: key);
+  const AqiStringContainer({
+    Key? key,
+    required this.measurement,
+  }) : super(key: key);
   final Measurement measurement;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
+      padding: const EdgeInsets.fromLTRB(
+        10.0,
+        2.0,
+        10.0,
+        2.0,
+      ),
       decoration: BoxDecoration(
-          borderRadius: const BorderRadius.all(Radius.circular(40.0)),
-          color: Pollutant.pm2_5
-              .color(measurement.getPm2_5Value())
-              .withOpacity(0.4),
-          border: Border.all(color: Colors.transparent)),
+        borderRadius: const BorderRadius.all(
+          Radius.circular(40.0),
+        ),
+        color: Pollutant.pm2_5
+            .color(
+              measurement.getPm2_5Value(),
+            )
+            .withOpacity(0.4),
+        border: Border.all(color: Colors.transparent),
+      ),
       child: AutoSizeText(
-          Pollutant.pm2_5
-              .stringValue(measurement.getPm2_5Value())
-              .trimEllipsis(),
-          maxFontSize: 14,
-          maxLines: 1,
-          textAlign: TextAlign.start,
-          overflow: TextOverflow.ellipsis,
-          style: CustomTextStyle.button2(context)?.copyWith(
-            color: Pollutant.pm2_5
-                .textColor(value: measurement.getPm2_5Value(), graph: true),
-          )),
+        Pollutant.pm2_5
+            .stringValue(
+              measurement.getPm2_5Value(),
+            )
+            .trimEllipsis(),
+        maxFontSize: 14,
+        maxLines: 1,
+        textAlign: TextAlign.start,
+        overflow: TextOverflow.ellipsis,
+        style: CustomTextStyle.button2(context)?.copyWith(
+          color: Pollutant.pm2_5.textColor(
+            value: measurement.getPm2_5Value(),
+            graph: true,
+          ),
+        ),
+      ),
     );
   }
 }
@@ -135,22 +166,23 @@ class KnowYourAirAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.transparent,
-        leading: const Padding(
-          padding: EdgeInsets.only(top: 12, bottom: 6.5, left: 16),
-          child: AppBackButton(),
+      centerTitle: true,
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      foregroundColor: Colors.transparent,
+      leading: const Padding(
+        padding: EdgeInsets.only(top: 12, bottom: 6.5, left: 16),
+        child: AppBackButton(),
+      ),
+      title: Padding(
+        padding: const EdgeInsets.only(top: 10),
+        child: Text(
+          'Know Your Air',
+          style:
+              CustomTextStyle.headline8(context)?.copyWith(color: Colors.white),
         ),
-        title: Padding(
-          padding: const EdgeInsets.only(top: 10),
-          child: Text(
-            'Know Your Air',
-            style: CustomTextStyle.headline8(context)
-                ?.copyWith(color: Colors.white),
-          ),
-        ));
+      ),
+    );
   }
 
   @override
@@ -158,8 +190,10 @@ class KnowYourAirAppBar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class MiniAnalyticsAvatar extends StatelessWidget {
-  const MiniAnalyticsAvatar({Key? key, required this.measurement})
-      : super(key: key);
+  const MiniAnalyticsAvatar({
+    Key? key,
+    required this.measurement,
+  }) : super(key: key);
   final Measurement measurement;
 
   @override
@@ -168,9 +202,14 @@ class MiniAnalyticsAvatar extends StatelessWidget {
       height: 40,
       width: 40,
       decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Pollutant.pm2_5.color(measurement.getPm2_5Value()),
-          border: Border.all(color: Colors.transparent)),
+        shape: BoxShape.circle,
+        color: Pollutant.pm2_5.color(
+          measurement.getPm2_5Value(),
+        ),
+        border: Border.all(
+          color: Colors.transparent,
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -180,29 +219,33 @@ class MiniAnalyticsAvatar extends StatelessWidget {
             semanticsLabel: 'Pm2.5',
             height: 5,
             width: 32.45,
-            color:
-                Pollutant.pm2_5.textColor(value: measurement.getPm2_5Value()),
+            color: Pollutant.pm2_5.textColor(
+              value: measurement.getPm2_5Value(),
+            ),
           ),
           Text(
             measurement.getPm2_5Value().toStringAsFixed(0),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: GoogleFonts.robotoMono(
-                color: Pollutant.pm2_5
-                    .textColor(value: measurement.getPm2_5Value()),
-                fontStyle: FontStyle.normal,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                height: 1,
-                letterSpacing: 16 * -0.06),
+              color: Pollutant.pm2_5.textColor(
+                value: measurement.getPm2_5Value(),
+              ),
+              fontStyle: FontStyle.normal,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              height: 1,
+              letterSpacing: 16 * -0.06,
+            ),
           ),
           SvgPicture.asset(
             'assets/icon/unit.svg',
             semanticsLabel: 'Unit',
             height: 5,
             width: 32,
-            color:
-                Pollutant.pm2_5.textColor(value: measurement.getPm2_5Value()),
+            color: Pollutant.pm2_5.textColor(
+              value: measurement.getPm2_5Value(),
+            ),
           ),
           const Spacer(),
         ],

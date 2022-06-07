@@ -11,13 +11,19 @@ import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/custom_shimmer.dart';
+import '../auth/change_email_screen.dart';
+import '../auth/change_phone_screen.dart';
+import '../auth/email_reauthenticate_screen.dart';
 import '../auth/phone_auth_widget.dart';
+import '../auth/phone_reauthenticate_screen.dart';
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
 import '../settings/settings_page.dart';
 
 class LogoutButton extends StatelessWidget {
-  const LogoutButton({Key? key}) : super(key: key);
+  const LogoutButton({
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -25,12 +31,18 @@ class LogoutButton extends StatelessWidget {
       height: 48,
       padding: const EdgeInsets.only(top: 12, bottom: 12),
       decoration: BoxDecoration(
-          color: CustomColors.appColorBlue.withOpacity(0.1),
-          borderRadius: const BorderRadius.all(Radius.circular(8.0))),
+        color: CustomColors.appColorBlue.withOpacity(0.1),
+        borderRadius: const BorderRadius.all(
+          Radius.circular(8.0),
+        ),
+      ),
       child: Center(
         child: Text(
           'Log Out',
-          style: TextStyle(fontSize: 16, color: CustomColors.appColorBlue),
+          style: TextStyle(
+            fontSize: 16,
+            color: CustomColors.appColorBlue,
+          ),
         ),
       ),
     );
@@ -44,8 +56,11 @@ class SignUpSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(16.0))),
+        color: Colors.white,
+        borderRadius: BorderRadius.all(
+          Radius.circular(16.0),
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -69,45 +84,54 @@ class SignUpSection extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(left: 55.0, right: 55.0),
             child: AutoSizeText(
-                'Create your account today and enjoy air quality'
-                ' updates and recommendations.',
-                maxLines: 6,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.subtitle2?.copyWith(
-                    color: CustomColors.appColorBlack.withOpacity(0.4))),
+              'Create your account today and enjoy air quality'
+              ' updates and recommendations.',
+              maxLines: 6,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.subtitle2?.copyWith(
+                    color: CustomColors.appColorBlack.withOpacity(0.4),
+                  ),
+            ),
           ),
           const SizedBox(
             height: 24,
           ),
           GestureDetector(
             onTap: () async {
-              await Navigator.pushAndRemoveUntil(context,
-                  MaterialPageRoute(builder: (context) {
-                return const PhoneLoginWidget();
-              }), (r) => false);
+              await Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) {
+                  return const PhoneLoginWidget();
+                }),
+                (r) => false,
+              );
             },
             child: Padding(
               padding: const EdgeInsets.only(left: 32, right: 32),
               child: Container(
-                  constraints: const BoxConstraints(minWidth: double.infinity),
-                  decoration: BoxDecoration(
-                      color: CustomColors.appColorBlue,
-                      borderRadius:
-                          const BorderRadius.all(Radius.circular(8.0))),
-                  child: const Center(
-                    child: Padding(
-                      padding: EdgeInsets.only(top: 12, bottom: 14),
-                      child: Text(
-                        'Sign Up',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            height: 22 / 14,
-                            letterSpacing: 16 * -0.022),
+                constraints: const BoxConstraints(minWidth: double.infinity),
+                decoration: BoxDecoration(
+                  color: CustomColors.appColorBlue,
+                  borderRadius: const BorderRadius.all(
+                    Radius.circular(8.0),
+                  ),
+                ),
+                child: const Center(
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 12, bottom: 14),
+                    child: Text(
+                      'Sign Up',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        height: 22 / 14,
+                        letterSpacing: 16 * -0.022,
                       ),
                     ),
-                  )),
+                  ),
+                ),
+              ),
             ),
           ),
           const SizedBox(
@@ -126,26 +150,38 @@ class SettingsButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () async {
-        await Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return const SettingsPage();
-        }));
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) {
+              return const SettingsPage();
+            },
+          ),
+        );
       },
       child: Container(
         height: 56,
         decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.all(Radius.circular(8.0))),
+          color: Colors.white,
+          borderRadius: BorderRadius.all(
+            Radius.circular(8.0),
+          ),
+        ),
         child: ListTile(
           leading: Container(
-              height: 40,
-              width: 40,
-              decoration: BoxDecoration(
-                  color: CustomColors.appColorBlue.withOpacity(0.15),
-                  shape: BoxShape.circle),
-              child: Center(
-                child: SvgPicture.asset('assets/icon/cog.svg',
-                    color: CustomColors.appColorBlue),
-              )),
+            height: 40,
+            width: 40,
+            decoration: BoxDecoration(
+              color: CustomColors.appColorBlue.withOpacity(0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: SvgPicture.asset(
+                'assets/icon/cog.svg',
+                color: CustomColors.appColorBlue,
+              ),
+            ),
+          ),
           title: AutoSizeText(
             'Settings',
             overflow: TextOverflow.ellipsis,
@@ -157,8 +193,54 @@ class SettingsButton extends StatelessWidget {
   }
 }
 
+class DummyProfilePicture extends StatelessWidget {
+  const DummyProfilePicture({Key? key, required this.text}) : super(key: key);
+  final String text;
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        RotationTransition(
+          turns: const AlwaysStoppedAnimation(-5 / 360),
+          child: Container(
+            height: 40,
+            width: 40,
+            padding: const EdgeInsets.all(2.0),
+            decoration: BoxDecoration(
+              color: CustomColors.appPicColor,
+              shape: BoxShape.rectangle,
+              borderRadius: const BorderRadius.all(
+                Radius.circular(15.0),
+              ),
+            ),
+          ),
+        ),
+        Container(
+          height: 40,
+          width: 40,
+          padding: const EdgeInsets.all(2.0),
+          color: Colors.transparent,
+          child: Center(
+            child: Text(
+              text,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                fontSize: 17.0,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class ProfilePicture extends StatelessWidget {
-  const ProfilePicture({Key? key, required this.userDetails}) : super(key: key);
+  const ProfilePicture({
+    Key? key,
+    required this.userDetails,
+  }) : super(key: key);
   final Profile userDetails;
 
   @override
@@ -172,11 +254,14 @@ class ProfilePicture extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(2.0),
               decoration: BoxDecoration(
-                  color: userDetails.photoUrl == ''
-                      ? CustomColors.appPicColor
-                      : Colors.transparent,
-                  shape: BoxShape.rectangle,
-                  borderRadius: const BorderRadius.all(Radius.circular(27.0))),
+                color: userDetails.photoUrl == ''
+                    ? CustomColors.appPicColor
+                    : Colors.transparent,
+                shape: BoxShape.rectangle,
+                borderRadius: const BorderRadius.all(
+                  Radius.circular(27.0),
+                ),
+              ),
               child: Container(
                 height: 40,
                 width: 40,
@@ -188,9 +273,10 @@ class ProfilePicture extends StatelessWidget {
           Text(
             userDetails.getInitials(),
             style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                fontSize: 17.0),
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              fontSize: 17.0,
+            ),
           ),
         if (userDetails.photoUrl != '')
           Container(
@@ -214,12 +300,12 @@ class ProfilePicture extends StatelessWidget {
 }
 
 class CardSection extends StatelessWidget {
-  const CardSection(
-      {Key? key,
-      required this.icon,
-      required this.iconColor,
-      required this.text})
-      : super(key: key);
+  const CardSection({
+    Key? key,
+    required this.icon,
+    required this.iconColor,
+    required this.text,
+  }) : super(key: key);
   final String icon;
   final String text;
   final Color? iconColor;
@@ -229,18 +315,23 @@ class CardSection extends StatelessWidget {
     return Container(
       height: 56,
       decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(8.0))),
+        color: Colors.white,
+        borderRadius: BorderRadius.all(
+          Radius.circular(8.0),
+        ),
+      ),
       child: ListTile(
         leading: Container(
-            height: 40,
-            width: 40,
-            decoration: BoxDecoration(
-                color: CustomColors.appColorBlue.withOpacity(0.15),
-                shape: BoxShape.circle),
-            child: Center(
-              child: SvgPicture.asset(icon, color: iconColor),
-            )),
+          height: 40,
+          width: 40,
+          decoration: BoxDecoration(
+            color: CustomColors.appColorBlue.withOpacity(0.15),
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: SvgPicture.asset(icon, color: iconColor),
+          ),
+        ),
         title: AutoSizeText(
           text,
           overflow: TextOverflow.ellipsis,
@@ -265,67 +356,90 @@ class _ProfileSectionState extends State<ProfileSection> {
     return Container(
       padding: const EdgeInsets.only(top: 10, bottom: 10),
       decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(8.0))),
+        color: Colors.white,
+        borderRadius: BorderRadius.all(
+          Radius.circular(8.0),
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           GestureDetector(
             onTap: () async {
-              await Navigator.push(context,
-                  MaterialPageRoute(builder: (context) {
-                return const ProfileEditPage();
-              }));
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) {
+                    return const ProfileEditPage();
+                  },
+                ),
+              );
             },
             child: CardSection(
-                text: 'Profile',
-                icon: 'assets/icon/profile.svg',
-                iconColor: CustomColors.appColorBlue),
+              text: 'Profile',
+              icon: 'assets/icon/profile.svg',
+              iconColor: CustomColors.appColorBlue,
+            ),
           ),
           Divider(
             color: CustomColors.appBodyColor,
           ),
           GestureDetector(
             onTap: () async {
-              await Navigator.push(context,
-                  MaterialPageRoute(builder: (context) {
-                return const FavouritePlaces();
-              }));
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) {
+                    return const FavouritePlaces();
+                  },
+                ),
+              );
             },
             child: const CardSection(
-                text: 'Favorites',
-                icon: 'assets/icon/heart.svg',
-                iconColor: null),
+              text: 'Favorites',
+              icon: 'assets/icon/heart.svg',
+              iconColor: null,
+            ),
           ),
           Divider(
             color: CustomColors.appBodyColor,
           ),
           GestureDetector(
             onTap: () async {
-              await Navigator.push(context,
-                  MaterialPageRoute(builder: (context) {
-                return const ForYouPage();
-              }));
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) {
+                    return const ForYouPage();
+                  },
+                ),
+              );
             },
             child: CardSection(
-                text: 'For you',
-                icon: 'assets/icon/sparkles.svg',
-                iconColor: CustomColors.appColorBlue),
+              text: 'For you',
+              icon: 'assets/icon/sparkles.svg',
+              iconColor: CustomColors.appColorBlue,
+            ),
           ),
           Divider(
             color: CustomColors.appBodyColor,
           ),
           GestureDetector(
             onTap: () async {
-              await Navigator.push(context,
-                  MaterialPageRoute(builder: (context) {
-                return const SettingsPage();
-              }));
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) {
+                    return const SettingsPage();
+                  },
+                ),
+              );
             },
             child: CardSection(
-                text: 'Settings',
-                icon: 'assets/icon/cog.svg',
-                iconColor: CustomColors.appColorBlue),
+              text: 'Settings',
+              icon: 'assets/icon/cog.svg',
+              iconColor: CustomColors.appColorBlue,
+            ),
           ),
         ],
       ),
@@ -334,9 +448,11 @@ class _ProfileSectionState extends State<ProfileSection> {
 }
 
 class EditProfilePicSection extends StatelessWidget {
-  const EditProfilePicSection(
-      {Key? key, required this.profile, required this.getFromGallery})
-      : super(key: key);
+  const EditProfilePicSection({
+    Key? key,
+    required this.profile,
+    required this.getFromGallery,
+  }) : super(key: key);
   final Profile profile;
   final VoidCallback getFromGallery;
 
@@ -355,10 +471,12 @@ class EditProfilePicSection extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(2.0),
                       decoration: BoxDecoration(
-                          color: CustomColors.appPicColor,
-                          shape: BoxShape.rectangle,
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(35.0))),
+                        color: CustomColors.appPicColor,
+                        shape: BoxShape.rectangle,
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(35.0),
+                        ),
+                      ),
                       child: Container(
                         height: 88,
                         width: 88,
@@ -379,35 +497,39 @@ class EditProfilePicSection extends StatelessWidget {
                         radius: 44,
                         backgroundColor: CustomColors.appPicColor,
                         foregroundColor: CustomColors.appPicColor,
-                        backgroundImage: FileImage(File(profile.photoUrl)),
+                        backgroundImage: FileImage(
+                          File(profile.photoUrl),
+                        ),
                       ),
             if (profile.photoUrl == '')
               const Text(
                 'A',
                 style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    fontSize: 30),
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  fontSize: 30,
+                ),
               ),
             Positioned(
-                bottom: 0,
-                right: 0,
-                child: GestureDetector(
-                  onTap: getFromGallery,
-                  child: Container(
-                    padding: const EdgeInsets.all(2.0),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.white),
-                      color: CustomColors.appColorBlue,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.add,
-                      size: 22,
-                      color: Colors.white,
-                    ),
+              bottom: 0,
+              right: 0,
+              child: GestureDetector(
+                onTap: getFromGallery,
+                child: Container(
+                  padding: const EdgeInsets.all(2.0),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.white),
+                    color: CustomColors.appColorBlue,
+                    shape: BoxShape.circle,
                   ),
-                )),
+                  child: const Icon(
+                    Icons.add,
+                    size: 22,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ],
@@ -431,45 +553,214 @@ class EditCredentialsIcon extends StatelessWidget {
 }
 
 class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const EditProfileAppBar({Key? key, required this.updateProfile})
-      : super(key: key);
+  const EditProfileAppBar({
+    Key? key,
+    required this.updateProfile,
+    required this.hasChangedProfile,
+  }) : super(key: key);
   final VoidCallback updateProfile;
+  final bool hasChangedProfile;
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
-        toolbarHeight: 72,
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: CustomColors.appBodyColor,
-        automaticallyImplyLeading: false,
-        title: Row(
-          children: [
-            const AppBackButton(),
-            const Spacer(),
-            Text(
-              'Edit Profile',
-              style: CustomTextStyle.headline8(context),
+      toolbarHeight: 72,
+      centerTitle: true,
+      elevation: 0,
+      backgroundColor: CustomColors.appBodyColor,
+      automaticallyImplyLeading: false,
+      title: Row(
+        children: [
+          const AppBackButton(),
+          const Spacer(),
+          Text(
+            'Edit Profile',
+            style: CustomTextStyle.headline8(context),
+          ),
+          const Spacer(),
+          GestureDetector(
+            onTap: updateProfile,
+            child: Text(
+              'Save',
+              style: Theme.of(context).textTheme.subtitle2?.copyWith(
+                    color: hasChangedProfile
+                        ? CustomColors.appColorBlue
+                        : CustomColors.appColorBlack.withOpacity(0.2),
+                  ),
             ),
-            const Spacer(),
-            GestureDetector(
-              onTap: updateProfile,
-              child: Text('Save',
-                  style: Theme.of(context).textTheme.subtitle2?.copyWith(
-                      color: CustomColors.appColorBlack.withOpacity(0.2))),
-            ),
-          ],
-        ));
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Size get preferredSize => const Size.fromHeight(60);
 }
 
+class ProfilePhoneNumberEditFields extends StatelessWidget {
+  const ProfilePhoneNumberEditFields({
+    Key? key,
+    required this.profile,
+  }) : super(key: key);
+
+  final Profile profile;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Visibility(
+          visible: profile.phoneNumber.isNotEmpty,
+          child: Text(
+            'Phone Number',
+            style: TextStyle(
+              fontSize: 12,
+              color: CustomColors.inactiveColor,
+            ),
+          ),
+        ),
+        Visibility(
+          visible: profile.phoneNumber.isNotEmpty,
+          child: const SizedBox(
+            height: 4,
+          ),
+        ),
+        Visibility(
+          visible: profile.phoneNumber.isNotEmpty,
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width,
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                  child: TextFormField(
+                    initialValue: profile.phoneNumber,
+                    enableSuggestions: false,
+                    readOnly: true,
+                    style: TextStyle(
+                      color: CustomColors.inactiveColor,
+                    ),
+                    decoration: inactiveFormFieldDecoration(),
+                  ),
+                ),
+                const SizedBox(
+                  width: 16,
+                ),
+                GestureDetector(
+                  onTap: () async {
+                    final authResponse = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) {
+                          return PhoneReAuthenticateScreen(profile);
+                        },
+                      ),
+                    );
+                    if (!authResponse) {
+                      return;
+                    }
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) {
+                          return const ChangePhoneScreen();
+                        },
+                      ),
+                    );
+                  },
+                  child: const EditCredentialsIcon(),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class ProfileEmailEditFields extends StatelessWidget {
+  const ProfileEmailEditFields({
+    Key? key,
+    required this.profile,
+  }) : super(key: key);
+
+  final Profile profile;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Email',
+          style: TextStyle(
+            fontSize: 12,
+            color: CustomColors.inactiveColor,
+          ),
+        ),
+        const SizedBox(
+          height: 4,
+        ),
+        SizedBox(
+          width: MediaQuery.of(context).size.width,
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                child: TextFormField(
+                  initialValue: profile.emailAddress,
+                  enableSuggestions: false,
+                  readOnly: true,
+                  style: TextStyle(
+                    color: CustomColors.inactiveColor,
+                  ),
+                  decoration: inactiveFormFieldDecoration(),
+                ),
+              ),
+              const SizedBox(
+                width: 16,
+              ),
+              GestureDetector(
+                onTap: () async {
+                  final authResponse = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return EmailReAuthenticateScreen(profile);
+                      },
+                    ),
+                  );
+                  if (!authResponse) {
+                    return;
+                  }
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return const ChangeEmailScreen();
+                      },
+                    ),
+                  );
+                },
+                child: const EditCredentialsIcon(),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class NameEditField extends StatelessWidget {
-  const NameEditField(
-      {Key? key, required this.value, required this.valueChange})
-      : super(key: key);
+  const NameEditField({
+    Key? key,
+    required this.value,
+    required this.valueChange,
+  }) : super(key: key);
   final String value;
   final Function(String) valueChange;
 
@@ -507,6 +798,7 @@ class NameEditField extends StatelessWidget {
         if (value == null || value.isEmpty) {
           return 'Required';
         }
+
         return null;
       },
     );

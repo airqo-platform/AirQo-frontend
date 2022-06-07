@@ -6,256 +6,344 @@ const googleMapsTheme = [
   {
     'elementType': 'geometry.fill',
     'stylers': [
-      {'color': '#edf3ff'}
-    ]
+      {
+        'color': '#edf3ff',
+      },
+    ],
   },
   {
     'elementType': 'geometry.stroke',
     'stylers': [
-      {'color': '#edf3ff'}
-    ]
+      {
+        'color': '#edf3ff',
+      },
+    ],
   },
   {
     'elementType': 'labels.icon',
     'stylers': [
-      {'visibility': 'off'}
-    ]
+      {
+        'visibility': 'off',
+      },
+    ],
   },
   {
     'elementType': 'labels.text.fill',
     'stylers': [
-      {'color': '#1d62f7'}
-    ]
+      {
+        'color': '#1d62f7',
+      },
+    ],
   },
   {
     'elementType': 'labels.text.stroke',
     'stylers': [
-      {'color': '#fafafa'}
-    ]
+      {
+        'color': '#fafafa',
+      },
+    ],
   },
   {
     'featureType': 'administrative.country',
     'elementType': 'geometry.fill',
     'stylers': [
-      {'color': '#578afa'}
-    ]
+      {
+        'color': '#578afa',
+      },
+    ],
   },
   {
     'featureType': 'administrative.country',
     'elementType': 'geometry.stroke',
     'stylers': [
-      {'color': '#578afa'}
-    ]
+      {
+        'color': '#578afa',
+      },
+    ],
   },
   {
     'featureType': 'administrative.country',
     'elementType': 'labels.text',
     'stylers': [
-      {'color': '#064ce5'},
-      {'saturation': 5}
-    ]
+      {
+        'color': '#064ce5',
+      },
+      {
+        'saturation': 5,
+      },
+    ],
   },
   {
     'featureType': 'administrative.country',
     'elementType': 'labels.text.fill',
     'stylers': [
-      {'color': '#064ce5'}
-    ]
+      {
+        'color': '#064ce5',
+      },
+    ],
   },
   {
     'featureType': 'administrative.country',
     'elementType': 'labels.text.stroke',
     'stylers': [
-      {'color': '#064ce5'},
-      {'visibility': 'off'}
-    ]
+      {
+        'color': '#064ce5',
+      },
+      {
+        'visibility': 'off',
+      },
+    ],
   },
   {
     'featureType': 'administrative.land_parcel',
     'stylers': [
-      {'visibility': 'off'}
-    ]
+      {
+        'visibility': 'off',
+      },
+    ],
   },
   {
     'featureType': 'administrative.land_parcel',
     'elementType': 'geometry.fill',
     'stylers': [
-      {'color': '#578afa'}
-    ]
+      {
+        'color': '#578afa',
+      },
+    ],
   },
   {
     'featureType': 'administrative.land_parcel',
     'elementType': 'geometry.stroke',
     'stylers': [
-      {'color': '#578afa'}
-    ]
+      {
+        'color': '#578afa',
+      },
+    ],
   },
   {
     'featureType': 'administrative.locality',
     'elementType': 'geometry.fill',
     'stylers': [
-      {'color': '#578afa'}
-    ]
+      {
+        'color': '#578afa',
+      },
+    ],
   },
   {
     'featureType': 'administrative.locality',
     'elementType': 'geometry.stroke',
     'stylers': [
-      {'color': '#578afa'}
-    ]
+      {
+        'color': '#578afa',
+      },
+    ],
   },
   {
     'featureType': 'administrative.neighborhood',
     'stylers': [
-      {'visibility': 'off'}
-    ]
+      {
+        'visibility': 'off',
+      },
+    ],
   },
   {
     'featureType': 'administrative.neighborhood',
     'elementType': 'geometry.fill',
     'stylers': [
-      {'color': '#578afa'}
-    ]
+      {
+        'color': '#578afa',
+      },
+    ],
   },
   {
     'featureType': 'administrative.neighborhood',
     'elementType': 'geometry.stroke',
     'stylers': [
-      {'color': '#578afa'}
-    ]
+      {
+        'color': '#578afa',
+      },
+    ],
   },
   {
     'featureType': 'administrative.province',
     'elementType': 'geometry.fill',
     'stylers': [
-      {'color': '#578afa'}
-    ]
+      {
+        'color': '#578afa',
+      },
+    ],
   },
   {
     'featureType': 'administrative.province',
     'elementType': 'geometry.stroke',
     'stylers': [
-      {'color': '#578afa'}
-    ]
+      {
+        'color': '#578afa',
+      },
+    ],
   },
   {
     'featureType': 'landscape.man_made',
     'elementType': 'geometry.fill',
     'stylers': [
-      {'color': '#578afa'},
-      {'visibility': 'off'}
-    ]
+      {
+        'color': '#578afa',
+      },
+      {
+        'visibility': 'off',
+      },
+    ],
   },
   {
     'featureType': 'landscape.man_made',
     'elementType': 'geometry.stroke',
     'stylers': [
-      {'color': '#578afa'}
-    ]
+      {
+        'color': '#578afa',
+      },
+    ],
   },
   {
     'featureType': 'landscape.natural.landcover',
     'stylers': [
-      {'color': '#fafafa'}
-    ]
+      {
+        'color': '#fafafa',
+      },
+    ],
   },
   {
     'featureType': 'poi',
     'elementType': 'labels.text',
     'stylers': [
-      {'visibility': 'off'}
-    ]
+      {
+        'visibility': 'off',
+      },
+    ],
   },
   {
     'featureType': 'poi.business',
     'stylers': [
-      {'visibility': 'off'}
-    ]
+      {
+        'visibility': 'off',
+      },
+    ],
   },
   {
     'featureType': 'poi.park',
     'elementType': 'geometry.fill',
     'stylers': [
-      {'color': '#c3fed3'},
-      {'weight': 0.5}
-    ]
+      {
+        'color': '#c3fed3',
+      },
+      {
+        'weight': 0.5,
+      },
+    ],
   },
   {
     'featureType': 'road',
     'stylers': [
-      {'color': '#ebf1f8'}
-    ]
+      {
+        'color': '#ebf1f8',
+      },
+    ],
   },
   {
     'featureType': 'road',
     'elementType': 'geometry.fill',
     'stylers': [
-      {'weight': 0.5}
-    ]
+      {
+        'weight': 0.5,
+      },
+    ],
   },
   {
     'featureType': 'road',
     'elementType': 'geometry.stroke',
     'stylers': [
-      {'color': '#c5d7fb'},
-      {'weight': 0.5}
-    ]
+      {
+        'color': '#c5d7fb',
+      },
+      {
+        'weight': 0.5,
+      },
+    ],
   },
   {
     'featureType': 'road',
     'elementType': 'labels',
     'stylers': [
-      {'visibility': 'off'}
-    ]
+      {
+        'visibility': 'off',
+      },
+    ],
   },
   {
     'featureType': 'road',
     'elementType': 'labels.icon',
     'stylers': [
-      {'visibility': 'off'}
-    ]
+      {
+        'visibility': 'off',
+      },
+    ],
   },
   {
     'featureType': 'road.arterial',
     'elementType': 'labels',
     'stylers': [
-      {'visibility': 'off'}
-    ]
+      {
+        'visibility': 'off',
+      },
+    ],
   },
   {
     'featureType': 'road.highway',
     'elementType': 'labels',
     'stylers': [
-      {'visibility': 'off'}
-    ]
+      {
+        'visibility': 'off',
+      },
+    ],
   },
   {
     'featureType': 'road.local',
     'stylers': [
-      {'visibility': 'off'}
-    ]
+      {
+        'visibility': 'off',
+      },
+    ],
   },
   {
     'featureType': 'transit',
     'stylers': [
-      {'visibility': 'off'}
-    ]
+      {
+        'visibility': 'off',
+      },
+    ],
   },
   {
     'featureType': 'water',
     'stylers': [
-      {'color': '#a9c2f9'},
-      {'visibility': 'simplified'}
-    ]
+      {
+        'color': '#a9c2f9',
+      },
+      {
+        'visibility': 'simplified',
+      },
+    ],
   },
   {
     'featureType': 'water',
     'elementType': 'labels.text',
     'stylers': [
-      {'color': '#1d62f7'},
-      {'visibility': 'off'}
-    ]
-  }
+      {
+        'color': '#1d62f7',
+      },
+      {
+        'visibility': 'off',
+      },
+    ],
+  },
 ];
 
 ThemeData customTheme() {
@@ -271,11 +359,12 @@ ThemeData customTheme() {
     visualDensity: VisualDensity.adaptivePlatformDensity,
     textTheme: TextTheme(
       headline4: TextStyle(
-          fontSize: 48.0,
-          fontWeight: FontWeight.bold,
-          fontStyle: FontStyle.normal,
-          color: CustomColors.appColorBlack,
-          height: 56.0 / 48.0),
+        fontSize: 48.0,
+        fontWeight: FontWeight.bold,
+        fontStyle: FontStyle.normal,
+        color: CustomColors.appColorBlack,
+        height: 56.0 / 48.0,
+      ),
       headline6: TextStyle(
         fontSize: 32.0,
         fontWeight: FontWeight.bold,
@@ -306,12 +395,13 @@ ThemeData customTheme() {
         height: 16.0 / 12.0,
       ),
       overline: TextStyle(
-          fontSize: 8.0,
-          fontWeight: FontWeight.w500,
-          fontStyle: FontStyle.normal,
-          color: CustomColors.appColorBlack,
-          height: 12.0 / 8.0,
-          letterSpacing: 16 * -0.24),
+        fontSize: 8.0,
+        fontWeight: FontWeight.w500,
+        fontStyle: FontStyle.normal,
+        color: CustomColors.appColorBlack,
+        height: 12.0 / 8.0,
+        letterSpacing: 16 * -0.24,
+      ),
       subtitle1: TextStyle(
         fontSize: 16.0,
         fontWeight: FontWeight.normal,
@@ -339,7 +429,9 @@ ThemeData customTheme() {
     iconTheme: IconThemeData(
       color: CustomColors.appColor,
     ),
-    appBarTheme: const AppBarTheme(elevation: 0.0),
+    appBarTheme: const AppBarTheme(
+      elevation: 0.0,
+    ),
   );
 }
 
@@ -364,11 +456,12 @@ class CustomTextStyle {
 
   static TextStyle? newNotification(BuildContext context) {
     return Theme.of(context).textTheme.headline6?.copyWith(
-        fontSize: 10.0,
-        fontWeight: FontWeight.w500,
-        fontStyle: FontStyle.normal,
-        height: 13.0 / 10.0,
-        color: CustomColors.appColorBlue);
+          fontSize: 10.0,
+          fontWeight: FontWeight.w500,
+          fontStyle: FontStyle.normal,
+          height: 13.0 / 10.0,
+          color: CustomColors.appColorBlue,
+        );
   }
 
   static TextStyle? button2(BuildContext context) {
@@ -397,19 +490,21 @@ class CustomTextStyle {
 
   static TextStyle? headline10(BuildContext context) {
     return Theme.of(context).textTheme.headline6?.copyWith(
-        fontSize: 16.0,
-        fontWeight: FontWeight.bold,
-        fontStyle: FontStyle.normal,
-        height: 20.0 / 16.0);
+          fontSize: 16.0,
+          fontWeight: FontWeight.bold,
+          fontStyle: FontStyle.normal,
+          height: 20.0 / 16.0,
+        );
   }
 
   static TextStyle? headline11(BuildContext context) {
     return Theme.of(context).textTheme.headline6?.copyWith(
-        fontSize: 28.0,
-        fontWeight: FontWeight.bold,
-        fontStyle: FontStyle.normal,
-        letterSpacing: 16 * -0.01,
-        height: 32.0 / 28.0);
+          fontSize: 28.0,
+          fontWeight: FontWeight.bold,
+          fontStyle: FontStyle.normal,
+          letterSpacing: 16 * -0.01,
+          height: 32.0 / 28.0,
+        );
   }
 
   static TextStyle? headline7(BuildContext context) {
@@ -432,18 +527,20 @@ class CustomTextStyle {
 
   static TextStyle? headline9(BuildContext context) {
     return Theme.of(context).textTheme.headline6?.copyWith(
-        fontSize: 20.0,
-        fontWeight: FontWeight.bold,
-        fontStyle: FontStyle.normal,
-        height: 24.0 / 20.0);
+          fontSize: 20.0,
+          fontWeight: FontWeight.bold,
+          fontStyle: FontStyle.normal,
+          height: 24.0 / 20.0,
+        );
   }
 
   static TextStyle? overline1(BuildContext context) {
     return Theme.of(context).textTheme.headline6?.copyWith(
-        fontWeight: FontWeight.normal,
-        fontStyle: FontStyle.normal,
-        fontSize: 10.0,
-        height: 14.0 / 10.0,
-        color: Colors.white);
+          fontWeight: FontWeight.normal,
+          fontStyle: FontStyle.normal,
+          fontSize: 10.0,
+          height: 14.0 / 10.0,
+          color: Colors.white,
+        );
   }
 }

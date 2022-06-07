@@ -15,18 +15,18 @@ class AppNotification extends HiveObject {
   factory AppNotification.fromJson(Map<String, dynamic> json) =>
       _$AppNotificationFromJson(json);
 
-  AppNotification(
-      {required this.id,
-      required this.title,
-      required this.subTitle,
-      required this.link,
-      required this.icon,
-      required this.image,
-      required this.body,
-      required this.read,
-      required this.type,
-      DateTime? dateTime})
-      : dateTime = dateTime ?? DateTime.now();
+  AppNotification({
+    required this.id,
+    required this.title,
+    required this.subTitle,
+    required this.link,
+    required this.icon,
+    required this.image,
+    required this.body,
+    required this.read,
+    required this.type,
+    DateTime? dateTime,
+  }) : dateTime = dateTime ?? DateTime.now();
   @HiveField(1)
   String id;
 
@@ -67,17 +67,22 @@ class AppNotification extends HiveObject {
   static AppNotification? parseAppNotification(dynamic jsonBody) {
     try {
       final notification = AppNotification.fromJson(jsonBody);
+
       return notification;
     } catch (exception, stackTrace) {
       logException(exception, stackTrace);
+
       return null;
     }
   }
 
   static List<AppNotification> sort(List<AppNotification> notifications) {
-    notifications.sort((x, y) {
-      return -(x.dateTime.compareTo(y.dateTime));
-    });
+    notifications.sort(
+      (x, y) {
+        return -(x.dateTime.compareTo(y.dateTime));
+      },
+    );
+
     return notifications;
   }
 

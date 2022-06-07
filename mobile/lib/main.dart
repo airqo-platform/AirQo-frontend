@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:app/screens/on_boarding/splash_screen_v2.dart';
+import 'package:app/screens/on_boarding/splash_screen.dart';
 import 'package:app/services/hive_service.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/services/notification_service.dart';
@@ -45,7 +45,9 @@ void main() async {
           ..enableOutOfMemoryTracking = true
           ..tracesSampleRate = 1.0;
       },
-      appRunner: () => runApp(AirQoApp()),
+      appRunner: () => runApp(
+        AirQoApp(),
+      ),
     );
   } else {
     runApp(AirQoApp());
@@ -53,14 +55,18 @@ void main() async {
 }
 
 class AirQoApp extends StatelessWidget {
-  AirQoApp({Key? key}) : super(key: key);
+  AirQoApp({
+    Key? key,
+  }) : super(key: key);
   final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => PlaceDetailsModel()),
+        ChangeNotifierProvider(
+          create: (context) => PlaceDetailsModel(),
+        ),
       ],
       builder: (context, child) {
         return MaterialApp(
@@ -71,7 +77,7 @@ class AirQoApp extends StatelessWidget {
           ],
           title: 'AirQo',
           theme: customTheme(),
-          home: const SplashScreenV2(),
+          home: const SplashScreen(),
         );
       },
     );

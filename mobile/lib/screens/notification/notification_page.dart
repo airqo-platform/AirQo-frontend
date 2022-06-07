@@ -21,38 +21,51 @@ class _NotificationPageState extends State<NotificationPage> {
     return Scaffold(
       appBar: const AppTopBar('Notifications'),
       body: Container(
-          color: CustomColors.appBodyColor,
-          child: ValueListenableBuilder<Box>(
-            valueListenable: Hive.box<AppNotification>(HiveBox.appNotifications)
-                .listenable(),
-            builder: (context, box, widget) {
-              if (box.isEmpty) {
-                return const EmptyNotifications();
-              }
-              final notifications = box.values.toList().cast<AppNotification>();
-              return Container(
-                  color: CustomColors.appBodyColor,
-                  child: AppRefreshIndicator(
-                      sliverChildDelegate:
-                          SliverChildBuilderDelegate((context, index) {
-                        return Padding(
-                            padding: EdgeInsets.fromLTRB(
-                                16, index == 0 ? 24.0 : 4, 16, 4),
-                            child: GestureDetector(
-                              onTap: () {
-                                Navigator.push(context,
-                                    MaterialPageRoute(builder: (context) {
-                                  return NotificationView(
-                                      appNotification: notifications[index]);
-                                }));
+        color: CustomColors.appBodyColor,
+        child: ValueListenableBuilder<Box>(
+          valueListenable:
+              Hive.box<AppNotification>(HiveBox.appNotifications).listenable(),
+          builder: (context, box, widget) {
+            if (box.isEmpty) {
+              return const EmptyNotifications();
+            }
+            final notifications = box.values.toList().cast<AppNotification>();
+
+            return Container(
+              color: CustomColors.appBodyColor,
+              child: AppRefreshIndicator(
+                sliverChildDelegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    return Padding(
+                      padding:
+                          EdgeInsets.fromLTRB(16, index == 0 ? 24.0 : 4, 16, 4),
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) {
+                                return NotificationView(
+                                  appNotification: notifications[index],
+                                );
                               },
-                              child: NotificationCard(
-                                  appNotification: notifications[index]),
-                            ));
-                      }, childCount: notifications.length),
-                      onRefresh: CloudStore.getNotifications));
-            },
-          )),
+                            ),
+                          );
+                        },
+                        child: NotificationCard(
+                          appNotification: notifications[index],
+                        ),
+                      ),
+                    );
+                  },
+                  childCount: notifications.length,
+                ),
+                onRefresh: CloudStore.getNotifications,
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 }

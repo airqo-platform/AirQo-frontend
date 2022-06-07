@@ -6,8 +6,14 @@ part 'email_auth_model.g.dart';
 
 @JsonSerializable()
 class EmailAuthModel {
-  EmailAuthModel(this.success, this.token, this.email, this.message,
-      this.loginLink, this.authLink);
+  EmailAuthModel(
+    this.success,
+    this.token,
+    this.email,
+    this.message,
+    this.loginLink,
+    this.authLink,
+  );
 
   factory EmailAuthModel.fromJson(Map<String, dynamic> json) =>
       _$EmailAuthModelFromJson(json);

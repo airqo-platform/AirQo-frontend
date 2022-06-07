@@ -13,7 +13,9 @@ import '../../widgets/custom_shimmer.dart';
 import 'on_boarding_widgets.dart';
 
 class LocationSetupScreen extends StatefulWidget {
-  const LocationSetupScreen({Key? key}) : super(key: key);
+  const LocationSetupScreen({
+    Key? key,
+  }) : super(key: key);
 
   @override
   LocationSetupScreenState createState() => LocationSetupScreenState();
@@ -25,11 +27,12 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: CustomColors.appBodyColor,
-        body: WillPopScope(
-          onWillPop: onWillPop,
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
+      backgroundColor: CustomColors.appBodyColor,
+      body: WillPopScope(
+        onWillPop: onWillPop,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
             const Spacer(),
             const OnBoardingLocationIcon(),
             const SizedBox(
@@ -61,8 +64,9 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
               child: GestureDetector(
                 onTap: _allowLocation,
                 child: NextButton(
-                    text: 'Yes, keep me safe',
-                    buttonColor: CustomColors.appColorBlue),
+                  text: 'Yes, keep me safe',
+                  buttonColor: CustomColors.appColorBlue,
+                ),
               ),
             ),
             const SizedBox(
@@ -70,25 +74,31 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
             ),
             GestureDetector(
               onTap: () {
-                Navigator.pushAndRemoveUntil(context,
-                    MaterialPageRoute(builder: (context) {
-                  return const SetUpCompleteScreen();
-                }), (r) => false);
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return const SetUpCompleteScreen();
+                    },
+                  ),
+                  (r) => false,
+                );
               },
               child: Text(
                 'No, thanks',
                 textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .caption
-                    ?.copyWith(color: CustomColors.appColorBlue),
+                style: Theme.of(context).textTheme.caption?.copyWith(
+                      color: CustomColors.appColorBlue,
+                    ),
               ),
             ),
             const SizedBox(
               height: 40,
             ),
-          ]),
-        ));
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -99,13 +109,20 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
 
   Future<void> _allowLocation() async {
     loadingScreen(context);
-    await LocationService.allowLocationAccess().then((_) {
-      Navigator.pop(context);
-      Navigator.pushAndRemoveUntil(context,
-          MaterialPageRoute(builder: (context) {
-        return const SetUpCompleteScreen();
-      }), (r) => false);
-    });
+    await LocationService.allowLocationAccess().then(
+      (_) {
+        Navigator.pop(context);
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) {
+              return const SetUpCompleteScreen();
+            },
+          ),
+          (r) => false,
+        );
+      },
+    );
   }
 
   Future<bool> onWillPop() {
@@ -115,13 +132,23 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
         now.difference(exitTime!) > const Duration(seconds: 2)) {
       exitTime = now;
 
-      showSnackBar(context, 'Tap again to exit !');
+      showSnackBar(
+        context,
+        'Tap again to exit !',
+      );
+
       return Future.value(false);
     }
 
-    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) {
-      return const HomePage();
-    }), (r) => false);
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (context) {
+          return const HomePage();
+        },
+      ),
+      (r) => false,
+    );
 
     return Future.value(false);
   }

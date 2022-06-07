@@ -10,7 +10,9 @@ import '../../themes/colors.dart';
 import 'auth_widgets.dart';
 
 class ChangePhoneScreen extends StatefulWidget {
-  const ChangePhoneScreen({Key? key}) : super(key: key);
+  const ChangePhoneScreen({
+    Key? key,
+  }) : super(key: key);
 
   @override
   ChangePhoneScreenState createState() => ChangePhoneScreenState();
@@ -40,10 +42,12 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
     if (success) {
       Navigator.pop(context, true);
     } else {
-      setState(() {
-        _nextBtnColor = CustomColors.appColorBlue;
-        _isVerifying = false;
-      });
+      setState(
+        () {
+          _nextBtnColor = CustomColors.appColorBlue;
+          _isVerifying = false;
+        },
+      );
       await showSnackBar(context, 'Failed to update email address');
     }
   }
@@ -55,241 +59,267 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
         color: Colors.white,
         padding: const EdgeInsets.only(left: 24, right: 24),
         child: Center(
-            child: Column(children: [
-          // Start Common widgets
+          child: Column(children: [
+            // Start Common widgets
 
-          const SizedBox(
-            height: 42,
-          ),
-
-          Visibility(
-            visible: _verifyCode,
-            child: const Text(
-              'Verify your phone number!',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 24,
-                  color: Colors.black),
+            const SizedBox(
+              height: 42,
             ),
-          ),
-          Visibility(
-            visible: !_verifyCode,
-            child: const Text(
-              'Change mobile number',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 24,
-                  color: Colors.black),
-            ),
-          ),
 
-          const SizedBox(
-            height: 8,
-          ),
-
-          if (_phoneNumber.length > 8)
             Visibility(
               visible: _verifyCode,
-              child: Text(
-                // 'Enter the 6 digits code sent to your\n'
-                //     'number that ends with ...'
-                //     '${phoneNumber.substring(phoneNumber.length - 3)}',
-                'Enter the 6 digits code sent to your\n'
-                'number $_countryCode$_phoneNumber',
+              child: const Text(
+                'Verify your phone number!',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    fontSize: 14, color: Colors.black.withOpacity(0.6)),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 24,
+                  color: Colors.black,
+                ),
               ),
             ),
-          Visibility(
+            Visibility(
+              visible: !_verifyCode,
+              child: const Text(
+                'Change mobile number',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 24,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+
+            const SizedBox(
+              height: 8,
+            ),
+
+            if (_phoneNumber.length > 8)
+              Visibility(
+                visible: _verifyCode,
+                child: Text(
+                  // 'Enter the 6 digits code sent to your\n'
+                  //     'number that ends with ...'
+                  //     '${phoneNumber.substring(phoneNumber.length - 3)}',
+                  'Enter the 6 digits code sent to your\n'
+                  'number $_countryCode$_phoneNumber',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.black.withOpacity(0.6),
+                  ),
+                ),
+              ),
+            Visibility(
               visible: !_verifyCode,
               child: Text(
                 'We’ll send you a verification code',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    fontSize: 14, color: Colors.black.withOpacity(0.6)),
-              )),
-
-          const SizedBox(
-            height: 32,
-          ),
-
-          Visibility(
-            visible: _verifyCode,
-            child: Padding(
-                padding: const EdgeInsets.only(left: 36, right: 36),
-                child: OptField(
-                    codeSent: _codeSent, position: 0, callbackFn: setCode)),
-          ),
-          Visibility(
-            visible: !_verifyCode,
-            child: Form(
-              key: _phoneFormKey,
-              child: SizedBox(
-                height: 48,
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 64,
-                      child: CountryCodePickerField(
-                          valueChange: codeValueChange,
-                          placeholder: _countryCode),
-                    ),
-                    const SizedBox(
-                      width: 16,
-                    ),
-                    Expanded(
-                      child: phoneInputField(),
-                    )
-                  ],
+                  fontSize: 14,
+                  color: Colors.black.withOpacity(0.6),
                 ),
               ),
             ),
-          ),
 
-          const SizedBox(
-            height: 24,
-          ),
-
-          Visibility(
-            visible: !_codeSent && _verifyCode,
-            child: Text(
-              'The code should arrive with in 5 sec',
-              textAlign: TextAlign.center,
-              style:
-                  TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.5)),
+            const SizedBox(
+              height: 32,
             ),
-          ),
-          Visibility(
-            visible: _codeSent && _verifyCode,
-            child: GestureDetector(
-              onTap: () async {
-                await resendVerificationCode();
-              },
+
+            Visibility(
+              visible: _verifyCode,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 36, right: 36),
+                child: OptField(
+                  codeSent: _codeSent,
+                  position: 0,
+                  callbackFn: setCode,
+                ),
+              ),
+            ),
+            Visibility(
+              visible: !_verifyCode,
+              child: Form(
+                key: _phoneFormKey,
+                child: SizedBox(
+                  height: 48,
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 64,
+                        child: CountryCodePickerField(
+                          valueChange: codeValueChange,
+                          placeholder: _countryCode,
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 16,
+                      ),
+                      Expanded(
+                        child: phoneInputField(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(
+              height: 24,
+            ),
+
+            Visibility(
+              visible: !_codeSent && _verifyCode,
               child: Text(
-                'Resend code',
+                'The code should arrive with in 5 sec',
                 textAlign: TextAlign.center,
                 style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.black.withOpacity(0.5),
+                ),
+              ),
+            ),
+            Visibility(
+              visible: _codeSent && _verifyCode,
+              child: GestureDetector(
+                onTap: () async {
+                  await resendVerificationCode();
+                },
+                child: Text(
+                  'Resend code',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
                     fontSize: 12,
                     color: _isResending
                         ? Colors.black.withOpacity(0.5)
-                        : CustomColors.appColorBlue),
+                        : CustomColors.appColorBlue,
+                  ),
+                ),
               ),
             ),
-          ),
 
-          const SizedBox(
-            height: 19,
-          ),
+            const SizedBox(
+              height: 19,
+            ),
 
-          Visibility(
-            visible: _verifyCode,
-            child: Padding(
-              padding: const EdgeInsets.only(left: 36, right: 36),
-              child: Stack(
-                alignment: AlignmentDirectional.center,
-                children: [
-                  Container(
-                    height: 1.09,
-                    color: Colors.black.withOpacity(0.05),
-                  ),
-                  Container(
+            Visibility(
+              visible: _verifyCode,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 36, right: 36),
+                child: Stack(
+                  alignment: AlignmentDirectional.center,
+                  children: [
+                    Container(
+                      height: 1.09,
+                      color: Colors.black.withOpacity(0.05),
+                    ),
+                    Container(
                       color: Colors.white,
                       padding: const EdgeInsets.only(left: 5, right: 5),
                       child: const Text(
                         'Or',
-                        style:
-                            TextStyle(fontSize: 12, color: Color(0xffD1D3D9)),
-                      )),
-                ],
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Color(0xffD1D3D9),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          Visibility(
-            visible: _verifyCode,
-            child: const SizedBox(
-              height: 19,
+            Visibility(
+              visible: _verifyCode,
+              child: const SizedBox(
+                height: 19,
+              ),
             ),
-          ),
-          Visibility(
-            visible: _verifyCode,
-            child: GestureDetector(
-              onTap: initialize,
-              child: Text(
-                'Change Phone Number',
-                textAlign: TextAlign.center,
-                style: TextStyle(
+            Visibility(
+              visible: _verifyCode,
+              child: GestureDetector(
+                onTap: initialize,
+                child: Text(
+                  'Change Phone Number',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
                     fontSize: 12,
                     color: _resendCode
                         ? CustomColors.appColorBlue
-                        : Colors.black.withOpacity(0.5)),
+                        : Colors.black.withOpacity(0.5),
+                  ),
+                ),
               ),
             ),
-          ),
-          const Spacer(),
-          Visibility(
-            visible: _verifyCode,
-            child: GestureDetector(
-              onTap: () async {
-                await verifySentCode();
-              },
-              child: NextButton(buttonColor: _nextBtnColor),
+            const Spacer(),
+            Visibility(
+              visible: _verifyCode,
+              child: GestureDetector(
+                onTap: () async {
+                  await verifySentCode();
+                },
+                child: NextButton(buttonColor: _nextBtnColor),
+              ),
             ),
-          ),
-          Visibility(
-            visible: !_verifyCode,
-            child: GestureDetector(
-              onTap: () async {
-                await requestVerification();
-              },
-              child: NextButton(buttonColor: _nextBtnColor),
+            Visibility(
+              visible: !_verifyCode,
+              child: GestureDetector(
+                onTap: () async {
+                  await requestVerification();
+                },
+                child: NextButton(buttonColor: _nextBtnColor),
+              ),
             ),
-          ),
-          const SizedBox(
-            height: 20,
-          ),
-          const CancelOption(),
-          const SizedBox(
-            height: 36,
-          ),
-        ])),
+            const SizedBox(
+              height: 20,
+            ),
+            const CancelOption(),
+            const SizedBox(
+              height: 36,
+            ),
+          ]),
+        ),
       ),
     );
   }
 
   void clearPhoneCallBack() {
-    setState(() {
-      _phoneNumber = '';
-      _phoneInputController.text = '';
-      _nextBtnColor = CustomColors.appColorDisabled;
-    });
+    setState(
+      () {
+        _phoneNumber = '';
+        _phoneInputController.text = '';
+        _nextBtnColor = CustomColors.appColorDisabled;
+      },
+    );
   }
 
   void codeValueChange(String? countryCode) {
-    setState(() {
-      _countryCode = countryCode ?? '';
-      _countryCodePlaceHolder = '$countryCode(0) ';
-    });
+    setState(
+      () {
+        _countryCode = countryCode ?? '';
+        _countryCodePlaceHolder = '$countryCode(0) ';
+      },
+    );
   }
 
   void initialize() {
-    setState(() {
-      _phoneFormValid = false;
-      _phoneNumber = '';
-      _verifyCode = false;
-      _verificationId = '';
-      _resendCode = false;
-      _codeSent = false;
-      _isResending = false;
-      _isVerifying = false;
-      _countryCodePlaceHolder = '+256(0) ';
-      _countryCode = '+256';
-      _phoneVerificationCode = <String>['', '', '', '', '', ''];
-      _nextBtnColor = CustomColors.appColorDisabled;
-      _user = CustomAuth.getUser();
-    });
+    setState(
+      () {
+        _phoneFormValid = false;
+        _phoneNumber = '';
+        _verifyCode = false;
+        _verificationId = '';
+        _resendCode = false;
+        _codeSent = false;
+        _isResending = false;
+        _isVerifying = false;
+        _countryCodePlaceHolder = '+256(0) ';
+        _countryCode = '+256';
+        _phoneVerificationCode = <String>['', '', '', '', '', ''];
+        _nextBtnColor = CustomColors.appColorDisabled;
+        _user = CustomAuth.getUser();
+      },
+    );
   }
 
   @override
@@ -300,14 +330,19 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
 
   Widget phoneInputField() {
     return Container(
-        height: 48,
-        alignment: Alignment.center,
-        padding: const EdgeInsets.only(left: 15),
-        decoration: BoxDecoration(
-            borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-            border: Border.all(color: CustomColors.appColorBlue)),
-        child: Center(
-            child: TextFormField(
+      height: 48,
+      alignment: Alignment.center,
+      padding: const EdgeInsets.only(left: 15),
+      decoration: BoxDecoration(
+        borderRadius: const BorderRadius.all(
+          Radius.circular(10.0),
+        ),
+        border: Border.all(
+          color: CustomColors.appColorBlue,
+        ),
+      ),
+      child: Center(
+        child: TextFormField(
           controller: _phoneInputController,
           autofocus: true,
           enableSuggestions: false,
@@ -322,6 +357,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
             } else {
               setState(() => _phoneFormValid = true);
             }
+
             return null;
           },
           decoration: InputDecoration(
@@ -334,7 +370,9 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
               child: const TextInputCloseButton(),
             ),
           ),
-        )));
+        ),
+      ),
+    );
   }
 
   void phoneValueChange(text) {
@@ -348,7 +386,10 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
   }
 
   Future<void> requestVerification() async {
-    final connected = await checkNetworkConnection(context, notifyUser: true);
+    final connected = await checkNetworkConnection(
+      context,
+      notifyUser: true,
+    );
     if (!connected) {
       return;
     }
@@ -359,29 +400,47 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
 
     if (_user!.phoneNumber!.trim().toLowerCase() ==
         '$_countryCode$_phoneNumber'.trim().toLowerCase()) {
-      await showSnackBar(context, 'Enter a different phone number');
+      await showSnackBar(
+        context,
+        'Enter a different phone number',
+      );
+
       return;
     }
 
-    setState(() {
-      _nextBtnColor = CustomColors.appColorDisabled;
-      _isVerifying = true;
-      _codeSent = false;
-    });
+    setState(
+      () {
+        _nextBtnColor = CustomColors.appColorDisabled;
+        _isVerifying = true;
+        _codeSent = false;
+      },
+    );
 
-    await CustomAuth.requestPhoneVerification('$_countryCode$_phoneNumber',
-        context, verifyPhoneFn, autoVerifyPhoneFn);
+    await CustomAuth.requestPhoneVerification(
+      '$_countryCode$_phoneNumber',
+      context,
+      verifyPhoneFn,
+      autoVerifyPhoneFn,
+    );
 
-    Future.delayed(const Duration(seconds: 5), () {
-      setState(() {
-        _codeSent = true;
-        _isVerifying = false;
-      });
-    });
+    Future.delayed(
+      const Duration(seconds: 5),
+      () {
+        setState(
+          () {
+            _codeSent = true;
+            _isVerifying = false;
+          },
+        );
+      },
+    );
   }
 
   Future<void> resendVerificationCode() async {
-    final connected = await checkNetworkConnection(context, notifyUser: true);
+    final connected = await checkNetworkConnection(
+      context,
+      notifyUser: true,
+    );
     if (!connected) {
       return;
     }
@@ -390,12 +449,28 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
       return;
     }
 
-    setState(() => _isResending = true);
+    setState(
+      () => _isResending = true,
+    );
 
-    await CustomAuth.requestPhoneVerification('$_countryCode$_phoneNumber',
-            context, verifyPhoneFn, autoVerifyPhoneFn)
-        .then((value) => {setState(() => _isResending = false)})
-        .whenComplete(() => {setState(() => _isResending = false)});
+    await CustomAuth.requestPhoneVerification(
+      '$_countryCode$_phoneNumber',
+      context,
+      verifyPhoneFn,
+      autoVerifyPhoneFn,
+    )
+        .then(
+          (value) => {
+            setState(() => _isResending = false),
+          },
+        )
+        .whenComplete(
+          () => {
+            setState(
+              () => _isResending = false,
+            ),
+          },
+        );
   }
 
   void setCode(String value, int position) {
@@ -409,18 +484,26 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
   }
 
   void verifyPhoneFn(verificationId) {
-    setState(() {
-      _verifyCode = true;
-      _verificationId = verificationId;
-    });
+    setState(
+      () {
+        _verifyCode = true;
+        _verificationId = verificationId;
+      },
+    );
 
-    Future.delayed(const Duration(seconds: 5), () {
-      setState(() => _resendCode = true);
-    });
+    Future.delayed(
+      const Duration(seconds: 5),
+      () {
+        setState(() => _resendCode = true);
+      },
+    );
   }
 
   Future<void> verifySentCode() async {
-    final connected = await checkNetworkConnection(context, notifyUser: true);
+    final connected = await checkNetworkConnection(
+      context,
+      notifyUser: true,
+    );
     if (!connected) {
       return;
     }
@@ -429,6 +512,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
 
     if (code.length != 6) {
       await showSnackBar(context, 'Enter all the 6 digits');
+
       return;
     }
 
@@ -436,54 +520,73 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
       return;
     }
 
-    setState(() {
-      _nextBtnColor = CustomColors.appColorDisabled;
-      _isVerifying = true;
-    });
+    setState(
+      () {
+        _nextBtnColor = CustomColors.appColorDisabled;
+        _isVerifying = true;
+      },
+    );
 
     final credential = PhoneAuthProvider.credential(
-        verificationId: _verificationId,
-        smsCode: _phoneVerificationCode.join(''));
+      verificationId: _verificationId,
+      smsCode: _phoneVerificationCode.join(''),
+    );
     try {
       final success = await CustomAuth.updatePhoneNumber(credential, context);
 
       if (success) {
         Navigator.pop(context, true);
       } else {
-        setState(() {
-          _nextBtnColor = CustomColors.appColorBlue;
-          _isVerifying = false;
-        });
+        setState(
+          () {
+            _nextBtnColor = CustomColors.appColorBlue;
+            _isVerifying = false;
+          },
+        );
         await showSnackBar(context, 'Failed to update phone number');
       }
     } on FirebaseAuthException catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
       if (exception.code == 'invalid-verification-code') {
         await showSnackBar(context, 'Invalid Code');
-        setState(() {
-          _nextBtnColor = CustomColors.appColorBlue;
-          _isVerifying = false;
-        });
+        setState(
+          () {
+            _nextBtnColor = CustomColors.appColorBlue;
+            _isVerifying = false;
+          },
+        );
       }
       if (exception.code == 'session-expired') {
-        await CustomAuth.requestPhoneVerification('$_countryCode$_phoneNumber',
-            context, verifyPhoneFn, autoVerifyPhoneFn);
+        await CustomAuth.requestPhoneVerification(
+          '$_countryCode$_phoneNumber',
+          context,
+          verifyPhoneFn,
+          autoVerifyPhoneFn,
+        );
         await showSnackBar(
-            context,
-            'Your verification '
-            'has timed out. we have sent your'
-            ' another verification code');
-        setState(() {
-          _nextBtnColor = CustomColors.appColorBlue;
-          _isVerifying = false;
-        });
+          context,
+          'Your verification '
+          'has timed out. we have sent your'
+          ' another verification code',
+        );
+        setState(
+          () {
+            _nextBtnColor = CustomColors.appColorBlue;
+            _isVerifying = false;
+          },
+        );
       }
     } catch (exception, stackTrace) {
-      await showSnackBar(context, 'Try again later');
-      setState(() {
-        _nextBtnColor = CustomColors.appColorBlue;
-        _isVerifying = false;
-      });
+      await showSnackBar(
+        context,
+        'Try again later',
+      );
+      setState(
+        () {
+          _nextBtnColor = CustomColors.appColorBlue;
+          _isVerifying = false;
+        },
+      );
       debugPrint('$exception\n$stackTrace');
     }
   }

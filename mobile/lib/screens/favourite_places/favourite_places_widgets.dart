@@ -5,7 +5,9 @@ import 'package:flutter_svg/svg.dart';
 import '../../themes/colors.dart';
 
 class EmptyFavouritePlaces extends StatelessWidget {
-  const EmptyFavouritePlaces({Key? key}) : super(key: key);
+  const EmptyFavouritePlaces({
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -16,32 +18,40 @@ class EmptyFavouritePlaces extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           RichText(
-              textAlign: TextAlign.center,
-              text: TextSpan(children: [
-                TextSpan(
-                    text: 'Tap the ',
-                    style: Theme.of(context).textTheme.bodyText1),
-                WidgetSpan(
-                    child: SvgPicture.asset(
+            textAlign: TextAlign.center,
+            text: TextSpan(children: [
+              TextSpan(
+                text: 'Tap the ',
+                style: Theme.of(context).textTheme.bodyText1,
+              ),
+              WidgetSpan(
+                child: SvgPicture.asset(
                   'assets/icon/heart.svg',
                   semanticsLabel: 'Favorite',
                   height: 15.33,
                   width: 15.12,
-                )),
-                TextSpan(
-                    text: ' Favorite icon on any location air quality '
-                        'to save them here for later.',
-                    style: Theme.of(context).textTheme.bodyText1),
-              ])),
+                ),
+              ),
+              TextSpan(
+                text: ' Favorite icon on any location air quality '
+                    'to save them here for later.',
+                style: Theme.of(context).textTheme.bodyText1,
+              ),
+            ]),
+          ),
           const SizedBox(
             height: 10,
           ),
           OutlinedButton(
             onPressed: () async {
-              await Navigator.push(context,
-                  MaterialPageRoute(builder: (context) {
-                return const SearchPage();
-              }));
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) {
+                    return const SearchPage();
+                  },
+                ),
+              );
             },
             style: OutlinedButton.styleFrom(
               shape: const CircleBorder(),
@@ -51,7 +61,7 @@ class EmptyFavouritePlaces extends StatelessWidget {
               'Add',
               style: TextStyle(color: CustomColors.appColor),
             ),
-          )
+          ),
         ],
       ),
     );

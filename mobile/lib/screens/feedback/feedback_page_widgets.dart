@@ -20,8 +20,11 @@ class FeedbackBackButton extends StatelessWidget {
       width: 120,
       padding: const EdgeInsets.all(13),
       decoration: BoxDecoration(
-          color: CustomColors.appColorBlue.withOpacity(0.1),
-          borderRadius: const BorderRadius.all(Radius.circular(8.0))),
+        color: CustomColors.appColorBlue.withOpacity(0.1),
+        borderRadius: const BorderRadius.all(
+          Radius.circular(8.0),
+        ),
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,
@@ -29,7 +32,10 @@ class FeedbackBackButton extends StatelessWidget {
           Text(
             'Back',
             textAlign: TextAlign.center,
-            style: TextStyle(color: CustomColors.appColorBlue, fontSize: 14),
+            style: TextStyle(
+              color: CustomColors.appColorBlue,
+              fontSize: 14,
+            ),
           ),
         ],
       ),
@@ -38,9 +44,11 @@ class FeedbackBackButton extends StatelessWidget {
 }
 
 class FeedbackNextButton extends StatelessWidget {
-  const FeedbackNextButton(
-      {Key? key, required this.text, required this.buttonColor})
-      : super(key: key);
+  const FeedbackNextButton({
+    Key? key,
+    required this.text,
+    required this.buttonColor,
+  }) : super(key: key);
   final String text;
   final Color buttonColor;
 
@@ -51,8 +59,11 @@ class FeedbackNextButton extends StatelessWidget {
       width: 120,
       padding: const EdgeInsets.all(13),
       decoration: BoxDecoration(
-          color: buttonColor,
-          borderRadius: const BorderRadius.all(Radius.circular(8.0))),
+        color: buttonColor,
+        borderRadius: const BorderRadius.all(
+          Radius.circular(8.0),
+        ),
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,
@@ -60,7 +71,10 @@ class FeedbackNextButton extends StatelessWidget {
           Text(
             text,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.white, fontSize: 14),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+            ),
           ),
           const SizedBox(
             width: 11,
@@ -78,7 +92,10 @@ class FeedbackNextButton extends StatelessWidget {
 }
 
 class FeedbackTypeAvatar extends StatelessWidget {
-  const FeedbackTypeAvatar({Key? key, required this.active}) : super(key: key);
+  const FeedbackTypeAvatar({
+    Key? key,
+    required this.active,
+  }) : super(key: key);
   final bool active;
 
   @override
@@ -87,22 +104,29 @@ class FeedbackTypeAvatar extends StatelessWidget {
       height: 24,
       width: 24,
       decoration: BoxDecoration(
-          color: active ? CustomColors.appColorBlue : Colors.white,
-          shape: BoxShape.circle,
-          border: active
-              ? Border.all(color: CustomColors.appColorBlue, width: 0)
-              : Border.all(color: CustomColors.greyColor, width: 3)),
+        color: active ? CustomColors.appColorBlue : Colors.white,
+        shape: BoxShape.circle,
+        border: active
+            ? Border.all(
+                color: CustomColors.appColorBlue,
+                width: 0,
+              )
+            : Border.all(
+                color: CustomColors.greyColor,
+                width: 3,
+              ),
+      ),
     );
   }
 }
 
 class FeedbackProgressBar extends StatelessWidget {
-  const FeedbackProgressBar(
-      {Key? key,
-      required this.feedbackType,
-      required this.index,
-      required this.feedbackChannel})
-      : super(key: key);
+  const FeedbackProgressBar({
+    Key? key,
+    required this.feedbackType,
+    required this.index,
+    required this.feedbackChannel,
+  }) : super(key: key);
 
   final int index;
   final FeedbackType feedbackType;
@@ -116,41 +140,46 @@ class FeedbackProgressBar extends StatelessWidget {
           height: 16,
           width: 16,
           decoration: BoxDecoration(
-              color: feedbackType == FeedbackType.none
-                  ? CustomColors.greyColor
-                  : CustomColors.appColorBlue,
-              shape: BoxShape.circle),
+            color: feedbackType == FeedbackType.none
+                ? CustomColors.greyColor
+                : CustomColors.appColorBlue,
+            shape: BoxShape.circle,
+          ),
         ),
         Expanded(
-            child: Divider(
-          thickness: 2,
-          color:
-              index >= 1 ? CustomColors.appColorBlue : CustomColors.greyColor,
-        )),
+          child: Divider(
+            thickness: 2,
+            color:
+                index >= 1 ? CustomColors.appColorBlue : CustomColors.greyColor,
+          ),
+        ),
         Container(
           height: 16,
           width: 16,
           decoration: BoxDecoration(
-              color: feedbackChannel != FeedbackChannel.none && index >= 1
-                  ? CustomColors.appColorBlue
-                  : CustomColors.greyColor,
-              shape: BoxShape.circle),
+            color: feedbackChannel != FeedbackChannel.none && index >= 1
+                ? CustomColors.appColorBlue
+                : CustomColors.greyColor,
+            shape: BoxShape.circle,
+          ),
         ),
         Expanded(
-            child: Divider(
-          thickness: 2,
-          color: index >= 2 || feedbackChannel == FeedbackChannel.whatsApp
-              ? CustomColors.appColorBlue
-              : CustomColors.greyColor,
-        )),
+          child: Divider(
+            thickness: 2,
+            color: index >= 2 || feedbackChannel == FeedbackChannel.whatsApp
+                ? CustomColors.appColorBlue
+                : CustomColors.greyColor,
+          ),
+        ),
         Container(
           height: 16,
           width: 16,
           decoration: BoxDecoration(
-              color: index >= 2 || feedbackChannel == FeedbackChannel.whatsApp
-                  ? CustomColors.appColorBlue
-                  : CustomColors.greyColor,
-              shape: BoxShape.circle),
+            color: index >= 2 || feedbackChannel == FeedbackChannel.whatsApp
+                ? CustomColors.appColorBlue
+                : CustomColors.greyColor,
+            shape: BoxShape.circle,
+          ),
         ),
       ],
     );
@@ -158,24 +187,29 @@ class FeedbackProgressBar extends StatelessWidget {
 }
 
 class EmailFeedbackInputField extends StatelessWidget {
-  const EmailFeedbackInputField(
-      {Key? key, required this.onEmailChange, required this.initialValue})
-      : super(key: key);
+  const EmailFeedbackInputField({
+    Key? key,
+    required this.onEmailChange,
+    required this.initialValue,
+  }) : super(key: key);
   final Function(String) onEmailChange;
   final String initialValue;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-        height: 56,
-        alignment: Alignment.center,
-        padding: const EdgeInsets.only(left: 15),
-        decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: const BorderRadius.all(Radius.circular(8.0)),
-            border: Border.all(color: Colors.white)),
-        child: Center(
-            child: TextFormField(
+      height: 56,
+      alignment: Alignment.center,
+      padding: const EdgeInsets.only(left: 15),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.all(
+          Radius.circular(8.0),
+        ),
+        border: Border.all(color: Colors.white),
+      ),
+      child: Center(
+        child: TextFormField(
           initialValue: initialValue,
           autofocus: true,
           style: Theme.of(context).textTheme.bodyText2,
@@ -189,38 +223,45 @@ class EmailFeedbackInputField extends StatelessWidget {
             enabledBorder: InputBorder.none,
             hintText: 'Enter your email',
             suffixIcon: GestureDetector(
-                onTap: () {
-                  onEmailChange('');
-                },
-                child: const TextInputCloseButton()),
-            hintStyle: Theme.of(context)
-                .textTheme
-                .bodyText2
-                ?.copyWith(color: CustomColors.appColorBlack.withOpacity(0.32)),
+              onTap: () {
+                onEmailChange('');
+              },
+              child: const TextInputCloseButton(),
+            ),
+            hintStyle: Theme.of(context).textTheme.bodyText2?.copyWith(
+                  color: CustomColors.appColorBlack.withOpacity(0.32),
+                ),
           ),
-        )));
+        ),
+      ),
+    );
   }
 }
 
 class FeedbackFormInputField extends StatelessWidget {
-  const FeedbackFormInputField(
-      {Key? key, required this.onFeedbackChange, required this.initialValue})
-      : super(key: key);
+  const FeedbackFormInputField({
+    Key? key,
+    required this.onFeedbackChange,
+    required this.initialValue,
+  }) : super(key: key);
   final Function(String) onFeedbackChange;
   final String initialValue;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-        height: 255,
-        alignment: Alignment.center,
-        padding: const EdgeInsets.only(left: 15, right: 15),
-        decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: const BorderRadius.all(Radius.circular(8.0)),
-            border: Border.all(color: Colors.white)),
-        child: Center(
-            child: TextFormField(
+      height: 255,
+      alignment: Alignment.center,
+      padding: const EdgeInsets.only(left: 15, right: 15),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.all(
+          Radius.circular(8.0),
+        ),
+        border: Border.all(color: Colors.white),
+      ),
+      child: Center(
+        child: TextFormField(
           autofocus: true,
           initialValue: initialValue,
           style: Theme.of(context).textTheme.bodyText2,
@@ -231,24 +272,28 @@ class FeedbackFormInputField extends StatelessWidget {
           keyboardType: TextInputType.emailAddress,
           onChanged: onFeedbackChange,
           decoration: InputDecoration(
-              focusedBorder: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              hintText: 'Please tell us the details',
-              hintStyle: Theme.of(context).textTheme.bodyText2?.copyWith(
-                  color: CustomColors.appColorBlack.withOpacity(0.32)),
-              counterStyle: Theme.of(context).textTheme.bodyText2),
-        )));
+            focusedBorder: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            hintText: 'Please tell us the details',
+            hintStyle: Theme.of(context).textTheme.bodyText2?.copyWith(
+                  color: CustomColors.appColorBlack.withOpacity(0.32),
+                ),
+            counterStyle: Theme.of(context).textTheme.bodyText2,
+          ),
+        ),
+      ),
+    );
   }
 }
 
 class FeedbackCard extends StatelessWidget {
-  const FeedbackCard(
-      {Key? key,
-      required this.activeCard,
-      required this.index,
-      required this.title,
-      required this.updateIndex})
-      : super(key: key);
+  const FeedbackCard({
+    Key? key,
+    required this.activeCard,
+    required this.index,
+    required this.title,
+    required this.updateIndex,
+  }) : super(key: key);
 
   final int activeCard;
   final int index;
@@ -263,15 +308,21 @@ class FeedbackCard extends StatelessWidget {
         padding: const EdgeInsets.only(left: 16, right: 16),
         height: 56,
         decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.all(Radius.circular(8.0))),
+          color: Colors.white,
+          borderRadius: BorderRadius.all(
+            Radius.circular(8.0),
+          ),
+        ),
         child: Row(
           children: [
             FeedbackTypeAvatar(active: index == activeCard),
             const SizedBox(
               width: 16,
             ),
-            Text(title, style: Theme.of(context).textTheme.bodyText1)
+            Text(
+              title,
+              style: Theme.of(context).textTheme.bodyText1,
+            ),
           ],
         ),
       ),
@@ -280,9 +331,11 @@ class FeedbackCard extends StatelessWidget {
 }
 
 class FeedbackForm extends StatelessWidget {
-  const FeedbackForm(
-      {Key? key, required this.onFeedbackChange, required this.initialValue})
-      : super(key: key);
+  const FeedbackForm({
+    Key? key,
+    required this.onFeedbackChange,
+    required this.initialValue,
+  }) : super(key: key);
   final Function(String) onFeedbackChange;
   final String initialValue;
 
@@ -312,15 +365,15 @@ class FeedbackForm extends StatelessWidget {
 }
 
 class FeedbackNavigationButtons extends StatelessWidget {
-  const FeedbackNavigationButtons(
-      {Key? key,
-      required this.step,
-      required this.feedbackType,
-      required this.feedbackChannel,
-      required this.updateStep,
-      required this.isLoading,
-      required this.onNextButtonClick})
-      : super(key: key);
+  const FeedbackNavigationButtons({
+    Key? key,
+    required this.step,
+    required this.feedbackType,
+    required this.feedbackChannel,
+    required this.updateStep,
+    required this.isLoading,
+    required this.onNextButtonClick,
+  }) : super(key: key);
   final int step;
   final FeedbackType feedbackType;
   final FeedbackChannel feedbackChannel;
@@ -330,49 +383,53 @@ class FeedbackNavigationButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (step == 0) {
-      return GestureDetector(
-        onTap: () {
-          if (feedbackType != FeedbackType.none) {
-            updateStep(1);
-          }
-        },
-        child: NextButton(
-            buttonColor: feedbackType == FeedbackType.none
-                ? CustomColors.appColorBlue.withOpacity(0.24)
-                : CustomColors.appColorBlue),
-      );
-    } else {
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          GestureDetector(
-            child: const FeedbackBackButton(),
+    return step == 0
+        ? GestureDetector(
             onTap: () {
-              updateStep(step - 1);
+              if (feedbackType != FeedbackType.none) {
+                updateStep(1);
+              }
             },
-          ),
-          GestureDetector(
-            onTap: onNextButtonClick,
-            child: step == 2 || feedbackChannel == FeedbackChannel.whatsApp
-                ? FeedbackNextButton(
-                    text: 'Send',
-                    buttonColor: isLoading
-                        ? CustomColors.appColorBlue.withOpacity(0.24)
-                        : CustomColors.appColorBlue)
-                : FeedbackNextButton(
-                    text: 'Next', buttonColor: CustomColors.appColorBlue),
+            child: NextButton(
+              buttonColor: feedbackType == FeedbackType.none
+                  ? CustomColors.appColorBlue.withOpacity(0.24)
+                  : CustomColors.appColorBlue,
+            ),
           )
-        ],
-      );
-    }
+        : Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              GestureDetector(
+                child: const FeedbackBackButton(),
+                onTap: () {
+                  updateStep(step - 1);
+                },
+              ),
+              GestureDetector(
+                onTap: onNextButtonClick,
+                child: step == 2 || feedbackChannel == FeedbackChannel.whatsApp
+                    ? FeedbackNextButton(
+                        text: 'Send',
+                        buttonColor: isLoading
+                            ? CustomColors.appColorBlue.withOpacity(0.24)
+                            : CustomColors.appColorBlue,
+                      )
+                    : FeedbackNextButton(
+                        text: 'Next',
+                        buttonColor: CustomColors.appColorBlue,
+                      ),
+              ),
+            ],
+          );
   }
 }
 
 class FeedbackTypeStep extends StatefulWidget {
-  const FeedbackTypeStep(
-      {Key? key, required this.feedbackType, required this.initialSelection})
-      : super(key: key);
+  const FeedbackTypeStep({
+    Key? key,
+    required this.feedbackType,
+    required this.initialSelection,
+  }) : super(key: key);
   final Function(FeedbackType) feedbackType;
   final FeedbackType initialSelection;
   @override
@@ -405,23 +462,25 @@ class _FeedbackTypeStepState extends State<FeedbackTypeStep> {
   }
 
   void _updateIndex(int index) {
-    setState(() {
-      activeCard = index;
-      switch (index) {
-        case 0:
-          widget.feedbackType(FeedbackType.reportAirPollution);
-          break;
-        case 1:
-          widget.feedbackType(FeedbackType.inquiry);
-          break;
-        case 2:
-          widget.feedbackType(FeedbackType.suggestion);
-          break;
-        case 3:
-          widget.feedbackType(FeedbackType.appBugs);
-          break;
-      }
-    });
+    setState(
+      () {
+        activeCard = index;
+        switch (index) {
+          case 0:
+            widget.feedbackType(FeedbackType.reportAirPollution);
+            break;
+          case 1:
+            widget.feedbackType(FeedbackType.inquiry);
+            break;
+          case 2:
+            widget.feedbackType(FeedbackType.suggestion);
+            break;
+          case 3:
+            widget.feedbackType(FeedbackType.appBugs);
+            break;
+        }
+      },
+    );
   }
 
   @override
@@ -479,13 +538,13 @@ class _FeedbackTypeStepState extends State<FeedbackTypeStep> {
 }
 
 class FeedbackChannelStep extends StatefulWidget {
-  const FeedbackChannelStep(
-      {Key? key,
-      required this.feedbackChannel,
-      required this.onEmailChange,
-      required this.initialSelection,
-      required this.initialEmailValue})
-      : super(key: key);
+  const FeedbackChannelStep({
+    Key? key,
+    required this.feedbackChannel,
+    required this.onEmailChange,
+    required this.initialSelection,
+    required this.initialEmailValue,
+  }) : super(key: key);
   final Function(FeedbackChannel) feedbackChannel;
   final Function(String) onEmailChange;
   final FeedbackChannel initialSelection;
@@ -514,17 +573,19 @@ class _FeedbackChannelStepState extends State<FeedbackChannelStep> {
   }
 
   void _updateIndex(int index) {
-    setState(() {
-      activeCard = index;
-      switch (index) {
-        case 0:
-          widget.feedbackChannel(FeedbackChannel.email);
-          break;
-        case 1:
-          widget.feedbackChannel(FeedbackChannel.whatsApp);
-          break;
-      }
-    });
+    setState(
+      () {
+        activeCard = index;
+        switch (index) {
+          case 0:
+            widget.feedbackChannel(FeedbackChannel.email);
+            break;
+          case 1:
+            widget.feedbackChannel(FeedbackChannel.whatsApp);
+            break;
+        }
+      },
+    );
   }
 
   @override

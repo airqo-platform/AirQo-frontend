@@ -9,7 +9,9 @@ import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
 
 class AboutAirQo extends StatefulWidget {
-  const AboutAirQo({Key? key}) : super(key: key);
+  const AboutAirQo({
+    Key? key,
+  }) : super(key: key);
 
   @override
   _AboutAirQoState createState() => _AboutAirQoState();
@@ -27,61 +29,67 @@ class _AboutAirQoState extends State<AboutAirQo> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: const AppTopBar('About'),
-        body: Container(
-            color: CustomColors.appBodyColor,
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Spacer(),
-                  SvgPicture.asset(
-                    'assets/icon/airqo_logo.svg',
-                    height: 52.86,
-                    width: 76.91,
-                    semanticsLabel: 'Home',
-                  ),
-                  const SizedBox(
-                    height: 21.32,
-                  ),
-                  Text(
-                    _packageInfo.appName,
-                    style: CustomTextStyle.headline11(context),
-                  ),
-                  const SizedBox(
-                    height: 12,
-                  ),
-                  Text(
-                    _packageInfo.version,
-                    style: Theme.of(context).textTheme.subtitle1?.copyWith(
-                        color: CustomColors.appColorBlack.withOpacity(0.5)),
-                  ),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () async {
-                      await Navigator.push(context,
-                          MaterialPageRoute(builder: (context) {
+      appBar: const AppTopBar('About'),
+      body: Container(
+        color: CustomColors.appBodyColor,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Spacer(),
+              SvgPicture.asset(
+                'assets/icon/airqo_logo.svg',
+                height: 52.86,
+                width: 76.91,
+                semanticsLabel: 'Home',
+              ),
+              const SizedBox(
+                height: 21.32,
+              ),
+              Text(
+                _packageInfo.appName,
+                style: CustomTextStyle.headline11(context),
+              ),
+              const SizedBox(
+                height: 12,
+              ),
+              Text(
+                _packageInfo.version,
+                style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                      color: CustomColors.appColorBlack.withOpacity(0.5),
+                    ),
+              ),
+              const Spacer(),
+              GestureDetector(
+                onTap: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
                         return WebViewScreen(
                           url: Config.termsUrl,
                           title: 'Terms & Privacy Policy',
                         );
-                      }));
-                    },
-                    child: Text(
-                      'Terms & Privacy Policy',
-                      style: Theme.of(context)
-                          .textTheme
-                          .subtitle1
-                          ?.copyWith(color: CustomColors.appColorBlue),
+                      },
                     ),
-                  ),
-                  const SizedBox(
-                    height: 90,
-                  ),
-                ],
+                  );
+                },
+                child: Text(
+                  'Terms & Privacy Policy',
+                  style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                        color: CustomColors.appColorBlue,
+                      ),
+                ),
               ),
-            )));
+              const SizedBox(
+                height: 90,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override

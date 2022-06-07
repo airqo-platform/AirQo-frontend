@@ -10,7 +10,9 @@ import '../analytics/analytics_widgets.dart';
 import 'favourite_places_widgets.dart';
 
 class FavouritePlaces extends StatefulWidget {
-  const FavouritePlaces({Key? key}) : super(key: key);
+  const FavouritePlaces({
+    Key? key,
+  }) : super(key: key);
 
   @override
   _FavouritePlacesState createState() => _FavouritePlacesState();
@@ -24,25 +26,35 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
     return Scaffold(
       appBar: const AppTopBar('Favorites'),
       body: Container(
-          color: CustomColors.appBodyColor,
-          child: Consumer<PlaceDetailsModel>(
-            builder: (context, placeDetailsModel, child) {
-              if (placeDetailsModel.favouritePlaces.isEmpty) {
-                return const EmptyFavouritePlaces();
-              }
+        color: CustomColors.appBodyColor,
+        child: Consumer<PlaceDetailsModel>(
+          builder: (context, placeDetailsModel, child) {
+            if (placeDetailsModel.favouritePlaces.isEmpty) {
+              return const EmptyFavouritePlaces();
+            }
 
-              return AppRefreshIndicator(
-                  sliverChildDelegate:
-                      SliverChildBuilderDelegate((context, index) {
-                    return Padding(
-                        padding: EdgeInsets.fromLTRB(
-                            16, Config.refreshIndicatorPadding(index), 16, 0),
-                        child: MiniAnalyticsCard(
-                            placeDetailsModel.favouritePlaces[index]));
-                  }, childCount: placeDetailsModel.favouritePlaces.length),
-                  onRefresh: _refreshPage);
-            },
-          )),
+            return AppRefreshIndicator(
+              sliverChildDelegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  return Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      16,
+                      Config.refreshIndicatorPadding(index),
+                      16,
+                      0,
+                    ),
+                    child: MiniAnalyticsCard(
+                      placeDetailsModel.favouritePlaces[index],
+                    ),
+                  );
+                },
+                childCount: placeDetailsModel.favouritePlaces.length,
+              ),
+              onRefresh: _refreshPage,
+            );
+          },
+        ),
+      ),
     );
   }
 

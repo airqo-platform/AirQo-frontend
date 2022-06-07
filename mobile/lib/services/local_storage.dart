@@ -30,6 +30,7 @@ class DBHelper {
     if (_database != null) return _database!;
     _database = await initDB();
     await createDefaultTables(_database!);
+
     return _database!;
   }
 
@@ -82,9 +83,12 @@ class DBHelper {
       final res = await db.query(PlaceDetails.dbName());
 
       return res.isNotEmpty
-          ? List.generate(res.length, (i) {
-              return PlaceDetails.fromJson(res[i]);
-            })
+          ? List.generate(
+              res.length,
+              (i) {
+                return PlaceDetails.fromJson(res[i]);
+              },
+            )
           : <PlaceDetails>[];
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
@@ -97,17 +101,23 @@ class DBHelper {
     try {
       final db = await database;
 
-      final res = await db.query(Insights.dbName(),
-          where: 'siteId = ? and frequency = ?',
-          whereArgs: [siteId, frequency.getName()]);
+      final res = await db.query(
+        Insights.dbName(),
+        where: 'siteId = ? and frequency = ?',
+        whereArgs: [siteId, frequency.getName()],
+      );
 
       return res.isNotEmpty
-          ? List.generate(res.length, (i) {
-              return Insights.fromJson(res[i]);
-            })
+          ? List.generate(
+              res.length,
+              (i) {
+                return Insights.fromJson(res[i]);
+              },
+            )
           : <Insights>[];
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
+
       return <Insights>[];
     }
   }
@@ -119,15 +129,25 @@ class DBHelper {
       final res = await db.query(Measurement.measurementsDb());
 
       return res.isNotEmpty
-          ? List.generate(res.length, (i) {
-              return Measurement.fromJson(Measurement.mapFromDb(res[i]));
-            })
+          ? List.generate(
+              res.length,
+              (i) {
+                return Measurement.fromJson(Measurement.mapFromDb(res[i]));
+              },
+            )
           : <Measurement>[]
-        ..sort((siteA, siteB) => siteA.site.name
-            .toLowerCase()
-            .compareTo(siteB.site.name.toLowerCase()));
+        ..sort(
+          (
+            siteA,
+            siteB,
+          ) =>
+              siteA.site.name.toLowerCase().compareTo(
+                    siteB.site.name.toLowerCase(),
+                  ),
+        );
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
+
       return <Measurement>[];
     }
   }
@@ -136,15 +156,20 @@ class DBHelper {
     try {
       final db = await database;
 
-      final res = await db.query(Measurement.measurementsDb(),
-          where: 'id = ?', whereArgs: [siteId]);
+      final res = await db.query(
+        Measurement.measurementsDb(),
+        where: 'id = ?',
+        whereArgs: [siteId],
+      );
 
       if (res.isEmpty) {
         return null;
       }
+
       return Measurement.fromJson(Measurement.mapFromDb(res.first));
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
+
       return null;
     }
   }
@@ -156,8 +181,11 @@ class DBHelper {
       final res = [];
 
       for (final siteId in siteIds) {
-        final siteRes = await db.query(Measurement.measurementsDb(),
-            where: 'id = ?', whereArgs: [siteId]);
+        final siteRes = await db.query(
+          Measurement.measurementsDb(),
+          where: 'id = ?',
+          whereArgs: [siteId],
+        );
 
         res.addAll(siteRes);
       }
@@ -165,53 +193,70 @@ class DBHelper {
       if (res.isEmpty) {
         return [];
       }
+
       return res.isNotEmpty
-          ? List.generate(res.length, (i) {
-              return Measurement.fromJson(Measurement.mapFromDb(res[i]));
-            })
+          ? List.generate(
+              res.length,
+              (i) {
+                return Measurement.fromJson(Measurement.mapFromDb(
+                  res[i],
+                ));
+              },
+            )
           : <Measurement>[];
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
+
       return [];
     }
   }
 
   Future<Measurement?> getNearestMeasurement(
-      double latitude, double longitude) async {
+    double latitude,
+    double longitude,
+  ) async {
     try {
       Measurement? nearestMeasurement;
       final nearestMeasurements = <Measurement>[];
 
       double distanceInMeters;
 
-      await getLatestMeasurements().then((measurements) => {
-            for (final measurement in measurements)
-              {
-                distanceInMeters = metersToKmDouble(Geolocator.distanceBetween(
-                    measurement.site.latitude,
-                    measurement.site.longitude,
-                    latitude,
-                    longitude)),
-                if (distanceInMeters < Config.maxSearchRadius.toDouble())
-                  {
-                    measurement.site.distance = distanceInMeters,
-                    nearestMeasurements.add(measurement)
-                  }
-              },
-            if (nearestMeasurements.isNotEmpty)
-              {
-                nearestMeasurement = nearestMeasurements.first,
-                for (final m in nearestMeasurements)
-                  {
-                    if (nearestMeasurement!.site.distance > m.site.distance)
-                      {nearestMeasurement = m}
-                  },
-              }
-          });
+      await getLatestMeasurements().then(
+        (measurements) => {
+          for (final measurement in measurements)
+            {
+              distanceInMeters = metersToKmDouble(
+                Geolocator.distanceBetween(
+                  measurement.site.latitude,
+                  measurement.site.longitude,
+                  latitude,
+                  longitude,
+                ),
+              ),
+              if (distanceInMeters < Config.maxSearchRadius.toDouble())
+                {
+                  measurement.site.distance = distanceInMeters,
+                  nearestMeasurements.add(measurement),
+                },
+            },
+          if (nearestMeasurements.isNotEmpty)
+            {
+              nearestMeasurement = nearestMeasurements.first,
+              for (final m in nearestMeasurements)
+                {
+                  if (nearestMeasurement!.site.distance > m.site.distance)
+                    {
+                      nearestMeasurement = m,
+                    },
+                },
+            },
+        },
+      );
 
       return nearestMeasurement;
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
+
       return null;
     }
   }
@@ -220,16 +265,25 @@ class DBHelper {
     try {
       final db = await database;
 
-      final res = await db.query(Measurement.measurementsDb(),
-          where: 'region = ?', whereArgs: [region.getName().trim()]);
+      final res = await db.query(
+        Measurement.measurementsDb(),
+        where: 'region = ?',
+        whereArgs: [region.getName().trim()],
+      );
 
       return res.isNotEmpty
-          ? List.generate(res.length, (i) {
-              return Measurement.fromJson(Measurement.mapFromDb(res[i]));
-            })
+          ? List.generate(
+              res.length,
+              (i) {
+                return Measurement.fromJson(Measurement.mapFromDb(
+                  res[i],
+                ));
+              },
+            )
           : <Measurement>[];
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
+
       return <Measurement>[];
     }
   }
@@ -266,8 +320,11 @@ class DBHelper {
     }
   }
 
-  Future<void> insertInsights(List<Insights> insights, List<String> siteIds,
-      {bool reloadDatabase = false}) async {
+  Future<void> insertInsights(
+    List<Insights> insights,
+    List<String> siteIds, {
+    bool reloadDatabase = false,
+  }) async {
     try {
       final db = await database;
 
@@ -280,16 +337,22 @@ class DBHelper {
         batch.delete(Insights.dbName());
       } else {
         for (final siteId in siteIds) {
-          batch.delete(Insights.dbName(),
-              where: 'siteId = ?', whereArgs: [siteId]);
+          batch.delete(
+            Insights.dbName(),
+            where: 'siteId = ?',
+            whereArgs: [siteId],
+          );
         }
       }
 
       for (final row in insights) {
         try {
           final jsonData = row.toJson();
-          batch.insert(Insights.dbName(), jsonData,
-              conflictAlgorithm: ConflictAlgorithm.replace);
+          batch.insert(
+            Insights.dbName(),
+            jsonData,
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
         } catch (exception, stackTrace) {
           debugPrint('$exception\n$stackTrace');
         }
@@ -376,32 +439,44 @@ class DBHelper {
   Future<bool> updateFavouritePlace(PlaceDetails placeDetails) async {
     final db = await database;
 
-    final res = await db.query(PlaceDetails.dbName(),
-        where: 'placeId = ?', whereArgs: [placeDetails.placeId]);
+    final res = await db.query(
+      PlaceDetails.dbName(),
+      where: 'placeId = ?',
+      whereArgs: [placeDetails.placeId],
+    );
 
     if (res.isEmpty) {
       await insertFavPlace(placeDetails);
+
       return true;
     } else {
       await removeFavPlace(placeDetails);
+
       return false;
     }
   }
 
   Future<bool> updateFavouritePlacesDetails(
-      List<PlaceDetails> placesDetails) async {
+    List<PlaceDetails> placesDetails,
+  ) async {
     final db = await database;
     final batch = db.batch();
     try {
       for (final favPlace in placesDetails) {
-        batch.update(PlaceDetails.dbName(), {'siteId': favPlace.siteId},
-            where: 'placeId = ?', whereArgs: [favPlace.placeId]);
+        batch.update(
+          PlaceDetails.dbName(),
+          {'siteId': favPlace.siteId},
+          where: 'placeId = ?',
+          whereArgs: [favPlace.placeId],
+        );
       }
       await batch.commit(continueOnError: true, noResult: true);
+
       return true;
     } catch (e) {
       debugPrint(e.toString());
     }
+
     return false;
   }
 }
@@ -425,10 +500,8 @@ class SharedPreferencesHelper {
 
   static Future<String> getOnBoardingPage() async {
     final sharedPreferences = await SharedPreferences.getInstance();
-    final page =
-        sharedPreferences.getString(Config.prefOnBoardingPage) ?? 'welcome';
 
-    return page;
+    return sharedPreferences.getString(Config.prefOnBoardingPage) ?? 'welcome';
   }
 
   static Future<UserPreferences> getPreferences() async {
@@ -445,14 +518,20 @@ class SharedPreferencesHelper {
   }
 
   static Future<void> updateOnBoardingPage(
-      OnBoardingPage currentBoardingPage) async {
+    OnBoardingPage currentBoardingPage,
+  ) async {
     final sharedPreferences = await SharedPreferences.getInstance();
     await sharedPreferences.setString(
-        Config.prefOnBoardingPage, currentBoardingPage.getName());
+      Config.prefOnBoardingPage,
+      currentBoardingPage.getName(),
+    );
   }
 
   static Future<void> updatePreference(
-      String key, dynamic value, String type) async {
+    String key,
+    dynamic value,
+    String type,
+  ) async {
     try {
       final sharedPreferences = await SharedPreferences.getInstance();
       if (type == 'bool') {

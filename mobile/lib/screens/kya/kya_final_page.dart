@@ -6,7 +6,10 @@ import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
 
 class KyaFinalPage extends StatefulWidget {
-  const KyaFinalPage({Key? key, required this.kya}) : super(key: key);
+  const KyaFinalPage({
+    Key? key,
+    required this.kya,
+  }) : super(key: key);
   final Kya kya;
 
   @override
@@ -27,43 +30,44 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
           backgroundColor: CustomColors.appBodyColor,
         ),
         body: Container(
-            color: CustomColors.appBodyColor,
-            child: Center(
-              child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SvgPicture.asset(
-                      'assets/icon/learn_complete.svg',
-                      height: 133,
-                      width: 221,
-                    ),
-                    const SizedBox(
-                      height: 33.61,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 40, right: 40),
-                      child: Text(
-                        'Congrats!',
-                        style: CustomTextStyle.headline11(context),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 8.0,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 60, right: 60),
-                      child: Text(widget.kya.completionMessage,
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context)
-                              .textTheme
-                              .subtitle1
-                              ?.copyWith(
-                                  color: CustomColors.appColorBlack
-                                      .withOpacity(0.5))),
-                    ),
-                  ]),
-            )),
+          color: CustomColors.appBodyColor,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SvgPicture.asset(
+                  'assets/icon/learn_complete.svg',
+                  height: 133,
+                  width: 221,
+                ),
+                const SizedBox(
+                  height: 33.61,
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 40, right: 40),
+                  child: Text(
+                    'Congrats!',
+                    style: CustomTextStyle.headline11(context),
+                  ),
+                ),
+                const SizedBox(
+                  height: 8.0,
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 60, right: 60),
+                  child: Text(
+                    widget.kya.completionMessage,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                          color: CustomColors.appColorBlack.withOpacity(0.5),
+                        ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -77,9 +81,12 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
   }
 
   Future<void> _initialize() async {
-    Future.delayed(const Duration(seconds: 4), () {
-      Navigator.pop(context);
-    });
+    Future.delayed(
+      const Duration(seconds: 4),
+      () {
+        Navigator.pop(context);
+      },
+    );
     await kya.saveKya();
   }
 

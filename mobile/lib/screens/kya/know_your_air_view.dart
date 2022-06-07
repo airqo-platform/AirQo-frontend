@@ -10,7 +10,9 @@ import '../../widgets/custom_widgets.dart';
 import 'kya_widgets.dart';
 
 class KnowYourAirView extends StatefulWidget {
-  const KnowYourAirView({Key? key}) : super(key: key);
+  const KnowYourAirView({
+    Key? key,
+  }) : super(key: key);
 
   @override
   _KnowYourAirViewState createState() => _KnowYourAirViewState();
@@ -22,26 +24,37 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
   @override
   Widget build(BuildContext context) {
     return Container(
-        color: CustomColors.appBodyColor,
-        child: ValueListenableBuilder<Box>(
-          valueListenable: Hive.box<Kya>(HiveBox.kya).listenable(),
-          builder: (context, box, widget) {
-            if (box.isEmpty) {
-              return const EmptyKya();
-            }
+      color: CustomColors.appBodyColor,
+      child: ValueListenableBuilder<Box>(
+        valueListenable: Hive.box<Kya>(HiveBox.kya).listenable(),
+        builder: (context, box, widget) {
+          if (box.isEmpty) {
+            return const EmptyKya();
+          }
 
-            final kyaCards = box.values.toList().cast<Kya>();
-            return AppRefreshIndicator(
-                sliverChildDelegate:
-                    SliverChildBuilderDelegate((context, index) {
-                  return Padding(
-                      padding: EdgeInsets.only(
-                          top: Config.refreshIndicatorPadding(index)),
-                      child: KyaViewWidget(kya: kyaCards[index]));
-                }, childCount: kyaCards.length),
-                onRefresh: _refreshKya);
-          },
-        ));
+          final kyaCards = box.values.toList().cast<Kya>();
+
+          return AppRefreshIndicator(
+            sliverChildDelegate: SliverChildBuilderDelegate(
+              (context, index) {
+                return Padding(
+                  padding: EdgeInsets.only(
+                    top: Config.refreshIndicatorPadding(
+                      index,
+                    ),
+                  ),
+                  child: KyaViewWidget(
+                    kya: kyaCards[index],
+                  ),
+                );
+              },
+              childCount: kyaCards.length,
+            ),
+            onRefresh: _refreshKya,
+          );
+        },
+      ),
+    );
   }
 
   Future<void> _refreshKya() async {

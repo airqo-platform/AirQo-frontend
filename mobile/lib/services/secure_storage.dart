@@ -20,7 +20,10 @@ class SecureStorage {
     try {
       await _secureStorage.write(key: key, value: value);
     } catch (exception, stackTrace) {
-      await logException(exception, stackTrace);
+      await logException(
+        exception,
+        stackTrace,
+      );
     }
   }
 }

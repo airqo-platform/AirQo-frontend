@@ -28,7 +28,9 @@ OnBoardingPage getOnBoardingPageConstant(String value) {
 }
 
 class OnBoardingAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const OnBoardingAppBar({Key? key}) : super(key: key);
+  const OnBoardingAppBar({
+    Key? key,
+  }) : super(key: key);
 
   @override
   PreferredSizeWidget build(BuildContext context) {
@@ -45,7 +47,9 @@ class OnBoardingAppBar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class OnBoardingLocationIcon extends StatelessWidget {
-  const OnBoardingLocationIcon({Key? key}) : super(key: key);
+  const OnBoardingLocationIcon({
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +71,9 @@ class OnBoardingLocationIcon extends StatelessWidget {
 }
 
 class OnBoardingNotificationIcon extends StatelessWidget {
-  const OnBoardingNotificationIcon({Key? key}) : super(key: key);
+  const OnBoardingNotificationIcon({
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -89,12 +95,12 @@ class OnBoardingNotificationIcon extends StatelessWidget {
 }
 
 class ProfileSetupNameInputField extends StatelessWidget {
-  const ProfileSetupNameInputField(
-      {Key? key,
-      required this.nameChangeCallBack,
-      required this.showTileOptionsCallBack,
-      this.controller})
-      : super(key: key);
+  const ProfileSetupNameInputField({
+    Key? key,
+    required this.nameChangeCallBack,
+    required this.showTileOptionsCallBack,
+    this.controller,
+  }) : super(key: key);
   final Function(String) nameChangeCallBack;
   final Function(bool) showTileOptionsCallBack;
   final TextEditingController? controller;
@@ -105,10 +111,15 @@ class ProfileSetupNameInputField extends StatelessWidget {
       controller: controller,
       onTap: () => showTileOptionsCallBack(false),
       onEditingComplete: () async {
-        FocusScope.of(context).requestFocus(FocusNode());
-        Future.delayed(const Duration(milliseconds: 250), () {
-          showTileOptionsCallBack(true);
-        });
+        FocusScope.of(context).requestFocus(
+          FocusNode(),
+        );
+        Future.delayed(
+          const Duration(milliseconds: 250),
+          () {
+            showTileOptionsCallBack(true);
+          },
+        );
       },
       enableSuggestions: false,
       cursorWidth: 1,
@@ -119,6 +130,7 @@ class ProfileSetupNameInputField extends StatelessWidget {
         if (value == null || value.isEmpty) {
           return 'Please enter your name';
         }
+
         return null;
       },
       decoration: InputDecoration(
@@ -132,9 +144,9 @@ class ProfileSetupNameInputField extends StatelessWidget {
           borderRadius: BorderRadius.circular(8.0),
         ),
         border: OutlineInputBorder(
-            borderSide:
-                BorderSide(color: CustomColors.appColorBlue, width: 1.0),
-            borderRadius: BorderRadius.circular(8.0)),
+          borderSide: BorderSide(color: CustomColors.appColorBlue, width: 1.0),
+          borderRadius: BorderRadius.circular(8.0),
+        ),
         hintText: 'Enter your name',
         errorStyle: const TextStyle(
           fontSize: 0,
@@ -149,9 +161,11 @@ class ProfileSetupNameInputField extends StatelessWidget {
 }
 
 class TitleDropDown extends StatelessWidget {
-  const TitleDropDown(
-      {Key? key, required this.showTileOptionsCallBack, required this.profile})
-      : super(key: key);
+  const TitleDropDown({
+    Key? key,
+    required this.showTileOptionsCallBack,
+    required this.profile,
+  }) : super(key: key);
   final Function(bool) showTileOptionsCallBack;
   final Profile profile;
 
@@ -160,31 +174,35 @@ class TitleDropDown extends StatelessWidget {
     return GestureDetector(
       onTap: () => showTileOptionsCallBack(true),
       child: Container(
-          width: 70,
-          padding:
-              const EdgeInsets.only(left: 10, right: 10, top: 15, bottom: 15),
-          decoration: BoxDecoration(
-              color: const Color(0xffF4F4F4),
-              borderRadius: BorderRadius.circular(8)),
-          child: Center(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('${profile.title.substring(0, 2)}.'),
-                const Icon(
-                  Icons.keyboard_arrow_down_sharp,
-                  color: Colors.black,
-                ),
-              ],
-            ),
-          )),
+        width: 70,
+        padding:
+            const EdgeInsets.only(left: 10, right: 10, top: 15, bottom: 15),
+        decoration: BoxDecoration(
+          color: const Color(0xffF4F4F4),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Center(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('${profile.title.substring(0, 2)}.'),
+              const Icon(
+                Icons.keyboard_arrow_down_sharp,
+                color: Colors.black,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
 
 class LogoWidget extends StatelessWidget {
-  const LogoWidget({Key? key}) : super(key: key);
+  const LogoWidget({
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -198,7 +216,10 @@ class LogoWidget extends StatelessWidget {
 }
 
 class TaglineWidget extends StatelessWidget {
-  const TaglineWidget({Key? key, required this.visible}) : super(key: key);
+  const TaglineWidget({
+    Key? key,
+    required this.visible,
+  }) : super(key: key);
   final bool visible;
 
   @override
@@ -207,23 +228,26 @@ class TaglineWidget extends StatelessWidget {
       opacity: visible ? 1.0 : 0.0,
       duration: const Duration(milliseconds: 500),
       child: Center(
-        child: Stack(alignment: AlignmentDirectional.center, children: [
-          Image.asset(
-            'assets/images/splash-image.png',
-            fit: BoxFit.cover,
-            height: double.infinity,
-            width: double.infinity,
-            alignment: Alignment.center,
-          ),
-          Text(
-            'Breathe\nClean.',
-            textAlign: TextAlign.center,
-            style: Theme.of(context)
-                .textTheme
-                .headline4
-                ?.copyWith(color: Colors.white),
-          ),
-        ]),
+        child: Stack(
+          alignment: AlignmentDirectional.center,
+          children: [
+            Image.asset(
+              'assets/images/splash-image.png',
+              fit: BoxFit.cover,
+              height: double.infinity,
+              width: double.infinity,
+              alignment: Alignment.center,
+            ),
+            Text(
+              'Breathe\nClean.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context)
+                  .textTheme
+                  .headline4
+                  ?.copyWith(color: Colors.white),
+            ),
+          ],
+        ),
       ),
     );
   }

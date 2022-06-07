@@ -20,12 +20,17 @@ import 'native_api.dart';
 class LocationService {
   static Future<bool> allowLocationAccess() async {
     final enabled = await PermissionService.checkPermission(
-        AppPermission.location,
-        request: true);
+      AppPermission.location,
+      request: true,
+    );
     if (enabled) {
       await Future.wait([
-        CloudAnalytics.logEvent(AnalyticsEvent.allowLocation),
-        Profile.getProfile().then((profile) => profile.update())
+        CloudAnalytics.logEvent(
+          AnalyticsEvent.allowLocation,
+        ),
+        Profile.getProfile().then(
+          (profile) => profile.update(),
+        ),
       ]);
     }
 
@@ -44,6 +49,7 @@ class LocationService {
         addresses.add(name);
       }
     }
+
     return addresses;
   }
 
@@ -54,28 +60,29 @@ class LocationService {
       final location = locate_api.Location();
       await location.changeSettings(accuracy: locate_api.LocationAccuracy.high);
       await location.enableBackgroundMode(enable: true);
-      location.onLocationChanged
-          .listen((locate_api.LocationData locationData) async {
-        final latitude = locationData.latitude;
-        final longitude = locationData.longitude;
+      location.onLocationChanged.listen(
+        (locate_api.LocationData locationData) async {
+          final latitude = locationData.latitude;
+          final longitude = locationData.longitude;
 
-        if (latitude != null && longitude != null) {
-          final site = await getNearestSite(latitude, longitude);
-          final addresses = await getAddresses(latitude, longitude);
-          if (site != null) {
-            final analytics = Analytics.init()
-              ..site = site.id
-              ..location = site.location
-              ..latitude = latitude
-              ..longitude = longitude
-              ..name = addresses.first;
-            await analytics.add();
+          if (latitude != null && longitude != null) {
+            final site = await getNearestSite(latitude, longitude);
+            final addresses = await getAddresses(latitude, longitude);
+            if (site != null) {
+              final analytics = Analytics.init()
+                ..site = site.id
+                ..location = site.location
+                ..latitude = latitude
+                ..longitude = longitude
+                ..name = addresses.first;
+              await analytics.add();
+            }
           }
-        }
 
-        debugPrint('${locationData.longitude} : '
-            '${locationData.longitude} : ${locationData.time}');
-      });
+          debugPrint('${locationData.longitude} : '
+              '${locationData.longitude} : ${locationData.time}');
+        },
+      );
     }
   }
 
@@ -100,12 +107,16 @@ class LocationService {
     }
 
     final locationData = await location.getLocation();
-    await updateAnalytics(locationData);
+    await updateAnalytics(
+      locationData,
+    );
+
     return locationData;
   }
 
   static Future<void> updateAnalytics(
-      locate_api.LocationData? locationData) async {
+    locate_api.LocationData? locationData,
+  ) async {
     if (locationData == null) {
       return;
     }
@@ -150,6 +161,7 @@ class LocationService {
       throw Exception('Location permissions are permanently denied, '
           'please enable permission to access your location');
     }
+
     return await Geolocator.getCurrentPosition();
   }
 
@@ -162,18 +174,23 @@ class LocationService {
         return [];
       }
 
-      final addresses =
-          await getAddresses(location.latitude!, location.longitude!);
+      final addresses = await getAddresses(
+        location.latitude!,
+        location.longitude!,
+      );
       final latestMeasurements = await DBHelper().getLatestMeasurements();
 
       final nearestMeasurements = <Measurement>[];
 
       for (final measurement in latestMeasurements) {
-        final distanceInMeters = metersToKmDouble(Geolocator.distanceBetween(
+        final distanceInMeters = metersToKmDouble(
+          Geolocator.distanceBetween(
             measurement.site.latitude,
             measurement.site.longitude,
             location.latitude!,
-            location.longitude!));
+            location.longitude!,
+          ),
+        );
         if (distanceInMeters < (Config.maxSearchRadius.toDouble() * 2)) {
           measurement.site.distance = distanceInMeters;
           nearestMeasurements.add(measurement);
@@ -187,9 +204,11 @@ class LocationService {
       final measurements =
           Measurement.sortByDistance(nearestMeasurements).take(2).toList();
       measurements[0].site.name = addresses[0];
+
       return measurements;
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
+
       return [];
     }
   }
@@ -212,50 +231,64 @@ class LocationService {
       return nearestSite.site;
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
+
       return null;
     }
   }
 
   static Future<List<Measurement>> getNearestSites(
-      double latitude, double longitude) async {
+    double latitude,
+    double longitude,
+  ) async {
     final nearestSites = <Measurement>[];
     double distanceInMeters;
     final dbHelper = DBHelper();
     final latestMeasurements = await dbHelper.getLatestMeasurements();
 
     for (final measurement in latestMeasurements) {
-      distanceInMeters = metersToKmDouble(Geolocator.distanceBetween(
+      distanceInMeters = metersToKmDouble(
+        Geolocator.distanceBetween(
           measurement.site.latitude,
           measurement.site.longitude,
           latitude,
-          longitude));
+          longitude,
+        ),
+      );
       if (distanceInMeters < Config.maxSearchRadius.toDouble()) {
         measurement.site.distance = distanceInMeters;
         nearestSites.add(measurement);
       }
     }
+
     return Measurement.sortByDistance(nearestSites);
   }
 
   static Future<bool> revokePermission() async {
     final profile = await Profile.getProfile();
     await profile.update(enableLocation: false);
+
     return false;
   }
 
   static Future<List<Measurement>> searchNearestSites(
-      double latitude, double longitude, String term) async {
+    double latitude,
+    double longitude,
+    String term,
+  ) async {
     final nearestSites = <Measurement>[];
     double distanceInMeters;
     final dbHelper = DBHelper();
     final latestMeasurements = await dbHelper.getLatestMeasurements();
 
     for (final measurement in latestMeasurements) {
-      distanceInMeters = metersToKmDouble(Geolocator.distanceBetween(
+      distanceInMeters = metersToKmDouble(
+        Geolocator.distanceBetween(
           measurement.site.latitude,
           measurement.site.longitude,
           latitude,
-          longitude));
+          longitude,
+        ),
+      );
       if (measurement.site.name.inStatement(term)) {
         measurement.site.distance = distanceInMeters;
         nearestSites.add(measurement);
@@ -271,7 +304,9 @@ class LocationService {
   }
 
   static List<Measurement> textSearchNearestSites(
-      String term, List<Measurement> measurements) {
+    String term,
+    List<Measurement> measurements,
+  ) {
     final nearestSites = <Measurement>[];
 
     for (final measurement in measurements) {
@@ -286,6 +321,7 @@ class LocationService {
         nearestSites.add(measurement);
       }
     }
+
     return nearestSites;
   }
 }
