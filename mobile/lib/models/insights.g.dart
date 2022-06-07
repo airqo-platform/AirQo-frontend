@@ -7,17 +7,21 @@ part of 'insights.dart';
 // **************************************************************************
 
 Insights _$InsightsFromJson(Map<String, dynamic> json) => Insights(
-      timeFromJson(json['time']),
+      DateTime.parse(json['time'] as String),
       (json['pm2_5'] as num).toDouble(),
       (json['pm10'] as num).toDouble(),
-      boolFromJson(json['empty']),
-      boolFromJson(json['forecast']),
+      boolFromJson(
+        json['empty'],
+      ),
+      boolFromJson(
+        json['forecast'],
+      ),
       json['siteId'] as String,
       frequencyFromJson(json['frequency'] as String),
     );
 
 Map<String, dynamic> _$InsightsToJson(Insights instance) => <String, dynamic>{
-      'time': timeToJson(instance.time),
+      'time': instance.time.toIso8601String(),
       'pm2_5': instance.pm2_5,
       'pm10': instance.pm10,
       'empty': boolToJson(instance.empty),

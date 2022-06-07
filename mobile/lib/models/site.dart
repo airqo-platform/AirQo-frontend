@@ -6,6 +6,18 @@ part 'site.g.dart';
 
 @JsonSerializable()
 class Site {
+  factory Site.fromJson(Map<String, dynamic> json) => _$SiteFromJson(json);
+
+  Site({
+    required this.id,
+    required this.latitude,
+    required this.longitude,
+    required this.country,
+    required this.name,
+    required this.location,
+    required this.region,
+    required this.distance,
+  });
   @JsonKey(required: true, name: '_id')
   final String id;
 
@@ -27,23 +39,15 @@ class Site {
   @JsonKey(required: true, name: 'location_name')
   String location;
 
-  @JsonKey(required: true, defaultValue: '', fromJson: regionFromJson)
+  @JsonKey(
+    required: true,
+    defaultValue: '',
+    fromJson: regionFromJson,
+  )
   final String region;
 
   @JsonKey(required: false, defaultValue: 0.0)
   double distance;
-
-  Site(
-      {required this.id,
-      required this.latitude,
-      required this.longitude,
-      required this.country,
-      required this.name,
-      required this.location,
-      required this.region,
-      required this.distance});
-
-  factory Site.fromJson(Map<String, dynamic> json) => _$SiteFromJson(json);
 
   Map<String, dynamic> toJson() => _$SiteToJson(this);
 
@@ -78,6 +82,6 @@ class Site {
         'id': site.id,
         'country': site.country,
         'latitude': site.latitude,
-        'longitude': site.longitude
+        'longitude': site.longitude,
       };
 }
