@@ -10,7 +10,7 @@ spec:
   selector:
     matchLabels:
       app: airqo-website
-  replicas: 2
+  replicas: 4
   template:
     metadata:
       labels:
@@ -29,7 +29,13 @@ spec:
           volumeMounts:
           - name: config-volume
             mountPath: /etc/config
-          resources: {}
+          resources: 
+            requests:
+              cpu: 100m
+              memory: 250Mi
+            limits:
+              cpu: 200m
+              memory: 700Mi
           command: ["/app/wsgi-entrypoint.sh"]
       volumes:
         - name: config-volume
@@ -51,3 +57,23 @@ spec:
       targetPort: 8000
       nodePort: 30105
   type: NodePort
+
+---
+kind: HorizontalPodAutoscaler
+apiVersion: autoscaling/v2
+metadata:
+  name: airqo-website-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: airqo-website
+  minReplicas: 1
+  maxReplicas: 4
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70

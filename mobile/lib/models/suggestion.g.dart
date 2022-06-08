@@ -2,23 +2,6 @@
 
 part of 'suggestion.dart';
 
-SuggestionDetails _$SuggestionDetailsFromJson(Map<String, dynamic> json) {
-  $checkKeys(
-    json,
-    requiredKeys: const ['main_text', 'secondary_text'],
-  );
-  return SuggestionDetails(
-    json['main_text'] as String,
-    json['secondary_text'] as String,
-  );
-}
-
-Map<String, dynamic> _$SuggestionDetailsToJson(SuggestionDetails instance) =>
-    <String, dynamic>{
-      'main_text': instance.mainText,
-      'secondary_text': instance.secondaryText,
-    };
-
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
@@ -39,4 +22,21 @@ Map<String, dynamic> _$SuggestionToJson(Suggestion instance) =>
     <String, dynamic>{
       'place_id': instance.placeId,
       'structured_formatting': instance.suggestionDetails,
+    };
+
+SuggestionDetails _$SuggestionDetailsFromJson(Map<String, dynamic> json) {
+  $checkKeys(
+    json,
+    requiredKeys: const ['main_text', 'secondary_text'],
+  );
+  return SuggestionDetails(
+    json['main_text'] as String,
+    json['secondary_text'] as String,
+  );
+}
+
+Map<String, dynamic> _$SuggestionDetailsToJson(SuggestionDetails instance) =>
+    <String, dynamic>{
+      'main_text': instance.mainText,
+      'secondary_text': instance.secondaryText,
     };

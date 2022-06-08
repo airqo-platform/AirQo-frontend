@@ -9,6 +9,7 @@ import { AnalyticsSection } from '../components/AnalyticsSection';
 import ApiSection from '../components/ApiSection/ApiSection';
 import AirQommunitiesSection from '../components/AirQommunitiesSection/AirQommunitiesSection';
 import AirQuality from '../components/AirQuality';
+import Partners from '../components/Partners';
 
 const HomePage = () => {
     useInitScrollTop();
@@ -16,6 +17,7 @@ const HomePage = () => {
         <Page>
             <div className="HomePage">
                 <Hero />
+                <Partners />
                 <AirQuality />
                 <Monitor />
                 <AnalyticsSection />

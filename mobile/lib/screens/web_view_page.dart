@@ -1,20 +1,22 @@
 import 'dart:async';
 
-import 'package:app/services/app_service.dart';
-import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/extensions.dart';
+import 'package:app/utils/network.dart';
+import 'package:app/widgets/dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-import '../constants/config.dart';
+import '../themes/colors.dart';
 import '../widgets/custom_widgets.dart';
 
 class WebViewScreen extends StatefulWidget {
+  const WebViewScreen({
+    Key? key,
+    required this.url,
+    required this.title,
+  }) : super(key: key);
   final String url;
   final String title;
-
-  const WebViewScreen({Key? key, required this.url, required this.title})
-      : super(key: key);
 
   @override
   State<WebViewScreen> createState() => _WebViewScreenState();
@@ -22,62 +24,72 @@ class WebViewScreen extends StatefulWidget {
 
 class _WebViewScreenState extends State<WebViewScreen> {
   final controller = Completer<WebViewController>();
-  var loadingPercentage = 0;
-  final AppService _appService = AppService();
+  int loadingPercentage = 0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: appTopBar(
-            context: context,
-            title: widget.title.trimEllipsis(),
-            actions: [
-              NavigationControls(controller: controller),
-            ],
-            centerTitle: false),
-        body: Stack(
-          children: [
-            WebView(
-              backgroundColor: Config.appBodyColor,
-              initialUrl: widget.url,
-              onWebViewCreated: controller.complete,
-              javascriptMode: JavascriptMode.unrestricted,
-              onPageStarted: (url) {
-                setState(() {
+      appBar: AppTopBar(
+        widget.title.trimEllipsis(),
+        actions: [
+          NavigationControls(
+            controller: controller,
+          ),
+        ],
+        centerTitle: false,
+      ),
+      body: Stack(
+        children: [
+          WebView(
+            backgroundColor: CustomColors.appBodyColor,
+            initialUrl: widget.url,
+            onWebViewCreated: controller.complete,
+            javascriptMode: JavascriptMode.unrestricted,
+            onPageStarted: (url) {
+              setState(
+                () {
                   loadingPercentage = 0;
-                });
-              },
-              onProgress: (progress) {
-                setState(() {
+                },
+              );
+            },
+            onProgress: (progress) {
+              setState(
+                () {
                   loadingPercentage = progress;
-                });
-              },
-              onPageFinished: (url) {
-                setState(() {
+                },
+              );
+            },
+            onPageFinished: (url) {
+              setState(
+                () {
                   loadingPercentage = 100;
-                });
-              },
+                },
+              );
+            },
+          ),
+          if (loadingPercentage < 100)
+            LinearProgressIndicator(
+              value: loadingPercentage / 100.0,
+              color: CustomColors.appColorBlue,
+              backgroundColor: CustomColors.appColorDisabled,
             ),
-            if (loadingPercentage < 100)
-              LinearProgressIndicator(
-                value: loadingPercentage / 100.0,
-                color: Config.appColorBlue,
-                backgroundColor: Config.appColorDisabled,
-              ),
-          ],
-        ));
+        ],
+      ),
+    );
   }
 
   @override
   void initState() {
     super.initState();
-    _appService.isConnected(context);
+    checkNetworkConnection(context, notifyUser: true);
   }
 }
 
 class NavigationControls extends StatelessWidget {
-  const NavigationControls({required this.controller, Key? key})
-      : super(key: key);
+  const NavigationControls({
+    required this.controller,
+    Key? key,
+  }) : super(key: key);
 
   final Completer<WebViewController> controller;
 
@@ -93,15 +105,15 @@ class NavigationControls extends StatelessWidget {
             children: <Widget>[
               Icon(
                 Icons.arrow_back_ios,
-                color: Config.appColorBlue,
+                color: CustomColors.appColorBlue,
               ),
               Icon(
                 Icons.arrow_forward_ios,
-                color: Config.appColorBlue,
+                color: CustomColors.appColorBlue,
               ),
               Icon(
                 Icons.replay,
-                color: Config.appColorBlue,
+                color: CustomColors.appColorBlue,
               ),
             ],
           );
@@ -112,13 +124,17 @@ class NavigationControls extends StatelessWidget {
             IconButton(
               icon: Icon(
                 Icons.arrow_back_ios,
-                color: Config.appColorBlue,
+                color: CustomColors.appColorBlue,
               ),
               onPressed: () async {
                 if (await controller.canGoBack()) {
                   await controller.goBack();
                 } else {
-                  await showSnackBar(context, 'No back history item');
+                  await showSnackBar(
+                    context,
+                    'No back history item',
+                  );
+
                   return;
                 }
               },
@@ -126,13 +142,17 @@ class NavigationControls extends StatelessWidget {
             IconButton(
               icon: Icon(
                 Icons.arrow_forward_ios,
-                color: Config.appColorBlue,
+                color: CustomColors.appColorBlue,
               ),
               onPressed: () async {
                 if (await controller.canGoForward()) {
                   await controller.goForward();
                 } else {
-                  await showSnackBar(context, 'No forward history item');
+                  await showSnackBar(
+                    context,
+                    'No forward history item',
+                  );
+
                   return;
                 }
               },
@@ -140,7 +160,7 @@ class NavigationControls extends StatelessWidget {
             IconButton(
               icon: Icon(
                 Icons.replay,
-                color: Config.appColorBlue,
+                color: CustomColors.appColorBlue,
               ),
               onPressed: controller.reload,
             ),
