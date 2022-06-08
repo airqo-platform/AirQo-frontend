@@ -8,6 +8,7 @@ import MapSection from '../components/MapSection/MapSection';
 import { AnalyticsSection } from '../components/AnalyticsSection';
 import ApiSection from '../components/ApiSection/ApiSection';
 import AirQommunitiesSection from '../components/AirQommunitiesSection/AirQommunitiesSection';
+import AirQuality from '../components/AirQuality';
 
 const HomePage = () => {
     useInitScrollTop();
@@ -15,6 +16,7 @@ const HomePage = () => {
         <Page>
             <div className="HomePage">
                 <Hero />
+                <AirQuality />
                 <Monitor />
                 <AnalyticsSection />
                 <ApiSection />
