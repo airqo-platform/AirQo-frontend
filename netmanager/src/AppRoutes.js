@@ -1,36 +1,54 @@
-import React, { Suspense, lazy } from "react";
-import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
-import PrivateRoute from "./views/components/PrivateRoute/PrivateRoute";
-import { useInternetConnectivityCheck, useJiraHelpDesk } from "utils/customHooks";
+import React, { Suspense, lazy } from 'react';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import PrivateRoute from './views/components/PrivateRoute/PrivateRoute';
+import {
+  useInternetConnectivityCheck,
+  useJiraHelpDesk,
+} from 'utils/customHooks';
 
 // core imports. imported on initial page load
-import Overview from "./views/components/Dashboard/Overview";
-import Devices from "./views/components/DataDisplay/Devices";
-import { Download as DownloadView } from "./views/pages/Download";
-import Landing from "./views/layouts/Landing";
-import { Main as MainLayout, Minimal as MinimalLayout } from "views/layouts/";
-import { NotFound as NotFoundView } from "./views/pages/NotFound";
-import { LargeCircularLoader } from "views/components/Loader/CircularLoader";
+import Overview from './views/components/Dashboard/Overview';
+import Devices from './views/components/DataDisplay/Devices';
+import { Download as DownloadView } from './views/pages/Download';
+import Landing from './views/layouts/Landing';
+import { Main as MainLayout, Minimal as MinimalLayout } from 'views/layouts/';
+import { NotFound as NotFoundView } from './views/pages/NotFound';
+import { LargeCircularLoader } from 'views/components/Loader/CircularLoader';
 
 // lazy imports
-const Account = lazy(() => import("./views/pages/Account"));
-const AnalyticsDashboard = lazy(() => import("./views/pages/Dashboard"));
-const DeviceView = lazy(() => import("./views/components/DataDisplay/DeviceView"));
-const ManagerMap = lazy(() => import("./views/components/DataDisplay/DeviceManagement/ManagementMap"));
-const ManagerStats = lazy(() => import("./views/components/DataDisplay/DeviceManagement/ManagementStats"));
-const Map = lazy(() => import("./views/components/Map"));
-const OverlayMap = lazy(() => import("./views/pages/Map"));
-const ForgotPassword = lazy(() => import("./views/pages/ForgotPassword"));
-const ResetPassword = lazy(() => import("./views/pages/ResetPassword"));
-const Login = lazy(() => import("./views/pages/SignUp/Login"));
-const Register = lazy(() => import("./views/pages/SignUp/Register"));
-const UserList = lazy(() => import("./views/pages/UserList"));
-const CandidateList = lazy(() => import("./views/pages/CandidateList"));
-const Settings = lazy(() => import("./views/pages/Settings"));
-const SiteRegistry = lazy(() => import("./views/components/Sites/SiteRegistry"));
-const SiteView = lazy(() => import("./views/components/Sites/SiteView"));
-const AirQloudRegistry = lazy(() => import("./views/components/AirQlouds/AirQloudRegistry"));
-const AirQloudView = lazy(() => import("./views/components/AirQlouds/AirQloudView"));
+const Account = lazy(() => import('./views/pages/Account'));
+const AnalyticsDashboard = lazy(() => import('./views/pages/Dashboard'));
+const DeviceView = lazy(() =>
+  import('./views/components/DataDisplay/DeviceView')
+);
+const ManagerMap = lazy(() =>
+  import('./views/components/DataDisplay/DeviceManagement/ManagementMap')
+);
+const ManagerStats = lazy(() =>
+  import('./views/components/DataDisplay/DeviceManagement/ManagementStats')
+);
+const ManagerFault = lazy(() =>
+  import('./views/components/DataDisplay/DeviceManagement/ManagementFaults')
+);
+const Map = lazy(() => import('./views/components/Map'));
+const OverlayMap = lazy(() => import('./views/pages/Map'));
+const ForgotPassword = lazy(() => import('./views/pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./views/pages/ResetPassword'));
+const Login = lazy(() => import('./views/pages/SignUp/Login'));
+const Register = lazy(() => import('./views/pages/SignUp/Register'));
+const UserList = lazy(() => import('./views/pages/UserList'));
+const CandidateList = lazy(() => import('./views/pages/CandidateList'));
+const Settings = lazy(() => import('./views/pages/Settings'));
+const SiteRegistry = lazy(() =>
+  import('./views/components/Sites/SiteRegistry')
+);
+const SiteView = lazy(() => import('./views/components/Sites/SiteView'));
+const AirQloudRegistry = lazy(() =>
+  import('./views/components/AirQlouds/AirQloudRegistry')
+);
+const AirQloudView = lazy(() =>
+  import('./views/components/AirQlouds/AirQloudView')
+);
 
 const AppRoutes = () => {
   useJiraHelpDesk();
@@ -51,7 +69,7 @@ const AppRoutes = () => {
             <MainLayout>
               <LargeCircularLoader
                 loading={true}
-                height={"calc(100vh - 114px)"}
+                height={'calc(100vh - 114px)'}
               />
             </MainLayout>
           }
@@ -118,6 +136,12 @@ const AppRoutes = () => {
           />
           <PrivateRoute
             exact
+            path="/manager/fault-detection"
+            component={ManagerFault}
+            layout={MainLayout}
+          />
+          <PrivateRoute
+            exact
             path="/sites"
             component={SiteRegistry}
             layout={MainLayout}
@@ -170,11 +194,11 @@ const AppRoutes = () => {
         </Switch>
         <div
           style={{
-            position: "fixed",
+            position: 'fixed',
             bottom: 0,
             right: 0,
-            marginRight: "10px",
-            marginBottom: "20px",
+            marginRight: '10px',
+            marginBottom: '20px',
           }}
         >
           <div id="jira-help-desk" />

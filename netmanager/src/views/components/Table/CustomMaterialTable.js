@@ -1,25 +1,25 @@
-import React, { useEffect, useRef, useState } from "react";
-import { useDispatch } from "react-redux";
-import { makeStyles } from "@material-ui/styles";
-import MaterialTable from "material-table";
-import PropTypes from "prop-types";
-import PerfectScrollbar from "react-perfect-scrollbar";
-import { useUserPreferencePaginationData } from "redux/UserPreference/selectors";
+import React, { useEffect, useRef, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { makeStyles } from '@material-ui/styles';
+import MaterialTable from 'material-table';
+import PropTypes from 'prop-types';
+import PerfectScrollbar from 'react-perfect-scrollbar';
+import { useUserPreferencePaginationData } from 'redux/UserPreference/selectors';
 import {
   generatePaginateOptions,
   getPaginationOption,
   getPaginationOptionIndexMapper,
-} from "utils/pagination";
-import { updateUserPreferenceData } from "redux/UserPreference/operators";
+} from 'utils/pagination';
+import { updateUserPreferenceData } from 'redux/UserPreference/operators';
 
 const useStyles = makeStyles((theme) => ({
   tableWrapper: {
-    "& tbody>.MuiTableRow-root:hover": {
-      background: "#EEE",
+    '& tbody>.MuiTableRow-root:hover': {
+      background: '#EEE',
     },
   },
   cursorPointer: {
-    cursor: "pointer",
+    cursor: 'pointer',
   },
 }));
 
@@ -65,7 +65,7 @@ export default function CustomMaterialTable({
     onChangeRowsPerPage: (pageSize) => {
       const itemsPerPage = pageSizeMapper[pageSize] || defaultPageSize;
       dispatch(
-        updateUserPreferenceData("pagination", {
+        updateUserPreferenceData('pagination', {
           [userPreferencePaginationKey]: itemsPerPage,
         })
       );
@@ -75,7 +75,7 @@ export default function CustomMaterialTable({
     <div
       className={
         className ||
-        `${classes.tableWrapper} ${pointerCursor ? classes.cursorPointer : ""}`
+        `${classes.tableWrapper} ${pointerCursor ? classes.cursorPointer : ''}`
       }
       style={style || {}}
     >
