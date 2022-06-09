@@ -18,10 +18,10 @@
                 font-weight: 500;
                 line-height: 52px;
                 text-align: center;
-                width:566px;
+                max-width:566px;
             }
             p{
-                width:722px;
+                max-width:722px;
                 font-size: $subTextFont;
                 font-weight: 400;
                 line-height: 28px;
@@ -102,6 +102,66 @@
             .image{
                 img {
                     height: 368px;
+                }
+            }
+        }
+    }
+}
+
+@media (max-width: $mainBreakPoint){
+    .airquality-section{
+        .backdrop{
+            .header{
+                padding: 0 10px;
+                h2{
+                    text-align: left;
+                }
+                p{
+                    text-align: left;
+                }
+                .tabs{
+                    width: 99%;
+                    margin-top: 32px;
+                }
+                .tab{
+                    font-size: 14px;
+                }
+                .tab.tab-selected{
+                    padding: 12px 20px;
+                }
+            }
+            .content{
+                flex-direction: column;
+                padding:0;
+                align-items: center;
+                margin:53px 10px 0 10px;
+                .content-container{
+                    .card{
+                        width: 99%;
+                        padding: 10px 0 10px 16px;
+                        ol{
+                            li{
+                                margin-left: -40px;
+                            }
+                        }
+                    }
+                    .selected{
+                        border: none;
+                        box-shadow: none;
+                    }
+                    .unselected{
+                        border:none;
+                    }
+                    #second{
+                        margin: 15px 0 10px 0;
+                    }
+                }
+                .image{
+                    padding: 40px 5px 0 5px;
+                    img{
+                        width: 99%;
+                        height: 99%;
+                    }
                 }
             }
         }
