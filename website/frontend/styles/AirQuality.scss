@@ -113,21 +113,15 @@
         .backdrop{
             .header{
                 padding: 0 10px;
-                h2{
-                    text-align: left;
-                }
-                p{
-                    text-align: left;
-                }
                 .tabs{
                     width: 99%;
                     margin-top: 32px;
                 }
                 .tab{
-                    font-size: 14px;
+                    font-size: 16px;
                 }
                 .tab.tab-selected{
-                    padding: 12px 20px;
+                    padding: 14px 24px;
                 }
             }
             .content{
@@ -137,27 +131,31 @@
                 margin:53px 10px 0 10px;
                 .content-container{
                     .card{
-                        width: 99%;
-                        padding: 10px 0 10px 16px;
+                        width: 320px;
+                        padding: 12px 0 0 16px;
+                        border: 2px solid #E8EFFC;
+                        h4{
+                            margin-bottom: -14px;
+                        }
                         ol{
                             li{
                                 margin-left: -40px;
+                                small{
+                                    font-size: 11px;
+                                }
                             }
                         }
                     }
                     .selected{
-                        border: none;
+                        border: 2px solid #E8EFFC;
                         box-shadow: none;
-                    }
-                    .unselected{
-                        border:none;
                     }
                     #second{
                         margin: 15px 0 10px 0;
                     }
                 }
                 .image{
-                    padding: 40px 5px 0 5px;
+                    padding: 24px 5px 0 5px;
                     img{
                         width: 99%;
                         height: 99%;

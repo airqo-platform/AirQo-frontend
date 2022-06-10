@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import AirQualityImg from 'assets/img/AirQuality.png'
+import PlatformImg from 'assets/img/Digitalplatforms.png'
 
 const AfricanCities = () => {
     const [selectedCard, setSelectedCard] = useState('card1')
@@ -8,8 +9,8 @@ const AfricanCities = () => {
         <>
             <div className='content-container'>
                 <div id='first' className={selectedCard === 'card1' ? "card selected" : "card unselected"}
-                name='card1'
-                onClick={()=>onClickCardItem('card1')}>
+                    name='card1'
+                    onClick={() => onClickCardItem('card1')}>
                     <h4>High resolution network</h4>
                     <ol>
                         <li><small>— We want cleaner air in all African cities</small></li>
