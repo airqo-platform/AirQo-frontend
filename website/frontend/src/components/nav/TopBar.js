@@ -59,7 +59,7 @@ const TopBar = () => {
                     </div>
                     <NavTab text="About" path="/about-us" hideArrow />
                     <NavTab text="Get involved" path="/get-involved" hideArrow colored />
-                    <NavTab text="Explore data"  hideArrow filled />
+                    <NavTab text="Explore data" path={"https://platform.airqo.net/request-access?tenant=airqo"} externalLink  hideArrow filled />
                 </div>
                 
             </div>
