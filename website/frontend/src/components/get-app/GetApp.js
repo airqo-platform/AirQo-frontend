@@ -14,13 +14,13 @@ const GetApp = () => {
                         <span>Discover the quality of the air you are breathing</span>
                     </div>
                     <div className='get-btns'>
-                        <button className='get-btn get-ios'>
+                        <a target="_blank" href="https://apps.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091" className='get-btn get-ios'>
                             <AppleStore />
-                        </button>
+                        </a>
 
-                        <button className='get-btn get-android'>
+                        <a target="_blank" href="https://play.google.com/store/apps/details?id=com.airqo.app" className='get-btn get-android'>
                             <AndroidStore />
-                        </button>
+                        </a>
                     </div>
                 </div>
                 <div className='get-graphics'>
