@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import AirQualityImg from 'assets/img/hero-img.png'
+import AirQualityImg from 'assets/img/ForCommunities.png'
 
 const Communities = () => {
     const [selectedCard, setSelectedCard] = useState('card1')
@@ -10,28 +10,28 @@ const Communities = () => {
               <div id='first' className={selectedCard === 'card1' ? "card selected" : "card unselected"}
                   name='card1'
                   onClick={() => onClickCardItem('card1')}>
-                  <h4>Healthy Environments</h4>
+                  <h4>AirQommunity champions</h4>
                   <ol>
-                      <li><small>— We want cleaner air in all African cities</small></li>
-                      <li><small>— We leverage our understanding of the African context</small></li>
+                      <li><small>— A growing network of individual change makers </small></li>
+                      <li><small>— Championing local leaders and demand action</small></li>
                   </ol>
               </div>
               <div id='second' className={selectedCard === 'card2' ? "card selected" : "card unselected"}
                   name='card2'
                   onClick={() => onClickCardItem('card2')}>
-                  <h4>Precise air quality information</h4>
+                  <h4>Free access to air quality information</h4>
                   <ol>
-                      <li><small>— We empower decision-makers in African cities</small></li>
-                      <li><small>— We increased access to air quality data evidence </small></li>
+                      <li><small>— We train individuals and communities</small></li>
+                      <li><small>— Facilitating access to air quality information </small></li>
                   </ol>
               </div>
               <div className={selectedCard === 'card3' ? "card selected" : "card unselected"}
                   name='card3'
                   onClick={() => onClickCardItem('card3')}>
-                  <h4>AirQommunities</h4>
+                  <h4>AirQo hosts</h4>
                   <ol>
-                      <li><small>— We engage city authorities and government agencies</small></li>
-                      <li><small>— We empower local leaders with air quality information</small></li>
+                      <li><small>— We engage locals host our deployment activities</small></li>
+                      <li><small>— We involve locals in our maintainance drives</small></li>
                   </ol>
               </div>
           </div>
