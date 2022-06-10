@@ -46,33 +46,33 @@ import Page from './Page';
 import Profile from '../components/Profile';
 
 const teamMembers = [
-  { name: 'Prof. Engineer Bainomugisha', title: 'Project Lead', img: ProfileImg1 },
-  { name: 'Deo Okure', title: 'Air Quality Scientist & Programme Manager', img: DeoImg },
-  { name: 'Martin Bbale', title: 'Software Engineering Lead', img: MartinImg },
-  { name: 'Maclina Birungi, MSc, MCIM', title: 'Marketing And Communications Lead', img: MaclinaImg },
-  { name: 'Joel Ssematimba', title: 'Hardware Development & Manufacturing Lead', img: JoelImg },
-  { name: 'Dora Bampangana', title: 'Project Administrator', img: DoraImg },
-  { name: 'Priscilla Adong', title: 'Data Scientist', img: PriscillaImg },
-  { name: 'Joseph Odur', title: 'Software Engineer', img: ProfileImg7 },
-  { name: 'Richard Sserunjogi', title: 'Data Scientist', img: RichardImg },
-  { name: 'Proscovia Nakiranda', title: 'Data Scientist', img: ProssyImg },
-  { name: 'Noah Nsimbe', title: 'Software Engineer', img: ProfileImg10 },
-  { name: 'Paul Zana', title: 'UI/UX Designer', img: PaulImg },
-  { name: 'Deo Okedi', title: 'Embedded Systems Engineer', img: OkediImg },
-  { name: 'Marvin Banda', title: 'Assistant Embedded Systems Engineer', img: MarvinImg },
-  { name: 'George Settala', title: 'Embedded Systems and Network Support Engineer', img: GeorgeImg },
-  { name: 'Daniel Ogenrwot', title: 'Assistant Software Engineer', img: ProfileImg12 },
+  { name: 'Prof. Engineer Bainomugisha', title: 'Project Lead', img: ProfileImg1, twitterProfileLink: 'https://twitter.com/iBaino' },
+  { name: 'Deo Okure', title: 'Air Quality Scientist & Programme Manager', img: DeoImg, twitterProfileLink: 'https://twitter.com/OkureDo' },
+  { name: 'Martin Bbale', title: 'Software Engineering Lead', img: MartinImg, twitterProfileLink: 'https://twitter.com/baalmart' },
+  { name: 'Maclina Birungi, MSc, MCIM', title: 'Marketing And Communications Lead', img: MaclinaImg, linkedInProfileLink: 'https://www.linkedin.com/in/maclina-birungi-msc-mcim-55b23461/' },
+  { name: 'Joel Ssematimba', title: 'Hardware Development & Manufacturing Lead', img: JoelImg, linkedInProfileLink: 'https://www.linkedin.com/in/ssematimba-joel-b40ba8151/' },
+  { name: 'Dora Bampangana', title: 'Project Administrator', img: DoraImg, linkedInProfileLink: 'https://www.linkedin.com/in/dora-bampangana-17042059' },
+  { name: 'Priscilla Adong', title: 'Data Scientist', img: PriscillaImg, twitterProfileLink: 'https://twitter.com/Priscillaa_says' },
+  { name: 'Joseph Odur', title: 'Software Engineer', img: ProfileImg7, linkedInProfileLink: 'https://www.linkedin.com/in/odur-joseph-712787102' },
+  { name: 'Richard Sserunjogi', title: 'Data Scientist', img: RichardImg, twitterProfileLink: 'https://twitter.com/sserurichx' },
+  { name: 'Proscovia Nakiranda', title: 'Data Scientist', img: ProssyImg, twitterProfileLink: 'https://twitter.com/pro_napro' },
+  { name: 'Noah Nsimbe', title: 'Software Engineer', img: ProfileImg10, twitterProfileLink: 'https://twitter.com/noahnsimbe' },
+  { name: 'Paul Zana', title: 'UI/UX Designer', img: PaulImg, twitterProfileLink: 'https://twitter.com/wxyzana' },
+  { name: 'Deo Okedi', title: 'Embedded Systems Engineer', img: OkediImg, linkedInProfileLink: 'https://www.linkedin.com/in/okedi-deogratius-94482213b' },
+  { name: 'Marvin Banda', title: 'Assistant Embedded Systems Engineer', img: MarvinImg, twitterProfileLink: 'https://twitter.com/bandamarvinm' },
+  { name: 'George Settala', title: 'Embedded Systems and Network Support Engineer', img: GeorgeImg, twitterProfileLink: 'https://twitter.com/SettalaG' },
+  { name: 'Daniel Ogenrwot', title: 'Assistant Software Engineer', img: ProfileImg12, twitterProfileLink: 'https://twitter.com/danielogenrwot' },
   { name: 'Lillian Muyama', title: 'Data Scientist', img: ProfileImg13 },
-  { name: 'Pablo A Alvarado Duran', title: 'Research Scientist', img: ProfileImg14 },
-  { name: 'Dennis M Reddyhoff', title: 'Researcher', img: ProfileImg15 },
-  { name: 'Paterne Gahungu', title: 'Postdoctoral Researcher', img: ProfileImg16 },
-  { name: 'Dr. Gabriel Okello', title: 'Visiting Research Fellow', img: ProfileImg17 },
-  { name: 'Angela Nshimye', title: 'Policy And Engagement Officer', img: AngelaImg },
-  { name: 'Adrine Priscah Warigo', title: 'Digital Communications Executive', img: PriscahImg },
-  { name: 'Busigu Faith Daka', title: 'Frontend Engineer', img: FaithImg },
-  { name: 'Wabinyai Fidel Raja', title: 'Data Scientist', img: FidelImg },
-  { name: 'Belinda Marion Kobusingye', title: 'Frontend Engineer', img: BelindaImg },
-  { name: 'Mike Mwanje', title: 'DevOps Engineer', img: MikeImg },
+  { name: 'Pablo A Alvarado Duran', title: 'Research Scientist', img: ProfileImg14, linkedInProfileLink: 'https://www.linkedin.com/in/pablo-alejandro-alvarado-duran-a34309225' },
+  { name: 'Dennis M Reddyhoff', title: 'Researcher', img: ProfileImg15, linkedInProfileLink: 'https://www.linkedin.com/in/dreddyhoff/' },
+  { name: 'Paterne Gahungu', title: 'Postdoctoral Researcher', img: ProfileImg16, twitterProfileLink: 'https://twitter.com/gahungupaterne' },
+  { name: 'Dr. Gabriel Okello', title: 'Visiting Research Fellow', img: ProfileImg17, twitterProfileLink: 'https://twitter.com/okellogab256' },
+  { name: 'Angela Nshimye', title: 'Policy And Engagement Officer', img: AngelaImg, twitterProfileLink: 'https://twitter.com/NshimyeAngela' },
+  { name: 'Adrine Priscah Warigo', title: 'Digital Communications Executive', img: PriscahImg, linkedInProfileLink: 'https://www.linkedin.com/in/priscah-adrine-mcim-6a465371/' },
+  { name: 'Busigu Faith Daka', title: 'Frontend Engineer', img: FaithImg, twitterProfileLink: 'https://twitter.com/BusiguFaithD' },
+  { name: 'Wabinyai Fidel Raja', title: 'Data Scientist', img: FidelImg, twitterProfileLink: 'https://twitter.com/WabiRaja' },
+  { name: 'Belinda Marion Kobusingye', title: 'Frontend Engineer', img: BelindaImg, twitterProfileLink: 'https://twitter.com/belindamarionk' },
+  { name: 'Mike Mwanje', title: 'DevOps Engineer', img: MikeImg, twitterProfileLink: 'https://twitter.com/Mwanje_Mike_' },
 ];
 
 const AboutUsPage = () => {
@@ -213,6 +213,8 @@ const AboutUsPage = () => {
                                   ImgPath={member.img}
                                   name={member.name}
                                   title={member.title}
+                                  twitterProfileLink={member.twitterProfileLink || ''}
+                                  linkedInProfileLink={member.linkedInProfileLink || ''}
                                 />
                             ))}
                         </div>
