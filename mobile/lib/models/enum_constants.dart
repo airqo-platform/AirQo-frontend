@@ -1,3 +1,7 @@
+import 'package:hive/hive.dart';
+
+part 'enum_constants.g.dart';
+
 enum AnalyticsEvent {
   browserAsAppGuest,
   createUserProfile,
@@ -16,23 +20,76 @@ enum AnalyticsEvent {
   mtnUser,
   airtelUser,
   otherNetwork,
-  deletedAccount
+  deletedAccount,
+  notificationOpen,
+  notificationReceive,
 }
 
-enum Region {
-  central,
-  eastern,
-  northern,
-  western,
+enum AppPermission {
+  notification,
+  location,
 }
 
-enum AuthMethod { phone, email }
+@HiveType(typeId: 110, adapterName: 'AppNotificationTypeAdapter')
+enum AppNotificationType {
+  @HiveField(0)
+  appUpdate,
+  @HiveField(1)
+  reminder,
+  @HiveField(2)
+  welcomeMessage,
+}
 
-enum AuthProcedure { login, signup }
+enum Region { central, eastern, northern, western, none }
 
-enum Frequency { daily, hourly }
+enum AirQuality {
+  good,
+  moderate,
+  ufsgs,
+  unhealthy,
+  veryUnhealthy,
+  hazardous,
+}
 
-enum Gender { male, female, undefined }
+enum FeedbackType {
+  inquiry,
+  suggestion,
+  appBugs,
+  reportAirPollution,
+  none,
+}
+
+enum FeedbackChannel {
+  whatsApp,
+  email,
+  none,
+}
+
+enum AuthMethod {
+  phone,
+  email,
+}
+
+enum AuthProcedure {
+  login,
+  signup,
+}
+
+enum Frequency {
+  daily,
+  hourly,
+}
+
+enum Gender {
+  male,
+  female,
+  undefined,
+}
+
+enum ConfirmationAction {
+  cancel,
+  ok,
+}
 
 enum OnBoardingPage {
   signup,
@@ -41,11 +98,23 @@ enum OnBoardingPage {
   location,
   complete,
   home,
-  welcome
+  welcome,
 }
 
-enum Pollutant { pm2_5, pm10 }
+enum Pollutant {
+  pm2_5,
+  pm10,
+}
 
-enum TitleOptions { ms, mr, undefined }
+enum TitleOptions {
+  ms,
+  mr,
+  undefined,
+}
 
-enum ToolTipType { favouritePlaces, info, forYou, forecast }
+enum ToolTipType {
+  favouritePlaces,
+  info,
+  forYou,
+  forecast,
+}

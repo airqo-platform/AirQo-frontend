@@ -56,3 +56,5 @@ google-services.json
 *.env.dev
 *.env.prod
 *.env*
+metrics/
+obfuscate/

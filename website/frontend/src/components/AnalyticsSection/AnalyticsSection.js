@@ -8,9 +8,9 @@ const AnalyticsSection = () => (
         <div className="wrapper">
             <h3>Air Quality Analytics</h3>
             <div className="AnalyticsSection-info">
-                <h1>An intuitive air quality analytics dashboard</h1>
+                <h1>An interactive air quality analytics platform</h1>
                 <div className="AnalyticsSection-info-aside">
-                    <p>Access real-time and historical air quality information across Africa through our easy-to-use air quality analytics dashboard</p>
+                    <p>Access and visualise real-time and historical air quality information across Africa through our easy-to-use air quality analytics dashboard</p>
                     {/* <div className="AnalyticsSection-info-aside-btn">Learn more <ArrowForwardIcon className="AnalyticsSection-icon"/></div> */}
                 </div>
                 

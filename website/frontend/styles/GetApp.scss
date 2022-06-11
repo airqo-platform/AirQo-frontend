@@ -19,8 +19,8 @@ $p-font:$subTextFont;
 .get-app{
     display:grid;
     grid-template-columns: $gridColumn;
-    padding: 80px 0 136px 0;
-    margin-bottom: 260px;
+    padding: 40px 0 80px 0;
+    margin-bottom: 230px;
     .back-drop{
         grid-column: 2 / 3;
         display:grid;
@@ -36,12 +36,12 @@ $p-font:$subTextFont;
             float:left;
             .get-text{
                 padding: 28px 0 0 30px;
-                width:auto;
+                width:480px;
                 h2{
                     color:$aq-blue-0;
                     font-weight: 600;
                     font-size: $h2-font;
-                    line-height: 10px;
+                    line-height: 28px;
                 }
                 span{
                     color: $aq-blue-2;
