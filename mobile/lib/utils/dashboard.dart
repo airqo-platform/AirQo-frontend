@@ -1,26 +1,49 @@
 import 'package:app/constants/config.dart';
+import 'package:app/models/enum_constants.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-String getNextDashboardRegion(SharedPreferences sharedPreferences) {
-  var currentRegion = sharedPreferences.getString(Config.prefDashboardRegion);
-
-  if (currentRegion == null) {
-    sharedPreferences.setString(Config.prefDashboardRegion, 'Central Region');
-    return 'Central Region';
-  }
-
-  if (currentRegion.equalsIgnoreCase('central region')) {
-    sharedPreferences.setString(Config.prefDashboardRegion, 'Eastern Region');
-    return 'Eastern Region';
-  } else if (currentRegion.equalsIgnoreCase('eastern region')) {
-    sharedPreferences.setString(Config.prefDashboardRegion, 'Western Region');
-    return 'Western Region';
-  } else if (currentRegion.equalsIgnoreCase('western region')) {
-    sharedPreferences.setString(Config.prefDashboardRegion, 'Central Region');
-    return 'Central Region';
+Region getRegionConstant(String value) {
+  if (value.toLowerCase().contains('central')) {
+    return Region.central;
+  } else if (value.toLowerCase().contains('northern')) {
+    return Region.northern;
+  } else if (value.toLowerCase().contains('eastern')) {
+    return Region.eastern;
+  } else if (value.toLowerCase().contains('western')) {
+    return Region.western;
   } else {
-    sharedPreferences.setString(Config.prefDashboardRegion, 'Central Region');
-    return 'Central Region';
+    return Region.none;
   }
+}
+
+Region getNextDashboardRegion(SharedPreferences sharedPreferences) {
+  final currentRegion = getRegionConstant(
+    sharedPreferences.getString(Config.prefDashboardRegion) ?? '',
+  );
+
+  if (currentRegion == Region.central) {
+    sharedPreferences.setString(
+      Config.prefDashboardRegion,
+      Region.eastern.getName(),
+    );
+
+    return Region.eastern;
+  } else if (currentRegion == Region.eastern) {
+    sharedPreferences.setString(
+      Config.prefDashboardRegion,
+      Region.western.getName(),
+    );
+
+    return Region.western;
+  } else if (currentRegion == Region.western || currentRegion == Region.none) {
+    sharedPreferences.setString(
+      Config.prefDashboardRegion,
+      Region.central.getName(),
+    );
+
+    return Region.central;
+  }
+
+  return Region.central;
 }

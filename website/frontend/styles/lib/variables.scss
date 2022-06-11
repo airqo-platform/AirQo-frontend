@@ -4,7 +4,28 @@ $mainPadding: 160px;
 
 $columnWidth: 1088px;
 
-$maxWidth: 1088px;
+$maxWidth: $columnWidth;
 
-//$gridColumn: 2fr repeat(5, 3fr) 2fr;
 $gridColumn: 1fr minmax(0, $maxWidth) 1fr;
+
+$largeHeadingFont: 56px;
+
+$headingFont: 48px;
+
+$miniHeadingFont: 40px;
+
+$subTextFont: 20px;
+
+$paragraphFont: 18px;
+
+$largeParagraphFont: 32px;
+
+$largeParagraphFontSm: 28px;
+
+$linkFont: 16px;
+
+$pillFont: 14px;
+
+$buttonFont: 16px;
+
+$breadCrumbFont: 14px;

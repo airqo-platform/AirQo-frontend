@@ -10,6 +10,4 @@ mobile/android/app/google-services.json
 .DS_Store
 .env
 .cache_ggshield
-.gitsecret/keys/random_seed
-!*.secret
 secret

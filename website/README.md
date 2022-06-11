@@ -213,17 +213,20 @@ Populate the `.env` file with the following keys and their respective values
     CLOUDINARY_NAME
     CLOUDINARY_KEY
     CLOUDINARY_SECRET
-    WEB_STATIC_HOST
+    REACT_WEB_STATIC_HOST
     DJANGO_ALLOWED_HOSTS      # alist od comma seperated hosts
     GS_BUCKET_NAME
     CONTAINER_ENV             # True for docker
+    REACT_NETMANAGER_BASE_URL
+    REACT_APP_BASE_AIRQLOUDS_URL
+    REACT_APP_BASE_NEWSLETTER_URL
 
 **Note**: Remove `DATABASE_URI` variable  if you are using docker.
 
 #### Docker
 Run the command below to build and run the containers for the database and website app
 
-    docker-compose -f docker/docker-compose-dev.yml up --build
+    REACT_WEB_STATIC_HOST=<web-static-host> REACT_NETMANAGER_BASE_URL=<netmanager-base-url> REACT_APP_BASE_AIRQLOUDS_URL=<app-base-airqlouds-url> REACT_APP_BASE_NEWSLETTER_URL=<app-base-newsletter-url> docker-compose -f docker/docker-compose-dev.yml up --build
 
 When the build is complete and both _airqo-website_ and _airqo-website-db_ containers, you can access the website app at http://localhost:8000/
 

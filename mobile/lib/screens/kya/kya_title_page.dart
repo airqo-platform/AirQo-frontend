@@ -1,19 +1,23 @@
-import 'package:app/constants/config.dart';
 import 'package:app/models/kya.dart';
-import 'package:auto_size_text/auto_size_text.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../themes/light_theme.dart';
+import '../../services/native_api.dart';
+import '../../themes/app_theme.dart';
+import '../../themes/colors.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/custom_widgets.dart';
 import 'kya_lessons_page.dart';
 
 class KyaTitlePage extends StatefulWidget {
+  const KyaTitlePage(
+    this.kya, {
+    Key? key,
+  }) : super(key: key);
   final Kya kya;
-
-  const KyaTitlePage(this.kya, {Key? key}) : super(key: key);
 
   @override
   _KyaTitlePageState createState() => _KyaTitlePageState();
@@ -24,134 +28,131 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: knowYourAirAppBar(context, 'Know Your Air'),
-      body: Stack(children: [
-        Container(
-          color: Config.appBodyColor,
-          height: double.infinity,
-          width: double.infinity,
-        ),
-        FractionallySizedBox(
-          alignment: Alignment.topCenter,
-          widthFactor: 1.0,
-          heightFactor: 0.4,
-          child: Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                fit: BoxFit.cover,
-                image: CachedNetworkImageProvider(
-                  widget.kya.imageUrl,
+      appBar: const KnowYourAirAppBar(),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Container(
+            color: CustomColors.appBodyColor,
+            height: double.infinity,
+            width: double.infinity,
+          ),
+          FractionallySizedBox(
+            alignment: Alignment.topCenter,
+            widthFactor: 1.0,
+            heightFactor: 0.4,
+            child: Container(
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  fit: BoxFit.cover,
+                  image: CachedNetworkImageProvider(
+                    widget.kya.imageUrl,
+                    cacheKey: widget.kya.imageUrlCacheKey(),
+                    cacheManager: CacheManager(
+                      CacheService.cacheConfig(
+                        widget.kya.imageUrlCacheKey(),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
-            child: Container(
-              color: Config.appColorBlue.withOpacity(0.4),
+          ),
+          Align(
+            alignment: AlignmentDirectional.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 24, right: 24, bottom: 32),
+              child: GestureDetector(
+                onTap: () {
+                  setState(
+                    () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) {
+                            return KyaLessonsPage(widget.kya);
+                          },
+                        ),
+                      );
+                    },
+                  );
+                },
+                child: NextButton(
+                  text: 'Begin',
+                  buttonColor: CustomColors.appColorBlue,
+                ),
+              ),
             ),
           ),
-          //   child: Stack(
-          //     children: [
-          //       CachedNetworkImage(
-          //         fit: BoxFit.contain,
-          //         placeholder: (context, url) => SizedBox(
-          //           child: containerLoadingAnimation(
-          //               height:
-          //               double.infinity,
-          //               radius: 0),
-          //         ),
-          //         imageUrl: widget.kya.secondaryImageUrl.trim() == ''
-          //             ? widget.kya.imageUrl
-          //             : widget.kya.secondaryImageUrl,
-          //         errorWidget: (context, url, error) => Icon(
-          //           Icons.error_outline,
-          //           color: Config.red,
-          //         ),
-          //       ),
-          //       Container(
-          //         color: Config.appColorBlue.withOpacity(0.4),
-          //       ),
-          //     ],
-          //   )
-        ),
-        Positioned.fill(
-          child: Align(
-              alignment: Alignment.bottomCenter,
+          Positioned.fill(
+            child: Align(
+              alignment: Alignment.center,
               child: Padding(
                 padding: const EdgeInsets.only(left: 24, right: 24),
                 child: Column(
                   children: [
                     const Spacer(),
                     Container(
-                        decoration: const BoxDecoration(
-                            color: Colors.white,
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(16.0))),
-                        child: Center(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              const SizedBox(
-                                height: 48,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(16.0),
+                        ),
+                      ),
+                      child: Center(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const SizedBox(
+                              height: 48,
+                            ),
+                            Container(
+                              constraints: const BoxConstraints(
+                                maxWidth: 221.46,
+                                maxHeight: 133.39,
+                                minWidth: 221.46,
+                                minHeight: 133.39,
                               ),
-                              Container(
-                                constraints: const BoxConstraints(
-                                  maxWidth: 221.46,
-                                  maxHeight: 133.39,
-                                  minWidth: 221.46,
-                                  minHeight: 133.39,
-                                ),
-                                decoration: const BoxDecoration(
-                                  // borderRadius: BorderRadius.circular(8.0),
-                                  image: DecorationImage(
-                                    fit: BoxFit.cover,
-                                    image: AssetImage(
-                                      'assets/images/kya_stars.png',
-                                    ),
+                              decoration: const BoxDecoration(
+                                // borderRadius: BorderRadius.circular(8.0),
+                                image: DecorationImage(
+                                  fit: BoxFit.cover,
+                                  image: AssetImage(
+                                    'assets/images/kya_stars.png',
                                   ),
                                 ),
                               ),
-                              const SizedBox(
-                                height: 18,
-                              ),
-                              Padding(
-                                padding:
-                                    const EdgeInsets.only(left: 16, right: 16),
-                                child: AutoSizeText(
-                                  widget.kya.title,
-                                  textAlign: TextAlign.center,
-                                  maxLines: 3,
-                                  overflow: TextOverflow.ellipsis,
-                                  maxFontSize: 28,
-                                  style: CustomTextStyle.headline11(context),
+                            ),
+                            const SizedBox(
+                              height: 18,
+                            ),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 40),
+                              child: Text(
+                                widget.kya.title,
+                                textAlign: TextAlign.center,
+                                style: CustomTextStyle.headline11(context)
+                                    ?.copyWith(
+                                  color: CustomColors.appColorBlack,
                                 ),
                               ),
-                              const SizedBox(
-                                height: 64,
-                              ),
-                            ],
-                          ),
-                        )),
-                    const SizedBox(
-                      height: 16,
+                            ),
+                            const SizedBox(
+                              height: 64,
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          Navigator.pushReplacement(context,
-                              MaterialPageRoute(builder: (context) {
-                            return KyaLessonsPage(widget.kya);
-                          }));
-                        });
-                      },
-                      child: nextButton('Begin', Config.appColorBlue),
-                    ),
-                    const SizedBox(
-                      height: 32,
-                    ),
+                    const Spacer(),
                   ],
                 ),
-              )),
-        ),
-      ]),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -161,22 +162,26 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
       width: 48,
       padding: const EdgeInsets.all(15.0),
       decoration: BoxDecoration(
-        color: Config.appColorPaleBlue,
+        color: CustomColors.appColorBlue.withOpacity(0.24),
         shape: BoxShape.circle,
       ),
       child: SvgPicture.asset(
         icon,
-        color: Config.appColorBlue,
+        color: CustomColors.appColorBlue,
       ),
     );
   }
 
   @override
   void didChangeDependencies() {
-    var futures = <Future>[];
-    for (var lesson in widget.kya.lessons) {
+    final futures = <Future>[];
+    for (final lesson in widget.kya.lessons) {
       futures.add(
-          precacheImage(CachedNetworkImageProvider(lesson.imageUrl), context));
+        precacheImage(
+          CachedNetworkImageProvider(lesson.imageUrl),
+          context,
+        ),
+      );
     }
     Future.wait(futures);
     super.didChangeDependencies();

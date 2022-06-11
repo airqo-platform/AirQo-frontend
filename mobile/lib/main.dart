@@ -1,135 +1,86 @@
 import 'dart:io';
 
-import 'package:app/models/notification.dart';
-import 'package:app/providers/locale_provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:app/screens/on_boarding/splash_screen.dart';
+import 'package:app/services/hive_service.dart';
+import 'package:app/services/native_api.dart';
+import 'package:app/services/notification_service.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'constants/config.dart';
 import 'firebase_options.dart';
-import 'languages/custom_localizations.dart';
-import 'languages/lg_intl.dart';
 import 'models/place_details.dart';
-import 'on_boarding/spash_screen.dart';
-import 'providers/theme_provider.dart';
-import 'themes/dark_theme.dart';
-import 'themes/light_theme.dart';
+import 'themes/app_theme.dart';
 
-Future<void> main() async {
+void main() async {
   HttpOverrides.global = AppHttpOverrides();
   await dotenv.load(fileName: Config.environmentFile);
 
   WidgetsFlutterBinding.ensureInitialized();
 
+  await HiveService.initialize();
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  FirebaseFirestore.instance.settings =
-      const Settings(persistenceEnabled: true);
+  await SystemProperties.setDefault();
 
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.dark,
-  ));
+  await NotificationService.listenToNotifications();
 
-  await SystemChrome.setPreferredOrientations(
-      [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
-
-  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
-      overlays: [SystemUiOverlay.bottom, SystemUiOverlay.top]);
-
-  // await Firebase.initializeApp().then((value) => {
-  //       FirebaseMessaging.onBackgroundMessage(
-  //           NotificationService.backgroundNotificationHandler),
-  //
-  //       FirebaseMessaging.onMessage
-  //           .listen(FbNotifications().foregroundMessageHandler)
-  //     });
-
-  final prefs = await SharedPreferences.getInstance();
-  final themeController = ThemeController(prefs);
+  await initializeBackgroundServices();
 
   if (kReleaseMode) {
+    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
     await SentryFlutter.init(
       (options) {
         options
-          ..dsn = Config.sentryUrl
+          ..dsn = Config.sentryDsn
+          ..enableOutOfMemoryTracking = true
           ..tracesSampleRate = 1.0;
       },
-      appRunner: () => runApp(AirQoApp(themeController: themeController)),
+      appRunner: () => runApp(
+        AirQoApp(),
+      ),
     );
   } else {
-    runApp(AirQoApp(themeController: themeController));
+    runApp(AirQoApp());
   }
 }
 
 class AirQoApp extends StatelessWidget {
-  final ThemeController themeController;
+  AirQoApp({
+    Key? key,
+  }) : super(key: key);
   final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
-
-  AirQoApp({Key? key, required this.themeController}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: themeController,
-      builder: (context, _) {
-        return ThemeControllerProvider(
-          controller: themeController,
-          child: MultiProvider(
-            providers: [
-              ChangeNotifierProvider(create: (_) => LocaleProvider()),
-              ChangeNotifierProvider(create: (context) => NotificationModel()),
-              ChangeNotifierProvider(create: (context) => PlaceDetailsModel()),
-            ],
-            builder: (context, child) {
-              final provider = Provider.of<LocaleProvider>(context);
-
-              return MaterialApp(
-                debugShowCheckedModeBanner: false,
-                navigatorObservers: [
-                  FirebaseAnalyticsObserver(analytics: analytics),
-                  SentryNavigatorObserver(),
-                ],
-                localizationsDelegates: const [
-                  CustomLocalizations.delegate,
-                  GlobalMaterialLocalizations.delegate,
-                  GlobalWidgetsLocalizations.delegate,
-                  GlobalCupertinoLocalizations.delegate,
-                  LgMaterialLocalizations.delegate,
-                ],
-                supportedLocales: const [Locale('en'), Locale('lg')],
-                locale: provider.locale,
-                title: Config.appName,
-                theme: _buildCurrentTheme(),
-                home: const SplashScreen(),
-              );
-            },
-          ),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => PlaceDetailsModel(),
+        ),
+      ],
+      builder: (context, child) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: kReleaseMode ? false : true,
+          navigatorObservers: [
+            FirebaseAnalyticsObserver(analytics: analytics),
+            SentryNavigatorObserver(),
+          ],
+          title: 'AirQo',
+          theme: customTheme(),
+          home: const SplashScreen(),
         );
       },
     );
-  }
-
-  ThemeData _buildCurrentTheme() {
-    switch (themeController.currentTheme) {
-      case 'dark':
-        return darkTheme();
-      case 'light':
-        return lightTheme();
-      default:
-        return lightTheme();
-    }
   }
 }
 

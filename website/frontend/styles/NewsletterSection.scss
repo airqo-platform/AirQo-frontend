@@ -9,25 +9,54 @@
     align-items: center;
     background-color: $aq-blue-1;
     text-align: center;
-    margin-top: 197px;
+    margin-top: 120px;
 
     h3 {
         margin: 0 auto;
         font-style: normal;
-        font-weight: bold;
-        font-size: 40px;
+        font-weight: 600;
+        font-size: $miniHeadingFont;
         line-height: 48px;
         color: $aq-blue-0;
     }
 
     p {
         font-style: normal;
-        font-weight: normal;
-        font-size: 18px;
+        font-weight: 400;
+        font-size: $subTextFont;
         line-height: 26px;
         color: $aq-blue-0;
         margin: 16px auto 40px auto;
         margin: 10px 32%;
+    }
+
+    .newsletter-info {
+        display: flex;
+        flex-wrap: wrap;
+        margin-top: 42px;
+
+        >span {
+            width: 100%;
+            font-style: normal;
+            font-weight: 400;
+            font-size: 18px;
+            line-height: 26px;
+        }
+        span:last-child {
+            font-style: normal;
+            font-weight: 400;
+            font-size: 18px;
+            line-height: 26px;
+            /* or 144% */
+
+            display: flex;
+            align-items: center;
+            text-align: center;
+
+            /* Colors/Secondary/Black */
+
+            color: #353E52;
+        }
     }
 
     .newsletter-form {
@@ -40,7 +69,7 @@
         &-input, &-btn {
             outline: 0;
             border: 0;
-            font-size: 14px;
+            font-size: $buttonFont;
         }
 
         &-input {
@@ -69,6 +98,7 @@
     .Newsletter {
         height: 100%;
         padding: 80px 16px;
+        margin-top: 0;
 
         p {
             margin: 10px 34.95px;

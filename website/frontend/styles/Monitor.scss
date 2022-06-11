@@ -3,13 +3,16 @@
 
 
 .Monitor {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  background: $aq-white-0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    max-width: $columnWidth;
+    margin: 0 auto;
+    height: 900px;
 
   .monitor-content {
     margin: 80px 0 0 0;
+    width:520px;
   }
 
   .label {
@@ -20,23 +23,21 @@
     height: 34px;
 
     font-style: normal;
-    font-weight: 700;
-    font-size: 14px;
+    font-weight: 500;
+    font-size: $pillFont;
     line-height: 26px;
 
     color: $aq-blue-0;
 
-    background: $aq-white-1;
+    background: $aq-blue-1;
     border-radius: 1000px;
   }
 
   .text-main {
-    width: 328px;
-
     font-style: normal;
-    font-weight: 700;
-    font-size: 40px;
-    line-height: 48px;
+    font-weight: 500;
+    font-size: $headingFont;
+    line-height: 56px;
 
     margin: 28px 0 16px 0;
 
@@ -44,11 +45,9 @@
   }
 
   .text-sub {
-    width: 328px;
-
     font-style: normal;
     font-weight: 400;
-    font-size: 20px;
+    font-size: $subTextFont;
     line-height: 28px;
 
     margin: 16px 0 24px 0;
@@ -61,18 +60,19 @@
     align-items: center;
 
     font-style: normal;
-    font-weight: 600;
-    font-size: 14px;
+    font-weight: 500;
+    font-size: $linkFont;
     line-height: 14px;
 
     color: $aq-blue-0;
   }
 
-  >img {
-    height: 400px;
-    width: 312px;
-    border-radius: 16px;
-    margin: 48px 0 80px 0;
+  .Monitor-img {
+    img{
+      width: 640px;
+      height: 551px;
+      border-radius: 16px;
+    }
   }
 }
 
@@ -97,11 +97,58 @@
       margin: 24px 0 32px 0;
     }
 
-    >img {
+    .Monitor-img {
       height: 584px;
       width: 520px;
       border-radius: 16px;
       margin: 0;
+    }
+  }
+}
+
+@media (max-width: $mainBreakPoint) {
+  .Monitor {
+    height: 100%;
+    width: 100%;
+    margin-bottom: 77px;
+    flex-direction: column;
+
+    .monitor-content {
+      padding: 0 16px;
+      width: 100%;
+
+      .label {
+        margin-bottom: 24px;
+        padding: 0;
+        background-color: $aq-blue-1;
+      }
+    }
+
+    .text-main {
+      width: 100%;
+      margin: 0;
+      margin-bottom: 24px;
+      font-weight: 500;
+    }
+
+    .text-sub {
+      width: 100%;
+      font-size: 20px;
+      line-height: 28px;
+      font-weight: 400;
+      margin: 0;
+      margin-bottom: 36px;
+    }
+
+    .Monitor-img {
+      height: 400px;
+      width: 100%;
+      
+      > img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
     }
   }
 }

@@ -5,32 +5,32 @@ import 'package:app/services/local_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
 
+import '../utils/exception.dart';
 import 'measurement.dart';
 
 part 'place_details.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class PlaceDetails {
+  PlaceDetails({
+    required this.name,
+    required this.location,
+    required this.siteId,
+    required this.placeId,
+    required this.latitude,
+    required this.longitude,
+  });
+
+  factory PlaceDetails.fromJson(Map<String, dynamic> json) =>
+      _$PlaceDetailsFromJson(json);
   String name = '';
   String location = '';
   String siteId;
   String placeId = const Uuid().v4();
   double latitude;
   double longitude;
-
-  PlaceDetails(
-      {required this.name,
-      required this.location,
-      required this.siteId,
-      required this.placeId,
-      required this.latitude,
-      required this.longitude});
-
-  factory PlaceDetails.fromJson(Map<String, dynamic> json) =>
-      _$PlaceDetailsFromJson(json);
 
   Map<String, dynamic> toJson() => _$PlaceDetailsToJson(this);
 
@@ -43,45 +43,51 @@ class PlaceDetails {
   static String dropTableStmt() => 'DROP TABLE IF EXISTS ${dbName()}';
 
   static bool isFavouritePlace(
-      List<PlaceDetails> favouritePlaces, PlaceDetails subject) {
-    for (var place in favouritePlaces) {
+    List<PlaceDetails> favouritePlaces,
+    PlaceDetails subject,
+  ) {
+    for (final place in favouritePlaces) {
       if (place.siteId == subject.siteId) {
         return true;
       }
     }
+
     return false;
   }
 
   static List<Map<String, dynamic>> listToJson(List<PlaceDetails> places) {
-    var placesJson = <Map<String, dynamic>>[];
-    for (var place in places) {
-      var placeJson = place.toJson();
+    final placesJson = <Map<String, dynamic>>[];
+    for (final place in places) {
+      final placeJson = place.toJson();
       placesJson.add(placeJson);
     }
+
     return placesJson;
   }
 
-  static PlaceDetails measurementToPLace(Measurement measurement) {
+  static PlaceDetails measurementToPlace(Measurement measurement) {
     return PlaceDetails(
-        name: measurement.site.name,
-        location: measurement.site.location,
-        siteId: measurement.site.id,
-        placeId: const Uuid().v4(),
-        latitude: measurement.site.latitude,
-        longitude: measurement.site.longitude);
+      name: measurement.site.name,
+      location: measurement.site.location,
+      siteId: measurement.site.id,
+      placeId: const Uuid().v4(),
+      latitude: measurement.site.latitude,
+      longitude: measurement.site.longitude,
+    );
   }
 
   static List<PlaceDetails> parseMultiPlaceDetails(dynamic jsonBody) {
-    var placeDetails = <PlaceDetails>[];
+    final placeDetails = <PlaceDetails>[];
 
-    for (var jsonElement in jsonBody) {
+    for (final jsonElement in jsonBody) {
       try {
-        var placeDetail = PlaceDetails.fromJson(jsonElement);
+        final placeDetail = PlaceDetails.fromJson(jsonElement);
         placeDetails.add(placeDetail);
       } catch (exception, stackTrace) {
         debugPrint('$exception\n$stackTrace');
       }
     }
+
     return placeDetails;
   }
 
@@ -91,17 +97,19 @@ class PlaceDetails {
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
+
     return null;
   }
 
   static PlaceDetails siteToPLace(Site site) {
     return PlaceDetails(
-        name: site.name,
-        location: site.location,
-        siteId: site.id,
-        placeId: const Uuid().v4(),
-        latitude: site.latitude,
-        longitude: site.longitude);
+      name: site.name,
+      location: site.location,
+      siteId: site.id,
+      placeId: const Uuid().v4(),
+      latitude: site.latitude,
+      longitude: site.longitude,
+    );
   }
 }
 
@@ -118,10 +126,9 @@ class PlaceDetailsModel extends ChangeNotifier {
       await _dbHelper.clearFavouritePlaces();
       notifyListeners();
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
+      await logException(
         exception,
-        stackTrace: stackTrace,
+        stackTrace,
       );
     }
   }
@@ -129,14 +136,13 @@ class PlaceDetailsModel extends ChangeNotifier {
   Future<void> reloadFavouritePlaces() async {
     try {
       _favouritePlaces.clear();
-      var favPlaces = await _dbHelper.getFavouritePlaces();
+      final favPlaces = await _dbHelper.getFavouritePlaces();
       _favouritePlaces.addAll(favPlaces);
       notifyListeners();
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
+      await logException(
         exception,
-        stackTrace: stackTrace,
+        stackTrace,
       );
     }
   }

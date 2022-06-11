@@ -1,135 +1,99 @@
-import 'dart:collection';
-
-import 'package:app/services/local_storage.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/material.dart';
+import 'package:app/utils/exception.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import '../services/firebase_service.dart';
+import '../services/hive_service.dart';
+import 'enum_constants.dart';
 import 'json_parsers.dart';
 
 part 'notification.g.dart';
 
-class NotificationModel extends ChangeNotifier {
-  final List<UserNotification> _notifications = [];
-  bool _navBarNotification = true;
-  final DBHelper _dbHelper = DBHelper();
-
-  bool get navBarNotification {
-    return _navBarNotification && hasNotifications();
-  }
-
-  UnmodifiableListView<UserNotification> get notifications =>
-      UnmodifiableListView(_notifications);
-
-  void add(UserNotification notification) {
-    _notifications.add(notification);
-    notifyListeners();
-  }
-
-  void addAll(List<UserNotification> notifications) {
-    _notifications
-      ..clear()
-      ..addAll(notifications);
-    notifyListeners();
-  }
-
-  bool hasNotifications() {
-    return _notifications.where((element) => element.isNew).toList().isNotEmpty;
-  }
-
-  Future<void> loadNotifications() async {
-    var notifications = await _dbHelper.getUserNotifications();
-    _notifications
-      ..clear()
-      ..addAll(notifications);
-    notifyListeners();
-  }
-
-  void removeAll() {
-    _notifications.clear();
-    _navBarNotification = false;
-    notifyListeners();
-  }
-
-  void removeNavBarNotification() {
-    _navBarNotification = false;
-    notifyListeners();
-  }
-}
-
 @JsonSerializable()
-class UserNotification {
+@HiveType(typeId: 10, adapterName: 'AppNotificationAdapter')
+class AppNotification extends HiveObject {
+  factory AppNotification.fromJson(Map<String, dynamic> json) =>
+      _$AppNotificationFromJson(json);
+
+  AppNotification({
+    required this.id,
+    required this.title,
+    required this.subTitle,
+    required this.link,
+    required this.icon,
+    required this.image,
+    required this.body,
+    required this.read,
+    required this.type,
+    DateTime? dateTime,
+  }) : dateTime = dateTime ?? DateTime.now();
+  @HiveField(1)
   String id;
+
+  @HiveField(2, defaultValue: '')
   String title;
+
+  @HiveField(3, defaultValue: '')
+  String subTitle;
+
+  @HiveField(4, defaultValue: '')
+  String link;
+
+  @JsonKey(fromJson: notificationIconFromJson, toJson: notificationIconToJson)
+  @HiveField(5, defaultValue: 'assets/icon/airqo_logo.svg')
+  String icon;
+
+  @HiveField(6, defaultValue: '')
+  String image;
+
+  @HiveField(7, defaultValue: '')
   String body;
-  String time;
 
-  @JsonKey(fromJson: boolFromJson, toJson: boolToJson)
-  bool isNew = true;
+  @HiveField(8)
+  DateTime dateTime;
 
-  UserNotification(this.id, this.title, this.body, this.isNew, this.time);
+  @HiveField(9, defaultValue: false)
+  bool read;
 
-  factory UserNotification.fromJson(Map<String, dynamic> json) =>
-      _$UserNotificationFromJson(json);
+  @HiveField(10, defaultValue: AppNotificationType.welcomeMessage)
+  AppNotificationType type;
 
-  void setHasNotification() {}
-
-  Map<String, dynamic> toJson() => _$UserNotificationToJson(this);
-
-  static UserNotification? composeNotification(RemoteMessage message) {
-    debugPrint('Message data: ${message.data}');
-
-    var data = message.data;
-
-    if (data.isNotEmpty) {
-      return UserNotification(message.hashCode.toString(), data['message'],
-          data['message'], true, DateTime.now().toUtc().toString());
-    }
-
-    return null;
+  Future<void> saveNotification() async {
+    await Future.wait([save(), CloudStore.updateCloudNotification(this)]);
   }
 
-  static String createTableStmt() => 'CREATE TABLE IF NOT EXISTS ${dbName()}('
-      'id TEXT PRIMARY KEY, '
-      'title TEXT, '
-      'body TEXT, '
-      'time TEXT, '
-      'isNew TEXT )';
+  Map<String, dynamic> toJson() => _$AppNotificationToJson(this);
 
-  static String dbName() => 'notifications_table';
-
-  static String dropTableStmt() => 'DROP TABLE IF EXISTS ${dbName()}';
-
-  static UserNotification? parseNotification(dynamic jsonBody) {
+  static AppNotification? parseAppNotification(dynamic jsonBody) {
     try {
-      var notification = UserNotification.fromJson(jsonBody);
+      final notification = AppNotification.fromJson(jsonBody);
+
       return notification;
     } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
+      logException(exception, stackTrace);
 
-    return null;
+      return null;
+    }
   }
 
-  static List<UserNotification> parseNotifications(dynamic jsonBody) {
-    var notifications = <UserNotification>[];
+  static List<AppNotification> sort(List<AppNotification> notifications) {
+    notifications.sort(
+      (x, y) {
+        return -(x.dateTime.compareTo(y.dateTime));
+      },
+    );
 
-    for (var jsonElement in jsonBody) {
-      try {
-        var measurement = UserNotification.fromJson(jsonElement);
-        notifications.add(measurement);
-      } catch (exception, stackTrace) {
-        debugPrint('$exception\n$stackTrace');
-      }
-    }
     return notifications;
   }
 
-  static List<UserNotification> reorderNotifications(
-      List<UserNotification> notificationList) {
-    notificationList.sort((x, y) {
-      return -(DateTime.parse(x.time).compareTo(DateTime.parse(y.time)));
-    });
-    return notificationList;
+  static Future<void> load(List<AppNotification> notifications) async {
+    final newNotifications = <dynamic, AppNotification>{};
+
+    for (final notification in notifications) {
+      newNotifications[notification.id] = notification;
+    }
+
+    await Hive.box<AppNotification>(HiveBox.appNotifications)
+        .putAll(newNotifications);
   }
 }

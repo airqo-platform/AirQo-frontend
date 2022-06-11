@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:app/constants/api.dart';
 import 'package:app/constants/config.dart';
@@ -11,45 +10,81 @@ import 'package:app/models/insights.dart';
 import 'package:app/models/json_parsers.dart';
 import 'package:app/models/measurement.dart';
 import 'package:app/models/place.dart';
+import 'package:app/models/profile.dart';
 import 'package:app/models/suggestion.dart';
-import 'package:app/models/user_details.dart';
-import 'package:app/utils/dialogs.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:uuid/uuid.dart';
+
+import '../utils/exception.dart';
+
+String addQueryParameters(Map<String, dynamic> queryParams, String url) {
+  if (queryParams.isNotEmpty) {
+    url = '$url?';
+    queryParams.forEach(
+      (key, value) {
+        url = queryParams.keys.elementAt(0).compareTo(key) == 0
+            ? '$url$key=$value'
+            : '$url&$key=$value';
+      },
+    );
+  }
+
+  return url;
+}
 
 class AirqoApiClient {
-  final BuildContext context;
+  factory AirqoApiClient() {
+    return _instance;
+  }
+  AirqoApiClient._internal();
+  static final AirqoApiClient _instance = AirqoApiClient._internal();
+
   final httpClient = SentryHttpClient(
-      client: http.Client(),
-      failedRequestStatusCodes: [
-        SentryStatusCode.range(400, 404),
-        SentryStatusCode(500),
-      ],
-      captureFailedRequests: true,
-      networkTracing: true);
+    client: http.Client(),
+    failedRequestStatusCodes: [
+      SentryStatusCode(500),
+      SentryStatusCode(400),
+      SentryStatusCode(404),
+    ],
+    captureFailedRequests: true,
+    networkTracing: true,
+  );
   final Map<String, String> headers = HashMap()
-    ..putIfAbsent('Authorization', () => 'JWT ${Config.airqoApiToken}');
+    ..putIfAbsent(
+      'Authorization',
+      () => 'JWT ${Config.airqoApiToken}',
+    );
 
-  AirqoApiClient(this.context);
-
-  Future<bool> checkIfUserExists(
-      String phoneNumber, String emailAddress) async {
+  Future<bool> checkIfUserExists({
+    String? phoneNumber,
+    String? emailAddress,
+  }) async {
     Map<String, String> headers = HashMap()
       ..putIfAbsent('Content-Type', () => 'application/json');
     http.Response response;
 
-    if (phoneNumber.isNotEmpty) {
-      var body = {'phoneNumber': phoneNumber};
-      response = await httpClient.post(Uri.parse(AirQoUrls.checkUserExists),
-          headers: headers, body: jsonEncode(body));
-    } else if (emailAddress.isNotEmpty) {
-      var body = {'emailAddress': emailAddress};
-      response = await httpClient.post(Uri.parse(AirQoUrls.checkUserExists),
-          headers: headers, body: jsonEncode(body));
+    if (phoneNumber != null) {
+      final body = {
+        'phoneNumber': phoneNumber,
+      };
+      response = await httpClient.post(
+        Uri.parse(AirQoUrls.checkUserExists),
+        headers: headers,
+        body: jsonEncode(body),
+      );
+    } else if (emailAddress != null) {
+      final body = {
+        'emailAddress': emailAddress,
+      };
+      response = await httpClient.post(
+        Uri.parse(AirQoUrls.checkUserExists),
+        headers: headers,
+        body: jsonEncode(body),
+      );
     } else {
       throw Exception('Failed to perform action. Try again later');
     }
@@ -63,232 +98,191 @@ class AirqoApiClient {
 
   Future<List<Measurement>> fetchLatestMeasurements() async {
     try {
-      var queryParams = <String, dynamic>{}
+      final queryParams = <String, dynamic>{}
         ..putIfAbsent('recent', () => 'yes')
         ..putIfAbsent('metadata', () => 'site_id')
         ..putIfAbsent('external', () => 'no')
         ..putIfAbsent(
-            'startTime',
-            () =>
-                '${DateFormat('yyyy-MM-dd').format(DateTime.now().toUtc().subtract(const Duration(days: 1)))}T00:00:00Z')
+          'startTime',
+          () => '${DateFormat('yyyy-MM-dd').format(
+            DateTime.now().toUtc().subtract(
+                  const Duration(days: 1),
+                ),
+          )}T00:00:00Z',
+        )
         ..putIfAbsent('frequency', () => 'hourly')
         ..putIfAbsent('tenant', () => 'airqo');
 
-      final responseBody =
-          await _performGetRequest(queryParams, AirQoUrls.measurements);
-      if (responseBody != null) {
-        return await compute(parseMeasurements, responseBody);
-      } else {
-        return <Measurement>[];
-      }
-    } on Error catch (exception, stackTrace) {
-      await Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
+      final responseBody = await _performGetRequest(
+        queryParams,
+        AirQoUrls.measurements,
       );
-    }
 
-    return <Measurement>[];
-  }
-
-  Future<List<Insights>> fetchSiteInsights(
-      String siteId, bool daily, bool allHourlyData) async {
-    try {
-      var queryParams = <String, dynamic>{}
-        ..putIfAbsent('siteId', () => siteId);
-      // ..putIfAbsent(
-      //     'startTime',
-      //     () =>
-      //         '${DateFormat('yyyy-MM-dd')
-      //         .format(DateTime.now()
-      //         .firstDateOfCalendarMonth())}T00:00:00Z')
-      // ..putIfAbsent(
-      //     'endTime',
-      //     () =>
-      //         '${DateFormat('yyyy-MM-dd')
-      //         .format(DateTime.now()
-      //         .lastDateOfCalendarMonth())}T00:00:00Z');
-
-      if (daily) {
-        queryParams
-          ..putIfAbsent('frequency', () => 'daily')
-          ..putIfAbsent(
-              'startTime',
-              () =>
-                  '${DateFormat('yyyy-MM-dd').format(DateTime.now().getFirstDateOfCalendarMonth())}T00:00:00Z')
-          ..putIfAbsent(
-              'endTime',
-              () =>
-                  '${DateFormat('yyyy-MM-dd').format(DateTime.now().getLastDateOfCalendarMonth())}T23:30:00Z');
-        // ..putIfAbsent('startTime', () => '${DateFormat('yyyy-MM-dd').format(
-        //     DateTime.now().firstDateOfCalendarMonth())}T00:00:00Z')
-        // ..putIfAbsent('endTime', () => '${DateFormat('yyyy-MM-dd').format(
-        //     DateTime.now().lastDateOfCalendarMonth())}T00:00:00Z');
-      } else {
-        queryParams
-          ..putIfAbsent('frequency', () => 'hourly')
-          ..putIfAbsent(
-              'startTime',
-              () =>
-                  '${DateFormat('yyyy-MM-dd').format(DateTime.now().getDateOfFirstDayOfWeek())}T00:00:00Z')
-          ..putIfAbsent(
-              'endTime',
-              () =>
-                  '${DateFormat('yyyy-MM-dd').format(DateTime.now().getDateOfLastDayOfWeek())}T23:30:00Z');
-        if (allHourlyData) {
-          queryParams['startTime'] =
-              '${DateFormat('yyyy-MM-dd').format(DateTime.now().getFirstDateOfCalendarMonth())}T00:00:00Z';
-          queryParams['endTime'] =
-              '${DateFormat('yyyy-MM-dd').format(DateTime.now().getLastDateOfCalendarMonth())}T23:30:00Z';
-        }
-        // ..putIfAbsent('startTime', () => '${DateFormat('yyyy-MM-dd').format(
-        //     DateTime.now().getFirstDateOfMonth())}T00:00:00Z')
-        // ..putIfAbsent('endTime', () => '${DateFormat('yyyy-MM-dd').format(
-        //     DateTime.now().getLastDateOfMonth())}T00:00:00Z');
-      }
-
-      final responseBody =
-          await _performGetRequest(queryParams, AirQoUrls.insights);
-
-      if (responseBody != null) {
-        return compute(Insights.parseInsights, responseBody['data']);
-      } else {
-        return <Insights>[];
-      }
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
+      return responseBody != null
+          ? await compute(
+              parseMeasurements,
+              responseBody,
+            )
+          : <Measurement>[];
+    } catch (exception, stackTrace) {
+      await logException(
         exception,
-        stackTrace: stackTrace,
+        stackTrace,
       );
-    }
 
-    return <Insights>[];
+      return <Measurement>[];
+    }
   }
 
   Future<List<Insights>> fetchSitesInsights(String siteIds) async {
     try {
-      var insights = <Insights>[];
+      final utcNow = DateTime.now().toUtc();
+      final startDateTime = utcNow.getFirstDateOfCalendarMonth().toApiString();
+      final endDateTime = '${DateFormat('yyyy-MM-dd').format(
+        utcNow.getLastDateOfCalendarMonth(),
+      )}T23:59:59Z';
 
-      var siteInsights = await Future.wait([
-        fetchSiteInsights(siteIds, true, true),
-        fetchSiteInsights(siteIds, false, true),
-      ]);
+      final queryParams = <String, dynamic>{}
+        ..putIfAbsent('siteId', () => siteIds)
+        ..putIfAbsent('startDateTime', () => startDateTime)
+        ..putIfAbsent('endDateTime', () => endDateTime);
 
-      insights.addAll(<Insights>[
-        ...siteInsights[0],
-        ...siteInsights[1],
-      ]);
+      final body = await _performGetRequest(
+        queryParams,
+        AirQoUrls.insights,
+      );
 
-      return insights;
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
+      return body != null ? Insights.parseInsights(body['data']) : <Insights>[];
+    } catch (exception, stackTrace) {
+      await logException(
         exception,
-        stackTrace: stackTrace,
+        stackTrace,
       );
     }
 
     return <Insights>[];
   }
 
-  Future<String> imageUpload(String file, String? type, String name) async {
-    type ??= 'jpeg';
+  Future<String> getCarrier(String phoneNumber) async {
+    final url = '${AirQoUrls.carrierSearchApi}$phoneNumber';
+    final responseBody = await _performGetRequest(
+      {},
+      url,
+    );
 
-    var uploadStr = 'data:image/$type;base64,$file';
     try {
-      var body = {
-        'file': uploadStr,
-        'upload_preset': Config.imageUploadPreset,
-      };
-      // 'public_id': name,
-      // 'api_key': Config.imageUploadApiKey
-
-      final response = await http.post(Uri.parse(Config.imageUploadUrl),
-          headers: {'Content-Type': 'application/json'},
-          body: json.encode(body));
-
-      if (response.statusCode == 200) {
-        var body = json.decode(response.body);
-        return body['url'];
-      } else {
-        throw Exception('Error');
-      }
-    } on SocketException {
-      await showSnackBar(context, Config.connectionErrorMessage);
-      return '';
-    } on TimeoutException {
-      await showSnackBar(context, Config.connectionErrorMessage);
-      return '';
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
+      return responseBody != null
+          ? responseBody['data']['carrier']['name']
+          : '';
+    } catch (exception, stackTrace) {
+      await logException(
         exception,
-        stackTrace: stackTrace,
+        stackTrace,
       );
+
       return '';
     }
   }
 
   Future<EmailAuthModel?> requestEmailVerificationCode(
-      String emailAddress, bool reAuthenticate) async {
+    String emailAddress,
+    bool reAuthenticate,
+  ) async {
     try {
       Map<String, String> headers = HashMap()
-        ..putIfAbsent('Content-Type', () => 'application/json');
+        ..putIfAbsent(
+          'Content-Type',
+          () => 'application/json',
+        );
 
-      var body = {'email': emailAddress};
+      final body = {
+        'email': emailAddress,
+      };
 
-      var uri = reAuthenticate
+      final uri = reAuthenticate
           ? AirQoUrls.requestEmailReAuthentication
           : AirQoUrls.requestEmailVerification;
 
-      final response = await http.post(Uri.parse(uri),
-          headers: headers, body: jsonEncode(body));
+      final response = await http.post(
+        Uri.parse(uri),
+        headers: headers,
+        body: jsonEncode(body),
+      );
 
       return compute(
-          EmailAuthModel.parseEmailAuthModel, json.decode(response.body));
-    } on SocketException {
-      await showSnackBar(context, Config.socketErrorMessage);
-    } on TimeoutException {
-      await showSnackBar(context, Config.connectionErrorMessage);
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
+        EmailAuthModel.parseEmailAuthModel,
+        json.decode(
+          response.body,
+        ),
+      );
+    } catch (exception, stackTrace) {
+      await logException(
         exception,
-        stackTrace: stackTrace,
+        stackTrace,
       );
     }
+
     return null;
   }
 
   Future<bool> sendFeedback(UserFeedback feedback) async {
-    try {
-      var body = {
-        'text': {'type': 'mrkdwn', 'text': '@channel, Mobile App feedback'},
-        'attachments': [
+    final body = jsonEncode(
+      {
+        'personalizations': [
           {
-            'fallback': 'Mobile App feedback',
-            'color': '#3067e2',
-            'title': 'Mobile App feedback',
-            'fields': [
+            'to': [
               {
-                'title': feedback.contactDetails,
+                'email': Config.airqoSupportEmail,
+                'name': Config.airqoSupportUsername,
               },
-              {'title': feedback.feedbackType, 'value': feedback.message},
             ],
-            'footer': 'AirQo Mobile App'
-          }
-        ]
-      };
+            'cc': [
+              {
+                'email': feedback.contactDetails,
+                'name': Config.defaultFeedbackUserName,
+              },
+            ],
+            'subject': feedback.feedbackType,
+          },
+        ],
+        'content': [
+          {
+            'type': 'text/plain',
+            'value': feedback.message,
+          },
+        ],
+        'from': {
+          'email': Config.airqoDataProductsEmail,
+          'name': Config.defaultFeedbackUserName,
+        },
+        'reply_to': {
+          'email': feedback.contactDetails,
+          'name': Config.defaultFeedbackUserName,
+        },
+      },
+    );
 
-      final response = await _performPostRequest(
-          <String, dynamic>{}, Config.feedbackWebhook, jsonEncode(body));
-      return response;
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
+    try {
+      Map<String, String> headers = HashMap()
+        ..putIfAbsent('Content-Type', () => 'application/json')
+        ..putIfAbsent(
+          'Authorization',
+          () => 'Bearer ${Config.emailFeedbackAPIKey}',
+        );
+
+      final response = await httpClient.post(
+        Uri.parse(Config.emailFeedbackUrl),
+        headers: headers,
+        body: body,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        return true;
+      }
+    } catch (exception, stackTrace) {
+      await logException(
         exception,
-        stackTrace: stackTrace,
+        stackTrace,
       );
     }
 
@@ -296,140 +290,125 @@ class AirqoApiClient {
   }
 
   @Deprecated('Functionality has been transferred to the backend')
-  Future<void> sendWelcomeMessage(UserDetails userDetails) async {
+  Future<void> sendWelcomeMessage(Profile userDetails) async {
     try {
       if (!userDetails.emailAddress.isValidEmail()) {
         return;
       }
 
-      var body = {
+      final body = {
         'firstName':
             userDetails.firstName.isNull() ? '' : userDetails.firstName,
         'platform': 'mobile',
-        'email': userDetails.emailAddress
+        'email': userDetails.emailAddress,
       };
 
       await _performPostRequest(
-          <String, dynamic>{}, AirQoUrls.welcomeMessage, jsonEncode(body));
-    } on SocketException {
-      await showSnackBar(context, Config.socketErrorMessage);
-    } on TimeoutException {
-      await showSnackBar(context, Config.connectionErrorMessage);
-    } on Error catch (exception, stackTrace) {
-      await Sentry.captureException(
+        <String, dynamic>{},
+        AirQoUrls.welcomeMessage,
+        jsonEncode(body),
+      );
+    } catch (exception, stackTrace) {
+      await logException(
         exception,
-        stackTrace: stackTrace,
+        stackTrace,
       );
     }
   }
 
   Future<dynamic> _performGetRequest(
-      Map<String, dynamic> queryParams, String url) async {
+    Map<String, dynamic> queryParams,
+    String url,
+  ) async {
     try {
-      if (queryParams.isNotEmpty) {
-        url = '$url?';
-        queryParams.forEach((key, value) {
-          if (queryParams.keys.elementAt(0).compareTo(key) == 0) {
-            url = '$url$key=$value';
-          } else {
-            url = '$url&$key=$value';
-          }
-        });
-      }
-
-      final response = await httpClient.get(Uri.parse(url), headers: headers);
+      url = addQueryParameters(queryParams, url);
+      final response = await httpClient.get(
+        Uri.parse(url),
+        headers: headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body);
-      } else {
-        return null;
       }
-    } on SocketException {
-      await showSnackBar(context, Config.socketErrorMessage);
-    } on TimeoutException {
-      await showSnackBar(context, Config.connectionErrorMessage);
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
+    } catch (exception, stackTrace) {
+      await logException(
         exception,
-        stackTrace: stackTrace,
+        stackTrace,
       );
-      await showSnackBar(context, Config.appErrorMessage);
     }
 
     return null;
   }
 
   Future<bool> _performPostRequest(
-      Map<String, dynamic> queryParams, String url, dynamic body) async {
+    Map<String, dynamic> queryParams,
+    String url,
+    dynamic body,
+  ) async {
     try {
-      if (queryParams.isNotEmpty) {
-        url = '$url?';
-        queryParams.forEach((key, value) {
-          if (queryParams.keys.elementAt(0).compareTo(key) == 0) {
-            url = '$url$key=$value';
-          } else {
-            url = '$url&$key=$value';
-          }
-        });
-      }
+      url = addQueryParameters(
+        queryParams,
+        url,
+      );
+      headers.putIfAbsent(
+        'Content-Type',
+        () => 'application/json',
+      );
 
-      Map<String, String> headers = HashMap()
-        ..putIfAbsent('Content-Type', () => 'application/json');
-
-      final response =
-          await httpClient.post(Uri.parse(url), headers: headers, body: body);
+      final response = await httpClient.post(
+        Uri.parse(url),
+        headers: headers,
+        body: body,
+      );
       if (response.statusCode == 200) {
         return true;
-      } else {
-        return false;
       }
-    } on SocketException {
-      await showSnackBar(context, Config.socketErrorMessage);
-      return false;
-    } on TimeoutException {
-      await showSnackBar(context, Config.connectionErrorMessage);
-      return false;
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
+    } catch (exception, stackTrace) {
+      await logException(
         exception,
-        stackTrace: stackTrace,
+        stackTrace,
       );
-      await showSnackBar(context, Config.appErrorMessage);
-      return false;
     }
+
+    return false;
   }
 }
 
 class SearchApi {
-  final String sessionToken;
-  final apiKey = Config.googleApiKey;
-  final BuildContext context;
+  factory SearchApi() {
+    return _instance;
+  }
+  SearchApi._internal();
+  static final SearchApi _instance = SearchApi._internal();
 
-  SearchApi(this.sessionToken, this.context);
+  final String sessionToken = const Uuid().v4();
+  final apiKey = Config.searchApiKey;
 
   Future<List<Suggestion>> fetchSuggestions(String input) async {
     try {
-      var queryParams = <String, dynamic>{}
+      final queryParams = <String, dynamic>{}
         ..putIfAbsent('input', () => input)
         ..putIfAbsent('components', () => 'country:ug')
         ..putIfAbsent('key', () => apiKey)
-        ..putIfAbsent('sessiontoken', () => sessionToken);
+        ..putIfAbsent(
+          'sessiontoken',
+          () => sessionToken,
+        );
 
-      final responseBody =
-          await _performGetRequest(queryParams, AirQoUrls.searchSuggestions);
+      final responseBody = await _performGetRequest(
+        queryParams,
+        AirQoUrls.searchSuggestions,
+      );
 
-      if (responseBody == null) {
-        return [];
+      if (responseBody != null && responseBody['status'] == 'OK') {
+        return compute(
+          Suggestion.parseSuggestions,
+          responseBody,
+        );
       }
-      if (responseBody['status'] == 'OK') {
-        return compute(Suggestion.parseSuggestions, responseBody);
-      }
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
+    } catch (exception, stackTrace) {
+      await logException(
         exception,
-        stackTrace: stackTrace,
+        stackTrace,
       );
     }
 
@@ -438,23 +417,27 @@ class SearchApi {
 
   Future<Place?> getPlaceDetails(String placeId) async {
     try {
-      var queryParams = <String, dynamic>{}
+      final queryParams = <String, dynamic>{}
         ..putIfAbsent('place_id', () => placeId)
         ..putIfAbsent('fields', () => 'name,geometry')
         ..putIfAbsent('key', () => apiKey)
-        ..putIfAbsent('sessiontoken', () => sessionToken);
+        ..putIfAbsent(
+          'sessiontoken',
+          () => sessionToken,
+        );
 
-      final responseBody =
-          await _performGetRequest(queryParams, AirQoUrls.placeSearchDetails);
+      final responseBody = await _performGetRequest(
+        queryParams,
+        AirQoUrls.placeSearchDetails,
+      );
 
-      var place = Place.fromJson(responseBody['result']);
+      final place = Place.fromJson(responseBody['result']);
 
       return place;
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
+    } catch (exception, stackTrace) {
+      await logException(
         exception,
-        stackTrace: stackTrace,
+        stackTrace,
       );
     }
 
@@ -462,39 +445,26 @@ class SearchApi {
   }
 
   Future<dynamic> _performGetRequest(
-      Map<String, dynamic> queryParams, String url) async {
+    Map<String, dynamic> queryParams,
+    String url,
+  ) async {
     try {
-      if (queryParams.isNotEmpty) {
-        url = '$url?';
-        queryParams.forEach((key, value) {
-          if (queryParams.keys.elementAt(0).compareTo(key) == 0) {
-            url = '$url$key=$value';
-          } else {
-            url = '$url&$key=$value';
-          }
-        });
-      }
-
+      url = addQueryParameters(
+        queryParams,
+        url,
+      );
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
         return json.decode(response.body);
-      } else {
-        return null;
       }
-    } on SocketException {
-      await showSnackBar(context, Config.connectionErrorMessage);
-      return null;
-    } on TimeoutException {
-      await showSnackBar(context, Config.connectionErrorMessage);
-      return null;
-    } on Error catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-      await Sentry.captureException(
+    } catch (exception, stackTrace) {
+      await logException(
         exception,
-        stackTrace: stackTrace,
+        stackTrace,
       );
-      return null;
     }
+
+    return null;
   }
 }

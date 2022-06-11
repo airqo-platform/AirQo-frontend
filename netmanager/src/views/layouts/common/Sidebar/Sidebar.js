@@ -15,6 +15,7 @@ import EditLocationIcon from "@material-ui/icons/EditLocation";
 import AspectRatioIcon from "@material-ui/icons/AspectRatio";
 import SupervisedUserCircleIcon from "@material-ui/icons/SupervisedUserCircle";
 import CloudDownloadIcon from "@material-ui/icons/CloudDownload";
+import AirQloudIcon from "@material-ui/icons/FilterDrama";
 import { useOrgData } from "redux/Join/selectors";
 import { Profile, SidebarNav, SidebarWidgets } from "./components";
 import usersStateConnector from "views/stateConnectors/usersStateConnector";
@@ -57,6 +58,7 @@ const roleExcludePageMapper = {
     "Location Registry",
     "Device Registry",
     "Site Registry",
+    "AirQloud Registry",
   ],
   user: [
     "Users",
@@ -66,6 +68,7 @@ const roleExcludePageMapper = {
     "Location Registry",
     "Device Registry",
     "Site Registry",
+    "AirQloud Registry",
   ],
   netmanager: ["Users", "Candidates"],
   admin: ["Candidates"],
@@ -119,6 +122,11 @@ const allMainPages = [
     title: "Site Registry",
     href: "/sites",
     icon: <EditLocationIcon />,
+  },
+  {
+    title: "AirQloud Registry",
+    href: "/airqlouds",
+    icon: <AirQloudIcon />,
   },
 ];
 

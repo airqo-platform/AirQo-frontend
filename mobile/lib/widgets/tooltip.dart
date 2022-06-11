@@ -1,13 +1,25 @@
 import 'dart:core';
 import 'dart:ui';
 
-import 'package:app/constants/config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../themes/light_theme.dart';
+import '../models/enum_constants.dart';
+import '../themes/app_theme.dart';
+import '../themes/colors.dart';
 
 class ToolTip {
+  ToolTip(
+    this.context,
+    this._tipType, {
+    double? height,
+    double? width,
+    VoidCallback? onDismiss,
+  }) {
+    dismissCallback = onDismiss;
+    _popupHeight = height ?? 64.0;
+    _popupWidth = width ?? 261.0;
+  }
   late double _popupWidth;
   late double _popupHeight;
 
@@ -16,7 +28,7 @@ class ToolTip {
 
   bool _isVisible = false;
 
-  final toolTipType _tipType;
+  final ToolTipType _tipType;
 
   late OverlayEntry _entry;
   late Offset _offset;
@@ -28,78 +40,76 @@ class ToolTip {
 
   BuildContext context;
 
-  ToolTip(this.context, this._tipType,
-      {double? height, double? width, VoidCallback? onDismiss}) {
-    dismissCallback = onDismiss;
-    _popupHeight = height ?? 64.0;
-    _popupWidth = width ?? 261.0;
-  }
-
   LayoutBuilder buildPopupLayout(Offset offset) {
-    return LayoutBuilder(builder: (context, constraints) {
-      return GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: dismiss,
-        child: Material(
-          color: Colors.transparent,
-          child: Stack(
-            children: <Widget>[
-              // triangle arrow
-              Positioned(
-                left: _showRect.left + _showRect.width / 2.0 - 7.5,
-                top: _isDownArrow
-                    ? offset.dy + _popupHeight
-                    : offset.dy - arrowHeight,
-                child: CustomPaint(
-                  size: Size(15.0, arrowHeight),
-                  painter: TrianglePainter(
-                      isDownArrow: _isDownArrow, color: Config.appColorBlack),
-                ),
-              ),
-              // popup content
-              Positioned(
-                // left: offset.dx,
-                // right: offset.dx,
-                left: 16,
-                right: 16,
-                top: offset.dy,
-                child: Container(
-                  padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
-                  width: MediaQuery.of(context).size.width,
-                  height: 64,
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8.0),
-                      color: Config.appColorBlack),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: getToolTipText(),
-                      ),
-                      const SizedBox(
-                        width: 32,
-                      ),
-                      Container(
-                        padding: const EdgeInsets.all(2),
-                        decoration: BoxDecoration(
-                          color: Config.toolTipGreyColor,
-                          shape: BoxShape.circle,
-                        ),
-                        child: SvgPicture.asset(
-                          'assets/icon/tooltip_close.svg',
-                          semanticsLabel: 'Close',
-                          height: 20,
-                          width: 20,
-                        ),
-                      ),
-                    ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: dismiss,
+          child: Material(
+            color: Colors.transparent,
+            child: Stack(
+              children: <Widget>[
+                // triangle arrow
+                Positioned(
+                  left: _showRect.left + _showRect.width / 2.0 - 7.5,
+                  top: _isDownArrow
+                      ? offset.dy + _popupHeight
+                      : offset.dy - arrowHeight,
+                  child: CustomPaint(
+                    size: Size(15.0, arrowHeight),
+                    painter: TrianglePainter(
+                      isDownArrow: _isDownArrow,
+                      color: CustomColors.appColorBlack,
+                    ),
                   ),
                 ),
-              )
-            ],
+                // popup content
+                Positioned(
+                  // left: offset.dx,
+                  // right: offset.dx,
+                  left: 16,
+                  right: 16,
+                  top: offset.dy,
+                  child: Container(
+                    padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
+                    width: MediaQuery.of(context).size.width,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8.0),
+                      color: CustomColors.appColorBlack,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: getToolTipText(),
+                        ),
+                        const SizedBox(
+                          width: 32,
+                        ),
+                        Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: CustomColors.toolTipGreyColor,
+                            shape: BoxShape.circle,
+                          ),
+                          child: SvgPicture.asset(
+                            'assets/icon/tooltip_close.svg',
+                            semanticsLabel: 'Close',
+                            height: 20,
+                            width: 20,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 
   void dismiss() {
@@ -114,72 +124,99 @@ class ToolTip {
   // TODO: change forecast wording
   RichText getToolTipText() {
     switch (_tipType) {
-      case toolTipType.favouritePlaces:
+      case ToolTipType.favouritePlaces:
         return RichText(
-            text: TextSpan(children: [
-          TextSpan(text: 'Tap the ', style: CustomTextStyle.overline1(context)),
-          WidgetSpan(
+          text: TextSpan(children: [
+            TextSpan(
+              text: 'Tap the ',
+              style: CustomTextStyle.overline1(context),
+            ),
+            WidgetSpan(
               child: SvgPicture.asset(
-            'assets/icon/heart.svg',
-            semanticsLabel: 'Favorite',
-            height: 13.33,
-            width: 13.12,
-          )),
-          TextSpan(
+                'assets/icon/heart.svg',
+                semanticsLabel: 'Favorite',
+                height: 13.33,
+                width: 13.12,
+              ),
+            ),
+            TextSpan(
               text: ' Favorite icon on any location air quality '
                   'to save them here for later.',
-              style: CustomTextStyle.overline1(context)),
-        ]));
-      case toolTipType.forYou:
+              style: CustomTextStyle.overline1(context),
+            ),
+          ]),
+        );
+      case ToolTipType.forYou:
         return RichText(
-            text: TextSpan(
-                text: 'All your complete tasks will show up here',
-                style: CustomTextStyle.overline1(context)));
-      case toolTipType.info:
+          text: TextSpan(
+            text: 'All your complete tasks will show up here',
+            style: CustomTextStyle.overline1(context),
+          ),
+        );
+      case ToolTipType.info:
         return RichText(
-            text: TextSpan(children: [
-          TextSpan(
-              text: 'Tap this ', style: CustomTextStyle.overline1(context)),
-          WidgetSpan(
+          text: TextSpan(children: [
+            TextSpan(
+              text: 'Tap this ',
+              style: CustomTextStyle.overline1(context),
+            ),
+            WidgetSpan(
               child: SvgPicture.asset(
-            'assets/icon/info_icon_grey.svg',
-            semanticsLabel: 'Info',
-            height: 16,
-            width: 15.56,
-          )),
-          TextSpan(
+                'assets/icon/info_icon_grey.svg',
+                semanticsLabel: 'Info',
+                height: 16,
+                width: 15.56,
+              ),
+            ),
+            TextSpan(
               text: ' icon to understand what '
                   'air quality analytics mean.',
-              style: CustomTextStyle.overline1(context)),
-        ]));
-      case toolTipType.forecast:
+              style: CustomTextStyle.overline1(context),
+            ),
+          ]),
+        );
+      case ToolTipType.forecast:
         return RichText(
-            text: TextSpan(
-                text: 'Tap Forecast to view air quality analytics '
-                    'for the next 24 hours',
-                style: CustomTextStyle.overline1(context)));
+          text: TextSpan(
+            text: 'Tap Forecast to view air quality analytics '
+                'for the next 24 hours',
+            style: CustomTextStyle.overline1(context),
+          ),
+        );
       default:
         return RichText(
-            text: TextSpan(children: [
-          TextSpan(text: 'Tap the ', style: CustomTextStyle.overline1(context)),
-          WidgetSpan(
-              child: SvgPicture.asset(
-            'assets/icon/heart.svg',
-            semanticsLabel: 'Favorite',
-            height: 13.33,
-            width: 13.12,
-          )),
-          TextSpan(
-              text: ' Favorite on any location air quality '
-                  'to save them here for later.',
-              style: CustomTextStyle.overline1(context)),
-        ]));
+          text: TextSpan(
+            children: [
+              TextSpan(
+                text: 'Tap the ',
+                style: CustomTextStyle.overline1(context),
+              ),
+              WidgetSpan(
+                child: SvgPicture.asset(
+                  'assets/icon/heart.svg',
+                  semanticsLabel: 'Favorite',
+                  height: 13.33,
+                  width: 13.12,
+                ),
+              ),
+              TextSpan(
+                text: ' Favorite on any location air quality '
+                    'to save them here for later.',
+                style: CustomTextStyle.overline1(context),
+              ),
+            ],
+          ),
+        );
     }
   }
 
-  void show({Rect? rect, GlobalKey? widgetKey}) {
+  void show({
+    Rect? rect,
+    GlobalKey? widgetKey,
+  }) {
     if (rect == null && widgetKey == null) {
       debugPrint("both 'rect' and 'key' can't be null");
+
       return;
     }
 
@@ -203,14 +240,14 @@ class ToolTip {
     }
 
     if (dx + _popupWidth > _screenSize.width && dx > 10.0) {
-      var tempDx = _screenSize.width - _popupWidth - 10;
+      final tempDx = _screenSize.width - _popupWidth - 10;
       if (tempDx > 10) dx = tempDx;
     }
 
     var dy = _showRect.top - _popupHeight;
 
-    if (_tipType == toolTipType.favouritePlaces ||
-        _tipType == toolTipType.forYou) {
+    if (_tipType == ToolTipType.favouritePlaces ||
+        _tipType == ToolTipType.forYou) {
       dy = arrowHeight + _showRect.height + _showRect.top;
       _isDownArrow = false;
     } else if (dy <= MediaQuery.of(context).padding.top + 10) {
@@ -230,25 +267,30 @@ class ToolTip {
   }
 
   Rect _getWidgetGlobalRect(GlobalKey key) {
-    var renderBox = key.currentContext!.findRenderObject() as RenderBox;
-    var offset = renderBox.localToGlobal(Offset.zero);
+    final renderBox = key.currentContext!.findRenderObject() as RenderBox;
+    final offset = renderBox.localToGlobal(Offset.zero);
+
     return Rect.fromLTWH(
-        offset.dx, offset.dy, renderBox.size.width, renderBox.size.height);
+      offset.dx,
+      offset.dy,
+      renderBox.size.width,
+      renderBox.size.height,
+    );
   }
 }
 
-enum toolTipType { favouritePlaces, info, forYou, forecast }
-
 class TrianglePainter extends CustomPainter {
+  TrianglePainter({
+    this.isDownArrow = true,
+    required this.color,
+  });
   bool isDownArrow;
   Color color;
 
-  TrianglePainter({this.isDownArrow = true, required this.color});
-
   @override
   void paint(Canvas canvas, Size size) {
-    var path = Path();
-    var paint = Paint()
+    final path = Path();
+    final paint = Paint()
       ..strokeWidth = 2.0
       ..color = color
       ..style = PaintingStyle.fill;

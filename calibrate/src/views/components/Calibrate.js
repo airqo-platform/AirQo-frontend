@@ -5,7 +5,7 @@ import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import FormControl from "@mui/material/FormControl";
 import FormLabel from "@mui/material/FormLabel";
-import Button from "@mui/material/Button";
+import LoadingButton from "@mui/lab/LoadingButton";
 import {
   calibrateDataApi,
   trainAndCalibrateDataApi,
@@ -19,7 +19,8 @@ function csvHeaders(str, delimiter = ",") {
   // slice from start of text to the first \n index
   // use split to create an array from string by delimiter
   const headers = str.slice(0, str.indexOf("\n")).split(delimiter);
-  return headers;
+
+  return headers.map((header) => header.replace(/\r?\n|\r/g, ""));
   // slice from \n index + 1 to the end of the text
   // use split to create an array of each csv value row
   const rows = str.slice(str.indexOf("\n") + 1).split("\n");
@@ -126,6 +127,11 @@ const Calibrate = () => {
     humidity: null,
   });
 
+  const refPollutantMapper = {
+    "PM 2.5": "pm2_5",
+    "PM 10": "pm10",
+  };
+
   const [refData, setRefData] = useState({
     pollutant: null,
     ref_data: null,
@@ -194,14 +200,21 @@ const Calibrate = () => {
     setLoading(true);
     const filename = "calibrated_data.csv";
 
+    const formData = new FormData();
+    for (let key in data) {
+      formData.append(key, data[key]);
+    }
+
     if (checkHasReference()) {
-      const responseData = await trainAndCalibrateDataApi({
-        ...data,
-        ...refData,
-      });
+      const modifiedRefData = refData;
+      modifiedRefData.pollutant = refPollutantMapper[modifiedRefData.pollutant];
+      for (let key in modifiedRefData) {
+        formData.append(key, modifiedRefData[key]);
+      }
+      const responseData = await trainAndCalibrateDataApi(formData);
       downloadCSVData(filename, responseData);
     } else {
-      const responseData = await calibrateDataApi(data);
+      const responseData = await calibrateDataApi(formData);
       downloadCSVData(filename, responseData);
     }
 
@@ -294,14 +307,15 @@ const Calibrate = () => {
           />
         )}
 
-        <Button
+        <LoadingButton
+          loading={loading}
           style={{ marginTop: "30px" }}
           disabled={loading || !checkValid()}
           variant="outlined"
           onClick={onSubmit}
         >
           Calibrate Data
-        </Button>
+        </LoadingButton>
       </div>
     </div>
   );

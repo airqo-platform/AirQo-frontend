@@ -12,80 +12,96 @@
     display: flex;
     flex-direction: row;
 }
-.map-section{
-    margin:6% 0 20% 0;
-    box-sizing: content-box;
-    .backdrop{
-        @include flex-row();
-        justify-content: space-between;
-        background-color: $aq-blue-1;
-        padding:20px;
-        height:auto;
 
+$h2-font:$headingFont;
+$p-font:$subTextFont;
+$pill-font:$pillFont;
+
+.map-section{
+    display:grid;
+    grid-template-columns: $gridColumn;
+    padding: 40px 0 40px 0;
+    background-color: $aq-blue-1;
+    margin:0 0 250px 0;
+    .backdrop{
+        grid-column: 2 / 3;
+        display:grid;
+        grid-template-columns: 3fr 3fr;
+        grid-gap:50px;
+        padding:5px;
+        height:auto;
         .map-content{
             @include flex-column();
-            margin:6% 0 0 16%;
+            margin:75px 0 0 0;
             #first-pill{
                 @include flex-row();
                 align-items: center;
                 justify-content: center;
-                background-color: $aq-white-1;
-                width:170px;
-                height:25px;
+                background-color: $aq-white-0;
+                width: 155px;
+                height: 34px;
+                padding: 4px 16px;
+                box-sizing: border-box;
                 border-radius:1000px;
-                padding:3px 18px;
+                margin-bottom: 24px;
                 p{
-                    color:$aq-blue-0;
-                    padding:10px;
-                    font-size:12.5px;
-                    font-weight: 700;
+                    color:$aq-blue-2;
+                    font-size: $pill-font;
+                    font-weight: 500;
                     line-height: 26px;
-                    flex-grow:0;
-                    align-self:center;
+                    padding: 0;
                 }
             }
             .content-h{
                 color:$aq-black-0;
-                font-weight:700;
-                font-size:40px;
+                font-weight:500;
+                font-size:$h2-font;
+                margin-bottom: 24px;
+                padding: 0;
             }
             .content-p{
-                margin:-9% 0 0 0;
+                margin-bottom: 48px;
                 p{
                     color:$aq-black-0;
                     font-weight:400;
-                    font-size: 16px;  
-                    line-height:20px; 
+                    font-size: $p-font;  
+                    line-height:28px; 
+                    margin: 0;
                 }
             }
+
             #second-pill{
                 @include flex-row();
                 align-items: center;
                 p{
                     color:$aq-blue-0;
-                    font-weight:600;
-                    font-size:12.5px; 
-                    line-height:10px;
+                    font-weight:500;
+                    font-size:$p-font; 
+                    line-height:24px;
                     flex-grow:0;
-                    padding:3px;
-                    margin: 2% 0 0 0;
+                    margin: 0;
+                    padding: 0;
                 }
                 i{
                     fill:$aq-blue-0;
-                    width:14px;
-                    height:14px;
-                    font-weight:600;
-                    margin-left:2px;
+                    width:15px;
+                    height:$p-font;
+                    font-weight:500;
+                    margin-left:10px;
+                    margin-top: -4px;
                 }
             }
         }
 
         .map-image{
-            padding:0px;
-            margin:0 70px 0 0;
-            width:40%;
-            .map-img{    
-                width:100%;
+            margin: 0;
+            padding:0;
+            display: grid;
+            grid-template-columns: 540px;
+            grid-template-rows: 500px;
+            align-items: center;
+            .map-img{   
+                float:right;
             }
         }
     }
@@ -93,32 +109,73 @@
 
 @media(max-width:$mainBreakPoint){
     .map-section{
-        padding:0 12px;
+        width: 100%;
+        padding: 0;
+        margin: 0;
+
         .backdrop{
             @include flex-column();
             justify-content: center;
             align-items: center;
-            padding:0;
+            padding: 80px 16px 16px 16px;
+            margin: 0 auto;
+            width: 100%;
+
             .map-content{
-                margin: 20% 5% 0 5%;
+                margin: 0 auto;
+
                 #first-pill{
-                    width:140px;
-                    height:20px;
+                    display: block;
+                    width: 155px;
+                    height: 34px;
+                    padding: 4px 16px;
+                    box-sizing: border-box;
+
+                    >p {
+                        margin: 0;
+                        width: 100%;
+                        font-weight: 500;
+                    }
                 }
                 .content-h{
-                    font-size: 35px;
+                    font-size: $h2-font;
+                    font-weight: 500;
+                    line-height: 48px;
+                    width: 100%;
+                }
+
+                .content-p {
+                    margin-bottom: 38.76px;
+                    width: 100%;
+
+                    >p {
+                        font-size: 20px;
+                        line-height: 28px;
+                    }
+                }
+
+                #second-pill{
+                    margin: 0 0 42.24px 0;
+                    p {
+                        margin: 0;
+                    }
+                    i {
+                        margin-left:8px;
+                    }
                 }
             }
             .map-image{
-                width:auto;
-                margin:25px 2% 0 0;
-                padding:0px;
-                .map-img{
-                    right:0;
-                    width:auto;
-                    padding:0px;
-                    width:98%;
-                    height:auto;
+                margin: 0;
+                padding: 0;
+                display: block;
+                height: 400px;
+                width: 100%;
+
+                .map-img {
+                    float: none;
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
                 }
             }
         }
