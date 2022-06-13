@@ -1,5 +1,7 @@
 cloudinary
 django
+django-author
+django-extensions
 djangorestframework
 dj_database_url
 drf-yasg
