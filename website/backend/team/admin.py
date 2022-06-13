@@ -23,6 +23,7 @@ class MemberAdmin(admin.ModelAdmin):
         "image_tag",
         "twitter",
         "linked_in",
+        "order",
         "created",
         "modified",
         "author",
