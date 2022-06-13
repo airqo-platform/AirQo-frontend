@@ -8,7 +8,18 @@ part 'insights.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class Insights {
-  @JsonKey(fromJson: timeFromJson, toJson: timeToJson)
+  factory Insights.fromJson(Map<String, dynamic> json) =>
+      _$InsightsFromJson(json);
+
+  Insights(
+    this.time,
+    this.pm2_5,
+    this.pm10,
+    this.empty,
+    this.forecast,
+    this.siteId,
+    this.frequency,
+  );
   DateTime time;
   double pm2_5;
   double pm10;
@@ -20,13 +31,7 @@ class Insights {
   @JsonKey(fromJson: frequencyFromJson)
   String frequency;
 
-  Insights(this.time, this.pm2_5, this.pm10, this.empty, this.forecast,
-      this.siteId, this.frequency);
-
-  factory Insights.fromJson(Map<String, dynamic> json) =>
-      _$InsightsFromJson(json);
-
-  double getChartValue(Pollutant pollutant) {
+  double chartValue(Pollutant pollutant) {
     return pollutant == Pollutant.pm2_5
         ? double.parse(pm2_5.toStringAsFixed(2))
         : double.parse(pm10.toStringAsFixed(2));
@@ -49,31 +54,34 @@ class Insights {
   static String dropTableStmt() => 'DROP TABLE IF EXISTS ${dbName()}';
 
   static List<Insights> formatData(List<Insights> data, Frequency frequency) {
-    data.sort((x, y) {
-      if (frequency == Frequency.daily) {
-        return x.time.weekday.compareTo(y.time.weekday);
-      }
-      return x.time.compareTo(y.time);
-    });
+    data.sort(
+      (x, y) {
+        if (frequency == Frequency.daily) {
+          return x.time.weekday.compareTo(y.time.weekday);
+        }
+
+        return x.time.compareTo(y.time);
+      },
+    );
 
     return data;
   }
 
   static List<Insights> parseInsights(dynamic jsonBody) {
-    var insights = <Insights>[];
+    final insights = <Insights>[];
 
-    var offSet = DateTime.now().timeZoneOffset;
-    for (var jsonElement in jsonBody) {
+    final offSet = DateTime.now().timeZoneOffset;
+    for (final jsonElement in jsonBody) {
       try {
-        DateTime formattedDate;
-        var insight = Insights.fromJson(jsonElement);
+        final insight = Insights.fromJson(jsonElement);
 
-        if (offSet.isNegative) {
-          formattedDate =
-              insight.time.subtract(Duration(hours: offSet.inHours));
-        } else {
-          formattedDate = insight.time.add(Duration(hours: offSet.inHours));
-        }
+        final formattedDate = offSet.isNegative
+            ? insight.time.subtract(Duration(
+                hours: offSet.inHours,
+              ))
+            : insight.time.add(Duration(
+                hours: offSet.inHours,
+              ));
 
         insight.time = formattedDate;
 
@@ -83,9 +91,11 @@ class Insights {
       }
     }
 
-    insights.sort((x, y) {
-      return x.time.compareTo(y.time);
-    });
+    insights.sort(
+      (x, y) {
+        return x.time.compareTo(y.time);
+      },
+    );
 
     return insights;
   }

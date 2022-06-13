@@ -30,14 +30,20 @@
 .colored {
   color: $aq-blue-0;
   background-color: $aq-blue-5;
-  border-radius: 16px;
+}
+
+.colored:hover {
+  background-color: $aq-blue-7;
 }
 
 .filled {
   color: $aq-white-0;
   background: $aq-blue-0;
-  border-radius: 16px;
   margin-left: 16px;
+}
+
+.filled:hover {
+  background-color: $aq-blue-6;
 }
 
 @media(max-width: 1024px){
@@ -68,10 +74,9 @@
   .colored {
     color: $aq-blue-0;
     background-color: $aq-blue-5;
-    border-radius: 8px;
     margin-bottom: 24px;
     margin-left: 24px;
-    padding: 12px 35%;
+    padding: 12px auto;
     width: 312px;
     height: 48px;
     box-sizing: border-box;
@@ -80,10 +85,9 @@
   .filled {
     color: $aq-white-0;
     background: $aq-blue-0;
-    border-radius: 8px;
     margin-left: 24px;
     margin-bottom: 44px;
-    padding: 12px 26%;
+    padding: 12px auto;
     width: 312px;
     height: 48px;
     box-sizing: border-box;

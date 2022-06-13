@@ -1,21 +1,26 @@
 import 'package:animations/animations.dart';
-import 'package:app/constants/config.dart';
 import 'package:app/models/enum_constants.dart';
 import 'package:app/models/notification.dart';
-import 'package:app/screens/profile_view.dart';
+import 'package:app/screens/profile/profile_view.dart';
 import 'package:app/services/app_service.dart';
-import 'package:app/utils/dialogs.dart';
+import 'package:app/widgets/dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:provider/provider.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
-import 'dashboard_view.dart';
-import 'map_view.dart';
+import '../services/hive_service.dart';
+import '../services/local_storage.dart';
+import '../themes/colors.dart';
+import '../utils/network.dart';
+import 'dashboard/dashboard_view.dart';
+import 'map/map_view.dart';
 
 class HomePage extends StatefulWidget {
+  const HomePage({
+    Key? key,
+    this.refresh,
+  }) : super(key: key);
   final bool? refresh;
-
-  const HomePage({Key? key, this.refresh}) : super(key: key);
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -36,9 +41,9 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Config.appBodyColor,
+      backgroundColor: CustomColors.appBodyColor,
       body: WillPopScope(
-        onWillPop: onWillPop,
+        onWillPop: _onWillPop,
         child: PageTransitionSwitcher(
           transitionBuilder: (
             Widget child,
@@ -62,26 +67,29 @@ class _HomePageState extends State<HomePage> {
       ),
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
-            canvasColor: Config.appBodyColor,
-            primaryColor: Config.appColorBlack,
-            textTheme: Theme.of(context)
-                .textTheme
-                .copyWith(caption: TextStyle(color: Config.appColorBlack))),
+          canvasColor: CustomColors.appBodyColor,
+          primaryColor: CustomColors.appColorBlack,
+          textTheme: Theme.of(context).textTheme.copyWith(
+                caption: TextStyle(
+                  color: CustomColors.appColorBlack,
+                ),
+              ),
+        ),
         child: BottomNavigationBar(
           selectedIconTheme: Theme.of(context)
               .iconTheme
-              .copyWith(color: Config.appColorBlue, opacity: 0.3),
+              .copyWith(color: CustomColors.appColorBlue, opacity: 0.3),
           unselectedIconTheme: Theme.of(context)
               .iconTheme
-              .copyWith(color: Config.appColorBlack, opacity: 0.3),
+              .copyWith(color: CustomColors.appColorBlack, opacity: 0.3),
           items: <BottomNavigationBarItem>[
             BottomNavigationBarItem(
               icon: SvgPicture.asset(
                 'assets/icon/home_icon.svg',
                 semanticsLabel: 'Home',
                 color: _selectedIndex == 0
-                    ? Config.appColorBlue
-                    : Config.appColorBlack.withOpacity(0.3),
+                    ? CustomColors.appColorBlue
+                    : CustomColors.appColorBlack.withOpacity(0.3),
               ),
               label: 'Home',
             ),
@@ -89,8 +97,8 @@ class _HomePageState extends State<HomePage> {
               icon: SvgPicture.asset(
                 'assets/icon/location.svg',
                 color: _selectedIndex == 1
-                    ? Config.appColorBlue
-                    : Config.appColorBlack.withOpacity(0.3),
+                    ? CustomColors.appColorBlue
+                    : CustomColors.appColorBlack.withOpacity(0.3),
                 semanticsLabel: 'AirQo Map',
               ),
               label: 'AirQo Map',
@@ -101,31 +109,35 @@ class _HomePageState extends State<HomePage> {
                   SvgPicture.asset(
                     'assets/icon/profile.svg',
                     color: _selectedIndex == 2
-                        ? Config.appColorBlue
-                        : Config.appColorBlack.withOpacity(0.3),
-                    semanticsLabel: 'Search',
+                        ? CustomColors.appColorBlue
+                        : CustomColors.appColorBlack.withOpacity(0.3),
+                    semanticsLabel: 'Profile',
                   ),
-                  Positioned(
-                    right: 0.0,
-                    child: Consumer<NotificationModel>(
-                      builder: (context, notificationModel, child) {
-                        if (notificationModel.navBarNotification) {
-                          return Container(
-                            height: 4,
-                            width: 4,
-                            decoration: BoxDecoration(
-                                shape: BoxShape.circle, color: Config.red),
-                          );
-                        }
-                        return Container(
-                          height: 0.1,
-                          width: 0.1,
-                          decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.transparent),
-                        );
-                      },
-                    ),
+                  ValueListenableBuilder<Box>(
+                    valueListenable:
+                        Hive.box<AppNotification>(HiveBox.appNotifications)
+                            .listenable(),
+                    builder: (context, box, widget) {
+                      final unreadNotifications = box.values
+                          .toList()
+                          .cast<AppNotification>()
+                          .where((element) => !element.read)
+                          .toList();
+
+                      return Positioned(
+                        right: 0.0,
+                        child: Container(
+                          height: 4,
+                          width: 4,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: unreadNotifications.isEmpty
+                                ? Colors.transparent
+                                : CustomColors.aqiRed,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -133,10 +145,10 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
           currentIndex: _selectedIndex,
-          selectedItemColor: Config.appColorBlue,
-          unselectedItemColor: Config.appColorBlack.withOpacity(0.3),
+          selectedItemColor: CustomColors.appColorBlue,
+          unselectedItemColor: CustomColors.appColorBlack.withOpacity(0.3),
           elevation: 0.0,
-          backgroundColor: Config.appBodyColor,
+          backgroundColor: CustomColors.appBodyColor,
           onTap: _onItemTapped,
           showSelectedLabels: true,
           showUnselectedLabels: true,
@@ -148,63 +160,52 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<void> initialize() async {
+  Future<void> _initialize() async {
     if (refresh) {
       await _appService.fetchData(context);
+    } else {
+      await checkNetworkConnection(
+        context,
+        notifyUser: true,
+      );
     }
-    await _getCloudStore();
+    await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.home);
   }
 
   @override
   void initState() {
     super.initState();
     refresh = widget.refresh ?? true;
-    initialize();
-    updateOnBoardingPage();
+    _initialize();
   }
 
-  Future<bool> onWillPop() {
-    var currentPage = _selectedIndex;
+  Future<bool> _onWillPop() {
+    final currentPage = _selectedIndex;
 
     if (currentPage != 0) {
-      setState(() {
-        _selectedIndex = 0;
-      });
+      setState(() => _selectedIndex = 0);
+
       return Future.value(false);
     }
 
-    var now = DateTime.now();
+    final now = DateTime.now();
 
     if (_exitTime == null ||
         now.difference(_exitTime!) > const Duration(seconds: 2)) {
       _exitTime = now;
 
-      showSnackBar(context, 'Tap again to exit !');
+      showSnackBar(
+        context,
+        'Tap again to exit !',
+      );
+
       return Future.value(false);
     }
+
     return Future.value(true);
   }
 
-  void updateOnBoardingPage() async {
-    await _appService.preferencesHelper
-        .updateOnBoardingPage(OnBoardingPage.home);
-  }
-
-  Future<void> _getCloudStore() async {
-    if (_appService.customAuth.isLoggedIn()) {
-      await _appService.cloudStore
-          .monitorNotifications(context, _appService.customAuth.getUserId());
-    }
-  }
-
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-
-    if (index == 2) {
-      Provider.of<NotificationModel>(context, listen: false)
-          .removeNavBarNotification();
-    }
+    setState(() => _selectedIndex = index);
   }
 }

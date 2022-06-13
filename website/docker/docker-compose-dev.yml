@@ -10,6 +10,9 @@ services:
       target: development
       args:
         REACT_WEB_STATIC_HOST: ${REACT_WEB_STATIC_HOST}
+        REACT_NETMANAGER_BASE_URL: ${REACT_NETMANAGER_BASE_URL}
+        REACT_APP_BASE_AIRQLOUDS_URL: ${REACT_APP_BASE_AIRQLOUDS_URL}
+        REACT_APP_BASE_NEWSLETTER_URL: ${REACT_APP_BASE_NEWSLETTER_URL}
     entrypoint: /app/wsgi-entrypoint.sh    
     ports:
       - 8000:8000
