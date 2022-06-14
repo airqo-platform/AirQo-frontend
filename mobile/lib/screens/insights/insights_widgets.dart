@@ -2,7 +2,6 @@ import 'package:app/utils/extensions.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../models/enum_constants.dart';
 import '../../models/insights.dart';
@@ -271,12 +270,13 @@ class InsightsAvatar extends StatelessWidget {
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.robotoMono(
-              fontStyle: FontStyle.normal,
-              fontWeight: FontWeight.bold,
-              height: 1,
-              fontSize: 32,
+            style: CustomTextStyle.insightsAvatar(
+              context: context,
+              pollutant: pollutant,
+              value: measurement.chartValue(pollutant),
+            )?.copyWith(
               color: valueColor,
+              fontSize: 32,
             ),
           ),
           SvgPicture.asset(
