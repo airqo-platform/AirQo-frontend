@@ -7,7 +7,7 @@ import GetApp from '../components/get-app/GetApp';
 import MapSection from '../components/MapSection/MapSection';
 import { AnalyticsSection } from '../components/AnalyticsSection';
 import ApiSection from '../components/ApiSection/ApiSection';
-import AirQommunitiesSection from '../components/AirQommunitiesSection/AirQommunitiesSection';
+import AirQuality from '../components/AirQuality/AirQuality';
 import Partners from '../components/Partners';
 
 const HomePage = () => {
@@ -17,6 +17,7 @@ const HomePage = () => {
             <div className="HomePage">
                 <Hero />
                 <Partners />
+                <AirQuality />
                 <Monitor />
                 <AnalyticsSection />
                 <ApiSection />
