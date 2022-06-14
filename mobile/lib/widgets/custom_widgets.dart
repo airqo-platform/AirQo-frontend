@@ -8,8 +8,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
+import 'package:provider/provider.dart';
 
 import '../models/enum_constants.dart';
+import '../models/place_details.dart';
 import '../themes/app_theme.dart';
 import '../themes/colors.dart';
 import 'buttons.dart';
@@ -250,6 +253,50 @@ class MiniAnalyticsAvatar extends StatelessWidget {
           const Spacer(),
         ],
       ),
+    );
+  }
+}
+
+class HeartIcon extends StatelessWidget {
+  const HeartIcon({
+    Key? key,
+    required this.showAnimation,
+    required this.placeDetails,
+  }) : super(key: key);
+
+  final bool showAnimation;
+  final PlaceDetails placeDetails;
+
+  @override
+  Widget build(BuildContext context) {
+    if (showAnimation) {
+      return SizedBox(
+        height: 16.67,
+        width: 16.67,
+        child: Lottie.asset(
+          'assets/lottie/animated_heart.json',
+          repeat: false,
+          reverse: false,
+          animate: true,
+          fit: BoxFit.cover,
+        ),
+      );
+    }
+
+    return Consumer<PlaceDetailsModel>(
+      builder: (context, placeDetailsModel, child) {
+        return SvgPicture.asset(
+          PlaceDetails.isFavouritePlace(
+            placeDetailsModel.favouritePlaces,
+            placeDetails,
+          )
+              ? 'assets/icon/heart.svg'
+              : 'assets/icon/heart_dislike.svg',
+          semanticsLabel: 'Favorite',
+          height: 16.67,
+          width: 16.67,
+        );
+      },
     );
   }
 }

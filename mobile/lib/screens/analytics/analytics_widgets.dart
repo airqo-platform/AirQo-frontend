@@ -12,7 +12,6 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/enum_constants.dart';
@@ -440,7 +439,10 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                             top: 17,
                           ),
                           child: IconTextButton(
-                            iconWidget: getHeartIcon(),
+                            iconWidget: HeartIcon(
+                              showAnimation: _showHeartAnimation,
+                              placeDetails: widget.placeDetails,
+                            ),
                             text: 'Favorite',
                           ),
                         ),
@@ -453,45 +455,6 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget getHeartIcon() {
-    if (_showHeartAnimation) {
-      return SizedBox(
-        height: 16.67,
-        width: 16.67,
-        child: Lottie.asset(
-          'assets/lottie/animated_heart.json',
-          repeat: false,
-          reverse: false,
-          animate: true,
-          fit: BoxFit.cover,
-        ),
-      );
-    }
-
-    return Consumer<PlaceDetailsModel>(
-      builder: (context, placeDetailsModel, child) {
-        if (PlaceDetails.isFavouritePlace(
-          placeDetailsModel.favouritePlaces,
-          widget.placeDetails,
-        )) {
-          return SvgPicture.asset(
-            'assets/icon/heart.svg',
-            semanticsLabel: 'Favorite',
-            height: 16.67,
-            width: 16.67,
-          );
-        }
-
-        return SvgPicture.asset(
-          'assets/icon/heart_dislike.svg',
-          semanticsLabel: 'Favorite',
-          height: 16.67,
-          width: 16.67,
-        );
-      },
     );
   }
 
@@ -737,7 +700,10 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                           updateFavPlace();
                         },
                         child: IconTextButton(
-                          iconWidget: getHeartIcon(),
+                          iconWidget: HeartIcon(
+                            showAnimation: _showHeartAnimation,
+                            placeDetails: widget.placeDetails,
+                          ),
                           text: 'Favorite',
                         ),
                       ),
@@ -752,45 +718,6 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget getHeartIcon() {
-    if (_showHeartAnimation) {
-      return SizedBox(
-        height: 16.67,
-        width: 16.67,
-        child: Lottie.asset(
-          'assets/lottie/animated_heart.json',
-          repeat: false,
-          reverse: false,
-          animate: true,
-          fit: BoxFit.cover,
-        ),
-      );
-    }
-
-    return Consumer<PlaceDetailsModel>(
-      builder: (context, placeDetailsModel, child) {
-        if (PlaceDetails.isFavouritePlace(
-          placeDetailsModel.favouritePlaces,
-          widget.placeDetails,
-        )) {
-          return SvgPicture.asset(
-            'assets/icon/heart.svg',
-            semanticsLabel: 'Favorite',
-            height: 16.67,
-            width: 16.67,
-          );
-        }
-
-        return SvgPicture.asset(
-          'assets/icon/heart_dislike.svg',
-          semanticsLabel: 'Favorite',
-          height: 16.67,
-          width: 16.67,
-        );
-      },
     );
   }
 
@@ -901,7 +828,10 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                           onTap: () async {
                             updateFavPlace();
                           },
-                          child: getHeartIcon(),
+                          child: HeartIcon(
+                            showAnimation: showHeartAnimation,
+                            placeDetails: widget.placeDetails,
+                          ),
                         );
                       },
                     ),
@@ -975,49 +905,6 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget getHeartIcon() {
-    if (showHeartAnimation) {
-      return SizedBox(
-        height: 16.67,
-        width: 16.67,
-        child: Lottie.asset(
-          'assets/lottie/animated_heart.json',
-          repeat: false,
-          reverse: false,
-          animate: true,
-          fit: BoxFit.cover,
-        ),
-      );
-    }
-
-    return Consumer<PlaceDetailsModel>(
-      builder: (
-        context,
-        placeDetailsModel,
-        child,
-      ) {
-        if (PlaceDetails.isFavouritePlace(
-          placeDetailsModel.favouritePlaces,
-          widget.placeDetails,
-        )) {
-          return SvgPicture.asset(
-            'assets/icon/heart.svg',
-            semanticsLabel: 'Favorite',
-            height: 16.67,
-            width: 16.67,
-          );
-        }
-
-        return SvgPicture.asset(
-          'assets/icon/heart_dislike.svg',
-          semanticsLabel: 'Favorite',
-          height: 16.67,
-          width: 16.67,
-        );
-      },
     );
   }
 

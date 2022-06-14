@@ -14,7 +14,6 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
-import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -84,45 +83,6 @@ class _InsightsTabState extends State<InsightsTab> {
         childCount: _pageItems().length,
       ),
       onRefresh: _refreshPage,
-    );
-  }
-
-  Widget getHeartIcon() {
-    if (_showHeartAnimation) {
-      return SizedBox(
-        height: 16.67,
-        width: 16.67,
-        child: Lottie.asset(
-          'assets/lottie/animated_heart.json',
-          repeat: false,
-          reverse: false,
-          animate: true,
-          fit: BoxFit.cover,
-        ),
-      );
-    }
-
-    return Consumer<PlaceDetailsModel>(
-      builder: (context, placeDetailsModel, child) {
-        if (PlaceDetails.isFavouritePlace(
-          placeDetailsModel.favouritePlaces,
-          widget.placeDetails,
-        )) {
-          return SvgPicture.asset(
-            'assets/icon/heart.svg',
-            semanticsLabel: 'Favorite',
-            height: 16.67,
-            width: 16.67,
-          );
-        }
-
-        return SvgPicture.asset(
-          'assets/icon/heart_dislike.svg',
-          semanticsLabel: 'Favorite',
-          height: 16.67,
-          width: 16.67,
-        );
-      },
     );
   }
 
@@ -784,7 +744,10 @@ class _InsightsTabState extends State<InsightsTab> {
                         updateFavPlace();
                       },
                       child: IconTextButton(
-                        iconWidget: getHeartIcon(),
+                        iconWidget: HeartIcon(
+                          showAnimation: _showHeartAnimation,
+                          placeDetails: widget.placeDetails,
+                        ),
                         text: 'Favorite',
                       ),
                     );
