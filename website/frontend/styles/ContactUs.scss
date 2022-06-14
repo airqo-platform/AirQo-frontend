@@ -98,6 +98,10 @@ $p-text:16px;
                 color:$aq-white-0;
                 text-align:center;
             }
+            .submit-button:hover {
+                background: $aq-blue-6;
+                cursor: pointer;
+            }
         }
     }
     .contact-card{

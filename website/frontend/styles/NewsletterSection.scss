@@ -91,6 +91,10 @@
             border-bottom-right-radius: 16px;
             cursor: pointer;
         }
+
+        &-btn:hover {
+            background: $aq-blue-6;
+        }
     }
 }
 
