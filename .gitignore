@@ -8,3 +8,4 @@ mobile/android/key.properties
 mobile/android/app/google-services.json
 .DS_Store/
 .DS_Store
+.env

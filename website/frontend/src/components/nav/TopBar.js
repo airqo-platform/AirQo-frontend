@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import AirQo from 'icons/nav/AirQo';
 import NavTab from './NavTab';
 import MenuIcon from 'assets/svg/Menu.svg';
@@ -6,18 +6,6 @@ import CloseIcon from 'assets/svg/Close.svg';
 import { Link } from 'react-router-dom';
 
 const TopBar = () => {
-
-    const toggleDropdown = (dropdownId) => () => {
-        var dropdownElems = document.getElementsByClassName("dropdown");
-
-        for(let i=0; i<dropdownElems.length; i++){
-            if(dropdownElems[i] != document.getElementById(dropdownId)){
-                dropdownElems[i].classList.remove("toggle_dropdown");
-            }
-        }
-
-        document.getElementById(dropdownId).classList.toggle("toggle_dropdown");
-    }
 
     const toggleMenu = () => {
         document.getElementById("menu").classList.toggle("toggle_menu_btn");
@@ -33,25 +21,6 @@ const TopBar = () => {
         document.getElementById("nav-right").classList.remove("toggle_nav_right"); 
     }
 
-    // useEffect(() => {
-    //     function handleWindowClick(e) {
-    //         if(!e.target.matches(".nav-dropdown-item")) {
-    //             // var dropdownElems = document.getElementsByClassName("dropdown");
-
-    //             // for(let i=0; i<dropdownElems.length; i++){
-    //             //     if(dropdownElems[i].classList.contains("toggle_dropdown")){
-    //             //         dropdownElems[i].classList.remove("toggle_dropdown");
-    //             //     }
-    //             // }
-    //         }
-    //     }
-    //     window.addEventListener('click', handleWindowClick);
-        
-    //     return () => window.removeEventListener('click', handleWindowClick);
-    // },[]);
-
-    
-
     return(
         <div className="TopBar">
             <div className="wrapper">
@@ -62,7 +31,7 @@ const TopBar = () => {
                     <div className="nav-dropdown-item">
                         <NavTab  
                             text="Solutions" 
-                            onClick={toggleDropdown("african-cities-dropdown")} />
+                        />
                         <div className="dropdown" id="african-cities-dropdown">
                             <h3 className="title">Solutions</h3>
                             <div className="dropdown-list">
@@ -88,35 +57,11 @@ const TopBar = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="nav-dropdown-item">
-                        {/* <NavTab  
-                            text="Our work" 
-                            onClick={toggleDropdown("our-work-dropdown")} /> */}
-                        <div className="dropdown" id="our-work-dropdown">
-                            <h3 className="title">Our Work</h3>
-                            <div className="dropdown-list">
-                                <div className="dropdown-list-item">
-                                    <h3>Air Quality Monitors</h3>
-                                    <h4>Low-cost monitoring devices</h4>
-                                </div>
-                                <div className="dropdown-list-item">
-                                    <h3>Air Quality Dashboard</h3>
-                                    <h4>Historical and forecast data</h4>
-                                </div>
-                                <div className="dropdown-list-item">
-                                    <h3>Air Quality Mobile</h3>
-                                    <h4>Track the air around you</h4>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                     <NavTab text="About" path="/about-us" hideArrow />
-                    <NavTab text="Get involved" path="/get-involved" hideArrow />
+                    <NavTab text="Get involved" path="/get-involved" hideArrow colored />
+                    <NavTab text="Explore data"  hideArrow filled />
                 </div>
-                <div className="nav-right" id="nav-right">
-                    <NavTab text="Sign In"  hideArrow colored />
-                    <NavTab text="Request a demo"  hideArrow filled />
-                </div>
+                
             </div>
             <MenuIcon className="menu-btn" id="menu" onClick={toggleMenu} />
             <CloseIcon className="close-menu-btn" id="close-menu" onClick={toggleCloseMenu} />
