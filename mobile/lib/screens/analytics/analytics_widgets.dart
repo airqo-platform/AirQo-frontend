@@ -743,7 +743,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return InkWell(
       onTap: () {
         Navigator.push(
           context,
@@ -755,7 +755,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
         );
       },
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(0.0, 8.0, 0.0, 8.0),
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white,
@@ -767,10 +767,10 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
           child: Column(
             children: [
               const SizedBox(
-                height: 24,
+                height: 5,
               ),
               Container(
-                padding: const EdgeInsets.only(left: 32, right: 32),
+                padding: const EdgeInsets.only(left: 32),
                 child: Row(
                   children: [
                     if (!isNull) MiniAnalyticsAvatar(measurement: measurement),
@@ -804,24 +804,25 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                     const SizedBox(
                       width: 12,
                     ),
-                    Consumer<PlaceDetailsModel>(
-                      builder: (context, placeDetailsModel, child) {
-                        return GestureDetector(
-                          onTap: () async {
-                            updateFavPlace();
+                    InkWell(
+                      onTap: () async => updateFavPlace(),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 24,
+                        ),
+                        child: Consumer<PlaceDetailsModel>(
+                          builder: (context, placeDetailsModel, child) {
+                            return HeartIcon(
+                              showAnimation: showHeartAnimation,
+                              placeDetails: widget.placeDetails,
+                            );
                           },
-                          child: HeartIcon(
-                            showAnimation: showHeartAnimation,
-                            placeDetails: widget.placeDetails,
-                          ),
-                        );
-                      },
+                        ),
+                      ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(
-                height: 24,
               ),
               const Divider(
                 color: Color(0xffC4C4C4),
@@ -830,7 +831,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                 height: 11,
               ),
               Container(
-                padding: const EdgeInsets.only(left: 32, right: 32),
+                padding: const EdgeInsets.symmetric(horizontal: 32),
                 child: Row(
                   children: [
                     Container(
