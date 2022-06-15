@@ -12,6 +12,8 @@ import AirQommunitiesSection from '../components/AirQommunitiesSection/AirQommun
 import AirQuality from '../components/AirQuality/AirQuality';
 import Partners from '../components/Partners';
 
+import GetInvolvedModal from "../components/GetInvolvedModal";
+
 const HomePage = () => {
     useInitScrollTop();
     return(
@@ -27,6 +29,7 @@ const HomePage = () => {
                 <GetApp />
                 {/* <AirQommunitiesSection /> */}
                 <HighlightSection />
+                <GetInvolvedModal open toggleOpen={() => {}} />
             </div>
         </Page>
     );
