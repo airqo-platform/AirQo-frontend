@@ -18,6 +18,10 @@
   margin-top: 10px;
 
   .img-placeholder {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
     width: 80px;
     height: 80px;
     background: #F1F5FF;
