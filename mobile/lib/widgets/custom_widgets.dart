@@ -13,6 +13,8 @@ import 'package:provider/provider.dart';
 
 import '../models/enum_constants.dart';
 import '../models/place_details.dart';
+import '../services/app_service.dart';
+import '../services/native_api.dart';
 import '../themes/app_theme.dart';
 import '../themes/colors.dart';
 import 'buttons.dart';
@@ -298,5 +300,76 @@ class HeartIcon extends StatelessWidget {
         );
       },
     );
+  }
+}
+
+class AnalyticsFooter extends StatefulWidget {
+  const AnalyticsFooter({
+    Key? key,
+    required this.placeDetails,
+    required this.measurement,
+    required this.shareKey,
+  }) : super(key: key);
+  final PlaceDetails placeDetails;
+  final Measurement measurement;
+  final GlobalKey shareKey;
+
+  @override
+  State<AnalyticsFooter> createState() => _AnalyticsFooterState();
+}
+
+class _AnalyticsFooterState extends State<AnalyticsFooter> {
+  bool _showHeartAnimation = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: GestureDetector(
+              onTap: () {
+                final shareMeasurement = widget.measurement;
+                shareMeasurement.site.name = widget.placeDetails.name;
+                ShareService.shareCard(
+                  context,
+                  widget.shareKey,
+                  shareMeasurement,
+                );
+              },
+              child: Center(
+                child: IconTextButton(
+                  iconWidget: SvgPicture.asset(
+                    'assets/icon/share_icon.svg',
+                    color: CustomColors.greyColor,
+                    semanticsLabel: 'Share',
+                  ),
+                  text: 'Share',
+                ),
+              )),
+        ),
+        Expanded(
+          child: GestureDetector(
+            onTap: () async {
+              _updateFavPlace();
+            },
+            child: IconTextButton(
+              iconWidget: HeartIcon(
+                showAnimation: _showHeartAnimation,
+                placeDetails: widget.placeDetails,
+              ),
+              text: 'Favorite',
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _updateFavPlace() async {
+    setState(() => _showHeartAnimation = true);
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() => _showHeartAnimation = false);
+    });
+    await AppService().updateFavouritePlace(widget.placeDetails, context);
   }
 }

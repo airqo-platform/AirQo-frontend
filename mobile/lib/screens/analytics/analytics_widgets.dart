@@ -19,7 +19,6 @@ import '../../services/local_storage.dart';
 import '../../services/native_api.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
-import '../../widgets/buttons.dart';
 import '../../widgets/custom_shimmer.dart';
 import '../../widgets/custom_widgets.dart';
 
@@ -203,9 +202,7 @@ class MapAnalyticsCard extends StatefulWidget {
 }
 
 class _AnalyticsCardState extends State<AnalyticsCard> {
-  final AppService _appService = AppService();
-  bool _showHeartAnimation = false;
-  final GlobalKey _globalKey = GlobalKey();
+  final GlobalKey _shareWidgetKey = GlobalKey();
   final GlobalKey _infoToolTipKey = GlobalKey();
 
   @override
@@ -231,7 +228,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
         child: Stack(
           children: [
             RepaintBoundary(
-              key: _globalKey,
+              key: _shareWidgetKey,
               child: ShareService.analyticsCardImage(
                 widget.measurement,
                 widget.placeDetails,
@@ -239,16 +236,11 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
               ),
             ),
             Container(
-              padding: const EdgeInsets.only(
-                top: 12,
-                bottom: 12,
-              ),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Colors.white,
-                borderRadius: const BorderRadius.all(
+                borderRadius: BorderRadius.all(
                   Radius.circular(16.0),
                 ),
-                border: Border.all(color: Colors.transparent),
               ),
               child: Column(
                 children: [
@@ -259,10 +251,8 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                         widget.measurement.getPm2_5Value(),
                       );
                     },
-                    child: Container(
-                      padding: const EdgeInsets.only(
-                        right: 12,
-                      ),
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 12, top: 12),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         mainAxisAlignment: MainAxisAlignment.end,
@@ -400,54 +390,12 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                     color: Color(0xffC4C4C4),
                     height: 1.0,
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          final shareMeasurement = widget.measurement;
-                          shareMeasurement.site.name = widget.placeDetails.name;
-                          ShareService.shareCard(
-                            context,
-                            _globalKey,
-                            shareMeasurement,
-                          );
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                            top: 17,
-                          ),
-                          child: IconTextButton(
-                            iconWidget: SvgPicture.asset(
-                              'assets/icon/share_icon.svg',
-                              semanticsLabel: 'Share',
-                              color: CustomColors.greyColor,
-                              height: 16,
-                              width: 16,
-                            ),
-                            text: 'Share',
-                          ),
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () async {
-                          updateFavPlace();
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                            top: 17,
-                          ),
-                          child: IconTextButton(
-                            iconWidget: HeartIcon(
-                              showAnimation: _showHeartAnimation,
-                              placeDetails: widget.placeDetails,
-                            ),
-                            text: 'Favorite',
-                          ),
-                        ),
-                      ),
-                    ],
+                  Expanded(
+                    child: AnalyticsFooter(
+                      placeDetails: widget.placeDetails,
+                      shareKey: _shareWidgetKey,
+                      measurement: widget.measurement,
+                    ),
                   ),
                 ],
               ),
@@ -457,27 +405,10 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
       ),
     );
   }
-
-  void updateFavPlace() async {
-    setState(() => _showHeartAnimation = true);
-    Future.delayed(
-      const Duration(seconds: 2),
-      () {
-        setState(() => _showHeartAnimation = false);
-      },
-    );
-    await _appService.updateFavouritePlace(
-      widget.placeDetails,
-      context,
-    );
-  }
 }
 
 class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
-  bool _showHeartAnimation = false;
-  final GlobalKey _globalKey = GlobalKey();
-
-  final AppService _appService = AppService();
+  final GlobalKey _shareWidgetKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -513,7 +444,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
         child: Stack(
           children: [
             RepaintBoundary(
-              key: _globalKey,
+              key: _shareWidgetKey,
               child: ShareService.analyticsCardImage(
                 widget.measurement,
                 widget.placeDetails,
@@ -673,41 +604,10 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                       color: Color(0xffC4C4C4),
                     ),
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          final shareMeasurement = widget.measurement;
-                          shareMeasurement.site.name = widget.placeDetails.name;
-                          ShareService.shareCard(
-                            context,
-                            _globalKey,
-                            shareMeasurement,
-                          );
-                        },
-                        child: IconTextButton(
-                          iconWidget: SvgPicture.asset(
-                            'assets/icon/share_icon.svg',
-                            color: CustomColors.greyColor,
-                            semanticsLabel: 'Share',
-                          ),
-                          text: 'Share',
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () async {
-                          updateFavPlace();
-                        },
-                        child: IconTextButton(
-                          iconWidget: HeartIcon(
-                            showAnimation: _showHeartAnimation,
-                            placeDetails: widget.placeDetails,
-                          ),
-                          text: 'Favorite',
-                        ),
-                      ),
-                    ],
+                  AnalyticsFooter(
+                    shareKey: _shareWidgetKey,
+                    placeDetails: widget.placeDetails,
+                    measurement: widget.measurement,
                   ),
                   const SizedBox(
                     height: 10,
@@ -719,25 +619,6 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
         ),
       ),
     );
-  }
-
-  void updateFavPlace() async {
-    setState(
-      () {
-        _showHeartAnimation = true;
-      },
-    );
-    Future.delayed(
-      const Duration(seconds: 2),
-      () {
-        setState(
-          () {
-            _showHeartAnimation = false;
-          },
-        );
-      },
-    );
-    await _appService.updateFavouritePlace(widget.placeDetails, context);
   }
 }
 

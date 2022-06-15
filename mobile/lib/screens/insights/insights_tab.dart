@@ -7,23 +7,19 @@ import 'package:app/utils/extensions.dart';
 import 'package:app/utils/network.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/widgets/dialogs.dart';
-import 'package:app/widgets/recommendation.dart';
 import 'package:app/widgets/tooltip.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 import '../../models/enum_constants.dart';
 import '../../services/local_storage.dart';
-import '../../services/native_api.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
-import '../../widgets/buttons.dart';
 import '../../widgets/custom_shimmer.dart';
 import '../../widgets/custom_widgets.dart';
 import 'insights_widgets.dart';
@@ -44,7 +40,6 @@ class InsightsTab extends StatefulWidget {
 class _InsightsTabState extends State<InsightsTab> {
   bool _isTodayHealthTips = true;
   Pollutant _pollutant = Pollutant.pm2_5;
-  bool _showHeartAnimation = false;
   List<Recommendation> _recommendations = [];
 
   final GlobalKey _globalKey = GlobalKey();
@@ -529,17 +524,6 @@ class _InsightsTabState extends State<InsightsTab> {
         _pollutant == Pollutant.pm2_5 ? Pollutant.pm10 : Pollutant.pm2_5);
   }
 
-  void updateFavPlace() async {
-    setState(() => _showHeartAnimation = true);
-    Future.delayed(
-      const Duration(seconds: 2),
-      () {
-        setState(() => _showHeartAnimation = false);
-      },
-    );
-    await _appService.updateFavouritePlace(widget.placeDetails, context);
-  }
-
   void _updateTitleDateTime(List<charts.Series<Insights, String>> data) {
     final dateTime = data.first.data.first.time;
 
@@ -703,59 +687,9 @@ class _InsightsTabState extends State<InsightsTab> {
       ),
       Visibility(
         visible: _hasMeasurements,
-        child: Padding(
-          padding: const EdgeInsets.only(right: 16, left: 16),
-          child: Container(
-            padding: const EdgeInsets.all(21.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: const BorderRadius.all(
-                Radius.circular(8.0),
-              ),
-              border: Border.all(color: Colors.transparent),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    ShareService.shareGraph(
-                      context,
-                      _globalKey,
-                      widget.placeDetails,
-                    );
-                  },
-                  child: IconTextButton(
-                    iconWidget: SvgPicture.asset(
-                      'assets/icon/share_icon.svg',
-                      semanticsLabel: 'Share',
-                      color: CustomColors.greyColor,
-                    ),
-                    text: 'Share',
-                  ),
-                ),
-                const SizedBox(
-                  width: 60,
-                ),
-                Consumer<PlaceDetailsModel>(
-                  builder: (context, placeDetailsModel, child) {
-                    return GestureDetector(
-                      onTap: () async {
-                        updateFavPlace();
-                      },
-                      child: IconTextButton(
-                        iconWidget: HeartIcon(
-                          showAnimation: _showHeartAnimation,
-                          placeDetails: widget.placeDetails,
-                        ),
-                        text: 'Favorite',
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
+        child: InsightsActionBar(
+          shareKey: _globalKey,
+          placeDetails: widget.placeDetails,
         ),
       ),
       const SizedBox(
@@ -777,27 +711,7 @@ class _InsightsTabState extends State<InsightsTab> {
       const SizedBox(
         height: 16,
       ),
-      Visibility(
-        visible: _recommendations.isNotEmpty,
-        child: SizedBox(
-          height: 128,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemBuilder: (context, index) {
-              return Padding(
-                padding: EdgeInsets.only(
-                  left: index == 0 ? 12.0 : 6.0,
-                  right: index == (_recommendations.length - 1) ? 12.0 : 6.0,
-                ),
-                child: RecommendationContainer(
-                  _recommendations[index],
-                ),
-              );
-            },
-            itemCount: _recommendations.length,
-          ),
-        ),
-      ),
+      HealthTipsSection(recommendations: _recommendations),
       const SizedBox(
         height: 24,
       ),
