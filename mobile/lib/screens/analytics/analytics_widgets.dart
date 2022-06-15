@@ -16,7 +16,6 @@ import 'package:provider/provider.dart';
 
 import '../../models/enum_constants.dart';
 import '../../services/local_storage.dart';
-import '../../services/native_api.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
 import '../../widgets/custom_shimmer.dart';
