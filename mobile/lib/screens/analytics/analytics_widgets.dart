@@ -169,6 +169,115 @@ class AnalyticsMoreInsights extends StatelessWidget {
   }
 }
 
+class AnalyticsShareCard extends StatelessWidget {
+  const AnalyticsShareCard({
+    Key? key,
+    required this.measurement,
+    required this.placeDetails,
+  }) : super(key: key);
+
+  final Measurement measurement;
+  final PlaceDetails placeDetails;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(
+        maxHeight: 200,
+        maxWidth: 300,
+      ),
+      padding: const EdgeInsets.symmetric(
+        vertical: 5,
+        horizontal: 8,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.all(
+          Radius.circular(16.0),
+        ),
+        border: Border.all(color: Colors.transparent),
+      ),
+      child: Column(
+        children: [
+          const Spacer(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnalyticsAvatar(measurement: measurement),
+              const SizedBox(width: 10.0),
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AutoSizeText(
+                      placeDetails.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      minFontSize: 17,
+                      style: CustomTextStyle.headline9(context),
+                    ),
+                    AutoSizeText(
+                      placeDetails.location,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      minFontSize: 12,
+                      style: CustomTextStyle.bodyText4(context)?.copyWith(
+                        color: CustomColors.appColorBlack.withOpacity(0.3),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 12,
+                    ),
+                    AqiStringContainer(
+                      measurement: measurement,
+                    ),
+                    const SizedBox(
+                      height: 8,
+                    ),
+                    Text(
+                      dateToShareString(measurement.time),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 8,
+                        color: Colors.black.withOpacity(0.3),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const Spacer(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '© ${DateTime.now().year} AirQo',
+                style: TextStyle(
+                  fontSize: 9,
+                  color: CustomColors.appColorBlack.withOpacity(0.5),
+                  height: 32 / 9,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                'www.airqo.africa',
+                style: TextStyle(
+                  fontSize: 9,
+                  color: CustomColors.appColorBlack.withOpacity(0.5),
+                  height: 32 / 9,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class AnalyticsCard extends StatefulWidget {
   const AnalyticsCard(
     this.placeDetails,
@@ -229,10 +338,9 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
           children: [
             RepaintBoundary(
               key: _shareWidgetKey,
-              child: ShareService.analyticsCardImage(
-                widget.measurement,
-                widget.placeDetails,
-                context,
+              child: AnalyticsShareCard(
+                measurement: widget.measurement,
+                placeDetails: widget.placeDetails,
               ),
             ),
             Container(
@@ -391,7 +499,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                     height: 1.0,
                   ),
                   Expanded(
-                    child: AnalyticsFooter(
+                    child: AnalyticsCardFooter(
                       placeDetails: widget.placeDetails,
                       shareKey: _shareWidgetKey,
                       measurement: widget.measurement,
@@ -445,10 +553,9 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
           children: [
             RepaintBoundary(
               key: _shareWidgetKey,
-              child: ShareService.analyticsCardImage(
-                widget.measurement,
-                widget.placeDetails,
-                context,
+              child: AnalyticsShareCard(
+                measurement: widget.measurement,
+                placeDetails: widget.placeDetails,
               ),
             ),
             Container(
@@ -604,7 +711,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                       color: Color(0xffC4C4C4),
                     ),
                   ),
-                  AnalyticsFooter(
+                  AnalyticsCardFooter(
                     shareKey: _shareWidgetKey,
                     placeDetails: widget.placeDetails,
                     measurement: widget.measurement,

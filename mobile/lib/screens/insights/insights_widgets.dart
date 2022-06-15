@@ -13,6 +13,7 @@ import '../../services/native_api.dart';
 import '../../themes/colors.dart';
 import '../../utils/pm.dart';
 import '../../widgets/buttons.dart';
+import '../../widgets/custom_shimmer.dart';
 import '../../widgets/custom_widgets.dart';
 import '../../widgets/recommendation.dart';
 
@@ -377,6 +378,7 @@ class InsightsActionBar extends StatefulWidget {
 
 class _InsightsActionBarState extends State<InsightsActionBar> {
   bool _showHeartAnimation = false;
+  bool _shareLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -394,23 +396,19 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            GestureDetector(
-              onTap: () {
-                ShareService.shareGraph(
-                  context,
-                  widget.shareKey,
-                  widget.placeDetails,
-                );
-              },
-              child: IconTextButton(
-                iconWidget: SvgPicture.asset(
-                  'assets/icon/share_icon.svg',
-                  semanticsLabel: 'Share',
-                  color: CustomColors.greyColor,
-                ),
-                text: 'Share',
-              ),
-            ),
+            _shareLoading
+                ? const LoadingIcon()
+                : GestureDetector(
+                    onTap: () async => _share(),
+                    child: IconTextButton(
+                      iconWidget: SvgPicture.asset(
+                        'assets/icon/share_icon.svg',
+                        color: CustomColors.greyColor,
+                        semanticsLabel: 'Share',
+                      ),
+                      text: 'Share',
+                    ),
+                  ),
             const SizedBox(
               width: 60,
             ),
@@ -436,14 +434,23 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
     );
   }
 
+  Future<void> _share() async {
+    setState(() => _shareLoading = true);
+    final complete = await ShareService.shareGraph(
+      context,
+      widget.shareKey,
+      widget.placeDetails,
+    );
+    if (complete) {
+      setState(() => _shareLoading = false);
+    }
+  }
+
   void _updateFavPlace() async {
     setState(() => _showHeartAnimation = true);
-    Future.delayed(
-      const Duration(seconds: 2),
-      () {
-        setState(() => _showHeartAnimation = false);
-      },
-    );
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() => _showHeartAnimation = false);
+    });
     await AppService().updateFavouritePlace(
       widget.placeDetails,
       context,

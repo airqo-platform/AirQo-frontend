@@ -10,7 +10,6 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import '../../services/native_api.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
-import '../../utils/exception.dart';
 import '../../widgets/custom_shimmer.dart';
 import 'kya_final_page.dart';
 import 'kya_widgets.dart';
@@ -35,6 +34,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   int currentIndex = 0;
   late Kya kya;
   final List<GlobalKey> _globalKeys = <GlobalKey>[];
+  bool _shareLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -72,29 +72,19 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                   backgroundColor: CustomColors.appColorBlue.withOpacity(0.2),
                 ),
               ),
-              GestureDetector(
-                onTap: () async {
-                  try {
-                    await ShareService.shareKya(
-                      context,
-                      _globalKeys[currentIndex],
-                    );
-                  } catch (exception, stackTrace) {
-                    await logException(
-                      exception,
-                      stackTrace,
-                    );
-                  }
-                },
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 7, right: 24),
-                  child: SvgPicture.asset(
-                    'assets/icon/share_icon.svg',
-                    color: CustomColors.greyColor,
-                    height: 16,
-                    width: 16,
-                  ),
-                ),
+              Padding(
+                padding: const EdgeInsets.only(left: 7, right: 24),
+                child: _shareLoading
+                    ? const LoadingIcon(radius: 10)
+                    : GestureDetector(
+                        onTap: () async => _share(),
+                        child: SvgPicture.asset(
+                          'assets/icon/share_icon.svg',
+                          color: CustomColors.greyColor,
+                          height: 16,
+                          width: 16,
+                        ),
+                      ),
               ),
             ],
           ),
@@ -177,6 +167,17 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
       );
     }
     itemPositionsListener.itemPositions.addListener(scrollListener);
+  }
+
+  Future<void> _share() async {
+    setState(() => _shareLoading = true);
+    final complete = await ShareService.shareKya(
+      context,
+      _globalKeys[currentIndex],
+    );
+    if (complete) {
+      setState(() => _shareLoading = false);
+    }
   }
 
   void scrollListener() {

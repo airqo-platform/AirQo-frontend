@@ -18,6 +18,7 @@ import '../services/native_api.dart';
 import '../themes/app_theme.dart';
 import '../themes/colors.dart';
 import 'buttons.dart';
+import 'custom_shimmer.dart';
 
 class AppRefreshIndicator extends StatelessWidget {
   const AppRefreshIndicator({
@@ -303,8 +304,8 @@ class HeartIcon extends StatelessWidget {
   }
 }
 
-class AnalyticsFooter extends StatefulWidget {
-  const AnalyticsFooter({
+class AnalyticsCardFooter extends StatefulWidget {
+  const AnalyticsCardFooter({
     Key? key,
     required this.placeDetails,
     required this.measurement,
@@ -315,37 +316,31 @@ class AnalyticsFooter extends StatefulWidget {
   final GlobalKey shareKey;
 
   @override
-  State<AnalyticsFooter> createState() => _AnalyticsFooterState();
+  State<AnalyticsCardFooter> createState() => _AnalyticsCardFooterState();
 }
 
-class _AnalyticsFooterState extends State<AnalyticsFooter> {
+class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
   bool _showHeartAnimation = false;
+  bool _shareLoading = false;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         Expanded(
-          child: GestureDetector(
-              onTap: () {
-                final shareMeasurement = widget.measurement;
-                shareMeasurement.site.name = widget.placeDetails.name;
-                ShareService.shareCard(
-                  context,
-                  widget.shareKey,
-                  shareMeasurement,
-                );
-              },
-              child: Center(
-                child: IconTextButton(
-                  iconWidget: SvgPicture.asset(
-                    'assets/icon/share_icon.svg',
-                    color: CustomColors.greyColor,
-                    semanticsLabel: 'Share',
+          child: _shareLoading
+              ? const LoadingIcon()
+              : GestureDetector(
+                  onTap: () async => _share(),
+                  child: IconTextButton(
+                    iconWidget: SvgPicture.asset(
+                      'assets/icon/share_icon.svg',
+                      color: CustomColors.greyColor,
+                      semanticsLabel: 'Share',
+                    ),
+                    text: 'Share',
                   ),
-                  text: 'Share',
                 ),
-              )),
         ),
         Expanded(
           child: GestureDetector(
@@ -365,11 +360,28 @@ class _AnalyticsFooterState extends State<AnalyticsFooter> {
     );
   }
 
+  Future<void> _share() async {
+    setState(() => _shareLoading = true);
+    final shareMeasurement = widget.measurement;
+    shareMeasurement.site.name = widget.placeDetails.name;
+    final complete = await ShareService.shareCard(
+      context,
+      widget.shareKey,
+      shareMeasurement,
+    );
+    if (complete) {
+      setState(() => _shareLoading = false);
+    }
+  }
+
   void _updateFavPlace() async {
     setState(() => _showHeartAnimation = true);
     Future.delayed(const Duration(seconds: 2), () {
       setState(() => _showHeartAnimation = false);
     });
-    await AppService().updateFavouritePlace(widget.placeDetails, context);
+    await AppService().updateFavouritePlace(
+      widget.placeDetails,
+      context,
+    );
   }
 }
