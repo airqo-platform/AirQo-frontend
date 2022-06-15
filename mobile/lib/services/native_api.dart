@@ -128,6 +128,7 @@ class ShareService {
         buildContext,
       );
     }
+
     return true;
   }
 
@@ -183,6 +184,7 @@ class ShareService {
     } catch (exception, stackTrace) {
       await shareFailed(exception, stackTrace, buildContext);
     }
+
     return true;
   }
 
