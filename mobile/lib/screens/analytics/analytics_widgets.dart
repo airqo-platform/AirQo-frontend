@@ -315,34 +315,25 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) {
-              return InsightsPage(widget.placeDetails);
-            },
-          ),
-        );
-      },
-      child: Container(
-        constraints: const BoxConstraints(
-          maxHeight: 251,
-          minHeight: 251,
-          minWidth: 328,
-          maxWidth: 328,
-        ),
-        child: Stack(
-          children: [
-            RepaintBoundary(
-              key: _shareWidgetKey,
-              child: AnalyticsShareCard(
-                measurement: widget.measurement,
-                placeDetails: widget.placeDetails,
-              ),
+    return Container(
+      constraints: const BoxConstraints(
+        maxHeight: 251,
+        minHeight: 251,
+        minWidth: 328,
+        maxWidth: 328,
+      ),
+      child: Stack(
+        children: [
+          RepaintBoundary(
+            key: _shareWidgetKey,
+            child: AnalyticsShareCard(
+              measurement: widget.measurement,
+              placeDetails: widget.placeDetails,
             ),
-            Container(
+          ),
+          InkWell(
+            onTap: () async => _goToInsights(),
+            child: Container(
               decoration: const BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.all(
@@ -351,20 +342,20 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
               ),
               child: Column(
                 children: [
-                  GestureDetector(
-                    onTap: () {
-                      pmInfoDialog(
-                        context,
-                        widget.measurement.getPm2_5Value(),
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 12, top: 12),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          SizedBox(
+                  Row(
+                    children: [
+                      const Spacer(),
+                      InkWell(
+                        onTap: () {
+                          pmInfoDialog(
+                            context,
+                            widget.measurement.getPm2_5Value(),
+                          );
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                              right: 12, top: 12, left: 20),
+                          child: SizedBox(
                             height: 20,
                             width: 20,
                             child: SvgPicture.asset(
@@ -373,129 +364,138 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                               key: _infoToolTipKey,
                             ),
                           ),
-                        ],
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                  SizedBox(
-                    height: 104,
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        left: 24,
-                        right: 24,
-                      ),
-                      child: Row(
-                        children: [
-                          GestureDetector(
-                            child: AnalyticsAvatar(
-                              measurement: widget.measurement,
-                            ),
-                            onTap: () {
-                              ToolTip(context, ToolTipType.info).show(
-                                widgetKey: _infoToolTipKey,
-                              );
-                            },
+                  Column(
+                    children: [
+                      SizedBox(
+                        height: 104,
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                            left: 24,
+                            right: 24,
                           ),
-                          const SizedBox(
-                            width: 16.0,
-                          ),
-                          // TODO : investigate ellipsis
-                          Flexible(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  widget.placeDetails.name.trimEllipsis(),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: CustomTextStyle.headline9(context),
+                          child: Row(
+                            children: [
+                              GestureDetector(
+                                child: AnalyticsAvatar(
+                                  measurement: widget.measurement,
                                 ),
-                                Text(
-                                  widget.placeDetails.location.trimEllipsis(),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: CustomTextStyle.bodyText4(context)
-                                      ?.copyWith(
-                                    color: CustomColors.appColorBlack
-                                        .withOpacity(0.3),
-                                  ),
-                                ),
-                                const SizedBox(
-                                  height: 12,
-                                ),
-                                GestureDetector(
-                                  child: AqiStringContainer(
-                                    measurement: widget.measurement,
-                                  ),
-                                  onTap: () {
-                                    ToolTip(
-                                      context,
-                                      ToolTipType.info,
-                                    ).show(
-                                      widgetKey: _infoToolTipKey,
-                                    );
-                                  },
-                                ),
-                                const SizedBox(
-                                  height: 8,
-                                ),
-                                Row(
+                                onTap: () {
+                                  ToolTip(context, ToolTipType.info).show(
+                                    widgetKey: _infoToolTipKey,
+                                  );
+                                },
+                              ),
+                              const SizedBox(
+                                width: 16.0,
+                              ),
+                              // TODO : investigate ellipsis
+                              Flexible(
+                                child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Container(
-                                      constraints: BoxConstraints(
-                                        maxWidth:
-                                            MediaQuery.of(context).size.width /
-                                                3.2,
-                                      ),
-                                      child: Text(
-                                        dateToString(widget.measurement.time)
-                                            .trimEllipsis(),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          fontSize: 8,
-                                          color: Colors.black.withOpacity(0.3),
-                                        ),
+                                    Text(
+                                      widget.placeDetails.name.trimEllipsis(),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: CustomTextStyle.headline9(context),
+                                    ),
+                                    Text(
+                                      widget.placeDetails.location
+                                          .trimEllipsis(),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: CustomTextStyle.bodyText4(context)
+                                          ?.copyWith(
+                                        color: CustomColors.appColorBlack
+                                            .withOpacity(0.3),
                                       ),
                                     ),
                                     const SizedBox(
-                                      width: 4.0,
+                                      height: 12,
                                     ),
-                                    Visibility(
-                                      visible: widget.isRefreshing,
-                                      child: SvgPicture.asset(
-                                        'assets/icon/loader.svg',
-                                        semanticsLabel: 'loader',
-                                        height: 8.0,
-                                        width: 8.0,
+                                    GestureDetector(
+                                      child: AqiStringContainer(
+                                        measurement: widget.measurement,
                                       ),
+                                      onTap: () {
+                                        ToolTip(
+                                          context,
+                                          ToolTipType.info,
+                                        ).show(
+                                          widgetKey: _infoToolTipKey,
+                                        );
+                                      },
+                                    ),
+                                    const SizedBox(
+                                      height: 8,
+                                    ),
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          constraints: BoxConstraints(
+                                            maxWidth: MediaQuery.of(context)
+                                                    .size
+                                                    .width /
+                                                3.2,
+                                          ),
+                                          child: Text(
+                                            dateToString(
+                                                    widget.measurement.time)
+                                                .trimEllipsis(),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: 8,
+                                              color:
+                                                  Colors.black.withOpacity(0.3),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          width: 4.0,
+                                        ),
+                                        Visibility(
+                                          visible: widget.isRefreshing,
+                                          child: SvgPicture.asset(
+                                            'assets/icon/loader.svg',
+                                            semanticsLabel: 'loader',
+                                            height: 8.0,
+                                            width: 8.0,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 30,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      left: 24,
-                      right: 24,
-                    ),
-                    child: AnalyticsMoreInsights(
-                      placeDetails: widget.placeDetails,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  const Divider(
-                    color: Color(0xffC4C4C4),
-                    height: 1.0,
+                      const SizedBox(
+                        height: 30,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          left: 24,
+                          right: 24,
+                        ),
+                        child: AnalyticsMoreInsights(
+                          placeDetails: widget.placeDetails,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      const Divider(
+                        color: Color(0xffC4C4C4),
+                        height: 1.0,
+                      ),
+                    ],
                   ),
                   Expanded(
                     child: AnalyticsCardFooter(
@@ -507,8 +507,19 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _goToInsights() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) {
+          return InsightsPage(widget.placeDetails);
+        },
       ),
     );
   }
@@ -714,6 +725,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                     shareKey: _shareWidgetKey,
                     placeDetails: widget.placeDetails,
                     measurement: widget.measurement,
+                    loadingRadius: 10,
                   ),
                   const SizedBox(
                     height: 10,

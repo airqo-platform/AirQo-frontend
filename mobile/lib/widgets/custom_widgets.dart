@@ -310,10 +310,12 @@ class AnalyticsCardFooter extends StatefulWidget {
     required this.placeDetails,
     required this.measurement,
     required this.shareKey,
+    this.loadingRadius,
   }) : super(key: key);
   final PlaceDetails placeDetails;
   final Measurement measurement;
   final GlobalKey shareKey;
+  final double? loadingRadius;
 
   @override
   State<AnalyticsCardFooter> createState() => _AnalyticsCardFooterState();
@@ -329,8 +331,10 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
       children: [
         Expanded(
           child: _shareLoading
-              ? const LoadingIcon()
-              : GestureDetector(
+              ? LoadingIcon(
+                  radius: widget.loadingRadius ?? 14,
+                )
+              : InkWell(
                   onTap: () async => _share(),
                   child: IconTextButton(
                     iconWidget: SvgPicture.asset(
@@ -343,10 +347,8 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
                 ),
         ),
         Expanded(
-          child: GestureDetector(
-            onTap: () async {
-              _updateFavPlace();
-            },
+          child: InkWell(
+            onTap: () async => _updateFavPlace(),
             child: IconTextButton(
               iconWidget: HeartIcon(
                 showAnimation: _showHeartAnimation,
@@ -374,7 +376,7 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
     }
   }
 
-  void _updateFavPlace() async {
+  Future<void> _updateFavPlace() async {
     setState(() => _showHeartAnimation = true);
     Future.delayed(const Duration(seconds: 2), () {
       setState(() => _showHeartAnimation = false);
