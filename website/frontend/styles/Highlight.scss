@@ -1,0 +1,160 @@
+@import "lib/variables";
+@import "lib/colors";
+
+.Highlight {
+
+  width: 100%;
+  min-height: 1157px;
+
+  border: 1px solid transparent;
+
+  .highlight-main {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    max-width: $columnWidth;
+    width: 100%;
+    min-height: 597px;
+
+    background: #EBFFF5;
+    border-radius: 16px;
+
+    padding: 64px;
+
+    margin: 160px auto 24px auto;
+
+    img {
+      width: 100%;
+      max-width: 444px;
+    }
+
+    .main-content {
+      width: 100%;
+      max-width: 440px;
+
+      svg {
+        margin-top: 35px;
+      }
+
+      .title {
+        font-style: normal;
+        font-weight: 500;
+        font-size: 16px;
+        line-height: 24px;
+
+        color: #353E52;
+        margin: 48px 0 8px 0;
+      }
+
+      .body {
+        font-style: normal;
+        font-weight: 500;
+        font-size: 28px;
+        line-height: 36px;
+
+        color: #353E52;
+
+        margin: 8px 0 48px 0;
+      }
+
+      .link {
+        width: 113px;
+        height: 24px;
+
+        font-style: normal;
+        font-weight: 500;
+        font-size: 16px;
+        line-height: 24px;
+
+        display: flex;
+        align-items: center;
+        text-align: center;
+
+        color: #353E52;
+      }
+    }
+  }
+
+  .highlight-sub {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    max-width: $columnWidth;
+    width: 100%;
+    min-height: 216px;
+
+    margin: 24px auto 160px auto;
+
+    .content-wrapper {
+      width: 100%;
+      max-width: 532px;
+      min-height: 216px;
+
+      padding: 40px;
+
+
+      border-radius: 16px;
+    }
+
+    .blue-bg {
+      background: #135DFF;
+    }
+
+    .light-blue-bg {
+      background: #F1F6FF;
+    }
+
+    .title {
+      width: 100%;
+      max-width: 400px;
+      min-height: 64px;
+
+      font-style: normal;
+      font-weight: 400;
+      font-size: 24px;
+      line-height: 32px;
+
+      margin-bottom: 40px;
+    }
+
+    .link {
+      width: 400px;
+      height: 24px;
+
+      font-style: normal;
+      font-weight: 400;
+      font-size: 16px;
+      line-height: 24px;
+
+      display: flex;
+      align-items: center;
+    }
+
+    .white-color {
+      color: #FFFFFF;
+    }
+
+    .blue-color {
+      color: #135DFF;
+    }
+  }
+}
+
+@media (max-width: $mainBreakPoint) {
+  .Highlight {
+    .highlight-main {
+      padding: 16px;
+      border-radius: 0;
+      margin: 5px auto 24px auto;
+    }
+
+    .highlight-sub {
+      margin: 24px auto 5px auto;
+      .content-wrapper {
+        width: 95%;
+        margin: 16px auto;
+      }
+    }
+  }
+}
