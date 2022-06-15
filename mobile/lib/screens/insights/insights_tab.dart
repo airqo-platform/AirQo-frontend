@@ -564,10 +564,14 @@ class _InsightsTabState extends State<InsightsTab> {
     }
   }
 
-  void togglePollutant() {
-    setState(() => _pollutant =
-        _pollutant == Pollutant.pm2_5 ? Pollutant.pm10 : Pollutant.pm2_5);
+  void togglePollutant2(){
+      setState(() => _pollutant = Pollutant.pm2_5);
   }
+
+  void togglePollutant10() {
+  setState(() => _pollutant = Pollutant.pm10);
+  }
+
 
   void updateFavPlace() async {
     setState(() => _showHeartAnimation = true);
@@ -695,7 +699,6 @@ class _InsightsTabState extends State<InsightsTab> {
             Visibility(
               visible: _hasMeasurements,
               child: GestureDetector(
-                onTap: togglePollutant,
                 child: Container(
                   height: 32,
                   width: 32,
@@ -709,11 +712,30 @@ class _InsightsTabState extends State<InsightsTab> {
                       color: Colors.transparent,
                     ),
                   ),
-                  child: SvgPicture.asset(
-                    'assets/icon/toggle_icon.svg',
-                    semanticsLabel: 'Toggle',
-                    height: 16,
-                    width: 20,
+                  child:PopupMenuButton(
+                    
+                    child:SvgPicture.asset(
+                      'assets/icon/toggle_icon.svg',
+                      semanticsLabel: 'Toggle',
+                      height: 16,
+                      width: 20,
+                    ),
+                    itemBuilder:(BuildContext context) => <PopupMenuEntry>[
+                      PopupMenuItem(
+                        child: ListTile(
+                          leading: Icon(Icons.toggle_on),
+                          title: Text('PM 2.5'),
+                          onTap:  togglePollutant2,
+                        ),
+                      ),
+                      PopupMenuItem(
+                        child: ListTile(
+                          leading: Icon(Icons.toggle_on),
+                          title: Text('PM 10'),
+                          onTap:  togglePollutant10,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
