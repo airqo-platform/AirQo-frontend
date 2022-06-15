@@ -113,7 +113,7 @@ class ShareService {
       final imgFile = File('$directory/airqo_analytics_card.png');
       await imgFile.writeAsBytes(pngBytes);
 
-      await Share.shareFiles([imgFile.path], text: getShareMessage()).then(
+      await Share.shareFiles([imgFile.path]).then(
         (value) => {updateUserShares()},
       );
     } catch (exception, stackTrace) {
@@ -145,7 +145,7 @@ class ShareService {
       final imgFile = File('$directory/airqo_analytics_graph.png');
       await imgFile.writeAsBytes(pngBytes);
 
-      await Share.shareFiles([imgFile.path], text: getShareMessage()).then(
+      await Share.shareFiles([imgFile.path]).then(
         (value) => {updateUserShares()},
       );
     } catch (exception, stackTrace) {
@@ -173,7 +173,7 @@ class ShareService {
       final imgFile = File('$directory/analytics_graph.png');
       await imgFile.writeAsBytes(pngBytes);
 
-      await Share.shareFiles([imgFile.path], text: getShareMessage()).then(
+      await Share.shareFiles([imgFile.path]).then(
         (value) => {updateUserShares()},
       );
     } catch (exception, stackTrace) {
