@@ -85,7 +85,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                           width: 16,
                         ),
                 ),
-              )
+              ),
             ],
           ),
         ),

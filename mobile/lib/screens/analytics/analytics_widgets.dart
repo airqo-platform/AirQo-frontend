@@ -354,7 +354,10 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                         },
                         child: Padding(
                           padding: const EdgeInsets.only(
-                              right: 12, top: 12, left: 20),
+                            right: 12,
+                            top: 12,
+                            left: 20,
+                          ),
                           child: SizedBox(
                             height: 20,
                             width: 20,
@@ -446,8 +449,8 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                           ),
                                           child: Text(
                                             dateToString(
-                                                    widget.measurement.time)
-                                                .trimEllipsis(),
+                                              widget.measurement.time,
+                                            ).trimEllipsis(),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
@@ -575,7 +578,10 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                         onTap: () => widget.closeCallBack(),
                         child: Padding(
                           padding: const EdgeInsets.only(
-                              right: 12, top: 12, left: 20),
+                            right: 12,
+                            top: 12,
+                            left: 20,
+                          ),
                           child: SizedBox(
                             height: 20,
                             width: 20,
@@ -650,8 +656,8 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                           ),
                                           child: Text(
                                             dateToString(
-                                                    widget.measurement.time)
-                                                .trimEllipsis(),
+                                              widget.measurement.time,
+                                            ).trimEllipsis(),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
