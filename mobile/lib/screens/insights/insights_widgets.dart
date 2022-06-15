@@ -449,7 +449,7 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
       widget.shareKey,
       widget.placeDetails,
     );
-    if (complete) {
+    if (complete && mounted) {
       setState(() => _shareLoading = false);
     }
   }

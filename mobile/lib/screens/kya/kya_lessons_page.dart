@@ -178,7 +178,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
       context,
       _globalKeys[currentIndex],
     );
-    if (complete) {
+    if (complete && mounted) {
       setState(() => _shareLoading = false);
     }
   }

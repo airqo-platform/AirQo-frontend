@@ -915,16 +915,11 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
 
   void updateFavPlace() async {
     setState(() => showHeartAnimation = true);
-    Future.delayed(
-      const Duration(seconds: 2),
-      () {
-        setState(
-          () {
-            showHeartAnimation = false;
-          },
-        );
-      },
-    );
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() => showHeartAnimation = false);
+      }
+    });
 
     await _appService.updateFavouritePlace(widget.placeDetails, context);
   }

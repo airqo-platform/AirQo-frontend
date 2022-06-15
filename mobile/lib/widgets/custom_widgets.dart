@@ -371,7 +371,7 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
       widget.shareKey,
       shareMeasurement,
     );
-    if (complete) {
+    if (complete && mounted) {
       setState(() => _shareLoading = false);
     }
   }
