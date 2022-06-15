@@ -241,4 +241,75 @@
       }
     }
   }
+
+  .complete {
+    //display: flex;
+    //flex-wrap: wrap;
+    display: grid;
+    justify-items: center;
+    align-items: center;
+    gap: 0;
+    width: 100%;
+    height: 100%;
+    background: #F3F4F7;
+
+    .content-wrapper {
+      display: grid;
+      justify-items: center;
+      align-items: center;
+      width: 100%;
+      height: 624px;
+    }
+
+    .main-text {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      width: 466px;
+      height: 96px;
+
+      font-style: normal;
+      font-weight: 500;
+      font-size: 40px;
+      line-height: 48px;
+
+      color: #353E52;
+      margin: 0;
+    }
+
+    .secondary-text {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      width: 652px;
+      height: 56px;
+
+      font-style: normal;
+      font-weight: 400;
+      font-size: 20px;
+      line-height: 28px;
+
+      color: #353E52;
+    }
+
+    .btn {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      width: 148px;
+      height: 56px;
+      padding: 16px 32px;
+      background: #135DFF;
+      outline: none;
+      border: none;
+
+      font-style: normal;
+      font-weight: 400;
+      font-size: 16px;
+      line-height: 24px;
+      color: #FFFFFF;
+      cursor: pointer;
+    }
+  }
 }
