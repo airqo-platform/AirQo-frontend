@@ -117,5 +117,124 @@
       justify-content: center;
       width: 100%;
     }
+
+    .form-section {
+      max-width: 320px;
+      margin: 0 auto 0 0;
+      margin-left: 159px;
+
+      .register-form {
+        width: 100%;
+        color: #353E52;
+
+        .form-field {
+          display: flex;
+          flex-direction: column;
+          margin-bottom: 24px;
+          width: 100%;
+
+          input[type="text"], input[type="email"] {
+            width: 360px;
+            height: 56px;
+            background-color: #F3F4F7;
+            margin-top: 12px;
+            border: 0;
+            outline: 0;
+            border-radius: 8px;
+
+            font-style: normal;
+            font-weight: 400;
+            font-size: 14px;
+            line-height: 20px;
+
+            color: #353E52;
+
+            padding: 18px 20px;
+          }
+
+          label {
+            font-size: 14px;
+            line-height: 20px;
+            font-weight: 400;
+          }
+        }
+
+        .input-field {
+          display: flex;
+          align-items: center;
+          margin-bottom: 48px;
+
+          input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            margin-right: 16px;
+            border: 1px solid #D1D3D9;
+          }
+
+          label {
+            font-size: 12px;
+            line-height: 22px;
+            font-weight: 400;
+            cursor: pointer;
+          }
+        }
+      }
+
+      .section-button-row {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+
+        .register-btn {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          align-items: center;
+          width: 181px;
+          height: 56px;
+          border-radius: 2px;
+
+          font-size: 16px;
+          font-weight: 400;
+          line-height: 24px;
+          outline: 0;
+          border: 0;
+        }
+
+        .btn-disabled {
+          color: rgba(53, 62, 82, 0.28);
+          background: rgba(53, 62, 82, 0.08);
+          cursor: not-allowed;
+        }
+
+        .btn-active {
+          color: #FFFFFF;
+          background: #135DFF;
+          cursor: pointer;
+        }
+      }
+
+      .back-btn {
+          width: 91px;
+          padding: 12px 27px;
+          color: $aq-blue-4;
+      }
+
+      .register-btn {
+          width: 198px;
+          padding: 12px 22px;
+          color: #353e5247;
+      }
+
+      .back-btn:hover {
+          background-color: $aq-blue-7;
+      }
+
+      .register-btn:hover {
+          color: $aq-blue-4;
+          background-color: $aq-blue-7;
+      }
+    }
   }
 }
