@@ -382,59 +382,67 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 16, left: 16),
-      child: Container(
-        padding: const EdgeInsets.all(21.0),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: const BorderRadius.all(
-            Radius.circular(8.0),
-          ),
-          border: Border.all(color: Colors.transparent),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.all(
+          Radius.circular(8.0),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _shareLoading
-                ? const LoadingIcon()
-                : GestureDetector(
+        border: Border.all(color: Colors.transparent),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Expanded(
+            child: _shareLoading
+                ? const LoadingIcon(
+                    radius: 10,
+                  )
+                : InkWell(
                     onTap: () async => _share(),
-                    child: IconTextButton(
-                      iconWidget: SvgPicture.asset(
-                        'assets/icon/share_icon.svg',
-                        color: CustomColors.greyColor,
-                        semanticsLabel: 'Share',
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 21),
+                      child: IconTextButton(
+                        iconWidget: SvgPicture.asset(
+                          'assets/icon/share_icon.svg',
+                          color: CustomColors.greyColor,
+                          semanticsLabel: 'Share',
+                        ),
+                        text: 'Share',
                       ),
-                      text: 'Share',
                     ),
                   ),
-            const SizedBox(
-              width: 60,
-            ),
-            Consumer<PlaceDetailsModel>(
+          ),
+          Expanded(
+            child: Consumer<PlaceDetailsModel>(
               builder: (context, placeDetailsModel, child) {
-                return GestureDetector(
+                return InkWell(
                   onTap: () async {
                     _updateFavPlace();
                   },
-                  child: IconTextButton(
-                    iconWidget: HeartIcon(
-                      showAnimation: _showHeartAnimation,
-                      placeDetails: widget.placeDetails,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 21),
+                    child: IconTextButton(
+                      iconWidget: HeartIcon(
+                        showAnimation: _showHeartAnimation,
+                        placeDetails: widget.placeDetails,
+                      ),
+                      text: 'Favorite',
                     ),
-                    text: 'Favorite',
                   ),
                 );
               },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Future<void> _share() async {
+    if (_shareLoading) {
+      return;
+    }
     setState(() => _shareLoading = true);
     final complete = await ShareService.shareGraph(
       context,

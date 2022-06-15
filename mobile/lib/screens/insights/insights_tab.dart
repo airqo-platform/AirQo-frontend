@@ -687,9 +687,12 @@ class _InsightsTabState extends State<InsightsTab> {
       ),
       Visibility(
         visible: _hasMeasurements,
-        child: InsightsActionBar(
-          shareKey: _globalKey,
-          placeDetails: widget.placeDetails,
+        child: Padding(
+          padding: const EdgeInsets.only(right: 16, left: 16),
+          child: InsightsActionBar(
+            shareKey: _globalKey,
+            placeDetails: widget.placeDetails,
+          ),
         ),
       ),
       const SizedBox(

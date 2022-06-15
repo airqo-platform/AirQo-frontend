@@ -51,7 +51,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
           titleSpacing: 0,
           title: Row(
             children: [
-              GestureDetector(
+              InkWell(
                 onTap: () {
                   updateProgress();
                   Navigator.of(context).pop(true);
@@ -72,20 +72,20 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                   backgroundColor: CustomColors.appColorBlue.withOpacity(0.2),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(left: 7, right: 24),
-                child: _shareLoading
-                    ? const LoadingIcon(radius: 10)
-                    : GestureDetector(
-                        onTap: () async => _share(),
-                        child: SvgPicture.asset(
+              InkWell(
+                onTap: () async => _share(),
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 7, right: 24),
+                  child: _shareLoading
+                      ? const LoadingIcon(radius: 10)
+                      : SvgPicture.asset(
                           'assets/icon/share_icon.svg',
                           color: CustomColors.greyColor,
                           height: 16,
                           width: 16,
                         ),
-                      ),
-              ),
+                ),
+              )
             ],
           ),
         ),
@@ -170,6 +170,9 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   }
 
   Future<void> _share() async {
+    if (_shareLoading) {
+      return;
+    }
     setState(() => _shareLoading = true);
     final complete = await ShareService.shareKya(
       context,
