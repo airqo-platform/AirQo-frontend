@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Modal, Box } from '@mui/material';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
@@ -49,45 +49,90 @@ const GetInvolvedLanding = () => (
         </div>
 );
 
-const GetInvolvedEmail = () => (
+const GetInvolvedEmail = () => {
+  const dispatch = useDispatch();
+  const getInvolvedData = useGetInvolvedData();
+  const [emailState, setEmailState] = useState(getInvolvedData);
+
+  const handleOnChange = (id) => (event) => {
+    setEmailState({ ...emailState, [id]: event.target.value });
+  };
+  const handleOnCheckboxChange = (event) => {
+    setEmailState({ ...emailState, acceptedTerms: event.target.checked });
+  };
+
+  const checkAllFilled = () => emailState.firstName && emailState.lastName && emailState.email && emailState.acceptedTerms;
+
+  const onSubmit = () => {
+    if (!checkAllFilled()) return;
+    dispatch(updateGetInvolvedData({ ...setEmailState, complete: true }));
+  };
+  return (
         <div className="form-section">
             <div className="wrapper">
                 <form className="register-form">
                     <div className="form-field">
                         <label>First name</label>
-                        <input type="text" id="fname" required />
+                        <input
+                          type="text"
+                          id="fname"
+                          defaultValue={emailState.firstName}
+                          onChange={handleOnChange('firstName')}
+                          required
+                        />
                     </div>
                     <div className="form-field">
                         <label>Last name</label>
-                        <input type="text" id="lname" required />
+                        <input
+                          type="text"
+                          id="lname"
+                          defaultValue={emailState.lastName}
+                          onChange={handleOnChange('lastName')}
+                          required
+                        />
                     </div>
                     <div className="form-field">
                         <label>Email address</label>
-                        <input type="email" id="email" required />
+                        <input
+                          type="email"
+                          id="email"
+                          defaultValue={emailState.email}
+                          onChange={handleOnChange('email')}
+                          required
+                        />
                     </div>
                     <div className="input-field">
-                        <input type="checkbox" required />
+                        <input
+                          type="checkbox"
+                          defaultChecked={emailState.acceptedTerms}
+                          onChange={handleOnCheckboxChange}
+                          required
+                        />
                         <label>
                             I agree to the <u>Terms of Service</u> and <u>Privacy Policy</u>
                         </label>
                     </div>
                 </form>
                 <div className="section-button-row">
-                    <Link to="/get-involved/check-mail" style={{ textDecoration: 'none' }}>
-                        <a className="register-btn btn-disabled btn-active" type="button">Create account</a>
-                    </Link>
+                    <button
+                      className={`register-btn ${checkAllFilled() ? 'btn-active' : 'btn-disabled'}`}
+                      onClick={onSubmit}
+                    >
+                        Create account
+                    </button>
                 </div>
 
             </div>
         </div>
-);
+  );
+};
 
 const GetInvolvedRegistryContent = () => {
   const dispatch = useDispatch();
   const getInvolvedData = useGetInvolvedData();
 
   const hideModal = () => dispatch(showGetInvolvedModal(false));
-  const goBack = () => dispatch(updateGetInvolvedData({slide: getInvolvedData.slide - 1}));
+  const goBack = () => dispatch(updateGetInvolvedData({ slide: getInvolvedData.slide - 1 }));
   return (
     <>
        <div className="banner">
@@ -112,16 +157,23 @@ const GetInvolvedRegistryContent = () => {
   );
 };
 
-const GetInvolvedComplete = () => (
+const GetInvolvedComplete = () => {
+  const dispatch = useDispatch();
+
+  const backToHomePage = () => {
+    dispatch(showGetInvolvedModal(false));
+  };
+  return (
         <div className="complete">
             <div className="content-wrapper">
             <CheckMailIcon />
             <p className="main-text">Check your email for more details.</p>
             <p className="secondary-text">Access real-time and historic air quality information across Africa through our easy-to-use air quality analytics dashboard</p>
-            <button className="btn">Back home</button>
+            <button className="btn" onClick={backToHomePage}>Back home</button>
             </div>
         </div>
-);
+  );
+};
 
 const GetInvolvedModal = () => {
   const dispatch = useDispatch();
