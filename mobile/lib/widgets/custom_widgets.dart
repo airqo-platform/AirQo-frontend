@@ -7,7 +7,6 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../models/enum_constants.dart';
 import '../themes/app_theme.dart';
@@ -227,16 +226,11 @@ class MiniAnalyticsAvatar extends StatelessWidget {
             measurement.getPm2_5Value().toStringAsFixed(0),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.robotoMono(
-              color: Pollutant.pm2_5.textColor(
-                value: measurement.getPm2_5Value(),
-              ),
-              fontStyle: FontStyle.normal,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              height: 1,
-              letterSpacing: 16 * -0.06,
-            ),
+            style: CustomTextStyle.insightsAvatar(
+              context: context,
+              pollutant: Pollutant.pm2_5,
+              value: measurement.getPm2_5Value(),
+            )?.copyWith(fontSize: 20),
           ),
           SvgPicture.asset(
             'assets/icon/unit.svg',

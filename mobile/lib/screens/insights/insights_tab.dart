@@ -227,7 +227,7 @@ class _InsightsTabState extends State<InsightsTab> {
                                   );
                                 }
                               },
-                              child: InsightsGraph(
+                              child: AnalyticsGraph(
                                 pm2_5ChartData: _dailyPm2_5ChartData[index],
                                 pm10ChartData: _dailyPm10ChartData[index],
                                 onBarSelection: _updateUI,
@@ -262,7 +262,7 @@ class _InsightsTabState extends State<InsightsTab> {
                                   );
                                 }
                               },
-                              child: InsightsGraph(
+                              child: AnalyticsGraph(
                                 pm10ChartData: _hourlyPm10ChartData[index],
                                 pm2_5ChartData: _hourlyPm2_5ChartData[index],
                                 frequency: widget.frequency,
@@ -353,21 +353,17 @@ class _InsightsTabState extends State<InsightsTab> {
                         borderRadius: const BorderRadius.all(
                           Radius.circular(40.0),
                         ),
-                        color: _selectedMeasurement!.forecast
-                            ? CustomColors.appColorBlue.withOpacity(0.24)
-                            : _pollutant == Pollutant.pm2_5
-                                ? Pollutant.pm2_5
-                                    .color(
-                                      _selectedMeasurement!
-                                          .chartValue(_pollutant),
-                                    )
-                                    .withOpacity(0.4)
-                                : Pollutant.pm10
-                                    .color(
-                                      _selectedMeasurement!
-                                          .chartValue(_pollutant),
-                                    )
-                                    .withOpacity(0.4),
+                        color: _pollutant == Pollutant.pm2_5
+                            ? Pollutant.pm2_5
+                                .color(
+                                  _selectedMeasurement!.chartValue(_pollutant),
+                                )
+                                .withOpacity(0.4)
+                            : Pollutant.pm10
+                                .color(
+                                  _selectedMeasurement!.chartValue(_pollutant),
+                                )
+                                .withOpacity(0.4),
                         border: Border.all(color: Colors.transparent),
                       ),
                       child: AutoSizeText(
@@ -387,19 +383,17 @@ class _InsightsTabState extends State<InsightsTab> {
                         textAlign: TextAlign.start,
                         overflow: TextOverflow.ellipsis,
                         style: CustomTextStyle.button2(context)?.copyWith(
-                          color: _selectedMeasurement!.forecast
-                              ? CustomColors.appColorBlue
-                              : _pollutant == Pollutant.pm2_5
-                                  ? Pollutant.pm2_5.textColor(
-                                      value: _selectedMeasurement!
-                                          .chartValue(_pollutant),
-                                      graph: true,
-                                    )
-                                  : Pollutant.pm10.textColor(
-                                      value: _selectedMeasurement!
-                                          .chartValue(_pollutant),
-                                      graph: true,
-                                    ),
+                          color: _pollutant == Pollutant.pm2_5
+                              ? Pollutant.pm2_5.textColor(
+                                  value: _selectedMeasurement!
+                                      .chartValue(_pollutant),
+                                  graph: true,
+                                )
+                              : Pollutant.pm10.textColor(
+                                  value: _selectedMeasurement!
+                                      .chartValue(_pollutant),
+                                  graph: true,
+                                ),
                         ),
                       ),
                     ),
@@ -513,7 +507,7 @@ class _InsightsTabState extends State<InsightsTab> {
                 .first;
 
         miniChartsMap[DateFormat('yyyy-MM-dd').format(randomValue.time)] =
-            InsightsGraph(
+            AnalyticsGraph(
           pm10ChartData: pm10ChartData,
           pm2_5ChartData: pm2_5ChartData,
           onBarSelection: _updateUI,
