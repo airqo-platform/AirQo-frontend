@@ -3,7 +3,7 @@ import { GET_INVOLVED_REGISTRATION_SUCCESS, SHOW_GET_INVOLVED_MODAL_SUCCESS, UPD
 
 const initialState = {
   openModal: false,
-  category: null,
+  category: '',
   complete: false,
   slide: 0,
   firstName: null,
