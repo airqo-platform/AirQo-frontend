@@ -2,7 +2,7 @@
 import { GET_INVOLVED_REGISTRATION_SUCCESS, SHOW_GET_INVOLVED_MODAL_SUCCESS, UPDATE_GET_INVOLVED_DATA_SUCCESS } from './actions';
 
 const initialState = {
-  openModal: true,
+  openModal: false,
   category: null,
   complete: false,
   slide: 0,
