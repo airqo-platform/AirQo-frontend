@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Modal, Box } from '@mui/material';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import CloseIcon from 'assets/svg/Close-thin.svg';
+import CloseIcon from 'assets/svg/close-thin.svg';
 import ArrowBackIcon from 'assets/svg/arrowback-thin.svg';
 import CheckMailIcon from 'assets/svg/check-mail.svg';
 import ChampionIcon from 'assets/svg/Champion.svg';
@@ -38,7 +38,7 @@ const GetInvolvedTab = ({ icon, category, infoText }) => {
   return (
         <div
           onClick={onClick}
-          className={`GetInvolvedTab ${category === getInvolvedData.category ? 'tab-active' : 'tab-inactive'}`}
+          className={`GetInvolvedTab ${categoryMapper[category.toLowerCase()] === getInvolvedData.category ? 'tab-active' : 'tab-inactive'}`}
         >
             <div className="img-placeholder">{icon}</div>
             <div className="text-holder">
