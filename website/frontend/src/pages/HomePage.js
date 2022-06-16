@@ -29,7 +29,7 @@ const HomePage = () => {
                 <GetApp />
                 {/* <AirQommunitiesSection /> */}
                 <HighlightSection />
-                <GetInvolvedModal open toggleOpen={() => {}} />
+                <GetInvolvedModal />
             </div>
         </Page>
     );

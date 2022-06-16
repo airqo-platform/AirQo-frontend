@@ -1,4 +1,5 @@
 import React from 'react';
+import { useDispatch } from 'react-redux';
 import { Modal, Box } from '@mui/material';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { Link } from 'react-router-dom';
@@ -10,6 +11,8 @@ import DeveloperIcon from 'assets/svg/Developer.svg';
 import PartnersIcon from 'assets/svg/Partners.svg';
 import PolicyIcon from 'assets/svg/Policy.svg';
 import ResearchIcon from 'assets/svg/Research.svg';
+import { useGetInvolvedData } from 'reduxStore/GetInvolved/selectors';
+import { showGetInvolvedModal, updateGetInvolvedData } from 'reduxStore/GetInvolved/operations';
 
 const BoxWrapper = ({ children }) => (
         <div className="GetInvolvedModalWrapper">
@@ -17,15 +20,24 @@ const BoxWrapper = ({ children }) => (
         </div>
 );
 
-const GetInvolvedTab = ({ icon, category, infoText }) => (
-        <div className="GetInvolvedTab">
+const GetInvolvedTab = ({ icon, category, infoText }) => {
+  const dispatch = useDispatch();
+  const getInvolvedData = useGetInvolvedData();
+
+  const onClick = () => dispatch(updateGetInvolvedData({ category, slide: 1 }));
+  return (
+        <div
+          onClick={onClick}
+          className={`GetInvolvedTab ${category === getInvolvedData.category ? 'tab-active' : 'tab-inactive'}`}
+        >
             <div className="img-placeholder">{icon}</div>
             <div className="text-holder">
                 I’m a <strong>{category}</strong>. <br />
                 {infoText}
             </div>
         </div>
-);
+  );
+};
 
 const GetInvolvedLanding = () => (
         <div>
@@ -70,7 +82,13 @@ const GetInvolvedEmail = () => (
         </div>
 );
 
-const GetInvolvedRegistryContent = () => (
+const GetInvolvedRegistryContent = () => {
+  const dispatch = useDispatch();
+  const getInvolvedData = useGetInvolvedData();
+
+  const hideModal = () => dispatch(showGetInvolvedModal(false));
+  const goBack = () => dispatch(updateGetInvolvedData({slide: getInvolvedData.slide - 1}));
+  return (
     <>
        <div className="banner">
             <div>
@@ -84,12 +102,15 @@ const GetInvolvedRegistryContent = () => (
             </div>
        </div>
         <div className="content">
-            <span><ArrowBackIcon /><CloseIcon /></span>
-            <GetInvolvedLanding />
-            {/* <GetInvolvedEmail /> */}
+            <span>
+                {getInvolvedData.slide ? <ArrowBackIcon onClick={goBack} /> : <span />}
+                <CloseIcon onClick={hideModal} />
+            </span>
+            {getInvolvedData.slide <= 0 ? <GetInvolvedLanding /> : <GetInvolvedEmail />}
         </div>
     </>
-);
+  );
+};
 
 const GetInvolvedComplete = () => (
         <div className="complete">
@@ -102,15 +123,22 @@ const GetInvolvedComplete = () => (
         </div>
 );
 
-const GetInvolvedModal = ({ open, toggleOpen }) => (
-        <Modal open={open} onClose={toggleOpen}>
+const GetInvolvedModal = () => {
+  const dispatch = useDispatch();
+  const getInvolvedData = useGetInvolvedData();
+
+  const hideModal = () => dispatch(showGetInvolvedModal(false));
+
+  return (
+        <Modal open={getInvolvedData.openModal} onClose={hideModal}>
             <BoxWrapper>
                 <Box className="GetInvolvedModal">
-                    {/* <GetInvolvedRegistryContent /> */}
-                    <GetInvolvedComplete />
+                    {!getInvolvedData.complete && <GetInvolvedRegistryContent />}
+                    {getInvolvedData.complete && <GetInvolvedComplete />}
                 </Box>
             </BoxWrapper>
         </Modal>
-);
+  );
+};
 
 export default GetInvolvedModal;
