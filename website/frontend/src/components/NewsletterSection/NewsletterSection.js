@@ -21,7 +21,7 @@ const NewsletterSection = () => {
   return (
         <div className="Newsletter">
             <h3>Get air quality updates!</h3>
-            <p>Subscribe to our newsletter and learn about the air quality you are breathing</p>
+            <p>Subscribe to our newsletter and learn about the quality of the air you are breathing</p>
             {
                 isEmpty(newsletterData)
                     && (

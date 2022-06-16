@@ -11,7 +11,6 @@ import 'package:app/widgets/tooltip.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/enum_constants.dart';
@@ -57,15 +56,10 @@ class AnalyticsAvatar extends StatelessWidget {
             measurement.getPm2_5Value().toStringAsFixed(0),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.robotoMono(
-              color: Pollutant.pm2_5.textColor(
-                value: measurement.getPm2_5Value(),
-              ),
-              fontStyle: FontStyle.normal,
-              fontSize: 40,
-              fontWeight: FontWeight.bold,
-              height: 48 / 40,
-              letterSpacing: 16 * -0.022,
+            style: CustomTextStyle.insightsAvatar(
+              context: context,
+              pollutant: Pollutant.pm2_5,
+              value: measurement.getPm2_5Value(),
             ),
           ),
           SvgPicture.asset(
