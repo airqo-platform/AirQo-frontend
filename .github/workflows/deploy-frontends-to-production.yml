@@ -165,7 +165,7 @@ jobs:
           --build-arg REACT_NETMANAGER_BASE_URL=${{ secrets.REACT_NETMANAGER_BASE_URL_PROD }} \
           --build-arg REACT_APP_BASE_AIRQLOUDS_URL=${{ secrets.REACT_APP_BASE_AIRQLOUDS_URL }} \
           --build-arg REACT_APP_BASE_NEWSLETTER_URL=${{ secrets.REACT_APP_BASE_NEWSLETTER_URL }} \
-          --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }} \
+          --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }} \
           -f docker/Dockerfile .
           docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-website:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }}
