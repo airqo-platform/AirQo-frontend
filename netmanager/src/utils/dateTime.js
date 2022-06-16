@@ -1,9 +1,10 @@
 import moment from "moment-timezone";
 
+const client_IANA_timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
 export const formatDateString = (
-  t,
-  format = 'YYYY-MM-DD HH:mm'
-) => moment.utc(t).format(format);
+  t, format = 'YYYY-MM-DD HH:mm'
+) => moment.utc(t).tz(client_IANA_timezone).format(format);
 
 export const getElapsedDurationMapper = (dateTimeStr) => {
   let delta =

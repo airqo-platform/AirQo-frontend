@@ -15,7 +15,7 @@ import GetInvolved from './src/pages/GetInvolved';
 import Register from './src/pages/GetInvolved/Register';
 import CheckMail from './src/pages/GetInvolved/CheckMail';
 import store from './store';
-import ExploreData, { DownloadApp, GetStarted, GetStartedForm, IndividualForm, InstitutionForm, CreateAccountForm, ConfirmExploreDataMail } from './src/pages/ExploreData';
+import ExploreData, { ExploreGetStarted, GetStartedForm, IndividualForm, InstitutionForm, ExploreUserRegistry, ExploreRegistryConfirmation, ExploreApp } from './src/pages/ExploreData';
 
 store.dispatch(loadAirQloudSummaryData());
 
@@ -39,13 +39,13 @@ const App = () => (
                 <Route path="/get-involved/register" element={<Register />} />
                 <Route path="/get-involved/check-mail" element={<CheckMail />} />
                 <Route path="/explore-data" element={<ExploreData />} />
-                <Route path="/explore-data/download-apps" element={<DownloadApp />} />
-                <Route path="/explore-data/get-started" element={<GetStarted />} />
+                <Route path="/explore-data/download-apps" element={<ExploreApp />} />
+                <Route path="/explore-data/get-started" element={<ExploreGetStarted />} />
                 <Route path="/explore-data/get-started/account" element={<GetStartedForm />} />
                 <Route path="/explore-data/get-started/account/individual" element={<IndividualForm />} />
                 <Route path="/explore-data/get-started/account/institution" element={<InstitutionForm />} />
-                <Route path="/explore-data/get-started/account/register" element={<CreateAccountForm />} />
-                <Route path="/explore-data/get-started/account/check-mail" element={<ConfirmExploreDataMail />} />
+                <Route path="/explore-data/get-started/account/register" element={<ExploreUserRegistry />} />
+                <Route path="/explore-data/get-started/account/check-mail" element={<ExploreRegistryConfirmation />} />
             </Routes>
         </Router>
     </Provider>

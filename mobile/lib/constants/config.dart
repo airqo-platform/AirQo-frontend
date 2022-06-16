@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -23,13 +25,12 @@ class Config {
   static String get airqoApiUserExistsUrl =>
       dotenv.env['AIRQO_API_USER_EXISTS_URL'] ?? '';
 
-  static String get appAndroidWhatsappUrl =>
-      dotenv.env['ANDROID_WHATSAPP_URL'] ?? '';
-
   static String get appErrorMessage =>
       'Failed to process your request. Try again later';
 
-  static String get appIOSWhatsappUrl => dotenv.env['IOS_WHATSAPP_URL'] ?? '';
+  static String get whatsappUrl => Platform.isIOS
+      ? dotenv.env['IOS_WHATSAPP_URL'] ?? ''
+      : dotenv.env['ANDROID_WHATSAPP_URL'] ?? '';
 
   static String get appStoreUrl => dotenv.env['APP_STORE_URL'] ?? '';
 

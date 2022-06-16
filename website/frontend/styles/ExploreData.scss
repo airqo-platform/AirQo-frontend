@@ -151,7 +151,7 @@
     }
 }
 
-.DownloadApp {
+.ExploreDataWrapper {
     display: flex;
     height: 100vh;
     width: 100%;
@@ -183,301 +183,208 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
-            margin: 5% 14%;
-
-            h2 {
-                font-size: 32px;
-                font-weight: 500;
-                line-height: 40px;
-                width: 275px;
-                color: $aq-blue-2;
-                margin: 0;
-                margin-bottom: 8px; 
-            }
-
-            p {
-                width: 484px;
-                font-size: 20px;
-                font-weight: 400;
-                line-height: 28px;
-                color: $aq-blue-2;
-                margin: 0;
-                margin-bottom: 64px;
-                
-            }
-
-            .wrapper {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 467px;
-                height: 240px;
-                border-radius: 16px;
-                border: 1px solid #C1C8D7;
-
-                hr {
-                    height: 208px;
-                    width: 0;
-                    margin: 0 24px;
-                    border-color: #C1C8D7;
-                }
-
-                .btn-group {
-                    display: flex;
-                    flex-direction: column;
-                }
-            }
         }
     }
+}
+
+.ExploreApp {
+    margin: 5% 14%;
+
+    h2 {
+        font-size: 32px;
+        font-weight: 500;
+        line-height: 40px;
+        width: 275px;
+        color: $aq-blue-2;
+        margin: 0;
+        margin-bottom: 8px; 
+    }
+
+    p {
+        width: 484px;
+        font-size: 20px;
+        font-weight: 400;
+        line-height: 28px;
+        color: $aq-blue-2;
+        margin: 0;
+        margin-bottom: 64px;
+        
+    }
+
+    .wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 467px;
+        height: 240px;
+        border-radius: 16px;
+        border: 1px solid #C1C8D7;
+
+        hr {
+            height: 208px;
+            width: 0;
+            margin: 0 24px;
+            border-color: #C1C8D7;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+        }
+    }
+        
+    
 }
 
 .GetStarted {
-    display: flex;
-    height: 100vh;
-    width: 100%;
+    margin: 5% 14%;
 
-    .left-section {
-        height: auto;
-        overflow-y: hidden;
-        max-width: 640px;
-        width: 100%;
-
-        img {
-            object-fit: cover;
-        }
+    h2 {
+        font-size: 32px;
+        font-weight: 500;
+        line-height: 40px;
+        color: $aq-blue-2;
+        margin: 0;
+        margin-bottom: 12px; 
     }
 
-    .right-section {
-        width: 100%;
-        max-width: 800px;
-        height: 100vh;
+    p {
+        width: 407px;
+        font-size: 20px;
+        font-weight: 400;
+        line-height: 28px;
+        color: $aq-blue-2;
+        margin: 0;
+        margin-bottom: 64px;
+        
+    }
 
-        .nav-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 24px;
-        }
+    button {
+        width: 360px;   
+    }
 
-        .content {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            margin: 5% 14%;
+    small {
+        display: block;
+        width: 360px;
+        height: 56px;
+        border: 1px solid #DADEE7;
+        text-align: center;
+        padding: 18px 70px;
+        box-sizing: border-box;
+        font-size: 14px;
+        line-height: 20px;
+        font-weight: 400;
+        color: $aq-blue-2;
+        cursor: pointer;
 
-            h2 {
-                font-size: 32px;
-                font-weight: 500;
-                line-height: 40px;
-                color: $aq-blue-2;
-                margin: 0;
-                margin-bottom: 12px; 
-            }
-
-            p {
-                width: 407px;
-                font-size: 20px;
-                font-weight: 400;
-                line-height: 28px;
-                color: $aq-blue-2;
-                margin: 0;
-                margin-bottom: 64px;
-                
-            }
-
-            button {
-                width: 360px;   
-            }
-
-            small {
-                width: 360px;
-                height: 56px;
-                border: 1px solid #DADEE7;
-                text-align: center;
-                padding: 18px 70px;
-                box-sizing: border-box;
-                font-size: 14px;
-                line-height: 20px;
-                font-weight: 400;
-                color: $aq-blue-2;
-                cursor: pointer;
-
-                >span {
-                    font-weight: 500;
-                    color: $aq-blue-4;
-                    padding-left: 4px;
-                    box-sizing: border-box;
-                }
-            }
+        >span {
+            font-weight: 500;
+            color: $aq-blue-4;
+            padding-left: 4px;
+            box-sizing: border-box;
         }
     }
+        
 }
 
 .GetStartedForm {
-    display: flex;
-    height: 100vh;
-    width: 100%;
+    margin: 10% 14%;
 
-    .left-section {
-        height: auto;
-        overflow-y: hidden;
-        max-width: 640px;
-        width: 100%;
-
-        img {
-            object-fit: cover;
-        }
+    h2 {
+        font-size: 32px;
+        font-weight: 500;
+        line-height: 40px;
+        color: $aq-blue-2;
+        margin: 0;
+        margin-bottom: 12px; 
     }
 
-    .right-section {
-        width: 100%;
-        max-width: 800px;
-        height: 100vh;
-
-        .nav-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 24px;
-        }
-
-        .content {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            margin: 10% 14%;
-
-            h2 {
-                font-size: 32px;
-                font-weight: 500;
-                line-height: 40px;
-                color: $aq-blue-2;
-                margin: 0;
-                margin-bottom: 12px; 
-            }
-
-            p {
-                font-size: 20px;
-                font-weight: 400;
-                line-height: 28px;
-                color: $aq-blue-2;
-                margin: 0;
-                margin-bottom: 64px;
-                
-            }
-
-            .radio-field {
-                .radio-field-option {
-                    border-radius: 8px;
-                    border: 1px solid #DADEE7;
-                    width: 544px;
-                    height: 80px;
-                    padding: 28px 0 28px 24px;
-                }
-
-                .radio-field-option:first-child {
-                    margin-bottom: 24px;
-                }
-            }
-        }
+    p {
+        font-size: 20px;
+        font-weight: 400;
+        line-height: 28px;
+        color: $aq-blue-2;
+        margin: 0;
+        margin-bottom: 64px;
+        
     }
+
+    .radio-field {
+        .radio-field-option {
+            border-radius: 8px;
+            border: 1px solid #DADEE7;
+            width: 544px;
+            height: 80px;
+            padding: 28px 0 28px 24px;
+        }
+
+        .radio-field-option:first-child {
+            margin-bottom: 24px;
+        }
+    }    
 }
 
-.CreateAccountForm {
-    display: flex;
-    height: 100vh;
-    width: 100%;
+.ExploreFormWrapper {
+    margin: auto 14%;
 
-    .left-section {
-        height: auto;
-        overflow-y: hidden;
-        max-width: 640px;
-        width: 100%;
-
-        img {
-            object-fit: cover;
-        }
+    h2 {
+        font-size: 32px;
+        font-weight: 500;
+        line-height: 40px;
+        color: $aq-blue-2;
+        margin: 0;
+        margin-bottom: 48px; 
     }
 
-    .right-section {
-        width: 100%;
-        max-width: 800px;
-        height: 100vh;
-
-        .nav-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 24px;
-        }
-
-        .content {
+    .create-account-form {
+        .form-option {
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            margin: auto 14%;
+            margin-bottom: 24px;
 
-            h2 {
-                font-size: 32px;
-                font-weight: 500;
-                line-height: 40px;
-                color: $aq-blue-2;
-                margin: 0;
-                margin-bottom: 48px; 
+            label {
+                margin-bottom: 8px;
             }
 
-            .create-account-form {
-                .form-option {
-                    display: flex;
-                    flex-direction: column;
-                    margin-bottom: 24px;
-
-                    label {
-                        margin-bottom: 8px;
-                    }
-
-                    .form-control {
-                        border-radius: 8px;
-                        background-color: $aq-blue-8;
-                        width: 360px;
-                        height: 56px;
-                        padding-left: 12px;
-                        box-sizing: border-box;
-                        outline: 0;
-                        border: 0;
-                    }
-                    .radio-field-option:first-child {
-                        margin-bottom: 24px;
-                    }
-                }
-
-                .form-option.tos {
-                    display: block;
-                }
-
-                button {
-                    width: 360px;
-                    margin-bottom: 40px;
-                }
-
-                small {
-                    display: block;
-                    width: 360px;
-                    text-align: center;
-                    font-size: 14px;
-                    line-height: 20px;
-                    font-weight: 400;
-                    color: $aq-blue-2;
-                    cursor: pointer;
-    
-                    >span {
-                        font-weight: 500;
-                        color: $aq-blue-4;
-                        padding-left: 4px;
-                        box-sizing: border-box;
-                    }
-                }
+            .form-control {
+                border-radius: 8px;
+                background-color: $aq-blue-8;
+                width: 360px;
+                height: 56px;
+                padding-left: 12px;
+                box-sizing: border-box;
+                outline: 0;
+                border: 0;
             }
-            
         }
-    }
+
+        .tos {
+            display: inline-block;
+        }
+
+        button {
+            width: 360px;
+            margin-bottom: 40px;
+        }
+
+        small {
+            display: block;
+            width: 360px;
+            text-align: center;
+            font-size: 14px;
+            line-height: 20px;
+            font-weight: 400;
+            color: $aq-blue-2;
+            cursor: pointer;
+
+            >span {
+                font-weight: 500;
+                color: $aq-blue-4;
+                padding-left: 4px;
+                box-sizing: border-box;
+            }
+        }
+    }  
 }
 
 .ConfirmExploreDataMail {
