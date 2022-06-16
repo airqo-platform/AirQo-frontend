@@ -11,8 +11,23 @@
     flex-direction: row;
 }
 
-$h2-text:42px;
+$h2-text:40px;
 $p-text:16px;
+
+@mixin buttons{
+    margin-top: 40px;
+    background-color: $aq-blue-0;
+    padding: 16px 32px;
+    border-radius: 0;
+    color: $aq-white-0;
+    text-align: center;
+    min-width: 103px;
+    height: 53px;
+    font-size: 16px;
+    font-weight: 400;
+    outline: none;
+    border: none;
+}
 
 .contact-us{
     display:grid;
@@ -31,101 +46,175 @@ $p-text:16px;
     }
     .left-section{
         background-color: $aq-grey-1;
+        overflow-y: hidden;
         .content{
-            padding-top: 60px;
+            padding-top: 120px;
             padding-right: 50px;
             justify-self: end;
         }
         h2{
             font-size: $h2-text;
-            line-height: 28px;
-        }
-        p{
-            font-size: $p-text;
-            line-height: 20px;
+            line-height: 32px;
+            font-weight: 500;
+            color: $aq-blue-2;
         }
         #_1{
             p{
-                padding-top: 20px;
+                font-size: 24px;
+                font-weight: 500;
+                line-height: 36px;
+                color:$aq-blue-2;
+            }
+        }
+        #_2{
+            max-width: 341px;
+            p{
+                font-size: 20px;
+                font-weight: 400;
+                line-height: 28px;
+                color: $aq-blue-2;
+            }
+        }
+        #_3{
+            p{
+                font-size: 20px;
+                line-height:20px;
+                font-weight: 400;
+                color: $aq-blue-2;
+            }
+            a{
+                color: $aq-blue-4;
             }
         }
     }
     .right-section{
         background-color: $aq-white-0;
+        .icon{
+            padding-left: 24px;
+            color:$aq-blue-2;
+        }
         .content{
             justify-self: center;
         }
         .cards{
             display:grid;
-            grid-template-columns: 2fr 2fr;
-            grid-template-rows: 240px;
-            grid-gap: 40px;
+            grid-template-columns: 1fr;
+            grid-template-rows: 128px;
+            grid-gap: 10px;
             align-items: end;
         }
 
         form{
-            padding-top:30px;
             div{
                 padding:12px 0;
-            }
-            label{
-                font-size: 13px;
-            }
-            input{
-                outline: none;
-                border:none;
-                border-radius: 8px;
-                background-color: $aq-white-3;
-                width:290px;
-                height:43px;
-                margin-top: 6px;
-                padding:2px 4px;
-            }
-            textarea{
-                outline: none;
-                border: none;
-                border-radius: 8px;
-                background-color: $aq-white-3;
-                overflow-y: scroll;
-                margin-top: 6px;
-                padding:2px 4px;
+                label{
+                    font-size: 13px;
+                    color: $aq-blue-2;
+                }
+                input{
+                    outline: none;
+                    border:none;
+                    border-radius: 8px;
+                    background-color: $aq-white-3;
+                    width:290px;
+                    height:43px;
+                    margin-top: 6px;
+                    padding:2px 4px;
+                }
+                textarea{
+                    outline: none;
+                    border: none;
+                    border-radius: 8px;
+                    background-color: $aq-white-3;
+                    overflow-y: scroll;
+                    margin-top: 6px;
+                    padding:2px 4px;
+                }
             }
             .submit-button{
-                margin-top:38px;
-                background-color: $aq-blue-0;
-                border-radius: 16px;
-                padding:12px 32px;
-                color:$aq-white-0;
-                text-align:center;
+                @include buttons();
             }
             .submit-button:hover {
                 background: $aq-blue-6;
                 cursor: pointer;
             }
+            .checkpoint{
+                @include flex-row();
+                align-items: center;
+                justify-content: flex-start;
+                input[type="checkbox"]{
+                    width: 22px;
+                    height: 22px;
+                    border: 2px solid #f3f4f7;
+                    border-radius: 4px;
+                    margin:0;
+                }
+                input[type="checkbox"]:hover{
+                    cursor: pointer;
+                }
+                label{
+                    padding-left: 15px;
+                    font-size: 12px;
+                    font-weight: 500;
+                    line-height: 22px;
+                    a{
+                        text-decoration: underline;
+                    }
+                }
+            }
         }
     }
     .contact-card{
-        @include flex-column();
-        align-items: center;
-        justify-content: center;
-        text-align: center;
+        @include flex-row();
+        align-items:center;
+        justify-content: flex-start;
+        text-align: left;
         border:1px solid $aq-white-4;
         border-radius:8px;
-        width:240px;
-        height:220px;
+        width:544px;
+        height:128px;
+        padding: 0 30px;
         div:first-child{
             border-radius:50%;
-            width:90px;
-            height:90px;
-            background-color: $aq-white-4;
+            width:80px;
+            height:80px;
+            background-color: $aq-white-3;
         }
         div:last-child{
             p{
-                font-size: 14px;
-                line-height: 18px;
-                text-align: center;
+                font-size: 16px;
+                line-height: 24px;
+                text-align: left;
                 font-weight: 400;
+                color: $aq-blue-2;
+                padding-left: 25px;
             }
         }
+    }
+}
+
+.contactus-feedback {
+    @include flex-column();
+    align-items: center;
+    justify-content: center;
+    background-color: #f3f4f7;
+    div{
+        padding-top: 109px;
+        img {
+            width: 530px;
+            height: 340px;
+        }
+    }
+    h2{
+        font-size: $h2-text;
+        line-height: 48px;
+        text-align: center;
+        color: $aq-blue-2;
+        font-weight: 500;
+    }
+    button{
+        @include buttons();
+        margin-bottom: 177px;
+        margin-top: 64px;
     }
 }
