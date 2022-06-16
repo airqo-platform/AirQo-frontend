@@ -93,7 +93,7 @@ export const getDateString = (ISODateString) => {
   return "";
 };
 
-export const GMTOffset = () => {
+export const getGMTOffset = () => {
     const timezoneOffset = new Date().getTimezoneOffset();
     const offsetAbsoluteValue = Math.abs(timezoneOffset);
     const hourDifference = ('00' + Math.floor(offsetAbsoluteValue/60)).slice(-2);
