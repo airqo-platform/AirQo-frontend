@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import CloseIcon from '@mui/icons-material/Close';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
@@ -69,98 +69,102 @@ export const ExploreGetStarted = () => (
             <div className="brand-icon"><AirQo /></div>
             <h2>Clean air for all African cities</h2>
             <p>Get access to an interactive air quality analytics platform.</p>
-            <Link to="/explore-data/get-started/account"><button className="nav-button">Create Account</button></Link>
+            <Link to="/explore-data/get-started/user"><button className="nav-button">Create Account</button></Link>
             <small>Already have an account?<span><a href="https://staging-platform.airqo.net/" target="_blank">Log in</a></span></small>
         </div>  
     </PageWithImageLayout>
 );
 
-export const GetStartedForm = () => (
+export const ExploreUserCategory = () => {
+    const [userCategory, setUserCategory] = useState(null);
+
+    const handleCategory = (category) => {
+        document.getElementById
+        console.log(category);
+    }
+    
+    
+    return (
+        <PageWithImageLayout imgPath={ManExploring}>
+            <div className="GetStartedForm">
+                <h2>What best describes you?</h2>
+                <p>We will help you get started based on your response</p>
+                <div className="radio-field">
+                    <div className="radio-field-option">
+                        <input type="checkbox" name="user_category" value="Individual" onChange={handleCategory("Individual")} /> Individual
+                    </div>
+                    <div className="radio-field-option">
+                        <input type="checkbox" name="user_category" value="Organisation" onChange={handleCategory("Organisation")} /> Organisation
+                    </div>
+                </div>   
+            </div>
+        </PageWithImageLayout>
+    );
+}
+export const ExploreUserProfessionType = () => (
     <PageWithImageLayout imgPath={ManExploring}>
         <div className="GetStartedForm">
             <h2>What best describes you?</h2>
             <p>We will help you get started based on your response</p>
             <div className="radio-field">
                 <div className="radio-field-option">
-                <Link to="/explore-data/get-started/account/individual">
-                    <input type="checkbox" name="description1" /> Individual
-                </Link>
-                </div>
-                <div className="radio-field-option">
-                    <Link to="/explore-data/get-started/account/institution">
-                        <input type="checkbox" name="description1" /> Organisation
+                    <Link to="/explore-data/get-started/user/register">
+                        <input type="checkbox" name="description1" /> Researcher
                     </Link>
                 </div>
-            </div>   
-        </div>
-    </PageWithImageLayout>
-);
-
-export const IndividualForm = () => (
-    <PageWithImageLayout imgPath={ManExploring}>
-        <div className="GetStartedForm">
-            <h2>What best describes you?</h2>
-            <p>We will help you get started based on your response</p>
-            <div className="radio-field">
                 <div className="radio-field-option">
-                <Link to="/explore-data/get-started/account/register">
-                    <input type="checkbox" name="description1" /> Researcher
-                </Link>
-                </div>
-                <div className="radio-field-option">
-                    <input type="checkbox" name="description1" /> Environmental enthusiasts
+                    <Link to="/explore-data/get-started/user/register">
+                        <input type="checkbox" name="description1" /> Environmental enthusiasts
+                    </Link>
                 </div>
             </div>  
         </div>
     </PageWithImageLayout>
 );
 
-export const InstitutionForm = () => (
-    <div className="GetStartedForm">
-        <div className="left-section">
-            <img src={ManExploring} width="100%" height="100%" />
-        </div>
-        <div className="right-section">
-            <div className="nav-row">
-                <Link to="/explore-data/get-started"><ArrowBackIcon /></Link>
-                <Link to="/"><CloseIcon /></Link>
-            </div>
-            <div className="content">
-                <h2>What best describes you?</h2>
-                <p>We will help you get started based on your response</p>
-                <div className="radio-field">
-                    <div className="radio-field-option">
-                    <Link to="/explore-data/get-started/account/register">
+export const ExploreOrganisationType = () => (
+    <PageWithImageLayout imgPath={ManExploring}>
+        <div className="GetStartedForm">
+            <h2>What best describes you?</h2>
+            <p>We will help you get started based on your response</p>
+            <div className="radio-field">
+                <div className="radio-field-option">
+                    <Link to="/explore-data/get-started/user/register-business">
                         <input type="checkbox" name="description1" /> Business
                     </Link>
-                    </div>
-                    <div className="radio-field-option">
+                    <Link to="/explore-data/get-started/user/register-organisation">
                         <input type="checkbox" name="description1" /> Government enthusiasts
-                    </div>
+                    </Link>
                 </div>
-            </div>
-        </div>
-    </div>
-);
-
-export const ExploreUserRegistry = () => (
-    <PageWithImageLayout imgPath={ManExploring}>
-        <div className="ExploreFormWrapper">
-            <h2>Create your AirQo account</h2>
-            <ExploreFormTemplate>
-                <ExploreTemplateFormFieldOption label="First name" inputType="text" fieldId="firstName" />
-                <ExploreTemplateFormFieldOption label="Last name" inputType="text" fieldId="lastName" />
-                <ExploreTemplateFormFieldOption label="Email address" inputType="email" fieldId="emailAddress" />
-                <ExploreTemplateFormFieldOption inputType="checkbox" fieldId="tos" radioOption fieldClassName="tos" formOptionClassName="tos">
-                    I agree to the <a>Terms of Service</a> and <a>Privacy Policy</a>
-                </ExploreTemplateFormFieldOption>
-                <Link to="/explore-data/get-started/account/check-mail"><button className="nav-button">Create Account</button></Link>
-                <small>Already have an account?<span><a href="https://staging-platform.airqo.net/" target="_blank">Log in</a></span></small>
-            </ExploreFormTemplate>
+            </div>  
         </div>
     </PageWithImageLayout>
 );
 
+export const ExploreUserRegistry = () => {
+    let navigationHistory = useNavigate();
+    const registerOrganisation = () => {
+        console.log(navigationHistory(-1));
+    }
+
+    return (
+        <PageWithImageLayout imgPath={ManExploring}>
+            <div className="ExploreFormWrapper">
+                <h2>Create your AirQo account</h2>
+                <ExploreFormTemplate>
+                    <ExploreTemplateFormFieldOption label="First name" inputType="text" fieldId="firstName" />
+                    <ExploreTemplateFormFieldOption label="Last name" inputType="text" fieldId="lastName" />
+                    <ExploreTemplateFormFieldOption label="Email address" inputType="email" fieldId="emailAddress" />
+                    <ExploreTemplateFormFieldOption inputType="checkbox" fieldId="tos" radioOption fieldClassName="tos" formOptionClassName="tos">
+                        I agree to the <a>Terms of Service</a> and <a>Privacy Policy</a>
+                    </ExploreTemplateFormFieldOption>
+                    <button className="nav-button" onClick={registerOrganisation}>Create Account</button>
+                    <small>Already have an account?<span><a href="https://staging-platform.airqo.net/" target="_blank">Log in</a></span></small>
+                </ExploreFormTemplate>
+            </div>
+        </PageWithImageLayout>
+    );
+}
 export const ExploreBusinessRegistry = () => (
     <PageWithImageLayout imgPath={ManExploring}>
         <div className="ExploreFormWrapper">

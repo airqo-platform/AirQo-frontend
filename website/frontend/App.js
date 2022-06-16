@@ -15,7 +15,7 @@ import GetInvolved from './src/pages/GetInvolved';
 import Register from './src/pages/GetInvolved/Register';
 import CheckMail from './src/pages/GetInvolved/CheckMail';
 import store from './store';
-import ExploreData, { ExploreGetStarted, GetStartedForm, IndividualForm, InstitutionForm, ExploreUserRegistry, ExploreRegistryConfirmation, ExploreApp } from './src/pages/ExploreData';
+import ExploreData, { ExploreGetStarted, ExploreUserCategory, ExploreUserProfessionType, ExploreOrganisationType, ExploreUserRegistry, ExploreRegistryConfirmation, ExploreApp } from './src/pages/ExploreData';
 
 store.dispatch(loadAirQloudSummaryData());
 
@@ -41,11 +41,11 @@ const App = () => (
                 <Route path="/explore-data" element={<ExploreData />} />
                 <Route path="/explore-data/download-apps" element={<ExploreApp />} />
                 <Route path="/explore-data/get-started" element={<ExploreGetStarted />} />
-                <Route path="/explore-data/get-started/account" element={<GetStartedForm />} />
-                <Route path="/explore-data/get-started/account/individual" element={<IndividualForm />} />
-                <Route path="/explore-data/get-started/account/institution" element={<InstitutionForm />} />
-                <Route path="/explore-data/get-started/account/register" element={<ExploreUserRegistry />} />
-                <Route path="/explore-data/get-started/account/check-mail" element={<ExploreRegistryConfirmation />} />
+                <Route path="/explore-data/get-started/user" element={<ExploreUserCategory />} />
+                <Route path="/explore-data/get-started/user/individual" element={<ExploreUserProfessionType />} />
+                <Route path="/explore-data/get-started/user/organisation" element={<ExploreOrganisationType />} />
+                <Route path="/explore-data/get-started/user/register" element={<ExploreUserRegistry />} />
+                <Route path="/explore-data/get-started/user/check-mail" element={<ExploreRegistryConfirmation />} />
             </Routes>
         </Router>
     </Provider>
