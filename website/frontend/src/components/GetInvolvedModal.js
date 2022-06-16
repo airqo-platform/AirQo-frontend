@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Modal, Box } from '@mui/material';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import { Link } from 'react-router-dom';
-import CloseIcon from 'assets/svg/Close-thin.svg';
+import CloseIcon from 'assets/svg/close-thin.svg';
 import ArrowBackIcon from 'assets/svg/arrowback-thin.svg';
 import CheckMailIcon from 'assets/svg/check-mail.svg';
 import ChampionIcon from 'assets/svg/Champion.svg';
@@ -13,6 +12,15 @@ import PolicyIcon from 'assets/svg/Policy.svg';
 import ResearchIcon from 'assets/svg/Research.svg';
 import { useGetInvolvedData } from 'reduxStore/GetInvolved/selectors';
 import { showGetInvolvedModal, updateGetInvolvedData } from 'reduxStore/GetInvolved/operations';
+import { sendInquiryApi } from 'apis';
+
+const categoryMapper = {
+  partner: 'partners',
+  policymaker: 'policy',
+  'community champion': 'champions',
+  researcher: 'researchers',
+  developer: 'developers',
+};
 
 const BoxWrapper = ({ children }) => (
         <div className="GetInvolvedModalWrapper">
@@ -24,11 +32,13 @@ const GetInvolvedTab = ({ icon, category, infoText }) => {
   const dispatch = useDispatch();
   const getInvolvedData = useGetInvolvedData();
 
-  const onClick = () => dispatch(updateGetInvolvedData({ category, slide: 1 }));
+  const onClick = () => {
+    dispatch(updateGetInvolvedData({ category: categoryMapper[category.toLowerCase()], slide: 1 }));
+  };
   return (
         <div
           onClick={onClick}
-          className={`GetInvolvedTab ${category === getInvolvedData.category ? 'tab-active' : 'tab-inactive'}`}
+          className={`GetInvolvedTab ${categoryMapper[category.toLowerCase()] === getInvolvedData.category ? 'tab-active' : 'tab-inactive'}`}
         >
             <div className="img-placeholder">{icon}</div>
             <div className="text-holder">
@@ -53,6 +63,7 @@ const GetInvolvedEmail = () => {
   const dispatch = useDispatch();
   const getInvolvedData = useGetInvolvedData();
   const [emailState, setEmailState] = useState(getInvolvedData);
+  const [loading, setLoading] = useState(false);
 
   const handleOnChange = (id) => (event) => {
     setEmailState({ ...emailState, [id]: event.target.value });
@@ -63,9 +74,22 @@ const GetInvolvedEmail = () => {
 
   const checkAllFilled = () => emailState.firstName && emailState.lastName && emailState.email && emailState.acceptedTerms;
 
-  const onSubmit = () => {
-    if (!checkAllFilled()) return;
-    dispatch(updateGetInvolvedData({ ...setEmailState, complete: true }));
+  const onSubmit = async () => {
+    if (!checkAllFilled() || loading) return;
+    setLoading(true);
+
+    sendInquiryApi({
+      fullName: `${emailState.firstName} ${emailState.lastName}`,
+      email: emailState.email,
+      category: emailState.category,
+      message: 'Get involved - Request from the website',
+    }).then((data) => {
+      dispatch(updateGetInvolvedData({ ...setEmailState, complete: true }));
+      setLoading(false);
+    }).catch((err) => {
+      console.log(err);
+      setLoading(false);
+    });
   };
   return (
         <div className="form-section">
@@ -118,7 +142,7 @@ const GetInvolvedEmail = () => {
                       className={`register-btn ${checkAllFilled() ? 'btn-active' : 'btn-disabled'}`}
                       onClick={onSubmit}
                     >
-                        Create account
+                        {loading ? 'Creating account...' : 'Create account'}
                     </button>
                 </div>
 
