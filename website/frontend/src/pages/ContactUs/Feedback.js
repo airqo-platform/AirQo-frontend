@@ -10,7 +10,7 @@ const Feedback = () => {
             <div>
                 <img src={FeedbackImg} alt='Thank you for your feedback' />
             </div>
-            <h2>Thank for reaching out. <br />We’ll get back to you!</h2>
+            <h2>Thanks for reaching out. <br />We’ll get back to you!</h2>
             <button>
                 <Link to='/'>Back Home</Link>
             </button>
