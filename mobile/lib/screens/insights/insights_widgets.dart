@@ -2,11 +2,20 @@ import 'package:app/utils/extensions.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
 
 import '../../models/enum_constants.dart';
 import '../../models/insights.dart';
+import '../../models/place_details.dart';
+import '../../services/app_service.dart';
+import '../../services/native_api.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
+import '../../utils/pm.dart';
+import '../../widgets/buttons.dart';
+import '../../widgets/custom_shimmer.dart';
+import '../../widgets/custom_widgets.dart';
+import '../../widgets/recommendation.dart';
 
 class AnalyticsGraph extends StatelessWidget {
   const AnalyticsGraph({
@@ -289,6 +298,139 @@ class InsightsAvatar extends StatelessWidget {
           const Spacer(),
         ],
       ),
+    );
+  }
+}
+
+class HealthTipsSection extends StatelessWidget {
+  const HealthTipsSection({
+    Key? key,
+    required this.recommendations,
+  }) : super(key: key);
+
+  final List<Recommendation> recommendations;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: recommendations.isEmpty ? 0 : 128,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: EdgeInsets.only(
+              left: index == 0 ? 12.0 : 6.0,
+              right: index == (recommendations.length - 1) ? 12.0 : 6.0,
+            ),
+            child: RecommendationContainer(recommendations[index]),
+          );
+        },
+        itemCount: recommendations.length,
+      ),
+    );
+  }
+}
+
+class InsightsActionBar extends StatefulWidget {
+  const InsightsActionBar({
+    Key? key,
+    required this.placeDetails,
+    required this.shareKey,
+  }) : super(key: key);
+
+  final PlaceDetails placeDetails;
+  final GlobalKey shareKey;
+
+  @override
+  State<InsightsActionBar> createState() => _InsightsActionBarState();
+}
+
+class _InsightsActionBarState extends State<InsightsActionBar> {
+  bool _showHeartAnimation = false;
+  bool _shareLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.all(
+          Radius.circular(8.0),
+        ),
+        border: Border.all(color: Colors.transparent),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Expanded(
+            child: _shareLoading
+                ? const LoadingIcon(
+                    radius: 10,
+                  )
+                : InkWell(
+                    onTap: () async => _share(),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 21),
+                      child: IconTextButton(
+                        iconWidget: SvgPicture.asset(
+                          'assets/icon/share_icon.svg',
+                          color: CustomColors.greyColor,
+                          semanticsLabel: 'Share',
+                        ),
+                        text: 'Share',
+                      ),
+                    ),
+                  ),
+          ),
+          Expanded(
+            child: Consumer<PlaceDetailsModel>(
+              builder: (context, placeDetailsModel, child) {
+                return InkWell(
+                  onTap: () async {
+                    _updateFavPlace();
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 21),
+                    child: IconTextButton(
+                      iconWidget: HeartIcon(
+                        showAnimation: _showHeartAnimation,
+                        placeDetails: widget.placeDetails,
+                      ),
+                      text: 'Favorite',
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _share() async {
+    if (_shareLoading) {
+      return;
+    }
+    setState(() => _shareLoading = true);
+    final complete = await ShareService.shareGraph(
+      context,
+      widget.shareKey,
+      widget.placeDetails,
+    );
+    if (complete && mounted) {
+      setState(() => _shareLoading = false);
+    }
+  }
+
+  void _updateFavPlace() async {
+    setState(() => _showHeartAnimation = true);
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() => _showHeartAnimation = false);
+    });
+    await AppService().updateFavouritePlace(
+      widget.placeDetails,
+      context,
     );
   }
 }
