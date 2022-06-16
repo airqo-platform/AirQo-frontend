@@ -92,3 +92,10 @@ export const getDateString = (ISODateString) => {
   if (ISODateString) return ISODateString.split("T")[0];
   return "";
 };
+
+export const GMTOffset = () => {
+    const timezoneOffset = new Date().getTimezoneOffset();
+    const offsetAbsoluteValue = Math.abs(timezoneOffset);
+    const hourDifference = ('00' + Math.floor(offsetAbsoluteValue/60)).slice(-2);
+    return `GMT${timezoneOffset < 0 ? '+' : '-'}${hourDifference}`;
+  }
