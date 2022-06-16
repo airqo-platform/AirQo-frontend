@@ -3,7 +3,8 @@ import moment from "moment-timezone";
 const client_IANA_timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 export const formatDateString = (
-  t, format = 'YYYY-MM-DD HH:mm'
+  t=moment(), // set default datetime to current time
+  format = 'DD-MM-YYYY HH:mm:ss' // set default datetime format
 ) => moment.utc(t).tz(client_IANA_timezone).format(format);
 
 export const getElapsedDurationMapper = (dateTimeStr) => {
