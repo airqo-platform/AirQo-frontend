@@ -564,13 +564,15 @@ class _InsightsTabState extends State<InsightsTab> {
     }
   }
 
-  void togglePollutant2(){
+  void togglePollutant(double value){
+    if(value==2.5){
       setState(() => _pollutant = Pollutant.pm2_5);
+    }
+    else{
+      setState(() => _pollutant = Pollutant.pm10);
+    }
   }
 
-  void togglePollutant10() {
-  setState(() => _pollutant = Pollutant.pm10);
-  }
 
 
   void updateFavPlace() async {
@@ -713,7 +715,15 @@ class _InsightsTabState extends State<InsightsTab> {
                     ),
                   ),
                   child:PopupMenuButton(
-                    
+                    onSelected: (value){
+                     if(value==1){
+                       togglePollutant(2.5);
+                     }
+                     else{
+                       togglePollutant(10);
+                     }
+
+                    },
                     child:SvgPicture.asset(
                       'assets/icon/toggle_icon.svg',
                       semanticsLabel: 'Toggle',
@@ -722,17 +732,17 @@ class _InsightsTabState extends State<InsightsTab> {
                     ),
                     itemBuilder:(BuildContext context) => <PopupMenuEntry>[
                       PopupMenuItem(
+                        value: 1,
                         child: ListTile(
                           leading: Icon(Icons.toggle_on),
                           title: Text('PM 2.5'),
-                          onTap:  togglePollutant2,
                         ),
                       ),
                       PopupMenuItem(
+                        value:2,
                         child: ListTile(
                           leading: Icon(Icons.toggle_on),
                           title: Text('PM 10'),
-                          onTap:  togglePollutant10,
                         ),
                       ),
                     ],
