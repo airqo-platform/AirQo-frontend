@@ -41,8 +41,10 @@ class InsightsTab extends StatefulWidget {
   @override
   _InsightsTabState createState() => _InsightsTabState();
 }
+enum PMValues { PM2, PM10 }
 
 class _InsightsTabState extends State<InsightsTab> {
+  PMValues? _radiovalue = PMValues.PM2;
   bool _isTodayHealthTips = true;
   Pollutant _pollutant = Pollutant.pm2_5;
   bool _showHeartAnimation = false;
@@ -566,10 +568,12 @@ class _InsightsTabState extends State<InsightsTab> {
 
   void togglePollutant(double value){
     if(value==2.5){
+      _radiovalue = PMValues.PM2;
       setState(() => _pollutant = Pollutant.pm2_5);
     }
     else{
-      setState(() => _pollutant = Pollutant.pm10);
+      _radiovalue = PMValues.PM10;
+      setState(() => _pollutant = Pollutant.pm10,);
     }
   }
 
@@ -734,14 +738,30 @@ class _InsightsTabState extends State<InsightsTab> {
                       PopupMenuItem(
                         value: 1,
                         child: ListTile(
-                          leading: Icon(Icons.toggle_on),
+                          leading: Radio<PMValues>(
+                            value: PMValues.PM2,
+                            groupValue: _radiovalue,
+                            onChanged: (PMValues? value) {
+                              setState(() {
+                                _radiovalue = value;
+                              });
+                            },
+                          ),
                           title: Text('PM 2.5'),
                         ),
                       ),
                       PopupMenuItem(
                         value:2,
                         child: ListTile(
-                          leading: Icon(Icons.toggle_on),
+                          leading: Radio<PMValues>(
+                            value: PMValues.PM10,
+                            groupValue: _radiovalue,
+                            onChanged: (PMValues? value) {
+                              setState(() {
+                                _radiovalue = value;
+                              });
+                            },
+                          ),
                           title: Text('PM 10'),
                         ),
                       ),
