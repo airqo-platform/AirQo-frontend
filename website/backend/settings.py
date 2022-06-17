@@ -62,6 +62,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'author.middlewares.AuthorDefaultBackendMiddleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -161,3 +162,18 @@ cloudinary.config(
   api_secret=config('CLOUDINARY_SECRET'),
   secure=True
 )
+
+# =========================
+# Django REST Framework
+# =========================
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions and django guardian's per-object permissions
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.DjangoObjectPermissions",
+    ],
+    "DEFAULT_FILTER_BACKENDS": (
+        "django_filters.rest_framework.DjangoFilterBackend",
+        "rest_framework.filters.OrderingFilter",
+    ),
+    "NON_FIELD_ERRORS_KEY": "errors",
+}

@@ -71,6 +71,7 @@ const Download = (props) => {
     label: "Hourly",
   });
   const [fileType, setFileType] = useState(null);
+  const [outputFormat, setOutputFormat] = useState(null);
 
   const frequencyOptions = [
     { value: "hourly", label: "Hourly" },
@@ -83,6 +84,12 @@ const Download = (props) => {
   const typeOptions = [
     { value: "json", label: "JSON" },
     { value: "csv", label: "CSV" },
+    //{ value: "aqcsv", label: "AQCSV" },
+  ];
+
+  const typeOutputFormatOptions = [
+    { value: "aqcsv", label: "AQCSV" },
+    { value: "usual", label: "Usual" },
   ];
 
   useEffect(() => {
@@ -121,6 +128,7 @@ const Download = (props) => {
       pollutants: getValues(pollutants),
       fileType: fileType.value,
       fromBigQuery: true,
+      outputFormat: outputFormat.value,
     };
 
     // const dateDiff = moment(data.endDate).diff(moment(data.startDate), "days");
@@ -137,7 +145,7 @@ const Download = (props) => {
     //   return;
     // }
 
-    await downloadDataApi(fileType.value, data, fileType.value === "csv")
+    await downloadDataApi(fileType.value, data, fileType.value === "csv" , outputFormat.value)
       .then((response) => response.data)
       .then((resData) => {
         let filename = `airquality-${frequency.value}-data.${fileType.value}`;
@@ -281,6 +289,22 @@ const Download = (props) => {
                         value={fileType}
                         options={typeOptions}
                         onChange={(options) => setFileType(options)}
+                        variant="outlined"
+                        margin="dense"
+                        required
+                      />
+                    </Grid>
+
+                    <Grid item md={6} xs={12}>
+                      <Select
+                        fullWidth
+                        label="File Output Standard"
+                        className="reactSelect"
+                        name="file-output-format"
+                        placeholder="File Output Standard"
+                        value={outputFormat}
+                        options={typeOutputFormatOptions}
+                        onChange={(options) => setOutputFormat(options)}
                         variant="outlined"
                         margin="dense"
                         required

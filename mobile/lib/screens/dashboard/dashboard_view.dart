@@ -427,7 +427,9 @@ class _DashboardViewState extends State<DashboardView> {
   void _scrollListener() {
     if (mounted) {
       if (_scrollController.position.userScrollDirection ==
-          ScrollDirection.reverse) {}
+          ScrollDirection.reverse) {
+        // TODO : review usage of this listener
+      }
 
       return;
     }
