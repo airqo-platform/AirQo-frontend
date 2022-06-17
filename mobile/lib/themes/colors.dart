@@ -25,6 +25,8 @@ class CustomColors {
 
   static Color get inactiveColor => appColorBlack.withOpacity(0.4);
 
+  static Color get pollutantToggleBgColor => const Color(0xffF5F8FF);
+
   static Color get aqiGreen => const Color(0xff3AFF38);
   static Color get aqiGreenTextColor => const Color(0xff03B600);
 

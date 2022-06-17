@@ -38,8 +38,6 @@ class InsightsTab extends StatefulWidget {
 }
 
 class _InsightsTabState extends State<InsightsTab> {
-  Color tile_2_5 = const Color.fromRGBO(245, 248, 255, 1),
-      tile_10 = Colors.white;
   bool _isTodayHealthTips = true;
   Pollutant _pollutant = Pollutant.pm2_5;
   List<Recommendation> _recommendations = [];
@@ -359,7 +357,8 @@ class _InsightsTabState extends State<InsightsTab> {
                 Visibility(
                   visible: _selectedMeasurement!.empty,
                   child: Container(
-                    padding: const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10.0, vertical: 2.0),
                     decoration: BoxDecoration(
                       borderRadius: const BorderRadius.all(
                         Radius.circular(40.0),
@@ -652,28 +651,12 @@ class _InsightsTabState extends State<InsightsTab> {
                     ),
                   ),
                   child: PopupMenuButton(
-                    // initialValue: 2.5,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(8.0),
-                        bottomRight: Radius.circular(8.0),
-                        topLeft: Radius.circular(8.0),
-                        topRight: Radius.circular(8.0),
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(4.0),
                       ),
                     ),
-                    onSelected: (value) {
-                      if (value == 2.5) {
-                        setState(() =>
-                            tile_2_5 = const Color.fromRGBO(245, 248, 255, 1));
-                        setState(() => tile_10 = Colors.white);
-                        _togglePollutant(Pollutant.pm2_5);
-                      } else {
-                        setState(() =>
-                            tile_10 = const Color.fromRGBO(245, 248, 255, 1));
-                        setState(() => tile_2_5 = Colors.white);
-                        _togglePollutant(Pollutant.pm10);
-                      }
-                    },
+                    onSelected: (value) => _togglePollutant(value as Pollutant),
                     child: SvgPicture.asset(
                       'assets/icon/toggle_icon.svg',
                       semanticsLabel: 'Toggle',
@@ -682,17 +665,43 @@ class _InsightsTabState extends State<InsightsTab> {
                     ),
                     itemBuilder: (BuildContext context) => <PopupMenuEntry>[
                       PopupMenuItem(
-                        value: 2.5,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        value: Pollutant.pm2_5,
                         child: ListTile(
-                          tileColor: tile_2_5,
-                          title: Text('PM 2.5'),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(4.0),
+                            ),
+                          ),
+                          tileColor: _pollutant == Pollutant.pm2_5
+                              ? CustomColors.pollutantToggleBgColor
+                              : Colors.white,
+                          title: PollutantToggle(
+                            text: ' 2.5',
+                            textColor: _pollutant == Pollutant.pm2_5
+                                ? CustomColors.appColorBlue
+                                : CustomColors.appColorBlack,
+                          ),
                         ),
                       ),
                       PopupMenuItem(
-                        value: 10,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        value: Pollutant.pm10,
                         child: ListTile(
-                          tileColor: tile_10,
-                          title: Text('PM 10'),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(4.0),
+                            ),
+                          ),
+                          tileColor: _pollutant == Pollutant.pm10
+                              ? CustomColors.pollutantToggleBgColor
+                              : Colors.white,
+                          title: PollutantToggle(
+                            text: ' 10',
+                            textColor: _pollutant == Pollutant.pm10
+                                ? CustomColors.appColorBlue
+                                : CustomColors.appColorBlack,
+                          ),
                         ),
                       ),
                     ],
