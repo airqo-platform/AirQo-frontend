@@ -12,6 +12,10 @@ import AirqualityPlatform from 'assets/svg/explore/air-quality-platform.svg';
 import ManDownloadingApp from 'assets/img/explore/man-download-app.png';
 import ManExploring from 'assets/img/explore/get-started-explore.png';
 import RegistrationCompleteSvg from 'assets/svg/explore/registration_complete_svg.svg';
+import { postUserCategory } from 'reduxStore/ExploreData/operations';
+import { useDispatch } from 'react-redux';
+import { isEmpty } from 'underscore';
+import { useCategory } from 'reduxStore/ExploreData/selectors';
 
 export const PageWithImageLayout = ({imgPath, children}) => (
     <div className="ExploreDataWrapper">
@@ -77,13 +81,21 @@ export const ExploreGetStarted = () => (
 
 export const ExploreUserCategory = () => {
     const [userCategory, setUserCategory] = useState(null);
+    const dispatch = useDispatch();
+    const categoryValue = useCategory();
+    const navigate = useNavigate();
 
-    document.getElementsByClassName("category").map(elem => {
-        elem.addEventListener('click', (e)=>{
-            
-        });
-    })
-    
+    const handleCategoryChange = async (category)=> {
+        setUserCategory(category);
+        await dispatch(postUserCategory(category));
+        if(categoryValue === "individual") {
+            navigate('/explore-data/get-started/user/individual');
+        }else if(categoryValue === "organisation") {
+            navigate('/explore-data/get-started/user/organisation');
+        }else {
+            return;
+        } 
+    }
     
     return (
         <PageWithImageLayout imgPath={ManExploring}>
@@ -92,10 +104,10 @@ export const ExploreUserCategory = () => {
                 <p>We will help you get started based on your response</p>
                 <div className="radio-field">
                     <div className="radio-field-option">
-                        <input type="checkbox" name="user_category" value="Individual" /> Individual
+                        <a type="button" onClick={()=>handleCategoryChange("individual")}>Individual</a>
                     </div>
                     <div className="radio-field-option">
-                        <input type="checkbox" name="user_category" value="Organisation" /> Organisation
+                        <a type="button" onClick={()=>handleCategoryChange("organisation")}>Organisation</a>
                     </div>
                 </div>   
             </div>

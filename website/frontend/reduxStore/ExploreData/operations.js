@@ -1,5 +1,5 @@
 import { requestDataAccessApi } from "apis";
-import { EXPLORE_DATA_REQUEST_SUCCESS } from "./actions";
+import { EXPLORE_DATA_REQUEST_SUCCESS, SET_USER_CATEGORY_SUCCESS } from "./actions";
 
 export const addExploreDataRequest = (data) => async (dispatch) => await requestDataAccessApi(data)
     .then(res=>{
@@ -24,4 +24,12 @@ export const addExploreDataRequest = (data) => async (dispatch) => await request
             type: EXPLORE_DATA_REQUEST_FAILURE,
             success: false
         })
-    })
+    });
+
+export const postUserCategory = (category) => (dispatch) =>  {
+    dispatch({
+        type: SET_USER_CATEGORY_SUCCESS,
+        payload: category
+    });
+}
+
