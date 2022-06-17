@@ -211,7 +211,7 @@ const CandidatesTable = (props) => {
               {
                 title: "Submitted",
                 field: "createdAt",
-                render: (candidate) => <span>{formatDateString(candidate.createdAt, 'DD-MM-YYYY HH:mm:ss')}</span>
+                render: (candidate) => <span>{formatDateString(candidate.createdAt)}</span>
               },
               {
                 title: "Rejected",
