@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-
+import 'package:flutter_tinder_swipe/flutter_tinder_swipe.dart';
 import '../../services/native_api.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
@@ -27,10 +27,10 @@ class KyaLessonsPage extends StatefulWidget {
 }
 
 class _KyaLessonsPageState extends State<KyaLessonsPage> {
-  final ItemScrollController itemScrollController = ItemScrollController();
-  final ItemPositionsListener itemPositionsListener =
-      ItemPositionsListener.create();
-
+  // final ItemScrollController itemScrollController = ItemScrollController();
+  // final ItemPositionsListener itemPositionsListener =
+  //     ItemPositionsListener.create();
+  CardController controller = CardController();
   double _tipsProgress = 0.1;
   int currentIndex = 0;
   late Kya kya;
@@ -106,26 +106,44 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
               const Spacer(),
               SizedBox(
                 height: 400,
-                child: ScrollablePositionedList.builder(
-                  padding: EdgeInsets.zero,
-                  scrollDirection: Axis.horizontal,
-                  itemCount: kya.lessons.length,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.only(
-                        left: 19,
-                        right: 19,
-                        bottom: 10,
+                // child: ScrollablePositionedList.builder(
+                //   padding: EdgeInsets.zero,
+                //   scrollDirection: Axis.horizontal,
+                //   itemCount: kya.lessons.length,
+                //   physics: const NeverScrollableScrollPhysics(),
+                //   itemBuilder: (context, index) {
+                //     return Padding(
+                //       padding: const EdgeInsets.only(
+                //         left: 19,
+                //         right: 19,
+                //         bottom: 10,
+                //       ),
+                //       child: SizedBox(
+                //         width: screenSize.width * 0.9,
+                //         child: _kyaCard(kya.lessons[index], index),
+                //       ),
+                //     );
+                //   },
+                //   // itemPositionsListener: itemPositionsListener,
+                //   // itemScrollController: itemScrollController,
+                // ),
+                child: Column(
+                  children: [
+                    Center(
+                      child: Container(
+                        margin: const EdgeInsets.only(top: 50),
+                        child: new SwipeCard(
+                            allowVerticalMovement: false,
+                            cardBuilder: (context, index) {},
+                            totalNum: kya.lessons.length,
+                            stackNum: kya.lessons.length,
+                            swipeEdge: 2.0,
+                            cardController: controller,
+                            swipeCompleteCallback: swipeCompleteCallback,
+                            swipeUpdateCallback: swipeUpdateCallback),
                       ),
-                      child: SizedBox(
-                        width: screenSize.width * 0.9,
-                        child: _kyaCard(kya.lessons[index], index),
-                      ),
-                    );
-                  },
-                  itemPositionsListener: itemPositionsListener,
-                  itemScrollController: itemScrollController,
+                    )
+                  ],
                 ),
               ),
               const Spacer(),
@@ -176,7 +194,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
         GlobalKey(),
       );
     }
-    itemPositionsListener.itemPositions.addListener(scrollListener);
+    // itemPositionsListener.itemPositions.addListener(scrollListener);
   }
 
   void scrollListener() {
@@ -188,7 +206,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
 
   @override
   void dispose() {
-    itemPositionsListener.itemPositions.removeListener(scrollListener);
+    // itemPositionsListener.itemPositions.removeListener(scrollListener);
     super.dispose();
   }
 
@@ -202,6 +220,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
         },
       );
       itemScrollController.scrollTo(
+        //TODO: Change
         index: currentIndex,
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeInOutCubic,
@@ -214,6 +233,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
       );
       if (currentIndex < kya.lessons.length) {
         itemScrollController.scrollTo(
+          //TODO:Change
           index: currentIndex,
           duration: const Duration(milliseconds: 500),
           curve: Curves.easeInOutCubic,

@@ -124,3 +124,5 @@ class UserKya {
 
   Map<String, dynamic> toJson() => _$UserKyaToJson(this);
 }
+
+enum Swipe { left, right, none }

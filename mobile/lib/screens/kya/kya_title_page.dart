@@ -70,7 +70,8 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
                         context,
                         MaterialPageRoute(
                           builder: (context) {
-                            return KyaLessonsPage(widget.kya);
+                            // return KyaLessonsPage(widget.kya);
+                            return;
                           },
                         ),
                       );
