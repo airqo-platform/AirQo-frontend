@@ -78,10 +78,11 @@ export const ExploreGetStarted = () => (
 export const ExploreUserCategory = () => {
     const [userCategory, setUserCategory] = useState(null);
 
-    const handleCategory = (category) => {
-        document.getElementById
-        console.log(category);
-    }
+    document.getElementsByClassName("category").map(elem => {
+        elem.addEventListener('click', (e)=>{
+            
+        });
+    })
     
     
     return (
@@ -91,10 +92,10 @@ export const ExploreUserCategory = () => {
                 <p>We will help you get started based on your response</p>
                 <div className="radio-field">
                     <div className="radio-field-option">
-                        <input type="checkbox" name="user_category" value="Individual" onChange={handleCategory("Individual")} /> Individual
+                        <input type="checkbox" name="user_category" value="Individual" /> Individual
                     </div>
                     <div className="radio-field-option">
-                        <input type="checkbox" name="user_category" value="Organisation" onChange={handleCategory("Organisation")} /> Organisation
+                        <input type="checkbox" name="user_category" value="Organisation" /> Organisation
                     </div>
                 </div>   
             </div>

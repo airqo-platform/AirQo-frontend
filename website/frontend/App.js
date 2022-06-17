@@ -16,6 +16,7 @@ import Register from './src/pages/GetInvolved/Register';
 import CheckMail from './src/pages/GetInvolved/CheckMail';
 import store from './store';
 import ExploreData, { ExploreGetStarted, ExploreUserCategory, ExploreUserProfessionType, ExploreOrganisationType, ExploreUserRegistry, ExploreRegistryConfirmation, ExploreApp } from './src/pages/ExploreData';
+import Feedback from './src/pages/ContactUs/Feedback';
 
 store.dispatch(loadAirQloudSummaryData());
 
@@ -35,6 +36,7 @@ const App = () => (
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/contact" element={<ContactUsPage />} />
                 <Route path="/contact/form" element={<ContactForm />} />
+                <Route path="/contact/sent" element={<Feedback />} />
                 <Route path="/get-involved" element={<GetInvolved />} />
                 <Route path="/get-involved/register" element={<Register />} />
                 <Route path="/get-involved/check-mail" element={<CheckMail />} />
