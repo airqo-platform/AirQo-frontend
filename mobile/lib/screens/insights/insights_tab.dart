@@ -41,10 +41,10 @@ class InsightsTab extends StatefulWidget {
   @override
   _InsightsTabState createState() => _InsightsTabState();
 }
-enum PMValues { PM2, PM10 }
+
 
 class _InsightsTabState extends State<InsightsTab> {
-  PMValues? _radiovalue = PMValues.PM2;
+  Color tile_2_5=const Color.fromRGBO(245, 248, 255, 1),tile_10=Colors.white;
   bool _isTodayHealthTips = true;
   Pollutant _pollutant = Pollutant.pm2_5;
   bool _showHeartAnimation = false;
@@ -566,14 +566,13 @@ class _InsightsTabState extends State<InsightsTab> {
     }
   }
 
-  void togglePollutant(double value){
-    if(value==2.5){
-      _radiovalue = PMValues.PM2;
+  void _togglePollutant(Pollutant pollutant){
+    if(pollutant==Pollutant.pm2_5){
       setState(() => _pollutant = Pollutant.pm2_5);
+
     }
     else{
-      _radiovalue = PMValues.PM10;
-      setState(() => _pollutant = Pollutant.pm10,);
+      setState(() => _pollutant = Pollutant.pm10);
     }
   }
 
@@ -719,12 +718,26 @@ class _InsightsTabState extends State<InsightsTab> {
                     ),
                   ),
                   child:PopupMenuButton(
+                    // initialValue: 2.5,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(8.0),
+                        bottomRight: Radius.circular(8.0),
+                        topLeft: Radius.circular(8.0),
+                        topRight: Radius.circular(8.0),
+                      ),
+                    ),
                     onSelected: (value){
-                     if(value==1){
-                       togglePollutant(2.5);
+                     if(value==2.5){
+                       setState(() => tile_2_5=const Color.fromRGBO(245, 248, 255, 1));
+                       setState(() => tile_10=Colors.white);
+                       _togglePollutant(Pollutant.pm2_5);
+
                      }
                      else{
-                       togglePollutant(10);
+                       setState(() => tile_10=const Color.fromRGBO(245, 248, 255, 1));
+                       setState(() => tile_2_5=Colors.white);
+                       _togglePollutant(Pollutant.pm10);
                      }
 
                     },
@@ -735,33 +748,18 @@ class _InsightsTabState extends State<InsightsTab> {
                       width: 20,
                     ),
                     itemBuilder:(BuildContext context) => <PopupMenuEntry>[
-                      PopupMenuItem(
-                        value: 1,
+                       PopupMenuItem(
+                        value: 2.5,
                         child: ListTile(
-                          leading: Radio<PMValues>(
-                            value: PMValues.PM2,
-                            groupValue: _radiovalue,
-                            onChanged: (PMValues? value) {
-                              setState(() {
-                                _radiovalue = value;
-                              });
-                            },
-                          ),
+                          tileColor: tile_2_5 ,
+
                           title: Text('PM 2.5'),
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value:2,
-                        child: ListTile(
-                          leading: Radio<PMValues>(
-                            value: PMValues.PM10,
-                            groupValue: _radiovalue,
-                            onChanged: (PMValues? value) {
-                              setState(() {
-                                _radiovalue = value;
-                              });
-                            },
                           ),
+                      ),
+                       PopupMenuItem(
+                        value:10,
+                        child: ListTile(
+                          tileColor: tile_10,
                           title: Text('PM 10'),
                         ),
                       ),
