@@ -196,6 +196,10 @@ $p-text:16px;
             }
         }
     }
+    .contact-card:hover{
+        cursor: pointer;
+        border: 1px solid $aq-blue-4;
+    }
 }
 
 .contactus-feedback {
@@ -221,5 +225,26 @@ $p-text:16px;
         @include buttons();
         margin-bottom: 177px;
         margin-top: 64px;
+    }
+}
+
+@media(max-width: $mainBreakPoint){
+    .contact-us{
+        .section-container .content{
+            grid-column: none;
+        }
+        .left-section{
+            display:none;
+        }
+        .right-section{
+            .cards{
+                align-items: center;
+                justify-content: center;
+                margin-left: 10px;
+            }
+            .contact-card{
+                width:460px;
+            }
+        }
     }
 }
