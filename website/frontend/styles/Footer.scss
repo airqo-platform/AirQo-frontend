@@ -12,6 +12,7 @@
     background: #FFFFFF;
     border-radius: 16px;
     padding: 12px 26px;
+    outline: none;
 
    .modal-title {
      display: flex;
@@ -123,7 +124,6 @@
      padding: 12px 24px;
 
      background: #135DFF;
-     border-radius: 16px;
 
      font-style: normal;
      font-weight: 500;
@@ -145,7 +145,6 @@
      padding: 12px 24px;
 
      background: rgba(19, 93, 255, 0.06);
-     border-radius: 16px;
 
      font-style: normal;
      font-weight: 500;

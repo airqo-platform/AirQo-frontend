@@ -63,6 +63,23 @@ class ContainerLoadingAnimation extends StatelessWidget {
   }
 }
 
+class LoadingIcon extends StatelessWidget {
+  const LoadingIcon({
+    Key? key,
+    this.radius,
+  }) : super(key: key);
+
+  final double? radius;
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoActivityIndicator(
+      radius: radius ?? 16,
+      color: CustomColors.appColorBlue,
+    );
+  }
+}
+
 void loadingScreen(BuildContext _context) async {
   await showDialog(
     barrierColor: Colors.transparent,

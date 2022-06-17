@@ -1,4 +1,7 @@
+import 'package:app/models/enum_constants.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'colors.dart';
 
@@ -532,6 +535,23 @@ class CustomTextStyle {
           fontStyle: FontStyle.normal,
           height: 24.0 / 20.0,
         );
+  }
+
+  static TextStyle? insightsAvatar({
+    required BuildContext context,
+    required Pollutant pollutant,
+    required double value,
+  }) {
+    return GoogleFonts.robotoMono(
+      color: pollutant.textColor(
+        value: value,
+      ),
+      fontStyle: FontStyle.normal,
+      fontSize: 40,
+      fontWeight: FontWeight.bold,
+      height: 48 / 40,
+      letterSpacing: 16 * -0.022,
+    );
   }
 
   static TextStyle? overline1(BuildContext context) {

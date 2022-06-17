@@ -7,24 +7,19 @@ import 'package:app/utils/extensions.dart';
 import 'package:app/utils/network.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/widgets/dialogs.dart';
-import 'package:app/widgets/recommendation.dart';
 import 'package:app/widgets/tooltip.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
-import 'package:lottie/lottie.dart';
-import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 import '../../models/enum_constants.dart';
 import '../../services/local_storage.dart';
-import '../../services/native_api.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
-import '../../widgets/buttons.dart';
 import '../../widgets/custom_shimmer.dart';
 import '../../widgets/custom_widgets.dart';
 import 'insights_widgets.dart';
@@ -45,7 +40,6 @@ class InsightsTab extends StatefulWidget {
 class _InsightsTabState extends State<InsightsTab> {
   bool _isTodayHealthTips = true;
   Pollutant _pollutant = Pollutant.pm2_5;
-  bool _showHeartAnimation = false;
   List<Recommendation> _recommendations = [];
 
   final GlobalKey _globalKey = GlobalKey();
@@ -84,45 +78,6 @@ class _InsightsTabState extends State<InsightsTab> {
         childCount: _pageItems().length,
       ),
       onRefresh: _refreshPage,
-    );
-  }
-
-  Widget getHeartIcon() {
-    if (_showHeartAnimation) {
-      return SizedBox(
-        height: 16.67,
-        width: 16.67,
-        child: Lottie.asset(
-          'assets/lottie/animated_heart.json',
-          repeat: false,
-          reverse: false,
-          animate: true,
-          fit: BoxFit.cover,
-        ),
-      );
-    }
-
-    return Consumer<PlaceDetailsModel>(
-      builder: (context, placeDetailsModel, child) {
-        if (PlaceDetails.isFavouritePlace(
-          placeDetailsModel.favouritePlaces,
-          widget.placeDetails,
-        )) {
-          return SvgPicture.asset(
-            'assets/icon/heart.svg',
-            semanticsLabel: 'Favorite',
-            height: 16.67,
-            width: 16.67,
-          );
-        }
-
-        return SvgPicture.asset(
-          'assets/icon/heart_dislike.svg',
-          semanticsLabel: 'Favorite',
-          height: 16.67,
-          width: 16.67,
-        );
-      },
     );
   }
 
@@ -227,7 +182,7 @@ class _InsightsTabState extends State<InsightsTab> {
                                   );
                                 }
                               },
-                              child: InsightsGraph(
+                              child: AnalyticsGraph(
                                 pm2_5ChartData: _dailyPm2_5ChartData[index],
                                 pm10ChartData: _dailyPm10ChartData[index],
                                 onBarSelection: _updateUI,
@@ -262,7 +217,7 @@ class _InsightsTabState extends State<InsightsTab> {
                                   );
                                 }
                               },
-                              child: InsightsGraph(
+                              child: AnalyticsGraph(
                                 pm10ChartData: _hourlyPm10ChartData[index],
                                 pm2_5ChartData: _hourlyPm2_5ChartData[index],
                                 frequency: widget.frequency,
@@ -353,21 +308,17 @@ class _InsightsTabState extends State<InsightsTab> {
                         borderRadius: const BorderRadius.all(
                           Radius.circular(40.0),
                         ),
-                        color: _selectedMeasurement!.forecast
-                            ? CustomColors.appColorBlue.withOpacity(0.24)
-                            : _pollutant == Pollutant.pm2_5
-                                ? Pollutant.pm2_5
-                                    .color(
-                                      _selectedMeasurement!
-                                          .chartValue(_pollutant),
-                                    )
-                                    .withOpacity(0.4)
-                                : Pollutant.pm10
-                                    .color(
-                                      _selectedMeasurement!
-                                          .chartValue(_pollutant),
-                                    )
-                                    .withOpacity(0.4),
+                        color: _pollutant == Pollutant.pm2_5
+                            ? Pollutant.pm2_5
+                                .color(
+                                  _selectedMeasurement!.chartValue(_pollutant),
+                                )
+                                .withOpacity(0.4)
+                            : Pollutant.pm10
+                                .color(
+                                  _selectedMeasurement!.chartValue(_pollutant),
+                                )
+                                .withOpacity(0.4),
                         border: Border.all(color: Colors.transparent),
                       ),
                       child: AutoSizeText(
@@ -387,19 +338,17 @@ class _InsightsTabState extends State<InsightsTab> {
                         textAlign: TextAlign.start,
                         overflow: TextOverflow.ellipsis,
                         style: CustomTextStyle.button2(context)?.copyWith(
-                          color: _selectedMeasurement!.forecast
-                              ? CustomColors.appColorBlue
-                              : _pollutant == Pollutant.pm2_5
-                                  ? Pollutant.pm2_5.textColor(
-                                      value: _selectedMeasurement!
-                                          .chartValue(_pollutant),
-                                      graph: true,
-                                    )
-                                  : Pollutant.pm10.textColor(
-                                      value: _selectedMeasurement!
-                                          .chartValue(_pollutant),
-                                      graph: true,
-                                    ),
+                          color: _pollutant == Pollutant.pm2_5
+                              ? Pollutant.pm2_5.textColor(
+                                  value: _selectedMeasurement!
+                                      .chartValue(_pollutant),
+                                  graph: true,
+                                )
+                              : Pollutant.pm10.textColor(
+                                  value: _selectedMeasurement!
+                                      .chartValue(_pollutant),
+                                  graph: true,
+                                ),
                         ),
                       ),
                     ),
@@ -513,7 +462,7 @@ class _InsightsTabState extends State<InsightsTab> {
                 .first;
 
         miniChartsMap[DateFormat('yyyy-MM-dd').format(randomValue.time)] =
-            InsightsGraph(
+            AnalyticsGraph(
           pm10ChartData: pm10ChartData,
           pm2_5ChartData: pm2_5ChartData,
           onBarSelection: _updateUI,
@@ -567,17 +516,6 @@ class _InsightsTabState extends State<InsightsTab> {
   void togglePollutant() {
     setState(() => _pollutant =
         _pollutant == Pollutant.pm2_5 ? Pollutant.pm10 : Pollutant.pm2_5);
-  }
-
-  void updateFavPlace() async {
-    setState(() => _showHeartAnimation = true);
-    Future.delayed(
-      const Duration(seconds: 2),
-      () {
-        setState(() => _showHeartAnimation = false);
-      },
-    );
-    await _appService.updateFavouritePlace(widget.placeDetails, context);
   }
 
   void _updateTitleDateTime(List<charts.Series<Insights, String>> data) {
@@ -745,53 +683,9 @@ class _InsightsTabState extends State<InsightsTab> {
         visible: _hasMeasurements,
         child: Padding(
           padding: const EdgeInsets.only(right: 16, left: 16),
-          child: Container(
-            padding: const EdgeInsets.all(21.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: const BorderRadius.all(
-                Radius.circular(8.0),
-              ),
-              border: Border.all(color: Colors.transparent),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    ShareService.shareGraph(
-                      context,
-                      _globalKey,
-                      widget.placeDetails,
-                    );
-                  },
-                  child: IconTextButton(
-                    iconWidget: SvgPicture.asset(
-                      'assets/icon/share_icon.svg',
-                      semanticsLabel: 'Share',
-                      color: CustomColors.greyColor,
-                    ),
-                    text: 'Share',
-                  ),
-                ),
-                const SizedBox(
-                  width: 60,
-                ),
-                Consumer<PlaceDetailsModel>(
-                  builder: (context, placeDetailsModel, child) {
-                    return GestureDetector(
-                      onTap: () async {
-                        updateFavPlace();
-                      },
-                      child: IconTextButton(
-                        iconWidget: getHeartIcon(),
-                        text: 'Favorite',
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
+          child: InsightsActionBar(
+            shareKey: _globalKey,
+            placeDetails: widget.placeDetails,
           ),
         ),
       ),
@@ -814,27 +708,7 @@ class _InsightsTabState extends State<InsightsTab> {
       const SizedBox(
         height: 16,
       ),
-      Visibility(
-        visible: _recommendations.isNotEmpty,
-        child: SizedBox(
-          height: 128,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemBuilder: (context, index) {
-              return Padding(
-                padding: EdgeInsets.only(
-                  left: index == 0 ? 12.0 : 6.0,
-                  right: index == (_recommendations.length - 1) ? 12.0 : 6.0,
-                ),
-                child: RecommendationContainer(
-                  _recommendations[index],
-                ),
-              );
-            },
-            itemCount: _recommendations.length,
-          ),
-        ),
-      ),
+      HealthTipsSection(recommendations: _recommendations),
       const SizedBox(
         height: 24,
       ),

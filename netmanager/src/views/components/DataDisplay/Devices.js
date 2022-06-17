@@ -36,6 +36,7 @@ import ErrorBoundary from "views/ErrorBoundary/ErrorBoundary";
 
 // css
 import "assets/css/device-registry.css";
+import { capitalize } from "../../../utils/string";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -208,12 +209,14 @@ const CreateDevice = ({ open, setOpen }) => {
     long_name: "",
     generation_version: "",
     generation_count: "",
+    category: "",
   };
 
   const initialErrors = {
     long_name: "",
     generation_version: "",
     generation_count: "",
+    category: "",
   };
 
   const [newDevice, setNewDevice] = useState(newDeviceInitState);
@@ -325,6 +328,27 @@ const CreateDevice = ({ open, setOpen }) => {
             fullWidth
             required
           />
+          <TextField
+            autoFocus
+            select
+            margin="dense"
+            variant="outlined"
+            id="deviceType"
+            label="Device Type"
+            value={newDevice.category}
+            onChange={handleDeviceDataChange("category")}
+            SelectProps={{
+              native: true,
+              style: { width: "100%", height: "50px" },
+            }}
+            error={!!errors.mountType}
+            helperText={errors.mountType}
+            fullWidth
+          >
+            <option value="" />
+            <option value="lowcost">Low Cost</option>
+            <option value="bam">BAM</option>
+          </TextField>
         </form>
       </DialogContent>
 

@@ -29,6 +29,7 @@ import { logoutUser } from "redux/Join/actions";
 import { useOrgData } from "redux/Join/selectors";
 import TransitionAlerts from "./TransitionAlerts";
 import { CALIBRATE_APP_URL } from "config/urls/externalUrls";
+import { formatDateString } from "utils/dateTime.js";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -238,7 +239,7 @@ const Topbar = (props) => {
 
         <Hidden mdDown>
           <p style={timer_style}>
-            <span>{date.toLocaleString()}</span>
+            <span>{formatDateString(date.toUTCString)}</span>
           </p>
         </Hidden>
 
