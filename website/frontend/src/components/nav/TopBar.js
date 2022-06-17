@@ -62,7 +62,7 @@ const TopBar = () => {
                     </div>
                     <NavTab text="About" path="/about-us" hideArrow />
                     <NavTab text="Get involved" hideArrow colored onClick={showModal} />
-                    <NavTab text="Explore data" hideArrow filled />
+                    {/* <NavTab text="Explore data" hideArrow filled /> */}
                 </div>
 
             </div>
