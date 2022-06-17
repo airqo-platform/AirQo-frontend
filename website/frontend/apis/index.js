@@ -12,3 +12,7 @@ export const newsletterSubscriptionApi = async (data) => await axios
 export const contactUsApi = async (data) => await axios
   .post(INQUIRY_URL, data)
   .then((response) => response.data);
+
+export const sendInquiryApi = async (data) => await axios
+  .post(INQUIRY_URL, data)
+  .then((response) => response.data);
