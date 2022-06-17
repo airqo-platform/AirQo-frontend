@@ -70,7 +70,8 @@ class AirQoApp extends StatelessWidget {
       ],
       builder: (context, child) {
         return MaterialApp(
-          debugShowCheckedModeBanner: kReleaseMode ? false : true,
+   //       debugShowCheckedModeBanner: kReleaseMode ? false : true, // TODO : revert this change
+          debugShowCheckedModeBanner: false,
           navigatorObservers: [
             FirebaseAnalyticsObserver(analytics: analytics),
             SentryNavigatorObserver(),
