@@ -25,7 +25,7 @@ const SubSection = () => {
                 <div className="title white-color">Explore our digital tools. Learn about the quality of air around
                     you.
                 </div>
-                <div className="link white-color">Explore data --></div>
+                <div className="link white-color btn-disabled">Explore data --></div>
             </div>
             <div className="content-wrapper light-blue-bg" onClick={showModal}>
                 <div className="title blue-color">Get involved. Learn about ways you can support our vision.</div>
