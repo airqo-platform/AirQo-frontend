@@ -514,12 +514,23 @@ class _InsightsTabState extends State<InsightsTab> {
     }
   }
 
-  void _togglePollutant(Pollutant pollutant) {
-    if (pollutant == Pollutant.pm2_5) {
-      setState(() => _pollutant = Pollutant.pm2_5);
-    } else {
-      setState(() => _pollutant = Pollutant.pm10);
-    }
+  Widget listOption(String pollutantName, Pollutant pollutant) {
+    return ListTile(
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(
+          Radius.circular(4.0),
+        ),
+      ),
+      tileColor: _pollutant == pollutant
+          ? CustomColors.pollutantToggleBgColor
+          : Colors.white,
+      title: PollutantToggle(
+        text: pollutantName,
+        textColor: _pollutant == pollutant
+            ? CustomColors.appColorBlue
+            : CustomColors.appColorBlack,
+      ),
+    );
   }
 
   void _updateTitleDateTime(List<charts.Series<Insights, String>> data) {
@@ -656,7 +667,8 @@ class _InsightsTabState extends State<InsightsTab> {
                         Radius.circular(4.0),
                       ),
                     ),
-                    onSelected: (value) => _togglePollutant(value as Pollutant),
+                    onSelected: (value) =>
+                        setState(() => _pollutant = value as Pollutant),
                     child: SvgPicture.asset(
                       'assets/icon/toggle_icon.svg',
                       semanticsLabel: 'Toggle',
@@ -667,42 +679,12 @@ class _InsightsTabState extends State<InsightsTab> {
                       PopupMenuItem(
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         value: Pollutant.pm2_5,
-                        child: ListTile(
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(4.0),
-                            ),
-                          ),
-                          tileColor: _pollutant == Pollutant.pm2_5
-                              ? CustomColors.pollutantToggleBgColor
-                              : Colors.white,
-                          title: PollutantToggle(
-                            text: ' 2.5',
-                            textColor: _pollutant == Pollutant.pm2_5
-                                ? CustomColors.appColorBlue
-                                : CustomColors.appColorBlack,
-                          ),
-                        ),
+                        child: listOption(' 2.5', Pollutant.pm2_5),
                       ),
                       PopupMenuItem(
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         value: Pollutant.pm10,
-                        child: ListTile(
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(4.0),
-                            ),
-                          ),
-                          tileColor: _pollutant == Pollutant.pm10
-                              ? CustomColors.pollutantToggleBgColor
-                              : Colors.white,
-                          title: PollutantToggle(
-                            text: ' 10',
-                            textColor: _pollutant == Pollutant.pm10
-                                ? CustomColors.appColorBlue
-                                : CustomColors.appColorBlack,
-                          ),
-                        ),
+                        child: listOption(' 10', Pollutant.pm10),
                       ),
                     ],
                   ),
