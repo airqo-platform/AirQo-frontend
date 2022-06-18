@@ -134,8 +134,11 @@ class _SettingsPageState extends State<SettingsPage> {
                       child: const SettingsCard(text: 'FAQs'),
                     ),
                   ),
-                  Divider(
-                    color: CustomColors.appBodyColor,
+                  Visibility(
+                    visible: false,
+                    child: Divider(
+                      color: CustomColors.appBodyColor,
+                    ),
                   ),
                   GestureDetector(
                     onTap: () async {
