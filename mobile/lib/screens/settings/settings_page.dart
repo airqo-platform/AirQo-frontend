@@ -115,24 +115,30 @@ class _SettingsPageState extends State<SettingsPage> {
                   Divider(
                     color: CustomColors.appBodyColor,
                   ),
-                  GestureDetector(
-                    onTap: () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) {
-                            return WebViewScreen(
-                              url: Config.faqsUrl,
-                              title: 'AirQo FAQs',
-                            );
-                          },
-                        ),
-                      );
-                    },
-                    child: const SettingsCard(text: 'FAQs'),
+                  Visibility(
+                    visible: false,
+                    child: GestureDetector(
+                      onTap: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) {
+                              return WebViewScreen(
+                                url: Config.faqsUrl,
+                                title: 'AirQo FAQs',
+                              );
+                            },
+                          ),
+                        );
+                      },
+                      child: const SettingsCard(text: 'FAQs'),
+                    ),
                   ),
-                  Divider(
-                    color: CustomColors.appBodyColor,
+                  Visibility(
+                    visible: false,
+                    child: Divider(
+                      color: CustomColors.appBodyColor,
+                    ),
                   ),
                   GestureDetector(
                     onTap: () async {
