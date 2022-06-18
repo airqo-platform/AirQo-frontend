@@ -95,11 +95,11 @@ class ShareService {
     return 'Download the AirQo app from Google play\nhttps://play.google.com/store/apps/details?id=com.airqo.app\nand App Store\nhttps://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091\n';
   }
 
-  static Future<bool> shareCard(
-    BuildContext buildContext,
-    GlobalKey globalKey,
-    Measurement measurement,
-  ) async {
+  static Future<bool> shareWidget({
+    required BuildContext buildContext,
+    required GlobalKey globalKey,
+    String? imageName,
+  }) async {
     try {
       final boundary =
           globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
@@ -110,74 +110,20 @@ class ShareService {
       final pngBytes = byteData!.buffer.asUint8List();
 
       final directory = (await getApplicationDocumentsDirectory()).path;
-      final imgFile = File('$directory/airqo_analytics_card.png');
+      final imgFile = File("$directory/${imageName ?? 'airqo_analytics'}.png");
       await imgFile.writeAsBytes(pngBytes);
 
-      await Share.shareFiles([imgFile.path]).then(
-        (value) => {updateUserShares()},
-      );
+      final result = await Share.shareFilesWithResult([imgFile.path]);
+
+      if (result.status == ShareResultStatus.success) {
+        await updateUserShares();
+      }
     } catch (exception, stackTrace) {
       await shareFailed(
         exception,
         stackTrace,
         buildContext,
       );
-    }
-
-    return true;
-  }
-
-  static Future<bool> shareGraph(
-    BuildContext buildContext,
-    GlobalKey globalKey,
-    PlaceDetails placeDetails,
-  ) async {
-    try {
-      final boundary =
-          globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-      final image = await boundary.toImage(
-        pixelRatio: 10.0,
-      );
-      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-      final pngBytes = byteData!.buffer.asUint8List();
-
-      final directory = (await getApplicationDocumentsDirectory()).path;
-      final imgFile = File('$directory/airqo_analytics_graph.png');
-      await imgFile.writeAsBytes(pngBytes);
-
-      await Share.shareFiles([imgFile.path]).then(
-        (value) => {updateUserShares()},
-      );
-    } catch (exception, stackTrace) {
-      await shareFailed(
-        exception,
-        stackTrace,
-        buildContext,
-      );
-    }
-
-    return true;
-  }
-
-  static Future<bool> shareKya(
-    BuildContext buildContext,
-    GlobalKey globalKey,
-  ) async {
-    try {
-      final boundary =
-          globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-      final image = await boundary.toImage(pixelRatio: 10.0);
-      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-      final pngBytes = byteData!.buffer.asUint8List();
-      final directory = (await getApplicationDocumentsDirectory()).path;
-      final imgFile = File('$directory/analytics_graph.png');
-      await imgFile.writeAsBytes(pngBytes);
-
-      await Share.shareFiles([imgFile.path]).then(
-        (value) => {updateUserShares()},
-      );
-    } catch (exception, stackTrace) {
-      await shareFailed(exception, stackTrace, buildContext);
     }
 
     return true;

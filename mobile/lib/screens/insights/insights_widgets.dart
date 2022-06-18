@@ -413,11 +413,10 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
       return;
     }
     setState(() => _shareLoading = true);
-    final complete = await ShareService.shareGraph(
-      context,
-      widget.shareKey,
-      widget.placeDetails,
-    );
+    final complete = await ShareService.shareWidget(
+        buildContext: context,
+        globalKey: widget.shareKey,
+        imageName: 'airqo_air_quality_graph');
     if (complete && mounted) {
       setState(() => _shareLoading = false);
     }

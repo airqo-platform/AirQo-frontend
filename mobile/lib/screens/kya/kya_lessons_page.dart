@@ -174,10 +174,10 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
       return;
     }
     setState(() => _shareLoading = true);
-    final complete = await ShareService.shareKya(
-      context,
-      _globalKeys[currentIndex],
-    );
+    final complete = await ShareService.shareWidget(
+        buildContext: context,
+        globalKey: _globalKeys[currentIndex],
+        imageName: 'airqo_know_your_air');
     if (complete && mounted) {
       setState(() => _shareLoading = false);
     }
@@ -200,22 +200,14 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
     required int direction,
   }) {
     if (direction == -1) {
-      setState(
-        () {
-          currentIndex = currentIndex - 1;
-        },
-      );
+      setState(() => currentIndex = currentIndex - 1);
       itemScrollController.scrollTo(
         index: currentIndex,
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeInOutCubic,
       );
     } else {
-      setState(
-        () {
-          currentIndex = currentIndex + 1;
-        },
-      );
+      setState(() => currentIndex = currentIndex + 1);
       if (currentIndex < kya.lessons.length) {
         itemScrollController.scrollTo(
           index: currentIndex,

@@ -360,10 +360,9 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
     setState(() => _shareLoading = true);
     final shareMeasurement = widget.measurement;
     shareMeasurement.site.name = widget.placeDetails.name;
-    final complete = await ShareService.shareCard(
-      context,
-      widget.shareKey,
-      shareMeasurement,
+    final complete = await ShareService.shareWidget(
+      buildContext: context,
+      globalKey: widget.shareKey,
     );
     if (complete && mounted) {
       setState(() => _shareLoading = false);
