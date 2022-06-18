@@ -552,13 +552,13 @@ class _MapViewState extends State<MapView> {
           measurements.first.site.longitude,
         );
 
-        final _cameraPosition = CameraPosition(
+        final cameraPosition = CameraPosition(
           target: latLng,
           zoom: zoom,
         );
 
         await controller.animateCamera(
-          CameraUpdate.newCameraPosition(_cameraPosition),
+          CameraUpdate.newCameraPosition(cameraPosition),
         );
       } else {
         if (_displayRegions) {

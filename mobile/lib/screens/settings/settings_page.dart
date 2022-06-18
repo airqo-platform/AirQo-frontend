@@ -207,8 +207,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
   void showConfirmationDialog(BuildContext context) {
     Widget okButton = TextButton(
-      child: const Text('Yes'),
       onPressed: _deleteAccount,
+      child: const Text('Yes'),
     );
 
     Widget cancelButton = TextButton(

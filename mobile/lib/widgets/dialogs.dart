@@ -362,25 +362,25 @@ class AuthConfirmationDialog extends StatelessWidget {
           onPressed: () {
             Navigator.of(context).pop(ConfirmationAction.cancel);
           },
+          isDefaultAction: true,
+          isDestructiveAction: true,
           child: Text(
             'Edit',
             style: CustomTextStyle.caption4(context)
                 ?.copyWith(color: CustomColors.appColorBlue),
           ),
-          isDefaultAction: true,
-          isDestructiveAction: true,
         ),
         CupertinoDialogAction(
           onPressed: () {
             Navigator.of(context).pop(ConfirmationAction.ok);
           },
+          isDefaultAction: true,
+          isDestructiveAction: false,
           child: Text(
             'Yes',
             style: CustomTextStyle.caption4(context)
                 ?.copyWith(color: CustomColors.appColorBlue),
           ),
-          isDefaultAction: true,
-          isDestructiveAction: false,
         ),
       ],
     );

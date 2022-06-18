@@ -51,9 +51,9 @@ class _HomePageState extends State<HomePage> {
             Animation<double> secondaryAnimation,
           ) {
             return FadeThroughTransition(
-              child: child,
               animation: primaryAnimation,
               secondaryAnimation: secondaryAnimation,
+              child: child,
             );
           },
           // child: Center(

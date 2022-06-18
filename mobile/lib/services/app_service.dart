@@ -248,19 +248,19 @@ class AppService {
 
   Future<void> _loadFavPlaces(BuildContext buildContext) async {
     try {
-      final _offlineFavPlaces = await DBHelper().getFavouritePlaces();
-      final _cloudFavPlaces =
+      final offlineFavPlaces = await DBHelper().getFavouritePlaces();
+      final cloudFavPlaces =
           await CloudStore.getFavPlaces(CustomAuth.getUserId());
 
-      for (final place in _offlineFavPlaces) {
-        _cloudFavPlaces.removeWhere(
+      for (final place in offlineFavPlaces) {
+        cloudFavPlaces.removeWhere(
           (element) => element.placeId.equalsIgnoreCase(place.placeId),
         );
       }
 
       final favPlaces = [
-        ..._offlineFavPlaces,
-        ..._cloudFavPlaces,
+        ...offlineFavPlaces,
+        ...cloudFavPlaces,
       ];
       await Future.wait([
         DBHelper().setFavouritePlaces(favPlaces).then(
@@ -283,23 +283,23 @@ class AppService {
 
   Future<void> _loadNotifications() async {
     try {
-      final _offlineNotifications =
+      final offlineNotifications =
           Hive.box<AppNotification>(HiveBox.appNotifications)
               .values
               .toList()
               .cast<AppNotification>();
 
-      final _cloudNotifications = await CloudStore.getNotifications();
+      final cloudNotifications = await CloudStore.getNotifications();
 
-      for (final notification in _offlineNotifications) {
-        _cloudNotifications.removeWhere(
+      for (final notification in offlineNotifications) {
+        cloudNotifications.removeWhere(
           (element) => element.id.equalsIgnoreCase(notification.id),
         );
       }
 
       final notifications = [
-        ..._offlineNotifications,
-        ..._cloudNotifications,
+        ...offlineNotifications,
+        ...cloudNotifications,
       ];
 
       await AppNotification.load(notifications);

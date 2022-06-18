@@ -125,6 +125,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Visibility(
+                      visible: currentIndex > 0,
                       child: GestureDetector(
                         onTap: () {
                           scrollToCard(direction: -1);
@@ -133,7 +134,6 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                           icon: 'assets/icon/previous_arrow.svg',
                         ),
                       ),
-                      visible: currentIndex > 0,
                     ),
                     GestureDetector(
                       onTap: () {
@@ -161,10 +161,12 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
     super.initState();
     kya = widget.kya;
     currentIndex = 0;
-    for (final _ in widget.kya.lessons) {
+    var index = 0;
+    while (index != widget.kya.lessons.length) {
       _globalKeys.add(
         GlobalKey(),
       );
+      index++;
     }
     itemPositionsListener.itemPositions.addListener(scrollListener);
   }

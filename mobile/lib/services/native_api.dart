@@ -5,7 +5,6 @@ import 'dart:ui';
 
 import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
-import 'package:app/models/place_details.dart';
 import 'package:app/services/firebase_service.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';

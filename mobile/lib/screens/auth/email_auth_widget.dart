@@ -56,7 +56,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
         onWillPop: onWillPop,
         child: Container(
           color: Colors.white,
-          padding: const EdgeInsets.only(left: 24, right: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Center(
             child: Column(
               children: _getColumnWidget(),
@@ -70,12 +70,8 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
   void clearEmailCallBack() {
     if (_emailAddress == '') {
       FocusScope.of(context).unfocus();
-      Future.delayed(
-        const Duration(milliseconds: 400),
-        () {
-          setState(() => _showAuthOptions = true);
-        },
-      );
+      Future.delayed(const Duration(milliseconds: 400),
+          () => setState(() => _showAuthOptions = true));
     }
 
     setState(
@@ -90,19 +86,13 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
   Widget emailInputField() {
     return TextFormField(
       controller: _emailInputController,
-      onTap: () {
-        setState(() => _showAuthOptions = false);
-      },
+      onTap: () => setState(() => _showAuthOptions = false),
       onEditingComplete: () async {
         FocusScope.of(context).requestFocus(
           FocusNode(),
         );
-        Future.delayed(
-          const Duration(milliseconds: 400),
-          () {
-            setState(() => _showAuthOptions = true);
-          },
-        );
+        Future.delayed(const Duration(milliseconds: 400),
+            () => setState(() => _showAuthOptions = true));
       },
       onChanged: emailValueChange,
       style: Theme.of(context).textTheme.bodyText1,

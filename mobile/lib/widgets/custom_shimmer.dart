@@ -80,10 +80,10 @@ class LoadingIcon extends StatelessWidget {
   }
 }
 
-void loadingScreen(BuildContext _context) async {
+void loadingScreen(BuildContext context) async {
   await showDialog(
     barrierColor: Colors.transparent,
-    context: _context,
+    context: context,
     barrierDismissible: false,
     builder: (ctx) => CupertinoActivityIndicator(
       radius: 20,

@@ -297,7 +297,7 @@ class CloudStore {
       return Profile.parseUserDetails(
         userJson.data(),
       );
-    } on FirebaseException catch (exception, _) {
+    } on FirebaseException catch (exception) {
       if (exception.code == 'not-found') {
         return await CustomAuth.createProfile();
       } else {
