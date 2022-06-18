@@ -435,6 +435,38 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
   }
 }
 
+class ListOption extends StatelessWidget {
+  const ListOption({
+    Key? key,
+    required this.pollutantName,
+    required this.pollutant,
+    required this.varyingPollutant,
+  }) : super(key: key);
+  final String pollutantName;
+  final Pollutant pollutant;
+  final Pollutant varyingPollutant;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(
+          Radius.circular(4.0),
+        ),
+      ),
+      tileColor: varyingPollutant == pollutant
+          ? CustomColors.pollutantToggleBgColor
+          : Colors.white,
+      title: PollutantToggle(
+        text: pollutantName,
+        textColor: varyingPollutant == pollutant
+            ? CustomColors.appColorBlue
+            : CustomColors.appColorBlack,
+      ),
+    );
+  }
+}
+
 class PollutantToggle extends StatelessWidget {
   const PollutantToggle({
     Key? key,

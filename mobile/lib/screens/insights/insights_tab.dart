@@ -358,7 +358,9 @@ class _InsightsTabState extends State<InsightsTab> {
                   visible: _selectedMeasurement!.empty,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0, vertical: 2.0),
+                      horizontal: 10.0,
+                      vertical: 2.0,
+                    ),
                     decoration: BoxDecoration(
                       borderRadius: const BorderRadius.all(
                         Radius.circular(40.0),
@@ -514,25 +516,6 @@ class _InsightsTabState extends State<InsightsTab> {
     }
   }
 
-  Widget listOption(String pollutantName, Pollutant pollutant) {
-    return ListTile(
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(
-          Radius.circular(4.0),
-        ),
-      ),
-      tileColor: _pollutant == pollutant
-          ? CustomColors.pollutantToggleBgColor
-          : Colors.white,
-      title: PollutantToggle(
-        text: pollutantName,
-        textColor: _pollutant == pollutant
-            ? CustomColors.appColorBlue
-            : CustomColors.appColorBlack,
-      ),
-    );
-  }
-
   void _updateTitleDateTime(List<charts.Series<Insights, String>> data) {
     final dateTime = data.first.data.first.time;
 
@@ -679,12 +662,20 @@ class _InsightsTabState extends State<InsightsTab> {
                       PopupMenuItem(
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         value: Pollutant.pm2_5,
-                        child: listOption(' 2.5', Pollutant.pm2_5),
+                        child: ListOption(
+                          pollutantName: '2.5',
+                          pollutant: Pollutant.pm2_5,
+                          varyingPollutant: _pollutant,
+                        ),
                       ),
                       PopupMenuItem(
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         value: Pollutant.pm10,
-                        child: listOption(' 10', Pollutant.pm10),
+                        child: ListOption(
+                          pollutantName: '10',
+                          pollutant: Pollutant.pm10,
+                          varyingPollutant: _pollutant,
+                        ),
                       ),
                     ],
                   ),
