@@ -88,13 +88,7 @@ export const ExploreUserCategory = () => {
     const handleCategoryChange = async (category)=> {
         setUserCategory(category);
         await dispatch(postUserCategory(category));
-        if(categoryValue === "individual") {
-            navigate('/explore-data/get-started/user/individual');
-        }else if(categoryValue === "organisation") {
-            navigate('/explore-data/get-started/user/organisation');
-        }else {
-            return;
-        } 
+        !isEmpty(categoryValue) && navigate(`/explore-data/get-started/user/${categoryValue}`);
     }
     
     return (
@@ -114,6 +108,7 @@ export const ExploreUserCategory = () => {
         </PageWithImageLayout>
     );
 }
+
 export const ExploreUserProfessionType = () => (
     <PageWithImageLayout imgPath={ManExploring}>
         <div className="GetStartedForm">
@@ -178,6 +173,7 @@ export const ExploreUserRegistry = () => {
         </PageWithImageLayout>
     );
 }
+
 export const ExploreBusinessRegistry = () => (
     <PageWithImageLayout imgPath={ManExploring}>
         <div className="ExploreFormWrapper">

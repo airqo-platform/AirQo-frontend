@@ -76,6 +76,7 @@
   color: $aq-black-1;
   margin: 0 auto;
 
+
   >span {
     position: relative;
     padding: 0;
@@ -116,6 +117,12 @@
     width: 328px;
     padding-top: 48px;
     margin: 40px 0 80px 0;
+
+    .btn-disabled {
+      color: rgba(53, 62, 82, 0.28);
+      background: rgba(53, 62, 82, 0.08);
+      cursor: not-allowed;
+    }
   }
 }
 

@@ -131,6 +131,11 @@
       align-items: center;
     }
 
+    .btn-disabled {
+      color: rgba(53, 62, 82, 0.28);
+      cursor: not-allowed;
+    }
+
     .white-color {
       color: #FFFFFF;
     }
