@@ -15,7 +15,7 @@ class KnowYourAirView extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _KnowYourAirViewState createState() => _KnowYourAirViewState();
+  State<KnowYourAirView> createState() => _KnowYourAirViewState();
 }
 
 class _KnowYourAirViewState extends State<KnowYourAirView> {

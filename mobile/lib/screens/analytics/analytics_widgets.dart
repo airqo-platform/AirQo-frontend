@@ -285,7 +285,7 @@ class AnalyticsCard extends StatefulWidget {
   final bool showHelpTip;
 
   @override
-  _AnalyticsCardState createState() => _AnalyticsCardState();
+  State<AnalyticsCard> createState() => _AnalyticsCardState();
 }
 
 class MapAnalyticsCard extends StatefulWidget {
@@ -300,7 +300,7 @@ class MapAnalyticsCard extends StatefulWidget {
   final VoidCallback closeCallBack;
 
   @override
-  _MapAnalyticsCardState createState() => _MapAnalyticsCardState();
+  State<MapAnalyticsCard> createState() => _MapAnalyticsCardState();
 }
 
 class _AnalyticsCardState extends State<AnalyticsCard> {
@@ -725,7 +725,7 @@ class MiniAnalyticsCard extends StatefulWidget {
   final PlaceDetails placeDetails;
 
   @override
-  _MiniAnalyticsCard createState() => _MiniAnalyticsCard();
+  State<MiniAnalyticsCard> createState() => _MiniAnalyticsCard();
 }
 
 class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {

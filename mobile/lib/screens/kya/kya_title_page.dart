@@ -20,7 +20,7 @@ class KyaTitlePage extends StatefulWidget {
   final Kya kya;
 
   @override
-  _KyaTitlePageState createState() => _KyaTitlePageState();
+  State<KyaTitlePage> createState() => _KyaTitlePageState();
 }
 
 class _KyaTitlePageState extends State<KyaTitlePage> {

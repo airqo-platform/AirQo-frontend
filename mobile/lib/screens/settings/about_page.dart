@@ -14,7 +14,7 @@ class AboutAirQo extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _AboutAirQoState createState() => _AboutAirQoState();
+  State<AboutAirQo> createState() => _AboutAirQoState();
 }
 
 class _AboutAirQoState extends State<AboutAirQo> {

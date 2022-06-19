@@ -34,7 +34,7 @@ class DashboardView extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _DashboardViewState createState() => _DashboardViewState();
+  State<DashboardView> createState() => _DashboardViewState();
 }
 
 class _DashboardViewState extends State<DashboardView> {

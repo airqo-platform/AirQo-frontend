@@ -14,7 +14,7 @@ class ForYouPage extends StatefulWidget {
   final bool? analytics;
 
   @override
-  _ForYouPageState createState() => _ForYouPageState();
+  State<ForYouPage> createState() => _ForYouPageState();
 }
 
 class _ForYouPageState extends State<ForYouPage>

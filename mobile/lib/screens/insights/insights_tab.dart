@@ -34,7 +34,7 @@ class InsightsTab extends StatefulWidget {
   final Frequency frequency;
 
   @override
-  _InsightsTabState createState() => _InsightsTabState();
+  State<InsightsTab> createState() => _InsightsTabState();
 }
 
 class _InsightsTabState extends State<InsightsTab> {

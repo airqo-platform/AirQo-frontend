@@ -16,7 +16,7 @@ class AnalyticsView extends StatefulWidget {
   const AnalyticsView({Key? key}) : super(key: key);
 
   @override
-  _AnalyticsViewState createState() => _AnalyticsViewState();
+  State<AnalyticsView> createState() => _AnalyticsViewState();
 }
 
 class _AnalyticsViewState extends State<AnalyticsView> {

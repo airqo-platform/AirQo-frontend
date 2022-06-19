@@ -16,7 +16,7 @@ class InsightsPage extends StatefulWidget {
   final PlaceDetails placeDetails;
 
   @override
-  _InsightsPageState createState() => _InsightsPageState();
+  State<InsightsPage> createState() => _InsightsPageState();
 }
 
 class _InsightsPageState extends State<InsightsPage>

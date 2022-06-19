@@ -13,7 +13,7 @@ class KyaFinalPage extends StatefulWidget {
   final Kya kya;
 
   @override
-  _KyaFinalPageState createState() => _KyaFinalPageState();
+  State<KyaFinalPage> createState() => _KyaFinalPageState();
 }
 
 class _KyaFinalPageState extends State<KyaFinalPage> {

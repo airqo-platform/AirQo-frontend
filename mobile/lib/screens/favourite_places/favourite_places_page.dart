@@ -15,7 +15,7 @@ class FavouritePlaces extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _FavouritePlacesState createState() => _FavouritePlacesState();
+  State<FavouritePlaces> createState() => _FavouritePlacesState();
 }
 
 class _FavouritePlacesState extends State<FavouritePlaces> {

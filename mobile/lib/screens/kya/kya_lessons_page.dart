@@ -22,7 +22,7 @@ class KyaLessonsPage extends StatefulWidget {
   final Kya kya;
 
   @override
-  _KyaLessonsPageState createState() => _KyaLessonsPageState();
+  State<KyaLessonsPage> createState() => _KyaLessonsPageState();
 }
 
 class _KyaLessonsPageState extends State<KyaLessonsPage> {

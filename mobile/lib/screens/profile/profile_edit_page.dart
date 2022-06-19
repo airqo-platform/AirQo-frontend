@@ -21,7 +21,7 @@ class ProfileEditPage extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _ProfileEditPageState createState() => _ProfileEditPageState();
+  State<ProfileEditPage> createState() => _ProfileEditPageState();
 }
 
 class _ProfileEditPageState extends State<ProfileEditPage> {
