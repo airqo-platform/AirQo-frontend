@@ -177,9 +177,10 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
     }
     setState(() => _shareLoading = true);
     final complete = await ShareService.shareWidget(
-        buildContext: context,
-        globalKey: _globalKeys[currentIndex],
-        imageName: 'airqo_know_your_air');
+      buildContext: context,
+      globalKey: _globalKeys[currentIndex],
+      imageName: 'airqo_know_your_air',
+    );
     if (complete && mounted) {
       setState(() => _shareLoading = false);
     }

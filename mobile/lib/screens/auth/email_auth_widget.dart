@@ -70,8 +70,10 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
   void clearEmailCallBack() {
     if (_emailAddress == '') {
       FocusScope.of(context).unfocus();
-      Future.delayed(const Duration(milliseconds: 400),
-          () => setState(() => _showAuthOptions = true));
+      Future.delayed(
+        const Duration(milliseconds: 400),
+        () => setState(() => _showAuthOptions = true),
+      );
     }
 
     setState(
@@ -91,8 +93,10 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
         FocusScope.of(context).requestFocus(
           FocusNode(),
         );
-        Future.delayed(const Duration(milliseconds: 400),
-            () => setState(() => _showAuthOptions = true));
+        Future.delayed(
+          const Duration(milliseconds: 400),
+          () => setState(() => _showAuthOptions = true),
+        );
       },
       onChanged: emailValueChange,
       style: Theme.of(context).textTheme.bodyText1,
