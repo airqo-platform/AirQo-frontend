@@ -17,7 +17,7 @@ const HighlightsSection = () => {
           tag1={'features'}
           tag2={'event'}
           title={'AirQo at the Sustainability Research & Innovation (SRI) Congress 2022'}
-          article_title={'Join Conference'}
+          article_title={'Read more'}
           article_link={'https://sri2022.org/about-sri2022/'}
         />
         {
