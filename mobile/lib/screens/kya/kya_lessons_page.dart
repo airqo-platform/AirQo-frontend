@@ -15,6 +15,8 @@ import '../../widgets/custom_shimmer.dart';
 import 'kya_final_page.dart';
 import 'kya_widgets.dart';
 
+//Original lesson page
+//Currently not in use
 class KyaLessonsPage extends StatefulWidget {
   const KyaLessonsPage(
     this.kya, {
