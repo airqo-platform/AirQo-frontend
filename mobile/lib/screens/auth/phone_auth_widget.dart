@@ -201,7 +201,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
           borderSide: BorderSide(color: CustomColors.appColorBlue, width: 1.0),
           borderRadius: BorderRadius.circular(8.0),
         ),
-        hintText: '0700000000',
+        hintText: '700 000 000',
         prefixIcon: Padding(
           padding: const EdgeInsets.fromLTRB(8, 11, 0, 15),
           child: Text(
