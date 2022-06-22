@@ -1,4 +1,5 @@
 import 'package:app/utils/extensions.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -275,10 +276,9 @@ class InsightsAvatar extends StatelessWidget {
             width: 32.45,
             color: pollutantColor,
           ),
-          Text(
+          AutoSizeText(
             value,
             maxLines: 1,
-            overflow: TextOverflow.ellipsis,
             style: CustomTextStyle.insightsAvatar(
               context: context,
               pollutant: pollutant,
