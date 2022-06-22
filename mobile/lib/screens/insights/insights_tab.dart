@@ -630,10 +630,18 @@ class _InsightsTabState extends State<InsightsTab> {
             ),
             Visibility(
               visible: _hasMeasurements,
-              child: GestureDetector(
+              child: PopupMenuButton(
+                padding: EdgeInsets.zero,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(4.0),
+                  ),
+                ),
+                onSelected: (value) =>
+                    setState(() => _pollutant = value as Pollutant),
                 child: Container(
-                  height: 32,
-                  width: 32,
+                  height: 35,
+                  width: 35,
                   padding: const EdgeInsets.all(6.0),
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -644,42 +652,33 @@ class _InsightsTabState extends State<InsightsTab> {
                       color: Colors.transparent,
                     ),
                   ),
-                  child: PopupMenuButton(
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(4.0),
-                      ),
-                    ),
-                    onSelected: (value) =>
-                        setState(() => _pollutant = value as Pollutant),
-                    child: SvgPicture.asset(
-                      'assets/icon/toggle_icon.svg',
-                      semanticsLabel: 'Toggle',
-                      height: 16,
-                      width: 20,
-                    ),
-                    itemBuilder: (BuildContext context) => <PopupMenuEntry>[
-                      PopupMenuItem(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        value: Pollutant.pm2_5,
-                        child: ListOption(
-                          pollutantName: '2.5',
-                          pollutant: Pollutant.pm2_5,
-                          varyingPollutant: _pollutant,
-                        ),
-                      ),
-                      PopupMenuItem(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        value: Pollutant.pm10,
-                        child: ListOption(
-                          pollutantName: '10',
-                          pollutant: Pollutant.pm10,
-                          varyingPollutant: _pollutant,
-                        ),
-                      ),
-                    ],
+                  child: SvgPicture.asset(
+                    'assets/icon/toggle_icon.svg',
+                    semanticsLabel: 'Toggle',
+                    height: 16,
+                    width: 20,
                   ),
                 ),
+                itemBuilder: (BuildContext context) => <PopupMenuEntry>[
+                  PopupMenuItem(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    value: Pollutant.pm2_5,
+                    child: ListOption(
+                      pollutantName: '2.5',
+                      pollutant: Pollutant.pm2_5,
+                      varyingPollutant: _pollutant,
+                    ),
+                  ),
+                  PopupMenuItem(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    value: Pollutant.pm10,
+                    child: ListOption(
+                      pollutantName: '10',
+                      pollutant: Pollutant.pm10,
+                      varyingPollutant: _pollutant,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
