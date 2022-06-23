@@ -10,7 +10,6 @@ spec:
   selector:
     matchLabels:
       app: sta-calibrate-app
-  replicas: 2
   template:
     metadata:
       labels:
@@ -24,12 +23,9 @@ spec:
             - containerPort: 80
               name: sta-calibrate
           resources:
-            requests:
-              cpu: 100m
-              memory: 250Mi
             limits:
-              cpu: 200m
-              memory: 700Mi
+              cpu: 250m
+              memory: 300Mi
           envFrom:
             - configMapRef:
                 name: env-calibrate-staging
@@ -45,11 +41,11 @@ spec:
     kind: Deployment
     name: airqo-stage-calibrate-app
   minReplicas: 1
-  maxReplicas: 2
+  maxReplicas: 4
   metrics:
   - type: Resource
     resource:
-      name: cpu
+      name: memory
       target:
         type: Utilization
         averageUtilization: 80

@@ -10,7 +10,6 @@ spec:
   selector:
     matchLabels:
       app: sta-website
-  replicas: 3
   template:
     metadata:
       labels:
@@ -30,12 +29,9 @@ spec:
           - name: config-volume
             mountPath: /etc/config
           resources: 
-            requests:
-              cpu: 100m
-              memory: 250Mi
             limits:
-              cpu: 200m
-              memory: 700Mi
+              cpu: 250m
+              memory: 300Mi
           command: ["/app/wsgi-entrypoint.sh"]
       volumes:
         - name: config-volume
@@ -69,11 +65,11 @@ spec:
     kind: Deployment
     name: airqo-stage-website
   minReplicas: 1
-  maxReplicas: 3
+  maxReplicas: 4
   metrics:
   - type: Resource
     resource:
-      name: cpu
+      name: memory
       target:
         type: Utilization
         averageUtilization: 80

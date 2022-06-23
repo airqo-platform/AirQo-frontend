@@ -10,7 +10,6 @@ spec:
   selector:
     matchLabels:
       app: prod-calibrate-app
-  replicas: 3
   template:
     metadata:
       labels:
@@ -24,12 +23,9 @@ spec:
             - containerPort: 80
               name: prod-calibrate
           resources:
-            requests:
-              cpu: 100m
-              memory: 250Mi
             limits:
-              cpu: 200m
-              memory: 700Mi
+              cpu: 250m
+              memory: 300Mi
           envFrom:
             - configMapRef:
                 name: env-calibrate-prod
@@ -45,11 +41,11 @@ spec:
     kind: Deployment
     name: airqo-calibrate-app 
   minReplicas: 1
-  maxReplicas: 3
+  maxReplicas: 6
   metrics:
   - type: Resource
     resource:
-      name: cpu
+      name: memory
       target:
         type: Utilization
         averageUtilization: 70
