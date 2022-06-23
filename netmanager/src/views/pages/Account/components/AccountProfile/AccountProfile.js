@@ -20,6 +20,7 @@ import { updateMainAlert } from "redux/MainAlert/operations";
 import { updateAuthenticatedUserApi } from "views/apis/authService";
 import { updateAuthenticatedUserSuccess } from "redux/Join/actions";
 import usersStateConnector from "views/stateConnectors/usersStateConnector";
+import { formatDateString, getGMTOffset } from "utils/dateTime.js";
 
 // css
 import "react-image-crop/dist/ReactCrop.css";
@@ -242,15 +243,16 @@ const AccountProfile = (props) => {
               >
                 {(user.city &&
                   user.country &&
-                  `${user.city}, ${user.country}`) ||
-                  "Kampala, Uganda"}
+                  `${user.city}, ${user.country}`) || 
+                  Intl.DateTimeFormat().resolvedOptions().timeZone
+                }
               </Typography>
               <Typography
                 className={classes.dateText}
                 color="textSecondary"
                 variant="body1"
               >
-                {moment().format("hh:mm A")} ({"GMT+3"})
+                {formatDateString(moment(), 'hh:mm A')} ({getGMTOffset()})
               </Typography>
             </div>
             <Avatar className={classes.avatar} src={user.profilePicture} />

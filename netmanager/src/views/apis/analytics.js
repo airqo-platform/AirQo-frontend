@@ -16,18 +16,18 @@ export const getSitesApi = async () => {
   return await axios.get(GET_SITES).then((response) => response.data);
 };
 
-export const downloadDataApi = async (downloadType, data, blobType) => {
+export const downloadDataApi = async (downloadType, data, blobType, outputFormat) => {
   if (blobType) {
     return axios.request({
       url: DOWNLOAD_CUSTOMISED_DATA_URI,
       method: "POST",
       data: data,
-      params: { downloadType },
+      params: { downloadType, outputFormat },
       responseType: "blob", //important
     });
   }
   return axios
-    .post(DOWNLOAD_CUSTOMISED_DATA_URI, data, { params: { downloadType } })
+    .post(DOWNLOAD_CUSTOMISED_DATA_URI, data, { params: { downloadType,  outputFormat } })
     .then((response) => response.data);
 };
 
