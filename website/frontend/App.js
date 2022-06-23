@@ -15,7 +15,7 @@ import GetInvolved from './src/pages/GetInvolved';
 import Register from './src/pages/GetInvolved/Register';
 import CheckMail from './src/pages/GetInvolved/CheckMail';
 import store from './store';
-import ExploreData, { ExploreGetStarted, ExploreUserCategory, ExploreUserProfessionType, ExploreOrganisationType, ExploreUserRegistry, ExploreRegistryConfirmation, ExploreApp } from './src/pages/ExploreData';
+import ExploreData, { ExploreGetStarted, ExploreUserCategory, ExploreUserProfessionType, ExploreOrganisationType, ExploreUserRegistry, ExploreRegistryConfirmation, ExploreApp, ExploreBusinessRegistry, ExploreOrganisationRegistry } from './src/pages/ExploreData';
 import Feedback from './src/pages/ContactUs/Feedback';
 
 store.dispatch(loadAirQloudSummaryData());
@@ -47,6 +47,8 @@ const App = () => (
                 <Route path="/explore-data/get-started/user/individual" element={<ExploreUserProfessionType />} />
                 <Route path="/explore-data/get-started/user/organisation" element={<ExploreOrganisationType />} />
                 <Route path="/explore-data/get-started/user/register" element={<ExploreUserRegistry />} />
+                <Route path="/explore-data/get-started/user/register/business" element={<ExploreBusinessRegistry />} />
+                <Route path="/explore-data/get-started/user/register/organisation" element={<ExploreOrganisationRegistry />} />
                 <Route path="/explore-data/get-started/user/check-mail" element={<ExploreRegistryConfirmation />} />
             </Routes>
         </Router>

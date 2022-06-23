@@ -1,19 +1,21 @@
-import { EXPLORE_DATA_REQUEST_SUCCESS, SET_USER_ORGANISATION_SUCCESS } from "./actions";
+import { EXPLORE_DATA_REQUEST_SUCCESS, EXPLORE_STATE_DATA_SUCCESS } from "./actions";
 
 const initialState = {
     category: null,
-    organisation: null,
-    user: {}
+    firstName: null,
+    lastName: null,
+    long_organization: null,
+    jobTitle: null,
+    email: null,
+    success: false
 }
 
 export default function (state = initialState, action) {
     switch (action.type) {
         case EXPLORE_DATA_REQUEST_SUCCESS:
             return {...state, ...action.payload};
-        case SET_USER_ORGANISATION_SUCCESS:
+        case EXPLORE_STATE_DATA_SUCCESS:
             return {...state, ...action.payload};
-        case SET_USER_CATEGORY_SUCCESS:
-            return { ...state, category: action.payload };
         default:
             return state;
     }

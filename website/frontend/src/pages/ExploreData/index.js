@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import CloseIcon from '@mui/icons-material/Close';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -12,39 +12,46 @@ import AirqualityPlatform from 'assets/svg/explore/air-quality-platform.svg';
 import ManDownloadingApp from 'assets/img/explore/man-download-app.png';
 import ManExploring from 'assets/img/explore/get-started-explore.png';
 import RegistrationCompleteSvg from 'assets/svg/explore/registration_complete_svg.svg';
-import { postUserCategory } from 'reduxStore/ExploreData/operations';
 import { useDispatch } from 'react-redux';
-import { isEmpty } from 'underscore';
-import { useCategory } from 'reduxStore/ExploreData/selectors';
+import { Checkbox, FormControl, FormControlLabel, CircularProgress } from '@mui/material';
+import { useExploreData } from 'reduxStore/ExploreData/selectors';
+import { addExploreDataRequest, postStateData } from 'reduxStore/ExploreData/operations';
 
-export const PageWithImageLayout = ({imgPath, children}) => (
-    <div className="ExploreDataWrapper">
-        <div className="left-section">
-            <img src={ imgPath || ManDownloadingApp } width="100%" height="100%" />
-        </div>
-        <div className="right-section">
-            <div className="nav-row">
-                <Link to="/explore-data"><ArrowBackIcon /></Link>
-                <Link to="/"><CloseIcon /></Link>
+export const PageWithImageLayout = ({imgPath, children}) => {
+    const navigate = useNavigate();
+
+    const navigateBack = () => navigate(-1);
+
+    return (
+        <div className="ExploreDataWrapper">
+            <div className="left-section">
+                <img src={ imgPath || ManDownloadingApp } width="100%" height="100%" />
             </div>
-            <div className="content">{children}</div>
+            <div className="right-section">
+                <div className="nav-row">
+                    <button onClick={navigateBack}><ArrowBackIcon /></button>
+                    <Link to="/"><CloseIcon /></Link>
+                </div>
+                <div className="content">{children}</div>
+            </div>
         </div>
-    </div>
-);
+    );
+}
 
-export const ExploreFormTemplate = ({children}) => (
-    <form className="create-account-form">
+export const ExploreFormTemplate = ({children, onSubmit}) => (
+    <form className="create-account-form" onSubmit={onSubmit}>
         {children}
     </form>
 );
 
-export const ExploreTemplateFormFieldOption = ({formOptionClassName, fieldId, label, inputType, children, fieldClassName}) => (
-    <div className={`form-option ${formOptionClassName}`}>
-        {label && <label htmlFor={fieldId}>{label}*</label>}
-        <input type={inputType} id={fieldId} required className={fieldClassName ? fieldClassName : "form-control"} /> {children}
-    </div>
-);
-
+export const ExploreTemplateFormFieldOption = ({formOptionClassName, fieldId, label, inputType, children, fieldClassName, onChange}) => {
+    return(
+        <div className={`form-option ${formOptionClassName}`}>
+            {label && <label htmlFor={fieldId}>{label}*</label>}
+            <input type={inputType} id={fieldId} required className={fieldClassName ? fieldClassName : "form-control"} onChange={onChange} /> {children}
+        </div>
+    );
+}
 export const ExploreApp = () => (
     <PageWithImageLayout>
         <div className="ExploreApp">
@@ -80,15 +87,84 @@ export const ExploreGetStarted = () => (
 );
 
 export const ExploreUserCategory = () => {
-    const [userCategory, setUserCategory] = useState(null);
     const dispatch = useDispatch();
-    const categoryValue = useCategory();
-    const navigate = useNavigate();
+    let navigate = useNavigate();
+    
+    const handleCategoryChange = (e) => e.target.checked && navigate(`/explore-data/get-started/user/${e.target.name}`);
+    
+    
+    return (
+        <PageWithImageLayout imgPath={ManExploring}>
+            <div className="GetStartedForm">
+                <h2>What best describes you?</h2>
+                <p>We will help you get started based on your response</p>
+                <FormControl className="radio-field">
+                    <FormControlLabel
+                        className="radio-field-option"
+                        control={
+                            <Checkbox onChange={handleCategoryChange} name="individual" />
+                        }
+                        label="Individual" 
+                    />
+                    <FormControlLabel
+                        className="radio-field-option"
+                        control={
+                            <Checkbox onChange={handleCategoryChange} name="organisation" />
+                        }
+                        label="Organisation" 
+                    />
+                </FormControl>
+            </div>
+        </PageWithImageLayout>
+    );
+}
 
-    const handleCategoryChange = async (category)=> {
-        setUserCategory(category);
-        await dispatch(postUserCategory(category));
-        !isEmpty(categoryValue) && navigate(`/explore-data/get-started/user/${categoryValue}`);
+export const ExploreUserProfessionType = () => {
+    const dispatch = useDispatch();
+    let navigate = useNavigate();
+    
+    const handleCategoryChange = (e) => {
+        if(e.target.checked) {
+            dispatch(postStateData({category : e.target.name}));
+            navigate("/explore-data/get-started/user/register");
+        }
+    }
+    
+    return(
+        <PageWithImageLayout imgPath={ManExploring}>
+            <div className="GetStartedForm">
+                <h2>What best describes you?</h2>
+                <p>We will help you get started based on your response</p>
+                <FormControl className="radio-field">
+                    <FormControlLabel
+                        className="radio-field-option"
+                        control={
+                            <Checkbox onChange={handleCategoryChange} name="researcher" />
+                        }
+                        label="Researcher" 
+                    />
+                    <FormControlLabel
+                        className="radio-field-option"
+                        control={
+                            <Checkbox onChange={handleCategoryChange} name="environmental enthusiasts" />
+                        }
+                        label="Environmental enthusiasts" 
+                    />
+                </FormControl> 
+            </div>
+        </PageWithImageLayout>
+    );
+}
+
+export const ExploreOrganisationType = () => {
+    const dispatch = useDispatch();
+    let navigate = useNavigate();
+    
+    const handleCategoryChange = (e) => {
+        if(e.target.checked) {
+            dispatch(postStateData({category : e.target.name}));
+            navigate("/explore-data/get-started/user/register");
+        }
     }
     
     return (
@@ -96,77 +172,65 @@ export const ExploreUserCategory = () => {
             <div className="GetStartedForm">
                 <h2>What best describes you?</h2>
                 <p>We will help you get started based on your response</p>
-                <div className="radio-field">
-                    <div className="radio-field-option">
-                        <a type="button" onClick={()=>handleCategoryChange("individual")}>Individual</a>
-                    </div>
-                    <div className="radio-field-option">
-                        <a type="button" onClick={()=>handleCategoryChange("organisation")}>Organisation</a>
-                    </div>
-                </div>   
+                <FormControl className="radio-field">
+                    <FormControlLabel
+                        className="radio-field-option"
+                        control={
+                            <Checkbox onChange={handleCategoryChange} name="business" />
+                        }
+                        label="Business" 
+                    />
+                    <FormControlLabel
+                        className="radio-field-option"
+                        control={
+                            <Checkbox onChange={handleCategoryChange} name="government enthusiasts" />
+                        }
+                        label="Government enthusiasts" 
+                    />
+                </FormControl> 
             </div>
         </PageWithImageLayout>
     );
 }
 
-export const ExploreUserProfessionType = () => (
-    <PageWithImageLayout imgPath={ManExploring}>
-        <div className="GetStartedForm">
-            <h2>What best describes you?</h2>
-            <p>We will help you get started based on your response</p>
-            <div className="radio-field">
-                <div className="radio-field-option">
-                    <Link to="/explore-data/get-started/user/register">
-                        <input type="checkbox" name="description1" /> Researcher
-                    </Link>
-                </div>
-                <div className="radio-field-option">
-                    <Link to="/explore-data/get-started/user/register">
-                        <input type="checkbox" name="description1" /> Environmental enthusiasts
-                    </Link>
-                </div>
-            </div>  
-        </div>
-    </PageWithImageLayout>
-);
-
-export const ExploreOrganisationType = () => (
-    <PageWithImageLayout imgPath={ManExploring}>
-        <div className="GetStartedForm">
-            <h2>What best describes you?</h2>
-            <p>We will help you get started based on your response</p>
-            <div className="radio-field">
-                <div className="radio-field-option">
-                    <Link to="/explore-data/get-started/user/register-business">
-                        <input type="checkbox" name="description1" /> Business
-                    </Link>
-                    <Link to="/explore-data/get-started/user/register-organisation">
-                        <input type="checkbox" name="description1" /> Government enthusiasts
-                    </Link>
-                </div>
-            </div>  
-        </div>
-    </PageWithImageLayout>
-);
-
 export const ExploreUserRegistry = () => {
-    let navigationHistory = useNavigate();
-    const registerOrganisation = () => {
-        console.log(navigationHistory(-1));
+    let navigate = useNavigate();
+    const exploreData = useExploreData();
+    const dispatch = useDispatch();
+    const [exploreDataLocal, setExploreDataLocal] = useState(exploreData);
+    const [loading, setLoading] = useState(false);
+
+    const handleChange = (id) => (e) => setExploreDataLocal({ ...exploreDataLocal, [id] : e.target.value });
+    
+    console.log("Local state:", exploreData);
+
+    const registerOrganisation = async (e) => {
+        e.preventDefault();
+
+        if(exploreDataLocal.category === "business") {
+            navigate("/explore-data/get-started/user/register/business");
+        }else if(exploreDataLocal.category === "government enthusiasts") {
+            navigate("/explore-data/get-started/user/register/organisation");
+        }else {
+            setLoading(true);
+            await dispatch(addExploreDataRequest({ firstName: exploreDataLocal.firstName, lastName: exploreDataLocal.lastName, email: exploreDataLocal.email, category:exploreDataLocal.category, long_organization: exploreDataLocal.category, jobTitle: exploreDataLocal.category, website: "airqo.net", description: "Request Access to Data" }));
+            setLoading(false);
+        }
     }
 
     return (
         <PageWithImageLayout imgPath={ManExploring}>
             <div className="ExploreFormWrapper">
                 <h2>Create your AirQo account</h2>
-                <ExploreFormTemplate>
-                    <ExploreTemplateFormFieldOption label="First name" inputType="text" fieldId="firstName" />
-                    <ExploreTemplateFormFieldOption label="Last name" inputType="text" fieldId="lastName" />
-                    <ExploreTemplateFormFieldOption label="Email address" inputType="email" fieldId="emailAddress" />
+                <ExploreFormTemplate onSubmit={registerOrganisation}>
+                    <ExploreTemplateFormFieldOption label="First name" inputType="text" fieldId="firstName" onChange={handleChange("firstName")} />
+                    <ExploreTemplateFormFieldOption label="Last name" inputType="text" fieldId="lastName" onChange={handleChange("lastName")} />
+                    {exploreDataLocal.category === "researcher" && <ExploreTemplateFormFieldOption label="Email address" inputType="email" fieldId="email" onChange={handleChange("email")} />}
+                    {exploreDataLocal.category === "environmental enthusiasts" && <ExploreTemplateFormFieldOption label="Email address" inputType="email" fieldId="emailAddress" onChange={handleChange("emailAddress")} />}
                     <ExploreTemplateFormFieldOption inputType="checkbox" fieldId="tos" radioOption fieldClassName="tos" formOptionClassName="tos">
                         I agree to the <a>Terms of Service</a> and <a>Privacy Policy</a>
                     </ExploreTemplateFormFieldOption>
-                    <button className="nav-button" onClick={registerOrganisation}>Create Account</button>
+                    <button className="nav-button" type="submit" onSubmit={registerOrganisation}>{ loading ? <CircularProgress /> : "Create Account" }</button>
                     <small>Already have an account?<span><a href="https://staging-platform.airqo.net/" target="_blank">Log in</a></span></small>
                 </ExploreFormTemplate>
             </div>
@@ -174,42 +238,85 @@ export const ExploreUserRegistry = () => {
     );
 }
 
-export const ExploreBusinessRegistry = () => (
-    <PageWithImageLayout imgPath={ManExploring}>
-        <div className="ExploreFormWrapper">
-            <h2>Details about your business</h2>
-            <ExploreFormTemplate>
-                <ExploreTemplateFormFieldOption label="Business name" inputType="text" fieldId="businessName" />
-                <ExploreTemplateFormFieldOption label="Your position" inputType="text" fieldId="position" />
-                <ExploreTemplateFormFieldOption label="Email address" inputType="email" fieldId="emailAddress" />
-                <ExploreTemplateFormFieldOption inputType="checkbox" fieldId="tos" radioOption fieldClassName="tos" formOptionClassName="tos">
-                    I agree to the <a>Terms of Service</a> and <a>Privacy Policy</a>
-                </ExploreTemplateFormFieldOption>
-                <Link to="/explore-data/get-started/account/check-mail"><button className="nav-button">Create Account</button></Link>
-                <small>Already have an account?<span><a href="https://staging-platform.airqo.net/" target="_blank">Log in</a></span></small>
-            </ExploreFormTemplate>
-        </div>
-    </PageWithImageLayout>
-);
+export const ExploreBusinessRegistry = () => {
+    let navigate = useNavigate();
+    const exploreData = useExploreData();
+    const dispatch = useDispatch();
+    const [exploreDataLocal, setExploreDataLocal] = useState(exploreData);
+    const [loading, setLoading] = useState(false);
 
-export const ExploreOrganisationRegistry = () => (
-    <PageWithImageLayout imgPath={ManExploring}>
-        <div className="ExploreFormWrapper">
-            <h2>Details about your business</h2>
-            <ExploreFormTemplate>
-                <ExploreTemplateFormFieldOption label="Organisation name" inputType="text" fieldId="orgName" />
-                <ExploreTemplateFormFieldOption label="Your position" inputType="text" fieldId="position" />
-                <ExploreTemplateFormFieldOption label="Email address" inputType="email" fieldId="emailAddress" />
-                <ExploreTemplateFormFieldOption inputType="checkbox" fieldId="tos" radioOption fieldClassName="tos" formOptionClassName="tos">
-                    I agree to the <a>Terms of Service</a> and <a>Privacy Policy</a>
-                </ExploreTemplateFormFieldOption>
-                <Link to="/explore-data/get-started/account/check-mail"><button className="nav-button">Create Account</button></Link>
-                <small>Already have an account?<span><a href="https://staging-platform.airqo.net/" target="_blank">Log in</a></span></small>
-            </ExploreFormTemplate>
-        </div>
-    </PageWithImageLayout>
-);
+    const handleChange = (id) => (e) => setExploreDataLocal({ ...exploreDataLocal, [id] : e.target.value });
+    
 
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        setLoading(true);
+
+        await dispatch(addExploreDataRequest({ firstName: exploreDataLocal.firstName, lastName: exploreDataLocal.lastName, email: exploreDataLocal.email, category:exploreDataLocal.category, long_organization: exploreDataLocal.business, jobTitle: exploreDataLocal.position, website: "airqo.net", description: "Request Access to Data" }));
+
+        setLoading(false);
+        navigate("/explore-data/get-started/user/check-mail");
+    }
+
+    return(
+        <PageWithImageLayout imgPath={ManExploring}>
+            <div className="ExploreFormWrapper">
+                <h2>Details about your business</h2>
+                <ExploreFormTemplate onSubmit={handleSubmit}>
+                    <ExploreTemplateFormFieldOption label="Business name" inputType="text" fieldId="businessName" onChange={handleChange("business")} />
+                    <ExploreTemplateFormFieldOption label="Your position" inputType="text" fieldId="position" onChange={handleChange("position")} />
+                    <ExploreTemplateFormFieldOption label="Email address" inputType="email" fieldId="emailAddress" onChange={handleChange("email")} />
+                    <ExploreTemplateFormFieldOption inputType="checkbox" fieldId="tos" radioOption fieldClassName="tos" formOptionClassName="tos">
+                        I agree to the <a>Terms of Service</a> and <a>Privacy Policy</a>
+                    </ExploreTemplateFormFieldOption>
+                    <button type="submit" className="nav-button">{ loading ? <CircularProgress /> : "Create Account" }</button>
+                    <small>Already have an account?<span><a href="https://staging-platform.airqo.net/" target="_blank">Log in</a></span></small>
+                </ExploreFormTemplate>
+            </div>
+        </PageWithImageLayout>
+    );
+}
+
+export const ExploreOrganisationRegistry = () => {
+    let navigate = useNavigate();
+    const exploreData = useExploreData();
+    const dispatch = useDispatch();
+    const [exploreDataLocal, setExploreDataLocal] = useState(exploreData);
+    const [loading, setLoading] = useState(false);
+
+    const handleChange = (id) => (e) => setExploreDataLocal({ ...exploreDataLocal, [id] : e.target.value });
+    
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        setLoading(true);
+
+        await dispatch(addExploreDataRequest({ firstName: exploreDataLocal.firstName, lastName: exploreDataLocal.lastName, email: exploreDataLocal.email, category:exploreDataLocal.category, long_organization: exploreDataLocal.business, jobTitle: exploreDataLocal.position, website: "airqo.net", description: "Request Access to Data" }));
+
+        setLoading(false);
+        navigate("/explore-data/get-started/user/check-mail");
+    }
+
+    return (
+        <PageWithImageLayout imgPath={ManExploring}>
+            <div className="ExploreFormWrapper">
+                <h2>Details about your business</h2>
+                <ExploreFormTemplate onSubmit={handleSubmit}>
+                    <ExploreTemplateFormFieldOption label="Organisation name" inputType="text" fieldId="orgName" onChange={handleChange("business")} />
+                    <ExploreTemplateFormFieldOption label="Your position" inputType="text" fieldId="position" onChange={handleChange("position")} />
+                    <ExploreTemplateFormFieldOption label="Email address" inputType="email" fieldId="emailAddress" onChange={handleChange("email")} />
+                    <ExploreTemplateFormFieldOption inputType="checkbox" fieldId="tos" radioOption fieldClassName="tos" formOptionClassName="tos">
+                        I agree to the <a>Terms of Service</a> and <a>Privacy Policy</a>
+                    </ExploreTemplateFormFieldOption>
+                    <button className="nav-button" type="submit">{ loading ? <CircularProgress /> : "Create Account" }</button>
+                    <small>Already have an account?<span><a href="https://staging-platform.airqo.net/" target="_blank">Log in</a></span></small>
+                </ExploreFormTemplate>
+            </div>
+        </PageWithImageLayout>
+    );
+}
 export const ExploreRegistryConfirmation = () => (
     <div className="ConfirmExploreDataMail">
         <RegistrationCompleteSvg />
