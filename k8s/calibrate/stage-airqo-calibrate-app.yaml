@@ -22,33 +22,33 @@ spec:
           ports:
             - containerPort: 80
               name: sta-calibrate
-          resources:
-            limits:
-              cpu: 250m
-              memory: 300Mi
+          # resources:
+          #   limits:
+          #     cpu: 250m
+          #     memory: 300Mi
           envFrom:
             - configMapRef:
                 name: env-calibrate-staging
 
----
-kind: HorizontalPodAutoscaler
-apiVersion: autoscaling/v2
-metadata:
-  name: airqo-stage-calibrate-app-hpa
-spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: airqo-stage-calibrate-app
-  minReplicas: 1
-  maxReplicas: 4
-  metrics:
-  - type: Resource
-    resource:
-      name: memory
-      target:
-        type: Utilization
-        averageUtilization: 80
+# ---
+# kind: HorizontalPodAutoscaler
+# apiVersion: autoscaling/v2
+# metadata:
+#   name: airqo-stage-calibrate-app-hpa
+# spec:
+#   scaleTargetRef:
+#     apiVersion: apps/v1
+#     kind: Deployment
+#     name: airqo-stage-calibrate-app
+#   minReplicas: 1
+#   maxReplicas: 4
+#   metrics:
+#   - type: Resource
+#     resource:
+#       name: memory
+#       target:
+#         type: Utilization
+#         averageUtilization: 60
 
 ---
 kind: Service
