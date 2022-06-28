@@ -1,4 +1,5 @@
 @import 'lib/colors';
+@import 'lib/variables';
 
 .brand-icon {
     width: 71px;
@@ -177,6 +178,13 @@
             display: flex;
             justify-content: space-between;
             padding: 24px;
+
+            button {
+                outline: 0;
+                background-color: $aq-white-0;
+                border: 0;
+                cursor: pointer;
+            }
         }
 
         .content {
@@ -236,7 +244,7 @@
     
 }
 
-.GetStarted {
+.ExploreGetStarted {
     margin: 5% 14%;
 
     h2 {
@@ -287,7 +295,7 @@
         
 }
 
-.GetStartedForm {
+.ExploreGetStartedForm {
     margin: 10% 14%;
 
     h2 {
@@ -316,6 +324,7 @@
             width: 544px;
             height: 80px;
             padding: 28px 0 28px 24px;
+            box-sizing: border-box;
         }
 
         .radio-field-option:first-child {
@@ -396,8 +405,6 @@
     width: 100%;
 
     .content {
-            
-
         h2 {
             font-size: 32px;
             font-weight: 500;
@@ -426,4 +433,143 @@
         padding: 16px 32px;
         box-sizing: border-box;
     }
+}
+
+@media(max-width: $mainBreakPoint) {
+    .ExploreData {
+        flex-direction: column;
+        height: 100%;
+
+        .left-section {
+            justify-content: flex-start;
+            padding: 24px 16px;
+
+            .nav {
+                margin: 32px 0 24px 0;
+            }
+
+            .content {
+                h2, p {
+                    width: 100%;
+                }
+            }
+        }
+
+        .right-section {
+            .nav-icon {
+                position: absolute;
+                top: 15px;
+                right: 15px;
+            }
+            .nav {
+                flex-direction: column;
+                justify-content: center;
+                align-items:  center;
+
+                .nav-option {
+                    margin-bottom: 24px;
+                }
+            }
+        }
+    }
+
+    .ExploreDataWrapper {
+        flex-direction: column;
+        .left-section {
+            display: none;
+        }
+
+        .right-section {
+            .nav-row {
+                position: sticky;
+                top: 0;
+                background-color: $aq-white-0;
+                padding: 24px 16px;
+            }
+        }
+    }
+
+    .ExploreApp {
+        p, h2 {
+            width: 100%;
+        }
+
+        .wrapper {
+            flex-direction: column;
+            width: 100%;
+            height: auto;
+
+            hr {
+                width: 100%;
+                height: 1px;
+                margin: 24px 0;
+            }
+        }
+        
+    }
+
+    .ExploreGetStarted {
+        margin: 0 16px;
+
+        h2, p, button, small {
+            width: 100%;
+        }
+
+        small {
+            padding: 18px 50px;
+            >span {
+                a {
+                    text-decoration: underline;
+                }
+            }
+        }
+    }
+
+    .ExploreGetStartedForm {
+        margin: 0 16px;
+        width: 100%;
+
+        .radio-field {
+            width: 100%;
+            margin: 0 auto;
+            .radio-field-option {
+                width: 100%;
+                padding: 28px 0;
+            }
+        }
+    }
+
+    .ExploreFormWrapper {
+        margin: 0 16px;
+
+        .create-account-form {
+            width: 100%;
+            margin: 0 auto;
+            .form-option {
+                width: 100%;
+                .form-control {
+                    width: 100%;
+                }
+            }
+            
+            button, small {
+                width: 100%;
+            }
+        }
+    }
+
+    .ConfirmExploreDataMail {
+        padding: 0 16px;
+    
+        .content {
+            p, h2 {
+                width: 100%;
+            }
+        }
+
+        .registration_svg {
+            display: none;
+        }
+    }
+
 }

@@ -56,7 +56,7 @@ const Hero = () => {
                 <p className="hero-title">Clean air for <br />all African cities </p>
                 <p className="hero-sub"> <span style={{color:"#135DFF"}}>“9 out of 10 people breathe polluted air”.</span> <br/>We empower communities with accurate, hyperlocal and timely air quality data to drive air pollution mitigation actions.</p>
                 <div className="hero-buttons">
-                    <Button label="Explore data" />
+                    <Link to="/explore-data"><Button label="Explore data" /></Link>
                     <Button className="button-get-involved" label="Get Involved" onClick={showModal} />
                 </div>
                 </div>

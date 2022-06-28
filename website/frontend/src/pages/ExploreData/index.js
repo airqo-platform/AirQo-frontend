@@ -16,6 +16,7 @@ import { useDispatch } from 'react-redux';
 import { Checkbox, FormControl, FormControlLabel, CircularProgress } from '@mui/material';
 import { useExploreData } from 'reduxStore/ExploreData/selectors';
 import { addExploreDataRequest, postStateData } from 'reduxStore/ExploreData/operations';
+import { isEmpty } from 'underscore';
 
 export const PageWithImageLayout = ({imgPath, children}) => {
     const navigate = useNavigate();
@@ -52,6 +53,7 @@ export const ExploreTemplateFormFieldOption = ({formOptionClassName, fieldId, la
         </div>
     );
 }
+
 export const ExploreApp = () => (
     <PageWithImageLayout>
         <div className="ExploreApp">
@@ -76,7 +78,7 @@ export const ExploreApp = () => (
 
 export const ExploreGetStarted = () => (
     <PageWithImageLayout imgPath={ManExploring}>
-        <div className="GetStarted">
+        <div className="ExploreGetStarted">
             <div className="brand-icon"><AirQo /></div>
             <h2>Clean air for all African cities</h2>
             <p>Get access to an interactive air quality analytics platform.</p>
@@ -95,7 +97,7 @@ export const ExploreUserCategory = () => {
     
     return (
         <PageWithImageLayout imgPath={ManExploring}>
-            <div className="GetStartedForm">
+            <div className="ExploreGetStartedForm">
                 <h2>What best describes you?</h2>
                 <p>We will help you get started based on your response</p>
                 <FormControl className="radio-field">
@@ -132,7 +134,7 @@ export const ExploreUserProfessionType = () => {
     
     return(
         <PageWithImageLayout imgPath={ManExploring}>
-            <div className="GetStartedForm">
+            <div className="ExploreGetStartedForm">
                 <h2>What best describes you?</h2>
                 <p>We will help you get started based on your response</p>
                 <FormControl className="radio-field">
@@ -169,7 +171,7 @@ export const ExploreOrganisationType = () => {
     
     return (
         <PageWithImageLayout imgPath={ManExploring}>
-            <div className="GetStartedForm">
+            <div className="ExploreGetStartedForm">
                 <h2>What best describes you?</h2>
                 <p>We will help you get started based on your response</p>
                 <FormControl className="radio-field">
@@ -202,10 +204,12 @@ export const ExploreUserRegistry = () => {
 
     const handleChange = (id) => (e) => setExploreDataLocal({ ...exploreDataLocal, [id] : e.target.value });
     
-    console.log("Local state:", exploreData);
+    
 
     const registerOrganisation = async (e) => {
         e.preventDefault();
+
+        console.log("Local state:", exploreDataLocal);
 
         if(exploreDataLocal.category === "business") {
             navigate("/explore-data/get-started/user/register/business");
@@ -213,10 +217,21 @@ export const ExploreUserRegistry = () => {
             navigate("/explore-data/get-started/user/register/organisation");
         }else {
             setLoading(true);
-            await dispatch(addExploreDataRequest({ firstName: exploreDataLocal.firstName, lastName: exploreDataLocal.lastName, email: exploreDataLocal.email, category:exploreDataLocal.category, long_organization: exploreDataLocal.category, jobTitle: exploreDataLocal.category, website: "airqo.net", description: "Request Access to Data" }));
+            await dispatch(addExploreDataRequest({ 
+                ...exploreDataLocal,
+                long_organization: exploreDataLocal.category, 
+                jobTitle: exploreDataLocal.category, 
+                website: "airqo.net", 
+                description: "Request Access to Data" }));
             setLoading(false);
         }
     }
+
+    useEffect(()=>{
+        if(isEmpty(exploreDataLocal.category)) {
+            navigate("/explore-data/get-started/user");
+        }
+    }, [exploreDataLocal]);
 
     return (
         <PageWithImageLayout imgPath={ManExploring}>
@@ -226,7 +241,7 @@ export const ExploreUserRegistry = () => {
                     <ExploreTemplateFormFieldOption label="First name" inputType="text" fieldId="firstName" onChange={handleChange("firstName")} />
                     <ExploreTemplateFormFieldOption label="Last name" inputType="text" fieldId="lastName" onChange={handleChange("lastName")} />
                     {exploreDataLocal.category === "researcher" && <ExploreTemplateFormFieldOption label="Email address" inputType="email" fieldId="email" onChange={handleChange("email")} />}
-                    {exploreDataLocal.category === "environmental enthusiasts" && <ExploreTemplateFormFieldOption label="Email address" inputType="email" fieldId="emailAddress" onChange={handleChange("emailAddress")} />}
+                    {exploreDataLocal.category === "environmental enthusiasts" && <ExploreTemplateFormFieldOption label="Email address" inputType="email" fieldId="emailAddress" onChange={handleChange("email")} />}
                     <ExploreTemplateFormFieldOption inputType="checkbox" fieldId="tos" radioOption fieldClassName="tos" formOptionClassName="tos">
                         I agree to the <a>Terms of Service</a> and <a>Privacy Policy</a>
                     </ExploreTemplateFormFieldOption>
@@ -234,7 +249,7 @@ export const ExploreUserRegistry = () => {
                     <small>Already have an account?<span><a href="https://staging-platform.airqo.net/" target="_blank">Log in</a></span></small>
                 </ExploreFormTemplate>
             </div>
-        </PageWithImageLayout>
+        </PageWithImageLayout> 
     );
 }
 
@@ -253,11 +268,17 @@ export const ExploreBusinessRegistry = () => {
 
         setLoading(true);
 
-        await dispatch(addExploreDataRequest({ firstName: exploreDataLocal.firstName, lastName: exploreDataLocal.lastName, email: exploreDataLocal.email, category:exploreDataLocal.category, long_organization: exploreDataLocal.business, jobTitle: exploreDataLocal.position, website: "airqo.net", description: "Request Access to Data" }));
+        await dispatch(addExploreDataRequest({ ...exploreDataLocal, long_organization: exploreDataLocal.business, jobTitle: exploreDataLocal.position, website: "airqo.net", description: "Request Access to Data" }));
 
         setLoading(false);
         navigate("/explore-data/get-started/user/check-mail");
     }
+
+    useEffect(()=>{
+        if(isEmpty(exploreDataLocal.category)) {
+            navigate("/explore-data/get-started/user");
+        }
+    }, [exploreDataLocal]);
 
     return(
         <PageWithImageLayout imgPath={ManExploring}>
@@ -293,11 +314,17 @@ export const ExploreOrganisationRegistry = () => {
 
         setLoading(true);
 
-        await dispatch(addExploreDataRequest({ firstName: exploreDataLocal.firstName, lastName: exploreDataLocal.lastName, email: exploreDataLocal.email, category:exploreDataLocal.category, long_organization: exploreDataLocal.business, jobTitle: exploreDataLocal.position, website: "airqo.net", description: "Request Access to Data" }));
+        await dispatch(addExploreDataRequest({ ...exploreDataLocal, long_organization: exploreDataLocal.business, jobTitle: exploreDataLocal.position, website: "airqo.net", description: "Request Access to Data" }));
 
         setLoading(false);
         navigate("/explore-data/get-started/user/check-mail");
     }
+
+    useEffect(()=>{
+        if(isEmpty(exploreDataLocal.category)) {
+            navigate("/explore-data/get-started/user");
+        }
+    }, [exploreDataLocal]);
 
     return (
         <PageWithImageLayout imgPath={ManExploring}>
@@ -319,7 +346,7 @@ export const ExploreOrganisationRegistry = () => {
 }
 export const ExploreRegistryConfirmation = () => (
     <div className="ConfirmExploreDataMail">
-        <RegistrationCompleteSvg />
+        <RegistrationCompleteSvg className="registration_svg" />
         <div className="content">
             <h2>Check your email for more details.</h2>
             <p>Access real-time and historic air quality information across Africa through our easy-to-use air quality analytics dashboard</p>
