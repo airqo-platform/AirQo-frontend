@@ -242,6 +242,17 @@ class Airqo extends CI_Controller
 		$this->load->view('lib/footer');
 	}
 
+	public function CareerDetails2($slug)
+	{
+		$data['title'] = "Communications and Engagement Graduate Trainee";
+		$data['contact'] = $this->AirqoModel->get_contact_details();
+		$this->logVisitedPage($data['title']);
+
+		$this->load->view('lib/header', $data);
+		$this->load->view('airqo-career-details2', $data);
+		$this->load->view('lib/footer');
+	}
+
 	public function howItWorks()
 	{
 		$data['title'] = 'How It Works';
