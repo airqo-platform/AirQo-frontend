@@ -10,7 +10,7 @@ spec:
   selector:
     matchLabels:
       app: airqo-platform
-  replicas: 2
+  replicas: 4
   template:
     metadata:
       labels:
@@ -26,8 +26,13 @@ spec:
           envFrom:
             - configMapRef:
                 name: env-platform-production
-
-            
+          resources:
+            requests:
+              cpu: 100m
+              memory: 250Mi
+            limits:
+              cpu: 200m
+              memory: 700Mi
 
 ---
 kind: Service
@@ -44,3 +49,23 @@ spec:
       targetPort: 80
       nodePort: 30101
   type: NodePort
+
+---
+kind: HorizontalPodAutoscaler
+apiVersion: autoscaling/v2
+metadata:
+  name: airqo-platform-frontend-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: airqo-platform-frontend
+  minReplicas: 1
+  maxReplicas: 4
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70

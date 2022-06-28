@@ -1,4 +1,6 @@
 import React from 'react';
+import { useDispatch } from "react-redux";
+import { showGetInvolvedModal } from "reduxStore/GetInvolved/operations";
 import useWindowSize from 'utils/customHooks';
 import HeroCityImg from 'icons/homepage/hero-city.png';
 import HeroCityLargeImg from 'icons/homepage/hero-city-full.png';
@@ -9,10 +11,13 @@ import ArrowDown from 'icons/homepage/hero/arrow-down.svg';
 
 const breakPoint = 580;
 
-const Button = ({ className, label }) => <button className={className || 'button-hero'}>{label}</button>;
+// eslint-disable-next-line react/button-has-type
+const Button = ({ className, label, onClick }) => <button className={className || 'button-hero'} onClick={onClick}>{label}</button>;
 
 const Hero = () => {
   const size = useWindowSize();
+  const dispatch = useDispatch();
+  const showModal = () => dispatch(showGetInvolvedModal(true))
 
   return (
         <div className="Hero">
@@ -50,8 +55,9 @@ const Hero = () => {
                 <p className="hero-title">Clean air for <br />all African cities </p>
                 <p className="hero-sub"> <span style={{color:"#135DFF"}}>“9 out of 10 people breathe polluted air”.</span> <br/>We empower communities with accurate, hyperlocal and timely air quality data to drive air pollution mitigation actions.</p>
                 <div className="hero-buttons">
-                    <Button label="Explore data" />
-                    <Button className="button-get-involved" label="Get Involved" />
+                    
+                    <Button label="Get Involved" onClick={showModal} />
+                    <Button className="button-get-involved btn-disabled" label="Explore data" />
                 </div>
                 </div>
             </div>

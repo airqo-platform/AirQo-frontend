@@ -1,10 +1,10 @@
 import React from 'react'
 import { Link } from 'react-router-dom';
 
-const ContactCard = ({ preamble, title, page_link }) => {
+const ContactCard = ({ preamble, title, page_link, icon }) => {
   return (
     <div className='contact-card'>
-      <div></div>
+      <div>{icon}</div>
       <div>
         <p>
           {preamble}
