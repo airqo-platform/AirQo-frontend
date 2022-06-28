@@ -209,7 +209,7 @@ export const ExploreUserRegistry = () => {
     const registerOrganisation = async (e) => {
         e.preventDefault();
 
-        console.log("Local state:", exploreDataLocal);
+        // console.log("Local state:", exploreDataLocal);
 
         if(exploreDataLocal.category === "business") {
             navigate("/explore-data/get-started/user/register/business");
