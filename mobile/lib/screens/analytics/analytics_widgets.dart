@@ -395,14 +395,13 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      widget.placeDetails.name.trimEllipsis(),
+                                      widget.placeDetails.name,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: CustomTextStyle.headline9(context),
                                     ),
                                     Text(
-                                      widget.placeDetails.location
-                                          .trimEllipsis(),
+                                      widget.placeDetails.location,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: CustomTextStyle.bodyText4(context)
@@ -444,7 +443,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                           child: Text(
                                             dateToString(
                                               widget.measurement.time,
-                                            ).trimEllipsis(),
+                                            ),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
@@ -612,14 +611,13 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      widget.placeDetails.name.trimEllipsis(),
+                                      widget.placeDetails.name,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: CustomTextStyle.headline9(context),
                                     ),
                                     Text(
-                                      widget.placeDetails.location
-                                          .trimEllipsis(),
+                                      widget.placeDetails.location,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: CustomTextStyle.bodyText4(context)
@@ -651,7 +649,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                           child: Text(
                                             dateToString(
                                               widget.measurement.time,
-                                            ).trimEllipsis(),
+                                            ),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(

@@ -237,7 +237,7 @@ void pmInfoDialog(context, double pm2_5) {
                           ),
                         ),
                         child: AutoSizeText(
-                          Pollutant.pm2_5.stringValue(pm2_5).trimEllipsis(),
+                          Pollutant.pm2_5.stringValue(pm2_5),
                           maxLines: 2,
                           minFontSize: 10,
                           maxFontSize: 10,

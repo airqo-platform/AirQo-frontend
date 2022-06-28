@@ -357,7 +357,10 @@ class _InsightsTabState extends State<InsightsTab> {
                 Visibility(
                   visible: _selectedMeasurement!.empty,
                   child: Container(
-                    padding: const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10.0,
+                      vertical: 2.0,
+                    ),
                     decoration: BoxDecoration(
                       borderRadius: const BorderRadius.all(
                         Radius.circular(40.0),
@@ -513,11 +516,6 @@ class _InsightsTabState extends State<InsightsTab> {
     }
   }
 
-  void togglePollutant() {
-    setState(() => _pollutant =
-        _pollutant == Pollutant.pm2_5 ? Pollutant.pm10 : Pollutant.pm2_5);
-  }
-
   void _updateTitleDateTime(List<charts.Series<Insights, String>> data) {
     final dateTime = data.first.data.first.time;
 
@@ -632,11 +630,18 @@ class _InsightsTabState extends State<InsightsTab> {
             ),
             Visibility(
               visible: _hasMeasurements,
-              child: GestureDetector(
-                onTap: togglePollutant,
+              child: PopupMenuButton(
+                padding: EdgeInsets.zero,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(4.0),
+                  ),
+                ),
+                onSelected: (value) =>
+                    setState(() => _pollutant = value as Pollutant),
                 child: Container(
-                  height: 32,
-                  width: 32,
+                  height: 35,
+                  width: 35,
                   padding: const EdgeInsets.all(6.0),
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -654,6 +659,26 @@ class _InsightsTabState extends State<InsightsTab> {
                     width: 20,
                   ),
                 ),
+                itemBuilder: (BuildContext context) => <PopupMenuEntry>[
+                  PopupMenuItem(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    value: Pollutant.pm2_5,
+                    child: ListOption(
+                      pollutantName: '2.5',
+                      pollutant: Pollutant.pm2_5,
+                      varyingPollutant: _pollutant,
+                    ),
+                  ),
+                  PopupMenuItem(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    value: Pollutant.pm10,
+                    child: ListOption(
+                      pollutantName: '10',
+                      pollutant: Pollutant.pm10,
+                      varyingPollutant: _pollutant,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
