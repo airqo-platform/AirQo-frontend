@@ -9,3 +9,6 @@ mobile/android/app/google-services.json
 .DS_Store/
 .DS_Store
 .env
+.env.yaml
+.stage-env.yaml
+.prod-env.yaml
