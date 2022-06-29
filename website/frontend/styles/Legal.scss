@@ -110,7 +110,7 @@ $text-size-h2:40px;
             .tos-wording{
                 margin-left: 5%;
                 max-height: 780px;
-                overflow-y: hidden;
+                overflow-x: hidden;
                 overflow-y: scroll;
                 padding-right: 40px;
                 text-align: justify;
@@ -171,6 +171,53 @@ $text-size-h2:40px;
             }
             ::-webkit-scrollbar-corner{
                 border-radius: 10px;
+            }
+        }
+        #show-more{
+            display: none;
+        }
+    }
+}
+@media(max-width: $mainBreakPoint){
+    .tos-page{
+        .tos-body{
+            .tos-sub{
+                display: grid;
+                grid-template-columns: 1fr;
+                .sidenav{
+                    display:none;
+                }
+                .tos-wording{
+                    max-height: max-content;
+                    text-align: left;
+                    div{
+                        ol{
+                            margin-left: -5%;
+                            p{
+                                margin-left: -6%;
+                            }
+                        }
+                    }
+                }
+                #show-more{
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding-bottom: 80px;
+                    padding-top: 40px;
+                    .btn{
+                        border: none;
+                        outline: none;
+                        font-size: $pillFont;
+                        font-weight: 400;
+                        color:$aq-blue-4;
+                        cursor: pointer;
+                        text-transform: capitalize;
+                    }
+                }
+                ::-webkit-scrollbar{
+                    display: none;
+                }
             }
         }
     }
