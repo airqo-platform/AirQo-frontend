@@ -17,6 +17,13 @@
 				<div class="contact-main row align-items-center">
 					<div class="col-md-12">
 						<div class="column">
+						    <h4 class="header mb-4">Expected start date: <span style="color:#6c757d">August 1, 2022 or earlier</span></h4>
+                            <h4 class="header mb-4">Duration:  <span style="color:#6c757d">6 months with possibility to extend</span></h4>
+                            <h4 class="header mb-4">Probation period: <span style="color:#6c757d">3 months</span></h4>
+                            <h4 class="header mb-4">Compensation: <span style="color:#6c757d">Modest Stipend</span></h4>
+                            <h4 class="header mb-4">Mentor/supervisor: <span style="color:#6c757d">Marketing and Communications Lead</span></h4>
+                            <h4 class="header mb-4">Location/Duty station: <span style="color:#6c757d">Both virtual and physical - Makerere University, Kampala, Uganda.</span></h4>
+
 							<h3 class="header mb-4">Description</h3>
 							<p class="head-main mb-3">
 								We are looking for a Communications and Engagement Graduate Trainee to join <a href="https://airqo.net/" target="_blank">AirQo</a> and be part of the team dedicated to closing the gaps in air quality data in Uganda and across Africa through low cost air quality monitoring and multi-sectoral collaborations and engagements. Since 2018, AirQo has deployed its high resolution air quality monitoring network in Uganda and across other African Cities. The data collected is then used to influence policy decisions and to raise awareness of clean air.
