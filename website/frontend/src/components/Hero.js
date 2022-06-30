@@ -4,7 +4,7 @@ import { showGetInvolvedModal } from "reduxStore/GetInvolved/operations";
 import useWindowSize from 'utils/customHooks';
 import HeroCityImg from 'icons/homepage/hero-city.png';
 import HeroCityLargeImg from 'icons/homepage/hero-city-full.png';
-import HeroImg from 'assets/img/hero-img.png';
+import HeroImg from 'assets/img/Hero_Kampala.jpeg';
 import Location from 'icons/homepage/hero/location.svg';
 import Reload from 'icons/homepage/hero/reload.svg';
 import ArrowDown from 'icons/homepage/hero/arrow-down.svg';
