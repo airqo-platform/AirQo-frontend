@@ -1,5 +1,4 @@
 import 'package:app/models/kya.dart';
-import 'package:app/utils/extensions.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -17,8 +16,8 @@ import 'kya_widgets.dart';
 class KyaLessonsPage extends StatefulWidget {
   const KyaLessonsPage(
     this.kya, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
   final Kya kya;
 
   @override

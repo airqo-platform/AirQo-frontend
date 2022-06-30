@@ -21,10 +21,10 @@ import 'auth_widgets.dart';
 
 class EmailAuthWidget extends StatefulWidget {
   const EmailAuthWidget({
-    Key? key,
+    super.key,
     this.emailAddress,
     required this.authProcedure,
-  }) : super(key: key);
+  });
   final String? emailAddress;
   final AuthProcedure authProcedure;
 
@@ -708,9 +708,8 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
 }
 
 class EmailLoginWidget extends EmailAuthWidget {
-  const EmailLoginWidget({Key? key, String? emailAddress})
+  const EmailLoginWidget({super.key, String? emailAddress})
       : super(
-          key: key,
           emailAddress: emailAddress,
           authProcedure: AuthProcedure.login,
         );
@@ -722,8 +721,8 @@ class EmailLoginWidget extends EmailAuthWidget {
 class EmailLoginWidgetState extends EmailAuthWidgetState<EmailLoginWidget> {}
 
 class EmailSignUpWidget extends EmailAuthWidget {
-  const EmailSignUpWidget({Key? key})
-      : super(key: key, authProcedure: AuthProcedure.signup);
+  const EmailSignUpWidget({super.key})
+      : super(authProcedure: AuthProcedure.signup);
 
   @override
   EmailSignUpWidgetState createState() => EmailSignUpWidgetState();

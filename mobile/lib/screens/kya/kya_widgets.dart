@@ -1,4 +1,3 @@
-import 'package:app/utils/extensions.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -13,9 +12,9 @@ import 'kya_title_page.dart';
 
 class CircularKyaButton extends StatelessWidget {
   const CircularKyaButton({
-    Key? key,
+    super.key,
     required this.icon,
-  }) : super(key: key);
+  });
   final String icon;
 
   @override
@@ -52,9 +51,9 @@ String getKyaMessage({
 
 class KyaMessage extends StatelessWidget {
   const KyaMessage({
-    Key? key,
+    super.key,
     required this.kya,
-  }) : super(key: key);
+  });
   final Kya kya;
 
   @override
@@ -94,9 +93,9 @@ class KyaMessage extends StatelessWidget {
 
 class KyaProgressBar extends StatelessWidget {
   const KyaProgressBar({
-    Key? key,
+    super.key,
     required this.kya,
-  }) : super(key: key);
+  });
   final Kya kya;
 
   @override
@@ -121,7 +120,7 @@ class KyaProgressBar extends StatelessWidget {
 }
 
 class KyaViewWidget extends StatelessWidget {
-  const KyaViewWidget({Key? key, required this.kya}) : super(key: key);
+  const KyaViewWidget({super.key, required this.kya});
   final Kya kya;
 
   @override
@@ -221,7 +220,7 @@ class KyaViewWidget extends StatelessWidget {
 }
 
 class EmptyKya extends StatelessWidget {
-  const EmptyKya({Key? key}) : super(key: key);
+  const EmptyKya({super.key});
 
   @override
   Widget build(BuildContext context) {

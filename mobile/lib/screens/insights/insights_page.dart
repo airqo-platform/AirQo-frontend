@@ -11,8 +11,8 @@ import '../../widgets/buttons.dart';
 class InsightsPage extends StatefulWidget {
   const InsightsPage(
     this.placeDetails, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
   final PlaceDetails placeDetails;
 
   @override

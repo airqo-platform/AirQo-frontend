@@ -50,5 +50,6 @@ jobs:
           relative_path: mobile/
           pull_request_comment: true
           check_unused_files: true
-          check_unused_files_folders: true
           fatal_performance: true
+          fatal_style: true
+          fatal_warnings: true

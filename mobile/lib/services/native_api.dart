@@ -8,7 +8,6 @@ import 'package:app/models/measurement.dart';
 import 'package:app/services/firebase_service.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
-import 'package:app/utils/extensions.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/widgets/dialogs.dart';
 import 'package:flutter/foundation.dart';

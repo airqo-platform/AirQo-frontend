@@ -11,8 +11,8 @@ import '../../themes/colors.dart';
 class EmailReAuthenticateScreen extends StatefulWidget {
   const EmailReAuthenticateScreen(
     this.userDetails, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
   final Profile userDetails;
 
   @override

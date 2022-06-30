@@ -9,7 +9,7 @@ import '../../services/hive_service.dart';
 import '../../themes/colors.dart';
 
 class NotificationPage extends StatefulWidget {
-  const NotificationPage({Key? key}) : super(key: key);
+  const NotificationPage({super.key});
 
   @override
   State<NotificationPage> createState() => _NotificationPageState();

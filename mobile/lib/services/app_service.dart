@@ -196,7 +196,7 @@ class AppService {
 
     if (frequency != null) {
       return insights
-          .where((element) => element.frequency == frequency.getName())
+          .where((element) => element.frequency == frequency.toString())
           .toList();
     }
 

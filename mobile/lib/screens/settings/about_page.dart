@@ -10,8 +10,8 @@ import '../../themes/colors.dart';
 
 class AboutAirQo extends StatefulWidget {
   const AboutAirQo({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<AboutAirQo> createState() => _AboutAirQoState();

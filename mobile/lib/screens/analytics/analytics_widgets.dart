@@ -5,7 +5,6 @@ import 'package:app/models/place_details.dart';
 import 'package:app/screens/insights/insights_page.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/utils/date.dart';
-import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/dialogs.dart';
 import 'package:app/widgets/tooltip.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -22,9 +21,9 @@ import '../../widgets/custom_widgets.dart';
 
 class AnalyticsAvatar extends StatelessWidget {
   const AnalyticsAvatar({
-    Key? key,
+    super.key,
     required this.measurement,
-  }) : super(key: key);
+  });
   final Measurement measurement;
 
   @override
@@ -44,7 +43,7 @@ class AnalyticsAvatar extends StatelessWidget {
         children: [
           const Spacer(),
           SvgPicture.asset(
-            'assets/icon/PM2.5.svg',
+            Pollutant.pm2_5.svg(),
             semanticsLabel: 'Pm2.5',
             height: 9.7,
             width: 32.45,
@@ -80,13 +79,15 @@ class AnalyticsAvatar extends StatelessWidget {
 
 class MapAnalyticsMoreInsights extends StatelessWidget {
   const MapAnalyticsMoreInsights({
-    Key? key,
+    super.key,
     required this.placeDetails,
-  }) : super(key: key);
+  });
   final PlaceDetails placeDetails;
 
   @override
   Widget build(BuildContext context) {
+    final appColors = Theme.of(context).extension<AppColors>()!;
+
     return SizedBox(
       height: 16,
       child: ListTile(
@@ -107,7 +108,7 @@ class MapAnalyticsMoreInsights extends StatelessWidget {
               'View More Insights',
               style: TextStyle(
                 fontSize: 12,
-                color: CustomColors.appColorBlue,
+                color: appColors.appColorBlue,
               ),
             ),
             const Spacer(),
@@ -126,13 +127,15 @@ class MapAnalyticsMoreInsights extends StatelessWidget {
 
 class AnalyticsMoreInsights extends StatelessWidget {
   const AnalyticsMoreInsights({
-    Key? key,
+    super.key,
     required this.placeDetails,
-  }) : super(key: key);
+  });
   final PlaceDetails placeDetails;
 
   @override
   Widget build(BuildContext context) {
+    final appColors = Theme.of(context).extension<AppColors>()!;
+
     return Row(
       children: [
         SvgPicture.asset(
@@ -147,7 +150,7 @@ class AnalyticsMoreInsights extends StatelessWidget {
         Text(
           'View More Insights',
           style: CustomTextStyle.caption4(context)?.copyWith(
-            color: CustomColors.appColorBlue,
+            color: appColors.appColorBlue,
           ),
         ),
         const Spacer(),
@@ -164,16 +167,18 @@ class AnalyticsMoreInsights extends StatelessWidget {
 
 class AnalyticsShareCard extends StatelessWidget {
   const AnalyticsShareCard({
-    Key? key,
+    super.key,
     required this.measurement,
     required this.placeDetails,
-  }) : super(key: key);
+  });
 
   final Measurement measurement;
   final PlaceDetails placeDetails;
 
   @override
   Widget build(BuildContext context) {
+    final appColors = Theme.of(context).extension<AppColors>()!;
+
     return Container(
       constraints: const BoxConstraints(
         maxHeight: 200,
@@ -215,7 +220,7 @@ class AnalyticsShareCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       minFontSize: 12,
                       style: CustomTextStyle.bodyText4(context)?.copyWith(
-                        color: CustomColors.appColorBlack.withOpacity(0.3),
+                        color: appColors.appColorBlack.withOpacity(0.3),
                       ),
                     ),
                     const SizedBox(
@@ -249,7 +254,7 @@ class AnalyticsShareCard extends StatelessWidget {
                 '© ${DateTime.now().year} AirQo',
                 style: TextStyle(
                   fontSize: 9,
-                  color: CustomColors.appColorBlack.withOpacity(0.5),
+                  color: appColors.appColorBlack.withOpacity(0.5),
                   height: 32 / 9,
                   fontWeight: FontWeight.w500,
                 ),
@@ -258,7 +263,7 @@ class AnalyticsShareCard extends StatelessWidget {
                 'www.airqo.africa',
                 style: TextStyle(
                   fontSize: 9,
-                  color: CustomColors.appColorBlack.withOpacity(0.5),
+                  color: appColors.appColorBlack.withOpacity(0.5),
                   height: 32 / 9,
                   fontWeight: FontWeight.w500,
                 ),
@@ -277,8 +282,8 @@ class AnalyticsCard extends StatefulWidget {
     this.measurement,
     this.isRefreshing,
     this.showHelpTip, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
   final PlaceDetails placeDetails;
   final Measurement measurement;
   final bool isRefreshing;
@@ -293,8 +298,8 @@ class MapAnalyticsCard extends StatefulWidget {
     this.placeDetails,
     this.measurement,
     this.closeCallBack, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
   final PlaceDetails placeDetails;
   final Measurement measurement;
   final VoidCallback closeCallBack;
@@ -309,6 +314,8 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
 
   @override
   Widget build(BuildContext context) {
+    final appColors = Theme.of(context).extension<AppColors>()!;
+
     return Container(
       constraints: const BoxConstraints(
         maxHeight: 251,
@@ -406,7 +413,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                       overflow: TextOverflow.ellipsis,
                                       style: CustomTextStyle.bodyText4(context)
                                           ?.copyWith(
-                                        color: CustomColors.appColorBlack
+                                        color: appColors.appColorBlack
                                             .withOpacity(0.3),
                                       ),
                                     ),
@@ -526,6 +533,8 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
 
   @override
   Widget build(BuildContext context) {
+    final appColors = Theme.of(context).extension<AppColors>()!;
+
     return Container(
       constraints: const BoxConstraints(
         maxHeight: 251,
@@ -622,7 +631,7 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
                                       overflow: TextOverflow.ellipsis,
                                       style: CustomTextStyle.bodyText4(context)
                                           ?.copyWith(
-                                        color: CustomColors.appColorBlack
+                                        color: appColors.appColorBlack
                                             .withOpacity(0.3),
                                       ),
                                     ),
@@ -718,8 +727,8 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
 class MiniAnalyticsCard extends StatefulWidget {
   const MiniAnalyticsCard(
     this.placeDetails, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
   final PlaceDetails placeDetails;
 
   @override
@@ -735,6 +744,8 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
 
   @override
   Widget build(BuildContext context) {
+    final appColors = Theme.of(context).extension<AppColors>()!;
+
     return InkWell(
       onTap: () {
         Navigator.push(
@@ -786,8 +797,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: CustomTextStyle.bodyText4(context)?.copyWith(
-                              color:
-                                  CustomColors.appColorBlack.withOpacity(0.3),
+                              color: appColors.appColorBlack.withOpacity(0.3),
                             ),
                           ),
                         ],
@@ -830,7 +840,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                       height: 16,
                       width: 16,
                       decoration: BoxDecoration(
-                        color: CustomColors.appColorBlue,
+                        color: appColors.appColorBlue,
                         borderRadius: const BorderRadius.all(
                           Radius.circular(3.0),
                         ),
@@ -848,7 +858,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                     Text(
                       'View More Insights',
                       style: CustomTextStyle.caption3(context)?.copyWith(
-                        color: CustomColors.appColorBlue,
+                        color: appColors.appColorBlue,
                       ),
                     ),
                     const Spacer(),
@@ -857,7 +867,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
                       width: 16,
                       padding: const EdgeInsets.all(5),
                       decoration: BoxDecoration(
-                        color: CustomColors.appColorBlue.withOpacity(0.24),
+                        color: appColors.appColorBlue.withOpacity(0.24),
                         borderRadius: const BorderRadius.all(
                           Radius.circular(3.0),
                         ),
@@ -919,13 +929,15 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
 
 class EmptyAnalytics extends StatelessWidget {
   const EmptyAnalytics({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final appColors = Theme.of(context).extension<AppColors>()!;
+
     return Container(
-      color: CustomColors.appBodyColor,
+      color: appColors.appBodyColor,
       padding: const EdgeInsets.all(40.0),
       child: const Center(
         child: Text('No Analytics'),

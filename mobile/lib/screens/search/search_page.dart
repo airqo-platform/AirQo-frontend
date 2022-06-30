@@ -16,8 +16,8 @@ import '../insights/insights_page.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<SearchPage> createState() => _SearchPageState();

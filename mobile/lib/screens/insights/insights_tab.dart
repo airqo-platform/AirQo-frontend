@@ -28,8 +28,8 @@ class InsightsTab extends StatefulWidget {
   const InsightsTab(
     this.placeDetails,
     this.frequency, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
   final PlaceDetails placeDetails;
   final Frequency frequency;
 

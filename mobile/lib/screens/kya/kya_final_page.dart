@@ -7,9 +7,9 @@ import '../../themes/colors.dart';
 
 class KyaFinalPage extends StatefulWidget {
   const KyaFinalPage({
-    Key? key,
+    super.key,
     required this.kya,
-  }) : super(key: key);
+  });
   final Kya kya;
 
   @override

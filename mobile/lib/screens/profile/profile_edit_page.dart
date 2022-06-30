@@ -17,8 +17,8 @@ import '../home_page.dart';
 
 class ProfileEditPage extends StatefulWidget {
   const ProfileEditPage({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<ProfileEditPage> createState() => _ProfileEditPageState();
