@@ -1,6 +1,6 @@
 import 'package:app/constants/config.dart';
 import 'package:app/models/place_details.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../models/analytics.dart';
@@ -13,10 +13,10 @@ import '../../widgets/custom_widgets.dart';
 import 'analytics_widgets.dart';
 
 class AnalyticsView extends StatefulWidget {
-  const AnalyticsView({Key? key}) : super(key: key);
+  const AnalyticsView({super.key});
 
   @override
-  _AnalyticsViewState createState() => _AnalyticsViewState();
+  State<AnalyticsView> createState() => _AnalyticsViewState();
 }
 
 class _AnalyticsViewState extends State<AnalyticsView> {
@@ -25,8 +25,10 @@ class _AnalyticsViewState extends State<AnalyticsView> {
 
   @override
   Widget build(BuildContext context) {
+    final appColors = Theme.of(context).extension<AppColors>()!;
+
     return Container(
-      color: CustomColors.appBodyColor,
+      color: appColors.appBodyColor,
       child: ValueListenableBuilder<Box>(
         valueListenable: Hive.box<Analytics>(HiveBox.analytics).listenable(),
         builder: (context, box, widget) {

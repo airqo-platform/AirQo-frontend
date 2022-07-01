@@ -5,9 +5,9 @@ import '../../themes/colors.dart';
 
 class DeleteAccountButton extends StatelessWidget {
   const DeleteAccountButton({
-    Key? key,
+    super.key,
     required this.deleteAccount,
-  }) : super(key: key);
+  });
   final Function() deleteAccount;
 
   @override
@@ -38,9 +38,9 @@ class DeleteAccountButton extends StatelessWidget {
 
 class SettingsCard extends StatelessWidget {
   const SettingsCard({
-    Key? key,
+    super.key,
     required this.text,
-  }) : super(key: key);
+  });
   final String text;
 
   @override

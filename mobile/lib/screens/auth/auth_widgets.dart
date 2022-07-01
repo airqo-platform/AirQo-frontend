@@ -9,8 +9,8 @@ import '../../themes/colors.dart';
 
 class ProceedAsGuest extends StatelessWidget {
   const ProceedAsGuest({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -57,9 +57,9 @@ class ProceedAsGuest extends StatelessWidget {
 
 class SignUpButton extends StatelessWidget {
   const SignUpButton({
-    Key? key,
+    super.key,
     required this.text,
-  }) : super(key: key);
+  });
   final String text;
 
   @override
@@ -94,8 +94,8 @@ class SignUpButton extends StatelessWidget {
 
 class SignUpOptions extends StatelessWidget {
   const SignUpOptions({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -155,8 +155,8 @@ class SignUpOptions extends StatelessWidget {
 
 class CancelOption extends StatelessWidget {
   const CancelOption({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -179,8 +179,8 @@ class CancelOption extends StatelessWidget {
 
 class LoginOptions extends StatelessWidget {
   const LoginOptions({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
