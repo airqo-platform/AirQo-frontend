@@ -1,22 +1,139 @@
+import 'package:app/models/models.dart';
+import 'package:app/services/native_api.dart';
+import 'package:app_repository/app_repository.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
-import '../../models/enum_constants.dart';
-import '../../models/measurement.dart';
-import '../../models/place_details.dart';
-import '../../models/suggestion.dart';
-import '../../services/native_api.dart';
+import '../../blocs/nearby_location/nearby_location_bloc.dart';
+import '../../blocs/nearby_location/nearby_location_event.dart';
+import '../../blocs/nearby_location/nearby_location_state.dart';
+import '../../blocs/search/search_bloc.dart';
+import '../../blocs/search/search_event.dart';
+import '../../constants/config.dart';
+import '../../services/hive_service.dart';
+import '../../services/location_service.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
+import '../../widgets/custom_shimmer.dart';
 import '../../widgets/custom_widgets.dart';
+import '../../widgets/dialogs.dart';
 import '../insights/insights_page.dart';
+
+class SearchResultsWidget extends StatefulWidget {
+  const SearchResultsWidget({
+    Key? key,
+    required this.searchResultItems,
+  }) : super(key: key);
+  final List<SearchResultItem> searchResultItems;
+
+  @override
+  State<SearchResultsWidget> createState() => _SearchResultsWidgetState();
+}
+
+class _SearchResultsWidgetState extends State<SearchResultsWidget> {
+  late SearchBloc _searchBloc;
+  final SearchRepository _searchRepository =
+      SearchRepository(searchApiKey: Config.searchApiKey);
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      itemCount: widget.searchResultItems.length,
+      itemBuilder: (BuildContext context, int index) {
+        return GestureDetector(
+          onTap: () => _showPlaceDetails(widget.searchResultItems[index]),
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: SearchResultItemTile(
+              searchResultItem: widget.searchResultItems[index],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _searchBloc = context.read<SearchBloc>();
+  }
+
+  @override
+  void dispose() {
+    _clearSearch();
+    super.dispose();
+  }
+
+  void _clearSearch() {
+    _searchBloc.add(const ResetSearch());
+  }
+
+  Future<void> _showPlaceDetails(SearchResultItem searchResultItem) async {
+    if (!mounted) return;
+
+    loadingScreen(context);
+
+    final place = await _searchRepository.placeDetails(searchResultItem.id);
+
+    if (place != null) {
+      final nearestSite = await LocationService.getNearestSiteAirQualityReading(
+        place.geometry.location.lat,
+        place.geometry.location.lng,
+      );
+
+      if (!mounted) return;
+
+      Navigator.pop(context);
+
+      // TODO: Substitute with widget
+      if (nearestSite == null) {
+        await showSnackBar(
+          context,
+          'Oops!!.. We don’t have air quality readings for'
+          ' ${searchResultItem.name}',
+          durationInSeconds: 3,
+        );
+
+        return;
+      }
+
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) {
+            return InsightsPage(
+              nearestSite.copyWith(
+                name: searchResultItem.name,
+                location: searchResultItem.location,
+                placeId: searchResultItem.id,
+                latitude: place.geometry.location.lat,
+                longitude: place.geometry.location.lng,
+              ),
+            );
+          },
+        ),
+      );
+    } else {
+      if (!mounted) return;
+
+      await showSnackBar(
+        context,
+        'Try again later',
+      );
+    }
+  }
+}
 
 class SearchPlaceTile extends StatelessWidget {
   const SearchPlaceTile({
     super.key,
     required this.searchSuggestion,
   });
+
   final Suggestion searchSuggestion;
 
   @override
@@ -71,12 +188,72 @@ class SearchPlaceTile extends StatelessWidget {
   }
 }
 
+class SearchResultItemTile extends StatelessWidget {
+  const SearchResultItemTile({
+    Key? key,
+    required this.searchResultItem,
+  }) : super(key: key);
+  final SearchResultItem searchResultItem;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.only(left: 16.0, right: 30.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.all(
+          Radius.circular(8.0),
+        ),
+        border: Border.all(color: Colors.transparent),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.only(left: 0.0),
+        title: Text(
+          searchResultItem.name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: CustomTextStyle.headline8(context),
+        ),
+        subtitle: Text(
+          searchResultItem.location,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: CustomTextStyle.bodyText4(context)?.copyWith(
+            color: CustomColors.appColorBlack.withOpacity(0.3),
+          ),
+        ),
+        trailing: SvgPicture.asset(
+          'assets/icon/more_arrow.svg',
+          semanticsLabel: 'more',
+          height: 6.99,
+          width: 4,
+        ),
+        leading: Container(
+          height: 40,
+          width: 40,
+          decoration: BoxDecoration(
+            color: CustomColors.appColorBlue.withOpacity(0.15),
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: SvgPicture.asset(
+              'assets/icon/location.svg',
+              color: CustomColors.appColorBlue,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class SearchInputField extends StatelessWidget {
   const SearchInputField({
     super.key,
     required this.textEditingController,
     required this.searchChanged,
   });
+
   final TextEditingController textEditingController;
   final Function(String) searchChanged;
 
@@ -155,25 +332,339 @@ class NoNearbyLocations extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(40.0),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.rectangle,
-            borderRadius: BorderRadius.all(
-              Radius.circular(10.0),
-            ),
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.all(40.0),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.rectangle,
+          borderRadius: BorderRadius.all(
+            Radius.circular(10.0),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(
-                height: 84,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(
+              height: 84,
+            ),
+            Stack(
+              children: [
+                Image.asset(
+                  'assets/images/world-map.png',
+                  height: 130,
+                  width: 130,
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    color: CustomColors.appColorBlue,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Padding(
+                    padding: EdgeInsets.all(12.0),
+                    child: Icon(
+                      Icons.map_outlined,
+                      size: 30,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(
+              height: 52,
+            ),
+            const Text(
+              'You don’t have nearby air quality stations',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(
+              height: 40,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class SearchLocationTile extends StatelessWidget {
+  const SearchLocationTile({
+    super.key,
+    required this.airQualityReading,
+  });
+
+  final AirQualityReading airQualityReading;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.only(left: 16.0, right: 30.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.all(
+          Radius.circular(8.0),
+        ),
+        border: Border.all(color: Colors.transparent),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.only(left: 0.0),
+        title: AutoSizeText(
+          airQualityReading.name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: CustomTextStyle.headline8(context),
+        ),
+        subtitle: AutoSizeText(
+          airQualityReading.location,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: CustomTextStyle.bodyText4(context)?.copyWith(
+            color: CustomColors.appColorBlack.withOpacity(0.3),
+          ),
+        ),
+        trailing: SvgPicture.asset(
+          'assets/icon/more_arrow.svg',
+          semanticsLabel: 'more',
+          height: 6.99,
+          width: 4,
+        ),
+        leading: MiniAnalyticsAvatar(
+          airQualityReading: airQualityReading,
+        ),
+      ),
+    );
+  }
+}
+
+class RequestLocationAccess extends StatelessWidget {
+  const RequestLocationAccess({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.all(40.0),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.all(
+            Radius.circular(16.0),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Stack(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 23),
+                  child: Image.asset(
+                    'assets/images/world-map.png',
+                    height: 119,
+                    width: 119,
+                  ),
+                ),
+                Positioned(
+                  left: 0,
+                  top: 22,
+                  child: Container(
+                    height: 56,
+                    width: 56,
+                    decoration: BoxDecoration(
+                      color: CustomColors.appColorBlue,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: SvgPicture.asset(
+                        'assets/icon/location.svg',
+                        color: Colors.white,
+                        semanticsLabel: 'AirQo Map',
+                        height: 29,
+                        width: 25,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(
+              height: 24,
+            ),
+            Text(
+              'Enable locations',
+              textAlign: TextAlign.start,
+              style: CustomTextStyle.headline7(context),
+            ),
+            const SizedBox(
+              height: 8,
+            ),
+            Text(
+              'Allow AirQo to show you location air '
+              'quality update near you.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.subtitle2?.copyWith(
+                    color: CustomColors.appColorBlack.withOpacity(0.4),
+                  ),
+            ),
+            const SizedBox(
+              height: 24,
+            ),
+            GestureDetector(
+              onTap: () => _getUserLocation(context),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: CustomColors.appColorBlue,
+                  borderRadius: const BorderRadius.all(
+                    Radius.circular(8.0),
+                  ),
+                ),
+                child: const Padding(
+                  padding: EdgeInsets.only(top: 12, bottom: 14),
+                  child: Center(
+                    child: Text(
+                      'Allow location',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.normal,
+                        fontSize: 14,
+                        height: 22 / 14,
+                        letterSpacing: 16 * -0.022,
+                      ),
+                    ),
+                  ),
+                ),
               ),
-              Stack(
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _getUserLocation(BuildContext context) {
+    PermissionService.checkPermission(AppPermission.location, request: true)
+        .then((value) => context
+            .read<NearbyLocationBloc>()
+            .add(const SearchNearbyLocations()));
+  }
+}
+
+class NearbyLocations extends StatelessWidget {
+  const NearbyLocations({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final appColors = Theme.of(context).extension<AppColors>()!;
+
+    return BlocBuilder<NearbyLocationBloc, NearbyLocationState>(
+      builder: (context, state) {
+        if (state is SearchingNearbyLocationsState) {
+          return const LoadingWidget();
+        }
+
+        if (state is NearbyLocationStateError) {
+          switch (state.error) {
+            case NearbyAirQualityError.locationDisabled:
+              return const RequestLocationAccess();
+            case NearbyAirQualityError.noNearbyAirQualityReadings:
+              return const AirQualityNotAvailable();
+          }
+        }
+
+        if (state is NearbyLocationStateSuccess) {
+          return ValueListenableBuilder<Box>(
+            valueListenable:
+                Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
+                    .listenable(),
+            builder: (context, box, widget) {
+              final airQualityReadings = filterNearestLocations(
+                box.values.cast<AirQualityReading>().toList(),
+              );
+
+              return ListView(
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  Text(
+                    'Locations near me',
+                    style: CustomTextStyle.overline1(context)?.copyWith(
+                      color: appColors.appColorBlack.withOpacity(0.32),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 8,
+                  ),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    itemBuilder: (context, index) => GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) {
+                              return InsightsPage(airQualityReadings[index]);
+                            },
+                          ),
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: SearchLocationTile(
+                          airQualityReading: airQualityReadings[index],
+                        ),
+                      ),
+                    ),
+                    itemCount: airQualityReadings.length,
+                  ),
+                ],
+              );
+            },
+          );
+        }
+
+        return const LoadingWidget();
+      },
+    );
+  }
+}
+
+class SearchError extends StatelessWidget {
+  const SearchError({super.key, this.error});
+
+  final String? error;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(error ?? 'Search not available'),
+    );
+  }
+}
+
+class AirQualityNotAvailable extends StatelessWidget {
+  const AirQualityNotAvailable({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final appColors = Theme.of(context).extension<AppColors>()!;
+
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.all(
+            Radius.circular(16.0),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Center(
+              child: Stack(
                 children: [
                   Image.asset(
                     'assets/images/world-map.png',
@@ -196,255 +687,30 @@ class NoNearbyLocations extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(
-                height: 52,
-              ),
-              const Text(
-                'You don\'t have nearby air quality stations',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(
-                height: 40,
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class SearchLocationTile extends StatelessWidget {
-  const SearchLocationTile({
-    super.key,
-    required this.measurement,
-  });
-  final Measurement measurement;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.only(left: 16.0, right: 30.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: const BorderRadius.all(
-          Radius.circular(8.0),
-        ),
-        border: Border.all(color: Colors.transparent),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.only(left: 0.0),
-        title: AutoSizeText(
-          measurement.site.name,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: CustomTextStyle.headline8(context),
-        ),
-        subtitle: AutoSizeText(
-          measurement.site.location,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: CustomTextStyle.bodyText4(context)?.copyWith(
-            color: CustomColors.appColorBlack.withOpacity(0.3),
-          ),
-        ),
-        trailing: SvgPicture.asset(
-          'assets/icon/more_arrow.svg',
-          semanticsLabel: 'more',
-          height: 6.99,
-          width: 4,
-        ),
-        leading: MiniAnalyticsAvatar(
-          measurement: measurement,
-        ),
-      ),
-    );
-  }
-}
-
-class RequestLocationAccess extends StatelessWidget {
-  const RequestLocationAccess({
-    super.key,
-    required this.getUserLocation,
-  });
-
-  final VoidCallback getUserLocation;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(40.0),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        shape: BoxShape.rectangle,
-        borderRadius: BorderRadius.all(
-          Radius.circular(16.0),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const SizedBox(
-            height: 84,
-          ),
-          Stack(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 23),
-                child: Image.asset(
-                  'assets/images/world-map.png',
-                  height: 119,
-                  width: 119,
-                ),
-              ),
-              Positioned(
-                left: 0,
-                top: 22,
-                child: Container(
-                  height: 56,
-                  width: 56,
-                  decoration: BoxDecoration(
-                    color: CustomColors.appColorBlue,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: SvgPicture.asset(
-                      'assets/icon/location.svg',
-                      color: Colors.white,
-                      semanticsLabel: 'AirQo Map',
-                      height: 29,
-                      width: 25,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(
-            height: 24,
-          ),
-          Text(
-            'Enable locations',
-            textAlign: TextAlign.start,
-            style: CustomTextStyle.headline7(context),
-          ),
-          const SizedBox(
-            height: 8,
-          ),
-          Text(
-            'Allow AirQo to show you location air '
-            'quality update near you.',
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.subtitle2?.copyWith(
-                  color: CustomColors.appColorBlack.withOpacity(0.4),
-                ),
-          ),
-          const SizedBox(
-            height: 24,
-          ),
-          GestureDetector(
-            onTap: () {
-              PermissionService.checkPermission(
-                AppPermission.location,
-                request: true,
-              ).then(
-                (value) => {
-                  getUserLocation(),
-                },
-              );
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                color: CustomColors.appColorBlue,
-                borderRadius: const BorderRadius.all(
-                  Radius.circular(8.0),
-                ),
-              ),
-              child: const Padding(
-                padding: EdgeInsets.only(top: 12, bottom: 14),
-                child: Center(
-                  child: Text(
-                    'Allow location',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.normal,
-                      fontSize: 14,
-                      height: 22 / 14,
-                      letterSpacing: 16 * -0.022,
-                    ),
-                  ),
-                ),
-              ),
             ),
-          ),
-          const SizedBox(
-            height: 40,
-          ),
-        ],
+            const SizedBox(
+              height: 16,
+            ),
+            Text(
+              'Coming soon on the network',
+              textAlign: TextAlign.center,
+              style: CustomTextStyle.headline7(context),
+            ),
+            const SizedBox(
+              height: 8,
+            ),
+            Text(
+              'We currently do not support air quality '
+              'monitoring in this area, but we’re working on it.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context)
+                  .textTheme
+                  .subtitle2
+                  ?.copyWith(color: appColors.appColorBlack.withOpacity(0.4)),
+            ),
+          ],
+        ),
       ),
-    );
-  }
-}
-
-class NearbyLocations extends StatelessWidget {
-  const NearbyLocations({
-    super.key,
-    required this.nearbyLocations,
-  });
-
-  final List<Measurement> nearbyLocations;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(
-          height: 8.0,
-        ),
-        Container(
-          padding: const EdgeInsets.only(bottom: 8),
-          decoration: BoxDecoration(
-            color: CustomColors.appBodyColor,
-            shape: BoxShape.rectangle,
-            borderRadius: const BorderRadius.all(
-              Radius.circular(10.0),
-            ),
-          ),
-          child: MediaQuery.removePadding(
-            context: context,
-            removeTop: true,
-            child: ListView.builder(
-              controller: ScrollController(),
-              shrinkWrap: true,
-              itemBuilder: (context, index) => GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) {
-                        return InsightsPage(
-                          PlaceDetails.siteToPLace(nearbyLocations[index].site),
-                        );
-                      },
-                    ),
-                  );
-                },
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: SearchLocationTile(
-                    measurement: nearbyLocations[index],
-                  ),
-                ),
-              ),
-              itemCount: nearbyLocations.length,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

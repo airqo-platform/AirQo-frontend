@@ -1,8 +1,7 @@
+import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:flutter/material.dart';
 
-import '../../models/enum_constants.dart';
-import '../../models/profile.dart';
 import '../../services/local_storage.dart';
 import '../../services/rest_api.dart';
 import '../../themes/colors.dart';

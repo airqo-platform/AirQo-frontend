@@ -1,13 +1,12 @@
 import 'dart:async';
 
-import 'package:app/models/profile.dart';
+import 'package:app/models/models.dart';
 import 'package:app/screens/profile/profile_widgets.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../models/enum_constants.dart';
 import '../../services/firebase_service.dart';
 import '../../services/hive_service.dart';
 import '../../themes/colors.dart';
@@ -73,14 +72,16 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                   ),
                   Visibility(
                     visible: profile.phoneNumber.isNotEmpty,
-                    child: ProfilePhoneNumberEditFields(
+                    child: EditCredentialsField(
                       profile: profile,
+                      authMethod: AuthMethod.phone,
                     ),
                   ),
                   Visibility(
                     visible: profile.emailAddress.isNotEmpty,
-                    child: ProfileEmailEditFields(
+                    child: EditCredentialsField(
                       profile: profile,
+                      authMethod: AuthMethod.email,
                     ),
                   ),
                   const SizedBox(

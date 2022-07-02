@@ -1,5 +1,4 @@
-import 'package:app/models/insights.dart';
-import 'package:app/models/place_details.dart';
+import 'package:app/models/models.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/utils/data_formatter.dart';
 import 'package:app/utils/date.dart';
@@ -16,7 +15,6 @@ import 'package:intl/intl.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
-import '../../models/enum_constants.dart';
 import '../../services/local_storage.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
@@ -26,11 +24,11 @@ import 'insights_widgets.dart';
 
 class InsightsTab extends StatefulWidget {
   const InsightsTab(
-    this.placeDetails,
+    this.airQualityReading,
     this.frequency, {
     super.key,
   });
-  final PlaceDetails placeDetails;
+  final AirQualityReading airQualityReading;
   final Frequency frequency;
 
   @override
@@ -123,7 +121,7 @@ class _InsightsTabState extends State<InsightsTab> {
                             ),
                           ),
                           AutoSizeText(
-                            widget.placeDetails.name,
+                            widget.airQualityReading.name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: CustomTextStyle.headline8(context)?.copyWith(
@@ -131,7 +129,7 @@ class _InsightsTabState extends State<InsightsTab> {
                             ),
                           ),
                           AutoSizeText(
-                            widget.placeDetails.location,
+                            widget.airQualityReading.location,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style:
@@ -445,7 +443,7 @@ class _InsightsTabState extends State<InsightsTab> {
 
   Future<void> _loadMiniCharts(DateTime defaultSelection) async {
     final hourlyInsights = await DBHelper()
-        .getInsights(widget.placeDetails.siteId, Frequency.hourly);
+        .getInsights(widget.airQualityReading.referenceSite, Frequency.hourly);
 
     if (hourlyInsights.isNotEmpty) {
       while (hourlyInsights.isNotEmpty) {
@@ -576,7 +574,7 @@ class _InsightsTabState extends State<InsightsTab> {
 
   Future<void> _fetchDBInsights() async {
     final insights = await DBHelper()
-        .getInsights(widget.placeDetails.siteId, widget.frequency);
+        .getInsights(widget.airQualityReading.referenceSite, widget.frequency);
     if (insights.isNotEmpty) {
       await _setInsights(insights);
     }
@@ -584,7 +582,7 @@ class _InsightsTabState extends State<InsightsTab> {
 
   Future<void> _fetchInsights() async {
     final insights = await _appService.fetchInsights(
-      [widget.placeDetails.siteId],
+      [widget.airQualityReading.referenceSite],
       frequency: widget.frequency,
     );
 
@@ -710,7 +708,7 @@ class _InsightsTabState extends State<InsightsTab> {
           padding: const EdgeInsets.only(right: 16, left: 16),
           child: InsightsActionBar(
             shareKey: _globalKey,
-            placeDetails: widget.placeDetails,
+            airQualityReading: widget.airQualityReading,
           ),
         ),
       ),
@@ -723,8 +721,8 @@ class _InsightsTabState extends State<InsightsTab> {
           padding: const EdgeInsets.only(right: 16, left: 16),
           child: Text(
             _isTodayHealthTips
-                ? 'Today\'s health tips'
-                : 'Tomorrow\'s health tips',
+                ? 'Today’s health tips'
+                : 'Tomorrow’s health tips',
             textAlign: TextAlign.left,
             style: CustomTextStyle.headline7(context),
           ),
@@ -746,7 +744,7 @@ class _InsightsTabState extends State<InsightsTab> {
       notifyUser: true,
     );
     final insights = await _appService.fetchInsights(
-      [widget.placeDetails.siteId],
+      [widget.airQualityReading.referenceSite],
       frequency: widget.frequency,
     );
 

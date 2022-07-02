@@ -1,16 +1,17 @@
 import 'dart:io';
 
+import 'package:app/models/models.dart';
 import 'package:app/screens/profile/profile_edit_page.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../models/profile.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/custom_shimmer.dart';
+import '../../widgets/dialogs.dart';
 import '../auth/change_email_screen.dart';
 import '../auth/change_phone_screen.dart';
 import '../auth/email_reauthenticate_screen.dart';
@@ -102,7 +103,7 @@ class SignUpSection extends StatelessWidget {
               await Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (context) {
-                  return const PhoneLoginWidget();
+                  return const PhoneSignUpWidget();
                 }),
                 (r) => false,
               );
@@ -598,95 +599,13 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
   Size get preferredSize => const Size.fromHeight(60);
 }
 
-class ProfilePhoneNumberEditFields extends StatelessWidget {
-  const ProfilePhoneNumberEditFields({
+class EditCredentialsField extends StatelessWidget {
+  const EditCredentialsField({
     super.key,
+    required this.authMethod,
     required this.profile,
   });
-
-  final Profile profile;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Visibility(
-          visible: profile.phoneNumber.isNotEmpty,
-          child: Text(
-            'Phone Number',
-            style: TextStyle(
-              fontSize: 12,
-              color: CustomColors.inactiveColor,
-            ),
-          ),
-        ),
-        Visibility(
-          visible: profile.phoneNumber.isNotEmpty,
-          child: const SizedBox(
-            height: 4,
-          ),
-        ),
-        Visibility(
-          visible: profile.phoneNumber.isNotEmpty,
-          child: SizedBox(
-            width: MediaQuery.of(context).size.width,
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  child: TextFormField(
-                    initialValue: profile.phoneNumber,
-                    enableSuggestions: false,
-                    readOnly: true,
-                    style: TextStyle(
-                      color: CustomColors.inactiveColor,
-                    ),
-                    decoration: inactiveFormFieldDecoration(),
-                  ),
-                ),
-                const SizedBox(
-                  width: 16,
-                ),
-                GestureDetector(
-                  onTap: () async {
-                    final authResponse = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) {
-                          return PhoneReAuthenticateScreen(profile);
-                        },
-                      ),
-                    );
-                    if (!authResponse) {
-                      return;
-                    }
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) {
-                          return const ChangePhoneScreen();
-                        },
-                      ),
-                    );
-                  },
-                  child: const EditCredentialsIcon(),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class ProfileEmailEditFields extends StatelessWidget {
-  const ProfileEmailEditFields({
-    super.key,
-    required this.profile,
-  });
-
+  final AuthMethod authMethod;
   final Profile profile;
 
   @override
@@ -696,7 +615,7 @@ class ProfileEmailEditFields extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Email',
+          authMethod == AuthMethod.email ? 'Email' : 'Phone Number',
           style: TextStyle(
             fontSize: 12,
             color: CustomColors.inactiveColor,
@@ -711,7 +630,9 @@ class ProfileEmailEditFields extends StatelessWidget {
             children: <Widget>[
               Expanded(
                 child: TextFormField(
-                  initialValue: profile.emailAddress,
+                  initialValue: authMethod == AuthMethod.email
+                      ? profile.emailAddress
+                      : profile.phoneNumber,
                   enableSuggestions: false,
                   readOnly: true,
                   style: TextStyle(
@@ -724,33 +645,53 @@ class ProfileEmailEditFields extends StatelessWidget {
                 width: 16,
               ),
               GestureDetector(
-                onTap: () async {
-                  final authResponse = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) {
-                        return EmailReAuthenticateScreen(profile);
-                      },
-                    ),
-                  );
-                  if (!authResponse) {
-                    return;
-                  }
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) {
-                        return const ChangeEmailScreen();
-                      },
-                    ),
-                  );
-                },
+                onTap: () => _updateCredentials(context),
                 child: const EditCredentialsIcon(),
               ),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  void _updateCredentials(BuildContext context) async {
+    final action = await showDialog<ConfirmationAction>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return ChangeAuthCredentialsDialog(
+          authMethod: authMethod,
+        );
+      },
+    );
+
+    if (action == null || action == ConfirmationAction.cancel) {
+      return;
+    }
+
+    final authResponse = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) {
+          return authMethod == AuthMethod.email
+              ? EmailReAuthenticateScreen(profile)
+              : PhoneReAuthenticateScreen(profile);
+        },
+      ),
+    );
+    if (!authResponse) {
+      return;
+    }
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) {
+          return authMethod == AuthMethod.email
+              ? const ChangeEmailScreen()
+              : const ChangePhoneScreen();
+        },
+      ),
     );
   }
 }

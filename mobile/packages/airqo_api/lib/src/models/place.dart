@@ -41,6 +41,4 @@ class Place {
   );
   String name;
   Geometry geometry;
-
-  Map<String, dynamic> toJson() => _$PlaceToJson(this);
 }

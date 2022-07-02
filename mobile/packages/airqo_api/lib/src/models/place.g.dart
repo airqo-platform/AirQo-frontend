@@ -28,8 +28,3 @@ Place _$PlaceFromJson(Map<String, dynamic> json) => Place(
       Geometry.fromJson(json['geometry'] as Map<String, dynamic>),
       json['name'] as String,
     );
-
-Map<String, dynamic> _$PlaceToJson(Place instance) => <String, dynamic>{
-      'name': instance.name,
-      'geometry': instance.geometry,
-    };
