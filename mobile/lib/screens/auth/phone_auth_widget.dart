@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/widgets/buttons.dart';
@@ -10,7 +11,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../models/enum_constants.dart';
 import '../../services/firebase_service.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
@@ -248,7 +248,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
       Padding(
         padding: const EdgeInsets.only(left: 40, right: 40),
         child: AutoSizeText(
-          'We\'ll send you a verification code',
+          'We’ll send you a verification code',
           textAlign: TextAlign.center,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
@@ -578,7 +578,6 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
         authCredential: authCredential,
       );
       if (signUpSuccessful) {
-        await AppService.postSignUpActions();
         Navigator.pop(_loadingContext);
         await Navigator.pushAndRemoveUntil(
           context,
@@ -651,7 +650,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return AuthConfirmationDialog(
+        return AuthMethodDialog(
           credentials: phoneNumber,
           authMethod: AuthMethod.phone,
         );

@@ -1,10 +1,7 @@
 import 'dart:io';
 
 import 'package:app/constants/config.dart';
-import 'package:app/models/kya.dart';
-import 'package:app/models/notification.dart';
-import 'package:app/models/place_details.dart';
-import 'package:app/models/profile.dart';
+import 'package:app/models/models.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/dialogs.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -13,11 +10,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../models/analytics.dart';
-import '../models/enum_constants.dart';
 import '../utils/exception.dart';
 import '../utils/network.dart';
 import 'hive_service.dart';
@@ -31,32 +25,6 @@ class CloudAnalytics {
 }
 
 class CloudStore {
-  static Future<void> addFavPlace(
-    String userId,
-    PlaceDetails placeDetails,
-  ) async {
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection || userId.trim().isEmpty) {
-      return;
-    }
-
-    try {
-      await FirebaseFirestore.instance
-          .collection(Config.favPlacesCollection)
-          .doc(userId)
-          .collection(userId)
-          .doc(placeDetails.placeId)
-          .set(
-            placeDetails.toJson(),
-          );
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-  }
-
   static Future<void> deleteAccount() async {
     try {
       final id = CustomAuth.getUser()?.uid;
@@ -73,6 +41,14 @@ class CloudStore {
             .collection(Config.usersNotificationCollection)
             .doc(id)
             .delete(),
+        FirebaseFirestore.instance
+            .collection(Config.favPlacesCollection)
+            .doc(id)
+            .delete(),
+        FirebaseFirestore.instance
+            .collection(Config.usersAnalyticsCollection)
+            .doc(id)
+            .delete(),
       ]);
     } catch (exception, stackTrace) {
       await logException(
@@ -80,46 +56,6 @@ class CloudStore {
         stackTrace,
       );
     }
-  }
-
-  static Future<List<PlaceDetails>> getFavPlaces(String userId) async {
-    if (userId == '') {
-      return [];
-    }
-
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return [];
-    }
-
-    try {
-      final placesJson = await FirebaseFirestore.instance
-          .collection('${Config.favPlacesCollection}/$userId/$userId')
-          .get();
-
-      final favPlaces = <PlaceDetails>[];
-
-      final placesDocs = placesJson.docs;
-      for (final doc in placesDocs) {
-        final data = doc.data();
-        if (!data.keys.contains('placeId')) {
-          data['placeId'] = doc.id;
-        }
-        final place = await compute(PlaceDetails.parsePlaceDetails, data);
-        if (place != null) {
-          favPlaces.add(place);
-        }
-      }
-
-      return favPlaces;
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-
-    return [];
   }
 
   static Future<List<Kya>> _getReferenceKya() async {
@@ -238,7 +174,6 @@ class CloudStore {
           notifications.add(notification);
         }
       }
-      await AppNotification.load(notifications);
 
       return notifications;
     } catch (exception, stackTrace) {
@@ -313,49 +248,76 @@ class CloudStore {
     return Profile.getProfile();
   }
 
-  static Future<void> removeFavPlace(
-    String userId,
-    PlaceDetails placeDetails,
-  ) async {
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection || userId.trim().isEmpty) {
-      return;
-    }
+  static Future<List<FavouritePlace>> getFavouritePlaces() async {
     try {
-      await FirebaseFirestore.instance
-          .collection(Config.favPlacesCollection)
-          .doc(userId)
-          .collection(userId)
-          .doc(placeDetails.placeId)
-          .delete();
+      final userId = CustomAuth.getUserId();
+
+      if (userId.isEmpty) return [];
+
+      final favouritePlacesJson = await FirebaseFirestore.instance
+          .collection('${Config.favPlacesCollection}/$userId/$userId')
+          .get();
+
+      final favouritePlaces = <FavouritePlace>[];
+
+      for (final favouritePlaceJson in favouritePlacesJson.docs) {
+        final favouritePlaceData = favouritePlaceJson.data();
+        final favouritePlace = FavouritePlace(
+          name: favouritePlaceData['name'],
+          location: favouritePlaceData['location'],
+          referenceSite: '',
+          placeId: favouritePlaceData['placeId'],
+          latitude: favouritePlaceData['latitude'],
+          longitude: favouritePlaceData['longitude'],
+        );
+        if (favouritePlaceData.keys.contains('referenceSite')) {
+          favouritePlaces.add(
+            favouritePlace.copyWith(
+              referenceSite: favouritePlaceData['referenceSite'],
+            ),
+          );
+        } else if (favouritePlaceData.keys.contains('siteId')) {
+          favouritePlaces.add(
+            favouritePlace.copyWith(
+              referenceSite: favouritePlaceData['siteId'],
+            ),
+          );
+        } else {
+          favouritePlaces.add(favouritePlace);
+        }
+      }
+
+      return favouritePlaces;
     } catch (exception, stackTrace) {
       await logException(
         exception,
         stackTrace,
       );
+
+      return [];
     }
   }
 
-  static Future<void> updateFavPlaces(
-    String userId,
-    List<PlaceDetails> favPlaces,
-  ) async {
+  static Future<void> updateFavouritePlaces() async {
     final hasConnection = await hasNetworkConnection();
+    final userId = CustomAuth.getUserId();
     if (!hasConnection || userId.trim().isEmpty) {
       return;
     }
-    final batch = FirebaseFirestore.instance.batch();
 
-    for (final place in favPlaces) {
+    final batch = FirebaseFirestore.instance.batch();
+    final favouritePlaces =
+        Hive.box<FavouritePlace>(HiveBox.favouritePlaces).values.toList();
+    for (final favouritePlace in favouritePlaces) {
       try {
         final document = FirebaseFirestore.instance
             .collection(Config.favPlacesCollection)
             .doc(userId)
             .collection(userId)
-            .doc(place.placeId);
+            .doc(favouritePlace.placeId);
         batch.set(
           document,
-          place.toJson(),
+          favouritePlace.toJson(),
         );
       } catch (exception, stackTrace) {
         await logException(
@@ -611,16 +573,6 @@ class CustomAuth {
     }
   }
 
-  static String getDisplayName() {
-    final authInstance = FirebaseAuth.instance;
-
-    if (authInstance.currentUser == null) {
-      return '';
-    }
-
-    return authInstance.currentUser!.displayName ?? 'Guest';
-  }
-
   static User? getUser() {
     return FirebaseAuth.instance.currentUser;
   }
@@ -630,33 +582,11 @@ class CustomAuth {
       return '';
     }
 
-    return FirebaseAuth.instance.currentUser!.uid;
+    return getUser()!.uid;
   }
 
   static bool isLoggedIn() {
-    return FirebaseAuth.instance.currentUser != null;
-  }
-
-  static Future<bool> isValidEmailCode(
-    String subjectCode,
-    String verificationLink,
-  ) async {
-    try {
-      final signInLink = Uri.parse(verificationLink);
-      final code = signInLink.queryParameters['oobCode'];
-      if (code != null && code == subjectCode) {
-        return true;
-      }
-
-      return false;
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-
-    return false;
+    return getUser() != null;
   }
 
   static Future<void> logOut() async {
@@ -846,93 +776,66 @@ class CustomAuth {
     }
   }
 
-  static Future<bool> updateEmailAddress(
-    String emailAddress,
-    BuildContext context,
-  ) async {
+  static Future<bool> updateCredentials({
+    required AuthMethod authMethod,
+    required BuildContext context,
+    String? emailAddress,
+    PhoneAuthCredential? phoneCredential,
+  }) async {
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return false;
     }
     try {
       final profile = await Profile.getProfile();
-      await FirebaseAuth.instance.currentUser!.updateEmail(emailAddress).then(
-        (_) {
-          profile.update();
-        },
-      );
+      switch (authMethod) {
+        case AuthMethod.phone:
+          await FirebaseAuth.instance.currentUser!
+              .updatePhoneNumber(phoneCredential!)
+              .then(
+            (_) {
+              profile.update();
+            },
+          );
+          break;
+        case AuthMethod.email:
+          await FirebaseAuth.instance.currentUser!
+              .updateEmail(emailAddress!)
+              .then(
+            (_) {
+              profile.update();
+            },
+          );
+          break;
+        case AuthMethod.none:
+          break;
+      }
 
       return true;
     } on FirebaseAuthException catch (exception) {
-      if (exception.code == 'email-already-in-use') {
-        await showSnackBar(
-          context,
-          'Email Address already taken',
-        );
-
-        return false;
+      var error = 'Failed to change credentials. Try again later';
+      switch (exception.code) {
+        case 'email-already-in-use':
+          error = 'Email Address already taken';
+          break;
+        case 'invalid-email':
+          error = 'Invalid email address';
+          break;
+        case 'credential-already-in-use':
+          error = 'Phone number already taken';
+          break;
+        case 'invalid-verification-id':
+          error = 'Failed to change phone number. Try again later';
+          break;
+        case 'session-expired':
+          error = 'Your code has expired. Try again later';
+          break;
       }
-      if (exception.code == 'invalid-email') {
-        await showSnackBar(
-          context,
-          'Invalid email address',
-        );
 
-        return false;
-      }
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
+      await showSnackBar(
+        context,
+        error,
       );
-    }
-
-    return false;
-  }
-
-  static Future<bool> updatePhoneNumber(
-    PhoneAuthCredential authCredential,
-    BuildContext context,
-  ) async {
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return false;
-    }
-
-    try {
-      final profile = await Profile.getProfile();
-      await FirebaseAuth.instance.currentUser!
-          .updatePhoneNumber(authCredential)
-          .then(
-        (_) {
-          profile.update();
-        },
-      );
-
-      return true;
-    } on FirebaseAuthException catch (exception) {
-      if (exception.code == 'credential-already-in-use') {
-        await showSnackBar(
-          context,
-          'Phone number already taken',
-        );
-
-        return false;
-      } else if (exception.code == 'invalid-verification-id') {
-        await showSnackBar(
-          context,
-          'Failed to change phone number. Try again later',
-        );
-
-        return false;
-      } else if (exception.code == 'session-expired') {
-        await showSnackBar(
-          context,
-          'Your code has expired. Try again later',
-        );
-
-        return false;
-      }
     } catch (exception, stackTrace) {
       await logException(
         exception,

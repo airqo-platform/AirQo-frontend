@@ -74,6 +74,12 @@ dependencies:
   workmanager: ^0.5.0
   flutter_cache_manager: ^3.3.0
   path: ^1.8.1
+  flutter_bloc: ^8.0.1
+  equatable: ^2.0.3
+  app_repository:
+    path: packages/app_repository
+  
+
   # https://pub.dev/packages/http_retry
   # https://pub.dev/packages/retry
   

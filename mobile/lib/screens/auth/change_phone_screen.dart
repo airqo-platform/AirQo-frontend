@@ -1,3 +1,4 @@
+import 'package:app/models/enum_constants.dart';
 import 'package:app/services/firebase_service.dart';
 import 'package:app/utils/network.dart';
 import 'package:app/widgets/buttons.dart';
@@ -37,7 +38,11 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
   User? _user;
 
   Future<void> autoVerifyPhoneFn(PhoneAuthCredential credential) async {
-    final success = await CustomAuth.updatePhoneNumber(credential, context);
+    final success = await CustomAuth.updateCredentials(
+      context: context,
+      phoneCredential: credential,
+      authMethod: AuthMethod.phone,
+    );
 
     if (success) {
       Navigator.pop(context, true);
@@ -532,7 +537,11 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
       smsCode: _phoneVerificationCode.join(''),
     );
     try {
-      final success = await CustomAuth.updatePhoneNumber(credential, context);
+      final success = await CustomAuth.updateCredentials(
+        context: context,
+        phoneCredential: credential,
+        authMethod: AuthMethod.phone,
+      );
 
       if (success) {
         Navigator.pop(context, true);

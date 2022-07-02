@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:app/models/models.dart';
 import 'package:app/screens/auth/phone_auth_widget.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/app_service.dart';
@@ -11,7 +12,6 @@ import 'package:app/widgets/text_fields.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
-import '../../models/enum_constants.dart';
 import '../../services/rest_api.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
@@ -472,7 +472,6 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
 
     if (success) {
       if (widget.authProcedure == AuthProcedure.signup) {
-        await AppService.postSignUpActions();
         await Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) {
@@ -548,7 +547,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return AuthConfirmationDialog(
+        return AuthMethodDialog(
           credentials: _emailAddress,
           authMethod: AuthMethod.email,
         );

@@ -81,16 +81,11 @@ AppNotification _$AppNotificationFromJson(Map<String, dynamic> json) =>
       title: json['title'] as String,
       subTitle: json['subTitle'] as String,
       link: json['link'] as String,
-      icon: notificationIconFromJson(
-        json['icon'],
-      ),
+      icon: notificationIconFromJson(json['icon']),
       image: json['image'] as String,
       body: json['body'] as String,
       read: json['read'] as bool,
-      type: $enumDecode(
-        _$AppNotificationTypeEnumMap,
-        json['type'],
-      ),
+      type: $enumDecode(_$AppNotificationTypeEnumMap, json['type']),
       dateTime: json['dateTime'] == null
           ? null
           : DateTime.parse(json['dateTime'] as String),

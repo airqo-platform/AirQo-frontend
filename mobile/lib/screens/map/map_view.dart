@@ -1,122 +1,111 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:app/models/measurement.dart';
-import 'package:app/models/place_details.dart';
-import 'package:app/models/suggestion.dart';
-import 'package:app/screens/analytics/analytics_widgets.dart';
-import 'package:app/themes/app_theme.dart';
-import 'package:app/utils/pm.dart';
-import 'package:app/widgets/dialogs.dart';
+import 'package:app_repository/app_repository.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
+import '../../blocs/map/map_bloc.dart';
+import '../../models/air_quality_reading.dart';
 import '../../models/enum_constants.dart';
-import '../../services/local_storage.dart';
-import '../../services/location_service.dart';
-import '../../services/rest_api.dart';
+import '../../services/hive_service.dart';
+import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
-import 'map_widgets.dart';
+import '../../utils/pm.dart';
+import '../../widgets/custom_shimmer.dart';
+import '../analytics/analytics_widgets.dart';
+import 'map_view_widgets.dart';
 
-class MapView extends StatefulWidget {
-  const MapView({super.key});
+class MapViewV2 extends StatefulWidget {
+  const MapViewV2({Key? key}) : super(key: key);
 
   @override
-  State<MapView> createState() => _MapViewState();
+  State<MapViewV2> createState() => _MapViewV2State();
 }
 
-class _MapViewState extends State<MapView> {
-  bool _showLocationDetails = false;
-  double _scrollSheetHeight = 0.30;
-  bool _isSearching = false;
-  bool _displayRegions = true;
-  List<Measurement> _regionSites = <Measurement>[];
-  List<Measurement> _searchSites = <Measurement>[];
-  List<Measurement> _latestMeasurements = <Measurement>[];
-  List<Suggestion> _searchSuggestions = <Suggestion>[];
-  Region _selectedRegion = Region.central;
-  final TextEditingController _searchController = TextEditingController();
-  PlaceDetails? _locationPlaceMeasurement;
-  Measurement? _locationMeasurement;
-  final _defaultCameraPosition =
-      const CameraPosition(target: LatLng(1.6183002, 32.504365), zoom: 6.6);
-  late GoogleMapController _mapController;
-  Map<String, Marker> _markers = {};
-  double _bottomPadding = 0.15;
+class _MapViewV2State extends State<MapViewV2> {
+  final double _bottomPadding = 0.15;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: <Widget>[
-          Padding(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).size.height * _bottomPadding,
-            ),
-            child: mapWidget(),
+    return Stack(
+      children: [
+        Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).size.height * _bottomPadding,
           ),
-          Visibility(
-            visible: _showLocationDetails,
-            child: DraggableScrollableSheet(
-              initialChildSize: 0.5,
-              minChildSize: 0.4,
-              maxChildSize: 0.6,
-              builder:
-                  (BuildContext context, ScrollController scrollController) {
-                return MapCardWidget(
-                  widget: SingleChildScrollView(
-                    physics: const ScrollPhysics(),
-                    padding: EdgeInsets.zero,
-                    controller: scrollController,
-                    child: locationContent(),
-                  ),
-                  padding: 16.0,
-                );
-              },
-            ),
-          ),
-          Visibility(
-            visible: !_showLocationDetails,
-            child: DraggableScrollableSheet(
-              initialChildSize: _scrollSheetHeight,
-              minChildSize: 0.18,
-              maxChildSize: 0.92,
-              builder:
-                  (BuildContext context, ScrollController scrollController) {
-                return MapCardWidget(
-                  widget: SingleChildScrollView(
-                    controller: scrollController,
-                    physics: const BouncingScrollPhysics(),
-                    child: Column(
-                      children: <Widget>[
-                        const SizedBox(height: 8),
-                        const DraggingHandle(),
-                        const SizedBox(height: 16),
-                        searchContainer(),
-                        Visibility(
-                          visible: _displayRegions && !_isSearching,
-                          child: regionsList(),
-                        ),
-                        Visibility(
-                          visible: !_displayRegions && !_isSearching,
-                          child: sitesList(),
-                        ),
-                        Visibility(
-                          visible: _isSearching,
-                          child: searchResultsList(),
-                        ),
-                      ],
-                    ),
-                  ),
-                  padding: 32,
-                );
-              },
-            ),
-          ),
-        ],
-      ),
+          child: const MapLandscape(),
+        ),
+        const MapControl(),
+      ],
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+        .listenable()
+        .addListener(() {
+      final airQualityReadings =
+          Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+              .values
+              .toList();
+      if (airQualityReadings.isNotEmpty) {
+        context.read<MapBloc>().add(const ShowAllSites());
+      }
+    });
+  }
+}
+
+class MapLandscape extends StatefulWidget {
+  const MapLandscape({super.key});
+  @override
+  State<MapLandscape> createState() => _MapLandscapeState();
+}
+
+class _MapLandscapeState extends State<MapLandscape> {
+  GoogleMapController? _mapController;
+  Map<String, Marker> _markers = {};
+  final _defaultCameraPosition =
+      const CameraPosition(target: LatLng(1.6183002, 32.504365), zoom: 6.6);
+
+  @override
+  Widget build(BuildContext context) {
+    return GoogleMap(
+      compassEnabled: false,
+      onMapCreated: _onMapCreated,
+      mapType: MapType.normal,
+      myLocationButtonEnabled: false,
+      myLocationEnabled: false,
+      rotateGesturesEnabled: false,
+      tiltGesturesEnabled: false,
+      mapToolbarEnabled: false,
+      zoomControlsEnabled: true,
+      initialCameraPosition: _defaultCameraPosition,
+      markers: _markers.values.toSet(),
+    );
+  }
+
+  Future<void> _loadTheme() async {
+    if (_mapController == null) {
+      return;
+    }
+
+    await _mapController?.setMapStyle(
+      jsonEncode(googleMapsTheme),
+    );
+  }
+
+  Future<void> _onMapCreated(GoogleMapController controller) async {
+    _mapController = controller;
+    await _loadTheme();
+    await _setMarkers([]);
   }
 
   LatLngBounds _getBounds(List<Marker> markers) {
@@ -138,249 +127,355 @@ class _MapViewState extends State<MapView> {
     return bounds;
   }
 
-  Widget getLocationDisplay() {
-    if (_locationMeasurement != null && _locationPlaceMeasurement != null) {
-      return MapAnalyticsCard(
-        _locationPlaceMeasurement!,
-        _locationMeasurement!,
-        _showLocation,
-      );
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _listenToAirQualityReadingChanges();
+    });
+  }
+
+  Future<void> _listenToAirQualityReadingChanges() async {
+    context.read<MapBloc>().stream.listen((state) {
+      if (state is AllSitesState) {
+        _setMarkers(state.airQualityReadings);
+      }
+
+      if (state is RegionSitesState) {
+        _setMarkers(state.airQualityReadings);
+      }
+
+      if (state is SingleSiteState) {
+        _setMarkers([state.airQualityReading]);
+      }
+
+      if (state is SearchSitesState) {
+        _setMarkers(state.airQualityReadings);
+      }
+    });
+  }
+
+  Future<void> _setMarkers(List<AirQualityReading> airQualityReadings) async {
+    if (!mounted) {
+      return;
     }
 
-    return EmptyView(
-      title: '',
-      topBars: true,
-      bodyInnerText: 'area',
-      showRegions: _showRegions,
-    );
-  }
+    if (_mapController == null) {
+      return;
+    }
 
-  Widget locationContent() {
-    return Column(
-      children: [
-        const SizedBox(height: 8),
-        const Padding(
-          padding: EdgeInsets.only(left: 10, right: 10),
-          child: DraggingHandle(),
+    if (airQualityReadings.isEmpty) {
+      final controller = _mapController;
+
+      await controller?.animateCamera(
+        CameraUpdate.newCameraPosition(_defaultCameraPosition),
+      );
+
+      setState(() => _markers = {});
+
+      return;
+    }
+    final markers = <String, Marker>{};
+
+    for (final airQualityReading in airQualityReadings) {
+      final bitmapDescriptor = airQualityReadings.length == 1
+          ? await pmToMarker(
+              airQualityReading.pm2_5,
+            )
+          : await pmToSmallMarker(
+              airQualityReading.pm2_5,
+            );
+
+      final marker = Marker(
+        markerId: MarkerId(airQualityReading.referenceSite),
+        icon: bitmapDescriptor,
+        position: LatLng(
+          (airQualityReading.latitude),
+          airQualityReading.longitude,
         ),
-        const SizedBox(height: 16),
-        MediaQuery.removePadding(
-          context: context,
-          removeTop: true,
-          removeLeft: true,
-          removeRight: true,
-          child: ListView(
-            shrinkWrap: true,
-            physics: const ScrollPhysics(),
-            controller: ScrollController(),
-            children: <Widget>[
-              getLocationDisplay(),
-            ],
+        onTap: () {
+          if (!mounted) return;
+
+          context
+              .read<MapBloc>()
+              .add(ShowSite(airQualityReading: airQualityReading));
+        },
+      );
+      markers[airQualityReading.placeId] = marker;
+    }
+
+    if (mounted) {
+      final controller = _mapController;
+
+      if (airQualityReadings.length == 1) {
+        final latLng = LatLng(
+          airQualityReadings.first.latitude,
+          airQualityReadings.first.longitude,
+        );
+
+        final cameraPosition = CameraPosition(
+          target: latLng,
+          zoom: 100,
+        );
+
+        await controller?.animateCamera(
+          CameraUpdate.newCameraPosition(cameraPosition),
+        );
+      } else {
+        await controller?.animateCamera(
+          CameraUpdate.newLatLngBounds(
+            _getBounds(
+              markers.values.toList(),
+            ),
+            40.0,
           ),
+        );
+      }
+
+      setState(() => _markers = markers);
+    }
+  }
+}
+
+class MapControl extends StatelessWidget {
+  const MapControl({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.30,
+      minChildSize: 0.18,
+      maxChildSize: 0.92,
+      builder: (
+        BuildContext context,
+        ScrollController scrollController,
+      ) {
+        return MapCardWidget(
+          widget: SingleChildScrollView(
+            controller: scrollController,
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              children: <Widget>[
+                const SizedBox(height: 8),
+                const DraggingHandle(),
+                const SizedBox(height: 16),
+                SearchWidget(),
+                BlocBuilder<MapBloc, MapState>(
+                  builder: (context, state) {
+                    if (state is MapLoadingState) {
+                      return const SearchLoadingWidget();
+                    }
+
+                    if (state is MapSearchCompleteState) {
+                      return SearchResults(
+                        searchResults: state.searchResults,
+                      );
+                    }
+
+                    if (state is AllSitesState) {
+                      return const AllSites();
+                    }
+
+                    if (state is RegionSitesState) {
+                      return RegionSites(
+                        airQualityReadings: state.airQualityReadings,
+                        region: state.region,
+                      );
+                    }
+
+                    if (state is SingleSiteState) {
+                      return SingleSite(
+                        airQualityReading: state.airQualityReading,
+                      );
+                    }
+
+                    if (state is SearchSitesState) {
+                      return SearchSites(
+                        airQualityReadings: state.airQualityReadings,
+                      );
+                    }
+
+                    return const AllSites();
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class RegionTileV2 extends StatelessWidget {
+  const RegionTileV2({
+    super.key,
+    required this.region,
+  });
+  final Region region;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: const EdgeInsets.only(left: 0.0),
+      leading: const RegionAvatar(),
+      onTap: () {
+        context.read<MapBloc>().add(ShowRegionSites(region: region));
+      },
+      title: AutoSizeText(
+        region.toString(),
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: CustomTextStyle.headline8(context),
+      ),
+      subtitle: AutoSizeText(
+        'Uganda',
+        style: CustomTextStyle.bodyText4(context)?.copyWith(
+          color: CustomColors.appColorBlack.withOpacity(0.3),
         ),
-      ],
+      ),
+      trailing: SvgPicture.asset(
+        'assets/icon/more_arrow.svg',
+        semanticsLabel: 'more',
+        height: 6.99,
+        width: 4,
+      ),
     );
   }
+}
 
-  Widget mapWidget() {
-    return GoogleMap(
-      compassEnabled: false,
-      onMapCreated: _onMapCreated,
-      mapType: MapType.normal,
-      myLocationButtonEnabled: false,
-      myLocationEnabled: false,
-      rotateGesturesEnabled: false,
-      tiltGesturesEnabled: false,
-      mapToolbarEnabled: false,
-      zoomControlsEnabled: true,
-      initialCameraPosition: _defaultCameraPosition,
-      markers: _markers.values.toSet(),
-    );
-  }
+class AllSites extends StatelessWidget {
+  const AllSites({super.key});
 
-  Widget regionsList() {
+  @override
+  Widget build(BuildContext context) {
     return MediaQuery.removePadding(
       removeTop: true,
       context: context,
       child: ListView(
         shrinkWrap: true,
         physics: const BouncingScrollPhysics(),
-        children: <Widget>[
-          const SizedBox(
+        children: const <Widget>[
+          SizedBox(
             height: 5,
           ),
-          RegionTile(
+          RegionTileV2(
             region: Region.central,
-            showRegionSites: _showRegionSites,
           ),
-          RegionTile(
+          RegionTileV2(
             region: Region.western,
-            showRegionSites: _showRegionSites,
           ),
-          RegionTile(
+          RegionTileV2(
             region: Region.eastern,
-            showRegionSites: _showRegionSites,
           ),
-          RegionTile(
+          RegionTileV2(
             region: Region.northern,
-            showRegionSites: _showRegionSites,
           ),
         ],
       ),
     );
   }
+}
 
-  void _searchChanged(String text) {
-    if (text.isEmpty) {
-      setState(() => _isSearching = false);
-    } else {
-      setState(
-        () {
-          _isSearching = true;
-          _searchSites = LocationService.textSearchNearestSites(
-            text,
-            _latestMeasurements,
-          );
-        },
-      );
+class RegionSites extends StatelessWidget {
+  const RegionSites({
+    super.key,
+    required this.airQualityReadings,
+    required this.region,
+  });
 
-      SearchApi().fetchSuggestions(text).then(
-            (value) => {
-              setState(() => _searchSuggestions = value),
-            },
-          );
+  final List<AirQualityReading> airQualityReadings;
+  final Region region;
 
-      setState(
-        () => _searchSites = LocationService.textSearchNearestSites(
-          text,
-          _latestMeasurements,
-        ),
-      );
-    }
-  }
-
-  Widget searchContainer() {
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            height: 32,
-            constraints: const BoxConstraints(minWidth: double.maxFinite),
-            decoration: BoxDecoration(
-              color: CustomColors.appBodyColor,
-              shape: BoxShape.rectangle,
-              borderRadius: const BorderRadius.all(
-                Radius.circular(8.0),
+  @override
+  Widget build(BuildContext context) {
+    return MediaQuery.removePadding(
+      removeTop: true,
+      context: context,
+      child: ListView(
+        shrinkWrap: true,
+        physics: const BouncingScrollPhysics(),
+        children: [
+          const SizedBox(
+            height: 10,
+          ),
+          Visibility(
+            visible: airQualityReadings.isNotEmpty,
+            child: Text(
+              region.toString(),
+              style: CustomTextStyle.overline1(context)?.copyWith(
+                color: CustomColors.appColorBlack.withOpacity(0.32),
               ),
             ),
-            child: TextFormField(
-              controller: _searchController,
-              onChanged: _searchChanged,
-              onTap: () {
-                setState(() => _scrollSheetHeight = 0.7);
+          ),
+          Visibility(
+            visible: airQualityReadings.isNotEmpty,
+            child: MediaQuery.removePadding(
+              context: context,
+              removeTop: true,
+              child: ListView.builder(
+                shrinkWrap: true,
+                controller: ScrollController(),
+                itemBuilder: (context, index) => SiteTile(
+                  airQualityReading: airQualityReadings[index],
+                ),
+                itemCount: airQualityReadings.length,
+              ),
+            ),
+          ),
+          Visibility(
+            visible: airQualityReadings.isEmpty,
+            child: EmptyView(
+              title: region.toString(),
+              topBars: false,
+              bodyInnerText: 'region',
+              showRegions: () {
+                context.read<MapBloc>().add(const ShowAllSites());
               },
-              style: Theme.of(context).textTheme.caption?.copyWith(
-                    fontSize: 16,
-                  ),
-              enableSuggestions: true,
-              cursorWidth: 1,
-              autofocus: false,
-              cursorColor: CustomColors.appColorBlack,
-              decoration: InputDecoration(
-                fillColor: Colors.white,
-                prefixIcon: Padding(
-                  padding: const EdgeInsets.only(
-                    right: 0,
-                    top: 7,
-                    bottom: 7,
-                    left: 0,
-                  ),
-                  child: SvgPicture.asset(
-                    'assets/icon/search.svg',
-                    semanticsLabel: 'Search',
-                  ),
-                ),
-                contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                focusedBorder: OutlineInputBorder(
-                  borderSide:
-                      const BorderSide(color: Colors.transparent, width: 1.0),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderSide:
-                      const BorderSide(color: Colors.transparent, width: 1.0),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                border: OutlineInputBorder(
-                  borderSide:
-                      const BorderSide(color: Colors.transparent, width: 1.0),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                hintStyle: Theme.of(context).textTheme.caption?.copyWith(
-                      color: CustomColors.appColorBlack.withOpacity(0.32),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                    ),
-              ),
             ),
           ),
-        ),
-        Visibility(
-          visible: !_displayRegions,
-          child: const SizedBox(
-            width: 8.0,
-          ),
-        ),
-        Visibility(
-          visible: !_displayRegions,
-          child: GestureDetector(
-            onTap: _showRegions,
-            child: Container(
-              height: 32,
-              width: 32,
-              decoration: BoxDecoration(
-                color: CustomColors.appBodyColor,
-                borderRadius: const BorderRadius.all(
-                  Radius.circular(8.0),
-                ),
-              ),
-              child: SvgPicture.asset(
-                'assets/icon/map_clear_text.svg',
-                height: 15,
-                width: 15,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget searchField() {
-    return Expanded(
-      child: Center(
-        child: TextFormField(
-          controller: _searchController,
-          onTap: () {
-            setState(() => _scrollSheetHeight = 0.7);
-          },
-          onChanged: _searchChanged,
-          cursorWidth: 1,
-          maxLines: 1,
-          cursorColor: CustomColors.appColorBlue,
-          autofocus: false,
-          decoration: const InputDecoration(
-            contentPadding: EdgeInsets.only(right: 8, left: 8, bottom: 15),
-            hintText: '',
-            focusedBorder: InputBorder.none,
-            enabledBorder: InputBorder.none,
-          ),
-        ),
+        ],
       ),
     );
   }
+}
 
-  Widget searchResultsList() {
+class SingleSite extends StatelessWidget {
+  const SingleSite({super.key, required this.airQualityReading});
+
+  final AirQualityReading airQualityReading;
+
+  @override
+  Widget build(BuildContext context) {
+    return MediaQuery.removePadding(
+      context: context,
+      removeTop: true,
+      removeLeft: true,
+      removeRight: true,
+      child: ListView(
+        shrinkWrap: true,
+        physics: const ScrollPhysics(),
+        controller: ScrollController(),
+        children: <Widget>[
+          MapAnalyticsCardV2(
+            airQualityReading: airQualityReading,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SearchSites extends StatelessWidget {
+  const SearchSites({super.key, required this.airQualityReadings});
+
+  final List<AirQualityReading> airQualityReadings;
+
+  @override
+  Widget build(BuildContext context) {
+    final filteredAirQualityReadings =
+        filterNearestLocations(airQualityReadings);
+
     return MediaQuery.removePadding(
       removeTop: true,
       context: context,
@@ -389,7 +484,7 @@ class _MapViewState extends State<MapView> {
         physics: const BouncingScrollPhysics(),
         children: [
           Visibility(
-            visible: _searchSites.isEmpty && _searchSuggestions.isEmpty,
+            visible: airQualityReadings.isEmpty,
             child: Center(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -437,7 +532,7 @@ class _MapViewState extends State<MapView> {
             ),
           ),
           Visibility(
-            visible: _searchSites.isNotEmpty && _searchSuggestions.isEmpty,
+            visible: filteredAirQualityReadings.isNotEmpty,
             child: Center(
               child: MediaQuery.removePadding(
                 context: context,
@@ -446,29 +541,9 @@ class _MapViewState extends State<MapView> {
                   physics: const BouncingScrollPhysics(),
                   shrinkWrap: true,
                   itemBuilder: (context, index) => SiteTile(
-                    measurement: _searchSites[index],
-                    onSiteTileTap: _onSiteTileTap,
+                    airQualityReading: filteredAirQualityReadings[index],
                   ),
-                  itemCount: _searchSites.length,
-                ),
-              ),
-            ),
-          ),
-          Visibility(
-            visible: _searchSuggestions.isNotEmpty,
-            child: Center(
-              child: MediaQuery.removePadding(
-                context: context,
-                removeTop: true,
-                removeLeft: true,
-                child: ListView.builder(
-                  physics: const BouncingScrollPhysics(),
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) => SearchTile(
-                    suggestion: _searchSuggestions[index],
-                    onSearchTileTap: _onSearchTileTap,
-                  ),
-                  itemCount: _searchSuggestions.length,
+                  itemCount: filteredAirQualityReadings.length,
                 ),
               ),
             ),
@@ -480,258 +555,15 @@ class _MapViewState extends State<MapView> {
       ),
     );
   }
+}
 
-  Future<void> _setMarkers(
-    List<Measurement> measurements,
-    bool useSingleZoom,
-    double zoom,
-  ) async {
-    if (!mounted) {
-      return;
-    }
+class SearchResults extends StatelessWidget {
+  const SearchResults({super.key, required this.searchResults});
 
-    if (measurements.isEmpty) {
-      final controller = _mapController;
+  final List<SearchResultItem> searchResults;
 
-      await controller.animateCamera(
-        CameraUpdate.newCameraPosition(_defaultCameraPosition),
-      );
-
-      setState(
-        () {
-          _markers.clear();
-          _markers = {};
-        },
-      );
-
-      return;
-    }
-    final markers = <String, Marker>{};
-
-    for (final measurement in measurements) {
-      final bitmapDescriptor = useSingleZoom
-          ? await pmToMarker(
-              measurement.getPm2_5Value(),
-            )
-          : await pmToSmallMarker(
-              measurement.getPm2_5Value(),
-            );
-
-      final marker = Marker(
-        markerId: MarkerId(measurement.site.id),
-        icon: bitmapDescriptor,
-        position: LatLng(
-          (measurement.site.latitude),
-          measurement.site.longitude,
-        ),
-        // infoWindow: InfoWindow(
-        //   title: measurement.getPm2_5Value().toStringAsFixed(2),
-        //   snippet: node.location,
-        // ),
-        onTap: () {
-          if (!mounted) {
-            return;
-          }
-          setState(() => _searchController.text = measurement.site.name);
-          _showLocationContent(
-            measurement,
-            null,
-          );
-        },
-      );
-      markers[measurement.site.id] = marker;
-    }
-
-    if (mounted) {
-      final controller = _mapController;
-
-      if (useSingleZoom) {
-        final latLng = LatLng(
-          measurements.first.site.latitude,
-          measurements.first.site.longitude,
-        );
-
-        final cameraPosition = CameraPosition(
-          target: latLng,
-          zoom: zoom,
-        );
-
-        await controller.animateCamera(
-          CameraUpdate.newCameraPosition(cameraPosition),
-        );
-      } else {
-        if (_displayRegions) {
-          await controller.animateCamera(
-            CameraUpdate.newCameraPosition(_defaultCameraPosition),
-          );
-        } else {
-          await controller.animateCamera(
-            CameraUpdate.newLatLngBounds(
-              _getBounds(
-                markers.values.toList(),
-              ),
-              40.0,
-            ),
-          );
-        }
-      }
-
-      setState(() => _markers = markers);
-    }
-  }
-
-  void _showLocation() {
-    if (!mounted) {
-      return;
-    }
-    setState(() => _showLocationDetails = !_showLocationDetails);
-
-    if (!_showLocationDetails) {
-      _showRegions();
-    }
-
-    if (_showLocationDetails) {
-      setState(() => _bottomPadding = 0.5);
-    }
-  }
-
-  void _showLocationContent(
-    Measurement? measurement,
-    PlaceDetails? placeDetails,
-  ) {
-    if (!mounted) {
-      return;
-    }
-
-    if (placeDetails != null) {
-      final places = _latestMeasurements
-          .where((measurement) => measurement.site.id == placeDetails.siteId)
-          .toList();
-      if (places.isEmpty) {
-        return;
-      }
-
-      final place = places.first;
-
-      _setMarkers([place], true, 14);
-      setState(
-        () {
-          _locationPlaceMeasurement = placeDetails;
-          _locationMeasurement = place;
-          _showLocationDetails = true;
-        },
-      );
-    } else if (measurement != null) {
-      _setMarkers([measurement], true, 14);
-      setState(
-        () {
-          _locationPlaceMeasurement =
-              PlaceDetails.measurementToPlace(measurement);
-          _locationMeasurement = measurement;
-          _showLocationDetails = true;
-        },
-      );
-    } else {
-      setState(
-        () {
-          _locationMeasurement = null;
-          _locationPlaceMeasurement = null;
-          _showLocationDetails = true;
-        },
-      );
-    }
-  }
-
-  void _showRegions() {
-    if (!mounted) {
-      return;
-    }
-
-    setState(
-      () {
-        _searchController.text = '';
-        _isSearching = false;
-        _searchSites = [];
-        _regionSites = [];
-        _showLocationDetails = false;
-        _displayRegions = true;
-      },
-    );
-    if (_latestMeasurements.isEmpty) {
-      _getLatestMeasurements().then(
-        (value) => {
-          _setMarkers(_latestMeasurements, false, 6.6),
-        },
-      );
-    } else {
-      _setMarkers(_latestMeasurements, false, 6.6);
-    }
-  }
-
-  Future<void> _showRegionSites(Region region) async {
-    if (!mounted) {
-      return;
-    }
-
-    setState(() => _selectedRegion = region);
-    final sites = await DBHelper().getRegionSites(region);
-    setState(
-      () {
-        _showLocationDetails = false;
-        _displayRegions = false;
-        _regionSites = sites;
-      },
-    );
-    await _setMarkers(
-      sites,
-      false,
-      10,
-    );
-  }
-
-  Future<void> _onSearchTileTap(Suggestion suggestion) async {
-    if (!mounted) {
-      return;
-    }
-
-    setState(
-      () => _searchController.text = suggestion.suggestionDetails.mainText,
-    );
-    final place = await SearchApi().getPlaceDetails(suggestion.placeId);
-    if (place != null) {
-      final nearestSite = await LocationService.getNearestSite(
-        place.geometry.location.lat,
-        place.geometry.location.lng,
-      );
-
-      if (nearestSite == null) {
-        _showLocationContent(
-          null,
-          null,
-        );
-
-        return;
-      }
-
-      final placeDetails = PlaceDetails(
-        name: suggestion.suggestionDetails.getMainText(),
-        location: suggestion.suggestionDetails.getSecondaryText(),
-        siteId: nearestSite.id,
-        placeId: suggestion.placeId,
-        latitude: place.geometry.location.lat,
-        longitude: place.geometry.location.lng,
-      );
-
-      _showLocationContent(null, placeDetails);
-    } else {
-      await showSnackBar(
-        context,
-        'Try again later',
-      );
-    }
-  }
-
-  Widget sitesList() {
+  @override
+  Widget build(BuildContext context) {
     return MediaQuery.removePadding(
       removeTop: true,
       context: context,
@@ -739,91 +571,222 @@ class _MapViewState extends State<MapView> {
         shrinkWrap: true,
         physics: const BouncingScrollPhysics(),
         children: [
-          const SizedBox(
-            height: 10,
-          ),
           Visibility(
-            visible: _regionSites.isNotEmpty,
-            child: Text(
-              _selectedRegion.toString(),
-              style: CustomTextStyle.overline1(context)?.copyWith(
-                color: CustomColors.appColorBlack.withOpacity(0.32),
+            visible: searchResults.isEmpty,
+            child: Center(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Stack(
+                    children: [
+                      Image.asset(
+                        'assets/images/world-map.png',
+                        height: 130,
+                        width: 130,
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: CustomColors.appColorBlue,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.all(12.0),
+                          child: Icon(
+                            Icons.map_outlined,
+                            size: 30,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 52,
+                  ),
+                  const Text(
+                    'Not found',
+                    textAlign: TextAlign.start,
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(
+                    height: 52,
+                  ),
+                ],
               ),
             ),
           ),
           Visibility(
-            visible: _regionSites.isNotEmpty,
-            child: MediaQuery.removePadding(
-              context: context,
-              removeTop: true,
-              child: ListView.builder(
-                shrinkWrap: true,
-                controller: ScrollController(),
-                itemBuilder: (context, index) => SiteTile(
-                  measurement: _regionSites[index],
-                  onSiteTileTap: _onSiteTileTap,
+            visible: searchResults.isNotEmpty,
+            child: Center(
+              child: MediaQuery.removePadding(
+                context: context,
+                removeTop: true,
+                removeLeft: true,
+                child: ListView.builder(
+                  physics: const BouncingScrollPhysics(),
+                  shrinkWrap: true,
+                  itemBuilder: (context, index) => SearchTile(
+                    searchResult: searchResults[index],
+                  ),
+                  itemCount: searchResults.length,
                 ),
-                itemCount: _regionSites.length,
               ),
             ),
           ),
-          Visibility(
-            visible: _regionSites.isEmpty,
-            child: EmptyView(
-              title: _selectedRegion.toString(),
-              topBars: false,
-              bodyInnerText: 'region',
-              showRegions: _showRegions,
-            ),
+          const SizedBox(
+            height: 8,
           ),
         ],
       ),
     );
   }
+}
 
-  void _onSiteTileTap(Measurement measurement) {
-    if (!mounted) {
-      return;
-    }
-    setState(() => _searchController.text = measurement.site.name);
-    _showLocationContent(measurement, null);
-  }
+class SearchLoadingWidget extends StatelessWidget {
+  const SearchLoadingWidget({super.key});
 
-  Future<void> _getLatestMeasurements() async {
-    final dbMeasurements = await DBHelper().getLatestMeasurements();
-
-    if (dbMeasurements.isNotEmpty && mounted) {
-      setState(() => _latestMeasurements = dbMeasurements);
-      await _setMarkers(dbMeasurements, false, 6.6);
-    }
-
-    final measurements = await AirqoApiClient().fetchLatestMeasurements();
-
-    if (measurements.isNotEmpty && mounted) {
-      setState(() => _latestMeasurements = measurements);
-      await _setMarkers(measurements, false, 6.6);
-    }
-    await DBHelper().insertLatestMeasurements(measurements);
-  }
-
-  Future<void> _loadTheme() async {
-    await _mapController.setMapStyle(
-      jsonEncode(googleMapsTheme),
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 20),
+      child: Center(
+        child: LoadingWidget(backgroundColor: Colors.transparent),
+      ),
     );
   }
+}
 
-  Future<void> _onMapCreated(GoogleMapController controller) async {
-    if (!mounted) {
-      return;
-    }
+class SearchWidget extends StatelessWidget {
+  SearchWidget({super.key});
+  final TextEditingController _searchController = TextEditingController();
 
-    setState(
-      () {
-        _mapController = controller;
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<MapBloc, MapState>(
+      builder: (context, state) {
+        if (state is SingleSiteState) {
+          return const SizedBox();
+        }
+
+        return Row(
+          children: [
+            Expanded(
+              child: Container(
+                height: 32,
+                constraints: const BoxConstraints(minWidth: double.maxFinite),
+                decoration: BoxDecoration(
+                  color: CustomColors.appBodyColor,
+                  shape: BoxShape.rectangle,
+                  borderRadius: const BorderRadius.all(
+                    Radius.circular(8.0),
+                  ),
+                ),
+                child: TextFormField(
+                  controller: _searchController,
+                  onChanged: (String value) {
+                    context
+                        .read<MapBloc>()
+                        .add(MapSearchTermChanged(searchTerm: value));
+                  },
+                  onTap: () {
+                    context.read<MapBloc>().add(const MapSearchReset());
+                  },
+                  style: Theme.of(context).textTheme.caption?.copyWith(
+                        fontSize: 16,
+                      ),
+                  enableSuggestions: true,
+                  cursorWidth: 1,
+                  autofocus: false,
+                  cursorColor: CustomColors.appColorBlack,
+                  decoration: InputDecoration(
+                    fillColor: Colors.white,
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.only(
+                        right: 0,
+                        top: 7,
+                        bottom: 7,
+                        left: 0,
+                      ),
+                      child: SvgPicture.asset(
+                        'assets/icon/search.svg',
+                        semanticsLabel: 'Search',
+                      ),
+                    ),
+                    contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(
+                        color: Colors.transparent,
+                        width: 1.0,
+                      ),
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(
+                        color: Colors.transparent,
+                        width: 1.0,
+                      ),
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    border: OutlineInputBorder(
+                      borderSide: const BorderSide(
+                        color: Colors.transparent,
+                        width: 1.0,
+                      ),
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    hintStyle: Theme.of(context).textTheme.caption?.copyWith(
+                          color: CustomColors.appColorBlack.withOpacity(0.32),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                        ),
+                  ),
+                ),
+              ),
+            ),
+            BlocBuilder<MapBloc, MapState>(
+              builder: (context, state) {
+                if (state is! AllSitesState) {
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(
+                        width: 8.0,
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          _searchController.text = '';
+                          context.read<MapBloc>().add(const ShowAllSites());
+                        },
+                        child: Container(
+                          height: 32,
+                          width: 32,
+                          decoration: BoxDecoration(
+                            color: CustomColors.appBodyColor,
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(8.0),
+                            ),
+                          ),
+                          child: SvgPicture.asset(
+                            'assets/icon/map_clear_text.svg',
+                            height: 15,
+                            width: 15,
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }
+
+                return const SizedBox();
+              },
+            ),
+          ],
+        );
       },
     );
-
-    await _loadTheme();
-    await _getLatestMeasurements();
   }
 }

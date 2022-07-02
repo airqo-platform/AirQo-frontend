@@ -1,14 +1,20 @@
+import 'package:app/blocs/map/map_bloc.dart';
+import 'package:app/models/models.dart';
 import 'package:app/utils/extensions.dart';
+import 'package:app_repository/app_repository.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../models/enum_constants.dart';
-import '../../models/measurement.dart';
-import '../../models/suggestion.dart';
+import '../../constants/config.dart';
+import '../../services/location_service.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
+import '../../widgets/custom_shimmer.dart';
 import '../../widgets/custom_widgets.dart';
+import '../../widgets/dialogs.dart';
+import '../insights/insights_page.dart';
 
 class DraggingHandle extends StatelessWidget {
   const DraggingHandle({
@@ -56,10 +62,8 @@ class MapCardWidget extends StatelessWidget {
   const MapCardWidget({
     super.key,
     required this.widget,
-    required this.padding,
   });
   final Widget widget;
-  final double padding;
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +77,7 @@ class MapCardWidget extends StatelessWidget {
         ),
       ),
       child: Container(
-        padding: EdgeInsets.fromLTRB(padding, 0, padding, 16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 32),
         child: widget,
       ),
     );
@@ -83,26 +87,28 @@ class MapCardWidget extends StatelessWidget {
 class SiteTile extends StatelessWidget {
   const SiteTile({
     super.key,
-    required this.measurement,
-    required this.onSiteTileTap,
+    required this.airQualityReading,
   });
-  final Measurement measurement;
-  final Function(Measurement) onSiteTileTap;
+  final AirQualityReading airQualityReading;
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
       contentPadding: const EdgeInsets.only(left: 0.0),
-      onTap: () => onSiteTileTap(measurement),
+      onTap: () {
+        context
+            .read<MapBloc>()
+            .add(ShowSite(airQualityReading: airQualityReading));
+      },
       title: AutoSizeText(
-        measurement.site.name.trimEllipsis(),
+        airQualityReading.name.trimEllipsis(),
         maxLines: 1,
         minFontSize: 16.0,
         overflow: TextOverflow.ellipsis,
         style: CustomTextStyle.headline8(context),
       ),
       subtitle: AutoSizeText(
-        measurement.site.location.trimEllipsis(),
+        airQualityReading.location.trimEllipsis(),
         maxLines: 1,
         minFontSize: 14.0,
         style: CustomTextStyle.bodyText4(context)?.copyWith(
@@ -115,19 +121,19 @@ class SiteTile extends StatelessWidget {
         height: 6.99,
         width: 4,
       ),
-      leading: MiniAnalyticsAvatar(measurement: measurement),
+      leading: MiniAnalyticsAvatar(airQualityReading: airQualityReading),
     );
   }
 }
 
-class RegionTile extends StatelessWidget {
-  const RegionTile({
+class SearchTile extends StatelessWidget {
+  SearchTile({
     super.key,
-    required this.showRegionSites,
-    required this.region,
+    required this.searchResult,
   });
-  final Function(Region) showRegionSites;
-  final Region region;
+  final SearchResultItem searchResult;
+  final SearchRepository _searchRepository =
+      SearchRepository(searchApiKey: Config.searchApiKey);
 
   @override
   Widget build(BuildContext context) {
@@ -135,54 +141,17 @@ class RegionTile extends StatelessWidget {
       contentPadding: const EdgeInsets.only(left: 0.0),
       leading: const RegionAvatar(),
       onTap: () {
-        showRegionSites(region);
+        _showPlaceDetails(context);
       },
       title: AutoSizeText(
-        region.toString(),
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: CustomTextStyle.headline8(context),
-      ),
-      subtitle: AutoSizeText(
-        'Uganda',
-        style: CustomTextStyle.bodyText4(context)?.copyWith(
-          color: CustomColors.appColorBlack.withOpacity(0.3),
-        ),
-      ),
-      trailing: SvgPicture.asset(
-        'assets/icon/more_arrow.svg',
-        semanticsLabel: 'more',
-        height: 6.99,
-        width: 4,
-      ),
-    );
-  }
-}
-
-class SearchTile extends StatelessWidget {
-  const SearchTile({
-    super.key,
-    required this.suggestion,
-    required this.onSearchTileTap,
-  });
-  final Suggestion suggestion;
-  final Function(Suggestion) onSearchTileTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding: const EdgeInsets.only(left: 0.0),
-      leading: const RegionAvatar(),
-      onTap: () => onSearchTileTap(suggestion),
-      title: AutoSizeText(
-        suggestion.suggestionDetails.mainText.trimEllipsis(),
+        searchResult.name,
         maxLines: 1,
         minFontSize: 16.0,
         overflow: TextOverflow.ellipsis,
         style: CustomTextStyle.headline8(context),
       ),
       subtitle: AutoSizeText(
-        suggestion.suggestionDetails.secondaryText.trimEllipsis(),
+        searchResult.location,
         maxLines: 1,
         minFontSize: 14.0,
         overflow: TextOverflow.ellipsis,
@@ -197,6 +166,55 @@ class SearchTile extends StatelessWidget {
         width: 4,
       ),
     );
+  }
+
+  Future<void> _showPlaceDetails(BuildContext context) async {
+    loadingScreen(context);
+
+    final place = await _searchRepository.placeDetails(searchResult.id);
+
+    if (place != null) {
+      final nearestSite = await LocationService.getNearestSiteAirQualityReading(
+        place.geometry.location.lat,
+        place.geometry.location.lng,
+      );
+
+      Navigator.pop(context);
+
+      // TODO: Substitute with widget
+      if (nearestSite == null) {
+        await showSnackBar(
+          context,
+          'Oops!!.. We don’t have air quality readings for'
+          ' ${searchResult.name}',
+          durationInSeconds: 3,
+        );
+
+        return;
+      }
+
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) {
+            return InsightsPage(
+              nearestSite.copyWith(
+                name: searchResult.name,
+                location: searchResult.location,
+                placeId: searchResult.id,
+                latitude: place.geometry.location.lat,
+                longitude: place.geometry.location.lng,
+              ),
+            );
+          },
+        ),
+      );
+    } else {
+      await showSnackBar(
+        context,
+        'Try again later',
+      );
+    }
   }
 }
 
@@ -236,7 +254,7 @@ class EmptyView extends StatelessWidget {
                     iconSize: 10,
                     icon: Icon(
                       Icons.clear,
-                      color: CustomColors.appColor,
+                      color: CustomColors.appColorBlack,
                     ),
                     onPressed: showRegions,
                   ),

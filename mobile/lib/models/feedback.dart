@@ -1,8 +1,5 @@
-import 'package:json_annotation/json_annotation.dart';
-
 import 'enum_constants.dart';
 
-@JsonSerializable()
 class UserFeedback {
   UserFeedback(
     this.contactDetails,

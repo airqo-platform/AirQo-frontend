@@ -1,4 +1,4 @@
-import 'package:app/models/profile.dart';
+import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/utils/exception.dart';
 import 'package:app/widgets/buttons.dart';
@@ -7,7 +7,6 @@ import 'package:app/widgets/dialogs.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
-import '../../models/enum_constants.dart';
 import '../../services/local_storage.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';

@@ -1,8 +1,7 @@
+import 'package:app/models/models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../models/enum_constants.dart';
-import '../../models/profile.dart';
 import '../../themes/colors.dart';
 import '../../widgets/text_fields.dart';
 

@@ -1,10 +1,11 @@
 import 'package:app/constants/config.dart';
-import 'package:app/models/place_details.dart';
+import 'package:app/models/models.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
+import '../../services/hive_service.dart';
 import '../../themes/colors.dart';
 import '../analytics/analytics_widgets.dart';
 import 'favourite_places_widgets.dart';
@@ -27,15 +28,27 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
       appBar: const AppTopBar('Favorites'),
       body: Container(
         color: CustomColors.appBodyColor,
-        child: Consumer<PlaceDetailsModel>(
-          builder: (context, placeDetailsModel, child) {
-            if (placeDetailsModel.favouritePlaces.isEmpty) {
+        child: ValueListenableBuilder<Box>(
+          valueListenable:
+              Hive.box<FavouritePlace>(HiveBox.favouritePlaces).listenable(),
+          builder: (context, box, widget) {
+            final favouritePlaces = box.values.cast<FavouritePlace>().toList();
+
+            if (favouritePlaces.isEmpty) {
               return const EmptyFavouritePlaces();
             }
 
             return AppRefreshIndicator(
               sliverChildDelegate: SliverChildBuilderDelegate(
                 (context, index) {
+                  final airQualityReading =
+                      Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+                          .get(favouritePlaces[index].referenceSite);
+
+                  if (airQualityReading == null) {
+                    return Container();
+                  }
+
                   return Padding(
                     padding: EdgeInsets.fromLTRB(
                       16,
@@ -44,11 +57,12 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
                       0,
                     ),
                     child: MiniAnalyticsCard(
-                      placeDetailsModel.favouritePlaces[index],
+                      airQualityReading,
+                      animateOnClick: false,
                     ),
                   );
                 },
-                childCount: placeDetailsModel.favouritePlaces.length,
+                childCount: favouritePlaces.length,
               ),
               onRefresh: _refreshPage,
             );
@@ -59,8 +73,6 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
   }
 
   Future<void> _refreshPage() async {
-    await Provider.of<PlaceDetailsModel>(context, listen: false)
-        .reloadFavouritePlaces();
     await _appService.refreshFavouritePlaces(context);
   }
 }

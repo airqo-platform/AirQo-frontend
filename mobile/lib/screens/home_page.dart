@@ -1,15 +1,20 @@
 import 'package:animations/animations.dart';
-import 'package:app/models/enum_constants.dart';
-import 'package:app/models/notification.dart';
+import 'package:app/models/models.dart';
 import 'package:app/screens/profile/profile_view.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/widgets/dialogs.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:provider/provider.dart';
 
+import '../blocs/map/map_bloc.dart';
+import '../blocs/nearby_location/nearby_location_bloc.dart';
+import '../blocs/nearby_location/nearby_location_event.dart';
 import '../services/hive_service.dart';
 import '../services/local_storage.dart';
+import '../services/native_api.dart';
 import '../themes/colors.dart';
 import '../utils/network.dart';
 import 'dashboard/dashboard_view.dart';
@@ -33,7 +38,7 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> _widgetOptions = <Widget>[
     const DashboardView(),
-    const MapView(),
+    const MapViewV2(),
     const ProfileView(),
   ];
   final AppService _appService = AppService();
@@ -161,6 +166,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _initialize() async {
+    await PermissionService.checkPermission(
+      AppPermission.location,
+      request: true,
+    ).then((value) =>
+        context.read<NearbyLocationBloc>().add(const SearchNearbyLocations()));
+
     if (refresh) {
       await _appService.fetchData(context);
     } else {
@@ -170,6 +181,7 @@ class _HomePageState extends State<HomePage> {
       );
     }
     await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.home);
+    context.read<MapBloc>().add(const ShowAllSites());
   }
 
   @override
@@ -206,6 +218,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _onItemTapped(int index) {
+    if (index == 1) context.read<MapBloc>().add(const ShowAllSites());
     setState(() => _selectedIndex = index);
   }
 }

@@ -1,3 +1,4 @@
+import 'package:app/models/enum_constants.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/dialogs.dart';
@@ -488,7 +489,11 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
       return;
     }
 
-    final success = await CustomAuth.updateEmailAddress(_emailAddress, context);
+    final success = await CustomAuth.updateCredentials(
+      context: context,
+      emailAddress: _emailAddress,
+      authMethod: AuthMethod.email,
+    );
 
     if (success) {
       Navigator.pop(context, true);

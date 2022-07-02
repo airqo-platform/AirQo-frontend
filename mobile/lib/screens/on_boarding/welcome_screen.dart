@@ -84,7 +84,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
                   );
                 },
                 child: NextButton(
-                  text: 'Let\'s go',
+                  text: 'Let’s go',
                   buttonColor: CustomColors.appColorBlue,
                 ),
               ),

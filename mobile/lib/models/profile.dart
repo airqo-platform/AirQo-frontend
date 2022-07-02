@@ -2,6 +2,7 @@ import 'package:app/utils/extensions.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:uuid/uuid.dart';
 
 import '../services/firebase_service.dart';
 import '../services/hive_service.dart';
@@ -125,6 +126,18 @@ class Profile extends HiveObject {
     bool? enableNotification,
     bool? enableLocation,
   }) async {
+    if (enableNotification != null) {
+      preferences.notifications = enableNotification;
+    }
+
+    if (enableLocation != null) {
+      preferences.location = enableLocation;
+    }
+
+    this
+      ..device = logout ? '' : await CloudMessaging.getDeviceToken() ?? ''
+      ..utcOffset = DateTime.now().getUtcOffset();
+
     final user = CustomAuth.getUser();
     if (user != null) {
       Sentry.configureScope(
@@ -134,17 +147,13 @@ class Profile extends HiveObject {
       this
         ..userId = user.uid
         ..phoneNumber = user.phoneNumber ?? ''
-        ..emailAddress = user.email ?? ''
-        ..device = logout ? '' : await CloudMessaging.getDeviceToken() ?? ''
-        ..utcOffset = DateTime.now().getUtcOffset()
-        ..preferences.notifications = enableNotification ??
-            await PermissionService.checkPermission(AppPermission.notification)
-        ..preferences.location = enableLocation ??
-            await PermissionService.checkPermission(AppPermission.location);
+        ..emailAddress = user.email ?? '';
 
       await Hive.box<Profile>(HiveBox.profile)
           .put(HiveBox.profile, this)
           .then((_) => CloudStore.updateCloudProfile());
+    } else {
+      await Hive.box<Profile>(HiveBox.profile).put(HiveBox.profile, this);
     }
   }
 
@@ -166,19 +175,22 @@ class Profile extends HiveObject {
       title: '',
       firstName: '',
       lastName: '',
-      userId: '',
+      userId: const Uuid().v4(),
       emailAddress: '',
       phoneNumber: '',
-      device: '',
-      preferences:
-          UserPreferences(notifications: false, location: false, aqShares: 0),
-      utcOffset: 0,
+      device: await CloudMessaging.getDeviceToken() ?? '',
+      preferences: UserPreferences(
+        notifications:
+            await PermissionService.checkPermission(AppPermission.notification),
+        location:
+            await PermissionService.checkPermission(AppPermission.location),
+        aqShares: 0,
+      ),
+      utcOffset: DateTime.now().getUtcOffset(),
       photoUrl: '',
     );
-    final user = CustomAuth.getUser();
-    if (user != null) {
-      await profile.update();
-    }
+
+    await profile.update();
 
     return profile;
   }

@@ -1,10 +1,10 @@
-import 'package:app/models/notification.dart';
+import 'package:app/models/models.dart';
 import 'package:app/screens/notification/notification_widgets.dart';
+import 'package:app/services/app_service.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../../services/firebase_service.dart';
 import '../../services/hive_service.dart';
 import '../../themes/colors.dart';
 
@@ -60,7 +60,9 @@ class _NotificationPageState extends State<NotificationPage> {
                   },
                   childCount: notifications.length,
                 ),
-                onRefresh: CloudStore.getNotifications,
+                onRefresh: () async {
+                  await AppService().refreshNotifications(context);
+                },
               ),
             );
           },

@@ -1,8 +1,8 @@
-import 'package:app/screens/search/search_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../themes/colors.dart';
+import '../search/search_page.dart';
 
 class EmptyFavouritePlaces extends StatelessWidget {
   const EmptyFavouritePlaces({
@@ -59,7 +59,7 @@ class EmptyFavouritePlaces extends StatelessWidget {
             ),
             child: Text(
               'Add',
-              style: TextStyle(color: CustomColors.appColor),
+              style: TextStyle(color: CustomColors.appColorBlack),
             ),
           ),
         ],

@@ -4,14 +4,7 @@ import 'dart:convert';
 
 import 'package:app/constants/api.dart';
 import 'package:app/constants/config.dart';
-import 'package:app/models/email_auth_model.dart';
-import 'package:app/models/feedback.dart';
-import 'package:app/models/insights.dart';
-import 'package:app/models/json_parsers.dart';
-import 'package:app/models/measurement.dart';
-import 'package:app/models/place.dart';
-import 'package:app/models/profile.dart';
-import 'package:app/models/suggestion.dart';
+import 'package:app/models/models.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -94,44 +87,6 @@ class AirqoApiClient {
     }
 
     return json.decode(response.body)['status'];
-  }
-
-  Future<List<Measurement>> fetchLatestMeasurements() async {
-    try {
-      final queryParams = <String, dynamic>{}
-        ..putIfAbsent('recent', () => 'yes')
-        ..putIfAbsent('metadata', () => 'site_id')
-        ..putIfAbsent('external', () => 'no')
-        ..putIfAbsent(
-          'startTime',
-          () => '${DateFormat('yyyy-MM-dd').format(
-            DateTime.now().toUtc().subtract(
-                  const Duration(days: 1),
-                ),
-          )}T00:00:00Z',
-        )
-        ..putIfAbsent('frequency', () => 'hourly')
-        ..putIfAbsent('tenant', () => 'airqo');
-
-      final responseBody = await _performGetRequest(
-        queryParams,
-        AirQoUrls.measurements,
-      );
-
-      return responseBody != null
-          ? await compute(
-              parseMeasurements,
-              responseBody,
-            )
-          : <Measurement>[];
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-
-      return <Measurement>[];
-    }
   }
 
   Future<List<Insights>> fetchSitesInsights(String siteIds) async {
@@ -322,6 +277,7 @@ class AirqoApiClient {
   ) async {
     try {
       url = addQueryParameters(queryParams, url);
+
       final response = await httpClient.get(
         Uri.parse(url),
         headers: headers,
