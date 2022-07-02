@@ -1,3 +1,4 @@
+import 'package:app/screens/kya/kya_final_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -22,6 +23,7 @@ class KyaLessonsPage1 extends StatefulWidget {
 class _KyaLessonsPage1State extends State<KyaLessonsPage1>
     with SingleTickerProviderStateMixin {
   List<KyaLesson> _kyaLessons = [];
+  List<KyaLesson> _kyaLessons1 = [];
   final List<GlobalKey> _globalKeys = <GlobalKey>[];
 
   int currentIndex = 0;
@@ -44,6 +46,10 @@ class _KyaLessonsPage1State extends State<KyaLessonsPage1>
         _animationController.reset();
 
         swipeNotifier.value = Swipe.none;
+        // Navigator.pushReplacement(context,
+        //     MaterialPageRoute(builder: (context) {
+        //   return KyaFinalPage(kya: widget.kya);
+        // }));
       }
     });
   }
@@ -123,59 +129,62 @@ class _KyaLessonsPage1State extends State<KyaLessonsPage1>
                   builder: (context, swipe, _) => Stack(
                     clipBehavior: Clip.none,
                     alignment: Alignment.center,
-                    children: List.generate(_kyaLessons.length, (index) {
-                      if (index == _kyaLessons.length - 1) {
-                        return PositionedTransition(
-                          rect: RelativeRectTween(
-                            begin: RelativeRect.fromSize(
-                                const Rect.fromLTWH(0, 0, 580, 340),
-                                const Size(580, 340)),
-                            end: RelativeRect.fromSize(
-                                Rect.fromLTWH(
-                                    swipe != Swipe.none
-                                        ? swipe == Swipe.left
-                                            ? -300
-                                            : 300
-                                        : 0,
-                                    0,
-                                    580,
-                                    340),
-                                const Size(580, 340)),
-                          ).animate(CurvedAnimation(
-                            parent: _animationController,
-                            curve: Curves.easeInOut,
-                          )),
-                          child: RotationTransition(
-                            turns: Tween<double>(
-                                    begin: 0,
-                                    end: swipe != Swipe.none
-                                        ? swipe == Swipe.left
-                                            ? -0.1 * 0.3
-                                            : 0.1 * 0.3
-                                        : 0.0)
-                                .animate(
-                              CurvedAnimation(
-                                parent: _animationController,
-                                curve: const Interval(0, 0.4,
-                                    curve: Curves.easeInOut),
+                    children: List.generate(
+                      _kyaLessons.length,
+                      (index) {
+                        if (index == _kyaLessons.length - 1) {
+                          return PositionedTransition(
+                            rect: RelativeRectTween(
+                              begin: RelativeRect.fromSize(
+                                  const Rect.fromLTWH(0, 0, 580, 340),
+                                  const Size(580, 340)),
+                              end: RelativeRect.fromSize(
+                                  Rect.fromLTWH(
+                                      swipe != Swipe.none
+                                          ? swipe == Swipe.left
+                                              ? -300
+                                              : 300
+                                          : 0,
+                                      0,
+                                      580,
+                                      340),
+                                  const Size(580, 340)),
+                            ).animate(CurvedAnimation(
+                              parent: _animationController,
+                              curve: Curves.easeInOut,
+                            )),
+                            child: RotationTransition(
+                              turns: Tween<double>(
+                                      begin: 0,
+                                      end: swipe != Swipe.none
+                                          ? swipe == Swipe.left
+                                              ? -0.1 * 0.3
+                                              : 0.1 * 0.3
+                                          : 0.0)
+                                  .animate(
+                                CurvedAnimation(
+                                  parent: _animationController,
+                                  curve: const Interval(0, 0.4,
+                                      curve: Curves.easeInOut),
+                                ),
+                              ),
+                              child: KyaDragWidget(
+                                kyaLesson: _kyaLessons[index],
+                                index: index,
+                                swipeNotifier: swipeNotifier,
+                                isLastCard: true,
                               ),
                             ),
-                            child: KyaDragWidget(
-                              kyaLesson: _kyaLessons[index],
-                              index: index,
-                              swipeNotifier: swipeNotifier,
-                              isLastCard: true,
-                            ),
-                          ),
-                        );
-                      } else {
-                        return KyaDragWidget(
-                          kyaLesson: _kyaLessons[index],
-                          index: index,
-                          swipeNotifier: swipeNotifier,
-                        );
-                      }
-                    }),
+                          );
+                        } else {
+                          return KyaDragWidget(
+                            kyaLesson: _kyaLessons[index],
+                            index: index,
+                            swipeNotifier: swipeNotifier,
+                          );
+                        }
+                      },
+                    ),
                   ),
                 ),
               ),
@@ -196,7 +205,10 @@ class _KyaLessonsPage1State extends State<KyaLessonsPage1>
                     );
                   },
                   onAccept: (int index) {
-                    setState(() => _kyaLessons.removeAt(index));
+                    setState(() {
+                      _kyaLessons1.add(_kyaLessons[index]);
+                      _kyaLessons.removeAt(index);
+                    });
                   },
                 ),
               ),
@@ -217,7 +229,10 @@ class _KyaLessonsPage1State extends State<KyaLessonsPage1>
                     );
                   },
                   onAccept: (int index) {
-                    setState(() => _kyaLessons.removeAt(index));
+                    setState(() {
+                      _kyaLessons1.add(_kyaLessons[index]);
+                      _kyaLessons.removeAt(index);
+                    });
                   },
                 ),
               ),
@@ -229,18 +244,18 @@ class _KyaLessonsPage1State extends State<KyaLessonsPage1>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Visibility(
-                  child: GestureDetector(
-                    onTap: () {
-                      // scrollToCard(direction: -1);
-                      swipeNotifier.value = Swipe.left;
-                      _animationController.forward();
-                    },
-                    child: const CircularKyaButton(
-                      icon: 'assets/icon/previous_arrow.svg',
-                    ),
+                GestureDetector(
+                  onTap: () {
+                    // scrollToCard(direction: -1);
+                    // swipeNotifier.value = Swipe.left;
+                    _animationController.forward();
+                    _kyaLessons.insert(
+                        0, _kyaLessons1[_kyaLessons1.length - 1]);
+                    print(_kyaLessons1[0]);
+                  },
+                  child: const CircularKyaButton(
+                    icon: 'assets/icon/previous_arrow.svg',
                   ),
-                  visible: currentIndex > 0,
                 ),
                 GestureDetector(
                   onTap: () {

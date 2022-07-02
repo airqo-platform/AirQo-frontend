@@ -5,8 +5,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import 'package:flutter_tinder_swipe/flutter_tinder_swipe.dart';
 import '../../services/native_api.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
@@ -32,7 +30,6 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
   // final ItemScrollController itemScrollController = ItemScrollController();
   // final ItemPositionsListener itemPositionsListener =
   //     ItemPositionsListener.create();
-  CardController controller = CardController();
   double _tipsProgress = 0.1;
   int currentIndex = 0;
   late Kya kya;
@@ -134,7 +131,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                     Center(
                       child: Container(
                         margin: const EdgeInsets.only(top: 50),
-                        child: new SwipeCard(
+                        // child: new SwipeCard(
                             allowVerticalMovement: false,
                             cardBuilder: (context, index) {},
                             totalNum: kya.lessons.length,
