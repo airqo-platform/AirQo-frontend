@@ -28,5 +28,14 @@
     <body>
         <div id="app"></div>
         <script src="{% static "frontend/main.bundle.js" %}"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-79ZVCLEDSG"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-79ZVCLEDSG');
+        </script>
     </body>
 </html>

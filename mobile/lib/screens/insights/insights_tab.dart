@@ -28,13 +28,13 @@ class InsightsTab extends StatefulWidget {
   const InsightsTab(
     this.placeDetails,
     this.frequency, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
   final PlaceDetails placeDetails;
   final Frequency frequency;
 
   @override
-  _InsightsTabState createState() => _InsightsTabState();
+  State<InsightsTab> createState() => _InsightsTabState();
 }
 
 class _InsightsTabState extends State<InsightsTab> {
