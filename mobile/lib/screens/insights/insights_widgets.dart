@@ -1,4 +1,4 @@
-import 'package:app/utils/extensions.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -19,13 +19,13 @@ import '../../widgets/recommendation.dart';
 
 class AnalyticsGraph extends StatelessWidget {
   const AnalyticsGraph({
-    Key? key,
+    super.key,
     required this.pm2_5ChartData,
     required this.pm10ChartData,
     required this.pollutant,
     required this.frequency,
     required this.onBarSelection,
-  }) : super(key: key);
+  });
   final List<charts.Series<Insights, String>> pm2_5ChartData;
   final List<charts.Series<Insights, String>> pm10ChartData;
   final Pollutant pollutant;
@@ -81,71 +81,13 @@ class AnalyticsGraph extends StatelessWidget {
               ),
             ],
             domainAxis: _yAxisScale(
-              frequency == Frequency.daily
-                  ? _dailyStaticTicks()
-                  : _hourlyStaticTicks(),
+              frequency.staticTicks(),
             ),
             primaryMeasureAxis: _xAxisScale(),
           ),
         );
       },
     );
-  }
-
-  List<charts.TickSpec<String>> _dailyStaticTicks() {
-    final dailyTicks = <charts.TickSpec<String>>[];
-    final daysList = <String>['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
-    for (final day in daysList) {
-      dailyTicks.add(
-        charts.TickSpec(
-          day,
-          label: day,
-          style: charts.TextStyleSpec(
-            color: charts.ColorUtil.fromDartColor(
-              CustomColors.greyColor,
-            ),
-          ),
-        ),
-      );
-    }
-
-    return dailyTicks;
-  }
-
-  List<charts.TickSpec<String>> _hourlyStaticTicks() {
-    final hourlyTicks = <charts.TickSpec<String>>[];
-    final labels = <int>[0, 6, 12, 18];
-
-    for (var i = 0; i <= 24; i++) {
-      if (labels.contains(i)) {
-        hourlyTicks.add(
-          charts.TickSpec(
-            i.toString().length == 1 ? '0$i' : '$i',
-            label: i.toString().length == 1 ? '0$i' : '$i',
-            style: charts.TextStyleSpec(
-              color: charts.ColorUtil.fromDartColor(
-                CustomColors.greyColor,
-              ),
-            ),
-          ),
-        );
-      } else {
-        hourlyTicks.add(
-          charts.TickSpec(
-            i.toString().length == 1 ? '0$i' : '$i',
-            label: i.toString().length == 1 ? '0$i' : '$i',
-            style: charts.TextStyleSpec(
-              color: charts.ColorUtil.fromDartColor(
-                Colors.transparent,
-              ),
-            ),
-          ),
-        );
-      }
-    }
-
-    return hourlyTicks;
   }
 
   charts.NumericAxisSpec _xAxisScale() {
@@ -204,11 +146,11 @@ class AnalyticsGraph extends StatelessWidget {
 
 class InsightsAvatar extends StatelessWidget {
   const InsightsAvatar({
-    Key? key,
+    super.key,
     required this.measurement,
     required this.size,
     required this.pollutant,
-  }) : super(key: key);
+  });
   final Insights measurement;
   final double size;
   final Pollutant pollutant;
@@ -267,18 +209,15 @@ class InsightsAvatar extends StatelessWidget {
         children: [
           const Spacer(),
           SvgPicture.asset(
-            pollutant == Pollutant.pm2_5
-                ? 'assets/icon/PM2.5.svg'
-                : 'assets/icon/PM10.svg',
+            pollutant.svg(),
             semanticsLabel: 'Pm2.5',
             height: 6,
             width: 32.45,
             color: pollutantColor,
           ),
-          Text(
+          AutoSizeText(
             value,
             maxLines: 1,
-            overflow: TextOverflow.ellipsis,
             style: CustomTextStyle.insightsAvatar(
               context: context,
               pollutant: pollutant,
@@ -304,9 +243,9 @@ class InsightsAvatar extends StatelessWidget {
 
 class HealthTipsSection extends StatelessWidget {
   const HealthTipsSection({
-    Key? key,
+    super.key,
     required this.recommendations,
-  }) : super(key: key);
+  });
 
   final List<Recommendation> recommendations;
 
@@ -333,10 +272,10 @@ class HealthTipsSection extends StatelessWidget {
 
 class InsightsActionBar extends StatefulWidget {
   const InsightsActionBar({
-    Key? key,
+    super.key,
     required this.placeDetails,
     required this.shareKey,
-  }) : super(key: key);
+  });
 
   final PlaceDetails placeDetails;
   final GlobalKey shareKey;
@@ -413,10 +352,10 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
       return;
     }
     setState(() => _shareLoading = true);
-    final complete = await ShareService.shareGraph(
-      context,
-      widget.shareKey,
-      widget.placeDetails,
+    final complete = await ShareService.shareWidget(
+      buildContext: context,
+      globalKey: widget.shareKey,
+      imageName: 'airqo_air_quality_graph',
     );
     if (complete && mounted) {
       setState(() => _shareLoading = false);
@@ -431,6 +370,75 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
     await AppService().updateFavouritePlace(
       widget.placeDetails,
       context,
+    );
+  }
+}
+
+class ListOption extends StatelessWidget {
+  const ListOption({
+    super.key,
+    required this.pollutantName,
+    required this.pollutant,
+    required this.varyingPollutant,
+  });
+  final String pollutantName;
+  final Pollutant pollutant;
+  final Pollutant varyingPollutant;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(
+          Radius.circular(4.0),
+        ),
+      ),
+      tileColor: varyingPollutant == pollutant
+          ? CustomColors.pollutantToggleBgColor
+          : Colors.white,
+      title: PollutantToggle(
+        text: pollutantName,
+        textColor: varyingPollutant == pollutant
+            ? CustomColors.appColorBlue
+            : CustomColors.appColorBlack,
+      ),
+    );
+  }
+}
+
+class PollutantToggle extends StatelessWidget {
+  const PollutantToggle({
+    super.key,
+    required this.text,
+    required this.textColor,
+  });
+  final String text;
+  final Color textColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return RichText(
+      text: TextSpan(
+        children: <TextSpan>[
+          TextSpan(
+            text: 'PM',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: textColor,
+              height: 14 / 10,
+            ),
+          ),
+          TextSpan(
+            text: text,
+            style: TextStyle(
+              fontSize: 7,
+              fontWeight: FontWeight.w800,
+              color: textColor,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
