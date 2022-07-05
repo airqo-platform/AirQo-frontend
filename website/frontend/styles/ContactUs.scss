@@ -197,7 +197,6 @@ $p-text:16px;
         }
     }
     .contact-card:hover{
-        cursor: pointer;
         border: 1px solid $aq-blue-4;
     }
 }
@@ -230,20 +229,37 @@ $p-text:16px;
 
 @media(max-width: $mainBreakPoint){
     .contact-us{
-        .section-container .content{
-            grid-column: none;
+        padding: 0;
+        margin: 0;
+        grid-template-columns: none;
+        .section-container{
+            grid-column: 2 / 3;
+            display: grid;
+            grid-template-columns: 1fr;
+            padding-bottom:50px;
+            padding-top: 25px;
+            justify-content: center;
+            .content{
+                grid-column: none;
+            }
         }
         .left-section{
             display:none;
         }
         .right-section{
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
             .cards{
+                grid-column: 2 / 3;
                 align-items: center;
                 justify-content: center;
-                margin-left: 10px;
             }
             .contact-card{
-                width:460px;
+                width:90vw;
+            }
+            .icon{
+                grid-column: 2 / 3;
+                padding: 0;
             }
         }
     }
