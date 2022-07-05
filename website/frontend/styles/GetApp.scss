@@ -40,8 +40,9 @@ $p-font:$subTextFont;
                 h2{
                     color:$aq-blue-0;
                     font-weight: 600;
-                    font-size: $h2-font;
-                    line-height: 28px;
+                    font-size: $miniHeadingFont;
+                    line-height: 48px;
+                    margin-bottom: 8px;
                 }
                 span{
                     color: $aq-blue-2;
@@ -124,7 +125,7 @@ $p-font:$subTextFont;
                 }
                 .get-graphics-sm{
                     display:block;
-                    margin: -220px 0 0 0;
+                    // margin: -220px 0 0 0;
                 }
             }
 
@@ -153,6 +154,11 @@ $p-font:$subTextFont;
                         align-items: center;
                         padding:6px 0 4px 0;
                         width: 100%;
+
+                        .btn-content-wrapper {
+                            display: flex;
+                            justify-content: center;
+                        }
                     }
                 }
             }
