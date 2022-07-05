@@ -15,7 +15,9 @@ import GetInvolved from './src/pages/GetInvolved';
 import Register from './src/pages/GetInvolved/Register';
 import CheckMail from './src/pages/GetInvolved/CheckMail';
 import store from './store';
-import ExploreData, { ExploreGetStarted, ExploreUserCategory, ExploreUserProfessionType, ExploreOrganisationType, ExploreUserRegistry, ExploreRegistryConfirmation, ExploreApp, ExploreBusinessRegistry, ExploreOrganisationRegistry } from './src/pages/ExploreData';
+import ExploreData, {
+  ExploreGetStarted, ExploreUserCategory, ExploreUserProfessionType, ExploreOrganisationType, ExploreUserRegistry, ExploreRegistryConfirmation, ExploreApp, ExploreBusinessRegistry, ExploreOrganisationRegistry,
+} from './src/pages/ExploreData';
 import Feedback from './src/pages/ContactUs/Feedback';
 
 store.dispatch(loadAirQloudSummaryData());
