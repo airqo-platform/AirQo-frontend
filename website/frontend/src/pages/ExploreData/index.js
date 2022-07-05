@@ -233,7 +233,7 @@ export const ExploreUserRegistry = () => {
       navigate('/explore-data/get-started/user/register/organisation');
     } else {
       setLoading(true);
-      await dispatch(addExploreDataRequest({
+      await dispatch(postExploreDataRequest({
         ...exploreDataLocal,
         long_organization: exploreDataLocal.category,
         jobTitle: exploreDataLocal.category,

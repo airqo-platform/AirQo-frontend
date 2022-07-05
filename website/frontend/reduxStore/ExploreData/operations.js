@@ -10,7 +10,7 @@ export const postExploreDataRequest = (data) => async (dispatch) => await reques
   .then(() => {
     dispatch({
       type: EXPLORE_DATA_REQUEST_SUCCESS,
-      payload: { success: true },
+      payload: { ...data, success: true },
     });
   })
   .catch((err) => {
