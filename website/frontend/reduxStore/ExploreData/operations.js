@@ -6,9 +6,8 @@ import {
   EXPLORE_DATA_REQUEST_FAILURE,
 } from './actions';
 
-export const postExploreDataRequest = (data) => async (dispatch) => await requestDataAccessApi({ data })
+export const postExploreDataRequest = (data) => async (dispatch) => await requestDataAccessApi(data)
   .then(() => {
-    // console.log('User data: ', data);
     dispatch({
       type: EXPLORE_DATA_REQUEST_SUCCESS,
       payload: { success: true },
@@ -19,7 +18,6 @@ export const postExploreDataRequest = (data) => async (dispatch) => await reques
   });
 
 export const updateExploreData = (data) => (dispatch) => {
-  console.log("new data", data)
   dispatch({
     type: UPDATE_EXPLORE_DATA_SUCCESS,
     payload: data,
