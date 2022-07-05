@@ -1,8 +1,11 @@
 import React from 'react';
-import HomePageMap from '../../assets/img/homepage-map.png'
-import ArrowRight from '../../icons/common/ArrowRight';
+import HomePageMap from 'assets/img/homepage-map.png'
+import MapWrapper from 'assets/img/MapWrapper.png'
+import useWindowSize from 'utils/customHooks';
 
 const MapSection = () => {
+  const windowSize = useWindowSize();
+  const largeScreen = 1440;
   return (
     <div className="map-section">
         <div className='backdrop'>
@@ -15,7 +18,7 @@ const MapSection = () => {
                 {/* <span id='second-pill'><p>View map</p> <i> <ArrowRight/> </i></span> */}
             </div>
             <div className='map-image'>
-                <img className='map-img' src={HomePageMap}/>
+                <img className = 'map-img' src={windowSize.width <= largeScreen ? HomePageMap : MapWrapper}/>
             </div>
         </div>
     </div>
