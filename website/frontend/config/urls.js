@@ -23,4 +23,4 @@ export const INQUIRY_URL = `${BASE_INQUIRY_URL}/users/inquiries/register?tenant=
 
 const BASE_AUTH_SERVICE_URL = stripTrailingSlash(process.env.REACT_NETMANAGER_BASE_URL);
 
-export const EXPLORE_DATA_REQUEST = `${BASE_AUTH_SERVICE_URL}/users/candidates/register?tenant=airqo`;
+export const EXPLORE_DATA_URL = `${BASE_AUTH_SERVICE_URL}/users/candidates/register?tenant=airqo`;

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { AIRQLOUD_SUMMARY, NEWSLETTER_SUBSCRIPTION, INQUIRY_URL, EXPLORE_DATA_REQUEST } from 'config/urls';
+import { AIRQLOUD_SUMMARY, NEWSLETTER_SUBSCRIPTION, INQUIRY_URL, EXPLORE_DATA_URL } from 'config/urls';
 
 export const getAirQloudSummaryApi = async () => await axios
   .get(AIRQLOUD_SUMMARY)
@@ -18,5 +18,5 @@ export const sendInquiryApi = async (data) => await axios
   .then((response) => response.data);
 
 export const requestDataAccessApi = async (data) => await axios
-  .post(EXPLORE_DATA_REQUEST, data)
+  .post(EXPLORE_DATA_URL, data)
   .then(response => response.data);
