@@ -23,7 +23,7 @@ class KyaLessonsPage1 extends StatefulWidget {
 class _KyaLessonsPage1State extends State<KyaLessonsPage1>
     with SingleTickerProviderStateMixin {
   List<KyaLesson> _kyaLessons = [];
-  List<KyaLesson> _kyaLessons1 = [];
+  List<KyaLesson> _kyaLessons1 = []; //TODO: Not sure whether to make final
   final List<GlobalKey> _globalKeys = <GlobalKey>[];
 
   int currentIndex = 0;
@@ -45,11 +45,12 @@ class _KyaLessonsPage1State extends State<KyaLessonsPage1>
         _kyaLessons.removeLast();
         _animationController.reset();
 
-        swipeNotifier.value = Swipe.none;
+        //TODO: Use to navigate to final card
         // Navigator.pushReplacement(context,
         //     MaterialPageRoute(builder: (context) {
         //   return KyaFinalPage(kya: widget.kya);
         // }));
+        swipeNotifier.value = Swipe.none;
       }
     });
   }
@@ -246,12 +247,10 @@ class _KyaLessonsPage1State extends State<KyaLessonsPage1>
               children: [
                 GestureDetector(
                   onTap: () {
-                    // scrollToCard(direction: -1);
-                    // swipeNotifier.value = Swipe.left;
-                    _animationController.forward();
-                    _kyaLessons.insert(
-                        0, _kyaLessons1[_kyaLessons1.length - 1]);
-                    print(_kyaLessons1[0]);
+                    // TODO: Try animationcontroller.reverse
+                    setState(() {
+                      _kyaLessons.add(_kyaLessons1[_kyaLessons1.length - 1]);
+                    });
                   },
                   child: const CircularKyaButton(
                     icon: 'assets/icon/previous_arrow.svg',
@@ -259,7 +258,6 @@ class _KyaLessonsPage1State extends State<KyaLessonsPage1>
                 ),
                 GestureDetector(
                   onTap: () {
-                    // scrollToCard(direction: 1);
                     swipeNotifier.value = Swipe.right;
                     _animationController.forward();
                   },

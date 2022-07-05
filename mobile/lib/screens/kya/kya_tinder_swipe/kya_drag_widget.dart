@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-
 import '../../../models/kya.dart';
-import '../../../widgets/tag_widget.dart';
 import 'kya_lesson_card.dart';
 
 class KyaDragWidget extends StatefulWidget {
