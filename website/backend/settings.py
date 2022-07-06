@@ -31,6 +31,7 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('DJANGO_ALLOWED_HOSTS').split(',')
 
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default=['https://staging.airqo.net/', 'https://airqo.net/'])
 
 # Application definition
 
