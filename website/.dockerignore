@@ -140,7 +140,6 @@ cython_debug/
 
 node_modules/
 
-**/static/
 .prettierrc
 .gitignore
 .eslintrc.js
