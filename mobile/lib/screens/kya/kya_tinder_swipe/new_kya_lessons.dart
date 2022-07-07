@@ -23,14 +23,13 @@ class KyaLessonsPage1 extends StatefulWidget {
 class _KyaLessonsPage1State extends State<KyaLessonsPage1>
     with SingleTickerProviderStateMixin {
   List<KyaLesson> _kyaLessons = [];
-  List<KyaLesson> _kyaLessons1 = []; //TODO: Not sure whether to make final
-  final List<GlobalKey> _globalKeys = <GlobalKey>[];
-
-  int currentIndex = 0;
+  final List<KyaLesson> _kyaLessons1 = [];
 
   ValueNotifier<Swipe> swipeNotifier = ValueNotifier(Swipe.none);
   late final AnimationController _animationController;
-  final double _tipsProgress = 0.1;
+  late double _tipsProgress = 0.1;
+
+  // int currentIndex = 0; TODO: Use this in next card arrow
 
   @override
   void initState() {
@@ -44,12 +43,6 @@ class _KyaLessonsPage1State extends State<KyaLessonsPage1>
       if (status == AnimationStatus.completed) {
         _kyaLessons.removeLast();
         _animationController.reset();
-
-        //TODO: Use to navigate to final card
-        // Navigator.pushReplacement(context,
-        //     MaterialPageRoute(builder: (context) {
-        //   return KyaFinalPage(kya: widget.kya);
-        // }));
         swipeNotifier.value = Swipe.none;
       }
     });
@@ -68,8 +61,7 @@ class _KyaLessonsPage1State extends State<KyaLessonsPage1>
           children: [
             GestureDetector(
               onTap: () {
-                updateProgress();
-                Navigator.of(context).pop(true);
+                // TODO: Add progress update
               },
               child: Padding(
                 padding: const EdgeInsets.only(left: 24, right: 7),
@@ -88,19 +80,7 @@ class _KyaLessonsPage1State extends State<KyaLessonsPage1>
               ),
             ),
             GestureDetector(
-              onTap: () async {
-                try {
-                  await ShareService.shareKya(
-                    context,
-                    _globalKeys[currentIndex],
-                  );
-                } catch (exception, stackTrace) {
-                  await logException(
-                    exception,
-                    stackTrace,
-                  );
-                }
-              },
+              // TODO: Add share functionality
               child: Padding(
                 padding: const EdgeInsets.only(left: 7, right: 24),
                 child: SvgPicture.asset(
@@ -174,6 +154,7 @@ class _KyaLessonsPage1State extends State<KyaLessonsPage1>
                                 index: index,
                                 swipeNotifier: swipeNotifier,
                                 isLastCard: true,
+                                //  TODO: Add functionality to navigate to final card
                               ),
                             ),
                           );
@@ -209,6 +190,7 @@ class _KyaLessonsPage1State extends State<KyaLessonsPage1>
                     setState(() {
                       _kyaLessons1.add(_kyaLessons[index]);
                       _kyaLessons.removeAt(index);
+                      _tipsProgress += 0.1;
                     });
                   },
                 ),
@@ -233,6 +215,7 @@ class _KyaLessonsPage1State extends State<KyaLessonsPage1>
                     setState(() {
                       _kyaLessons1.add(_kyaLessons[index]);
                       _kyaLessons.removeAt(index);
+                      _tipsProgress += 0.1;
                     });
                   },
                 ),
@@ -247,9 +230,11 @@ class _KyaLessonsPage1State extends State<KyaLessonsPage1>
               children: [
                 GestureDetector(
                   onTap: () {
-                    // TODO: Try animationcontroller.reverse
                     setState(() {
-                      _kyaLessons.add(_kyaLessons1[_kyaLessons1.length - 1]);
+                      _kyaLessons
+                          .add(_kyaLessons1.last); //TODO: Add animation to this
+                      _kyaLessons1.removeLast();
+                      _tipsProgress -= 0.1;
                     });
                   },
                   child: const CircularKyaButton(
@@ -260,6 +245,7 @@ class _KyaLessonsPage1State extends State<KyaLessonsPage1>
                   onTap: () {
                     swipeNotifier.value = Swipe.right;
                     _animationController.forward();
+                    // _kyaLessons1.add(_kyaLessons[currentIndex]);//TODO: Use current index here, link it to index in stack of cards
                   },
                   child: const CircularKyaButton(
                     icon: 'assets/icon/next_arrow.svg',
@@ -271,16 +257,5 @@ class _KyaLessonsPage1State extends State<KyaLessonsPage1>
         ],
       ),
     );
-  }
-
-  Future<void> updateProgress() async {
-    if (widget.kya.progress == -1) {
-      return;
-    }
-    final kya = widget.kya..progress = currentIndex;
-    if (kya.progress > kya.lessons.length || kya.progress < 0) {
-      kya.progress = kya.lessons.length - 1;
-    }
-    await kya.saveKya();
   }
 }

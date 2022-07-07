@@ -305,7 +305,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                   errorWidget: (context, url, error) => Icon(
                     Icons.error_outline,
                     color: CustomColors.aqiRed,
-                  ),
+                  )
                   cacheKey: kyaItem.imageUrlCacheKey(kya),
                   cacheManager: CacheManager(
                     CacheService.cacheConfig(
