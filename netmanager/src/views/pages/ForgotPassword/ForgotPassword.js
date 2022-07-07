@@ -130,7 +130,7 @@ class ForgotPassword extends Component {
                       </h4>
                       <p className="grey-text text-darken-1">
                         Don't have an account?{" "}
-                        <Link to="/request-access">Request Access</Link>
+                        <Link to="/request-access">Request Access.</Link>
                       </p>
                     </div>
                     <form noValidate onSubmit={this.onSubmit}>
