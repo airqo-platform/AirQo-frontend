@@ -1,0 +1,23 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+cloudinary = "*"
+django = "*"
+django-author = "*"
+django-extensions = "*"
+django-filter = "*"
+djangorestframework = "*"
+dj-database-url = "*"
+drf-yasg = "*"
+invoke = "*"
+python-decouple = "*"
+psycopg2-binary = "*"
+django-storages = {version = "*", extras = ["google"]}
+
+[requires]
+python_version = "3.6"
+
+[dev-packages]
