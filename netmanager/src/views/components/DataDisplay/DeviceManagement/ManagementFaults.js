@@ -1,4 +1,5 @@
-import * as React from 'react';
+import React, { useState, useEffect } from 'react';
+
 import Paper from '@material-ui/core/Paper';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -9,282 +10,7 @@ import TablePagination from '@material-ui/core/TablePagination';
 import TableRow from '@material-ui/core/TableRow';
 
 import ErrorBoundary from 'views/ErrorBoundary/ErrorBoundary';
-
-const sample = {
-  datetime: '2020-07-15T13:00',
-  values: [
-    {
-      datetime: '2020-07-15T13:03',
-      device_id: 'aq_01',
-      's1_pm2.5': 44.12,
-      's2_pm2.5': 44.12,
-      offset_fault: 0,
-      out_of_bounds_fault: 1,
-      high_variance_fault: 1,
-      data_loss_fault: 1,
-    },
-    {
-      datetime: '2020-07-15T13:05',
-      device_id: 'aq_02',
-      's1_pm2.5': 12.12,
-      's2_pm2.5': 43.12,
-      offset_fault: 0,
-      out_of_bounds_fault: 1,
-      high_variance_fault: 1,
-      data_loss_fault: 1,
-    },
-    {
-      datetime: '2020-07-15T13:07',
-      device_id: 'aq_03',
-      's1_pm2.5': 80,
-      's2_pm2.5': 80.12,
-      offset_fault: 1,
-      out_of_bounds_fault: 1,
-      high_variance_fault: 1,
-      data_loss_fault: 1,
-    },
-    {
-      datetime: '2020-07-15T13:03',
-      device_id: 'aq_01',
-      's1_pm2.5': 44.12,
-      's2_pm2.5': 44.12,
-      offset_fault: 0,
-      out_of_bounds_fault: 1,
-      high_variance_fault: 1,
-      data_loss_fault: 1,
-    },
-    {
-      datetime: '2020-07-15T13:05',
-      device_id: 'aq_02',
-      's1_pm2.5': 12.12,
-      's2_pm2.5': 43.12,
-      offset_fault: 0,
-      out_of_bounds_fault: 1,
-      high_variance_fault: 1,
-      data_loss_fault: 1,
-    },
-    {
-      datetime: '2020-07-15T13:07',
-      device_id: 'aq_03',
-      's1_pm2.5': 80,
-      's2_pm2.5': 80.12,
-      offset_fault: 1,
-      out_of_bounds_fault: 1,
-      high_variance_fault: 1,
-      data_loss_fault: 1,
-    },
-    {
-      datetime: '2020-07-15T13:03',
-      device_id: 'aq_01',
-      's1_pm2.5': 44.12,
-      's2_pm2.5': 44.12,
-      offset_fault: 0,
-      out_of_bounds_fault: 1,
-      high_variance_fault: 1,
-      data_loss_fault: 1,
-    },
-    {
-      datetime: '2020-07-15T13:05',
-      device_id: 'aq_02',
-      's1_pm2.5': 12.12,
-      's2_pm2.5': 43.12,
-      offset_fault: 0,
-      out_of_bounds_fault: 1,
-      high_variance_fault: 1,
-      data_loss_fault: 1,
-    },
-    {
-      datetime: '2020-07-15T13:07',
-      device_id: 'aq_03',
-      's1_pm2.5': 80,
-      's2_pm2.5': 80.12,
-      offset_fault: 1,
-      out_of_bounds_fault: 1,
-      high_variance_fault: 1,
-      data_loss_fault: 1,
-    },
-    {
-      datetime: '2020-07-15T13:03',
-      device_id: 'aq_01',
-      's1_pm2.5': 44.12,
-      's2_pm2.5': 44.12,
-      offset_fault: 0,
-      out_of_bounds_fault: 1,
-      high_variance_fault: 1,
-      data_loss_fault: 1,
-    },
-    {
-      datetime: '2020-07-15T13:05',
-      device_id: 'aq_02',
-      's1_pm2.5': 12.12,
-      's2_pm2.5': 43.12,
-      offset_fault: 0,
-      out_of_bounds_fault: 1,
-      high_variance_fault: 1,
-      data_loss_fault: 1,
-    },
-    {
-      datetime: '2020-07-15T13:07',
-      device_id: 'aq_03',
-      's1_pm2.5': 80,
-      's2_pm2.5': 80.12,
-      offset_fault: 1,
-      out_of_bounds_fault: 1,
-      high_variance_fault: 1,
-      data_loss_fault: 1,
-    },
-    {
-      datetime: '2020-07-15T13:03',
-      device_id: 'aq_01',
-      's1_pm2.5': 44.12,
-      's2_pm2.5': 44.12,
-      offset_fault: 0,
-      out_of_bounds_fault: 1,
-      high_variance_fault: 1,
-      data_loss_fault: 1,
-    },
-    {
-      datetime: '2020-07-15T13:05',
-      device_id: 'aq_02',
-      's1_pm2.5': 12.12,
-      's2_pm2.5': 43.12,
-      offset_fault: 0,
-      out_of_bounds_fault: 1,
-      high_variance_fault: 1,
-      data_loss_fault: 1,
-    },
-    {
-      datetime: '2020-07-15T13:07',
-      device_id: 'aq_03',
-      's1_pm2.5': 80,
-      's2_pm2.5': 80.12,
-      offset_fault: 1,
-      out_of_bounds_fault: 1,
-      high_variance_fault: 1,
-      data_loss_fault: 1,
-    },
-    {
-      datetime: '2020-07-15T13:03',
-      device_id: 'aq_01',
-      's1_pm2.5': 44.12,
-      's2_pm2.5': 44.12,
-      offset_fault: 0,
-      out_of_bounds_fault: 1,
-      high_variance_fault: 1,
-      data_loss_fault: 1,
-    },
-    {
-      datetime: '2020-07-15T13:05',
-      device_id: 'aq_02',
-      's1_pm2.5': 12.12,
-      's2_pm2.5': 43.12,
-      offset_fault: 0,
-      out_of_bounds_fault: 1,
-      high_variance_fault: 1,
-      data_loss_fault: 1,
-    },
-    {
-      datetime: '2020-07-15T13:07',
-      device_id: 'aq_03',
-      's1_pm2.5': 80,
-      's2_pm2.5': 80.12,
-      offset_fault: 1,
-      out_of_bounds_fault: 1,
-      high_variance_fault: 1,
-      data_loss_fault: 1,
-    },
-    {
-      datetime: '2020-07-15T13:03',
-      device_id: 'aq_01',
-      's1_pm2.5': 44.12,
-      's2_pm2.5': 44.12,
-      offset_fault: 0,
-      out_of_bounds_fault: 1,
-      high_variance_fault: 1,
-      data_loss_fault: 1,
-    },
-    {
-      datetime: '2020-07-15T13:05',
-      device_id: 'aq_02',
-      's1_pm2.5': 12.12,
-      's2_pm2.5': 43.12,
-      offset_fault: 0,
-      out_of_bounds_fault: 1,
-      high_variance_fault: 1,
-      data_loss_fault: 1,
-    },
-    {
-      datetime: '2020-07-15T13:07',
-      device_id: 'aq_03',
-      's1_pm2.5': 80,
-      's2_pm2.5': 80.12,
-      offset_fault: 1,
-      out_of_bounds_fault: 1,
-      high_variance_fault: 1,
-      data_loss_fault: 1,
-    },
-    {
-      datetime: '2020-07-15T13:03',
-      device_id: 'aq_01',
-      's1_pm2.5': 44.12,
-      's2_pm2.5': 44.12,
-      offset_fault: 0,
-      out_of_bounds_fault: 1,
-      high_variance_fault: 1,
-      data_loss_fault: 1,
-    },
-    {
-      datetime: '2020-07-15T13:05',
-      device_id: 'aq_02',
-      's1_pm2.5': 12.12,
-      's2_pm2.5': 43.12,
-      offset_fault: 0,
-      out_of_bounds_fault: 1,
-      high_variance_fault: 1,
-      data_loss_fault: 1,
-    },
-    {
-      datetime: '2020-07-15T13:07',
-      device_id: 'aq_03',
-      's1_pm2.5': 80,
-      's2_pm2.5': 80.12,
-      offset_fault: 1,
-      out_of_bounds_fault: 1,
-      high_variance_fault: 1,
-      data_loss_fault: 1,
-    },
-    {
-      datetime: '2020-07-15T13:03',
-      device_id: 'aq_01',
-      's1_pm2.5': 44.12,
-      's2_pm2.5': 44.12,
-      offset_fault: 0,
-      out_of_bounds_fault: 1,
-      high_variance_fault: 1,
-      data_loss_fault: 1,
-    },
-    {
-      datetime: '2020-07-15T13:05',
-      device_id: 'aq_02',
-      's1_pm2.5': 12.12,
-      's2_pm2.5': 43.12,
-      offset_fault: 0,
-      out_of_bounds_fault: 1,
-      high_variance_fault: 1,
-      data_loss_fault: 1,
-    },
-    {
-      datetime: '2020-07-15T13:07',
-      device_id: 'aq_03',
-      's1_pm2.5': 80,
-      's2_pm2.5': 80.12,
-      offset_fault: 1,
-      out_of_bounds_fault: 1,
-      high_variance_fault: 1,
-      data_loss_fault: 1,
-    },
-  ],
-};
+import { getFaultsApi } from 'views/apis/faultDetection';
 
 const columns = [
   { id: 'device_id', label: 'Device ID', minWidth: 100 },
@@ -359,25 +85,32 @@ function createData(
     hv_fault,
   };
 }
-let rows = [];
-sample.values.forEach((reading) => {
-  rows.push(
-    createData(
-      reading.device_id,
-      reading.datetime.replace('T', ' '),
-      reading['s1_pm2.5'],
-      reading['s2_pm2.5'],
-      reading.offset_fault,
-      reading.out_of_bounds_fault,
-      reading.data_loss_fault,
-      reading.high_variance_fault
-    )
-  );
-});
 
 export default function ColumnGroupingTable() {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    getFaultsApi().then((data) => {
+      setData(data[0].readings);
+    });
+  }, []);
+  let rows = [];
+  data.forEach((reading) => {
+    rows.push(
+      createData(
+        reading.device_id,
+        reading.datetime.replace('T', ' '),
+        reading['s1_pm2.5'],
+        reading['s2_pm2.5'],
+        reading.offset_fault,
+        reading.out_of_bounds_fault,
+        reading.data_loss_fault,
+        reading.high_variance_fault
+      )
+    );
+  });
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -406,7 +139,7 @@ export default function ColumnGroupingTable() {
                 <TableHead>
                   <TableRow>
                     <TableCell align="center" colSpan={8}>
-                      Hour {sample.datetime.replace('T', ' ')}
+                      {/* Hour {data.datetime.replace('T', ' ')} */}
                     </TableCell>
                   </TableRow>
                   <TableRow>
