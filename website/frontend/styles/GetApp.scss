@@ -5,12 +5,13 @@
 @mixin flex-column{
     display: flex;
     flex-direction: column;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
 }
 
 @mixin flex-row{
     display: flex;
     flex-direction: row;
+    flex-wrap:wrap ;
 }
 
 $h2-font:$headingFont;
@@ -97,7 +98,7 @@ $p-font:$subTextFont;
 
 @media (max-width: $mainBreakPoint){
     .get-app{
-        padding: 80px 0 120px 0;
+        padding: 80px 0 40px 0;
         margin: 250px 0 80px 0;
         background-color: $aq-blue-1;
         .back-drop{
@@ -121,14 +122,14 @@ $p-font:$subTextFont;
                 grid-template-columns: 1fr;
                 margin: -30px 10px 0 8px;
                 .get-text{
-                    padding: 0px 17px 17px 20px;
+                    padding: 0px 12px 17px 16px;
                     width: 100%;
                 }
                 .get-btns{
                     display: grid;
                     grid-template-columns: 1fr;
                     padding:0;
-                    margin:10px 20px;
+                    margin:10px 15px;
                     .get-btn{
                         display: flex;
                         align-content: center;

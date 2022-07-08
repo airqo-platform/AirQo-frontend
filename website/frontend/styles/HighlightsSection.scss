@@ -29,7 +29,10 @@
             @include flex-row();
             padding-bottom: 48px;
             img{
-                height: 424px;
+                max-height: 424px;
+                border-radius: 20px;
+                object-fit: cover;
+                object-position: center;
             }
             .feature-content{
                 padding: 16px 28px 0 38px;
@@ -96,10 +99,26 @@
                         padding-left: 8px;
                     }
                 }
-                // #left:hover, #right:hover{
-                //     cursor: pointer;
-                // }
+                #left:hover, #right:hover{
+                    cursor: pointer;
+                }
+                #right:focus{
+                    animation-name: slider;
+                }
             }
+        }
+    }
+}
+
+@keyframes slider{
+    0%{
+        .content{
+            transform: translateX(0);
+        }
+    }
+    100%{
+        .content{
+            transform: translateX(-1018px);
         }
     }
 }

@@ -69,8 +69,8 @@ html {
 
 body {
   font-family: 'Inter', sans-serif;
-  overflow-y: scroll;
   overflow-x: hidden !important;
+
 }
 
 a, a:hover{
@@ -82,7 +82,9 @@ a, a:hover{
 .Page {
   width: 100%;
   margin: auto;
-  overflow-x: hidden !important;
+  .page-wrapper {
+      overflow-x: hidden !important;
+    }
 }
 
 .Page-mini{
@@ -90,5 +92,8 @@ a, a:hover{
   width:100%;
   margin:auto;
   scrollbar-width: none;
+  .page-mini-wrapper{
+    overflow-x: hidden;
+  }
 }
 
