@@ -242,6 +242,7 @@
             width: 100%;
             border-radius: 8px;
             background-color: $aq-orange-0;
+            margin-bottom: 40px;
 
             >img {
                 width: 60.64px;
@@ -285,6 +286,35 @@
                 line-height: 26px;
                 font-weight: 400;
                 cursor: pointer;
+            }
+        }
+
+        .bottom-hero-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-height: 216px;
+            height: auto;
+            max-width: 1088px;
+            width: 100%;
+            border-radius: 16px;
+            background-color: #FFEA2B;
+
+            h3 {
+                padding-top: 64px;
+                font-size: 32px;
+                font-weight: 400;
+                line-height: 32px;
+                color: $aq-blue-2;
+                margin-bottom: 32px;
+                text-align: center;
+            }
+
+            .section-link {
+                font-size: 16px;
+                line-height: 24px;
+                color: $aq-blue-2;
+                padding-bottom: 64px;
             }
         }
     }
@@ -419,6 +449,7 @@
 
             .lower-banner {
                 margin: 0 16px;
+                margin-bottom: 40px;
                 padding: 40px 32px;
                 h2 {
                     font-size: 28px;
@@ -434,6 +465,10 @@
                     font-size: 16px;
                     line-height: 24px;
                 }
+            }
+
+            .bottom-hero-section {
+                margin: 0 16px;
             }
         }
     }

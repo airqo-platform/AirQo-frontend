@@ -3,14 +3,18 @@ import { useInitScrollTop } from 'utils/customHooks';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import AirQommunities from 'assets/img/community/AirQommunities.png';
 import Blob from 'assets/img/community/AirQo_blob_fill.svg';
-import AssetImg1 from 'assets/img/community/Rectangle 406.png';
-import AssetImg2 from 'assets/img/community/Rectangle 408-1.png';
-import AssetImg3 from 'assets/img/community/Rectangle 409.png';
+import AssetImg1 from 'assets/img/community/Rectangle 411.jpg';
+import AssetImg2 from 'assets/img/community/Rectangle 405.jpg';
+import AssetImg3 from 'assets/img/community/Rectangle 410.jpg';
+import AssetImg4 from 'assets/img/community/Rectangle 409.png';
+import AssetImg5 from 'assets/img/community/Rectangle 406.png';
+import AssetImg6 from 'assets/img/community/Rectangle 408.png';
 import CommunityStar from 'assets/img/community/Communities Star.svg';
 import AirQoArrowLeft from 'assets/img/community/AirQo_arrow_left.svg';
 import AirQoQuotes from 'assets/img/community/AirQo_quotes.png';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import Page from './Page';
+import { Link } from 'react-router-dom';
 
 const CommunityPage = () => {
   useInitScrollTop();
@@ -24,8 +28,8 @@ const CommunityPage = () => {
                         <ArrowForwardIosIcon className="arrow-forward" />
                         <h6>For Communities</h6>
                     </div>
-                    <h1 className="header-2">Communities with AirQo</h1>
-                    <h3 className="header-3">We empower communities across Africa with accurate, hyperlocal, and timely air quality data to drive actions to reduce air pollution.</h3>
+                    <h1 className="header-2">AirQo with Communities</h1>
+                    <h3 className="header-3">We harness the value that comes with bringing together community members passionate about clean air and a healthy environment.</h3>
                 </div>
 
                 <div className="wrapper">
@@ -68,7 +72,7 @@ const CommunityPage = () => {
                             <h3>AirQocommunity champions</h3>
                         </div>
                         <div className="right-strip">
-                            <h3>Gerald has been an air quality community champion for over a year now. <u>Read story</u></h3>
+                            <h3>Amina, one of our air quality champions — helping raise awareness about air pollution in her community through our digital technologies. <a href="https://blog.airqo.net/helping-communities-combat-air-pollution-through-digital-technologies-6a5924a1e1e" target="_blank"><u>Read story</u></a></h3>
                         </div>
                     </div>
 
@@ -81,10 +85,10 @@ const CommunityPage = () => {
                             </div>
                             <div className="img-stack">
                                 <div className="stack-1">
-                                    <img src={AssetImg1} alt="Image Stock 1" />
-                                    <img src={AssetImg2} alt="Image Stock 2" />
+                                    <img src={AssetImg4} alt="Image Stock 1" />
+                                    <img src={AssetImg5} alt="Image Stock 2" />
                                 </div>
-                                <img src={AssetImg3} className="stack-2" alt="Image Stock 3" />
+                                <img src={AssetImg6} className="stack-2" alt="Image Stock 3" />
                                 <div className="layer-2">
                                     <Blob className="blob" style={{ height: '360px' }} />
                                 </div>
@@ -94,12 +98,15 @@ const CommunityPage = () => {
 
                     <div className="lower-banner">
                         <img src={AirQoQuotes} />
-                        <h2>We take air quality monitoring seriously hence our collaboration with AirQo</h2>
-                        <h3>Mercy Nasejje</h3>
-                        <h6>Health, Safety and Environmental Lead at MOGAS</h6>
-
-                        <button><PlayArrowIcon style={{ marginRight: '10px' }} />Watch video</button>
+                        <h2>We advocate for road safety and environmental protection from pollution associated with the transport industry, and depend a lot on the AirQo platform to get air quality data in order to extend air quality education to the communities.</h2>
+                        <h3>Michael Wanyama</h3>
+                        <h6>Team Lead on AutoSafety</h6>
                     </div>
+
+                    <section className="bottom-hero-section">
+                        <h3>Become an air quality champion.</h3>
+                        <Link to="/get-involved" className="section-link"><span>Get involved --></span></Link>
+                    </section>
                 </div>
 
             </div>
