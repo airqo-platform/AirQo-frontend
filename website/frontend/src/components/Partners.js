@@ -11,7 +11,7 @@ const Partners = () => {
         <div className='backdrop'>
             <div className='content'>
                 <div>
-                    <span className='title'> Airqo is supported by over <strong>20+ partners</strong></span>
+                    <span className='title'> Airqo is supported by</span>
                 </div>
                 <div className='logos'>
                     <div><Google/> </div>
