@@ -43,6 +43,7 @@
       font-size: 20px;
       line-height: 28px;
       color: $aq-black-1;
+      margin: 0 16px;
     }
   }
 
@@ -59,6 +60,7 @@
     border-radius: 8px;
     padding: 10px;
     margin-top: 48px;
+    margin-bottom: 42px;
 
     >* {
       width: 100%;
@@ -71,11 +73,12 @@
       line-height: 28px;
       letter-spacing: 0.2em;
       text-transform: uppercase;
-      color: $aq-black-3;
+      color: #0CE87E;
+      padding-top: 64px;
     }
 
     .main-text {
-      font-weight: 500;
+      font-weight: 400;
       font-size: 48px;
       line-height: 56px;
       color: $aq-black-2;
@@ -98,6 +101,10 @@
       margin: 4px 0 36px 0;
     }
 
+    hr {
+      margin-bottom: 40px;
+    }
+
     .link {
       display: flex;
       width: 280px;
@@ -107,8 +114,9 @@
       font-size: 20px;
       line-height: 26px;
       color: $aq-black-1;
-      background: $aq-white-0;
-      border-radius: 16px;
+      border: 1px solid #000000;
+      margin-bottom: 64px;
+      cursor: pointer;
 
       .link-arrow {
         display: inline-block;
@@ -155,7 +163,7 @@
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-
+      
       .consult-text {
         display: flex;
         flex-wrap: wrap;
@@ -171,7 +179,7 @@
           width: 100%;
 
           color: $aq-black-1;
-          margin: 0px;
+          margin: 0;
         }
 
         p {
@@ -297,4 +305,34 @@
       }
     }
   }
+
+  .bottom-hero-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-height: 216px;
+    height: auto;
+    max-width: 1088px;
+    width: 100%;
+    border-radius: 16px;
+    background-color: #0CE87E;
+    margin: 0 16px;
+
+    h3 {
+        padding-top: 64px;
+        font-size: 32px;
+        font-weight: 400;
+        line-height: 32px;
+        color: $aq-blue-2;
+        margin-bottom: 32px;
+        text-align: center;
+    }
+
+    .section-link {
+        font-size: 16px;
+        line-height: 24px;
+        color: $aq-blue-2;
+        padding-bottom: 64px;
+    }
+}
 }

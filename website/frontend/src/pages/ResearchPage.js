@@ -6,13 +6,14 @@ import ConsultImg2 from 'icons/research/consult-2.png';
 import ConsultLongImg from 'icons/research/consult-long.png';
 import BackgroundShape from 'icons/research/background-shape.svg';
 import { useInitScrollTop } from "../../utils/customHooks";
+import { Link } from "react-router-dom";
 
 const ResearchHeroSection = () => {
     return (
         <div className="research-title">
             <div className="page-nav">Solutions > For Research</div>
-            <div className="research-main-text">Research with AirQo</div>
-            <div className="research-sub-text">With the exciting air quality data, we actively collaborate with partners across Africa to jointly tackle air quality research challenges.</div>
+            <div className="research-main-text">For Research</div>
+            <div className="research-sub-text">We actively collaborate with researchers across the world to jointly tackle air quality research challenges.</div>
         </div>
     )
 }
@@ -21,9 +22,12 @@ const PublicationsSection = () => {
     return (
         <div className="publications-section">
             <div className="title">Publications</div>
-            <div className="main-text">We take air quality monitoring seriously hence our collaboration with AirQo</div>
-            <div className="author">Author</div>
-            <div className="team">AirQo Team</div>
+            <div className="main-text">Managing the Environment for Climate Resilient Livelihoods and Sustainable Economic Development.</div>
+            <div className="author">Created by</div>
+            <div className="team">National Environment Management Authority(NEMA)</div>
+            <hr/>
+            <div className="author">Supported by</div>
+            <div className="team">AirQo and Makerere University</div>
             <div>
                 <div className="link"><span>Read full whitepaper <ArrowRight /></span></div>
             </div>
@@ -51,17 +55,7 @@ const ResearchContent = () => {
                     <BackgroundShape className="background-shape" />
                 </div>
             </div>
-
-            <div className="research-whitepapers">
-                <p>
-                    <span>AirQo has publised close to four whitepapers on air pollution in Africa</span>
-                </p>
-                <div>
-                    <span>04</span>
-                    <span>Whitepapers</span>
-                </div>
-            </div>
-
+            <div className="research-divider" />
             <div className="collaborate-container">
                 <div className="consult-text">
                     <div>
@@ -89,6 +83,11 @@ const ResearchPage = () => {
                 <ResearchHeroSection />
                 <ResearchContent />
                 <PublicationsSection />
+                
+                <section className="bottom-hero-section">
+                    <h3>Explore our digital air quality tools.</h3>
+                    <Link to="/explore-data" className="section-link"><span>Explore data --></span></Link>
+                </section>
             </div>
         </Page>
     )
