@@ -28,11 +28,11 @@ SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
-DEBUG = True
 
 ALLOWED_HOSTS = config('DJANGO_ALLOWED_HOSTS').split(',')
 
 CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default=['https://staging.airqo.net/', 'https://airqo.net/'])
+CSRF_TRUSTED_ORIGINS = ['https://staging.airqo.net/', 'https://airqo.net/']
 
 # Application definition
 
@@ -151,8 +151,7 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'frontend/assets/')]
 
 STATIC_URL = STATIC_HOST + 'static/'
 
-# if not DEBUG:
-if True:
+if not DEBUG:
     STATIC_URL = STATIC_HOST
     DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
     GS_BUCKET_NAME = config('GS_BUCKET_NAME')
