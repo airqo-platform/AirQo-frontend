@@ -111,6 +111,10 @@ export const ExploreUserCategory = () => {
     e.target.checked && navigate(`/explore-data/get-started/user/${e.target.name}`);
   };
 
+  useEffect(() => {
+    if (exploreData.success) navigate('/explore-data/get-started/user/check-mail');
+  }, [exploreData]);
+
   return (
         <PageWithImageLayout imgPath={ManExploring}>
             <div className="ExploreGetStartedForm">
@@ -183,7 +187,11 @@ export const ExploreOrganisationType = () => {
   const handleCategoryChange = (e) => {
     if (e.target.checked) {
       dispatch(updateExploreData({ category: e.target.name }));
-      navigate('/explore-data/get-started/user/register');
+      if (compareCategory(e.target.name, CATEGORY_TYPE.business)) {
+        navigate('/explore-data/get-started/user/register/business');
+      } else if (compareCategory(e.target.name, CATEGORY_TYPE.governmentEnthusiasts)) {
+        navigate('/explore-data/get-started/user/register/organisation');
+      }
     }
   };
 
@@ -248,7 +256,8 @@ export const ExploreUserRegistry = () => {
     if (isEmpty(exploreDataLocal.category)) {
       navigate('/explore-data/get-started/user');
     }
-  }, [exploreDataLocal]);
+    if (exploreData.success) navigate('/explore-data/get-started/user/check-mail');
+  }, [exploreData]);
 
   return (
         <PageWithImageLayout imgPath={ManExploring}>
@@ -284,19 +293,25 @@ export const ExploreBusinessRegistry = () => {
 
     setLoading(true);
 
-    await dispatch(addExploreDataRequest({
-      ...exploreDataLocal, long_organization: exploreDataLocal.business, jobTitle: exploreDataLocal.position, website: 'airqo.net', description: 'Request Access to Data',
+    await dispatch(postExploreDataRequest({
+      ...exploreDataLocal,
+      firstName: 'N/A',
+      lastName: 'N/A',
+      long_organization: exploreDataLocal.business,
+      jobTitle: exploreDataLocal.position,
+      website: 'airqo.net',
+      description: 'Request Access to Data',
     }));
 
     setLoading(false);
-    navigate('/explore-data/get-started/user/check-mail');
   };
 
   useEffect(() => {
     if (isEmpty(exploreDataLocal.category)) {
       navigate('/explore-data/get-started/user');
     }
-  }, [exploreDataLocal]);
+    if (exploreData.success) navigate('/explore-data/get-started/user/check-mail');
+  }, [exploreData]);
 
   return (
         <PageWithImageLayout imgPath={ManExploring}>
@@ -331,19 +346,25 @@ export const ExploreOrganisationRegistry = () => {
 
     setLoading(true);
 
-    await dispatch(addExploreDataRequest({
-      ...exploreDataLocal, long_organization: exploreDataLocal.business, jobTitle: exploreDataLocal.position, website: 'airqo.net', description: 'Request Access to Data',
+    await dispatch(postExploreDataRequest({
+      ...exploreDataLocal,
+      firstName: 'N/A',
+      lastName: 'N/A',
+      long_organization: exploreDataLocal.business,
+      jobTitle: exploreDataLocal.position,
+      website: 'airqo.net',
+      description: 'Request Access to Data',
     }));
 
     setLoading(false);
-    navigate('/explore-data/get-started/user/check-mail');
   };
 
   useEffect(() => {
     if (isEmpty(exploreDataLocal.category)) {
       navigate('/explore-data/get-started/user');
     }
-  }, [exploreDataLocal]);
+    if (exploreData.success) navigate('/explore-data/get-started/user/check-mail');
+  }, [exploreData]);
 
   return (
         <PageWithImageLayout imgPath={ManExploring}>
