@@ -9,11 +9,17 @@ https://docs.djangoproject.com/en/3.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
+import environ
 import os
 from pathlib import Path
 import cloudinary
-from decouple import config
 import dj_database_url
+
+
+# Read environment
+env = environ.Env()
+# Read local .env file if it exists
+env.read_env()
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -24,14 +30,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = env.bool('DEBUG', default=False)
+TESTING = env.bool('TESTING', default=False)
 
-ALLOWED_HOSTS = config('DJANGO_ALLOWED_HOSTS').split(',')
 
-CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default=['https://staging.airqo.net/', 'https://airqo.net/'])
+ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS')
+
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=['https://staging.airqo.net', 'https://airqo.net'])
 
 # Application definition
 
@@ -93,7 +101,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': dj_database_url.config(
         # Default values for DATABASE_URI are for the development environment
-        default=config('DATABASE_URI', default='postgresql://user:password@dbHost:5432/database')
+        default=env('DATABASE_URI', default='postgresql://user:password@dbHost:5432/database')
     )
 }
 
@@ -136,7 +144,7 @@ USE_TZ = True
 
 # Static
 # Default to using webpack-dev-server on port 8081
-STATIC_HOST = config('REACT_WEB_STATIC_HOST', default='http://localhost:8081/')
+STATIC_HOST = env('REACT_WEB_STATIC_HOST', default='http://localhost:8081/')
 
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
@@ -153,14 +161,14 @@ STATIC_URL = STATIC_HOST + 'static/'
 if not DEBUG:
     STATIC_URL = STATIC_HOST
     DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-    GS_BUCKET_NAME = config('GS_BUCKET_NAME')
+    GS_BUCKET_NAME = env('GS_BUCKET_NAME')
     STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 
 # Configure cloudinary
 cloudinary.config(
-  cloud_name=config('CLOUDINARY_NAME'),
-  api_key=config('CLOUDINARY_KEY'),
-  api_secret=config('CLOUDINARY_SECRET'),
+  cloud_name=env('CLOUDINARY_NAME'),
+  api_key=env('CLOUDINARY_KEY'),
+  api_secret=env('CLOUDINARY_SECRET'),
   secure=True
 )
 
