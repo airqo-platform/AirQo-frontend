@@ -2,9 +2,9 @@ import React from 'react';
 import { useDispatch } from "react-redux";
 import { showGetInvolvedModal } from "reduxStore/GetInvolved/operations";
 import useWindowSize from 'utils/customHooks';
-import HeroCityImg from 'icons/homepage/hero-city.png';
+import HeroCityImg from 'assets/img/HeroKampala.jpeg';
 import HeroCityLargeImg from 'icons/homepage/hero-city-full.png';
-import HeroImg from 'assets/img/hero-img.png';
+import HeroImg from 'assets/img/Hero_Kampala.jpeg';
 import Location from 'icons/homepage/hero/location.svg';
 import Reload from 'icons/homepage/hero/reload.svg';
 import ArrowDown from 'icons/homepage/hero/arrow-down.svg';
@@ -23,7 +23,7 @@ const Hero = () => {
   return (
         <div className="Hero">
             <span>
-                <img src={size.width <= breakPoint ? HeroCityImg : HeroImg} alt="Hero image" />
+                <img src={size.width <= breakPoint ? HeroImg : HeroCityImg} alt="Hero image" />
                 {/* <div className="air-quality-reading">
                     <div className="top-reading">
                         <span className="name-wrapper">

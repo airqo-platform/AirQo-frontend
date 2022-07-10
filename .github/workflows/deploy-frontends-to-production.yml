@@ -156,6 +156,23 @@ jobs:
           method: kubeconfig
           kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
 
+      - name: NPM Setup and Build
+        uses: actions/setup-node@v2
+        with:
+          node-version: '12'
+      - run: |
+          cd website/
+
+          export REACT_WEB_STATIC_HOST=${{ secrets.REACT_WEB_STATIC_HOST }}
+          export REACT_NETMANAGER_BASE_URL=${{ secrets.REACT_NETMANAGER_BASE_URL_PROD }}
+          export REACT_APP_BASE_AIRQLOUDS_URL=${{ secrets.REACT_APP_BASE_AIRQLOUDS_URL }}
+          export REACT_APP_BASE_NEWSLETTER_URL=${{ secrets.REACT_APP_BASE_NEWSLETTER_URL }}
+
+          npm ci --silent
+    
+          CI=false npm run build
+
+
       - name: Build and Push Docker Image
         run: |
           cd website/

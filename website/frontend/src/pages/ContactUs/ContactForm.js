@@ -24,6 +24,7 @@ const ContactForm = () => {
         setLoading(true);
         await dispatch(postContactUsInquiry({ fullName, email, message, category }));
         setLoading(false);
+        console.log(inquiryData.success)
         !isEmpty(inquiryData) && inquiryData.success && history('/contact/sent');
     }
 

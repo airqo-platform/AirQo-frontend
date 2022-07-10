@@ -112,6 +112,7 @@ $pill-font:$pillFont;
         width: 100%;
         padding: 0;
         margin: 0;
+        margin-top: 40px;
 
         .backdrop{
             @include flex-column();
@@ -140,18 +141,13 @@ $pill-font:$pillFont;
                 .content-h{
                     font-size: $h2-font;
                     font-weight: 500;
-                    line-height: 48px;
+                    line-height: 56px;
                     width: 100%;
                 }
 
                 .content-p {
                     margin-bottom: 38.76px;
                     width: 100%;
-
-                    >p {
-                        font-size: 20px;
-                        line-height: 28px;
-                    }
                 }
 
                 #second-pill{

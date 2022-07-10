@@ -6,6 +6,7 @@ on:
       - staging
     types:
       - closed
+      
 jobs:
   image-tag:
     name: create image tag
@@ -22,6 +23,17 @@ jobs:
             datetime=$(date)
             echo "::set-output name=build_id::stage-${sha}-${timestamp}"
             echo "::set-output name=datetime::${datetime}"
+
+  branch-name:
+    name: Format branch name string
+    runs-on: ubuntu-latest
+    outputs:
+      lowercase: ${{ steps.string.outputs.lowercase }} # lowercase version
+    steps:
+      - id: string
+        uses: ASzc/change-string-case-action@v2
+        with:
+          string: ${{ github.head_ref || github.ref_name }}
 
   check:
     # this job will only run if the PR has been merged
@@ -78,7 +90,7 @@ jobs:
   ### deploy platform ###
   platform:
     name: build-push-deploy-netmanager
-    needs: [check, image-tag]
+    needs: [check, image-tag, branch-name]
     if: needs.check.outputs.run_platform == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -129,7 +141,23 @@ jobs:
           kubectl apply -f k8s/platform/stage-airqo-platform-frontend.yaml
           kubectl set image deployment/airqo-stage-platform-frontend sta-platform-ui=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} -n staging
           kubectl annotate deployment/airqo-stage-platform-frontend kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n staging
-  
+
+      # clean up after merge
+      - name: Google Auth
+        id: auth
+        uses: google-github-actions/auth@v0
+        with:
+          credentials_json: '${{ secrets.GCP_SA_CREDENTIALS }}'
+          
+      - name: Setup Cloud SDK
+        uses: 'google-github-actions/setup-gcloud@v0'
+        
+      - name: Delete PR deploy preview
+        run: |-
+          gcloud run services delete ${{ needs.branch-name.outputs.lowercase }}-platform-preview \
+            --region=${{ secrets.REGION }} \
+            --quiet
+
   ### deploy website ###
   website:
     name: build-push-deploy-website
@@ -156,17 +184,26 @@ jobs:
           method: kubeconfig
           kubeconfig: ${{ secrets.K8S_CONFIG_STAGE }}
 
+      - name: NPM Setup and Build
+        uses: actions/setup-node@v2
+        with:
+          node-version: '12'
+      - run: |
+          cd website/
+
+          export REACT_WEB_STATIC_HOST=${{ secrets.REACT_WEB_STATIC_HOST }}
+          export REACT_NETMANAGER_BASE_URL=${{ secrets.REACT_NETMANAGER_BASE_URL }}
+          export REACT_APP_BASE_AIRQLOUDS_URL=${{ secrets.REACT_APP_BASE_AIRQLOUDS_URL }}
+          export REACT_APP_BASE_NEWSLETTER_URL=${{ secrets.REACT_APP_BASE_NEWSLETTER_URL }}
+
+          npm ci --silent
+    
+          CI=false npm run build
+
       - name: Build and Push Docker Image
         run: |
           cd website/
-          docker build \
-          --target=deployment \
-          --build-arg REACT_WEB_STATIC_HOST=${{ secrets.REACT_WEB_STATIC_HOST }} \
-          --build-arg REACT_NETMANAGER_BASE_URL=${{ secrets.REACT_NETMANAGER_BASE_URL }} \
-          --build-arg REACT_APP_BASE_AIRQLOUDS_URL=${{ secrets.REACT_APP_BASE_AIRQLOUDS_URL }} \
-          --build-arg REACT_APP_BASE_NEWSLETTER_URL=${{ secrets.REACT_APP_BASE_NEWSLETTER_URL }} \
-          --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }} \
-          -f docker/Dockerfile .
+          docker build --target=deployment --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }} -f docker/Dockerfile .
           docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-website:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }}
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-website:latest
@@ -175,6 +212,22 @@ jobs:
           kubectl apply -f k8s/website/stage-airqo-website.yaml -n staging
           kubectl set image deployment/airqo-stage-website sta-website=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }} -n staging
           kubectl annotate deployment/airqo-stage-website kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n staging
+
+      # clean up after merge
+      - name: Google Auth
+        id: auth
+        uses: google-github-actions/auth@v0
+        with:
+          credentials_json: '${{ secrets.GCP_SA_CREDENTIALS }}'
+          
+      - name: Setup Cloud SDK
+        uses: 'google-github-actions/setup-gcloud@v0'
+        
+      - name: Delete PR deploy preview
+        run: |-
+          gcloud run services delete ${{ needs.branch-name.outputs.lowercase }}-website-preview \
+            --region=${{ secrets.REGION }} \
+            --quiet
 
   ### calibrate app ###
   calibrate-app:
@@ -227,5 +280,20 @@ jobs:
           kubectl apply -f k8s/calibrate/stage-airqo-calibrate-app.yaml
           kubectl set image deployment/airqo-stage-calibrate-app sta-calibrate-app=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }} -n staging
           kubectl annotate deployment/airqo-stage-calibrate-app kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n staging
-  
+
+      # clean up after merge
+      - name: Google Auth
+        id: auth
+        uses: google-github-actions/auth@v0
+        with:
+          credentials_json: '${{ secrets.GCP_SA_CREDENTIALS }}'
+          
+      - name: Setup Cloud SDK
+        uses: 'google-github-actions/setup-gcloud@v0'
+        
+      - name: Delete PR deploy preview
+        run: |-
+          gcloud run services delete ${{ needs.branch-name.outputs.lowercase }}-calibrate-app-preview \
+            --region=${{ secrets.REGION }} \
+            --quiet  
   
