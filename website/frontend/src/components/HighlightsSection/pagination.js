@@ -1,6 +1,6 @@
 import React from 'react'
 
-const Pagination = ({postsPerHighlight, totalPosts, paginate}) => {
+const Pagination = ({postsPerHighlight, totalPosts, paginate, leftTransition, rightTransition}) => {
     const postNumbers = [];
 
     for (let i = 1; i <= Math.ceil(totalPosts / postsPerHighlight); i++) {
@@ -24,13 +24,13 @@ const Pagination = ({postsPerHighlight, totalPosts, paginate}) => {
                         ))
                     }
                     {
-                        <li id='left'>
+                        <li id='left' onClick={leftTransition}>
                             <a
                                 >{'<-'}</a>
                         </li>
                     }
                     {
-                        <li id='right'>
+                        <li id='right' onClick={rightTransition}>
                             <a
                                 >{'->'}</a>
                         </li>

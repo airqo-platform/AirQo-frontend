@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import FeatureImg from 'assets/img/HighlightsSection/Feature.png'
-import TeamImg from 'assets/img/HighlightsSection/AirQoTeam.png'
+import TeamImg from 'assets/img/HighlightsSection/SRI.jpeg'
 import Pagination from './pagination';
 import Post from './post';
 
@@ -9,10 +9,16 @@ const HighlightsSection = () => {
   const paginate = (postNumber) => setCurrentPost(postNumber);
   const totalPosts = 3;
 
+  const onRightClick =()=>{
+    document.getElementsByClassName('content')[0].style.transform = 'translateX(-1018px)';
+    document.getElementsByClassName('content')[0].style.display = 'none'
+    console.log('right click')
+  }
+
   return (
     <div className='highlights-section'>
       <div className='highlights-container'>
-        <div className='content'>
+        <div className='content' id='content'>
           <Post
             postImg={TeamImg}
             tag1={'features'}
@@ -36,6 +42,7 @@ const HighlightsSection = () => {
             paginate={paginate}
             totalPosts={totalPosts}
             postsPerHighlight={totalPosts}
+            rightTransition={onRightClick}
           />
         </div>
       </div>
