@@ -35,6 +35,7 @@ export const PageWithImageLayout = ({ imgPath, children }) => {
   const navigateBack = () => navigate(-1);
 
   return (
+    <ExploreDataModal>
         <div className="ExploreDataWrapper">
             <div className="left-section">
                 <img src={imgPath || ManDownloadingApp} width="100%" height="100%" />
@@ -47,6 +48,7 @@ export const PageWithImageLayout = ({ imgPath, children }) => {
                 <div className="content">{children}</div>
             </div>
         </div>
+    </ExploreDataModal>
   );
 };
 
@@ -385,14 +387,16 @@ export const ExploreOrganisationRegistry = () => {
   );
 };
 export const ExploreRegistryConfirmation = () => (
-    <div className="ConfirmExploreDataMail">
-        <RegistrationCompleteSvg className="registration_svg" />
-        <div className="content">
-            <h2>Check your email for more details.</h2>
-            <p>Access real-time and historic air quality information across Africa through our easy-to-use air quality analytics dashboard</p>
+    <ExploreDataModal>
+        <div className="ConfirmExploreDataMail">
+            <RegistrationCompleteSvg className="registration_svg" />
+            <div className="content">
+                <h2>Check your email for more details.</h2>
+                <p>Access real-time and historic air quality information across Africa through our easy-to-use air quality analytics dashboard</p>
+            </div>
+            <Link to="/"><button className="nav-button">Back home</button></Link>
         </div>
-        <Link to="/"><button className="nav-button">Back home</button></Link>
-    </div>
+    </ExploreDataModal>
 );
 
 export const ExploreDataModal = ({children}) => {
