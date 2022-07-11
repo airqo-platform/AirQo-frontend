@@ -24,7 +24,6 @@ class _KyaDragWidgetState extends State<KyaDragWidget> {
   Widget build(BuildContext context) {
     return Center(
       child: Draggable<int>(
-        // Data is the value this Draggable stores.
         data: widget.index,
         feedback: Material(
           color: Colors.transparent,

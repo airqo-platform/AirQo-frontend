@@ -22,8 +22,8 @@ class KyaLessonsPage1 extends StatefulWidget {
 
 class _KyaLessonsPage1State extends State<KyaLessonsPage1>
     with SingleTickerProviderStateMixin {
-  List<KyaLesson> _kyaLessons = [];
-  final List<KyaLesson> _kyaLessons1 = [];
+  List<KyaLesson> _kyaLessons1 = []; //1st array to hold all stack
+  final List<KyaLesson> _kyaLessons2 = []; //2nd  stores cards during swipe
 
   ValueNotifier<Swipe> swipeNotifier = ValueNotifier(Swipe.none);
   late final AnimationController _animationController;
@@ -34,14 +34,14 @@ class _KyaLessonsPage1State extends State<KyaLessonsPage1>
   @override
   void initState() {
     super.initState();
-    _kyaLessons = widget.kya.lessons;
+    _kyaLessons1 = widget.kya.lessons;
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
     _animationController.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
-        _kyaLessons.removeLast();
+        _kyaLessons1.removeLast();
         _animationController.reset();
         swipeNotifier.value = Swipe.none;
       }
@@ -61,7 +61,8 @@ class _KyaLessonsPage1State extends State<KyaLessonsPage1>
           children: [
             GestureDetector(
               onTap: () {
-                // TODO: Add progress update
+                // updateProgress(); TODO: Add functionality to update user progress
+                Navigator.of(context).pop(true);
               },
               child: Padding(
                 padding: const EdgeInsets.only(left: 24, right: 7),
@@ -79,18 +80,30 @@ class _KyaLessonsPage1State extends State<KyaLessonsPage1>
                 backgroundColor: CustomColors.appColorBlue.withOpacity(0.2),
               ),
             ),
-            GestureDetector(
-              // TODO: Add share functionality
-              child: Padding(
-                padding: const EdgeInsets.only(left: 7, right: 24),
-                child: SvgPicture.asset(
-                  'assets/icon/share_icon.svg',
-                  color: CustomColors.greyColor,
-                  height: 16,
-                  width: 16,
-                ),
-              ),
-            ),
+            // GestureDetector( TODO: Add share functionality
+            //   onTap: () async {
+            //     try {
+            //       await ShareService.shareKya(
+            //         context,
+            //         _globalKeys[currentIndex],
+            //       );
+            //     } catch (exception, stackTrace) {
+            //       await logException(
+            //         exception,
+            //         stackTrace,
+            //       );
+            //     }
+            //   },
+            //   child: Padding(
+            //     padding: const EdgeInsets.only(left: 7, right: 24),
+            //     child: SvgPicture.asset(
+            //       'assets/icon/share_icon.svg',
+            //       color: CustomColors.greyColor,
+            //       height: 16,
+            //       width: 16,
+            //     ),
+            //   ),
+            // ),
           ],
         ),
       ),
@@ -111,9 +124,9 @@ class _KyaLessonsPage1State extends State<KyaLessonsPage1>
                     clipBehavior: Clip.none,
                     alignment: Alignment.center,
                     children: List.generate(
-                      _kyaLessons.length,
+                      _kyaLessons1.length,
                       (index) {
-                        if (index == _kyaLessons.length - 1) {
+                        if (index == _kyaLessons1.length - 1) {
                           return PositionedTransition(
                             rect: RelativeRectTween(
                               begin: RelativeRect.fromSize(
@@ -150,17 +163,18 @@ class _KyaLessonsPage1State extends State<KyaLessonsPage1>
                                 ),
                               ),
                               child: KyaDragWidget(
-                                kyaLesson: _kyaLessons[index],
+                                kyaLesson: _kyaLessons1[index],
                                 index: index,
                                 swipeNotifier: swipeNotifier,
                                 isLastCard: true,
+
                                 //  TODO: Add functionality to navigate to final card
                               ),
                             ),
                           );
                         } else {
                           return KyaDragWidget(
-                            kyaLesson: _kyaLessons[index],
+                            kyaLesson: _kyaLessons1[index],
                             index: index,
                             swipeNotifier: swipeNotifier,
                           );
@@ -170,55 +184,10 @@ class _KyaLessonsPage1State extends State<KyaLessonsPage1>
                   ),
                 ),
               ),
-              Positioned(
-                left: 0,
-                child: DragTarget<int>(
-                  builder: (
-                    BuildContext context,
-                    List<dynamic> accepted,
-                    List<dynamic> rejected,
-                  ) {
-                    return IgnorePointer(
-                      child: Container(
-                        height: 700.0,
-                        width: 80.0,
-                        color: Colors.transparent,
-                      ),
-                    );
-                  },
-                  onAccept: (int index) {
-                    setState(() {
-                      _kyaLessons1.add(_kyaLessons[index]);
-                      _kyaLessons.removeAt(index);
-                      _tipsProgress += 0.1;
-                    });
-                  },
-                ),
-              ),
+              Positioned(left: 0, child: dragTarget()),
               Positioned(
                 right: 0,
-                child: DragTarget<int>(
-                  builder: (
-                    BuildContext context,
-                    List<dynamic> accepted,
-                    List<dynamic> rejected,
-                  ) {
-                    return IgnorePointer(
-                      child: Container(
-                        height: 700.0,
-                        width: 80.0,
-                        color: Colors.transparent,
-                      ),
-                    );
-                  },
-                  onAccept: (int index) {
-                    setState(() {
-                      _kyaLessons1.add(_kyaLessons[index]);
-                      _kyaLessons.removeAt(index);
-                      _tipsProgress += 0.1;
-                    });
-                  },
-                ),
+                child: dragTarget(),
               ),
             ],
           ),
@@ -231,9 +200,10 @@ class _KyaLessonsPage1State extends State<KyaLessonsPage1>
                 GestureDetector(
                   onTap: () {
                     setState(() {
-                      _kyaLessons
-                          .add(_kyaLessons1.last); //TODO: Add animation to this
-                      _kyaLessons1.removeLast();
+                      //Returns cards to screen
+                      //TODO: Add functionality to animate return process
+                      _kyaLessons1.add(_kyaLessons2.last);
+                      _kyaLessons2.removeLast();
                       _tipsProgress -= 0.1;
                     });
                   },
@@ -257,5 +227,42 @@ class _KyaLessonsPage1State extends State<KyaLessonsPage1>
         ],
       ),
     );
+  }
+
+  DragTarget<int> dragTarget() {
+    return DragTarget<int>(
+      builder: (
+        BuildContext context,
+        List<dynamic> accepted,
+        List<dynamic> rejected,
+      ) {
+        return IgnorePointer(
+          child: Container(
+            height: 700.0,
+            width: 80.0,
+            color: Colors.transparent,
+          ),
+        );
+      },
+      onAccept: (int index) {
+        setState(() {
+          nextCard(
+            index: index,
+            lesson1: _kyaLessons1,
+            lesson2: _kyaLessons2,
+          );
+          _tipsProgress += 0.1;
+        });
+      },
+    );
+  }
+
+  void nextCard(
+      {required List<KyaLesson> lesson1,
+      required List<KyaLesson> lesson2,
+      required int index}) {
+    //used in updating the two arrays
+    lesson2.add(lesson1[index]);
+    lesson1.removeAt(index);
   }
 }
