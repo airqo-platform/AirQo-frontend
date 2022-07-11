@@ -38,11 +38,11 @@ const SubSection = () => {
     )
 }
 
-const Highlight = () => (
+const MiniHighlights = () => (
     <div className="Highlight">
         <MainSection />
         <SubSection />
     </div>
 )
 
-export default Highlight;
+export default MiniHighlights;
