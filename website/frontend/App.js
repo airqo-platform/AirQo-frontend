@@ -18,6 +18,7 @@ const Register = React.lazy(() => import('src/pages/GetInvolved/Register'));
 const CheckMail = React.lazy(() => import('src/pages/GetInvolved/CheckMail'));
 const Feedback = React.lazy(() => import('src/pages/ContactUs/Feedback'));
 const ExploreData = React.lazy(() => import('src/pages/ExploreData'));
+const CareerPage = React.lazy(() => import('src/pages/CareerPage'));
 
 import { loadAirQloudSummaryData } from 'reduxStore/AirQlouds/operations';
 import { ContentUganda, ContentKenya } from './src/pages/AfricanCitiesPage';
@@ -43,6 +44,7 @@ const App = () => {
                             <Route path="uganda" element={<ContentUganda />} />
                             <Route path="kenya" element={<ContentKenya />} />
                         </Route>
+                        <Route path="/careers" element={<CareerPage />} />
                         <Route path="/about-us" element={<AboutUsPage />} />
                         <Route path="/press" element={<Press />} />
                         <Route path="/terms" element={<Terms />} />
