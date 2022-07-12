@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import HomePage from 'src/pages/HomePage';
@@ -21,39 +21,32 @@ import Loadspinner from './src/components/LoadSpinner';
 store.dispatch(loadAirQloudSummaryData());
 
 const App = () => {
-    const [isLoading, setLoading] = useState(true);
-
-    useEffect(() => {
-        setTimeout(()=>setLoading(false), 2500);
-    }, []);
-
     return (
-        isLoading ? <Loadspinner /> :
-            <Provider store={store}>
-                <Suspense
-                    fallback={<Loadspinner />}>
-                    <Router>
-                        <Routes>
-                            <Route path="/" element={<HomePage />} />
-                            <Route path="/solutions/research" element={<ResearchPage />} />
-                            <Route path="/solutions/communities" element={<CommunityPage />} />
-                            <Route path="/solutions/african-cities" element={<AfricanCitiesPage />}>
-                                <Route path="uganda" element={<ContentUganda />} />
-                                <Route path="kenya" element={<ContentKenya />} />
-                            </Route>
-                            <Route path="/about-us" element={<AboutUsPage />} />
-                            <Route path="/press" element={<Press />} />
-                            <Route path="/terms" element={<Terms />} />
-                            <Route path="/contact" element={<ContactUsPage />} />
-                            <Route path="/contact/form" element={<ContactForm />} />
-                            <Route path="/contact/sent" element={<Feedback />} />
-                            <Route path="/get-involved" element={<GetInvolved />} />
-                            <Route path="/get-involved/register" element={<Register />} />
-                            <Route path="/get-involved/check-mail" element={<CheckMail />} />
-                        </Routes>
-                    </Router>
-                </Suspense>
-            </Provider>
+        <Provider store={store}>
+            <Suspense
+                fallback={<Loadspinner />}>
+                <Router>
+                    <Routes>
+                        <Route path="/" element={<HomePage />} />
+                        <Route path="/solutions/research" element={<ResearchPage />} />
+                        <Route path="/solutions/communities" element={<CommunityPage />} />
+                        <Route path="/solutions/african-cities" element={<AfricanCitiesPage />}>
+                            <Route path="uganda" element={<ContentUganda />} />
+                            <Route path="kenya" element={<ContentKenya />} />
+                        </Route>
+                        <Route path="/about-us" element={<AboutUsPage />} />
+                        <Route path="/press" element={<Press />} />
+                        <Route path="/terms" element={<Terms />} />
+                        <Route path="/contact" element={<ContactUsPage />} />
+                        <Route path="/contact/form" element={<ContactForm />} />
+                        <Route path="/contact/sent" element={<Feedback />} />
+                        <Route path="/get-involved" element={<GetInvolved />} />
+                        <Route path="/get-involved/register" element={<Register />} />
+                        <Route path="/get-involved/check-mail" element={<CheckMail />} />
+                    </Routes>
+                </Router>
+            </Suspense>
+        </Provider>
     )
 };
 
