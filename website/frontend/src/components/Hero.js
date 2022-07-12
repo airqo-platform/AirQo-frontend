@@ -9,7 +9,6 @@ import Location from 'icons/homepage/hero/location.svg';
 import Reload from 'icons/homepage/hero/reload.svg';
 import ArrowDown from 'icons/homepage/hero/arrow-down.svg';
 import { Link } from 'react-router-dom';
-import { showExploreDataModal } from 'reduxStore/ExploreData/operations';
 
 const breakPoint = 580;
 
@@ -20,7 +19,6 @@ const Hero = () => {
   const size = useWindowSize();
   const dispatch = useDispatch();
   const showModal = () => dispatch(showGetInvolvedModal(true))
-  const showExploreModal = () => dispatch(showExploreDataModal(true));
 
   return (
         <div className="Hero">
@@ -58,7 +56,7 @@ const Hero = () => {
                 <p className="hero-title">Clean air for <br />all African cities </p>
                 <p className="hero-sub"> <span style={{color:"#135DFF"}}>“9 out of 10 people breathe polluted air”.</span> <br/>We empower communities with accurate, hyperlocal and timely air quality data to drive air pollution mitigation actions.</p>
                 <div className="hero-buttons">
-                    <Link to="/explore-data"><Button label="Explore data" onClick={showExploreModal} /></Link>
+                    <Link to="/explore-data"><Button label="Explore data" /></Link>
                     <Button className="button-get-involved" label="Get Involved" onClick={showModal} />
                 </div>
                 </div>

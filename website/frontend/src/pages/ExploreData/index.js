@@ -19,7 +19,7 @@ import {
 import { useExploreData } from 'reduxStore/ExploreData/selectors';
 import { postExploreDataRequest, updateExploreData } from 'reduxStore/ExploreData/operations';
 import { isEmpty, isEqual } from 'underscore';
-import { showExploreDataModal } from '../../../reduxStore/ExploreData/operations';
+import { useInitScrollTop } from 'utils/customHooks';
 
 const CATEGORY_TYPE = {
   researcher: 'researcher',
@@ -34,7 +34,7 @@ export const PageWithImageLayout = ({ imgPath, children }) => {
   const navigate = useNavigate();
 
   const navigateBack = () => navigate(-1);
-
+  useInitScrollTop();
   return (
     <ExploreDataModal>
         <div className="ExploreDataWrapper">
@@ -401,53 +401,50 @@ export const ExploreRegistryConfirmation = () => (
 );
 
 export const ExploreDataModal = ({children}) => {
-    const dispatch = useDispatch();
-    const exploreData = useExploreData();
-
-    const hideModal = () => dispatch(showExploreDataModal(false));
-
+    
     return (
-        <Modal open={exploreData.openModal} onClose={hideModal}>
+        <div className="ExploreDataModal">
             <div className="ExploreDataModalWrapper">
-                <div className="ExploreDataModal">
-                    {children}
-                </div>
+                {children}
             </div>
-        </Modal>
+        </div>
     );
 }
 
-const ExploreData = () => (
-    <ExploreDataModal>
-        <div className="ExploreData">
-            <div className="left-section">
-                <div className="nav">
-                    <Link to="/"><h3>Home</h3></Link><ArrowForwardIosIcon className="icon" /><h3 className="blur-text">Explore Data</h3>
-                </div>
-                <div className="content">
-                    <h2>Visualise air quality information.</h2>
-                    <p>Access real-time and historic air quality information across Africa through our easy-to-use air quality analytics dashboard or mobile app.</p>
-                </div>
-            </div>
-            <div className="right-section">
-                <div className="nav-icon"><Link to="/"><CloseIcon /></Link></div>
-                <div className="nav">
-                    <div className="nav-option">
-                        <div className="img-wrapper"><div className="img-1"><MobileApp /></div></div>
-                        <h6>Discover the quality of air you are breathing.</h6>
-                        <Link to="/explore-data/download-apps"><button className="nav-button">Download App</button></Link>
+const ExploreData = () => {
+    useInitScrollTop();
+    return (
+        <ExploreDataModal>
+            <div className="ExploreData">
+                <div className="left-section">
+                    <div className="nav">
+                        <Link to="/"><h3>Home</h3></Link><ArrowForwardIosIcon className="icon" /><h3 className="blur-text">Explore Data</h3>
                     </div>
-                    <div className="nav-option">
-                        <div className="img-wrapper">
-                            <div className="img-2"><AirqualityPlatform /></div>
+                    <div className="content">
+                        <h2>Visualise air quality information.</h2>
+                        <p>Access real-time and historic air quality information across Africa through our easy-to-use air quality analytics dashboard or mobile app.</p>
+                    </div>
+                </div>
+                <div className="right-section">
+                    <div className="nav-icon"><Link to="/"><CloseIcon /></Link></div>
+                    <div className="nav">
+                        <div className="nav-option">
+                            <div className="img-wrapper"><div className="img-1"><MobileApp /></div></div>
+                            <h6>Discover the quality of air you are breathing.</h6>
+                            <Link to="/explore-data/download-apps"><button className="nav-button">Download App</button></Link>
                         </div>
-                        <h6>An interactive air quality analytics platform</h6>
-                        <Link to="/explore-data/get-started"><button className="nav-button">Air Quality Dashboard</button></Link>
+                        <div className="nav-option">
+                            <div className="img-wrapper">
+                                <div className="img-2"><AirqualityPlatform /></div>
+                            </div>
+                            <h6>An interactive air quality analytics platform</h6>
+                            <Link to="/explore-data/get-started"><button className="nav-button">Air Quality Dashboard</button></Link>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </ExploreDataModal>
-);
+        </ExploreDataModal>
+    );
+}
 
 export default ExploreData;
