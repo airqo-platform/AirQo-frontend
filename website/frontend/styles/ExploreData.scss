@@ -24,7 +24,7 @@
     width: 100vw;
     height: 100vh;
     outline: none;
-    background-color: #ebebeb;
+    background-color: #ffffffb9;
 }
 
 .ExploreDataModal {
@@ -172,23 +172,24 @@
 
 .ExploreDataWrapper {
     display: flex;
-    height: 100vh;
+    height: auto;
     width: 100%;
 
     .left-section {
-        height: auto;
+        height: 100%;
         overflow-y: hidden;
         width: 45%;
         
         img {
-            object-fit: cover;
+            object-fit: contain;
             object-position: top center;
         }
     }
 
     .right-section {
         width: 55%;
-        height: 100vh;
+        height: auto;
+        background-color: $aq-white-0;
 
         .nav-row {
             display: flex;
@@ -417,8 +418,9 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    height: auto;
     width: 100%;
+    margin: 0;
 
     .content {
         h2 {

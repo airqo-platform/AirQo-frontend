@@ -1,4 +1,4 @@
-import { EXPLORE_DATA_REQUEST_SUCCESS, UPDATE_EXPLORE_DATA_SUCCESS } from './actions';
+import { EXPLORE_DATA_REQUEST_SUCCESS, UPDATE_EXPLORE_DATA_SUCCESS, SHOW_EXPLORE_DATA_MODAL_SUCCESS } from './actions';
 
 const initialState = {
   userType: {
@@ -12,6 +12,7 @@ const initialState = {
   jobTitle: null,
   email: null,
   success: false,
+  openModal: false
 };
 
 export default function (state = initialState, action) {
@@ -20,6 +21,8 @@ export default function (state = initialState, action) {
       return { ...state, ...action.payload };
     case UPDATE_EXPLORE_DATA_SUCCESS:
       return { ...state, ...action.payload };
+    case SHOW_EXPLORE_DATA_MODAL_SUCCESS:
+      return {...state, ...action.payload}
     default:
       return state;
   }

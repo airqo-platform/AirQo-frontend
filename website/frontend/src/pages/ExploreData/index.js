@@ -19,6 +19,7 @@ import {
 import { useExploreData } from 'reduxStore/ExploreData/selectors';
 import { postExploreDataRequest, updateExploreData } from 'reduxStore/ExploreData/operations';
 import { isEmpty, isEqual } from 'underscore';
+import { showExploreDataModal } from '../../../reduxStore/ExploreData/operations';
 
 const CATEGORY_TYPE = {
   researcher: 'researcher',
@@ -400,14 +401,20 @@ export const ExploreRegistryConfirmation = () => (
 );
 
 export const ExploreDataModal = ({children}) => {
+    const dispatch = useDispatch();
+    const exploreData = useExploreData();
+
+    const hideModal = () => dispatch(showExploreDataModal(false));
+
     return (
-        <div className="ExploreDataModalWrapper">
-            <div className="ExploreDataModal">
-                {children}
+        <Modal open={exploreData.openModal} onClose={hideModal}>
+            <div className="ExploreDataModalWrapper">
+                <div className="ExploreDataModal">
+                    {children}
+                </div>
             </div>
-        </div>
-        
-    )
+        </Modal>
+    );
 }
 
 const ExploreData = () => (
