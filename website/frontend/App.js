@@ -16,6 +16,7 @@ import Register from './src/pages/GetInvolved/Register';
 import CheckMail from './src/pages/GetInvolved/CheckMail';
 import store from './store';
 import Feedback from './src/pages/ContactUs/Feedback';
+import Loadspinner from './src/components/LoadSpinner';
 
 store.dispatch(loadAirQloudSummaryData());
 
