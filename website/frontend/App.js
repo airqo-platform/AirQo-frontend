@@ -16,7 +16,6 @@ import Register from './src/pages/GetInvolved/Register';
 import CheckMail from './src/pages/GetInvolved/CheckMail';
 import store from './store';
 import Feedback from './src/pages/ContactUs/Feedback';
-import Loadspinner from './src/components/LoadSpinner';
 
 store.dispatch(loadAirQloudSummaryData());
 
@@ -50,7 +49,6 @@ const App = () => {
                             <Route path="/get-involved" element={<GetInvolved />} />
                             <Route path="/get-involved/register" element={<Register />} />
                             <Route path="/get-involved/check-mail" element={<CheckMail />} />
-                            <Route path="/loader" element={<Loadspinner />} />
                         </Routes>
                     </Router>
                 </Suspense>
