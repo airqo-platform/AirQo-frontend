@@ -59,7 +59,7 @@ const ResearchContent = () => {
             <div className="collaborate-container">
                 <div className="consult-text">
                     <div>
-                        <p>Collaboration with universities and academic instutions</p>
+                        <p>Collaboration with universities and academic institutions</p>
                         <p>We provide air quality data to facilitate university research. Universities get free access to periodical air quality reports through the AirQo dashboard and the AirQo API.</p>
                         <p>During the deployment of air quality monitoring devices,  we recruit universities and other institutions as AirQo hosts. This ensures that they feel part of the mission right from the collection to the data dissemination.</p>
                     </div>

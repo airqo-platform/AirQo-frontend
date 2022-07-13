@@ -106,7 +106,7 @@ export const ContentUganda = () => {
                 <div className="consult-text">
                     <div>
                         <p>Collaboration with KCCA</p>
-                        <p>AirQo partnered with the Kampala Capital City Authority (KCCA) in 2018, to facilitate air quality monitoring and data analytics tools across Kampala. and other cities around the country.</p>
+                        <p>AirQo partnered with the Kampala Capital City Authority (KCCA) in 2018, to facilitate air quality monitoring and data analytics tools across Kampala and other cities around the country.</p>
                         <span className="number-list">
                             <span>1</span>
                             <span>Developed a physical network of low-cost air quality sensors in Kampala and the metropolitan areas comprising over 70 installations.</span>
@@ -146,7 +146,7 @@ export const ContentUganda = () => {
                         </span>
                         <span className="number-list">
                             <span>3</span>
-                            <span>Raise the profile of air quality as a national priority. Air quality is now featured as an important priority in the coutnry’s National Development Plan III.</span>
+                            <span>Raise the profile of air quality as a national priority. Air quality is now featured as an important priority in the country’s National Development Plan III.</span>
                         </span>
                     </div>
                 </div>
@@ -169,7 +169,7 @@ export const ContentKenya = () => {
                     <div className="consult-text">
                         <div>
                             <p>Network deployment in Kenya</p>
-                            <p>Nairobi is located over 600 km from Kampala, Nairobi is the first city outside Uganda to have an AirQo monitor.</p>
+                            <p>Nairobi is located over 600 km from Kampala. It is the first city outside Uganda to have an AirQo monitor.</p>
                             <p>We are in advance stages of developing the air quality network in Nairobi and have so far established a collocation installation in Nairobi in partnership with United Nations Environemnt Programme (UNEP).</p>
                             <p>The collocation will also be an opportunity to support existing initiatives on data quality assurance. for low-cost monitors</p>
                         </div>

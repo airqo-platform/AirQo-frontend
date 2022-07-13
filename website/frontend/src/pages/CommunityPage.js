@@ -69,7 +69,7 @@ const CommunityPage = () => {
                                 <h3>300</h3>
                                 <AirQoArrowLeft className="left-strip-arrow" />
                             </span>
-                            <h3>AirQocommunity champions</h3>
+                            <h3>AirQommunity champions</h3>
                         </div>
                         <div className="right-strip">
                             <h3>Amina, one of our air quality champions — helping raise awareness about air pollution in her community through our digital technologies. <a href="https://blog.airqo.net/helping-communities-combat-air-pollution-through-digital-technologies-6a5924a1e1e" target="_blank"><u>Read story</u></a></h3>
