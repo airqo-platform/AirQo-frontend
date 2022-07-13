@@ -4,7 +4,7 @@
 @mixin flex-column {
     display: flex;
     flex-direction: column;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
 }
 
 @mixin flex-row {
@@ -17,7 +17,7 @@
     grid-template-columns: $gridColumn;
     height: 744px;
     background-color: $aq-blue-1;
-    padding: 160px 0 80px 0;
+    padding: 140px 0 60px 0;
     .highlights-container{
         grid-column: 2 / 3;
         overflow-x: visible;
@@ -102,29 +102,59 @@
                 #left:hover, #right:hover{
                     cursor: pointer;
                 }
-                #right:focus{
-                    animation-name: slider;
-                }
             }
         }
     }
 }
 
-@keyframes slider{
-    0%{
-        .content{
-            transform: translateX(0);
-        }
-    }
-    100%{
-        .content{
-            transform: translateX(-1018px);
-        }
-    }
-}
 
 @media(max-width: $mainBreakPoint){
     .highlights-section{
-        display: none;
+        display: grid;
+        grid-template-columns: 1fr;
+        height: auto;
+        padding-top: 80px;
+        margin-bottom:80px;
+        background-color: $aq-blue-1;
+        .highlights-container{
+            overflow-x: hidden;
+            .pagination{
+                display: none;
+            }
+            .content{
+                @include flex-column();
+                width: auto;
+                .feature{
+                    @include flex-column();
+                    padding: 30px 16px;
+                    .img-sm{
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        height: 260px;
+                        overflow: hidden;
+                        border-radius: 16px;
+                    }
+                    img{
+                        width: 100%;
+                        border-radius: 16px;
+                    }
+                    .feature-content{
+                        padding: 0;
+                        padding-top: 16px;
+                        .feature-pills{
+                            padding-bottom: 20px;
+                            
+                        }
+                        h4{
+                            padding-bottom: 28px;
+                            font-size: 35px;
+                            line-height: 42px;
+                            width: 90vw;
+                        }
+                    }
+                }
+            }
+        }
     }
 }
