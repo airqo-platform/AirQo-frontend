@@ -20,6 +20,7 @@ COPY ./webpack.config.js ./.babelrc /app/
 COPY ./frontend /app/frontend
 RUN npm run build
 
+
 FROM python:3.8
 
 WORKDIR /app
