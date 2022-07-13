@@ -70,7 +70,7 @@ html {
 body {
   font-family: 'Inter', sans-serif;
   overflow-y: scroll;
-  overflow-x: hidden;
+  overflow-x: hidden !important;
 }
 
 a, a:hover{
@@ -82,6 +82,7 @@ a, a:hover{
 .Page {
   width: 100%;
   margin: auto;
+  overflow-x: hidden !important;
 }
 
 .Page-mini{
@@ -90,3 +91,4 @@ a, a:hover{
   margin:auto;
   scrollbar-width: none;
 }
+

@@ -96,10 +96,16 @@
                         padding-left: 8px;
                     }
                 }
-                #left:hover, #right:hover{
-                    cursor: pointer;
-                }
+                // #left:hover, #right:hover{
+                //     cursor: pointer;
+                // }
             }
         }
+    }
+}
+
+@media(max-width: $mainBreakPoint){
+    .highlights-section{
+        display: none;
     }
 }

@@ -50,7 +50,7 @@
                 p {
                     width: 477.24px;
                     font-size: $subTextFont;
-                    line-height: 26px;
+                    line-height: 28px;
                     margin-bottom: 36px;
                     font-weight: 400;
                 }
@@ -108,9 +108,6 @@
                 margin: 0 auto;
     
                 h1 {
-                    font-size: 40px;
-                    font-weight: 500;
-                    line-height: 48px;
                     width: 100%;
                     margin: 0;
                     margin-bottom: 24px;
@@ -119,8 +116,6 @@
                 &-aside {
                     position: relative;
                     p {
-                        font-size: 20px;
-                        line-height: 28px;
                         width: 100%;
                     }
     
@@ -136,10 +131,11 @@
         }
 
         .analytics-img-sm {
-            display: block;
-            width: 100%;
+            display: flex;
+            width:96%;
             object-fit: cover;
             height: 100%;
+            overflow-x: hidden;
         }
     
     }

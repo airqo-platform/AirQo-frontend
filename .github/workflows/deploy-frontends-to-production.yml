@@ -6,6 +6,7 @@ on:
       - master
     types:
       - closed
+
 jobs:
   image-tag:
     name: create image tag
@@ -139,42 +140,81 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      
+
       - name: Login to GCR
         uses: docker/login-action@v1
         with:
           registry: ${{ secrets.REGISTRY_URL }}
           username: _json_key
-          password: ${{ secrets.GCR_CONFIG }}
+          password: ${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}
 
-      - name: Login to K8S
-        uses: azure/k8s-set-context@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Google Auth
+        id: auth
+        uses: google-github-actions/auth@v0
         with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
+          credentials_json: '${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}'
+          
+      - name: Setup Cloud SDK
+        uses: 'google-github-actions/setup-gcloud@v0'
 
+      - name: create google_application_credentials.json file
+        id: create-google-application-credentials-file
+        uses: jsdaniell/create-json@1.1.2
+        # Backup for this is airqo-platform/create-json@1.1.2
+        with:
+          name: "google_application_credentials.json"
+          json: ${{ secrets.GCP_SA_CREDENTIALS }}
+
+      - name: Create app.yaml and .env.yaml files
+        run: |
+          cd website/
+          echo "========== Creating app.yaml file =========="            
+          echo "runtime: python" > app.yaml
+          echo "env: flex" >> app.yaml
+          echo "service: default" >> app.yaml
+          echo "includes:" >> app.yaml
+          echo "  - .env.yaml" >> app.yaml
+          echo "========== Creating .env.yaml file =========="  
+          echo "env_variables:" > .env.yaml
+          echo "  SECRET: ${{ secrets.WEBSITE_SECRET }}" >> .env.yaml
+          echo "  CLOUDINARY_KEY: ${{ secrets.WEBSITE_CLOUDINARY_KEY }}" >> .env.yaml
+          echo "  CLOUDINARY_NAME: ${{ secrets.WEBSITE_CLOUDINARY_NAME }}" >> .env.yaml
+          echo "  CLOUDINARY_SECRET: ${{ secrets.WEBSITE_CLOUDINARY_SECRET }}" >> .env.yaml
+          echo "  DATABASE_URI: ${{ secrets.WEBSITE_PROD_DATABASE_URI }}" >> .env.yaml
+          echo "  GS_BUCKET_NAME: ${{ secrets.WEBSITE_PROD_GS_BUCKET_NAME }}" >> .env.yaml
+          echo "  REACT_WEB_STATIC_HOST: ${{ secrets.WEBSITE_PROD_REACT_WEB_STATIC_HOST }}" >> .env.yaml
+          echo "  SECRET_KEY: ${{ secrets.WEBSITE_PROD_SECRET_KEY }}" >> .env.yaml
+          echo "  REACT_NETMANAGER_BASE_URL: ${{ secrets.WEBSITE_PROD_REACT_NETMANAGER_BASE_URL }}" >> .env.yaml
+          echo "  REACT_APP_BASE_AIRQLOUDS_URL: ${{ secrets.WEBSITE_REACT_APP_BASE_AIRQLOUDS_URL }}" >> .env.yaml
+          echo "  REACT_APP_BASE_NEWSLETTER_URL: ${{ secrets.WEBSITE_REACT_APP_BASE_NEWSLETTER_URL }}" >> .env.yaml
+          echo "  DJANGO_ALLOWED_HOSTS: ${{ secrets.WEBSITE_DJANGO_ALLOWED_HOSTS }}" >> .env.yaml
+          echo "  DEBUG: False" >> .env.yaml
+          echo "  GOOGLE_APPLICATION_CREDENTIALS: /app/google_application_credentials.json" >> .env.yaml
+        
       - name: Build and Push Docker Image
         run: |
           cd website/
           docker build \
-          --target=deployment \
-          --build-arg REACT_WEB_STATIC_HOST=${{ secrets.REACT_WEB_STATIC_HOST }} \
-          --build-arg REACT_NETMANAGER_BASE_URL=${{ secrets.REACT_NETMANAGER_BASE_URL_PROD }} \
-          --build-arg REACT_APP_BASE_AIRQLOUDS_URL=${{ secrets.REACT_APP_BASE_AIRQLOUDS_URL }} \
-          --build-arg REACT_APP_BASE_NEWSLETTER_URL=${{ secrets.REACT_APP_BASE_NEWSLETTER_URL }} \
-          --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }} \
+          --build-arg REACT_WEB_STATIC_HOST=${{ secrets.WEBSITE_PROD_REACT_WEB_STATIC_HOST }} \
+          --build-arg REACT_NETMANAGER_BASE_URL=${{ secrets.WEBSITE_PROD_REACT_NETMANAGER_BASE_URL }} \
+          --build-arg REACT_APP_BASE_AIRQLOUDS_URL=${{ secrets.WEBSITE_REACT_APP_BASE_AIRQLOUDS_URL }} \
+          --build-arg REACT_APP_BASE_NEWSLETTER_URL=${{ secrets.WEBSITE_REACT_APP_BASE_NEWSLETTER_URL }} \
+          --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }} \
           -f docker/Dockerfile .
-          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-website:latest
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }}
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-website:latest
-      - name: Deploy to K8S
-        run: |
-          kubectl apply -f k8s/website/prod-airqo-website.yaml -n production
-          kubectl set image deployment/airqo-website airqo-website=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }} -n production
-          kubectl annotate deployment/airqo-website kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n production
+          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:latest
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }}
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:latest
+
+      - name: Deploy to App Engine
+        run: |-
+          cd website/
+          gcloud app deploy  \
+            --image-url=${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:latest \
+            --project=${{ secrets.FRONTEND_PROJECT_ID }} \
+            --quiet
 
   ### calibrate app ###
   calibrate-app:

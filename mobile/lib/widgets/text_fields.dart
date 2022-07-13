@@ -37,10 +37,10 @@ class PhoneNumberInputFormatter extends TextInputFormatter {
 
 class CountryCodePickerField extends StatelessWidget {
   const CountryCodePickerField({
-    Key? key,
+    super.key,
     required this.placeholder,
     required this.valueChange,
-  }) : super(key: key);
+  });
   final String placeholder;
   final Function(String?) valueChange;
 
@@ -80,11 +80,11 @@ class CountryCodePickerField extends StatelessWidget {
 
 class OptField extends StatelessWidget {
   const OptField({
-    Key? key,
+    super.key,
     required this.codeSent,
     required this.callbackFn,
     required this.position,
-  }) : super(key: key);
+  });
   final bool codeSent;
   final Function(String value, int position) callbackFn;
   final int position;
@@ -145,7 +145,7 @@ class OptField extends StatelessWidget {
 }
 
 class TextInputCloseButton extends StatelessWidget {
-  const TextInputCloseButton({Key? key}) : super(key: key);
+  const TextInputCloseButton({super.key});
 
   @override
   Widget build(BuildContext context) {
