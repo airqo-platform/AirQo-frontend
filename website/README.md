@@ -23,6 +23,8 @@
 -   `Git` [Installing Git](https://gist.github.com/derhuerst/1b15ff4652a867391f03)
 -   `Docker` [Install Docker Engine](https://docs.docker.com/engine/install/)
 -   `Docker Compose` [Install Docker Compose](https://docs.docker.com/compose/install/)
+-   `NodeJs` [Download nodejs](https://nodejs.org/en/download/)
+-   `Npm` [NpmJs](https://www.npmjs.com/get-npm)
 
 #### OSX, Linux, Windows
 -   `Git` [Installing Git](https://gist.github.com/derhuerst/1b15ff4652a867391f03)
@@ -206,7 +208,7 @@ In the `.envrc` file add the following code
 In summary, this ensures a python virtual environment is created each time you cd into this directory.
 The `PATH` variable is updated with the `node_modules` path and `.env` loaded.
 
-Populate the `.env` file with the following keys and their respective values
+Populate the `.env` file with the following keys and their respective values.
 
     DATABASE_URI
     SECRET_KEY
@@ -224,9 +226,15 @@ Populate the `.env` file with the following keys and their respective values
 **Note**: Remove `DATABASE_URI` variable  if you are using docker.
 
 #### Docker
+
+Run the commands bellow to install the node dependencies and build the react front end
+
+    npm install
+    npm run build
+
 Run the command below to build and run the containers for the database and website app
 
-    REACT_WEB_STATIC_HOST=<web-static-host> REACT_NETMANAGER_BASE_URL=<netmanager-base-url> REACT_APP_BASE_AIRQLOUDS_URL=<app-base-airqlouds-url> REACT_APP_BASE_NEWSLETTER_URL=<app-base-newsletter-url> docker-compose -f docker/docker-compose-dev.yml up --build
+    docker-compose -f docker/docker-compose-dev.yml up --build
 
 When the build is complete and both _airqo-website_ and _airqo-website-db_ containers, you can access the website app at http://localhost:8000/
 

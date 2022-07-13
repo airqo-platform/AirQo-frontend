@@ -1,13 +1,13 @@
 cloudinary
 django
 django-author
+django-environ
 django-extensions
 django-filter
 djangorestframework
 dj_database_url
 drf-yasg
 invoke
-python-decouple
 psycopg2-binary
 django-storages[google]
 gunicorn

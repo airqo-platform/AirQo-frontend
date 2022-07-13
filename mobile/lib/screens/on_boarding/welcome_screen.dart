@@ -12,8 +12,8 @@ import 'on_boarding_widgets.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   WelcomeScreenState createState() => WelcomeScreenState();

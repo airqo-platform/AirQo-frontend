@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -11,7 +12,7 @@ class UserException implements Exception {
 
 Future<void> logException(
   exception,
-  stackTrace, {
+  StackTrace? stackTrace, {
   bool remoteLogging = true,
 }) async {
   final unHandledSentryExceptions = [
@@ -25,9 +26,16 @@ Future<void> logException(
       !unHandledSentryExceptions.contains(
         exception.runtimeType,
       )) {
-    await Sentry.captureException(
-      exception,
-      stackTrace: stackTrace ?? '',
-    );
+    await Future.wait([
+      FirebaseCrashlytics.instance.recordError(
+        exception,
+        stackTrace,
+        fatal: true,
+      ),
+      Sentry.captureException(
+        exception,
+        stackTrace: stackTrace ?? '',
+      ),
+    ]);
   }
 }
