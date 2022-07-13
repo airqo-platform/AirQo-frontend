@@ -1,6 +1,8 @@
 from author.decorators import with_author
 from django.db import models
 from django_extensions.db.models import TimeStampedModel
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 
 
 @with_author
@@ -22,6 +24,7 @@ class Career(TimeStampedModel):
         GraduateTraining = "graduate-training", "Graduate Training"
 
     title = models.CharField(max_length=100)
+    unique_title = models.CharField(max_length=100, null=True, blank=True)
     closing_date = models.DateTimeField()
     apply_url = models.URLField(max_length=250)
     type = models.CharField(
@@ -35,8 +38,29 @@ class Career(TimeStampedModel):
         on_delete=models.deletion.SET_NULL,
     )
 
+    def generate_unique_title(self, postfix_index=0):
+        from django.utils.text import slugify
+
+        unique_title = slugify(self.title)
+
+        if postfix_index > 0:
+            unique_title = f"{unique_title}{postfix_index}"
+        try:
+            Career.objects.get(unique_title=unique_title)
+        except Career.DoesNotExist:
+            return unique_title
+        else:
+            postfix_index += 1
+            return self.generate_unique_title(postfix_index=postfix_index)
+
     def __str__(self):
         return f"Job - {self.title}"
+
+
+@receiver(pre_save, dispatch_uid="append_short_name", sender=Career)
+def append_short_name(sender, instance, *args, **kwargs):
+    if not instance.unique_title:
+        instance.unique_title = instance.generate_unique_title()
 
 
 @with_author
@@ -66,6 +90,7 @@ class BulletDescription(TimeStampedModel):
         related_name="bullets",
         on_delete=models.deletion.SET_NULL,
     )
+
     def __str__(self):
         return f"Bullet - {self.name}"
 
