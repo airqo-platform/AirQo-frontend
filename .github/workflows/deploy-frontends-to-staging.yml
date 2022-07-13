@@ -4,135 +4,137 @@ on:
   pull_request:
     branches: 
       - staging
+    # types:
+    #   - closed
 jobs:
-  image-tag:
-    name: create image tag
-    runs-on: ubuntu-latest
-    outputs:
-      build_id: ${{ steps.prep.outputs.build_id }} # build id
-      datetime: ${{ steps.prep.outputs.datetime }} # build date
-    steps:
-      - name: generate build ID
-        id: prep
-        run: |
-            sha=${GITHUB_SHA::8}
-            timestamp=$(date +%s)
-            datetime=$(date)
-            echo "::set-output name=build_id::stage-${sha}-${timestamp}"
-            echo "::set-output name=datetime::${datetime}"
+  # image-tag:
+  #   name: create image tag
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     build_id: ${{ steps.prep.outputs.build_id }} # build id
+  #     datetime: ${{ steps.prep.outputs.datetime }} # build date
+  #   steps:
+  #     - name: generate build ID
+  #       id: prep
+  #       run: |
+  #           sha=${GITHUB_SHA::8}
+  #           timestamp=$(date +%s)
+  #           datetime=$(date)
+  #           echo "::set-output name=build_id::stage-${sha}-${timestamp}"
+  #           echo "::set-output name=datetime::${datetime}"
 
-  check:
-    # this job will only run if the PR has been merged
-    if: github.event.pull_request.merged == true
-    name: check for changes in platform
-    outputs:
-      run_platform: ${{ steps.check_files.outputs.run_platform }} # platform
-      run_website: ${{ steps.check_files.outputs.run_website }} # website
-      run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }} # calibrate app
+  # check:
+  #   # this job will only run if the PR has been merged
+  #   if: github.event.pull_request.merged == true
+  #   name: check for changes in platform
+  #   outputs:
+  #     run_platform: ${{ steps.check_files.outputs.run_platform }} # platform
+  #     run_website: ${{ steps.check_files.outputs.run_website }} # website
+  #     run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }} # calibrate app
 
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 2
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
+  #       with:
+  #         fetch-depth: 2
 
-      - name: check modified frontends
-        id: check_files
-        run: |
-          echo "=============== list modified files ==============="
-          git diff --name-only HEAD^ HEAD
+  #     - name: check modified frontends
+  #       id: check_files
+  #       run: |
+  #         echo "=============== list modified files ==============="
+  #         git diff --name-only HEAD^ HEAD
           
-          echo "========== check paths of modified files =========="
-          git diff --name-only HEAD^ HEAD > files.txt
+  #         echo "========== check paths of modified files =========="
+  #         git diff --name-only HEAD^ HEAD > files.txt
 
-          echo "::set-output name=run_platform::false"
-          echo "::set-output name=run_website::false" 
-          echo "::set-output name=run_calibrate_app::false"  
+  #         echo "::set-output name=run_platform::false"
+  #         echo "::set-output name=run_website::false" 
+  #         echo "::set-output name=run_calibrate_app::false"  
 
-          while IFS= read -r file
-          do
-            echo $file
-            if [[ $file == netmanager/* ]]; then
-              echo "::set-output name=run_platform::true"
-            fi
+  #         while IFS= read -r file
+  #         do
+  #           echo $file
+  #           if [[ $file == netmanager/* ]]; then
+  #             echo "::set-output name=run_platform::true"
+  #           fi
 
-            if [[ $file == website/* ]]; then
-              echo "::set-output name=run_website::true"
-            fi
+  #           if [[ $file == website/* ]]; then
+  #             echo "::set-output name=run_website::true"
+  #           fi
 
-            if [[ $file == calibrate/* ]]; then
-              echo "::set-output name=run_calibrate_app::true"
-            fi
+  #           if [[ $file == calibrate/* ]]; then
+  #             echo "::set-output name=run_calibrate_app::true"
+  #           fi
 
-            if [[ $file == workflow-trigger.txt ]]; then
-              echo "::set-output name=run_platform::true"
-              echo "::set-output name=run_website::true"
-              echo "::set-output name=run_calibrate_app::true"
-            fi
+  #           if [[ $file == workflow-trigger.txt ]]; then
+  #             echo "::set-output name=run_platform::true"
+  #             echo "::set-output name=run_website::true"
+  #             echo "::set-output name=run_calibrate_app::true"
+  #           fi
 
-          done < files.txt
+  #         done < files.txt
 
-  ### deploy platform ###
-  platform:
-    name: build-push-deploy-netmanager
-    needs: [check, image-tag]
-    if: needs.check.outputs.run_platform == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+  # ### deploy platform ###
+  # platform:
+  #   name: build-push-deploy-netmanager
+  #   needs: [check, image-tag]
+  #   if: needs.check.outputs.run_platform == 'true'
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v2
       
-      - name: Login to GCR
-        uses: docker/login-action@v1
-        with:
-          registry: ${{ secrets.REGISTRY_URL }}
-          username: _json_key
-          password: ${{ secrets.GCR_CONFIG }}
+  #     - name: Login to GCR
+  #       uses: docker/login-action@v1
+  #       with:
+  #         registry: ${{ secrets.REGISTRY_URL }}
+  #         username: _json_key
+  #         password: ${{ secrets.GCR_CONFIG }}
 
-      - name: Login to K8S
-        uses: azure/k8s-set-context@v1
-        with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.K8S_CONFIG_STAGE }}
+  #     - name: Login to K8S
+  #       uses: azure/k8s-set-context@v1
+  #       with:
+  #         method: kubeconfig
+  #         kubeconfig: ${{ secrets.K8S_CONFIG_STAGE }}
 
-      - name: NPM Setup and Build
-        uses: actions/setup-node@v2
-        with:
-          node-version: '12'
-      - run: |
-          cd netmanager/
+  #     - name: NPM Setup and Build
+  #       uses: actions/setup-node@v2
+  #       with:
+  #         node-version: '12'
+  #     - run: |
+  #         cd netmanager/
 
-          export REACT_APP_BASE_URL=${{ secrets.REACT_APP_BASE_URL_STAGE }}
-          export REACT_APP_CLOUDINARY_NAME=${{ secrets.REACT_APP_CLOUDINARY_NAME }}
-          export REACT_APP_CLOUDINARY_PRESET=${{ secrets.REACT_APP_CLOUDINARY_PRESET }}
-          export REACT_APP_MAPBOX_TOKEN=${{ secrets.REACT_APP_MAPBOX_TOKEN }}
-          export REACT_APP_JIRA_KEY=${{ secrets.REACT_APP_JIRA_KEY }}
-          export NODE_PATH=${{ secrets.NODE_PATH }}
-          export PORT=${{ secrets.NODE_PORT }}
+  #         export REACT_APP_BASE_URL=${{ secrets.REACT_APP_BASE_URL_STAGE }}
+  #         export REACT_APP_CLOUDINARY_NAME=${{ secrets.REACT_APP_CLOUDINARY_NAME }}
+  #         export REACT_APP_CLOUDINARY_PRESET=${{ secrets.REACT_APP_CLOUDINARY_PRESET }}
+  #         export REACT_APP_MAPBOX_TOKEN=${{ secrets.REACT_APP_MAPBOX_TOKEN }}
+  #         export REACT_APP_JIRA_KEY=${{ secrets.REACT_APP_JIRA_KEY }}
+  #         export NODE_PATH=${{ secrets.NODE_PATH }}
+  #         export PORT=${{ secrets.NODE_PORT }}
 
-          npm install
+  #         npm install
     
-          CI=false npm run build
+  #         CI=false npm run build
 
-      - name: Build and Push Docker Image
-        run: |
-          cd netmanager/
-          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} .
-          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:latest
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:latest
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }}
-      - name: Deploy to K8S
-        run: |
-          kubectl apply -f k8s/platform/stage-airqo-platform-frontend.yaml
-          kubectl set image deployment/airqo-stage-platform-frontend sta-platform-ui=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} -n staging
-          kubectl annotate deployment/airqo-stage-platform-frontend kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n staging
+  #     - name: Build and Push Docker Image
+  #       run: |
+  #         cd netmanager/
+  #         docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} .
+  #         docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:latest
+  #         docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:latest
+  #         docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }}
+  #     - name: Deploy to K8S
+  #       run: |
+  #         kubectl apply -f k8s/platform/stage-airqo-platform-frontend.yaml
+  #         kubectl set image deployment/airqo-stage-platform-frontend sta-platform-ui=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} -n staging
+  #         kubectl annotate deployment/airqo-stage-platform-frontend kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n staging
   
   ### deploy website ###
   website:
     name: build-push-deploy-website
-    needs: [check, image-tag]
-    if: needs.check.outputs.run_website == 'true'
+    # needs: [check, image-tag]
+    # if: needs.check.outputs.run_website == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -178,9 +180,10 @@ jobs:
           --build-arg REACT_NETMANAGER_BASE_URL=${{ secrets.WEBSITE_STAGE_REACT_NETMANAGER_BASE_URL }} \
           --build-arg REACT_APP_BASE_AIRQLOUDS_URL=${{ secrets.WEBSITE_REACT_APP_BASE_AIRQLOUDS_URL }} \
           --build-arg REACT_APP_BASE_NEWSLETTER_URL=${{ secrets.WEBSITE_REACT_APP_BASE_NEWSLETTER_URL }} \
-          --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }} \
+          # --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }} \
+          --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest \
           -f docker/Dockerfile .
-          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest
+          # docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest
           # docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }}
           # docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest
 
@@ -191,53 +194,53 @@ jobs:
             --project=${{ secrets.FRONTEND_PROJECT_ID }}
 
   ### calibrate app ###
-  calibrate-app:
-    name: build-push-deploy-calibrate-app
-    needs: [check, image-tag]
-    if: needs.check.outputs.run_calibrate_app == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+  # calibrate-app:
+  #   name: build-push-deploy-calibrate-app
+  #   needs: [check, image-tag]
+  #   if: needs.check.outputs.run_calibrate_app == 'true'
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v2
       
-      - name: Login to GCR
-        uses: docker/login-action@v1
-        with:
-          registry: ${{ secrets.REGISTRY_URL }}
-          username: _json_key
-          password: ${{ secrets.GCR_CONFIG }}
+  #     - name: Login to GCR
+  #       uses: docker/login-action@v1
+  #       with:
+  #         registry: ${{ secrets.REGISTRY_URL }}
+  #         username: _json_key
+  #         password: ${{ secrets.GCR_CONFIG }}
 
-      - name: Login to K8S
-        uses: azure/k8s-set-context@v1
-        with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.K8S_CONFIG_STAGE }}
+  #     - name: Login to K8S
+  #       uses: azure/k8s-set-context@v1
+  #       with:
+  #         method: kubeconfig
+  #         kubeconfig: ${{ secrets.K8S_CONFIG_STAGE }}
 
-      - name: NPM Setup and Build
-        uses: actions/setup-node@v2
-        with:
-          node-version: '12'
-      - run: |
-          cd calibrate/
+  #     - name: NPM Setup and Build
+  #       uses: actions/setup-node@v2
+  #       with:
+  #         node-version: '12'
+  #     - run: |
+  #         cd calibrate/
 
-          export REACT_APP_BASE_URL=${{ secrets.REACT_APP_BASE_URL_STAGE }}
-          export REACT_APP_BASE_CALIBRATE_URL=${{ secrets.REACT_APP_BASE_CALIBRATE_URL }}
-          export NODE_PATH=${{ secrets.NODE_PATH }}
-          export PORT=${{ secrets.NODE_PORT }}
+  #         export REACT_APP_BASE_URL=${{ secrets.REACT_APP_BASE_URL_STAGE }}
+  #         export REACT_APP_BASE_CALIBRATE_URL=${{ secrets.REACT_APP_BASE_CALIBRATE_URL }}
+  #         export NODE_PATH=${{ secrets.NODE_PATH }}
+  #         export PORT=${{ secrets.NODE_PORT }}
 
-          npm install
+  #         npm install
     
-          CI=false npm run build
+  #         CI=false npm run build
 
-      - name: Build and Push Docker Image
-        run: |
-          cd calibrate/
-          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }} .
-          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:latest
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:latest
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }}
-      - name: Deploy to K8S
-        run: |
-          kubectl apply -f k8s/calibrate/stage-airqo-calibrate-app.yaml
-          kubectl set image deployment/airqo-stage-calibrate-app sta-calibrate-app=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }} -n staging
-          kubectl annotate deployment/airqo-stage-calibrate-app kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n staging
+  #     - name: Build and Push Docker Image
+  #       run: |
+  #         cd calibrate/
+  #         docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }} .
+  #         docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:latest
+  #         docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:latest
+  #         docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }}
+  #     - name: Deploy to K8S
+  #       run: |
+  #         kubectl apply -f k8s/calibrate/stage-airqo-calibrate-app.yaml
+  #         kubectl set image deployment/airqo-stage-calibrate-app sta-calibrate-app=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }} -n staging
+  #         kubectl annotate deployment/airqo-stage-calibrate-app kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n staging
