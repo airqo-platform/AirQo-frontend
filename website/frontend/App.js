@@ -46,7 +46,7 @@ const App = () => {
                             <Route path="kenya" element={<ContentKenya />} />
                         </Route>
                         <Route path="/careers" element={<CareerPage />} />
-                        <Route path="/careers/:sluggedTitle" element={<CareerDetailPage />} />
+                        <Route path="/careers/:uniqueTitle" element={<CareerDetailPage />} />
                         <Route path="/about-us" element={<AboutUsPage />} />
                         <Route path="/press" element={<Press />} />
                         <Route path="/terms" element={<Terms />} />
