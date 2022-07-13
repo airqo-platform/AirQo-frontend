@@ -1,31 +1,36 @@
 import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Provider } from 'react-redux';
+
 import HomePage from 'src/pages/HomePage';
-import ResearchPage from 'src/pages/ResearchPage';
-import Press from 'src/pages/Press/Press';
-import { loadAirQloudSummaryData } from 'reduxStore/AirQlouds/operations';
-import Terms from './src/pages/Legal/Terms';
-import CommunityPage from './src/pages/CommunityPage';
-import AboutUsPage from './src/pages/AboutUsPage';
-import ContactUsPage from './src/pages/ContactUs/ContactUs';
-import ContactForm from './src/pages/ContactUs/ContactForm';
-import AfricanCitiesPage, { ContentUganda, ContentKenya } from './src/pages/AfricanCitiesPage';
-import GetInvolved from './src/pages/GetInvolved';
-import Register from './src/pages/GetInvolved/Register';
-import CheckMail from './src/pages/GetInvolved/CheckMail';
-import store from './store';
-import Feedback from './src/pages/ContactUs/Feedback';
 import Loadspinner from './src/components/LoadSpinner';
+
+const Press = React.lazy(() => import('src/pages/Press/Press'));
+const Terms = React.lazy(() => import('src/pages/Legal/Terms'));
+const ResearchPage = React.lazy(() => import('src/pages/ResearchPage'));
+const CommunityPage = React.lazy(() => import('src/pages/CommunityPage'));
+const AfricanCitiesPage = React.lazy(() => import('src/pages/AfricanCitiesPage'));
+const AboutUsPage = React.lazy(() => import('src/pages/AboutUsPage'));
+const ContactUsPage = React.lazy(() => import('src/pages/ContactUs/ContactUs'));
+const ContactForm = React.lazy(() => import('src/pages/ContactUs/ContactForm'));
+const GetInvolved = React.lazy(() => import('src/pages/GetInvolved'));
+const Register = React.lazy(() => import('src/pages/GetInvolved/Register'));
+const CheckMail = React.lazy(() => import('src/pages/GetInvolved/CheckMail'));
+const Feedback = React.lazy(() => import('src/pages/ContactUs/Feedback'));
+
+import { loadAirQloudSummaryData } from 'reduxStore/AirQlouds/operations';
+import { ContentUganda, ContentKenya } from './src/pages/AfricanCitiesPage';
+import store from './store';
+
 
 store.dispatch(loadAirQloudSummaryData());
 
 const App = () => {
     return (
         <Provider store={store}>
-            <Suspense
-                fallback={<Loadspinner />}>
-                <Router>
+            <Router>
+                <Suspense
+                    fallback={<Loadspinner />}>
                     <Routes>
                         <Route path="/" element={<HomePage />} />
                         <Route path="/solutions/research" element={<ResearchPage />} />
@@ -44,8 +49,8 @@ const App = () => {
                         <Route path="/get-involved/register" element={<Register />} />
                         <Route path="/get-involved/check-mail" element={<CheckMail />} />
                     </Routes>
-                </Router>
-            </Suspense>
+                </Suspense>
+            </Router>
         </Provider>
     )
 };
