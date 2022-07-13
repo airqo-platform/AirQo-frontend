@@ -143,38 +143,54 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      - name: Login to GCR
-        uses: docker/login-action@v1
+      - name: Google Auth
+        id: auth
+        uses: google-github-actions/auth@v0
         with:
-          registry: ${{ secrets.REGISTRY_URL }}
-          username: _json_key
-          password: ${{ secrets.GCR_CONFIG }}
+          credentials_json: '${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}'
+          
+      - name: Setup Cloud SDK
+        uses: 'google-github-actions/setup-gcloud@v0'
 
-      - name: Login to K8S
-        uses: azure/k8s-set-context@v1
-        with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.K8S_CONFIG_STAGE }}
-
+      - name: Create required files
+        run: |
+          cd website/
+          echo ${{ secrets.GCP_SA_CREDENTIALS }} > google_application_credentials.json
+          echo 'env_variables:' > .env.yaml
+          echo '  SECRET: ${{ secrets.WEBSITE_SECRET }}' >> .env.yaml
+          echo '  CLOUDINARY_KEY: ${{ secrets.WEBSITE_CLOUDINARY_KEY }}' >> .env.yaml
+          echo '  CLOUDINARY_NAME: ${{ secrets.WEBSITE_CLOUDINARY_NAME }}' >> .env.yaml
+          echo '  CLOUDINARY_SECRET: ${{ secrets.WEBSITE_CLOUDINARY_SECRET }}' >> .env.yaml
+          echo '  DATABASE_URI: ${{ secrets.WEBSITE_STAGE_DATABASE_URI }}' >> .env.yaml
+          echo '  GS_BUCKET_NAME: ${{ secrets.WEBSITE_STAGE_GS_BUCKET_NAME }}' >> .env.yaml
+          echo '  REACT_WEB_STATIC_HOST: ${{ secrets.WEBSITE_STAGE_REACT_WEB_STATIC_HOST }}' >> .env.yaml
+          echo '  SECRET_KEY: ${{ secrets.WEBSITE_STAGE_SECRET_KEY }}' >> .env.yaml
+          echo '  REACT_NETMANAGER_BASE_URL: ${{ secrets.WEBSITE_STAGE_REACT_NETMANAGER_BASE_URL }}' >> .env.yaml
+          echo '  REACT_APP_BASE_AIRQLOUDS_URL: ${{ secrets.WEBSITE_REACT_APP_BASE_AIRQLOUDS_URL }}' >> .env.yaml
+          echo '  REACT_APP_BASE_NEWSLETTER_URL: ${{ secrets.WEBSITE_REACT_APP_BASE_NEWSLETTER_URL }}' >> .env.yaml
+          echo '  DJANGO_ALLOWED_HOSTS: ${{ secrets.WEBSITE_DJANGO_ALLOWED_HOSTS }}' >> .env.yaml
+          echo '  DEBUG: False' >> .env.yaml
+          echo '  GOOGLE_APPLICATION_CREDENTIALS: /app/google_application_credentials.json' >> .env.yaml
+        
       - name: Build and Push Docker Image
         run: |
           cd website/
           docker build \
-          --target=deployment \
-          --build-arg REACT_WEB_STATIC_HOST=${{ secrets.REACT_WEB_STATIC_HOST }} \
-          --build-arg REACT_NETMANAGER_BASE_URL=${{ secrets.REACT_NETMANAGER_BASE_URL }} \
-          --build-arg REACT_APP_BASE_AIRQLOUDS_URL=${{ secrets.REACT_APP_BASE_AIRQLOUDS_URL }} \
-          --build-arg REACT_APP_BASE_NEWSLETTER_URL=${{ secrets.REACT_APP_BASE_NEWSLETTER_URL }} \
-          --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }} \
+          --build-arg REACT_WEB_STATIC_HOST=${{ secrets.WEBSITE_STAGE_REACT_WEB_STATIC_HOST }} \
+          --build-arg REACT_NETMANAGER_BASE_URL=${{ secrets.WEBSITE_STAGE_REACT_NETMANAGER_BASE_URL }} \
+          --build-arg REACT_APP_BASE_AIRQLOUDS_URL=${{ secrets.WEBSITE_REACT_APP_BASE_AIRQLOUDS_URL }} \
+          --build-arg REACT_APP_BASE_NEWSLETTER_URL=${{ secrets.WEBSITE_REACT_APP_BASE_NEWSLETTER_URL }} \
+          --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }} \
           -f docker/Dockerfile .
-          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-website:latest
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }}
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-website:latest
-      - name: Deploy to K8S
-        run: |
-          kubectl apply -f k8s/website/stage-airqo-website.yaml -n staging
-          kubectl set image deployment/airqo-stage-website sta-website=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }} -n staging
-          kubectl annotate deployment/airqo-stage-website kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n staging
+          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }}
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest
+
+      - name: Deploy to App Engine
+        run: |-
+          gcloud app deploy  \
+            --image-url=${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest \
+            --project=${{ secrets.FRONTEND_PROJECT_ID }}
 
   ### calibrate app ###
   calibrate-app:
@@ -227,5 +243,3 @@ jobs:
           kubectl apply -f k8s/calibrate/stage-airqo-calibrate-app.yaml
           kubectl set image deployment/airqo-stage-calibrate-app sta-calibrate-app=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }} -n staging
           kubectl annotate deployment/airqo-stage-calibrate-app kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n staging
-  
-  

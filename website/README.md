@@ -285,3 +285,36 @@ Auto fixing `JS` lint issues
 Running `Webpack` build (production)
 
     inv run-build
+
+## Builing and deploying
+
+### Staging and Production
+
+1. Add the config file `.stage.env.yaml` or `.stage.env.yaml` depending on the evironment and google application credentials file `google_application_credentials.yaml` to the app root directory.
+
+2. Build and push the application docker image while targeting deployment.
+
+    ```bash
+        docker build --target=deployment \
+        --build-arg REACT_WEB_STATIC_HOST={REACT_WEB_STATIC_HOST} \
+        --build-arg REACT_NETMANAGER_BASE_URL={REACT_NETMANAGER_BASE_URL} \
+        --build-arg REACT_APP_BASE_AIRQLOUDS_URL={REACT_APP_BASE_AIRQLOUDS_URL } \
+        --build-arg REACT_APP_BASE_NEWSLETTER_URL={REACT_APP_BASE_NEWSLETTER_URL} \
+        --tag {REGISTRY_URL}/{PROJECT_ID}/{IMAGE_NAME}:latest -f=docker/Dockerfile .
+        docker push {REGISTRY_URL}/{PROJECT_ID}/{IMAGE_NAME}:latest
+    ```
+
+    ```bash
+        docker push {REGISTRY_URL}/{PROJECT_ID}/{IMAGE_NAME}:latest
+    ```
+
+3. Deploy the application
+    `{APP_YAML}` is either `stage-app.yaml` or `prod-app.yaml` depending on the evironement you are building for. Make sure you have `.stage-env.yaml` or `.prod-env.yaml` depending on the environement.
+
+    ```bash
+    gcloud app deploy --appyaml={APP_YAML} --image-url={REGISTRY_URL}/{PROJECT_ID}/{IMAGE_NAME}:latest --project={PROJECT_ID}
+    ```
+
+### Know issues
+
+Setting `DEBUG=False` and `DJANGO_ALLOWED_HOSTS` in your environment variables file might not work so you have to manually edit the `backend/settings.py` and set `DEBUG=False` and `ALLOWED_HOSTS`. Running with `DEBUG=True` or `ALLOWED_HOSTS` not set correctly will cause the application to crush.

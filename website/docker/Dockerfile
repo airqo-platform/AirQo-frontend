@@ -1,5 +1,5 @@
 # Building frontend
-FROM node:12-slim as build
+FROM node:12-slim as frontend
 
 WORKDIR /app
 
@@ -20,24 +20,21 @@ COPY ./webpack.config.js ./.babelrc /app/
 COPY ./frontend /app/frontend
 RUN npm run build
 
-# Backend server
-FROM python:3.8 as deployment
+FROM python:3.8
 
 WORKDIR /app
-
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-RUN pip install --upgrade pip
-RUN pip install gunicorn
-
 COPY requirements.txt /app/
-RUN pip install -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt
 
-COPY --from=build /app/frontend /app/frontend
-COPY manage.py ./docker/wsgi-entrypoint.sh /app/
+COPY manage.py google_application_credentials.json /app/
 COPY ./backend /app/backend
+COPY --from=frontend /app/frontend /app/frontend
 
-# Backend server
-FROM deployment as development
-COPY google_application_credentials.json /etc/config/
+EXPOSE 8080
+CMD python manage.py migrate && \
+    python manage.py collectstatic --noinput && \
+    gunicorn --bind=0.0.0.0:8080 backend.wsgi

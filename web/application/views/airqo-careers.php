@@ -89,6 +89,12 @@
 					</div>
 				</div>
 
+				<div class="col-md-4 features15-col-text">
+					<div class="features15-para" style="border-left: 2px solid #3067e2; padding: 2em;">
+						<p style="font-size:1.4em; line-height: normal;"><a href="<?= site_url('careers/communications-and-engagement-graduate-trainee'); ?>">Communications and Engagement Graduate Trainee</a></p>
+					</div>
+				</div>
+
 
                 <!--
 				<?php
