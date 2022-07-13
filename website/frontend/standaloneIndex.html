@@ -2,79 +2,12 @@
 <html lang="en">
 
 <head>
-    <style>
-        .loadspinner {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            right: 0;
-            left: 0;
-            margin: auto;
-            width: min-content;
-            height: min-content;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .loader {
-            background-image: "icons/loading/airqo.png";
-        }
-
-        .bubbles {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            right: 0;
-            left: 0;
-            margin: auto;
-            width: 48%;
-            height: 40%;
-            display: flex;
-            flex-flow: row wrap;
-            align-items: center;
-            justify-content: space-evenly;
-
-            border-right: 9px solid transparent;
-            border-left: 9px solid transparent;
-
-            animation-name: spin;
-            animation-duration: 2.5s;
-            animation-iteration-count: infinite;
-            animation-direction: normal;
-        }
-
-        .bubble {
-            border-radius: 100%;
-            background-color: #fff;
-            width: 34%;
-            height: 28%;
-        }
-
-        @keyframes spin {
-            0% {
-                justify-content: space-evenly;
-                transform: rotate(0deg) translate(0px);
-            }
-
-            30% {
-                justify-content: center;
-                transform: rotate(270deg) translateY(10px) translateX(-4px);
-            }
-
-            100% {
-                transform: rotate(360deg) translateY(10px);
-                justify-content: center;
-                align-content: flex-start;
-            }
-        }
-    </style>
     <meta charset="UTF-8" />
     <link rel="icon" href="assets/favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description"
         content="AirQo is Africa's leading air quality monitoring, research and analytics network. We use low cost technologies and AI to close the gaps in air quality data across the continent. Work with us to find data-driven solutions to your air quality challenges" />
-    <meta property="og:title" content="AirQo Africa" />
+    <meta property="og:title" content="AirQo Africa | Clean Air for all African Cities" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://www.airqo.net" />
     <meta property="og:image" content="assets/opengraph.png" />
@@ -88,16 +21,6 @@
 
 <body>
     <div id="app"></div>
-    <div class='loadspinner'>
-        <div class='loader'>
-            <div class='bubbles'>
-                <div class="bubble"></div>
-                <div class="bubble"></div>
-                <div class="bubble"></div>
-                <div class="bubble"></div>
-            </div>
-        </div>
-    </div>
 </body>
 
 </html>
