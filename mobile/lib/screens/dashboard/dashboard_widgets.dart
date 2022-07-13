@@ -147,8 +147,8 @@ class FavouritePlaceDashboardAvatar extends StatelessWidget {
         valueListenable: Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
             .listenable(keys: [favouritePlace.referenceSite]),
         builder: (context, box, widget) {
-          final airQualityReading =
-              box.get(favouritePlace.referenceSite) as AirQualityReading;
+          final airQualityReading = box.get(favouritePlace.referenceSite);
+          if (airQualityReading == null) {}
 
           return Container(
             height: 32.0,

@@ -1,3 +1,4 @@
+import 'package:app/models/models.dart';
 import 'package:app_repository/app_repository.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -92,6 +93,26 @@ class AirQualityReading extends HiveObject {
       distanceToReferenceSite:
           distanceToReferenceSite ?? this.distanceToReferenceSite,
       placeId: placeId ?? this.placeId,
+    );
+  }
+
+  AirQualityReading populateFavouritePlace(FavouritePlace favouritePlace) {
+    return AirQualityReading.duplicate(
+      AirQualityReading(
+        placeId: favouritePlace.placeId,
+        latitude: favouritePlace.latitude,
+        longitude: favouritePlace.longitude,
+        name: favouritePlace.name,
+        location: favouritePlace.location,
+        referenceSite: referenceSite,
+        source: source,
+        country: country,
+        region: region,
+        dateTime: dateTime,
+        pm2_5: pm2_5,
+        pm10: pm10,
+        distanceToReferenceSite: distanceToReferenceSite,
+      ),
     );
   }
 

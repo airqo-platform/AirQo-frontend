@@ -10,7 +10,6 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:uuid/uuid.dart';
 
 import '../utils/exception.dart';
 
@@ -326,101 +325,5 @@ class AirqoApiClient {
     }
 
     return false;
-  }
-}
-
-class SearchApi {
-  factory SearchApi() {
-    return _instance;
-  }
-  SearchApi._internal();
-  static final SearchApi _instance = SearchApi._internal();
-
-  final String sessionToken = const Uuid().v4();
-  final apiKey = Config.searchApiKey;
-
-  Future<List<Suggestion>> fetchSuggestions(String input) async {
-    try {
-      final queryParams = <String, dynamic>{}
-        ..putIfAbsent('input', () => input)
-        ..putIfAbsent('components', () => 'country:ug')
-        ..putIfAbsent('key', () => apiKey)
-        ..putIfAbsent(
-          'sessiontoken',
-          () => sessionToken,
-        );
-
-      final responseBody = await _performGetRequest(
-        queryParams,
-        AirQoUrls.searchSuggestions,
-      );
-
-      if (responseBody != null && responseBody['status'] == 'OK') {
-        return compute(
-          Suggestion.parseSuggestions,
-          responseBody,
-        );
-      }
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-
-    return [];
-  }
-
-  Future<Place?> getPlaceDetails(String placeId) async {
-    try {
-      final queryParams = <String, dynamic>{}
-        ..putIfAbsent('place_id', () => placeId)
-        ..putIfAbsent('fields', () => 'name,geometry')
-        ..putIfAbsent('key', () => apiKey)
-        ..putIfAbsent(
-          'sessiontoken',
-          () => sessionToken,
-        );
-
-      final responseBody = await _performGetRequest(
-        queryParams,
-        AirQoUrls.placeSearchDetails,
-      );
-
-      final place = Place.fromJson(responseBody['result']);
-
-      return place;
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-
-    return null;
-  }
-
-  Future<dynamic> _performGetRequest(
-    Map<String, dynamic> queryParams,
-    String url,
-  ) async {
-    try {
-      url = addQueryParameters(
-        queryParams,
-        url,
-      );
-      final response = await http.get(Uri.parse(url));
-
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
-      }
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-
-    return null;
   }
 }

@@ -457,7 +457,7 @@ class SingleSite extends StatelessWidget {
         physics: const ScrollPhysics(),
         controller: ScrollController(),
         children: <Widget>[
-          MapAnalyticsCardV2(
+          MapAnalyticsCard(
             airQualityReading: airQualityReading,
           ),
         ],

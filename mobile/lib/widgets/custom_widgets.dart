@@ -284,13 +284,10 @@ class HeartIcon extends StatelessWidget {
       valueListenable:
           Hive.box<FavouritePlace>(HiveBox.favouritePlaces).listenable(),
       builder: (context, box, widget) {
-        final referenceSites = box.values
-            .cast<FavouritePlace>()
-            .map((e) => e.referenceSite)
-            .toList();
+        final placesIds = box.keys.toList();
 
         return SvgPicture.asset(
-          referenceSites.contains(airQualityReading.referenceSite)
+          placesIds.contains(airQualityReading.placeId)
               ? 'assets/icon/heart.svg'
               : 'assets/icon/heart_dislike.svg',
           semanticsLabel: 'Favorite',

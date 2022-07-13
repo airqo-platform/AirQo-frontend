@@ -7,7 +7,6 @@ export 'feedback.dart';
 export 'insights.dart';
 export 'kya.dart';
 export 'notification.dart';
-export 'place.dart';
 export 'place_details.dart';
 export 'profile.dart';
 export 'suggestion.dart';

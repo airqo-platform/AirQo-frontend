@@ -7,6 +7,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'firebase_service.dart';
+import 'location_service.dart';
 
 class HiveService {
   static Future<void> initialize() async {
@@ -65,7 +66,7 @@ class HiveService {
       Hive.box<Profile>(HiveBox.profile).clear(),
       Hive.box<Kya>(HiveBox.kya).clear(),
       Hive.box<Analytics>(HiveBox.analytics).clear(),
-      Hive.box<Analytics>(HiveBox.favouritePlaces).clear(),
+      Hive.box<FavouritePlace>(HiveBox.favouritePlaces).clear(),
     ]);
   }
 

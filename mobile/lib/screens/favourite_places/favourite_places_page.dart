@@ -57,7 +57,8 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
                       0,
                     ),
                     child: MiniAnalyticsCard(
-                      airQualityReading,
+                      airQualityReading
+                          .populateFavouritePlace(favouritePlaces[index]),
                       animateOnClick: false,
                     ),
                   );
