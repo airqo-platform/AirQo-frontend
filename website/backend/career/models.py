@@ -1,9 +1,86 @@
+from author.decorators import with_author
 from django.db import models
+from django_extensions.db.models import TimeStampedModel
 
 
-class Career(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+@with_author
+class Department(TimeStampedModel):
+    name = models.CharField(max_length=30, null=False, blank=False)
+
+    def __str__(self):
+        return f"{self.name} Department"
+
+
+@with_author
+class Career(TimeStampedModel):
+    class JobTypes(models.TextChoices):
+        FullTime = "full-time", "Full Time"
+        PartTime = "part-time", "Part Time"
+        Contract = "contract", "Contract"
+        Temporary = "temporary", "Temporary"
+        Internship = "internship", "Internship"
+        GraduateTraining = "graduate-training", "Graduate Training"
+
     title = models.CharField(max_length=100)
+    closing_date = models.DateTimeField()
+    apply_url = models.URLField(max_length=250)
+    type = models.CharField(
+        max_length=30, default=JobTypes.FullTime, choices=JobTypes.choices
+    )
+    department = models.ForeignKey(
+        Department,
+        null=True,
+        blank=True,
+        related_name="careers",
+        on_delete=models.deletion.SET_NULL,
+    )
+
+    def __str__(self):
+        return f"Job - {self.title}"
+
+
+@with_author
+class JobDescription(TimeStampedModel):
     description = models.TextField()
-    expiry = models.DateTimeField()
+    order = models.IntegerField(default=1)
+    career = models.ForeignKey(
+        Career,
+        null=True,
+        blank=True,
+        related_name="descriptions",
+        on_delete=models.deletion.SET_NULL,
+    )
+
+    def __str__(self):
+        return f"JobDescription {self.id}"
+
+
+@with_author
+class BulletDescription(TimeStampedModel):
+    name = models.CharField(max_length=30)
+    order = models.IntegerField(default=1)
+    career = models.ForeignKey(
+        Career,
+        null=True,
+        blank=True,
+        related_name="bullets",
+        on_delete=models.deletion.SET_NULL,
+    )
+    def __str__(self):
+        return f"Bullet - {self.name}"
+
+
+@with_author
+class BulletPoint(TimeStampedModel):
+    point = models.TextField()
+    order = models.IntegerField(default=1)
+    bullet = models.ForeignKey(
+        BulletDescription,
+        null=True,
+        blank=True,
+        related_name="bullet_points",
+        on_delete=models.deletion.SET_NULL,
+    )
+
+    def __str__(self):
+        return f"BulletPoint - {self.id}"
