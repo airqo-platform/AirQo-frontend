@@ -155,7 +155,15 @@ jobs:
       - name: Create required files
         run: |
           cd website/
+          ## google_application_credentials.json file
           echo "${{ secrets.GCP_SA_CREDENTIALS }}" > google_application_credentials.json
+          ## app.yaml file
+          echo "runtime: python" > app.yaml
+          echo "env: flex" >> app.yaml
+          echo "service: staging" >> app.yaml
+          echo "includes:" >> app.yaml
+          echo "  - .env.yaml" >> app.yaml
+          ## .env.yaml file
           echo "env_variables:" > .env.yaml
           echo "  SECRET: ${{ secrets.WEBSITE_SECRET }}" >> .env.yaml
           echo "  CLOUDINARY_KEY: ${{ secrets.WEBSITE_CLOUDINARY_KEY }}" >> .env.yaml
@@ -191,7 +199,8 @@ jobs:
           cd website/
           gcloud app deploy  \
             --image-url=${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest \
-            --project=${{ secrets.FRONTEND_PROJECT_ID }}
+            --project=${{ secrets.FRONTEND_PROJECT_ID }} \
+            --quiet
 
   ### calibrate app ###
   # calibrate-app:
