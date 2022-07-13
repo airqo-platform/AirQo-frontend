@@ -1,16 +1,22 @@
 import React, { useEffect } from 'react';
 import { useDispatch } from "react-redux";
+import { useNavigate } from 'react-router-dom';
 import { useInitScrollTop } from 'utils/customHooks';
 import Page from './Page';
 import { loadCareersListingData } from "reduxStore/Careers/operations";
 import { useCareerListingData } from "reduxStore/Careers/selectors";
 import { isEmpty } from "underscore";
-import {groupBy} from "underscore";
+import { groupBy } from "underscore";
 
 
-const JobListing = ({title, type, key}) => {
+const JobListing = ({title, uniqueTitle, type, key}) => {
+    const navigate = useNavigate();
+    const onClick = (uniqueTitle) => (event) => {
+        event.preventDefault();
+        navigate(`/careers/${uniqueTitle}/`)
+    }
     return (
-        <div className="listing" key={key}>
+        <div className="listing" key={key} onClick={onClick(uniqueTitle)}>
             <span className="title">{title}</span>
             <span className="type">{type}</span>
             <span className="arrow" />
@@ -22,7 +28,7 @@ const DepartmentListing = ({department, listing}) => {
     return (
         <>
             <div className="department">{department} ({String(listing.length).padStart(2, '0')})</div>
-            {listing.map((job, key) => <JobListing key={key} title={job.title} type={job.type.replace("-", " ")} />)}
+            {listing.map((job, key) => <JobListing key={key} title={job.title} uniqueTitle={job.unique_title} type={job.type.replace("-", " ")} />)}
         </>
     )
 }
@@ -36,11 +42,7 @@ const CareerPage = () => {
 
     const groupedKeys = Object.keys(groupedListing);
 
-    console.log("grouped", groupedListing);
-    console.log("grouped keys", groupedKeys);
-
     useEffect(() => {
-        console.log('running effect')
         if (isEmpty(careerListing)) dispatch(loadCareersListingData());
     }, [])
 
