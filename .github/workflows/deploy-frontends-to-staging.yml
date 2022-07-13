@@ -190,10 +190,11 @@ jobs:
       - name: create google_application_credentials.json file
         id: create-google-application-credentials-file
         uses: jsdaniell/create-json@1.1.2
-        # Backup for this is airqo-platform/create-json@1.1.2
+        # Backup for this action: airqo-platform/create-json@1.1.2
         with:
           name: "google_application_credentials.json"
           json: ${{ secrets.GCP_SA_CREDENTIALS }}
+          dir: 'website/'
 
       - name: Create app.yaml and .env.yaml files
         run: |
@@ -224,13 +225,12 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           cd website/
-          docker build \
+          docker build . \
           --build-arg REACT_WEB_STATIC_HOST=${{ secrets.WEBSITE_STAGE_REACT_WEB_STATIC_HOST }} \
           --build-arg REACT_NETMANAGER_BASE_URL=${{ secrets.WEBSITE_STAGE_REACT_NETMANAGER_BASE_URL }} \
           --build-arg REACT_APP_BASE_AIRQLOUDS_URL=${{ secrets.WEBSITE_REACT_APP_BASE_AIRQLOUDS_URL }} \
           --build-arg REACT_APP_BASE_NEWSLETTER_URL=${{ secrets.WEBSITE_REACT_APP_BASE_NEWSLETTER_URL }} \
-          --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }} \
-          -f docker/Dockerfile .
+          --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }}
           docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }}
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest
