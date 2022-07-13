@@ -188,6 +188,7 @@ jobs:
 
       - name: Deploy to App Engine
         run: |-
+          cd website/
           gcloud app deploy  \
             --image-url=${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest \
             --project=${{ secrets.FRONTEND_PROJECT_ID }}
