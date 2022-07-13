@@ -4,6 +4,7 @@ django-author
 django-environ
 django-extensions
 django-filter
+django-nested-admin
 djangorestframework
 dj_database_url
 drf-yasg
