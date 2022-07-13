@@ -2,9 +2,9 @@ import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Provider } from 'react-redux';
 
-import HomePage from 'src/pages/HomePage';
 import Loadspinner from './src/components/LoadSpinner';
 
+const HomePage = React.lazy(() => import('src/pages/HomePage'));
 const Press = React.lazy(() => import('src/pages/Press/Press'));
 const Terms = React.lazy(() => import('src/pages/Legal/Terms'));
 const ResearchPage = React.lazy(() => import('src/pages/ResearchPage'));
