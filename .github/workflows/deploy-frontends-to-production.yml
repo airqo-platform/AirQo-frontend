@@ -160,12 +160,18 @@ jobs:
       - name: Setup Cloud SDK
         uses: 'google-github-actions/setup-gcloud@v0'
 
-      - name: Create required files
+      - name: create google_application_credentials.json file
+        id: create-google-application-credentials-file
+        uses: jsdaniell/create-json@1.1.2
+        # Backup for this is airqo-platform/create-json@1.1.2
+        with:
+          name: "google_application_credentials.json"
+          json: ${{ secrets.GCP_SA_CREDENTIALS }}
+
+      - name: Create app.yaml and .env.yaml files
         run: |
           cd website/
-          echo "========== Creating google_application_credentials.json file =========="
-          echo "${{ secrets.GCP_SA_CREDENTIALS }}" > google_application_credentials.json
-          echo "========== Creating app.yaml file =========="          
+          echo "========== Creating app.yaml file =========="            
           echo "runtime: python" > app.yaml
           echo "env: flex" >> app.yaml
           echo "service: default" >> app.yaml
