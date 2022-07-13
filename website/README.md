@@ -22,9 +22,6 @@
 #### Docker
 -   `Git` [Installing Git](https://gist.github.com/derhuerst/1b15ff4652a867391f03)
 -   `Docker` [Install Docker Engine](https://docs.docker.com/engine/install/)
--   `Docker Compose` [Install Docker Compose](https://docs.docker.com/compose/install/)
--   `NodeJs` [Download nodejs](https://nodejs.org/en/download/)
--   `Npm` [NpmJs](https://www.npmjs.com/get-npm)
 
 #### OSX, Linux, Windows
 -   `Git` [Installing Git](https://gist.github.com/derhuerst/1b15ff4652a867391f03)
@@ -198,6 +195,7 @@ for more details.
 
 ## Running the stack
 #### Create the `.envrc` and `.env` files
+**Note:** You will only need a .env file if you intend on running this website application with docker
 
 In the `.envrc` file add the following code
 
@@ -210,33 +208,40 @@ The `PATH` variable is updated with the `node_modules` path and `.env` loaded.
 
 Populate the `.env` file with the following keys and their respective values.
 
-    DATABASE_URI
+    DEBUG                   
+    DATABASE_URI            
+    SECRET                  
     SECRET_KEY
     CLOUDINARY_NAME
     CLOUDINARY_KEY
     CLOUDINARY_SECRET
     REACT_WEB_STATIC_HOST
-    DJANGO_ALLOWED_HOSTS      # alist od comma seperated hosts
+    DJANGO_ALLOWED_HOSTS     
     GS_BUCKET_NAME
-    CONTAINER_ENV             # True for docker
     REACT_NETMANAGER_BASE_URL
     REACT_APP_BASE_AIRQLOUDS_URL
     REACT_APP_BASE_NEWSLETTER_URL
-
-**Note**: Remove `DATABASE_URI` variable  if you are using docker.
+    GOOGLE_APPLICATION_CREDENTIALS
 
 #### Docker
 
-Run the commands bellow to install the node dependencies and build the react front end
+Build the application docker image with the command below. Make sure that your `google_application_credentials.json` file is at the root of the website folder just as your .env file
 
-    npm install
-    npm run build
+    docker build . \
+        --build-arg REACT_WEB_STATIC_HOST=<<enter REACT_WEB_STATIC_HOST value here>> \
+        --build-arg REACT_NETMANAGER_BASE_URL=<<enter REACT_NETMANAGER_BASE_URL value here>> \
+        --build-arg REACT_APP_BASE_AIRQLOUDS_URL=<<enter REACT_APP_BASE_AIRQLOUDS_URL value here>> \
+        --build-arg REACT_APP_BASE_NEWSLETTER_URL=<<enter REACT_APP_BASE_NEWSLETTER_URL value here>> \
+        --tag <<enter an image tag of choice>>
 
-Run the command below to build and run the containers for the database and website app
+Run the website application container with the command bellow
 
-    docker-compose -f docker/docker-compose-dev.yml up --build
+    docker run -d \
+        -p 8080:8080 \
+        --env-file=.env \
+        <<enter an image tag used in the step above>>
 
-When the build is complete and both _airqo-website_ and _airqo-website-db_ containers, you can access the website app at http://localhost:8000/
+After a few minutes, you should be able to access the website via port 8080 http://localhost:8080/
 
 #### OSX, Linux, and Windows
 
@@ -293,36 +298,3 @@ Auto fixing `JS` lint issues
 Running `Webpack` build (production)
 
     inv run-build
-
-## Builing and deploying
-
-### Staging and Production
-
-1. Add the config file `.stage.env.yaml` or `.stage.env.yaml` depending on the evironment and google application credentials file `google_application_credentials.yaml` to the app root directory.
-
-2. Build and push the application docker image while targeting deployment.
-
-    ```bash
-        docker build --target=deployment \
-        --build-arg REACT_WEB_STATIC_HOST={REACT_WEB_STATIC_HOST} \
-        --build-arg REACT_NETMANAGER_BASE_URL={REACT_NETMANAGER_BASE_URL} \
-        --build-arg REACT_APP_BASE_AIRQLOUDS_URL={REACT_APP_BASE_AIRQLOUDS_URL } \
-        --build-arg REACT_APP_BASE_NEWSLETTER_URL={REACT_APP_BASE_NEWSLETTER_URL} \
-        --tag {REGISTRY_URL}/{PROJECT_ID}/{IMAGE_NAME}:latest -f=docker/Dockerfile .
-        docker push {REGISTRY_URL}/{PROJECT_ID}/{IMAGE_NAME}:latest
-    ```
-
-    ```bash
-        docker push {REGISTRY_URL}/{PROJECT_ID}/{IMAGE_NAME}:latest
-    ```
-
-3. Deploy the application
-    `{APP_YAML}` is either `stage-app.yaml` or `prod-app.yaml` depending on the evironement you are building for. Make sure you have `.stage-env.yaml` or `.prod-env.yaml` depending on the environement.
-
-    ```bash
-    gcloud app deploy --appyaml={APP_YAML} --image-url={REGISTRY_URL}/{PROJECT_ID}/{IMAGE_NAME}:latest --project={PROJECT_ID}
-    ```
-
-### Know issues
-
-Setting `DEBUG=False` and `DJANGO_ALLOWED_HOSTS` in your environment variables file might not work so you have to manually edit the `backend/settings.py` and set `DEBUG=False` and `ALLOWED_HOSTS`. Running with `DEBUG=True` or `ALLOWED_HOSTS` not set correctly will cause the application to crush.

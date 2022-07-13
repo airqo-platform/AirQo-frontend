@@ -187,7 +187,7 @@ jobs:
       - name: Setup Cloud SDK
         uses: 'google-github-actions/setup-gcloud@v0'
 
-      - name: create google_application_credentials.json file
+      - name: Create google_application_credentials.json file
         id: create-google-application-credentials-file
         uses: jsdaniell/create-json@1.1.2
         # Backup for this action: airqo-platform/create-json@1.1.2
