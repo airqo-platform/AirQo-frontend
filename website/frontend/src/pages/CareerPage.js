@@ -1,11 +1,16 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useDispatch } from "react-redux";
 import { useInitScrollTop } from 'utils/customHooks';
 import Page from './Page';
+import { loadCareersListingData } from "reduxStore/Careers/operations";
+import { useCareerListingData } from "reduxStore/Careers/selectors";
+import { isEmpty } from "underscore";
+import {groupBy} from "underscore";
 
 
-const JobListing = ({title, type}) => {
+const JobListing = ({title, type, key}) => {
     return (
-        <div className="listing">
+        <div className="listing" key={key}>
             <span className="title">{title}</span>
             <span className="type">{type}</span>
             <span className="arrow" />
@@ -13,8 +18,33 @@ const JobListing = ({title, type}) => {
     )
 }
 
+const DepartmentListing = ({department, listing}) => {
+    return (
+        <>
+            <div className="department">{department} ({String(listing.length).padStart(2, '0')})</div>
+            {listing.map((job, key) => <JobListing key={key} title={job.title} type={job.type.replace("-", " ")} />)}
+        </>
+    )
+}
+
 const CareerPage = () => {
     useInitScrollTop()
+    const dispatch = useDispatch();
+    const careerListing = useCareerListingData();
+
+    const groupedListing = groupBy(Object.values(careerListing), (v) => v["department"]["name"])
+
+    const groupedKeys = Object.keys(groupedListing);
+
+    console.log("grouped", groupedListing);
+    console.log("grouped keys", groupedKeys);
+
+    useEffect(() => {
+        console.log('running effect')
+        if (isEmpty(careerListing)) dispatch(loadCareersListingData());
+    }, [])
+
+
     return (
         <Page>
             <div className="CareersPage">
@@ -43,16 +73,14 @@ const CareerPage = () => {
                             <span className="tag">Marketing</span>
                             <span className="tag">Communications</span>
                         </div>
-                        {/*<div className="department">Engineering(02)</div>*/}
-                        {/*<JobListing title={"DevOps Engineer"} type={"Full Time, *Remote"} />*/}
-                        {/*<JobListing title={"Front End Engineer"} type={"Full Time"} />*/}
+                        {groupedKeys.length > 0 && groupedKeys.map((groupedKey, key) => {
+                            const departmentListing = groupedListing[groupedKey]
+                            return (
+                                <DepartmentListing department={groupedKey} listing={departmentListing} key={groupedKey} />
+                            )
+                        })}
 
-                        {/*<div className="department">Hardware(03)</div>*/}
-                        {/*<JobListing title={"DevOps Engineer"} type={"Full Time"} />*/}
-                        {/*<JobListing title={"DevOps Engineer"} type={"Full Time"} />*/}
-                        {/*<JobListing title={"DevOps Engineer"} type={"Full Time"} />*/}
-
-                        <div className="no-listing">Currently, we have no open position.</div>
+                        {groupedKeys.length <= 0 && <div className="no-listing">Currently, we have no open position.</div>}
 
                         <div className="self-intro">
                             <span>Don’t see a <br/>position that fits you perfectly? Introduce yourself here </span>
