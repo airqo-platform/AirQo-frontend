@@ -29,3 +29,5 @@ export const EXPLORE_DATA_URL = `${BASE_AUTH_SERVICE_URL}/users/candidates/regis
 
 // careers urls
 export const CAREERS_URL = `${WEBSITE_BASE_URL}/career/`;
+
+export const DEPARTMENTS_URL = `${WEBSITE_BASE_URL}/departments/`;
