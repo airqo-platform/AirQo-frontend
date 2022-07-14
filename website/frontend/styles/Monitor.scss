@@ -138,11 +138,14 @@
     .Monitor-img {
       height: 100%;
       width: 100%;
+      display: flex;
+      justify-content: center;
       
       > img {
-        width: 100%;
+        width: 500px;
         height: 100%;
         object-fit: cover;
+      
       }
     }
   }
