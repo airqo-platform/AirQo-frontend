@@ -1,5 +1,5 @@
 import React from 'react'
-import Google from 'icons/homepage/partners/Google.svg';
+import Google from 'icons/homepage/partners/google.svg';
 import USMission from 'icons/homepage/partners/usmission.svg';
 import Enabel from 'icons/homepage/partners/Enabel.svg';
 import WBG from 'icons/homepage/partners/wbg.svg';

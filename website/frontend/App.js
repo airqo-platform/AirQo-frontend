@@ -15,6 +15,9 @@ import GetInvolved from './src/pages/GetInvolved';
 import Register from './src/pages/GetInvolved/Register';
 import CheckMail from './src/pages/GetInvolved/CheckMail';
 import store from './store';
+import ExploreData, {
+  ExploreGetStarted, ExploreUserCategory, ExploreUserProfessionType, ExploreOrganisationType, ExploreUserRegistry, ExploreRegistryConfirmation, ExploreApp, ExploreBusinessRegistry, ExploreOrganisationRegistry,
+} from './src/pages/ExploreData';
 import Feedback from './src/pages/ContactUs/Feedback';
 
 store.dispatch(loadAirQloudSummaryData());
@@ -39,6 +42,16 @@ const App = () => (
                 <Route path="/get-involved" element={<GetInvolved />} />
                 <Route path="/get-involved/register" element={<Register />} />
                 <Route path="/get-involved/check-mail" element={<CheckMail />} />
+                <Route path="/explore-data" element={<ExploreData />} />
+                <Route path="/explore-data/download-apps" element={<ExploreApp />} />
+                <Route path="/explore-data/get-started" element={<ExploreGetStarted />} />
+                <Route path="/explore-data/get-started/user" element={<ExploreUserCategory />} />
+                <Route path="/explore-data/get-started/user/individual" element={<ExploreUserProfessionType />} />
+                <Route path="/explore-data/get-started/user/organisation" element={<ExploreOrganisationType />} />
+                <Route path="/explore-data/get-started/user/register" element={<ExploreUserRegistry />} />
+                <Route path="/explore-data/get-started/user/register/business" element={<ExploreBusinessRegistry />} />
+                <Route path="/explore-data/get-started/user/register/organisation" element={<ExploreOrganisationRegistry />} />
+                <Route path="/explore-data/get-started/user/check-mail" element={<ExploreRegistryConfirmation />} />
             </Routes>
         </Router>
     </Provider>
