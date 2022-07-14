@@ -6,14 +6,16 @@ import NewsletterSection from "src/components/NewsletterSection/NewsletterSectio
 import GetInvolvedModal from "src/components/GetInvolvedModal";
 
 const Page = ({ children }) => (
-        <div className="Page">
-            {/* <NotificationBanner /> */}
-            <TopBar />
+    <div className='Page'>
+        {/* <NotificationBanner /> */}
+        <TopBar />
+        <div className='page-wrapper'>
             {children}
-            <NewsletterSection />
-            <Footer />
-            <GetInvolvedModal />
         </div>
+        <NewsletterSection />
+        <Footer />
+        <GetInvolvedModal />
+    </div>
 );
 
 export default Page;

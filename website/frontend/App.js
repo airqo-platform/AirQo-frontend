@@ -1,47 +1,72 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Provider } from 'react-redux';
-import HomePage from 'src/pages/HomePage';
-import ResearchPage from 'src/pages/ResearchPage';
-import Press from 'src/pages/Press/Press';
+
+import Loadspinner from './src/components/LoadSpinner';
+
+const HomePage = React.lazy(() => import('src/pages/HomePage'));
+const Press = React.lazy(() => import('src/pages/Press/Press'));
+const Terms = React.lazy(() => import('src/pages/Legal/Terms'));
+const ResearchPage = React.lazy(() => import('src/pages/ResearchPage'));
+const CommunityPage = React.lazy(() => import('src/pages/CommunityPage'));
+const AfricanCitiesPage = React.lazy(() => import('src/pages/AfricanCitiesPage'));
+const AboutUsPage = React.lazy(() => import('src/pages/AboutUsPage'));
+const ContactUsPage = React.lazy(() => import('src/pages/ContactUs/ContactUs'));
+const ContactForm = React.lazy(() => import('src/pages/ContactUs/ContactForm'));
+const GetInvolved = React.lazy(() => import('src/pages/GetInvolved'));
+const Register = React.lazy(() => import('src/pages/GetInvolved/Register'));
+const CheckMail = React.lazy(() => import('src/pages/GetInvolved/CheckMail'));
+const Feedback = React.lazy(() => import('src/pages/ContactUs/Feedback'));
+const ExploreData = React.lazy(() => import('src/pages/ExploreData'));
+
 import { loadAirQloudSummaryData } from 'reduxStore/AirQlouds/operations';
-import Terms from './src/pages/Legal/Terms';
-import CommunityPage from './src/pages/CommunityPage';
-import AboutUsPage from './src/pages/AboutUsPage';
-import ContactUsPage from './src/pages/ContactUs/ContactUs';
-import ContactForm from './src/pages/ContactUs/ContactForm';
-import AfricanCitiesPage, { ContentUganda, ContentKenya } from './src/pages/AfricanCitiesPage';
-import GetInvolved from './src/pages/GetInvolved';
-import Register from './src/pages/GetInvolved/Register';
-import CheckMail from './src/pages/GetInvolved/CheckMail';
+import { ContentUganda, ContentKenya } from './src/pages/AfricanCitiesPage';
 import store from './store';
-import Feedback from './src/pages/ContactUs/Feedback';
+import {
+    ExploreGetStarted, ExploreUserCategory, ExploreUserProfessionType, ExploreOrganisationType, ExploreUserRegistry, ExploreRegistryConfirmation, ExploreApp, ExploreBusinessRegistry, ExploreOrganisationRegistry,
+} from './src/pages/ExploreData';
+
 
 store.dispatch(loadAirQloudSummaryData());
 
-const App = () => (
-    <Provider store={store}>
-        <Router>
-            <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/solutions/research" element={<ResearchPage />} />
-                <Route path="/solutions/communities" element={<CommunityPage />} />
-                <Route path="/solutions/african-cities" element={<AfricanCitiesPage />}>
-                    <Route path="uganda" element={<ContentUganda />} />
-                    <Route path="kenya" element={<ContentKenya />} />
-                </Route>
-                <Route path="/about-us" element={<AboutUsPage />} />
-                <Route path="/press" element={<Press />} />
-                <Route path="/terms" element={<Terms />} />
-                <Route path="/contact" element={<ContactUsPage />} />
-                <Route path="/contact/form" element={<ContactForm />} />
-                <Route path="/contact/sent" element={<Feedback />} />
-                <Route path="/get-involved" element={<GetInvolved />} />
-                <Route path="/get-involved/register" element={<Register />} />
-                <Route path="/get-involved/check-mail" element={<CheckMail />} />
-            </Routes>
-        </Router>
-    </Provider>
-);
+const App = () => {
+    return (
+        <Provider store={store}>
+            <Router>
+                <Suspense
+                    fallback={<Loadspinner />}>
+                    <Routes>
+                        <Route path="/" element={<HomePage />} />
+                        <Route path="/solutions/research" element={<ResearchPage />} />
+                        <Route path="/solutions/communities" element={<CommunityPage />} />
+                        <Route path="/solutions/african-cities" element={<AfricanCitiesPage />}>
+                            <Route path="uganda" element={<ContentUganda />} />
+                            <Route path="kenya" element={<ContentKenya />} />
+                        </Route>
+                        <Route path="/about-us" element={<AboutUsPage />} />
+                        <Route path="/press" element={<Press />} />
+                        <Route path="/terms" element={<Terms />} />
+                        <Route path="/contact" element={<ContactUsPage />} />
+                        <Route path="/contact/form" element={<ContactForm />} />
+                        <Route path="/contact/sent" element={<Feedback />} />
+                        <Route path="/get-involved" element={<GetInvolved />} />
+                        <Route path="/get-involved/register" element={<Register />} />
+                        <Route path="/get-involved/check-mail" element={<CheckMail />} />
+                        <Route path="/explore-data" element={<ExploreData />} />
+                        <Route path="/explore-data/download-apps" element={<ExploreApp />} />
+                        <Route path="/explore-data/get-started" element={<ExploreGetStarted />} />
+                        <Route path="/explore-data/get-started/user" element={<ExploreUserCategory />} />
+                        <Route path="/explore-data/get-started/user/individual" element={<ExploreUserProfessionType />} />
+                        <Route path="/explore-data/get-started/user/organisation" element={<ExploreOrganisationType />} />
+                        <Route path="/explore-data/get-started/user/register" element={<ExploreUserRegistry />} />
+                        <Route path="/explore-data/get-started/user/register/business" element={<ExploreBusinessRegistry />} />
+                        <Route path="/explore-data/get-started/user/register/organisation" element={<ExploreOrganisationRegistry />} />
+                        <Route path="/explore-data/get-started/user/check-mail" element={<ExploreRegistryConfirmation />} />
+                    </Routes>
+                </Suspense>
+            </Router>
+        </Provider>
+    )
+};
 
 export default App;

@@ -20,3 +20,7 @@ export const NEWSLETTER_SUBSCRIPTION = `${BASE_NEWSLETTER_URL}/users/newsletter/
 const BASE_INQUIRY_URL = stripTrailingSlash(process.env.REACT_NETMANAGER_BASE_URL);
 
 export const INQUIRY_URL = `${BASE_INQUIRY_URL}/users/inquiries/register?tenant=airqo`;
+
+const BASE_AUTH_SERVICE_URL = stripTrailingSlash(process.env.REACT_NETMANAGER_BASE_URL);
+
+export const EXPLORE_DATA_URL = `${BASE_AUTH_SERVICE_URL}/users/candidates/register?tenant=airqo`;

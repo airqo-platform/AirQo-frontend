@@ -3,6 +3,8 @@ import { useDispatch } from "react-redux";
 import { showGetInvolvedModal } from "reduxStore/GetInvolved/operations";
 import engineerImg from  'src/assets/img/highlights/engineer.png'
 import GoogleOrgIcon from  'src/assets/img/highlights/google-org.svg'
+import { Link } from 'react-router-dom';
+import { showExploreDataModal } from 'reduxStore/ExploreData/operations';
 
 const MainSection = () => (
     <div className="highlight-main">
@@ -18,14 +20,15 @@ const MainSection = () => (
 
 const SubSection = () => {
     const dispatch = useDispatch();
-    const showModal = () => dispatch(showGetInvolvedModal(true))
+    const showModal = () => dispatch(showGetInvolvedModal(true));
+    
     return (
         <div className="highlight-sub">
             <div className="content-wrapper blue-bg">
                 <div className="title white-color">Explore our digital tools. Learn about the quality of air around
                     you.
                 </div>
-                <div className="link white-color btn-disabled">Explore data --></div>
+                <div className="link white-color"><Link to="/explore-data"><span>Explore data --></span></Link></div>
             </div>
             <div className="content-wrapper light-blue-bg" onClick={showModal}>
                 <div className="title blue-color">Get involved. Learn about ways you can support our vision.</div>
