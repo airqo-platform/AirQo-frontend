@@ -4,9 +4,11 @@ from django_extensions.db.models import TimeStampedModel
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 
+from backend.utils.models import BaseModel
+
 
 @with_author
-class Department(TimeStampedModel):
+class Department(BaseModel):
     name = models.CharField(max_length=30, null=False, blank=False)
 
     def __str__(self):
@@ -14,7 +16,7 @@ class Department(TimeStampedModel):
 
 
 @with_author
-class Career(TimeStampedModel):
+class Career(BaseModel):
     class JobTypes(models.TextChoices):
         FullTime = "full-time", "Full Time"
         PartTime = "part-time", "Part Time"
@@ -64,7 +66,7 @@ def append_short_name(sender, instance, *args, **kwargs):
 
 
 @with_author
-class JobDescription(TimeStampedModel):
+class JobDescription(BaseModel):
     description = models.TextField()
     order = models.IntegerField(default=1)
     career = models.ForeignKey(
@@ -80,7 +82,7 @@ class JobDescription(TimeStampedModel):
 
 
 @with_author
-class BulletDescription(TimeStampedModel):
+class BulletDescription(BaseModel):
     name = models.CharField(max_length=30)
     order = models.IntegerField(default=1)
     career = models.ForeignKey(
@@ -96,7 +98,7 @@ class BulletDescription(TimeStampedModel):
 
 
 @with_author
-class BulletPoint(TimeStampedModel):
+class BulletPoint(BaseModel):
     point = models.TextField()
     order = models.IntegerField(default=1)
     bullet = models.ForeignKey(
