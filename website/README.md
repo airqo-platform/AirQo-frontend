@@ -222,16 +222,18 @@ Populate the `.env` file with the following keys and their respective values.
     REACT_APP_BASE_AIRQLOUDS_URL
     REACT_APP_BASE_NEWSLETTER_URL
     GOOGLE_APPLICATION_CREDENTIALS
+    REACT_APP_WEBSITE_BASE_URL
 
 #### Docker
 
 Build the application docker image with the command below. Make sure that your `google_application_credentials.json` file is at the root of the website folder just as your .env file
 
     docker build . \
-        --build-arg REACT_WEB_STATIC_HOST=<<enter REACT_WEB_STATIC_HOST value here>> \
-        --build-arg REACT_NETMANAGER_BASE_URL=<<enter REACT_NETMANAGER_BASE_URL value here>> \
-        --build-arg REACT_APP_BASE_AIRQLOUDS_URL=<<enter REACT_APP_BASE_AIRQLOUDS_URL value here>> \
-        --build-arg REACT_APP_BASE_NEWSLETTER_URL=<<enter REACT_APP_BASE_NEWSLETTER_URL value here>> \
+        --build-arg REACT_WEB_STATIC_HOST=<<enter REACT_WEB_STATIC_HOST value>> \
+        --build-arg REACT_NETMANAGER_BASE_URL=<<enter REACT_NETMANAGER_BASE_URL value>> \
+        --build-arg REACT_APP_BASE_AIRQLOUDS_URL=<<enter REACT_APP_BASE_AIRQLOUDS_URL value>> \
+        --build-arg REACT_APP_BASE_NEWSLETTER_URL=<<enter REACT_APP_BASE_NEWSLETTER_URL value>> \
+        --build-arg REACT_APP_WEBSITE_BASE_URL=<<enter REACT_APP_WEBSITE_BASE_URL value>> \
         --tag <<enter an image tag of choice>>
 
 Run the website application container with the command bellow
