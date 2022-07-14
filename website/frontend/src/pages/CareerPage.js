@@ -1,10 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch } from "react-redux";
 import { useNavigate } from 'react-router-dom';
 import { useInitScrollTop } from 'utils/customHooks';
 import Page from './Page';
-import { loadCareersListingData } from "reduxStore/Careers/operations";
-import { useCareerListingData } from "reduxStore/Careers/selectors";
+import { loadCareersListingData, loadCareersDepartmentsData } from "reduxStore/Careers/operations";
+import { useCareerListingData, useCareerDepartmentsData } from "reduxStore/Careers/selectors";
 import { isEmpty } from "underscore";
 import { groupBy } from "underscore";
 
@@ -37,14 +37,38 @@ const CareerPage = () => {
     useInitScrollTop()
     const dispatch = useDispatch();
     const careerListing = useCareerListingData();
+    const departments = useCareerDepartmentsData();
 
     const groupedListing = groupBy(Object.values(careerListing), (v) => v["department"]["name"])
 
-    const groupedKeys = Object.keys(groupedListing);
+    const [groupedKeys, setGroupedKeys] = useState(Object.keys(groupedListing));
+    const [selectedTag, setSelectedTag] = useState('all')
+
+    const filterGroups = (value) => {
+        setSelectedTag(value)
+        const allKeys = Object.keys(groupedListing)
+        if (value === 'all') return setGroupedKeys(allKeys);
+        return setGroupedKeys(allKeys.filter(v => v === value));
+    }
+
+    const onTagClick = (value) => (event) => {
+        event.preventDefault()
+        filterGroups(value)
+    }
+
+    const selectedTagClassName = (tag) => {
+        if (tag === selectedTag) return `tag tag-selected`;
+        return `tag`;
+    }
 
     useEffect(() => {
         if (isEmpty(careerListing)) dispatch(loadCareersListingData());
+        if (isEmpty(departments)) dispatch(loadCareersDepartmentsData());
     }, [])
+
+    useEffect(() => {
+        setGroupedKeys(Object.keys(groupedListing))
+    }, [careerListing])
 
 
     return (
@@ -61,19 +85,10 @@ const CareerPage = () => {
                     <div className="container">
                         <div className="label">Categories</div>
                         <div className="tags">
-                            <span className="tag tag-selected">Open positions</span>
-                            <span className="tag">All</span>
-                            <span className="tag">Administrative</span>
-                            <span className="tag">Engineering</span>
-                            <span className="tag">Product</span>
-                            <span className="tag">Data Science</span>
-                            <span className="tag">Policy</span>
-                            <span className="tag">Business Development</span>
-                            <span className="tag">Machine Learning & AI</span>
-                            <span className="tag">Hardware</span>
-                            <span className="tag">Design</span>
-                            <span className="tag">Marketing</span>
-                            <span className="tag">Communications</span>
+                            <span className={selectedTagClassName('all')} onClick={onTagClick('all')}>Open positions</span>
+                            {departments.map((department) =>
+                                <span className={selectedTagClassName(department.name)} key={department.id} onClick={onTagClick(department.name)}>{department.name}</span>)
+                            }
                         </div>
                         {groupedKeys.length > 0 && groupedKeys.map((groupedKey, key) => {
                             const departmentListing = groupedListing[groupedKey]
