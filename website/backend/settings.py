@@ -44,10 +44,10 @@ EXTRA_CORS_ORIGIN_REGEX_WHITELIST = env.list(
 )
 
 CORS_ORIGIN_REGEX_WHITELIST = [
-    r"^https://[a-zA-Z0-9_\-]+airqo\.net$",
-    r"^https://[a-zA-Z0-9_\-]+airqo\.africa$",
-    r"^https://[a-zA-Z0-9_\-]+airqo\.org$",
-    r"^https://[a-zA-Z0-9_\-]+airqo\.io$",
+    r"^https://[a-zA-Z0-9_\-]+\.airqo\.net$",
+    r"^https://[a-zA-Z0-9_\-]+\.airqo\.africa$",
+    r"^https://[a-zA-Z0-9_\-]+\.airqo\.org$",
+    r"^https://[a-zA-Z0-9_\-]+\.airqo\.io$",
     r"^https://airqo.mak.ac.ug$",
     r"^https://staging-dot-airqo-frontend.appspot.com$",
 ]
