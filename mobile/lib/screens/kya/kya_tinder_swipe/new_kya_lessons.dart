@@ -3,9 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../../models/kya.dart';
-import '../../../services/native_api.dart';
 import '../../../themes/colors.dart';
-import '../../../utils/exception.dart';
 import '../kya_widgets.dart';
 import 'kya_drag_widget.dart';
 
@@ -24,12 +22,10 @@ class _KyaLessonsPage1State extends State<KyaLessonsPage1>
     with SingleTickerProviderStateMixin {
   List<KyaLesson> _kyaLessons1 = []; //1st array to hold all stack
   final List<KyaLesson> _kyaLessons2 = []; //2nd  stores cards during swipe
-
   ValueNotifier<Swipe> swipeNotifier = ValueNotifier(Swipe.none);
   late final AnimationController _animationController;
   late double _tipsProgress = 0.1;
-
-  // int currentIndex = 0; TODO: Use this in next card arrow
+  late Kya kya;
 
   @override
   void initState() {
@@ -61,7 +57,6 @@ class _KyaLessonsPage1State extends State<KyaLessonsPage1>
           children: [
             GestureDetector(
               onTap: () {
-                // updateProgress(); TODO: Add functionality to update user progress
                 Navigator.of(context).pop(true);
               },
               child: Padding(
@@ -167,8 +162,6 @@ class _KyaLessonsPage1State extends State<KyaLessonsPage1>
                                 index: index,
                                 swipeNotifier: swipeNotifier,
                                 isLastCard: true,
-
-                                //  TODO: Add functionality to navigate to final card
                               ),
                             ),
                           );
@@ -197,25 +190,38 @@ class _KyaLessonsPage1State extends State<KyaLessonsPage1>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      //Returns cards to screen
-                      //TODO: Add functionality to animate return process
-                      _kyaLessons1.add(_kyaLessons2.last);
-                      _kyaLessons2.removeLast();
-                      _tipsProgress -= 0.1;
-                    });
-                  },
-                  child: const CircularKyaButton(
-                    icon: 'assets/icon/previous_arrow.svg',
+                Visibility(
+                  visible: _kyaLessons2.isNotEmpty,
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        //Returns cards to screen
+                        _kyaLessons1.add(_kyaLessons2.last);
+                        _kyaLessons2.removeLast();
+                        _tipsProgress -= 0.1;
+                      });
+                    },
+                    child: const CircularKyaButton(
+                      icon: 'assets/icon/previous_arrow.svg',
+                    ),
                   ),
                 ),
                 GestureDetector(
                   onTap: () {
-                    swipeNotifier.value = Swipe.right;
-                    _animationController.forward();
-                    // _kyaLessons1.add(_kyaLessons[currentIndex]);//TODO: Use current index here, link it to index in stack of cards
+                    if (_kyaLessons1.length == 1) {
+                      //TODO: Kind of buggy
+                      Navigator.pushReplacement(context,
+                          MaterialPageRoute(builder: (context) {
+                        return KyaFinalPage(kya: widget.kya);
+                      }));
+                    } else {
+                      swipeNotifier.value = Swipe.right;
+                      _animationController.forward();
+                      setState(() {
+                        _kyaLessons2.add(_kyaLessons1.last);
+                        _tipsProgress += 0.1;
+                      });
+                    }
                   },
                   child: const CircularKyaButton(
                     icon: 'assets/icon/next_arrow.svg',
@@ -246,12 +252,20 @@ class _KyaLessonsPage1State extends State<KyaLessonsPage1>
       },
       onAccept: (int index) {
         setState(() {
-          nextCard(
-            index: index,
-            lesson1: _kyaLessons1,
-            lesson2: _kyaLessons2,
-          );
-          _tipsProgress += 0.1;
+          if (_kyaLessons1.length == 1) {
+            //TODO: Kind of buggy
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: (context) {
+              return KyaFinalPage(kya: widget.kya);
+            }));
+          } else {
+            nextCard(
+              index: index,
+              lesson1: _kyaLessons1,
+              lesson2: _kyaLessons2,
+            );
+            _tipsProgress += 0.1;
+          }
         });
       },
     );
