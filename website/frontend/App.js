@@ -17,10 +17,14 @@ const GetInvolved = React.lazy(() => import('src/pages/GetInvolved'));
 const Register = React.lazy(() => import('src/pages/GetInvolved/Register'));
 const CheckMail = React.lazy(() => import('src/pages/GetInvolved/CheckMail'));
 const Feedback = React.lazy(() => import('src/pages/ContactUs/Feedback'));
+const ExploreData = React.lazy(() => import('src/pages/ExploreData'));
 
 import { loadAirQloudSummaryData } from 'reduxStore/AirQlouds/operations';
 import { ContentUganda, ContentKenya } from './src/pages/AfricanCitiesPage';
 import store from './store';
+import {
+    ExploreGetStarted, ExploreUserCategory, ExploreUserProfessionType, ExploreOrganisationType, ExploreUserRegistry, ExploreRegistryConfirmation, ExploreApp, ExploreBusinessRegistry, ExploreOrganisationRegistry,
+} from './src/pages/ExploreData';
 
 
 store.dispatch(loadAirQloudSummaryData());
@@ -48,6 +52,16 @@ const App = () => {
                         <Route path="/get-involved" element={<GetInvolved />} />
                         <Route path="/get-involved/register" element={<Register />} />
                         <Route path="/get-involved/check-mail" element={<CheckMail />} />
+                        <Route path="/explore-data" element={<ExploreData />} />
+                        <Route path="/explore-data/download-apps" element={<ExploreApp />} />
+                        <Route path="/explore-data/get-started" element={<ExploreGetStarted />} />
+                        <Route path="/explore-data/get-started/user" element={<ExploreUserCategory />} />
+                        <Route path="/explore-data/get-started/user/individual" element={<ExploreUserProfessionType />} />
+                        <Route path="/explore-data/get-started/user/organisation" element={<ExploreOrganisationType />} />
+                        <Route path="/explore-data/get-started/user/register" element={<ExploreUserRegistry />} />
+                        <Route path="/explore-data/get-started/user/register/business" element={<ExploreBusinessRegistry />} />
+                        <Route path="/explore-data/get-started/user/register/organisation" element={<ExploreOrganisationRegistry />} />
+                        <Route path="/explore-data/get-started/user/check-mail" element={<ExploreRegistryConfirmation />} />
                     </Routes>
                 </Suspense>
             </Router>

@@ -89,9 +89,10 @@
         position: relative;
         height: 100%;
         width: 100%;
+        padding: 0 12px 16px 16px;
 
         .wrapper {
-            padding: 60px 16px 0 16px ;
+            padding: 80px 0 0 0 ;
             background-color: $aq-blue-1;
             margin: 0 auto;
             width: 100%;
@@ -132,7 +133,7 @@
 
         .analytics-img-sm {
             display: flex;
-            width:96%;
+            width:100%;
             object-fit: cover;
             height: 100%;
             overflow-x: hidden;
