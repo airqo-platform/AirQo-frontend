@@ -16,6 +16,7 @@ invoke = "*"
 python-decouple = "*"
 psycopg2-binary = "*"
 django-storages = {version = "*", extras = ["google"]}
+django-environ = '*'
 
 [requires]
 python_version = "3.6"
