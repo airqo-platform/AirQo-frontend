@@ -1,6 +1,7 @@
 cloudinary
 django
 django-author
+django-cors-headers
 django-environ
 django-extensions
 django-filter
