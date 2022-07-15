@@ -4,6 +4,10 @@ import ArrowRight from 'icons/research/arrow-right.svg';
 import ConsultImg from 'icons/research/consult.png';
 import ConsultImg2 from 'icons/research/consult-2.png';
 import ConsultLongImg from 'icons/research/consult-long.png';
+import UniversityImg1 from 'assets/img/community/DSC_0378-min.jpg';
+import UniversityImg2 from 'assets/img/community/DSC_0187-min.jpg';
+import UniversityImg3 from 'assets/img/community/DSC_5666-min.jpg';
+import ResearchImg1 from 'assets/img/community/DSC_3689-min.jpg';
 import BackgroundShape from 'icons/research/background-shape.svg';
 import { useInitScrollTop } from "../../utils/customHooks";
 import { Link } from "react-router-dom";
@@ -49,7 +53,7 @@ const ResearchContent = () => {
                     </div>
                 </div>
                 <div className="consult-images">
-                    <img className="img-small" src={ConsultImg} alt="consult image" />
+                    <img className="img-small" src={ResearchImg1} alt="consult image" />
                     <img className="img-long" src={ConsultLongImg} alt="consult long image" />
                     <img className="img-small" src={ConsultImg2} alt="consult image 2" />
                     <BackgroundShape className="background-shape" />
@@ -65,9 +69,9 @@ const ResearchContent = () => {
                     </div>
                 </div>
                 <div className="consult-images">
-                    <img className="img-small" src={ConsultImg} alt="consult image" />
-                    <img className="img-long" src={ConsultLongImg} alt="consult long image" />
-                    <img className="img-small" src={ConsultImg2} alt="consult image 2" />
+                    <img className="img-small" src={UniversityImg1} alt="consult image" />
+                    <img className="img-long" src={UniversityImg3} alt="consult long image" />
+                    <img className="img-small" src={UniversityImg2} alt="consult image 2" />
                     <BackgroundShape className="background-shape" />
                 </div>
             </div>

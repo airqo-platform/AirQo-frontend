@@ -48,7 +48,7 @@ import Profile from '../components/Profile';
 const teamMembers = [
   { name: 'Prof. Engineer Bainomugisha', title: 'Project Lead', img: ProfileImg1 },
   { name: 'Deo Okure', title: 'Air Quality Scientist & Programme Manager', img: DeoImg },
-  { name: 'Martin Bbale', title: 'Software Engineering Lead', img: MartinImg },
+  { name: 'Martin Bbaale', title: 'Software Engineering Lead', img: MartinImg },
   { name: 'Maclina Birungi, MSc, MCIM', title: 'Marketing And Communications Lead', img: MaclinaImg },
   { name: 'Joel Ssematimba', title: 'Hardware Development & Manufacturing Lead', img: JoelImg },
   { name: 'Dora Bampangana', title: 'Project Administrator', img: DoraImg },

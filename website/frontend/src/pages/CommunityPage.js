@@ -6,13 +6,12 @@ import Blob from 'assets/img/community/AirQo_blob_fill.svg';
 import AssetImg1 from 'assets/img/community/Rectangle 411.jpg';
 import AssetImg2 from 'assets/img/community/Rectangle 405.jpg';
 import AssetImg3 from 'assets/img/community/Rectangle 410.jpg';
-import AssetImg4 from 'assets/img/community/Rectangle 409.png';
-import AssetImg5 from 'assets/img/community/Rectangle 406.png';
 import AssetImg6 from 'assets/img/community/Rectangle 408.png';
+import TrainingImg1 from 'assets/img/community/DSC_3478-min.jpg';
+import TrainingImg2 from 'assets/img/community/DSC_9587-min.jpg';
 import CommunityStar from 'assets/img/community/Communities Star.svg';
 import AirQoArrowLeft from 'assets/img/community/AirQo_arrow_left.svg';
 import AirQoQuotes from 'assets/img/community/AirQo_quotes.png';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import Page from './Page';
 import { Link } from 'react-router-dom';
 
@@ -85,8 +84,8 @@ const CommunityPage = () => {
                             </div>
                             <div className="img-stack">
                                 <div className="stack-1">
-                                    <img src={AssetImg4} alt="Image Stock 1" />
-                                    <img src={AssetImg5} alt="Image Stock 2" />
+                                    <img src={TrainingImg1} alt="Image Stock 1" />
+                                    <img src={TrainingImg2} alt="Image Stock 2" />
                                 </div>
                                 <img src={AssetImg6} className="stack-2" alt="Image Stock 3" />
                                 <div className="layer-2">

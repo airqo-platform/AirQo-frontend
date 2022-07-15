@@ -113,6 +113,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+env.bat
 
 # Spyder project settings
 .spyderproject
@@ -143,3 +144,5 @@ node_modules/
 google_application_credentials.json
 .stage-env.yaml
 .prod-env.yaml
+
+static/

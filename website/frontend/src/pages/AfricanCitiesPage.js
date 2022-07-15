@@ -14,6 +14,12 @@ import ConsultLongImg from "../icons/research/consult-long.png";
 import ConsultImg2 from "../icons/research/consult-2.png";
 import BackgroundShape from "../icons/africanCities/background-shape.svg";
 import ArrowRight from "../icons/research/arrow-right.svg";
+import NEMACollabImg1 from "assets/img/community/DSC_5334-min.jpg";
+import NEMACollabImg2 from "assets/img/community/DSC_5358-min.jpg";
+import NEMACollabImg3 from "assets/img/community/DSC_5342-min.jpg";
+import KCCACollabImg1 from "assets/img/community/DSC_3509-min.jpg";
+import KCCACollabImg2 from "assets/img/community/DSC_3524-min.jpg";
+import KCCACollabImg3 from "assets/img/community/DSC_3605-min.jpg";
 
 const CityHeroSection = () => {
     return (
@@ -122,9 +128,9 @@ export const ContentUganda = () => {
                     </div>
                 </div>
                 <div className="consult-images">
-                    <img className="img-small" src={ConsultImg} alt="consult image" />
-                    <img className="img-long" src={ConsultLongImg} alt="consult long image" />
-                    <img className="img-small" src={ConsultImg2} alt="consult image 2" />
+                    <img className="img-small" src={KCCACollabImg1} alt="consult image" />
+                    <img className="img-long" src={KCCACollabImg3} alt="consult long image" />
+                    <img className="img-small" src={KCCACollabImg2} alt="consult image 2" />
                     <BackgroundShape className="background-shape" />
                 </div>
             </div>
@@ -151,9 +157,9 @@ export const ContentUganda = () => {
                     </div>
                 </div>
                 <div className="consult-images">
-                    <img className="img-small" src={ConsultImg} alt="consult image" />
-                    <img className="img-long-right" src={ConsultLongImg} alt="consult long image" />
-                    <img className="img-small" src={ConsultImg2} alt="consult image 2" />
+                    <img className="img-small" src={NEMACollabImg2} alt="consult image" />
+                    <img className="img-long-right" src={NEMACollabImg1} alt="consult long image" />
+                    <img className="img-small" src={NEMACollabImg3} alt="consult image 2" />
                     <BackgroundShape className="background-shape" />
                 </div>
             </div>
