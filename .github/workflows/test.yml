@@ -72,7 +72,6 @@ jobs:
           echo "========== Creating app.yaml file =========="          
           echo "runtime: python" > app.yaml
           echo "env: flex" >> app.yaml
-          echo "service: staging" >> app.yaml
           echo "includes:" >> app.yaml
           echo "  - .env.yaml" >> app.yaml
           echo "========== Creating .env.yaml file =========="  
@@ -81,34 +80,34 @@ jobs:
           echo "  CLOUDINARY_KEY: ${{ secrets.WEBSITE_CLOUDINARY_KEY }}" >> .env.yaml
           echo "  CLOUDINARY_NAME: ${{ secrets.WEBSITE_CLOUDINARY_NAME }}" >> .env.yaml
           echo "  CLOUDINARY_SECRET: ${{ secrets.WEBSITE_CLOUDINARY_SECRET }}" >> .env.yaml
-          echo "  DATABASE_URI: ${{ secrets.WEBSITE_STAGE_DATABASE_URI }}" >> .env.yaml
-          echo "  GS_BUCKET_NAME: ${{ secrets.WEBSITE_STAGE_GS_BUCKET_NAME }}" >> .env.yaml
-          echo "  REACT_WEB_STATIC_HOST: ${{ secrets.WEBSITE_STAGE_REACT_WEB_STATIC_HOST }}" >> .env.yaml
-          echo "  SECRET_KEY: ${{ secrets.WEBSITE_STAGE_SECRET_KEY }}" >> .env.yaml
-          echo "  REACT_NETMANAGER_BASE_URL: ${{ secrets.WEBSITE_STAGE_REACT_NETMANAGER_BASE_URL }}" >> .env.yaml
+          echo "  DATABASE_URI: ${{ secrets.WEBSITE_PROD_DATABASE_URI }}" >> .env.yaml
+          echo "  GS_BUCKET_NAME: ${{ secrets.WEBSITE_PROD_GS_BUCKET_NAME }}" >> .env.yaml
+          echo "  REACT_WEB_STATIC_HOST: ${{ secrets.WEBSITE_PROD_REACT_WEB_STATIC_HOST }}" >> .env.yaml
+          echo "  SECRET_KEY: ${{ secrets.WEBSITE_PROD_SECRET_KEY }}" >> .env.yaml
+          echo "  REACT_NETMANAGER_BASE_URL: ${{ secrets.WEBSITE_PROD_REACT_NETMANAGER_BASE_URL }}" >> .env.yaml
           echo "  REACT_APP_BASE_AIRQLOUDS_URL: ${{ secrets.WEBSITE_REACT_APP_BASE_AIRQLOUDS_URL }}" >> .env.yaml
           echo "  REACT_APP_BASE_NEWSLETTER_URL: ${{ secrets.WEBSITE_REACT_APP_BASE_NEWSLETTER_URL }}" >> .env.yaml
           echo "  DJANGO_ALLOWED_HOSTS: ${{ secrets.WEBSITE_DJANGO_ALLOWED_HOSTS }}" >> .env.yaml
           echo "  DEBUG: False" >> .env.yaml
           echo "  GOOGLE_APPLICATION_CREDENTIALS: /app/google_application_credentials.json" >> .env.yaml
-          echo "  REACT_APP_WEBSITE_BASE_URL: ${{ secrets.WEBSITE_STAGE_REACT_APP_WEBSITE_BASE_URL }}" >> .env.yaml
+          echo "  REACT_APP_WEBSITE_BASE_URL: ${{ secrets.WEBSITE_PROD_REACT_APP_WEBSITE_BASE_URL }}" >> .env.yaml
         
       - name: Build and Push Docker Image
         run: |
           cd website/
           docker build . \
-          --build-arg REACT_WEB_STATIC_HOST=${{ secrets.WEBSITE_STAGE_REACT_WEB_STATIC_HOST }} \
-          --build-arg REACT_NETMANAGER_BASE_URL=${{ secrets.WEBSITE_STAGE_REACT_NETMANAGER_BASE_URL }} \
+          --build-arg REACT_WEB_STATIC_HOST=${{ secrets.WEBSITE_PROD_REACT_WEB_STATIC_HOST }} \
+          --build-arg REACT_NETMANAGER_BASE_URL=${{ secrets.WEBSITE_PROD_REACT_NETMANAGER_BASE_URL }} \
           --build-arg REACT_APP_BASE_AIRQLOUDS_URL=${{ secrets.WEBSITE_REACT_APP_BASE_AIRQLOUDS_URL }} \
           --build-arg REACT_APP_BASE_NEWSLETTER_URL=${{ secrets.WEBSITE_REACT_APP_BASE_NEWSLETTER_URL }} \
-          --build-arg REACT_APP_WEBSITE_BASE_URL=${{ secrets.WEBSITE_STAGE_REACT_APP_WEBSITE_BASE_URL }} \
-          --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest
+          --build-arg REACT_APP_WEBSITE_BASE_URL=${{ secrets.WEBSITE_PROD_REACT_APP_WEBSITE_BASE_URL }} \
+          --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:latest
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:latest
 
       - name: Deploy to App Engine
         run: |-
           cd website/
           gcloud app deploy  \
-            --image-url=${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest \
+            --image-url=${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:latest \
             --project=${{ secrets.FRONTEND_PROJECT_ID }} \
             --quiet
