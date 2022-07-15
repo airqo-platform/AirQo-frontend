@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'backend.FAQ.apps.FaqConfig',
     'backend.team.apps.TeamConfig',
     'frontend.apps.FrontendConfig',
+    'backend.highlights.apps.HighlightsConfig',
 ]
 
 MIDDLEWARE = [
