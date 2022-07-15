@@ -22,9 +22,6 @@
 #### Docker
 -   `Git` [Installing Git](https://gist.github.com/derhuerst/1b15ff4652a867391f03)
 -   `Docker` [Install Docker Engine](https://docs.docker.com/engine/install/)
--   `Docker Compose` [Install Docker Compose](https://docs.docker.com/compose/install/)
--   `NodeJs` [Download nodejs](https://nodejs.org/en/download/)
--   `Npm` [NpmJs](https://www.npmjs.com/get-npm)
 
 #### OSX, Linux, Windows
 -   `Git` [Installing Git](https://gist.github.com/derhuerst/1b15ff4652a867391f03)
@@ -198,6 +195,7 @@ for more details.
 
 ## Running the stack
 #### Create the `.envrc` and `.env` files
+**Note:** You will only need a .env file if you intend on running this website application with docker
 
 In the `.envrc` file add the following code
 
@@ -210,33 +208,42 @@ The `PATH` variable is updated with the `node_modules` path and `.env` loaded.
 
 Populate the `.env` file with the following keys and their respective values.
 
-    DATABASE_URI
+    DEBUG                   
+    DATABASE_URI            
+    SECRET                  
     SECRET_KEY
     CLOUDINARY_NAME
     CLOUDINARY_KEY
     CLOUDINARY_SECRET
     REACT_WEB_STATIC_HOST
-    DJANGO_ALLOWED_HOSTS      # alist od comma seperated hosts
+    DJANGO_ALLOWED_HOSTS     
     GS_BUCKET_NAME
-    CONTAINER_ENV             # True for docker
     REACT_NETMANAGER_BASE_URL
     REACT_APP_BASE_AIRQLOUDS_URL
     REACT_APP_BASE_NEWSLETTER_URL
-
-**Note**: Remove `DATABASE_URI` variable  if you are using docker.
+    GOOGLE_APPLICATION_CREDENTIALS
+    REACT_APP_WEBSITE_BASE_URL
 
 #### Docker
 
-Run the commands bellow to install the node dependencies and build the react front end
+Build the application docker image with the command below. Make sure that your `google_application_credentials.json` file is at the root of the website folder just as your .env file
 
-    npm install
-    npm run build
+    docker build . \
+        --build-arg REACT_WEB_STATIC_HOST=<<enter REACT_WEB_STATIC_HOST value>> \
+        --build-arg REACT_NETMANAGER_BASE_URL=<<enter REACT_NETMANAGER_BASE_URL value>> \
+        --build-arg REACT_APP_BASE_AIRQLOUDS_URL=<<enter REACT_APP_BASE_AIRQLOUDS_URL value>> \
+        --build-arg REACT_APP_BASE_NEWSLETTER_URL=<<enter REACT_APP_BASE_NEWSLETTER_URL value>> \
+        --build-arg REACT_APP_WEBSITE_BASE_URL=<<enter REACT_APP_WEBSITE_BASE_URL value>> \
+        --tag <<enter an image tag of choice>>
 
-Run the command below to build and run the containers for the database and website app
+Run the website application container with the command bellow
 
-    docker-compose -f docker/docker-compose-dev.yml up --build
+    docker run -d \
+        -p 8080:8080 \
+        --env-file=.env \
+        <<enter an image tag used in the step above>>
 
-When the build is complete and both _airqo-website_ and _airqo-website-db_ containers, you can access the website app at http://localhost:8000/
+After a few minutes, you should be able to access the website via port 8080 http://localhost:8080/
 
 #### OSX, Linux, and Windows
 
