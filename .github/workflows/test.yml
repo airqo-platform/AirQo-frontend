@@ -1,9 +1,6 @@
 name: test
 
-on:
-  pull_request:
-    branches: 
-      - staging
+on: [push]
 
 jobs:
   image-tag:
@@ -106,6 +103,7 @@ jobs:
           --build-arg REACT_APP_BASE_NEWSLETTER_URL=${{ secrets.WEBSITE_REACT_APP_BASE_NEWSLETTER_URL }} \
           --build-arg REACT_APP_WEBSITE_BASE_URL=${{ secrets.WEBSITE_STAGE_REACT_APP_WEBSITE_BASE_URL }} \
           --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest
 
       - name: Deploy to App Engine
         run: |-
