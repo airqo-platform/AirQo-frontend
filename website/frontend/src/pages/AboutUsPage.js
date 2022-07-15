@@ -1,49 +1,21 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-scroll';
-
-// image imports
-import TeamImg from 'assets/img/team.png';
-import Vector1 from 'assets/img/about_us_vector_3.png';
-import Vector2 from 'assets/img/about-us-vector-2.png';
-
-import ProfileImg1 from 'assets/img/profile-pics/profile (1).png';
-import AngelaImg from 'assets/img/profile-pics/ANGELA small.jpg';
-import BelindaImg from 'assets/img/profile-pics/BELINDA small.jpg';
-import DeoImg from 'assets/img/profile-pics/DEO small.jpg';
-import MikeImg from 'assets/img/profile-pics/MIKE small.jpg';
-import FaithImg from 'assets/img/profile-pics/FAITH small.jpg';
-import FidelImg from 'assets/img/profile-pics/FIDEL small.jpg';
-import GeorgeImg from 'assets/img/profile-pics/GEORGE small.jpg';
-import JoelImg from 'assets/img/profile-pics/JOEL small.jpg';
-import MartinImg from 'assets/img/profile-pics/MARTIN small.jpg';
-import MaclinaImg from 'assets/img/profile-pics/MACLINA small.jpg';
-import MarvinImg from 'assets/img/profile-pics/MARVIN small.jpg';
-import OkediImg from 'assets/img/profile-pics/OKURE small.jpg';
-import PaulImg from 'assets/img/profile-pics/PAUL ZANA small.jpg';
-import PriscahImg from 'assets/img/profile-pics/PRISCAH small.jpg';
-import PriscillaImg from 'assets/img/profile-pics/PRISCILLA small.jpg';
-import ProssyImg from 'assets/img/profile-pics/PROSSY small.jpg';
-import RichardImg from 'assets/img/profile-pics/RICHARD small.jpg';
-import DoraImg from 'assets/img/profile-pics/DORA.jpg';
-
-import ProfileImg7 from 'assets/img/profile-pics/profile (7).png';
-import ProfileImg10 from 'assets/img/profile-pics/profile (10).png';
-import ProfileImg12 from 'assets/img/profile-pics/profile (12).png';
-import ProfileImg13 from 'assets/img/profile-pics/profile (13).png';
-import ProfileImg14 from 'assets/img/profile-pics/profile (14).png';
-import ProfileImg15 from 'assets/img/profile-pics/profile (15).png';
-import ProfileImg16 from 'assets/img/profile-pics/profile (16).png';
-import ProfileImg17 from 'assets/img/profile-pics/profile (17).png';
-
+import { useDispatch } from 'react-redux';
+import { isEmpty } from 'underscore';
+import { useInitScrollTop } from 'utils/customHooks';
+import { useTeamData } from 'reduxStore/Team/selectors';
+import { loadTeamData } from 'reduxStore/Team/operations';
+import Profile from '../components/Profile';
+import Page from './Page';
 import WorldBankLogo from 'assets/img/partners/partner-logo-1.png';
 import GoogleLogo from 'assets/img/partners/partner-logo-2.png';
 import BirminghamUniLogo from 'assets/img/partners/partner-logo-3.png';
 import EpsrcLogo from 'assets/img/partners/partner-logo-4.png';
 import NRFLogo from 'assets/img/partners/partner-logo-5.png';
 import ZindiLogo from 'assets/img/partners/partner-logo-6.png';
-import { useInitScrollTop } from 'utils/customHooks';
-import Page from './Page';
-import Profile from '../components/Profile';
+import TeamImg from 'assets/img/team.png';
+import Vector1 from 'assets/img/about_us_vector_3.png';
+import Vector2 from 'assets/img/about-us-vector-2.png';
 
 const teamMembers = [
   { name: 'Prof. Engineer Bainomugisha', title: 'Project Lead', img: ProfileImg1 },
@@ -77,6 +49,13 @@ const teamMembers = [
 
 const AboutUsPage = () => {
   useInitScrollTop();
+  const dispatch = useDispatch();
+  const teamData = useTeamData();
+
+  useEffect(() => {
+    if (isEmpty(teamData)) dispatch(loadTeamData());
+  }, []);
+
   return (
         <Page>
             <div className="AboutUsPage">
@@ -208,9 +187,9 @@ const AboutUsPage = () => {
                             <p className="section-info">This is our team, a lot of smiling happy people who work hard to bridge the gap in air quality in Africa.</p>
                         </div>
                         <div className="AboutUsPage__pictorial">
-                            {teamMembers.map((member) => (
+                            {teamData.map((member) => (
                                 <Profile
-                                  ImgPath={member.img}
+                                  ImgPath={member.picture}
                                   name={member.name}
                                   title={member.title}
                                 />
