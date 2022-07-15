@@ -77,6 +77,9 @@ class JobDescription(BaseModel):
         on_delete=models.deletion.SET_NULL,
     )
 
+    class Meta:
+        ordering = ['order']
+
     def __str__(self):
         return f"JobDescription {self.id}"
 
@@ -93,6 +96,9 @@ class BulletDescription(BaseModel):
         on_delete=models.deletion.SET_NULL,
     )
 
+    class Meta:
+        ordering = ['order']
+
     def __str__(self):
         return f"Bullet - {self.name}"
 
@@ -108,6 +114,9 @@ class BulletPoint(BaseModel):
         related_name="bullet_points",
         on_delete=models.deletion.SET_NULL,
     )
+
+    class Meta:
+        ordering = ['order']
 
     def __str__(self):
         return f"BulletPoint - {self.id}"

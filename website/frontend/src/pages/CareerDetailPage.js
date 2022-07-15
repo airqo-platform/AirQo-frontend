@@ -30,7 +30,7 @@ const CareerDetailPage = () => {
   return (
         <PageMini>
             { loading && <Loadspinner /> }
-            { isEmpty(listing) && <div className="careers-detail--no-listing">Job listing not found or closed.</div>}
+            { !loading && isEmpty(listing) && <div className="careers-detail--no-listing">Job listing not found or closed.</div>}
             {
                 !loading && !isEmpty(listing) && (
                     <div className="CareersDetailPage">
