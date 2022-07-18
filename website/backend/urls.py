@@ -37,6 +37,7 @@ api_router.register(r'team', team_views.TeamViewSet)
 api_router.register(r'faq', FAQ_views.FAQViewSet)
 api_router.register(r'career', career_views.CareerViewSet)
 api_router.register(r'highlights', highlight_views.HighlightViewSet)
+api_router.register(r'departments', career_views.DepartmentViewSet)
 
 # Config DRF Auto-Swagger Generation
 schema_view = get_schema_view(
@@ -54,7 +55,7 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include(api_router.urls)),
+    path('api/v1/', include(api_router.urls)),
     re_path(r'^api/?$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     re_path(r'^api/doc(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     re_path(r'^api/doc/?$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),

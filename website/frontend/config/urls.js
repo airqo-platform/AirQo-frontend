@@ -1,5 +1,7 @@
 import { stripTrailingSlash } from './utils';
 
+const WEBSITE_BASE_URL = stripTrailingSlash(process.env.REACT_APP_WEBSITE_BASE_URL)
+
 const BASE_AIRQLOUDS_URL = stripTrailingSlash(
     process.env.REACT_APP_BASE_AIRQLOUDS_URL || process.env.REACT_NETMANAGER_BASE_URL,
 );
@@ -24,3 +26,10 @@ export const INQUIRY_URL = `${BASE_INQUIRY_URL}/users/inquiries/register?tenant=
 const BASE_AUTH_SERVICE_URL = stripTrailingSlash(process.env.REACT_NETMANAGER_BASE_URL);
 
 export const EXPLORE_DATA_URL = `${BASE_AUTH_SERVICE_URL}/users/candidates/register?tenant=airqo`;
+
+// careers urls
+export const CAREERS_URL = `${WEBSITE_BASE_URL}/career/`;
+
+export const DEPARTMENTS_URL = `${WEBSITE_BASE_URL}/departments/`;
+
+export const TEAMS_URL = `${WEBSITE_BASE_URL}/team/`;

@@ -63,6 +63,10 @@
 
 @import "Loadspinner";
 
+@import "CareersPage";
+
+@import "CareersDetailPage";
+
 *, *::before, *::after {
   box-sizing: inherit;
 }
@@ -86,13 +90,14 @@ a, a:hover{
 .Page {
   width: 100%;
   margin: auto;
+  //overflow-x: hidden !important;
   .page-wrapper {
       overflow-x: hidden !important;
     }
 }
 
 .Page-mini{
-  overflow-y: hidden;
+  //overflow-y: hidden;
   width:100%;
   margin:auto;
   scrollbar-width: none;

@@ -124,6 +124,7 @@ const Footer = () => {
                             <span><Link to="/about-us">About</Link></span>
                             <span><Link to="/contact">Contact</Link></span>
                             <span><Link to="/press">Press</Link></span>
+                            <span><Link to="/careers">Careers</Link></span>
                             <span><a target="_blank" href="https://medium.com/@airqo" rel="noreferrer">Blog</a></span>
                         </div>
                         </span>

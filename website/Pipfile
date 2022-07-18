@@ -17,6 +17,9 @@ python-decouple = "*"
 psycopg2-binary = "*"
 django-storages = {version = "*", extras = ["google"]}
 django-environ = '*'
+django-cors-headers = '*'
+django-nested-admin = '*'
+gunicorn = '*'
 
 [requires]
 python_version = "3.6"

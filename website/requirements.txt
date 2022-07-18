@@ -1,12 +1,15 @@
 cloudinary
 django
 django-author
+django-cors-headers
 django-environ
 django-extensions
 django-filter
+django-nested-admin
 djangorestframework
 dj_database_url
 drf-yasg
 invoke
 psycopg2-binary
 django-storages[google]
+gunicorn
