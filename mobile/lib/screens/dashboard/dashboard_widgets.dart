@@ -148,7 +148,11 @@ class FavouritePlaceDashboardAvatar extends StatelessWidget {
             .listenable(keys: [favouritePlace.referenceSite]),
         builder: (context, box, widget) {
           final airQualityReading = box.get(favouritePlace.referenceSite);
-          if (airQualityReading == null) {}
+          if (airQualityReading == null) {
+            return const CircularLoadingAnimation(
+              size: 32,
+            );
+          }
 
           return Container(
             height: 32.0,

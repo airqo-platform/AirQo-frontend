@@ -16,6 +16,7 @@ import '../../services/rest_api.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
 import '../../widgets/custom_shimmer.dart';
+import '../../widgets/custom_widgets.dart';
 import '../on_boarding/profile_setup_screen.dart';
 import 'auth_widgets.dart';
 
@@ -54,12 +55,14 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     return Scaffold(
       body: WillPopScope(
         onWillPop: onWillPop,
-        child: Container(
-          color: Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Center(
-            child: Column(
-              children: _getColumnWidget(),
+        child: CustomSafeArea(
+          widget: Container(
+            color: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Center(
+              child: Column(
+                children: _getColumnWidget(),
+              ),
             ),
           ),
         ),
@@ -148,11 +151,8 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     );
   }
 
-  List<Widget> emailInputWidget() {
+  List<Widget> _emailInputWidget() {
     return [
-      const SizedBox(
-        height: 56,
-      ),
       AutoSizeText(
         AuthMethod.email.optionsText(widget.authProcedure),
         textAlign: TextAlign.center,
@@ -231,9 +231,6 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
             ? const LoginOptions()
             : const SignUpOptions(),
       ),
-      SizedBox(
-        height: _showAuthOptions ? 40 : 12,
-      ),
     ];
   }
 
@@ -249,11 +246,8 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     );
   }
 
-  List<Widget> emailVerificationWidget() {
+  List<Widget> _emailVerificationWidget() {
     return [
-      const SizedBox(
-        height: 56,
-      ),
       AutoSizeText(
         'Verify your account',
         textAlign: TextAlign.center,
@@ -357,9 +351,6 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
           await verifySentCode();
         },
         child: NextButton(buttonColor: _nextBtnColor),
-      ),
-      const SizedBox(
-        height: 12,
       ),
     ];
   }
@@ -504,10 +495,10 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
 
   List<Widget> _getColumnWidget() {
     if (_verifyCode) {
-      return emailVerificationWidget();
+      return _emailVerificationWidget();
     }
 
-    return emailInputWidget();
+    return _emailInputWidget();
   }
 
   void _initialize() {

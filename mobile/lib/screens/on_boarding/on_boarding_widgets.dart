@@ -26,25 +26,6 @@ OnBoardingPage getOnBoardingPageConstant(String value) {
   }
 }
 
-class OnBoardingAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const OnBoardingAppBar({
-    super.key,
-  });
-
-  @override
-  PreferredSizeWidget build(BuildContext context) {
-    return AppBar(
-      automaticallyImplyLeading: false,
-      elevation: 0,
-      toolbarHeight: 0,
-      backgroundColor: CustomColors.appBodyColor,
-    );
-  }
-
-  @override
-  Size get preferredSize => Size.zero;
-}
-
 class OnBoardingLocationIcon extends StatelessWidget {
   const OnBoardingLocationIcon({
     super.key,

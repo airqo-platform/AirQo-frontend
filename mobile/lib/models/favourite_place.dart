@@ -1,5 +1,6 @@
 import 'package:app/models/air_quality_reading.dart';
 import 'package:app/models/place_details.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -27,6 +28,28 @@ class FavouritePlace extends HiveObject {
       placeId: airQualityReading.placeId,
       latitude: airQualityReading.latitude,
       longitude: airQualityReading.longitude,
+    );
+  }
+
+  factory FavouritePlace.fromFirestore({
+    required DocumentSnapshot<Map<String, dynamic>> snapshot,
+  }) {
+    final data = snapshot.data() as Map<String, dynamic>;
+
+    var referenceSite = '';
+    if (data.keys.contains('referenceSite')) {
+      referenceSite = data['referenceSite'];
+    } else if (data.keys.contains('siteId')) {
+      referenceSite = data['siteId'];
+    }
+
+    return FavouritePlace(
+      name: data['name'],
+      location: data['location'],
+      referenceSite: referenceSite,
+      placeId: data['placeId'],
+      latitude: data['latitude'],
+      longitude: data['longitude'],
     );
   }
 

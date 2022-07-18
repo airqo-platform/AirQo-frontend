@@ -38,7 +38,7 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> _widgetOptions = <Widget>[
     const DashboardView(),
-    const MapViewV2(),
+    const MapView(),
     const ProfileView(),
   ];
   final AppService _appService = AppService();

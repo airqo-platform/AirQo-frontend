@@ -380,3 +380,26 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
     await HiveService.updateFavouritePlaces(widget.airQualityReading);
   }
 }
+
+class CustomSafeArea extends StatelessWidget {
+  const CustomSafeArea({
+    super.key,
+    required this.widget,
+    this.verticalPadding,
+    this.backgroundColor,
+  });
+  final Widget widget;
+  final double? verticalPadding;
+  final Color? backgroundColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: backgroundColor ?? Colors.white,
+      padding: EdgeInsets.symmetric(vertical: verticalPadding ?? 15),
+      child: SafeArea(
+        child: widget,
+      ),
+    );
+  }
+}

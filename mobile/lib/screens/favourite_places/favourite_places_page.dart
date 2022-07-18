@@ -44,9 +44,13 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
                   final airQualityReading =
                       Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
                           .get(favouritePlaces[index].referenceSite);
+                  final favouritePlace = favouritePlaces[index];
 
                   if (airQualityReading == null) {
-                    return Container();
+                    return EmptyFavouritePlace(
+                      airQualityReading:
+                          AirQualityReading.fromFavouritePlace(favouritePlace),
+                    );
                   }
 
                   return Padding(
@@ -57,8 +61,7 @@ class _FavouritePlacesState extends State<FavouritePlaces> {
                       0,
                     ),
                     child: MiniAnalyticsCard(
-                      airQualityReading
-                          .populateFavouritePlace(favouritePlaces[index]),
+                      airQualityReading.populateFavouritePlace(favouritePlace),
                       animateOnClick: false,
                     ),
                   );

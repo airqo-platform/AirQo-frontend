@@ -254,36 +254,19 @@ class CloudStore {
 
       if (userId.isEmpty) return [];
 
-      final favouritePlacesJson = await FirebaseFirestore.instance
-          .collection('${Config.favPlacesCollection}/$userId/$userId')
+      final jsonObject = await FirebaseFirestore.instance
+          .collection(Config.favPlacesCollection)
+          .doc(userId)
+          .collection(userId)
           .get();
 
       final favouritePlaces = <FavouritePlace>[];
 
-      for (final favouritePlaceJson in favouritePlacesJson.docs) {
-        final favouritePlaceData = favouritePlaceJson.data();
-        final favouritePlace = FavouritePlace(
-          name: favouritePlaceData['name'],
-          location: favouritePlaceData['location'],
-          referenceSite: '',
-          placeId: favouritePlaceData['placeId'],
-          latitude: favouritePlaceData['latitude'],
-          longitude: favouritePlaceData['longitude'],
-        );
-        if (favouritePlaceData.keys.contains('referenceSite')) {
-          favouritePlaces.add(
-            favouritePlace.copyWith(
-              referenceSite: favouritePlaceData['referenceSite'],
-            ),
-          );
-        } else if (favouritePlaceData.keys.contains('siteId')) {
-          favouritePlaces.add(
-            favouritePlace.copyWith(
-              referenceSite: favouritePlaceData['siteId'],
-            ),
-          );
-        } else {
-          favouritePlaces.add(favouritePlace);
+      for (final doc in jsonObject.docs) {
+        try {
+          favouritePlaces.add(FavouritePlace.fromFirestore(snapshot: doc));
+        } catch (exception, stackTrace) {
+          await logException(exception, stackTrace);
         }
       }
 
@@ -306,6 +289,24 @@ class CloudStore {
     }
 
     final batch = FirebaseFirestore.instance.batch();
+
+    final cloudFavPlaces = await getFavouritePlaces();
+    for (final favouritePlace in cloudFavPlaces) {
+      try {
+        final document = FirebaseFirestore.instance
+            .collection(Config.favPlacesCollection)
+            .doc(userId)
+            .collection(userId)
+            .doc(favouritePlace.placeId);
+        batch.delete(document);
+      } catch (exception, stackTrace) {
+        await logException(
+          exception,
+          stackTrace,
+        );
+      }
+    }
+
     final favouritePlaces =
         Hive.box<FavouritePlace>(HiveBox.favouritePlaces).values.toList();
     for (final favouritePlace in favouritePlaces) {

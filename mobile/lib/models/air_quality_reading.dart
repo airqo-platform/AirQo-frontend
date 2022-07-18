@@ -48,6 +48,24 @@ class AirQualityReading extends HiveObject {
     );
   }
 
+  factory AirQualityReading.fromFavouritePlace(FavouritePlace favouritePlace) {
+    return AirQualityReading(
+      referenceSite: favouritePlace.referenceSite,
+      latitude: favouritePlace.latitude,
+      longitude: favouritePlace.longitude,
+      country: favouritePlace.location,
+      name: favouritePlace.name,
+      location: favouritePlace.location,
+      region: Region.fromString(''),
+      source: favouritePlace.location,
+      dateTime: DateTime.now(),
+      pm2_5: 0.0,
+      pm10: 0.0,
+      distanceToReferenceSite: 0.0,
+      placeId: favouritePlace.placeId,
+    );
+  }
+
   factory AirQualityReading.duplicate(AirQualityReading airQualityReading) {
     return AirQualityReading(
       referenceSite: airQualityReading.referenceSite,

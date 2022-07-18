@@ -7,7 +7,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'firebase_service.dart';
-import 'location_service.dart';
 
 class HiveService {
   static Future<void> initialize() async {

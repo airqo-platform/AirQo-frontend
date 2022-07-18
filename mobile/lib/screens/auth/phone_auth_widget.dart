@@ -16,6 +16,7 @@ import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
 import '../../utils/network.dart';
 import '../../widgets/custom_shimmer.dart';
+import '../../widgets/custom_widgets.dart';
 import '../on_boarding/profile_setup_screen.dart';
 import 'auth_widgets.dart';
 import 'email_auth_widget.dart';
@@ -59,11 +60,13 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
     return Scaffold(
       body: WillPopScope(
         onWillPop: onWillPop,
-        child: Container(
-          color: Colors.white,
-          child: Center(
-            child: Column(
-              children: _getColumnWidget(),
+        child: CustomSafeArea(
+          widget: Container(
+            color: Colors.white,
+            child: Center(
+              child: Column(
+                children: _getColumnWidget(),
+              ),
             ),
           ),
         ),
@@ -227,11 +230,8 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
     );
   }
 
-  List<Widget> phoneInputWidget() {
+  List<Widget> _phoneInputWidget() {
     return [
-      const SizedBox(
-        height: 56,
-      ),
       Padding(
         padding: const EdgeInsets.only(left: 40, right: 40),
         child: AutoSizeText(
@@ -357,9 +357,6 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
               : const SignUpOptions(),
         ),
       ),
-      SizedBox(
-        height: _showAuthOptions ? 40 : 12,
-      ),
     ];
   }
 
@@ -385,11 +382,8 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
     );
   }
 
-  List<Widget> phoneVerificationWidget() {
+  List<Widget> _phoneVerificationWidget() {
     return [
-      const SizedBox(
-        height: 56,
-      ),
       Padding(
         padding: const EdgeInsets.only(left: 24, right: 24),
         child: AutoSizeText(
@@ -503,9 +497,6 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
           child: NextButton(buttonColor: _nextBtnColor),
         ),
       ),
-      const SizedBox(
-        height: 12,
-      ),
     ];
   }
 
@@ -604,10 +595,10 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
 
   List<Widget> _getColumnWidget() {
     if (_verifyCode) {
-      return phoneVerificationWidget();
+      return _phoneVerificationWidget();
     }
 
-    return phoneInputWidget();
+    return _phoneInputWidget();
   }
 
   void _initialize() {

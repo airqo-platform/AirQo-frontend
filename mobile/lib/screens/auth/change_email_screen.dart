@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import '../../services/firebase_service.dart';
 import '../../services/rest_api.dart';
 import '../../themes/colors.dart';
+import '../../widgets/custom_widgets.dart';
 import 'auth_widgets.dart';
 
 class ChangeEmailScreen extends StatefulWidget {
@@ -38,211 +39,205 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        color: Colors.white,
-        padding: const EdgeInsets.only(left: 24, right: 24),
-        child: Center(
-          child: Column(children: [
-            // Start Common widgets
-            const SizedBox(
-              height: 20,
-            ),
-
-            Visibility(
-              visible: _requestCode,
-              child: const Text(
-                'Verify your new email!',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 24,
-                  color: Colors.black,
-                ),
-              ),
-            ),
-            Visibility(
-              visible: !_requestCode,
-              child: const Text(
-                'Change email',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 24,
-                  color: Colors.black,
-                ),
-              ),
-            ),
-
-            const SizedBox(
-              height: 8,
-            ),
-
-            Visibility(
-              visible: _requestCode,
-              child: Text(
-                'Enter the 6 digit code sent to\n'
-                '$_emailAddress',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.black.withOpacity(0.6),
-                ),
-              ),
-            ),
-            Visibility(
-              visible: !_requestCode,
-              child: Text(
-                'We’ll send you a code to verify you new email address',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.black.withOpacity(0.6),
-                ),
-              ),
-            ),
-
-            const SizedBox(
-              height: 32,
-            ),
-
-            Visibility(
-              visible: _requestCode,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 36, right: 36),
-                child: OptField(
-                  codeSent: _requestCode,
-                  position: 0,
-                  callbackFn: setCode,
-                ),
-              ),
-            ),
-            Visibility(
-              visible: !_requestCode,
-              child: Form(
-                key: _emailFormKey,
-                child: _emailInputField(),
-              ),
-            ),
-            // end input fields
-
-            const SizedBox(
-              height: 24,
-            ),
-
-            Visibility(
-              visible: !_showResendCode && _requestCode,
-              child: Text(
-                'The code should arrive with in 10 sec',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.black.withOpacity(0.5),
-                ),
-              ),
-            ),
-            Visibility(
-              visible: _showResendCode && _requestCode,
-              child: GestureDetector(
-                onTap: () async {
-                  await _resendVerificationCode();
-                },
-                child: Text(
-                  'Resend code',
+      body: CustomSafeArea(
+        widget: Container(
+          color: Colors.white,
+          padding: const EdgeInsets.only(left: 24, right: 24),
+          child: Center(
+            child: Column(children: [
+              Visibility(
+                visible: _requestCode,
+                child: const Text(
+                  'Verify your new email!',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 12,
-                    color: _isResending
-                        ? Colors.black.withOpacity(0.5)
-                        : CustomColors.appColorBlue,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 24,
+                    color: Colors.black,
                   ),
                 ),
               ),
-            ),
-
-            const SizedBox(
-              height: 19,
-            ),
-
-            Visibility(
-              visible: _requestCode,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 36, right: 36),
-                child: Stack(
-                  alignment: AlignmentDirectional.center,
-                  children: [
-                    Container(
-                      height: 1.09,
-                      color: Colors.black.withOpacity(0.05),
-                    ),
-                    Container(
-                      color: Colors.white,
-                      padding: const EdgeInsets.only(left: 5, right: 5),
-                      child: const Text(
-                        'Or',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Color(0xffD1D3D9),
-                        ),
-                      ),
-                    ),
-                  ],
+              Visibility(
+                visible: !_requestCode,
+                child: const Text(
+                  'Change email',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 24,
+                    color: Colors.black,
+                  ),
                 ),
               ),
-            ),
-            Visibility(
-              visible: _requestCode,
-              child: const SizedBox(
+
+              const SizedBox(
+                height: 8,
+              ),
+
+              Visibility(
+                visible: _requestCode,
+                child: Text(
+                  'Enter the 6 digit code sent to\n'
+                  '$_emailAddress',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.black.withOpacity(0.6),
+                  ),
+                ),
+              ),
+              Visibility(
+                visible: !_requestCode,
+                child: Text(
+                  'We’ll send you a code to verify you new email address',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.black.withOpacity(0.6),
+                  ),
+                ),
+              ),
+
+              const SizedBox(
+                height: 32,
+              ),
+
+              Visibility(
+                visible: _requestCode,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 36, right: 36),
+                  child: OptField(
+                    codeSent: _requestCode,
+                    position: 0,
+                    callbackFn: setCode,
+                  ),
+                ),
+              ),
+              Visibility(
+                visible: !_requestCode,
+                child: Form(
+                  key: _emailFormKey,
+                  child: _emailInputField(),
+                ),
+              ),
+              // end input fields
+
+              const SizedBox(
+                height: 24,
+              ),
+
+              Visibility(
+                visible: !_showResendCode && _requestCode,
+                child: Text(
+                  'The code should arrive with in 10 sec',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.black.withOpacity(0.5),
+                  ),
+                ),
+              ),
+              Visibility(
+                visible: _showResendCode && _requestCode,
+                child: GestureDetector(
+                  onTap: () async {
+                    await _resendVerificationCode();
+                  },
+                  child: Text(
+                    'Resend code',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: _isResending
+                          ? Colors.black.withOpacity(0.5)
+                          : CustomColors.appColorBlue,
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(
                 height: 19,
               ),
-            ),
-            Visibility(
-              visible: _requestCode,
-              child: GestureDetector(
-                onTap: _initialize,
-                child: Text(
-                  'Change Email Address',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: _showResendCode
-                        ? CustomColors.appColorBlue
-                        : Colors.black.withOpacity(0.5),
+
+              Visibility(
+                visible: _requestCode,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 36, right: 36),
+                  child: Stack(
+                    alignment: AlignmentDirectional.center,
+                    children: [
+                      Container(
+                        height: 1.09,
+                        color: Colors.black.withOpacity(0.05),
+                      ),
+                      Container(
+                        color: Colors.white,
+                        padding: const EdgeInsets.only(left: 5, right: 5),
+                        child: const Text(
+                          'Or',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Color(0xffD1D3D9),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ),
+              Visibility(
+                visible: _requestCode,
+                child: const SizedBox(
+                  height: 19,
+                ),
+              ),
+              Visibility(
+                visible: _requestCode,
+                child: GestureDetector(
+                  onTap: _initialize,
+                  child: Text(
+                    'Change Email Address',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: _showResendCode
+                          ? CustomColors.appColorBlue
+                          : Colors.black.withOpacity(0.5),
+                    ),
+                  ),
+                ),
+              ),
 
-            const Spacer(),
-            Visibility(
-              visible: _requestCode,
-              child: GestureDetector(
-                onTap: () async {
-                  await _verifySentCode();
-                },
-                child: NextButton(
-                  buttonColor: _nextBtnColor,
+              const Spacer(),
+              Visibility(
+                visible: _requestCode,
+                child: GestureDetector(
+                  onTap: () async {
+                    await _verifySentCode();
+                  },
+                  child: NextButton(
+                    buttonColor: _nextBtnColor,
+                  ),
                 ),
               ),
-            ),
-            Visibility(
-              visible: !_requestCode,
-              child: GestureDetector(
-                onTap: () async {
-                  await _requestVerification();
-                },
-                child: NextButton(
-                  buttonColor: _nextBtnColor,
+              Visibility(
+                visible: !_requestCode,
+                child: GestureDetector(
+                  onTap: () async {
+                    await _requestVerification();
+                  },
+                  child: NextButton(
+                    buttonColor: _nextBtnColor,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            const CancelOption(),
-            const SizedBox(
-              height: 20,
-            ),
-          ]),
+              const SizedBox(
+                height: 20,
+              ),
+              const CancelOption(),
+            ]),
+          ),
         ),
       ),
     );

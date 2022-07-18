@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import '../../services/firebase_service.dart';
 import '../../services/rest_api.dart';
 import '../../themes/colors.dart';
+import '../../widgets/custom_widgets.dart';
+import 'auth_widgets.dart';
 
 class EmailReAuthenticateScreen extends StatefulWidget {
   const EmailReAuthenticateScreen(
@@ -32,97 +34,93 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        color: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Center(
-          child: Column(
-            children: [
-              const SizedBox(
-                height: 20,
-              ),
-              const Text(
-                'Verify your action!',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 24,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(
-                height: 8,
-              ),
-              Text(
-                'Enter the 6 digit code sent to\n'
-                'your email address',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.black.withOpacity(0.6),
-                ),
-              ),
-              const SizedBox(
-                height: 32,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 36),
-                child: OptField(
-                  codeSent: true,
-                  position: 0,
-                  callbackFn: setCode,
-                ),
-              ),
-              const SizedBox(
-                height: 24,
-              ),
-              Visibility(
-                visible: !_showResendCode,
-                child: Text(
-                  'The code should arrive with in 10 sec',
+      body: CustomSafeArea(
+        widget: Container(
+          color: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Center(
+            child: Column(
+              children: [
+                const Text(
+                  'Verify your action!',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.black.withOpacity(0.5),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 24,
+                    color: Colors.black,
                   ),
                 ),
-              ),
-              Visibility(
-                visible: _showResendCode,
-                child: GestureDetector(
-                  onTap: () async {
-                    await resendVerificationCode();
-                  },
+                const SizedBox(
+                  height: 8,
+                ),
+                Text(
+                  'Enter the 6 digit code sent to\n'
+                  'your email address',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.black.withOpacity(0.6),
+                  ),
+                ),
+                const SizedBox(
+                  height: 32,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 36),
+                  child: OptField(
+                    codeSent: true,
+                    position: 0,
+                    callbackFn: setCode,
+                  ),
+                ),
+                const SizedBox(
+                  height: 24,
+                ),
+                Visibility(
+                  visible: !_showResendCode,
                   child: Text(
-                    'Resend code',
+                    'The code should arrive with in 10 sec',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 12,
-                      color: _isResending
-                          ? Colors.black.withOpacity(0.5)
-                          : CustomColors.appColorBlue,
+                      color: Colors.black.withOpacity(0.5),
                     ),
                   ),
                 ),
-              ),
-              const Spacer(),
-              GestureDetector(
-                onTap: () async {
-                  await verifySentCode();
-                },
-                child: NextButton(
-                  text: 'Verify',
-                  buttonColor: _nextBtnColor,
+                Visibility(
+                  visible: _showResendCode,
+                  child: GestureDetector(
+                    onTap: () async {
+                      await resendVerificationCode();
+                    },
+                    child: Text(
+                      'Resend code',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: _isResending
+                            ? Colors.black.withOpacity(0.5)
+                            : CustomColors.appColorBlue,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              cancelOption(),
-              const SizedBox(
-                height: 20,
-              ),
-            ],
+                const Spacer(),
+                GestureDetector(
+                  onTap: () async {
+                    await verifySentCode();
+                  },
+                  child: NextButton(
+                    text: 'Verify',
+                    buttonColor: _nextBtnColor,
+                  ),
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                cancelOption(),
+              ],
+            ),
           ),
         ),
       ),
