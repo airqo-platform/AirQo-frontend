@@ -193,7 +193,7 @@ jobs:
         # Backup for this action: airqo-platform/create-json@1.1.2
         with:
           name: "google_application_credentials.json"
-          json: ${{ secrets.GCP_SA_CREDENTIALS }}
+          json: ${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}
           dir: 'website/'
 
       - name: Create app.yaml and .env.yaml files
