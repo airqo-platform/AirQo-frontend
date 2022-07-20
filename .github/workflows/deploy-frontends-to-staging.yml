@@ -203,11 +203,6 @@ jobs:
           echo "runtime: python" > app.yaml
           echo "env: flex" >> app.yaml
           echo "service: staging" >> app.yaml
-          echo "handlers:" >> app.yaml
-          echo "- url: /.*" >> app.yaml
-          echo "  secure: always" >> app.yaml
-          echo "  redirect_http_response_code: 301" >> app.yaml
-          echo "  script: auto" >> app.yaml
           echo "includes:" >> app.yaml
           echo "  - .env.yaml" >> app.yaml
           echo "========== Creating .env.yaml file =========="  
