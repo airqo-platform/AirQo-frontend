@@ -211,6 +211,9 @@ const Download = (props) => {
     await downloadDataApi(fileType.value, data, fileType.value === "csv" , outputFormat.value)
       .then((response) => response.data)
       .then((resData) => {
+        if(isEmpty(resData)) {
+          return setAlertMessage("No data found!");
+        }
         let filename = `airquality-${frequency.value}-data.${fileType.value}`;
         if (fileType.value === "json") {
           let contentType = "application/json;charset=utf-8;";
