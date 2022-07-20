@@ -3,24 +3,22 @@ from django_extensions.db.models import TimeStampedModel
 from cloudinary.models import CloudinaryField
 from author.decorators import with_author
 
+from backend.utils.models import BaseModel
+
 # Create your models here.
 @with_author
-class Tag(TimeStampedModel):
+class Tag(BaseModel):
     name = models.CharField(max_length=20, null=False, blank=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
 
 @with_author
-class Highlight(TimeStampedModel):
+class Highlight(BaseModel):
     title = models.CharField(max_length=200)
     tags = models.ManyToManyField(Tag)
     image = CloudinaryField("Image", overwrite=True, resource_type="image")
     link = models.URLField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.title

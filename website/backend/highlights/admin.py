@@ -5,13 +5,12 @@ from .models import Highlight, Tag
 @admin.register(Highlight)
 class HighlightAdmin(admin.ModelAdmin):
     list_display = ("title", "highlight_tags", "image_preview")
-    list_filter = ("tags", "created_at")
+    list_filter = ("tags", "created")
     list_per_page = 15
     search_fields = ("title", "tags")
     readonly_fields = (
         "id",
         "created",
-        "created_at",
         "author",
         "updated_by",
         "modified",
@@ -40,13 +39,13 @@ class HighlightAdmin(admin.ModelAdmin):
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    list_display = ("id","name", "created_at")
+    list_display = ("id","name", "created" )
     list_filter = ("name", )
     list_per_page = 10
     search_fields = ("name", "id")
     readonly_fields = (
         "id",
-        "created_at",
+        "created",
         "author",
         "updated_by",
         "modified",
