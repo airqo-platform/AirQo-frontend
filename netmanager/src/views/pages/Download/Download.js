@@ -310,7 +310,7 @@ const Download = (props) => {
           a.click();
           document.body.removeChild(a);
         } else {
-          console.log("Something strange happened!");
+          alert("Unsupported file type");
         }
         
       })
