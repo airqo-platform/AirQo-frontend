@@ -11,13 +11,15 @@ import {
   Divider,
   CircularProgress,
   Tabs,
-  Tab,
+  Tab
 } from "@material-ui/core";
+import Alert from '@material-ui/lab/Alert';
 import Select from "react-select";
 import PropTypes from "prop-types";
 import clsx from "clsx";
 import TextField from "@material-ui/core/TextField";
 import { isEmpty } from "underscore";
+import Papa from 'papaparse';
 import moment from "moment";
 import { useDashboardSitesData } from "redux/Dashboard/selectors";
 import { loadSites } from "redux/Dashboard/operations";
@@ -29,6 +31,7 @@ import ErrorBoundary from "views/ErrorBoundary/ErrorBoundary";
 import { downloadUrbanBetterDataApi } from "../../apis/analytics";
 
 const { Parser } = require("json2csv");
+
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -76,6 +79,8 @@ const Download = (props) => {
   const [fileType, setFileType] = useState(null);
   const [outputFormat, setOutputFormat] = useState(null);
   const [deviceNumbers, setDeviceNumbers] = useState([]);
+  const [parsedCsvData, setParsedCsvData] = useState([]);
+  const [alertMessage, setAlertMessage] = useState(null);
 
   // Tabs
   const [value, setValue] = useState(0);
@@ -100,8 +105,24 @@ const Download = (props) => {
   ];
 
   const listOfDeviceNumbers = [
-    {value: 20259, label: 20258},
-    {value: 18559, label: 18559}
+    {value: 16020, label: 16020},
+    {value: 19857, label: 19857},
+    {value: 16016, label: 16016},
+    {value: 19503, label: 19503},
+    {value: 16088, label: 16088},
+    {value: 18079, label: 18079},
+    {value: 18130, label: 18130},
+    {value: 20259, label: 20259},
+    {value: 18556, label: 18556},
+    {value: 18566, label: 18566},
+    {value: 18455, label: 18455},
+    {value: 18425, label: 18425},
+    {value: 18132, label: 18132},
+    {value: 18559, label: 18559},
+    {value: 18567, label: 18567},
+    {value: 18564, label: 18564},
+    {value: 20838, label: 20838},
+    {value: 18110, label: 18110}
   ];
 
   function TabPanel(props) {
@@ -243,54 +264,59 @@ const Download = (props) => {
     let data = {
       startDate: roundToStartOfDay(new Date(startDate).toISOString()),
       endDate: roundToEndOfDay(new Date(endDate).toISOString()),
-      device_numbers: deviceNumbers
+      device_numbers: getValues(deviceNumbers)
     };
 
     await downloadUrbanBetterDataApi(data)
-      .then((response) => response.data)
       .then((resData) => {
-        console.log("Response Data", resData);
-        let filename = `airquality-${frequency.value}-data.${fileType.value}`;
-        if (fileType.value === "json") {
-          let contentType = "application/json;charset=utf-8;";
+        if(isEmpty(resData)) {
+          return setAlertMessage("No data found!");
+        }
 
-          if (window.navigator && window.navigator.msSaveOrOpenBlob) {
-            var blob = new Blob(
-              [decodeURIComponent(encodeURI(JSON.stringify(resData)))],
-              { type: contentType }
-            );
-            navigator.msSaveOrOpenBlob(blob, filename);
-          } else {
-            var a = document.createElement("a");
-            a.download = filename;
-            a.href =
-              "data:" +
-              contentType +
-              "," +
-              encodeURIComponent(JSON.stringify(resData));
-            a.target = "_blank";
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-          }
-        } else {
-          const downloadUrl = window.URL.createObjectURL(resData);
+        let filename = `airquality-data.${fileType.value}`;
+
+        if(fileType.value === "csv"){
+          const downloadUrl = window.URL.createObjectURL(new Blob([resData]));
           const link = document.createElement("a");
-
+          
           link.href = downloadUrl;
-          link.setAttribute("download", filename); //any other extension
-
+          link.setAttribute("download", filename);
+  
           document.body.appendChild(link);
-
           link.click();
           link.remove();
+        } else if(fileType.value === "json") {
+          Papa.parse(resData, {
+            header: true,
+            complete: response => {
+              setParsedCsvData(response.data)
+            },
+          });
+          
+          let contentType = "application/json;charset=utf-8;";
+          
+          var a = document.createElement("a");
+          a.download = filename;
+          a.href =
+            "data:" +
+            contentType +
+            "," +
+            encodeURIComponent(JSON.stringify(parsedCsvData));
+          a.target = "_blank";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        } else {
+          console.log("Something strange happened!");
         }
+        
       })
-      .catch((err) => console.log(err && err.response && err.response.data));
+      .catch((err) => console.log(err));
     setLoading(false);
     setStartDate(null);
     setEndDate(null);
     setFileType(null);
+    setDeviceNumbers([]);
   }
 
   return (
@@ -309,14 +335,15 @@ const Download = (props) => {
               />
 
               <Divider />
-
+              {alertMessage && <Alert severity="error" onClose={() => setAlertMessage(null)}>{alertMessage}</Alert>}
               <Tabs 
               value={value}
               onChange={handleChangeTabPanel}
-              textColor="secondary" 
+              textColor="primary"
+              indicatorColor="primary" 
               centered>
-                <Tab label="AirQo data" {...a11yProps(0)} />
-                <Tab label="UrbanBetter data" {...a11yProps(1)} />
+                <Tab disableRipple label="AirQo data" {...a11yProps(0)} />
+                <Tab disableRipple label="UrbanBetter data" {...a11yProps(1)} />
               </Tabs>
 
               <TabPanel value={value} index={0}>

@@ -41,5 +41,5 @@ export const loadD3ChartDataApi = async (data) => {
 export const downloadUrbanBetterDataApi = async (data) => {
   return await axios
     .post(URBAN_BETTER_DOWNLOAD_DATA_URI, data)
-    .then(response => response.data);
+    .then((response) => response.data);
 }
