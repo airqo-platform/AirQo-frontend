@@ -36,8 +36,6 @@ SECRET_KEY = env("SECRET_KEY")
 DEBUG = env.bool("DEBUG", default=False)
 TESTING = env.bool("TESTING", default=False)
 
-SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=True)
-
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS")
 
 EXTRA_CORS_ORIGIN_REGEX_WHITELIST = env.list(
