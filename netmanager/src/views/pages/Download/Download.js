@@ -29,6 +29,7 @@ import { updateMainAlert } from "redux/MainAlert/operations";
 import { useInitScrollTop, usePollutantsOptions } from "utils/customHooks";
 import ErrorBoundary from "views/ErrorBoundary/ErrorBoundary";
 import { downloadUrbanBetterDataApi } from "../../apis/analytics";
+import { useMainAlertData } from "../../../redux/MainAlert/selectors";
 
 const { Parser } = require("json2csv");
 
@@ -80,7 +81,6 @@ const Download = (props) => {
   const [outputFormat, setOutputFormat] = useState(null);
   const [deviceNumbers, setDeviceNumbers] = useState([]);
   const [parsedCsvData, setParsedCsvData] = useState([]);
-  const [alertMessage, setAlertMessage] = useState(null);
 
   // Tabs
   const [value, setValue] = useState(0);
@@ -212,7 +212,13 @@ const Download = (props) => {
       .then((response) => response.data)
       .then((resData) => {
         if(isEmpty(resData)) {
-          return setAlertMessage("No data found!");
+          return dispatch(
+            updateMainAlert({
+              show: true,
+              message: "No data found!",
+              severity: "error",
+            })
+          );
         }
         let filename = `airquality-${frequency.value}-data.${fileType.value}`;
         if (fileType.value === "json") {
@@ -272,8 +278,15 @@ const Download = (props) => {
 
     await downloadUrbanBetterDataApi(data)
       .then((resData) => {
+
         if(isEmpty(resData)) {
-          return setAlertMessage("No data found!");
+          return dispatch(
+            updateMainAlert({
+              show: true,
+              message: "No data found!",
+              severity: "error",
+            })
+          );
         }
 
         let filename = `airquality-data.${fileType.value}`;
@@ -310,11 +323,26 @@ const Download = (props) => {
           a.click();
           document.body.removeChild(a);
         } else {
-          alert("Unsupported file type");
+          dispatch(
+            updateMainAlert({
+              show: true,
+              message: "Unsupported file type",
+              severity: "error",
+            })
+          );
         }
         
       })
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        console.log(err);
+        dispatch(
+          updateMainAlert({
+            show: true,
+            message: err,
+            severity: "error",
+          })
+        );
+      });
     setLoading(false);
     setStartDate(null);
     setEndDate(null);
@@ -338,7 +366,7 @@ const Download = (props) => {
               />
 
               <Divider />
-              {alertMessage && <Alert severity="error" onClose={() => setAlertMessage(null)}>{alertMessage}</Alert>}
+              
               <Tabs 
               value={value}
               onChange={handleChangeTabPanel}
