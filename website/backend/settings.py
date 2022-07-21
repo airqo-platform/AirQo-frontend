@@ -82,10 +82,11 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_yasg",
     # My apps
-    "backend.career.apps.CareerConfig",
-    "backend.FAQ.apps.FaqConfig",
-    "backend.team.apps.TeamConfig",
-    "frontend.apps.FrontendConfig",
+    'backend.career.apps.CareerConfig',
+    'backend.FAQ.apps.FaqConfig',
+    'backend.team.apps.TeamConfig',
+    'frontend.apps.FrontendConfig',
+    'backend.highlights.apps.HighlightsConfig',
 ]
 
 MIDDLEWARE = [
