@@ -101,7 +101,7 @@ const Download = (props) => {
 
   const typeOutputFormatOptions = [
     { value: "aqcsv", label: "AQCSV" },
-    { value: "usual", label: "Usual" },
+    { value: "usual", label: "AirQo Standard" },
   ];
 
   const listOfDeviceNumbers = [
