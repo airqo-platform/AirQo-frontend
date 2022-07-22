@@ -20,7 +20,7 @@ import { useExploreData } from 'reduxStore/ExploreData/selectors';
 import { postExploreDataRequest, updateExploreData } from 'reduxStore/ExploreData/operations';
 import { isEmpty, isEqual } from 'underscore';
 import { useInitScrollTop } from 'utils/customHooks';
-import { PROD_NETMANAGER_URL } from 'config/urls';
+import { NETMANAGER_URL } from 'config/urls';
 
 const CATEGORY_TYPE = {
   researcher: 'researcher',
@@ -98,7 +98,7 @@ export const ExploreGetStarted = () => (
             <h2>Clean air for all African cities</h2>
             <p>Get access to an interactive air quality analytics platform.</p>
             <Link to="/explore-data/get-started/user"><button className="nav-button">Create Account</button></Link>
-            <small>Already have an account?<span><a href={PROD_NETMANAGER_URL} target="_blank" rel="noreferrer">Log in</a></span></small>
+            <small>Already have an account?<span><a href={NETMANAGER_URL} target="_blank" rel="noreferrer">Log in</a></span></small>
         </div>
     </PageWithImageLayout>
 );
@@ -276,7 +276,7 @@ export const ExploreUserRegistry = () => {
                         I agree to the <a>Terms of Service</a> and <a>Privacy Policy</a>
                     </ExploreTemplateFormFieldOption>
                     <button className="nav-button" type="submit" onSubmit={registerOrganisation}>{ loading ? <CircularProgress /> : 'Create Account' }</button>
-                    <small>Already have an account?<span><a href={PROD_NETMANAGER_URL} target="_blank" rel="noreferrer">Log in</a></span></small>
+                    <small>Already have an account?<span><a href={NETMANAGER_URL} target="_blank" rel="noreferrer">Log in</a></span></small>
                 </ExploreFormTemplate>
             </div>
         </PageWithImageLayout>
@@ -329,7 +329,7 @@ export const ExploreBusinessRegistry = () => {
                         I agree to the <a>Terms of Service</a> and <a>Privacy Policy</a>
                     </ExploreTemplateFormFieldOption>
                     <button type="submit" className="nav-button">{ loading ? <CircularProgress /> : 'Create Account' }</button>
-                    <small>Already have an account?<span><a href={PROD_NETMANAGER_URL} target="_blank" rel="noreferrer">Log in</a></span></small>
+                    <small>Already have an account?<span><a href={NETMANAGER_URL} target="_blank" rel="noreferrer">Log in</a></span></small>
                 </ExploreFormTemplate>
             </div>
         </PageWithImageLayout>
@@ -382,7 +382,7 @@ export const ExploreOrganisationRegistry = () => {
                         I agree to the <a>Terms of Service</a> and <a>Privacy Policy</a>
                     </ExploreTemplateFormFieldOption>
                     <button className="nav-button" type="submit">{ loading ? <CircularProgress /> : 'Create Account' }</button>
-                    <small>Already have an account?<span><a href={PROD_NETMANAGER_URL} target="_blank" rel="noreferrer">Log in</a></span></small>
+                    <small>Already have an account?<span><a href={NETMANAGER_URL} target="_blank" rel="noreferrer">Log in</a></span></small>
                 </ExploreFormTemplate>
             </div>
         </PageWithImageLayout>
