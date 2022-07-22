@@ -1,6 +1,5 @@
 import 'package:app/constants/config.dart';
 import 'package:app/models/enum_constants.dart';
-import 'package:app/utils/extensions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Region getRegionConstant(String value) {
@@ -25,21 +24,21 @@ Region getNextDashboardRegion(SharedPreferences sharedPreferences) {
   if (currentRegion == Region.central) {
     sharedPreferences.setString(
       Config.prefDashboardRegion,
-      Region.eastern.getName(),
+      Region.eastern.toString(),
     );
 
     return Region.eastern;
   } else if (currentRegion == Region.eastern) {
     sharedPreferences.setString(
       Config.prefDashboardRegion,
-      Region.western.getName(),
+      Region.western.toString(),
     );
 
     return Region.western;
   } else if (currentRegion == Region.western || currentRegion == Region.none) {
     sharedPreferences.setString(
       Config.prefDashboardRegion,
-      Region.central.getName(),
+      Region.central.toString(),
     );
 
     return Region.central;

@@ -11,12 +11,12 @@ import '../../widgets/buttons.dart';
 class InsightsPage extends StatefulWidget {
   const InsightsPage(
     this.placeDetails, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
   final PlaceDetails placeDetails;
 
   @override
-  _InsightsPageState createState() => _InsightsPageState();
+  State<InsightsPage> createState() => _InsightsPageState();
 }
 
 class _InsightsPageState extends State<InsightsPage>

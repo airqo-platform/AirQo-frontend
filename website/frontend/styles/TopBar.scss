@@ -35,11 +35,12 @@ h3, h4 {
       justify-content: space-between;
 
       .nav-dropdown-item {
+        position: relative;
         .dropdown {
           display: none;
           margin-top: 3px;
-          margin-left: 24px;
           position: absolute;
+          right: 0;
           width: 674px;
           height: 274px;
           border-radius: 8px;
@@ -213,7 +214,10 @@ h3, h4 {
       padding: 0 24px;
 
       .nav-center {
-        
+        margin: 0 auto;
+        transition: all 0.5s ease;
+        width: 100%;
+
         .dropdown-list-item {
           .dropdown {
             margin-left: 0;

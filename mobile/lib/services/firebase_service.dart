@@ -25,7 +25,7 @@ import 'hive_service.dart';
 class CloudAnalytics {
   static Future<void> logEvent(AnalyticsEvent analyticsEvent) async {
     await FirebaseAnalytics.instance.logEvent(
-      name: analyticsEvent.getName(),
+      name: analyticsEvent.snakeCase(),
     );
   }
 }
@@ -297,7 +297,7 @@ class CloudStore {
       return Profile.parseUserDetails(
         userJson.data(),
       );
-    } on FirebaseException catch (exception, _) {
+    } on FirebaseException catch (exception) {
       if (exception.code == 'not-found') {
         return await CustomAuth.createProfile();
       } else {

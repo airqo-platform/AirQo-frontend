@@ -7,7 +7,6 @@ import GetApp from '../components/get-app/GetApp';
 import MapSection from '../components/MapSection/MapSection';
 import { AnalyticsSection } from '../components/AnalyticsSection';
 import ApiSection from '../components/ApiSection/ApiSection';
-import HighlightSection from '../components/Highlight';
 import AirQuality from '../components/AirQuality/AirQuality';
 import Partners from '../components/Partners';
 import HighlightsSection from '../components/HighlightsSection';
@@ -26,7 +25,6 @@ const HomePage = () => {
                 <MapSection />
                 <GetApp />
                 <HighlightsSection />
-                <HighlightSection />
             </div>
         </Page>
     );

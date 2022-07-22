@@ -27,53 +27,53 @@ dependencies:
     sdk: flutter
 
   shared_preferences: ^2.0.15
-  google_maps_flutter: ^2.1.6
+  google_maps_flutter: ^2.1.8
   json_annotation: ^4.5.0
   http: ^0.13.4
   sqflite: ^2.0.2+1
   cached_network_image: ^3.2.1
-  geolocator: ^8.2.1
-  flutter_local_notifications: ^9.5.3+1
-  url_launcher: ^6.1.2
-  path_provider: ^2.0.10
+  geolocator: ^9.0.0
+  flutter_local_notifications: ^9.6.1
+  url_launcher: ^6.1.4
+  path_provider: ^2.0.11
   animations: ^2.0.3
   provider: ^6.0.3
   charts_flutter: ^0.12.0
   intl: ^0.17.0
   uuid: ^3.0.6
-  flutter_svg: ^1.1.0
-  camera: ^0.9.4+21
+  flutter_svg: ^1.1.1
   location: ^4.4.0
   image_picker: ^0.8.5+3
-  country_list_pick: ^1.0.1+5
+  country_list_pick: ^1.0.1+6
   shimmer: ^2.0.0
   google_fonts: ^3.0.1
   in_app_review: ^2.0.4
-  sentry_flutter: ^6.5.1
+  sentry_flutter: ^6.6.1
   lottie: ^1.3.0
-  share_plus: ^4.0.5
+  share_plus: ^4.0.8
   flutter_secure_storage: ^5.0.2
   geocoding: ^2.0.4
   flutter_dotenv: ^5.0.2
   auto_size_text: ^3.0.0
-  firebase_core: ^1.17.1
-  firebase_messaging: ^11.4.1
-  cloud_firestore: ^3.1.17
-  firebase_auth: ^3.3.19
-  firebase_analytics: ^9.1.9
-  firebase_storage: ^10.2.17
+  firebase_core: ^1.18.0
+  firebase_messaging: ^11.4.2
+  cloud_firestore: ^3.1.18
+  firebase_auth: ^3.3.20
+  firebase_analytics: ^9.1.10
+  firebase_storage: ^10.2.18
   scrollable_positioned_list: ^0.3.2
   visibility_detector: ^0.3.3
   package_info_plus: ^1.4.2
-  cloud_functions: ^3.2.16
+  cloud_functions: ^3.2.17
   webview_flutter: ^3.0.4
-  hive: ^2.2.1
+  hive: ^2.2.3
   hive_flutter: ^1.1.0
-  firebase_in_app_messaging: ^0.6.0+15
+  firebase_in_app_messaging: ^0.6.0+16
   permission_handler: ^9.2.0
-  firebase_crashlytics: ^2.8.1
+  firebase_crashlytics: ^2.8.2
   workmanager: ^0.5.0
   flutter_cache_manager: ^3.3.0
+  path: ^1.8.1
   # https://pub.dev/packages/http_retry
   # https://pub.dev/packages/retry
   
@@ -95,13 +95,13 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  flutter_lints: ^1.0.4
-  build_runner: ^2.1.7
-  json_serializable: ^6.1.4
-  dart_code_metrics: ^4.15.2
-  flutter_launcher_icons: ^0.9.2
+  flutter_lints: ^2.0.1
+  build_runner: ^2.1.11
+  json_serializable: ^6.2.0
+  dart_code_metrics: ^4.16.0
+  flutter_launcher_icons: ^0.9.3
   flutter_native_splash: ^2.1.6
-  hive_generator: ^1.1.2
+  hive_generator: ^1.1.3
 
 flutter:
 
@@ -116,19 +116,6 @@ flutter:
     - assets/lottie/
     - .env.dev
     - .env.prod
-
-  fonts:
-   - family: Inter
-     fonts:
-       - asset: assets/fonts/Inter-Bold.ttf
-       - asset: assets/fonts/Inter-Black.ttf
-       - asset: assets/fonts/Inter-ExtraBold.ttf
-       - asset: assets/fonts/Inter-ExtraLight.ttf
-       - asset: assets/fonts/Inter-Light.ttf
-       - asset: assets/fonts/Inter-Medium.ttf
-       - asset: assets/fonts/Inter-Regular.ttf
-       - asset: assets/fonts/Inter-Thin.ttf
-       - asset: assets/fonts/Inter-SemiBold.ttf
 
 # https://fonts.google.com/specimen/Inter?query=inter
 
