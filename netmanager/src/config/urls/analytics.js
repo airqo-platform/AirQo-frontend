@@ -24,3 +24,5 @@ export const DOWNLOAD_DATA = `${BASE_ANALYTICS_URL}/analytics/data/download?type
 export const GET_MONITORING_SITES_URI = `${BASE_ANALYTICS_URL}/analytics/dashboard/monitoringsites?organisation_name=KCCA`;
 
 export const GET_DATA_MAP = `${BASE_ANALYTICS_URL}/analytics/dashboard/monitoringsites?organisation_name=KCCA&pm25_category=`;
+
+export const URBAN_BETTER_DOWNLOAD_DATA_URI = `${BASE_ANALYTICS_URL}/analytics/data/download?tenant=urbanbetter`;
