@@ -33,3 +33,5 @@ export const CAREERS_URL = `${WEBSITE_BASE_URL}/career/`;
 export const DEPARTMENTS_URL = `${WEBSITE_BASE_URL}/departments/`;
 
 export const TEAMS_URL = `${WEBSITE_BASE_URL}/team/`;
+
+export const PROD_NETMANAGER_URL = stripTrailingSlash(process.env.REACT_NETMANAGER_BASE_URL.replace("/api/v1/", ""));
