@@ -18,7 +18,7 @@ jobs:
           string: ${{ github.head_ref || github.ref_name }}
 
   check:
-    name: check for changes in platform
+    name: check for changed frontends
     outputs:
       run_platform: ${{ steps.check_files.outputs.run_platform }} # platform
       run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }} # calibrate app
