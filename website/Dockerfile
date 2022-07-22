@@ -37,6 +37,7 @@ COPY ./backend /app/backend
 COPY --from=frontend /app/frontend /app/frontend
 
 EXPOSE 8080
-CMD python manage.py migrate && \
+CMD python manage.py makemigrations && \
+    python manage.py migrate && \
     python manage.py collectstatic --noinput && \
     gunicorn --bind=0.0.0.0:8080 backend.wsgi
