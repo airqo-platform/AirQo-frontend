@@ -10,6 +10,7 @@
     height: 900px;
 
     &-details {
+        // margin-right: 40px;
         width:520px;
 
         h3 {
@@ -41,16 +42,14 @@
             font-weight: 400;
         }
 
-        &-btn{
+        &-btn {
             color: $aq-blue-0;
             display: flex;
             align-items: center;
             font-size: $linkFont;
+            font-weight: 500px;
             font-style: normal;
             cursor: pointer;
-            a{
-                font-weight: 500;
-            }
         }
     }
 
@@ -74,13 +73,22 @@
         width: 100%;
         height: auto;
         margin-bottom: 40px;
-        margin-top: 40px;
 
         &-details {
             margin: 0 auto;
             width: 100%;
-            padding: 80px 16px 0 16px; 
+            padding: 80px 16px 0 16px;
+
+            h1 {
+                font-size: 40px;
+                line-height: 48px;
+                font-weight: 500;
+            }
+    
             p {
+                font-size: 20px;
+                line-height: 28px;
+                font-weight: 400;
                 margin-bottom: 38px;
             }
 
@@ -88,16 +96,12 @@
                 margin-bottom: 42.75px;
             }
         }
+        
         .api-section-img {
-            display: flex;
-            justify-content: center;
-            img{
-            width: 90%;
-            height: 96%;
-            margin: 0;
-            padding: 0;
-            overflow-x: hidden;
-            }
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            overflow: hidden;
         }
     }
 }

@@ -10,9 +10,9 @@ import '../../themes/colors.dart';
 
 class NotificationView extends StatefulWidget {
   const NotificationView({
-    super.key,
+    Key? key,
     required this.appNotification,
-  });
+  }) : super(key: key);
   final AppNotification appNotification;
 
   @override
@@ -141,9 +141,9 @@ class _NotificationViewState extends State<NotificationView> {
 
 class NotificationCard extends StatelessWidget {
   const NotificationCard({
-    super.key,
+    Key? key,
     required this.appNotification,
-  });
+  }) : super(key: key);
   final AppNotification appNotification;
 
   @override
@@ -249,8 +249,8 @@ class NotificationCard extends StatelessWidget {
 
 class EmptyNotifications extends StatelessWidget {
   const EmptyNotifications({
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

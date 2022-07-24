@@ -1,4 +1,5 @@
 import 'package:app/models/enum_constants.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -9,8 +10,8 @@ import '../../widgets/text_fields.dart';
 
 class FeedbackBackButton extends StatelessWidget {
   const FeedbackBackButton({
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -44,10 +45,10 @@ class FeedbackBackButton extends StatelessWidget {
 
 class FeedbackNextButton extends StatelessWidget {
   const FeedbackNextButton({
-    super.key,
+    Key? key,
     required this.text,
     required this.buttonColor,
-  });
+  }) : super(key: key);
   final String text;
   final Color buttonColor;
 
@@ -92,9 +93,9 @@ class FeedbackNextButton extends StatelessWidget {
 
 class FeedbackTypeAvatar extends StatelessWidget {
   const FeedbackTypeAvatar({
-    super.key,
+    Key? key,
     required this.active,
-  });
+  }) : super(key: key);
   final bool active;
 
   @override
@@ -121,11 +122,11 @@ class FeedbackTypeAvatar extends StatelessWidget {
 
 class FeedbackProgressBar extends StatelessWidget {
   const FeedbackProgressBar({
-    super.key,
+    Key? key,
     required this.feedbackType,
     required this.index,
     required this.feedbackChannel,
-  });
+  }) : super(key: key);
 
   final int index;
   final FeedbackType feedbackType;
@@ -187,10 +188,10 @@ class FeedbackProgressBar extends StatelessWidget {
 
 class EmailFeedbackInputField extends StatelessWidget {
   const EmailFeedbackInputField({
-    super.key,
+    Key? key,
     required this.onEmailChange,
     required this.initialValue,
-  });
+  }) : super(key: key);
   final Function(String) onEmailChange;
   final String initialValue;
 
@@ -239,10 +240,10 @@ class EmailFeedbackInputField extends StatelessWidget {
 
 class FeedbackFormInputField extends StatelessWidget {
   const FeedbackFormInputField({
-    super.key,
+    Key? key,
     required this.onFeedbackChange,
     required this.initialValue,
-  });
+  }) : super(key: key);
   final Function(String) onFeedbackChange;
   final String initialValue;
 
@@ -287,12 +288,12 @@ class FeedbackFormInputField extends StatelessWidget {
 
 class FeedbackCard extends StatelessWidget {
   const FeedbackCard({
-    super.key,
+    Key? key,
     required this.activeCard,
     required this.index,
     required this.title,
     required this.updateIndex,
-  });
+  }) : super(key: key);
 
   final int activeCard;
   final int index;
@@ -331,10 +332,10 @@ class FeedbackCard extends StatelessWidget {
 
 class FeedbackForm extends StatelessWidget {
   const FeedbackForm({
-    super.key,
+    Key? key,
     required this.onFeedbackChange,
     required this.initialValue,
-  });
+  }) : super(key: key);
   final Function(String) onFeedbackChange;
   final String initialValue;
 
@@ -365,14 +366,14 @@ class FeedbackForm extends StatelessWidget {
 
 class FeedbackNavigationButtons extends StatelessWidget {
   const FeedbackNavigationButtons({
-    super.key,
+    Key? key,
     required this.step,
     required this.feedbackType,
     required this.feedbackChannel,
     required this.updateStep,
     required this.isLoading,
     required this.onNextButtonClick,
-  });
+  }) : super(key: key);
   final int step;
   final FeedbackType feedbackType;
   final FeedbackChannel feedbackChannel;
@@ -425,10 +426,10 @@ class FeedbackNavigationButtons extends StatelessWidget {
 
 class FeedbackTypeStep extends StatefulWidget {
   const FeedbackTypeStep({
-    super.key,
+    Key? key,
     required this.feedbackType,
     required this.initialSelection,
-  });
+  }) : super(key: key);
   final Function(FeedbackType) feedbackType;
   final FeedbackType initialSelection;
   @override
@@ -499,7 +500,7 @@ class _FeedbackTypeStepState extends State<FeedbackTypeStep> {
           height: 16,
         ),
         FeedbackCard(
-          title: FeedbackType.reportAirPollution.toString(),
+          title: FeedbackType.reportAirPollution.stringValue(),
           activeCard: activeCard,
           index: 0,
           updateIndex: _updateIndex,
@@ -508,7 +509,7 @@ class _FeedbackTypeStepState extends State<FeedbackTypeStep> {
           height: 4,
         ),
         FeedbackCard(
-          title: FeedbackType.inquiry.toString(),
+          title: FeedbackType.inquiry.stringValue(),
           activeCard: activeCard,
           index: 1,
           updateIndex: _updateIndex,
@@ -517,7 +518,7 @@ class _FeedbackTypeStepState extends State<FeedbackTypeStep> {
           height: 4,
         ),
         FeedbackCard(
-          title: FeedbackType.suggestion.toString(),
+          title: FeedbackType.suggestion.stringValue(),
           activeCard: activeCard,
           index: 2,
           updateIndex: _updateIndex,
@@ -526,7 +527,7 @@ class _FeedbackTypeStepState extends State<FeedbackTypeStep> {
           height: 4,
         ),
         FeedbackCard(
-          title: FeedbackType.appBugs.toString(),
+          title: FeedbackType.appBugs.stringValue(),
           activeCard: activeCard,
           index: 3,
           updateIndex: _updateIndex,
@@ -538,12 +539,12 @@ class _FeedbackTypeStepState extends State<FeedbackTypeStep> {
 
 class FeedbackChannelStep extends StatefulWidget {
   const FeedbackChannelStep({
-    super.key,
+    Key? key,
     required this.feedbackChannel,
     required this.onEmailChange,
     required this.initialSelection,
     required this.initialEmailValue,
-  });
+  }) : super(key: key);
   final Function(FeedbackChannel) feedbackChannel;
   final Function(String) onEmailChange;
   final FeedbackChannel initialSelection;
@@ -604,7 +605,7 @@ class _FeedbackChannelStepState extends State<FeedbackChannelStep> {
           height: 16,
         ),
         FeedbackCard(
-          title: FeedbackChannel.email.toString(),
+          title: FeedbackChannel.email.stringValue(),
           activeCard: activeCard,
           index: 0,
           updateIndex: _updateIndex,
@@ -623,7 +624,7 @@ class _FeedbackChannelStepState extends State<FeedbackChannelStep> {
           height: 16,
         ),
         FeedbackCard(
-          title: FeedbackChannel.whatsApp.toString(),
+          title: FeedbackChannel.whatsApp.stringValue(),
           activeCard: activeCard,
           index: 1,
           updateIndex: _updateIndex,

@@ -14,10 +14,10 @@ import '../../themes/colors.dart';
 import 'feedback_page_widgets.dart';
 
 class FeedbackPage extends StatefulWidget {
-  const FeedbackPage({super.key});
+  const FeedbackPage({Key? key}) : super(key: key);
 
   @override
-  State<FeedbackPage> createState() => _FeedbackPageState();
+  _FeedbackPageState createState() => _FeedbackPageState();
 }
 
 class _FeedbackPageState extends State<FeedbackPage> {
@@ -106,7 +106,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
 
   void _openWhatsapp() async {
     final whatsappUrl =
-        '${Config.whatsappUrl}${Uri.encodeFull(_feedbackType.toString())}';
+        '${Config.whatsappUrl}${Uri.encodeFull(_feedbackType.stringValue())}';
 
     if (Platform.isIOS || Platform.isAndroid) {
       if (await canLaunchUrl(Uri.parse(whatsappUrl))) {

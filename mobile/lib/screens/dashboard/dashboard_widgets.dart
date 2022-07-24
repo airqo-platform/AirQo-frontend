@@ -1,3 +1,4 @@
+import 'package:app/utils/extensions.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -17,10 +18,10 @@ import '../search/search_page.dart';
 
 class DashboardFavPlaceAvatar extends StatelessWidget {
   const DashboardFavPlaceAvatar({
-    super.key,
+    Key? key,
     required this.rightPadding,
     required this.measurement,
-  });
+  }) : super(key: key);
   final double rightPadding;
   final Measurement measurement;
 
@@ -60,10 +61,10 @@ class DashboardFavPlaceAvatar extends StatelessWidget {
 
 class KyaDashboardAvatar extends StatelessWidget {
   const KyaDashboardAvatar({
-    super.key,
+    Key? key,
     required this.kya,
     required this.rightPadding,
-  });
+  }) : super(key: key);
   final Kya kya;
   final double rightPadding;
 
@@ -102,9 +103,9 @@ class KyaDashboardAvatar extends StatelessWidget {
 
 class DashboardEmptyAvatar extends StatelessWidget {
   const DashboardEmptyAvatar({
-    super.key,
+    Key? key,
     required this.rightPadding,
-  });
+  }) : super(key: key);
   final double rightPadding;
 
   @override
@@ -129,7 +130,7 @@ class DashboardEmptyAvatar extends StatelessWidget {
 }
 
 class DashboardTopBar extends StatelessWidget implements PreferredSizeWidget {
-  const DashboardTopBar({super.key});
+  const DashboardTopBar({Key? key}) : super(key: key);
 
   @override
   PreferredSizeWidget build(BuildContext context) {
@@ -189,10 +190,10 @@ class DashboardTopBar extends StatelessWidget implements PreferredSizeWidget {
 
 class DashboardKyaCard extends StatelessWidget {
   const DashboardKyaCard({
-    super.key,
+    Key? key,
     required this.kya,
     required this.kyaClickCallBack,
-  });
+  }) : super(key: key);
   final Kya kya;
   final Function(Kya) kyaClickCallBack;
 

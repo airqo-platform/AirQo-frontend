@@ -14,8 +14,8 @@ import 'on_boarding_widgets.dart';
 
 class LocationSetupScreen extends StatefulWidget {
   const LocationSetupScreen({
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
 
   @override
   LocationSetupScreenState createState() => LocationSetupScreenState();

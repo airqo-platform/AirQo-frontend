@@ -70,7 +70,7 @@
   flex-wrap: wrap;
   justify-content: center;
   width: 100%;
-  min-height: 621px;
+  min-height: 721px;
   max-width: $columnWidth;
   background: $aq-white-0;
   color: $aq-black-1;
@@ -365,12 +365,12 @@
       width: 100%;
       height: auto;
       margin: 0;
-      margin-bottom: 20px;
+      margin-bottom: 40px;
     }
 
     .hero-buttons {
       flex-direction: column;
-      align-items: center;
+      // align-items: center;
       width: 100%;
       margin: 0 auto;
     }

@@ -86,6 +86,3 @@ flutter build ipa --obfuscate --split-debug-info=${PWD}/obfuscate
 flutter build appbundle [--analyze-size]
 flutter build ipa [--analyze-size]
 ```
-
-## **Security Guidelines**
-We strive to follow an established industry standard for mobile application security from the  OWASP (the Open Web Application Security Project), The OWASP Mobile Application Security Verification Standard (MASVS) provides a set of baseline security criteria for developers. For a detailed security guide. Check out  the  [MASVS Level 1 requirements.](https://github.com/appdefensealliance/ASA/blob/main/MobileAppSecurityAssessment/MobileSecurityGuide.md)
