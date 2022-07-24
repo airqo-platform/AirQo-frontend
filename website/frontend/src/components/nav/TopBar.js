@@ -6,7 +6,6 @@ import MenuIcon from 'assets/svg/Menu.svg';
 import CloseIcon from 'assets/svg/Close.svg';
 import { Link } from 'react-router-dom';
 import NavTab from './NavTab';
-import { showExploreDataModal } from '../../../reduxStore/ExploreData/operations';
 
 const TopBar = () => {
   const dispatch = useDispatch();
@@ -63,7 +62,7 @@ const TopBar = () => {
                     </div>
                     <NavTab text="About" path="/about-us" hideArrow />
                     <NavTab text="Get involved" hideArrow colored onClick={showModal} />
-                    <NavTab text="Explore data" path="/explore-data" hideArrow filled />
+                    {/* <NavTab text="Explore data" hideArrow filled /> */}
                 </div>
 
             </div>

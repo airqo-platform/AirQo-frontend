@@ -7,6 +7,7 @@ import 'package:app/models/place_details.dart';
 import 'package:app/models/profile.dart';
 import 'package:app/models/site.dart';
 import 'package:app/utils/distance.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:path/path.dart';
@@ -103,7 +104,7 @@ class DBHelper {
       final res = await db.query(
         Insights.dbName(),
         where: 'siteId = ? and frequency = ?',
-        whereArgs: [siteId, frequency.toString()],
+        whereArgs: [siteId, frequency.getName()],
       );
 
       return res.isNotEmpty
@@ -267,7 +268,7 @@ class DBHelper {
       final res = await db.query(
         Measurement.measurementsDb(),
         where: 'region = ?',
-        whereArgs: [region.toString().trim()],
+        whereArgs: [region.getName().trim()],
       );
 
       return res.isNotEmpty
@@ -522,7 +523,7 @@ class SharedPreferencesHelper {
     final sharedPreferences = await SharedPreferences.getInstance();
     await sharedPreferences.setString(
       Config.prefOnBoardingPage,
-      currentBoardingPage.toString(),
+      currentBoardingPage.getName(),
     );
   }
 

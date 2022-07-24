@@ -1,0 +1,11 @@
+airqo_db.sql
+apache_log
+db_data/airqo_db.sql
+.env
+system
+vendor
+composer.phar
+.DS_Store
+.vscode
+docker/nginx/logs
+assets/ckfinder/userfiles/*

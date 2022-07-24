@@ -19,11 +19,11 @@ import '../notification/notification_page.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
 
   @override
-  State<ProfileView> createState() => _ProfileViewState();
+  _ProfileViewState createState() => _ProfileViewState();
 }
 
 class _ProfileViewState extends State<ProfileView> {

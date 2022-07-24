@@ -44,8 +44,8 @@ class NotificationService {
       final profile = await Profile.getProfile();
       await profile.update();
     }).onError(
-      (exception) {
-        logException(exception, null);
+      (err) {
+        logException(err, '');
       },
     );
   }

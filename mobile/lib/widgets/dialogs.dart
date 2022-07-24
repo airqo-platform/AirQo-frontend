@@ -1,3 +1,4 @@
+import 'package:app/utils/extensions.dart';
 import 'package:app/utils/pm.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
@@ -315,10 +316,10 @@ Future<void> showSnackBar(context, String message) async {
 
 class AuthConfirmationDialog extends StatelessWidget {
   const AuthConfirmationDialog({
-    super.key,
+    Key? key,
     required this.authMethod,
     required this.credentials,
-  });
+  }) : super(key: key);
   final AuthMethod authMethod;
   final String credentials;
 
@@ -361,25 +362,25 @@ class AuthConfirmationDialog extends StatelessWidget {
           onPressed: () {
             Navigator.of(context).pop(ConfirmationAction.cancel);
           },
-          isDefaultAction: true,
-          isDestructiveAction: true,
           child: Text(
             'Edit',
             style: CustomTextStyle.caption4(context)
                 ?.copyWith(color: CustomColors.appColorBlue),
           ),
+          isDefaultAction: true,
+          isDestructiveAction: true,
         ),
         CupertinoDialogAction(
           onPressed: () {
             Navigator.of(context).pop(ConfirmationAction.ok);
           },
-          isDefaultAction: true,
-          isDestructiveAction: false,
           child: Text(
             'Yes',
             style: CustomTextStyle.caption4(context)
                 ?.copyWith(color: CustomColors.appColorBlue),
           ),
+          isDefaultAction: true,
+          isDestructiveAction: false,
         ),
       ],
     );

@@ -23,11 +23,11 @@ import 'about_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
 
   @override
-  State<SettingsPage> createState() => _SettingsPageState();
+  _SettingsPageState createState() => _SettingsPageState();
 }
 
 class _SettingsPageState extends State<SettingsPage> {
@@ -207,8 +207,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
   void showConfirmationDialog(BuildContext context) {
     Widget okButton = TextButton(
-      onPressed: _deleteAccount,
       child: const Text('Yes'),
+      onPressed: _deleteAccount,
     );
 
     Widget cancelButton = TextButton(

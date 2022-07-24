@@ -9,8 +9,8 @@ import '../../themes/colors.dart';
 
 class SetUpCompleteScreen extends StatefulWidget {
   const SetUpCompleteScreen({
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
 
   @override
   SetUpCompleteScreenState createState() => SetUpCompleteScreenState();
