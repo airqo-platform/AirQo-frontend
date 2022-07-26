@@ -70,12 +70,11 @@
   flex-wrap: wrap;
   justify-content: center;
   width: 100%;
-  min-height: 621px;
   max-width: $columnWidth;
   background: $aq-white-0;
   color: $aq-black-1;
   margin: 0 auto;
-
+  padding: 80px 0;
 
   >span {
     position: relative;
@@ -109,6 +108,10 @@
     font-size: $subTextFont;
     line-height: 28px;
     margin: 0;
+    .fact {
+        color: $aq-blue-0;
+        font-weight: 600;
+      }
   }
 
   .hero-buttons {
@@ -126,7 +129,7 @@
   }
 }
 
-@media (min-width: $mainBreakPoint) {
+@media (min-width: $mainBreakPoint){
   .Hero {
     align-items: center;
     justify-content: space-between;
@@ -327,22 +330,23 @@
 
 }
 
-@media(max-width: $mainBreakPoint) {
+@media (max-width: $mainBreakPoint){
   .Hero {
     align-items: center;
     justify-content: space-between;
     width: 100%;
     height: 100%;
     margin: 0;
+    padding:20px 0 0 0;
 
     >span {
       position: relative;
       padding: 0 16px;
-      margin-bottom: 40px;
+      margin-bottom: 30px;
       >img {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        border-radius: 16px;
       }
     }
 
@@ -354,9 +358,7 @@
     .hero-title {
       width: 100%;
       font-size: 48px;
-      font-weight: 700;
       line-height: 56px;
-      color: $aq-black-1;
       margin: 0;
       margin-bottom: 16px;
     }
@@ -369,11 +371,18 @@
     }
 
     .hero-buttons {
-      flex-direction: column;
-      align-items: center;
-      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr;
+      padding: 0;
+      width: auto;
       margin: 0 auto;
     }
+  }
+  .button-hero{
+    display: flex;
+    align-content: center;
+    justify-content: center;
+    width: 100%;
   }
 
   .button-hero, .button-get-involved {
@@ -394,15 +403,39 @@
     margin: 0;
   }
 
-  .button-hero {
-    width: 328px;
-    padding: 16px 108.5px;
-  }
+}
 
-  .button-get-involved {
-    margin-top: 12px;
-    width: 328px;
-    padding: 16px 116px;
-    box-sizing: border-box;
+@media screen and(min-width:$mainBreakPoint)and(max-width: 992px){
+  .Hero{
+    flex-flow: column-reverse wrap;
+    align-items: flex-start;
+    justify-content: center;
+    padding:80px 20px;
+    >span{
+      >img{
+        width: 100%;
+        height: 100%;
+      }
+    }
+    .hero-content{
+      width: 100%;
+      max-width: none;
+      height: auto;
+      text-align: center;
+    }
+    .hero-title{
+      width: auto;
+      height: auto;
+      padding-top: 30px;
+    }
+    .hero-sub{
+      width: auto;
+      margin-bottom: 0;
+      text-align: center;
+    }
+    .hero-buttons{
+      width: auto;
+      justify-content: center;
+    }
   }
 }
