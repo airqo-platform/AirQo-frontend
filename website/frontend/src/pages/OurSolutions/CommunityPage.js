@@ -7,12 +7,12 @@ import AssetImg1 from 'assets/img/community/Rectangle 411.jpg';
 import AssetImg2 from 'assets/img/community/Rectangle 405.jpg';
 import AssetImg3 from 'assets/img/community/Rectangle 410.jpg';
 import AssetImg6 from 'assets/img/community/Rectangle 408.png';
-import TrainingImg1 from 'assets/img/community/community-7.JPG';
-import TrainingImg2 from 'assets/img/community/community-8.JPG';
+import TrainingImg1 from 'assets/img/community/AirQo_Web_IMG01.jpg';
+import TrainingImg2 from 'assets/img/community/AirQo_Web_IMG10.jpg';
 import CommunityStar from 'assets/img/community/Communities Star.svg';
 import AirQoArrowLeft from 'assets/img/community/AirQo_arrow_left.svg';
 import AirQoQuotes from 'assets/img/community/AirQo_quotes.png';
-import Page from './Page';
+import Page from '../Page';
 import { Link } from 'react-router-dom';
 
 const CommunityPage = () => {

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, Outlet } from 'react-router-dom'
-import Page from "./Page";
+import Page from "../Page";
 import Uganda from 'icons/africanCities/countries/uganda.svg';
 import Kenya from 'icons/africanCities/countries/kenya.svg';
 import Nigeria from 'icons/africanCities/countries/nigeria.svg';
@@ -8,18 +8,18 @@ import Ghana from 'icons/africanCities/countries/ghana.svg';
 import Burundi from 'icons/africanCities/countries/burundi.svg';
 import Senegal from 'icons/africanCities/countries/senegal.svg';
 import Mozambique from 'icons/africanCities/countries/mozambique.svg';
-import { useInitScrollTop } from "../../utils/customHooks";
-import ConsultImg from "../icons/research/consult.png";
-import ConsultLongImg from "../icons/research/consult-long.png";
-import ConsultImg2 from "../icons/research/consult-2.png";
-import BackgroundShape from "../icons/africanCities/background-shape.svg";
-import ArrowRight from "../icons/research/arrow-right.svg";
-import NEMACollabImg1 from "assets/img/community/community-1.JPG";
-import NEMACollabImg2 from "assets/img/community/community-2.JPG";
-import NEMACollabImg3 from "assets/img/community/community-3.JPG";
-import KCCACollabImg1 from "assets/img/community/community-4.JPG";
-import KCCACollabImg2 from "assets/img/community/community-5.JPG";
-import KCCACollabImg3 from "assets/img/community/community-6.JPG";
+import { useInitScrollTop } from "utils/customHooks";
+import ConsultImg from "icons/research/consult.png";
+import ConsultLongImg from "icons/research/consult-long.png";
+import ConsultImg2 from "icons/research/consult-2.png";
+import BackgroundShape from "icons/africanCities/background-shape.svg";
+import ArrowRight from "icons/research/arrow-right.svg";
+import NEMACollabImg1 from "assets/img/community/AirQo_Web_IMG05.jpg";
+import NEMACollabImg2 from "assets/img/community/AirQo_Web_IMG03.jpg";
+import NEMACollabImg3 from "assets/img/community/AirQo_Web_IMG04.jpg";
+import KCCACollabImg1 from "assets/img/community/AirQo_Web_IMG09.jpg";
+import KCCACollabImg2 from "assets/img/community/AirQo_Web_IMG08.jpg";
+import KCCACollabImg3 from "assets/img/community/AirQo_Web_IMG07.jpg";
 
 const CityHeroSection = () => {
     return (

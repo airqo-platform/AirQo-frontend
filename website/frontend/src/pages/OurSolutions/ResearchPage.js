@@ -1,14 +1,14 @@
 import React from "react";
-import Page from "./Page";
+import Page from "../Page";
 import ArrowRight from 'icons/research/arrow-right.svg';
 import ConsultImg2 from 'icons/research/consult-2.png';
 import ConsultLongImg from 'icons/research/consult-long.png';
 import UniversityImg1 from 'assets/img/community/community-9.JPG';
-import UniversityImg2 from 'assets/img/community/community-10.JPG';
-import UniversityImg3 from 'assets/img/community/community-11.JPG';
-import ResearchImg1 from 'assets/img/community/community-12.JPG';
+import UniversityImg2 from 'assets/img/community/AirQo_Web_IMG13.jpg';
+import UniversityImg3 from 'assets/img/community/AirQo_Web_IMG02.jpg';
+import ResearchImg1 from 'assets/img/community/AirQo_Web_IMG06.jpg';
 import BackgroundShape from 'icons/research/background-shape.svg';
-import { useInitScrollTop } from "../../utils/customHooks";
+import { useInitScrollTop } from "utils/customHooks";
 import { Link } from "react-router-dom";
 
 const ResearchHeroSection = () => {
