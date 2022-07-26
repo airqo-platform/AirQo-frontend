@@ -211,15 +211,6 @@ const Download = (props) => {
     await downloadDataApi(fileType.value, data, fileType.value === "csv" , outputFormat.value)
       .then((response) => response.data)
       .then((resData) => {
-        if(isEmpty(resData)) {
-          return dispatch(
-            updateMainAlert({
-              show: true,
-              message: "No data found!",
-              severity: "error",
-            })
-          );
-        }
         let filename = `airquality-${frequency.value}-data.${fileType.value}`;
         if (fileType.value === "json") {
           let contentType = "application/json;charset=utf-8;";
@@ -278,16 +269,6 @@ const Download = (props) => {
 
     await downloadUrbanBetterDataApi(data)
       .then((resData) => {
-
-        if(isEmpty(resData)) {
-          return dispatch(
-            updateMainAlert({
-              show: true,
-              message: "No data found!",
-              severity: "error",
-            })
-          );
-        }
 
         let filename = `airquality-data.${fileType.value}`;
 
