@@ -217,20 +217,19 @@ h3, h4 {
         margin: 0 auto;
         transition: all 0.5s ease;
         width: 100%;
-
-        .dropdown-list-item {
-          .dropdown {
-            margin-left: 0;
+        .nav-dropdown-item{
+          .dropdown{
+            .dropdown-list{
+              flex-direction: column;
+              flex-wrap: nowrap;
+              margin-left: 0;
+              .dropdown-list-item{
+                padding: 8px 0;
+              }
+            }
           }
         }
       }
     }
-
-    .dropdown-list {
-      flex-direction: column;
-      flex-wrap: nowrap;
-      margin-left: 0;
-    }
-  
   }
 }
