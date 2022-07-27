@@ -3,21 +3,19 @@
 .AnalyticsSection {
     position: relative;
     background-color: $aq-blue-1;
-    height: 1038px;
     width: 100%;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    padding: 80px 0;
     
     .wrapper {
         max-width: $columnWidth;
         margin: 0 auto;
         display: flex;
         justify-content: flex-start;
-        flex-wrap: wrap;
-        margin-bottom: 64px;
-        margin-top: 120px;
+        flex-flow: column wrap;    
 
         h3 {
             background-color: $aq-white-0;
@@ -141,3 +139,26 @@
     
     }
 } 
+
+@media screen and(min-width:$mainBreakPoint)and(max-width: $tabBreakPoint){
+    .AnalyticsSection{
+        display: block;
+        padding: 80px 20px;
+        .wrapper{
+            .AnalyticsSection-info{
+                flex-direction: column;
+                h1{
+                    width: 100%;
+                }
+                &-aside p{
+                    width: 100%;
+                    margin: 0;
+                    margin-bottom: 32px;
+                }
+            }
+        }  
+        .analytics-img{
+            margin-top: 40px;
+        }  
+    }
+}
