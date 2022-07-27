@@ -22,9 +22,11 @@ from drf_yasg import openapi
 from .career import views as career_views
 from .FAQ import views as FAQ_views
 from .team import views as team_views
+from .highlights import views as highlight_views
+from .highlights import views as tag_views
 
 # Config Admin Panel
-admin.site.site_header = "AirQo Administration"
+admin.site.site_header = "AirQo Website Administration"
 admin.site.site_title = "AirQo Admin Portal"
 admin.site.index_title = "Welcome to AirQo Website Administration Portal"
 
@@ -35,7 +37,9 @@ api_router = SimpleRouter()
 api_router.register(r'team', team_views.TeamViewSet)
 api_router.register(r'faq', FAQ_views.FAQViewSet)
 api_router.register(r'career', career_views.CareerViewSet)
+api_router.register(r'highlights', highlight_views.HighlightViewSet)
 api_router.register(r'departments', career_views.DepartmentViewSet)
+api_router.register(r'tags', tag_views.TagViewSet)
 
 # Config DRF Auto-Swagger Generation
 schema_view = get_schema_view(

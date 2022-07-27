@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   check:
-    name: check for changes in app folder
+    name: check for changes in the mobile app
     outputs:
       run_app_metrics: ${{ steps.check_files.outputs.run_app_metrics }}
 

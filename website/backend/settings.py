@@ -36,6 +36,8 @@ SECRET_KEY = env("SECRET_KEY")
 DEBUG = env.bool("DEBUG", default=False)
 TESTING = env.bool("TESTING", default=False)
 
+SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=True)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS")
 
@@ -82,10 +84,11 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_yasg",
     # My apps
-    "backend.career.apps.CareerConfig",
-    "backend.FAQ.apps.FaqConfig",
-    "backend.team.apps.TeamConfig",
-    "frontend.apps.FrontendConfig",
+    'backend.career.apps.CareerConfig',
+    'backend.FAQ.apps.FaqConfig',
+    'backend.team.apps.TeamConfig',
+    'frontend.apps.FrontendConfig',
+    'backend.highlights.apps.HighlightsConfig',
 ]
 
 MIDDLEWARE = [
