@@ -540,6 +540,10 @@
 
 @media(max-width: $mainBreakPoint) {
   .AfricanCitiesPage {
+    overflow-x: visible;
+    .cities-divider {
+      margin: 64px auto;
+    }
     .approach-section {
       .section-row {
         flex-direction: column;
@@ -576,6 +580,24 @@
             display: none;
           }
         }
+
+        .consult-text {
+          .number-list {
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: flex-start;
+  
+            span:first-child {
+              margin-bottom: 16px;
+            }
+  
+            span:last-child {
+              width: 100%;
+              margin: 0;
+            }
+          }
+        }
+        
       }
     }
   }

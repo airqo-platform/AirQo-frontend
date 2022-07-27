@@ -13,11 +13,14 @@ import CommunityStar from 'assets/img/community/Communities Star.svg';
 import AirQoArrowLeft from 'assets/img/community/AirQo_arrow_left.svg';
 import AirQoQuotes from 'assets/img/community/AirQo_quotes.png';
 import Page from '../Page';
-import { Link } from 'react-router-dom';
+import { useDispatch } from "react-redux";
+import { showGetInvolvedModal } from "reduxStore/GetInvolved/operations";
 
 const CommunityPage = () => {
-  useInitScrollTop();
-  return (
+    useInitScrollTop();
+    const dispatch = useDispatch();
+    const showModal = () => dispatch(showGetInvolvedModal(true));
+    return (
         <Page>
             <div className="CommunityPage">
 
@@ -31,7 +34,7 @@ const CommunityPage = () => {
                     <h3 className="header-3">We harness the value that comes with bringing together community members passionate about clean air and a healthy environment.</h3>
                 </div>
 
-                <div className="wrapper">
+                <div className="community_wrapper">
                     <div className="blob">
                         <img src={AirQommunities} className="blob-img" />
                     </div>
@@ -104,7 +107,7 @@ const CommunityPage = () => {
 
                     <section className="bottom-hero-section">
                         <h3>Become an air quality champion.</h3>
-                        <Link to="/get-involved" className="section-link"><span>Get involved --></span></Link>
+                        <a href="#" onClick={showModal} className="section-link"><span>Get involved --></span></a>
                     </section>
                 </div>
 

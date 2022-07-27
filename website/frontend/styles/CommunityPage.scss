@@ -3,8 +3,11 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono&family=DM+Serif+Text&display=swap');
 
 .CommunityPage {
-    position: relative;
-    height: auto;
+    height: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    font-style: normal;
 
     h1, h2, h3, h6 {
         margin: 0;
@@ -56,7 +59,7 @@
         }
     }
 
-    .wrapper {
+    .community_wrapper {
         position: relative;
         max-width: $columnWidth;
         display: flex;
@@ -110,13 +113,17 @@
                         font-weight: 500;
                         line-height: 48px;
                         color: $aq-black-1;
+                        margin: 0;
+                        margin-bottom: 40px;
                     }
 
                     p {
                         font-size: 18px;
                         line-height: 26px;
                         font-weight: 400;
+                        margin: 0;
                         margin-right: 66px;
+                        margin-bottom: 25px;
                         color: $aq-black-1;
                     }
                 }
@@ -324,8 +331,7 @@
 
 @media(max-width: $mainBreakPoint) {
     .CommunityPage {
-        position: relative;
-        height: auto;
+        overflow-x: visible;
         
         .hero {
             height: 100%;
@@ -349,7 +355,7 @@
             }
         }
 
-        .wrapper {
+        .community_wrapper {
             width: 100%;
             height: 100%;
             position: relative;
@@ -369,6 +375,7 @@
                     height: 100%;
 
                     .text {
+                        margin-bottom: 23px;
                         p {
                             width: 100%;
                         }
