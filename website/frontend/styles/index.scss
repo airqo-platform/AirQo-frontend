@@ -90,9 +90,10 @@ a, a:hover{
 .Page {
   width: 100%;
   margin: auto;
-  // .page-wrapper {
-  //   overflow-x: hidden !important;
-  // }
+  
+  .page-wrapper {
+    overflow-x: hidden !important;
+  }
 }
 
 .Page-mini{

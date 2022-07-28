@@ -8,6 +8,7 @@
     flex-wrap: wrap;
     justify-content: center;
     font-style: normal;
+    overflow-y: visible;
 
     h1, h2, h3, h6 {
         margin: 0;
@@ -331,8 +332,6 @@
 
 @media(max-width: $mainBreakPoint) {
     .CommunityPage {
-        overflow-x: visible;
-        
         .hero {
             height: 100%;
             padding: 64px 16px 80px 16px;
