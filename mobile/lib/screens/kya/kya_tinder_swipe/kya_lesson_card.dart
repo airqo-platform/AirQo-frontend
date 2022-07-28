@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../../models/kya.dart';
+import '../../../themes/colors.dart';
+import '../../../widgets/custom_shimmer.dart';
 
 class KyaLessonCard extends StatelessWidget {
   const KyaLessonCard({
@@ -36,11 +38,20 @@ class KyaLessonCard extends StatelessWidget {
           ),
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            // child: Positioned(
-            // top: 0,
             child: CachedNetworkImage(
               fit: BoxFit.contain,
+
+                  placeholder: (context, url) => const SizedBox(
+                    child: ContainerLoadingAnimation(
+                      height: 180,
+                      radius: 8,
+                    ),
+                  ),
               imageUrl: kyaLesson.imageUrl,
+                              errorWidget: (context, url, error) => Icon(
+                    Icons.error_outline,
+                    color: CustomColors.aqiRed,
+                  ),
             ),
           ),
           const Spacer(),
@@ -72,5 +83,6 @@ class KyaLessonCard extends StatelessWidget {
         ],
       ),
     );
+  
   }
 }
