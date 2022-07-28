@@ -14,6 +14,7 @@ import ConsultLongImg from "../icons/research/consult-long.png";
 import ConsultImg2 from "../icons/research/consult-2.png";
 import BackgroundShape from "../icons/africanCities/background-shape.svg";
 import ArrowRight from "../icons/research/arrow-right.svg";
+import SEO from "utils/seo";
 
 const CityHeroSection = () => {
     return (
@@ -189,6 +190,11 @@ const AfricanCitiesPage = () => {
     return (
         <Page>
             <div className="AfricanCitiesPage">
+                <SEO
+                    title="Our Solutions"
+                    siteTitle="African Cities"
+                    description="Some cities already have programs for air quality monitoring, so we collaborate with them on how to increase their network coverage."
+                />
                 <CityHeroSection />
                 <CityBanner />
                 <CityTabs />

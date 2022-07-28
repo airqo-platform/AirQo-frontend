@@ -11,13 +11,18 @@ import AirQoArrowLeft from 'assets/img/community/AirQo_arrow_left.svg';
 import AirQoQuotes from 'assets/img/community/AirQo_quotes.png';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import Page from './Page';
+import SEO from 'utils/seo';
 
 const CommunityPage = () => {
   useInitScrollTop();
   return (
         <Page>
             <div className="CommunityPage">
-
+                <SEO
+                    title="Our Solutions"
+                    siteTitle="Communities"
+                    description="We empower communities across Africa with accurate, hyperlocal, and timely air quality data to drive actions to reduce air pollution."
+                />
                 <div className="hero">
                     <div className="header-1">
                         <h6>Solutions</h6>

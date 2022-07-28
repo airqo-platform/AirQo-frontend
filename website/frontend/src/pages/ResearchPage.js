@@ -6,6 +6,7 @@ import ConsultImg2 from 'icons/research/consult-2.png';
 import ConsultLongImg from 'icons/research/consult-long.png';
 import BackgroundShape from 'icons/research/background-shape.svg';
 import { useInitScrollTop } from "../../utils/customHooks";
+import SEO from "utils/seo";
 
 const ResearchHeroSection = () => {
     return (
@@ -86,6 +87,11 @@ const ResearchPage = () => {
     return (
         <Page>
             <div className="ResearchPage">
+                <SEO
+                    title="Our Solutions"
+                    siteTitle="Research"
+                    description="With the exciting air quality data, we actively collaborate with partners across Africa to jointly tackle air quality research challenges."
+                />
                 <ResearchHeroSection />
                 <ResearchContent />
                 <PublicationsSection />

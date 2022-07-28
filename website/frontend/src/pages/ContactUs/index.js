@@ -1,11 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import PageMini from '../PageMini';
+import SEO from 'utils/seo';
 
 const ContactUs = ({ children, arrow }) => {
     return (
         <PageMini>
             <div className='contact-us'>
+                <SEO
+                    title="Contact Us"
+                    siteTitle="AirQo"
+                    description="Access real-time and historic air quality information across Africa through our easy-to-use air quality analytics dashboard or mobile app. Get in touch"
+                />
                 <div className='left-section'>
                     <div className='section-container'>
                         <div className='content'>

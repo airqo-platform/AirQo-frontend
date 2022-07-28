@@ -21,6 +21,7 @@ import { postExploreDataRequest, updateExploreData } from 'reduxStore/ExploreDat
 import { isEmpty, isEqual } from 'underscore';
 import { useInitScrollTop } from 'utils/customHooks';
 import { NETMANAGER_URL } from 'config/urls';
+import SEO from 'utils/seo';
 
 const CATEGORY_TYPE = {
   researcher: 'researcher',
@@ -405,6 +406,11 @@ export const ExploreDataModal = ({children}) => {
     
     return (
         <div className="ExploreDataModal">
+            <SEO
+                title="Explore Data"
+                siteTitle="AirQo"
+                description="Access real-time and historic air quality information across Africa through our easy-to-use air quality analytics dashboard or mobile app."
+            />
             <div className="ExploreDataModalWrapper">
                 {children}
             </div>
