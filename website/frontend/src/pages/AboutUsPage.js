@@ -1,82 +1,57 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-scroll';
-
-// image imports
-import TeamImg from 'assets/img/team.png';
-import Vector1 from 'assets/img/about_us_vector_3.png';
-import Vector2 from 'assets/img/about-us-vector-2.png';
-
-import ProfileImg1 from 'assets/img/profile-pics/profile (1).png';
-import AngelaImg from 'assets/img/profile-pics/ANGELA small.jpg';
-import BelindaImg from 'assets/img/profile-pics/BELINDA small.jpg';
-import DeoImg from 'assets/img/profile-pics/DEO small.jpg';
-import MikeImg from 'assets/img/profile-pics/MIKE small.jpg';
-import FaithImg from 'assets/img/profile-pics/FAITH small.jpg';
-import FidelImg from 'assets/img/profile-pics/FIDEL small.jpg';
-import GeorgeImg from 'assets/img/profile-pics/GEORGE small.jpg';
-import JoelImg from 'assets/img/profile-pics/JOEL small.jpg';
-import MartinImg from 'assets/img/profile-pics/MARTIN small.jpg';
-import MaclinaImg from 'assets/img/profile-pics/MACLINA small.jpg';
-import MarvinImg from 'assets/img/profile-pics/MARVIN small.jpg';
-import OkediImg from 'assets/img/profile-pics/OKURE small.jpg';
-import PaulImg from 'assets/img/profile-pics/PAUL ZANA small.jpg';
-import PriscahImg from 'assets/img/profile-pics/PRISCAH small.jpg';
-import PriscillaImg from 'assets/img/profile-pics/PRISCILLA small.jpg';
-import ProssyImg from 'assets/img/profile-pics/PROSSY small.jpg';
-import RichardImg from 'assets/img/profile-pics/RICHARD small.jpg';
-import DoraImg from 'assets/img/profile-pics/DORA.jpg';
-
-import ProfileImg7 from 'assets/img/profile-pics/profile (7).png';
-import ProfileImg10 from 'assets/img/profile-pics/profile (10).png';
-import ProfileImg12 from 'assets/img/profile-pics/profile (12).png';
-import ProfileImg13 from 'assets/img/profile-pics/profile (13).png';
-import ProfileImg14 from 'assets/img/profile-pics/profile (14).png';
-import ProfileImg15 from 'assets/img/profile-pics/profile (15).png';
-import ProfileImg16 from 'assets/img/profile-pics/profile (16).png';
-import ProfileImg17 from 'assets/img/profile-pics/profile (17).png';
-
-import WorldBankLogo from 'assets/img/partners/partner-logo-1.png';
+import { useDispatch } from 'react-redux';
+import { isEmpty } from 'underscore';
+import { useInitScrollTop } from 'utils/customHooks';
+import { useTeamData } from 'reduxStore/Team/selectors';
+import { loadTeamData } from 'reduxStore/Team/operations';
+import Profile from '../components/Profile';
+import Page from './Page';
+import WorldBankLogo from 'assets/img/partners/World Bank.png';
 import GoogleLogo from 'assets/img/partners/partner-logo-2.png';
 import BirminghamUniLogo from 'assets/img/partners/partner-logo-3.png';
 import EpsrcLogo from 'assets/img/partners/partner-logo-4.png';
 import NRFLogo from 'assets/img/partners/partner-logo-5.png';
 import ZindiLogo from 'assets/img/partners/partner-logo-6.png';
-import { useInitScrollTop } from 'utils/customHooks';
-import Page from './Page';
-import Profile from '../components/Profile';
+import AfriqairLogo from 'assets/img/partners/Afriqair.png';
+import DevelopmentImpactLabLogo from 'assets/img/partners/Development Impact lab.png';
+import SwedishEmbassyKampalaLogo from 'assets/img/partners/Embassy of Sweden KLA.png';
+import EnabelLogo from 'assets/img/partners/Enabel Wehubit.png';
+import FortPortalCityLogo from 'assets/img/partners/Fort Portal City.png';
+import HorizonteCiudadanoLogo from 'assets/img/partners/Horizonte Ciudadano Foundation.png';
+import KccaLogo from 'assets/img/partners/KCCA.png';
+import KiiraLogo from 'assets/img/partners/Kiira.png';
+import MappingForChangeLogo from 'assets/img/partners/Mapping for Change UK.png';
+import MLandsLogo from 'assets/img/partners/MLands.png';
+import MoWTLogo from 'assets/img/partners/MoWT.png';
+import MUKLogo from 'assets/img/partners/MUK_Logo@4x 1.png';
+import NEMALogo from 'assets/img/partners/NEMA.png';
+import SheffieldUniversityLogo from 'assets/img/partners/Sheffield University UK.png';
+import UNEPLogo from 'assets/img/partners/UNEP.png';
+import UniversityOfColoradoBoulderLogo from 'assets/img/partners/University of Colorado Boulder US.png';
+import UniversityOfFloridaLogo from 'assets/img/partners/University of Florida US.png';
+import USEmbassyKampalaLogo from 'assets/img/partners/US Embassy UG.png';
 
-const teamMembers = [
-  { name: 'Prof. Engineer Bainomugisha', title: 'Project Lead', img: ProfileImg1 },
-  { name: 'Deo Okure', title: 'Air Quality Scientist & Programme Manager', img: DeoImg },
-  { name: 'Martin Bbale', title: 'Software Engineering Lead', img: MartinImg },
-  { name: 'Maclina Birungi, MSc, MCIM', title: 'Marketing And Communications Lead', img: MaclinaImg },
-  { name: 'Joel Ssematimba', title: 'Hardware Development & Manufacturing Lead', img: JoelImg },
-  { name: 'Dora Bampangana', title: 'Project Administrator', img: DoraImg },
-  { name: 'Priscilla Adong', title: 'Data Scientist', img: PriscillaImg },
-  { name: 'Joseph Odur', title: 'Software Engineer', img: ProfileImg7 },
-  { name: 'Richard Sserunjogi', title: 'Data Scientist', img: RichardImg },
-  { name: 'Proscovia Nakiranda', title: 'Data Scientist', img: ProssyImg },
-  { name: 'Noah Nsimbe', title: 'Software Engineer', img: ProfileImg10 },
-  { name: 'Paul Zana', title: 'UI/UX Designer', img: PaulImg },
-  { name: 'Deo Okedi', title: 'Embedded Systems Engineer', img: OkediImg },
-  { name: 'Marvin Banda', title: 'Assistant Embedded Systems Engineer', img: MarvinImg },
-  { name: 'George Settala', title: 'Embedded Systems and Network Support Engineer', img: GeorgeImg },
-  { name: 'Daniel Ogenrwot', title: 'Assistant Software Engineer', img: ProfileImg12 },
-  { name: 'Lillian Muyama', title: 'Data Scientist', img: ProfileImg13 },
-  { name: 'Pablo A Alvarado Duran', title: 'Research Scientist', img: ProfileImg14 },
-  { name: 'Dennis M Reddyhoff', title: 'Researcher', img: ProfileImg15 },
-  { name: 'Paterne Gahungu', title: 'Postdoctoral Researcher', img: ProfileImg16 },
-  { name: 'Dr. Gabriel Okello', title: 'Visiting Research Fellow', img: ProfileImg17 },
-  { name: 'Angela Nshimye', title: 'Policy And Engagement Officer', img: AngelaImg },
-  { name: 'Adrine Priscah Warigo', title: 'Digital Communications Executive', img: PriscahImg },
-  { name: 'Busigu Faith Daka', title: 'Frontend Engineer', img: FaithImg },
-  { name: 'Wabinyai Fidel Raja', title: 'Data Scientist', img: FidelImg },
-  { name: 'Belinda Marion Kobusingye', title: 'Frontend Engineer', img: BelindaImg },
-  { name: 'Mike Mwanje', title: 'DevOps Engineer', img: MikeImg },
-];
+import TeamImg from 'assets/img/team.png';
+import Vector1 from 'assets/img/about_us_vector_3.png';
+import Vector2 from 'assets/img/about-us-vector-2.png';
+
 
 const AboutUsPage = () => {
   useInitScrollTop();
+  const dispatch = useDispatch();
+  const teamData = useTeamData();
+
+  const [togglePartnersDisplay, setTogglePartnersDisplay] = useState(false);
+
+  const toggleFullPartnersListDisplay = () => {
+    setTogglePartnersDisplay(!togglePartnersDisplay);
+  }
+
+  useEffect(() => {
+    if (isEmpty(teamData)) dispatch(loadTeamData());
+  }, []);
+
   return (
         <Page>
             <div className="AboutUsPage">
@@ -141,7 +116,6 @@ const AboutUsPage = () => {
                             </li>
                         </ul>
                     </div>
-                    {/* <img src={KitengiImg} alt="African Kitengi" /> */}
                 </div>
 
                 <div className="wrapper">
@@ -208,9 +182,9 @@ const AboutUsPage = () => {
                             <p className="section-info">This is our team, a lot of smiling happy people who work hard to bridge the gap in air quality in Africa.</p>
                         </div>
                         <div className="AboutUsPage__pictorial">
-                            {teamMembers.map((member) => (
+                            {teamData.map((member) => (
                                 <Profile
-                                  ImgPath={member.img}
+                                  ImgPath={member.picture}
                                   name={member.name}
                                   title={member.title}
                                 />
@@ -225,30 +199,47 @@ const AboutUsPage = () => {
                     <div className="partner-logos">
                         <table>
                             <tr>
-                                <td><img src={WorldBankLogo} alt="World Bank Group" /></td>
                                 <td><img src={GoogleLogo} alt="Google.org" /></td>
-                                <td><img src={BirminghamUniLogo} alt="University of Birmingham" /></td>
-                                <td><img src={EpsrcLogo} alt="EPSRC" /></td>
-                            </tr>
-                            <tr>
-                                <td><img src={NRFLogo} alt="National Research Foundation" /></td>
-                                <td><img src={ZindiLogo} alt="Zindi" /></td>
-                                <td><img src={NRFLogo} alt="National Research Foundation" /></td>
-                                <td><img src={ZindiLogo} alt="Zindi" /></td>
-                            </tr>
-                            <tr>
+                                <td><img src={USEmbassyKampalaLogo} alt="US Embassy Uganda" /></td>
+                                <td><img src={EnabelLogo} alt="Enabel" /></td>
                                 <td><img src={WorldBankLogo} alt="World Bank Group" /></td>
-                                <td><img src={GoogleLogo} alt="Google.org" /></td>
-                                <td><img src={BirminghamUniLogo} alt="University of Birmingham" /></td>
+                            </tr>
+                            <tr>
+                                <td><img src={UNEPLogo} alt="UNEP" /></td>
+                                <td><img src={MUKLogo} alt="Makerere University" /></td>
                                 <td><img src={EpsrcLogo} alt="EPSRC" /></td>
+                                <td><img src={ZindiLogo} alt="Zindi" /></td>                                
                             </tr>
                             <tr>
                                 <td><img src={NRFLogo} alt="National Research Foundation" /></td>
-                                <td><img src={ZindiLogo} alt="Zindi" /></td>
-                                <td><img src={NRFLogo} alt="National Research Foundation" /></td>
-                                <td><img src={ZindiLogo} alt="Zindi" /></td>
+                                <td><img src={DevelopmentImpactLabLogo} alt="Development Impact Lab" /></td>
+                                <td><img src={HorizonteCiudadanoLogo} alt="Horizonte Ciudadano" /></td>
+                                <td><img src={KccaLogo} alt="KCCA" /></td>
                             </tr>
+                            
+                            {togglePartnersDisplay && (
+                            <>
+                            <tr>
+                                <td><img src={NEMALogo} alt="NEMA" /></td>
+                                <td><img src={FortPortalCityLogo} alt="Fort Portal City" /></td>
+                                <td><img src={KiiraLogo} alt="Kiira" /></td>
+                                <td><img src={MLandsLogo} alt="Ministry of Lands and Housing" /></td>
+                            </tr>
+                            <tr>
+                                <td><img src={MoWTLogo} alt="Ministry of Works And Transport" /></td>
+                                <td><img src={SheffieldUniversityLogo} alt="Sheffield University" /></td>
+                                <td><img src={BirminghamUniLogo} alt="University of Birmingham" /></td>
+                                <td><img src={MappingForChangeLogo} alt="Mapping for Change" /></td>
+                            </tr>
+                            <tr>
+                                <td><img src={SwedishEmbassyKampalaLogo} alt="Swedish Embassy Uganda" /></td>
+                                <td><img src={UniversityOfColoradoBoulderLogo} alt="University of Colorado Boulder" /></td>
+                                <td><img src={UniversityOfFloridaLogo} alt="University of Florida" /></td>
+                                <td><img src={AfriqairLogo} alt="Afriqair" /></td>
+                            </tr>
+                            </>)}
                         </table>
+                        <button className="partners-toggle-button" onClick={toggleFullPartnersListDisplay}>{togglePartnersDisplay ? "See less" : "See more"}</button>
                     </div>
                 </div>
             </div>

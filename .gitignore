@@ -11,3 +11,6 @@ mobile/android/app/google-services.json
 .env
 .cache_ggshield
 secret
+.env.yaml
+.stage-env.yaml
+.prod-env.yaml

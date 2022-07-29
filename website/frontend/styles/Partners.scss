@@ -15,23 +15,19 @@
             padding: 80px;
             .title{
                 display: flex;
+                flex-flow: row wrap;
                 align-items: center;
+                justify-content: center;
                 font-weight: 700;
                 font-size: 14px;
                 line-height: 20px;
                 text-transform: uppercase;
                 color: rgba(53, 62, 82, 0.4);
                 padding: 0 0 30px 0;
-
-                strong{
-                    color: $aq-black-1;
-                    font-weight: 700;
-                    padding-left: 5px;
-                    mix-blend-mode: normal;
-                }
             }
             .logos{
                 display: flex;
+                flex-flow: row wrap;
                 align-items: center;
                 justify-content: center;
                 div{
@@ -42,6 +38,7 @@
                 min-width: 184px;
                 height: 80px;
                 border-radius: 0;
+                mix-blend-mode: multiply;
                 }
             }
         }
@@ -55,10 +52,9 @@
             .content{
                 padding:50px 0;
                 .logos{
-                    display:grid;
-                    grid-template-columns: repeat(2, 1fr);
-                    grid-template-rows: auto;
-                    align-content: center;  
+                    >div{
+                        min-width: 164px;
+                    }
                 }
             }
         }

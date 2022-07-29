@@ -12,8 +12,8 @@ import '../../widgets/custom_widgets.dart';
 
 class DraggingHandle extends StatelessWidget {
   const DraggingHandle({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -30,8 +30,8 @@ class DraggingHandle extends StatelessWidget {
 
 class RegionAvatar extends StatelessWidget {
   const RegionAvatar({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -54,10 +54,10 @@ class RegionAvatar extends StatelessWidget {
 
 class MapCardWidget extends StatelessWidget {
   const MapCardWidget({
-    Key? key,
+    super.key,
     required this.widget,
     required this.padding,
-  }) : super(key: key);
+  });
   final Widget widget;
   final double padding;
 
@@ -82,10 +82,10 @@ class MapCardWidget extends StatelessWidget {
 
 class SiteTile extends StatelessWidget {
   const SiteTile({
-    Key? key,
+    super.key,
     required this.measurement,
     required this.onSiteTileTap,
-  }) : super(key: key);
+  });
   final Measurement measurement;
   final Function(Measurement) onSiteTileTap;
 
@@ -122,10 +122,10 @@ class SiteTile extends StatelessWidget {
 
 class RegionTile extends StatelessWidget {
   const RegionTile({
-    Key? key,
+    super.key,
     required this.showRegionSites,
     required this.region,
-  }) : super(key: key);
+  });
   final Function(Region) showRegionSites;
   final Region region;
 
@@ -138,7 +138,7 @@ class RegionTile extends StatelessWidget {
         showRegionSites(region);
       },
       title: AutoSizeText(
-        region.getName(),
+        region.toString(),
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
         style: CustomTextStyle.headline8(context),
@@ -161,10 +161,10 @@ class RegionTile extends StatelessWidget {
 
 class SearchTile extends StatelessWidget {
   const SearchTile({
-    Key? key,
+    super.key,
     required this.suggestion,
     required this.onSearchTileTap,
-  }) : super(key: key);
+  });
   final Suggestion suggestion;
   final Function(Suggestion) onSearchTileTap;
 
@@ -202,12 +202,12 @@ class SearchTile extends StatelessWidget {
 
 class EmptyView extends StatelessWidget {
   const EmptyView({
-    Key? key,
+    super.key,
     required this.title,
     required this.bodyInnerText,
     required this.topBars,
     required this.showRegions,
-  }) : super(key: key);
+  });
   final String title;
   final String bodyInnerText;
   final bool topBars;

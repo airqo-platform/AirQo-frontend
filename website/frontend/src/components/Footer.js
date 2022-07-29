@@ -4,13 +4,12 @@ import { Link } from 'react-router-dom';
 import { Modal, Box } from '@mui/material';
 import MakText from 'icons/nav/MakText';
 import AirQo from 'icons/footer/AirQo';
-import Instagram from 'icons/footer/Instagram';
+import Twitter from 'icons/footer/Twitter';
 import Facebook from 'icons/footer/Facebook';
 import Youtube from 'icons/footer/Youtube';
-import Twitter from 'icons/footer/Twitter';
+import LinkedIn from 'icons/footer/LinkedIn.svg';
 import Location from 'icons/footer/Location';
 import ArrowDown from 'icons/footer/ArrowDown';
-import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import CancelIcon from 'icons/footer/cancel.svg';
 
 import Uganda from 'icons/africanCities/countries/uganda.svg';
@@ -33,7 +32,7 @@ const style = {
   // minHeight: 200,
   width: '90%',
   bgcolor: 'background.paper',
-  // border: '2px solid #000',
+  outline: 'none',
   // boxShadow: 24,
   // p: 4,
 };
@@ -96,10 +95,10 @@ const Footer = () => {
                     <AirQo />
                     <div className="logo-text">Clean air for all <br /> African Cities!</div>
                     <div className="social-links">
-                        <a target="_blank" href="https://www.linkedin.com/company/airqo/mycompany/" rel="noreferrer"><LinkedInIcon style={{ color: '#145DFF', height: '32px', width: '32px' }} /></a>
-                        <a target="_blank" href="https://www.facebook.com/AirQo" rel="noreferrer"><Facebook /></a>
-                        <a target="_blank" href="https://www.youtube.com/channel/UCx7YtV55TcqKGeKsDdT5_XQ" rel="noreferrer"><Youtube /></a>
-                        <a target="_blank" href="https://twitter.com/AirQoProject" rel="noreferrer"><Twitter /></a>
+                        <a target="_blank" href="https://www.facebook.com/AirQo" rel="noreferrer" ><Facebook /></a>
+                        <a target="_blank" href="https://www.youtube.com/channel/UCx7YtV55TcqKGeKsDdT5_XQ" rel="noreferrer" ><Youtube /></a>
+                        <a target="_blank" href="https://www.linkedin.com/company/airqo/mycompany/" rel="noreferrer" ><LinkedIn /></a>
+                        <a target="_blank" href="https://twitter.com/AirQoProject" rel="noreferrer" ><Twitter /></a>
                     </div>
                 </div>
                 <div className="content">
@@ -125,6 +124,7 @@ const Footer = () => {
                             <span><Link to="/about-us">About</Link></span>
                             <span><Link to="/contact">Contact</Link></span>
                             <span><Link to="/press">Press</Link></span>
+                            <span><Link to="/careers">Careers</Link></span>
                             <span><a target="_blank" href="https://medium.com/@airqo" rel="noreferrer">Blog</a></span>
                         </div>
                         </span>

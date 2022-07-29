@@ -5,14 +5,11 @@ import 'dart:ui';
 
 import 'package:app/constants/config.dart';
 import 'package:app/models/measurement.dart';
-import 'package:app/models/place_details.dart';
 import 'package:app/services/firebase_service.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
-import 'package:app/utils/date.dart';
-import 'package:app/utils/extensions.dart';
 import 'package:app/utils/pm.dart';
-import 'package:auto_size_text/auto_size_text.dart';
+import 'package:app/widgets/dialogs.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -30,9 +27,6 @@ import 'package:workmanager/workmanager.dart' as workmanager;
 import '../models/enum_constants.dart';
 import '../models/kya.dart';
 import '../models/profile.dart';
-import '../screens/analytics/analytics_widgets.dart';
-import '../themes/app_theme.dart';
-import '../themes/colors.dart';
 import '../utils/exception.dart';
 import 'firebase_service.dart';
 
@@ -95,144 +89,15 @@ class RateService {
 }
 
 class ShareService {
-  static Widget analyticsCardImage(
-    Measurement measurement,
-    PlaceDetails placeDetails,
-    BuildContext context,
-  ) {
-    return Container(
-      constraints: const BoxConstraints(
-        maxHeight: 200,
-        maxWidth: 300,
-      ),
-      padding: const EdgeInsets.symmetric(
-        vertical: 5,
-        horizontal: 8,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: const BorderRadius.all(
-          Radius.circular(16.0),
-        ),
-        border: Border.all(color: Colors.transparent),
-      ),
-      child: Column(
-        children: [
-          const Spacer(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              AnalyticsAvatar(measurement: measurement),
-              const SizedBox(width: 10.0),
-              Flexible(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    AutoSizeText(
-                      placeDetails.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      minFontSize: 17,
-                      style: CustomTextStyle.headline9(context),
-                    ),
-                    AutoSizeText(
-                      placeDetails.location,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      minFontSize: 12,
-                      style: CustomTextStyle.bodyText4(context)?.copyWith(
-                        color: CustomColors.appColorBlack.withOpacity(0.3),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 12,
-                    ),
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(
-                        10.0,
-                        2.0,
-                        10.0,
-                        2.0,
-                      ),
-                      decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(40.0),
-                        ),
-                        color: Pollutant.pm2_5
-                            .color(measurement.getPm2_5Value())
-                            .withOpacity(0.4),
-                        border: Border.all(color: Colors.transparent),
-                      ),
-                      child: AutoSizeText(
-                        Pollutant.pm2_5.stringValue(
-                          measurement.getPm2_5Value(),
-                        ),
-                        maxLines: 2,
-                        textAlign: TextAlign.start,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Pollutant.pm2_5.textColor(
-                            value: measurement.getPm2_5Value(),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 8,
-                    ),
-                    Text(
-                      dateToShareString(measurement.time),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 8,
-                        color: Colors.black.withOpacity(0.3),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const Spacer(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '© ${DateTime.now().year} AirQo',
-                style: TextStyle(
-                  fontSize: 9,
-                  color: CustomColors.appColorBlack.withOpacity(0.5),
-                  height: 32 / 9,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                'www.airqo.africa',
-                style: TextStyle(
-                  fontSize: 9,
-                  color: CustomColors.appColorBlack.withOpacity(0.5),
-                  height: 32 / 9,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   static String getShareMessage() {
     return 'Download the AirQo app from Google play\nhttps://play.google.com/store/apps/details?id=com.airqo.app\nand App Store\nhttps://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091\n';
   }
 
-  static Future<void> shareCard(
-    BuildContext buildContext,
-    GlobalKey globalKey,
-    Measurement measurement,
-  ) async {
+  static Future<bool> shareWidget({
+    required BuildContext buildContext,
+    required GlobalKey globalKey,
+    String? imageName,
+  }) async {
     try {
       final boundary =
           globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
@@ -243,58 +108,36 @@ class ShareService {
       final pngBytes = byteData!.buffer.asUint8List();
 
       final directory = (await getApplicationDocumentsDirectory()).path;
-      final imgFile = File('$directory/airqo_analytics_card.png');
+      final imgFile = File("$directory/${imageName ?? 'airqo_analytics'}.png");
       await imgFile.writeAsBytes(pngBytes);
 
-      await Share.shareFiles([imgFile.path], text: getShareMessage()).then(
-        (value) => {updateUserShares()},
-      );
+      final result = await Share.shareFilesWithResult([imgFile.path]);
+
+      if (result.status == ShareResultStatus.success) {
+        await updateUserShares();
+      }
     } catch (exception, stackTrace) {
-      await logException(
+      await shareFailed(
         exception,
         stackTrace,
+        buildContext,
       );
     }
+
+    return true;
   }
 
-  static Future<void> shareGraph(
-    BuildContext buildContext,
-    GlobalKey globalKey,
-    PlaceDetails placeDetails,
-  ) async {
-    final boundary =
-        globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-    final image = await boundary.toImage(
-      pixelRatio: 10.0,
-    );
-    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    final pngBytes = byteData!.buffer.asUint8List();
-
-    final directory = (await getApplicationDocumentsDirectory()).path;
-    final imgFile = File('$directory/airqo_analytics_graph.png');
-    await imgFile.writeAsBytes(pngBytes);
-
-    await Share.shareFiles([imgFile.path], text: getShareMessage()).then(
-      (value) => {updateUserShares()},
-    );
-  }
-
-  static Future<void> shareKya(
-    BuildContext buildContext,
-    GlobalKey globalKey,
-  ) async {
-    final boundary =
-        globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-    final image = await boundary.toImage(pixelRatio: 10.0);
-    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    final pngBytes = byteData!.buffer.asUint8List();
-    final directory = (await getApplicationDocumentsDirectory()).path;
-    final imgFile = File('$directory/analytics_graph.png');
-    await imgFile.writeAsBytes(pngBytes);
-
-    await Share.shareFiles([imgFile.path], text: getShareMessage()).then(
-      (value) => {updateUserShares()},
-    );
+  static Future<void> shareFailed(exception, stackTrace, context) async {
+    await Future.wait([
+      logException(
+        exception,
+        stackTrace,
+      ),
+      showSnackBar(
+        context,
+        Config.shareFailedMessage,
+      ),
+    ]);
   }
 
   static void shareMeasurementText(Measurement measurement) {

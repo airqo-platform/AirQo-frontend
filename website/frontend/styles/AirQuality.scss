@@ -1,0 +1,168 @@
+@import "lib/colors";
+@import "lib/variables";
+
+.airquality-section{
+    display: grid;
+    grid-template-columns: $gridColumn;
+    background-color: $aq-blue-1;
+    padding: 0 0 60px 0;
+    .backdrop{
+        grid-column: 2 / 3;
+        .header{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            h2{
+                font-size: $headingFont;
+                font-weight: 500;
+                line-height: 52px;
+                text-align: center;
+                max-width:566px;
+            }
+            p{
+                max-width:722px;
+                font-size: $subTextFont;
+                font-weight: 400;
+                line-height: 28px;
+                text-align: center;
+            }
+            .tabs{
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-around;
+                padding:4px;
+                background: rgba(233, 237, 245, 0.64);
+                border-radius: 8px;
+                width:360px;
+                height:56px;
+                margin: 60px 0 0 0;
+            }
+            .tab{
+                font-weight: 400;
+                font-size: $buttonFont;
+                line-height: 24px;
+                text-align: center;
+                cursor: pointer;
+                color: $aq-blue-2;
+            }
+            .tab.tab-selected {
+                padding: 16px 32px;
+                border-radius: 16px;
+                background-color: $aq-blue-2;
+                color:$aq-white-0;
+            }
+        }
+        .content{
+            background-color: $aq-white-0;
+            display:flex;
+            flex-direction: row;
+            justify-content: space-between;
+            border-radius: 16px;
+            padding: 18px 18px 16px 32px;
+            margin: 69px 0 0 0 ;
+            .content-container{
+                .card{
+                    border-radius: 8px;
+                    display:flex;
+                    flex-direction: column;
+                    padding:15px 20px 8px 30px;
+                    width:400px;
+                    height:96px;
+                    // cursor: pointer;
+                    h4{
+                        font-size: 14px;
+                        line-height: 22px;
+                        margin-bottom: -9px;
+                        text-transform: capitalize;
+                    }
+                    ol{
+                        li{
+                            list-style-type: none;
+                            margin-left: -12%;
+                        }
+                    }
+                }
+                .selected{
+                    // border: 2px solid $aq-blue-9;
+                    border: 2px solid $aq-white-6;
+                    // box-shadow: 0px 0px 0px 4px #ECF2FF;
+                    // background-color: rgba(255, 255, 255, 0.16);
+                }
+                .unselected{
+                    border: 2px solid $aq-white-6;
+                }
+                #first{
+                    margin-top: 24px;
+                }
+                #second{
+                    margin:24px 0 24px 0;
+                }
+            }
+            .image{
+                img {
+                    height: 368px;
+                }
+            }
+        }
+    }
+}
+
+@media (max-width: $mainBreakPoint){
+    .airquality-section{
+        .backdrop{
+            .header{
+                padding: 0 10px;
+                .tabs{
+                    width: 99%;
+                    margin-top: 32px;
+                }
+                .tab{
+                    font-size: 16px;
+                }
+                .tab.tab-selected{
+                    padding: 14px 4vw;
+                }
+            }
+            .content{
+                flex-direction: column;
+                padding:0;
+                align-items: center;
+                margin:53px 10px 0 10px;
+                .content-container{
+                    .card{
+                        width: 85vw;
+                        padding: 12px 0 0 16px;
+                        border: 2px solid #E8EFFC;
+                        h4{
+                            margin-bottom: -14px;
+                        }
+                        ol{
+                            li{
+                                margin-left: -40px;
+                                small{
+                                    font-size: 11px;
+                                }
+                            }
+                        }
+                    }
+                    .selected{
+                        border: 2px solid #E8EFFC;
+                        box-shadow: none;
+                    }
+                    #second{
+                        margin: 15px 0 10px 0;
+                    }
+                }
+                .image{
+                    padding: 24px 5px 20px 5px;
+                    img{
+                        width: 85vw;
+                        height: 99%;
+                    }
+                }
+            }
+        }
+    }
+}

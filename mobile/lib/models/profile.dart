@@ -86,13 +86,11 @@ class Profile extends HiveObject {
   }
 
   Gender getGender() {
-    if (title
-        .toLowerCase()
-        .contains(TitleOptions.mr.getValue().toLowerCase())) {
+    if (title.toLowerCase().contains(TitleOptions.mr.value.toLowerCase())) {
       return Gender.male;
     } else if (title
         .toLowerCase()
-        .contains(TitleOptions.ms.getValue().toLowerCase())) {
+        .contains(TitleOptions.ms.value.toLowerCase())) {
       return Gender.female;
     } else {
       return Gender.undefined;
@@ -131,7 +129,7 @@ class Profile extends HiveObject {
     if (user != null) {
       Sentry.configureScope(
         (scope) =>
-            scope.user = SentryUser(id: user.uid, email: user.email ?? ''),
+            scope.setUser(SentryUser(id: user.uid, email: user.email ?? '')),
       );
       this
         ..userId = user.uid

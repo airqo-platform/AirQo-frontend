@@ -1,22 +1,31 @@
-import 'package:app/utils/extensions.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 import '../../models/enum_constants.dart';
 import '../../models/insights.dart';
+import '../../models/place_details.dart';
+import '../../services/app_service.dart';
+import '../../services/native_api.dart';
+import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
+import '../../utils/pm.dart';
+import '../../widgets/buttons.dart';
+import '../../widgets/custom_shimmer.dart';
+import '../../widgets/custom_widgets.dart';
+import '../../widgets/recommendation.dart';
 
-class InsightsGraph extends StatelessWidget {
-  const InsightsGraph({
-    Key? key,
+class AnalyticsGraph extends StatelessWidget {
+  const AnalyticsGraph({
+    super.key,
     required this.pm2_5ChartData,
     required this.pm10ChartData,
     required this.pollutant,
     required this.frequency,
     required this.onBarSelection,
-  }) : super(key: key);
+  });
   final List<charts.Series<Insights, String>> pm2_5ChartData;
   final List<charts.Series<Insights, String>> pm10ChartData;
   final Pollutant pollutant;
@@ -72,71 +81,13 @@ class InsightsGraph extends StatelessWidget {
               ),
             ],
             domainAxis: _yAxisScale(
-              frequency == Frequency.daily
-                  ? _dailyStaticTicks()
-                  : _hourlyStaticTicks(),
+              frequency.staticTicks(),
             ),
             primaryMeasureAxis: _xAxisScale(),
           ),
         );
       },
     );
-  }
-
-  List<charts.TickSpec<String>> _dailyStaticTicks() {
-    final dailyTicks = <charts.TickSpec<String>>[];
-    final daysList = <String>['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
-    for (final day in daysList) {
-      dailyTicks.add(
-        charts.TickSpec(
-          day,
-          label: day,
-          style: charts.TextStyleSpec(
-            color: charts.ColorUtil.fromDartColor(
-              CustomColors.greyColor,
-            ),
-          ),
-        ),
-      );
-    }
-
-    return dailyTicks;
-  }
-
-  List<charts.TickSpec<String>> _hourlyStaticTicks() {
-    final hourlyTicks = <charts.TickSpec<String>>[];
-    final labels = <int>[0, 6, 12, 18];
-
-    for (var i = 0; i <= 24; i++) {
-      if (labels.contains(i)) {
-        hourlyTicks.add(
-          charts.TickSpec(
-            i.toString().length == 1 ? '0$i' : '$i',
-            label: i.toString().length == 1 ? '0$i' : '$i',
-            style: charts.TextStyleSpec(
-              color: charts.ColorUtil.fromDartColor(
-                CustomColors.greyColor,
-              ),
-            ),
-          ),
-        );
-      } else {
-        hourlyTicks.add(
-          charts.TickSpec(
-            i.toString().length == 1 ? '0$i' : '$i',
-            label: i.toString().length == 1 ? '0$i' : '$i',
-            style: charts.TextStyleSpec(
-              color: charts.ColorUtil.fromDartColor(
-                Colors.transparent,
-              ),
-            ),
-          ),
-        );
-      }
-    }
-
-    return hourlyTicks;
   }
 
   charts.NumericAxisSpec _xAxisScale() {
@@ -195,113 +146,85 @@ class InsightsGraph extends StatelessWidget {
 
 class InsightsAvatar extends StatelessWidget {
   const InsightsAvatar({
-    Key? key,
+    super.key,
     required this.measurement,
     required this.size,
     required this.pollutant,
-  }) : super(key: key);
+  });
   final Insights measurement;
   final double size;
   final Pollutant pollutant;
 
   @override
   Widget build(BuildContext context) {
-    if (measurement.empty) {
-      return Container(
-        height: size,
-        width: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: CustomColors.greyColor,
-          border: Border.all(color: Colors.transparent),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Spacer(),
-            SvgPicture.asset(
-              pollutant == Pollutant.pm2_5
-                  ? 'assets/icon/PM2.5.svg'
-                  : 'assets/icon/PM10.svg',
-              semanticsLabel: 'Pm2.5',
-              height: 6,
-              width: 32.45,
-              color: CustomColors.darkGreyColor,
-            ),
-            Text(
-              '--',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.robotoMono(
-                fontStyle: FontStyle.normal,
-                fontSize: 32,
-                color: CustomColors.darkGreyColor,
-              ),
-            ),
-            SvgPicture.asset(
-              'assets/icon/unit.svg',
-              semanticsLabel: 'UNit',
-              height: 6,
-              width: 32,
-              color: CustomColors.darkGreyColor,
-            ),
-            const Spacer(),
-          ],
-        ),
-      );
-    }
+    final containerColor = measurement.empty
+        ? CustomColors.greyColor
+        : pollutant == Pollutant.pm2_5
+            ? Pollutant.pm2_5.color(measurement.chartValue(pollutant))
+            : Pollutant.pm10.color(
+                measurement.chartValue(pollutant),
+              );
+
+    final pollutantColor = measurement.empty
+        ? CustomColors.darkGreyColor
+        : pollutant == Pollutant.pm2_5
+            ? Pollutant.pm2_5
+                .textColor(value: measurement.chartValue(pollutant))
+            : Pollutant.pm10.textColor(
+                value: measurement.chartValue(pollutant),
+              );
+
+    final valueColor = measurement.empty
+        ? CustomColors.darkGreyColor
+        : pollutant == Pollutant.pm2_5
+            ? Pollutant.pm2_5
+                .textColor(value: measurement.chartValue(pollutant))
+            : Pollutant.pm10.textColor(
+                value: measurement.chartValue(pollutant),
+              );
+
+    final value = measurement.empty
+        ? '--'
+        : measurement.chartValue(pollutant).toStringAsFixed(0);
+
+    final unitColor = measurement.empty
+        ? CustomColors.darkGreyColor
+        : pollutant == Pollutant.pm2_5
+            ? Pollutant.pm2_5
+                .textColor(value: measurement.chartValue(pollutant))
+            : Pollutant.pm10.textColor(
+                value: measurement.chartValue(pollutant),
+              );
 
     return Container(
       height: size,
       width: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: measurement.forecast
-            ? CustomColors.appColorBlue.withOpacity(0.24)
-            : pollutant == Pollutant.pm2_5
-                ? Pollutant.pm2_5.color(measurement.chartValue(pollutant))
-                : Pollutant.pm10.color(
-                    measurement.chartValue(pollutant),
-                  ),
+        color: containerColor,
         border: Border.all(color: Colors.transparent),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          const Spacer(),
           SvgPicture.asset(
-            pollutant == Pollutant.pm2_5
-                ? 'assets/icon/PM2.5.svg'
-                : 'assets/icon/PM10.svg',
+            pollutant.svg(),
             semanticsLabel: 'Pm2.5',
             height: 6,
             width: 32.45,
-            color: measurement.forecast
-                ? CustomColors.appColorBlue
-                : pollutant == Pollutant.pm2_5
-                    ? Pollutant.pm2_5
-                        .textColor(value: measurement.chartValue(pollutant))
-                    : Pollutant.pm10.textColor(
-                        value: measurement.chartValue(pollutant),
-                      ),
+            color: pollutantColor,
           ),
-          Text(
-            measurement.chartValue(pollutant).toStringAsFixed(0),
+          AutoSizeText(
+            value,
             maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.robotoMono(
-              fontStyle: FontStyle.normal,
-              fontWeight: FontWeight.bold,
-              height: 1,
+            style: CustomTextStyle.insightsAvatar(
+              context: context,
+              pollutant: pollutant,
+              value: measurement.chartValue(pollutant),
+            )?.copyWith(
+              color: valueColor,
               fontSize: 32,
-              color: measurement.forecast
-                  ? CustomColors.appColorBlue
-                  : pollutant == Pollutant.pm2_5
-                      ? Pollutant.pm2_5
-                          .textColor(value: measurement.chartValue(pollutant))
-                      : Pollutant.pm10.textColor(
-                          value: measurement.chartValue(pollutant),
-                        ),
             ),
           ),
           SvgPicture.asset(
@@ -309,14 +232,210 @@ class InsightsAvatar extends StatelessWidget {
             semanticsLabel: 'Unit',
             height: 6,
             width: 32,
-            color: measurement.forecast
-                ? CustomColors.appColorBlue
-                : pollutant == Pollutant.pm2_5
-                    ? Pollutant.pm2_5
-                        .textColor(value: measurement.chartValue(pollutant))
-                    : Pollutant.pm10.textColor(
-                        value: measurement.chartValue(pollutant),
+            color: unitColor,
+          ),
+          const Spacer(),
+        ],
+      ),
+    );
+  }
+}
+
+class HealthTipsSection extends StatelessWidget {
+  const HealthTipsSection({
+    super.key,
+    required this.recommendations,
+  });
+
+  final List<Recommendation> recommendations;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: recommendations.isEmpty ? 0 : 128,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: EdgeInsets.only(
+              left: index == 0 ? 12.0 : 6.0,
+              right: index == (recommendations.length - 1) ? 12.0 : 6.0,
+            ),
+            child: RecommendationContainer(recommendations[index]),
+          );
+        },
+        itemCount: recommendations.length,
+      ),
+    );
+  }
+}
+
+class InsightsActionBar extends StatefulWidget {
+  const InsightsActionBar({
+    super.key,
+    required this.placeDetails,
+    required this.shareKey,
+  });
+
+  final PlaceDetails placeDetails;
+  final GlobalKey shareKey;
+
+  @override
+  State<InsightsActionBar> createState() => _InsightsActionBarState();
+}
+
+class _InsightsActionBarState extends State<InsightsActionBar> {
+  bool _showHeartAnimation = false;
+  bool _shareLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.all(
+          Radius.circular(8.0),
+        ),
+        border: Border.all(color: Colors.transparent),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Expanded(
+            child: _shareLoading
+                ? const LoadingIcon(
+                    radius: 10,
+                  )
+                : InkWell(
+                    onTap: () async => _share(),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 21),
+                      child: IconTextButton(
+                        iconWidget: SvgPicture.asset(
+                          'assets/icon/share_icon.svg',
+                          color: CustomColors.greyColor,
+                          semanticsLabel: 'Share',
+                        ),
+                        text: 'Share',
                       ),
+                    ),
+                  ),
+          ),
+          Expanded(
+            child: Consumer<PlaceDetailsModel>(
+              builder: (context, placeDetailsModel, child) {
+                return InkWell(
+                  onTap: () async {
+                    _updateFavPlace();
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 21),
+                    child: IconTextButton(
+                      iconWidget: HeartIcon(
+                        showAnimation: _showHeartAnimation,
+                        placeDetails: widget.placeDetails,
+                      ),
+                      text: 'Favorite',
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _share() async {
+    if (_shareLoading) {
+      return;
+    }
+    setState(() => _shareLoading = true);
+    final complete = await ShareService.shareWidget(
+      buildContext: context,
+      globalKey: widget.shareKey,
+      imageName: 'airqo_air_quality_graph',
+    );
+    if (complete && mounted) {
+      setState(() => _shareLoading = false);
+    }
+  }
+
+  void _updateFavPlace() async {
+    setState(() => _showHeartAnimation = true);
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() => _showHeartAnimation = false);
+    });
+    await AppService().updateFavouritePlace(
+      widget.placeDetails,
+      context,
+    );
+  }
+}
+
+class ListOption extends StatelessWidget {
+  const ListOption({
+    super.key,
+    required this.pollutantName,
+    required this.pollutant,
+    required this.varyingPollutant,
+  });
+  final String pollutantName;
+  final Pollutant pollutant;
+  final Pollutant varyingPollutant;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(
+          Radius.circular(4.0),
+        ),
+      ),
+      tileColor: varyingPollutant == pollutant
+          ? CustomColors.pollutantToggleBgColor
+          : Colors.white,
+      title: PollutantToggle(
+        text: pollutantName,
+        textColor: varyingPollutant == pollutant
+            ? CustomColors.appColorBlue
+            : CustomColors.appColorBlack,
+      ),
+    );
+  }
+}
+
+class PollutantToggle extends StatelessWidget {
+  const PollutantToggle({
+    super.key,
+    required this.text,
+    required this.textColor,
+  });
+  final String text;
+  final Color textColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return RichText(
+      text: TextSpan(
+        children: <TextSpan>[
+          TextSpan(
+            text: 'PM',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: textColor,
+              height: 14 / 10,
+            ),
+          ),
+          TextSpan(
+            text: text,
+            style: TextStyle(
+              fontSize: 7,
+              fontWeight: FontWeight.w800,
+              color: textColor,
+            ),
           ),
         ],
       ),

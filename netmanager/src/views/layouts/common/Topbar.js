@@ -15,7 +15,9 @@ import {
   Menu,
   ListItemIcon,
   ListItemText,
+  Tooltip,
 } from "@material-ui/core";
+import { AppsOutlined } from "@material-ui/icons";
 import NotificationsIcon from "@material-ui/icons/NotificationsOutlined";
 import InputIcon from "@material-ui/icons/Input";
 import HelpIcon from "@material-ui/icons/Help";
@@ -26,6 +28,8 @@ import SettingsIcon from "@material-ui/icons/Settings";
 import { logoutUser } from "redux/Join/actions";
 import { useOrgData } from "redux/Join/selectors";
 import TransitionAlerts from "./TransitionAlerts";
+import { CALIBRATE_APP_URL } from "config/urls/externalUrls";
+import { formatDateString } from "utils/dateTime.js";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -91,10 +95,20 @@ const Topbar = (props) => {
    */
 
   const [anchorEl, setAnchorEl] = React.useState(null);
+  const [appsAnchorEl, setAppsAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
+  const openAppsMenu = Boolean(appsAnchorEl);
 
   const handleOpenMenu = (event) => {
     setAnchorEl(event.currentTarget);
+  };
+
+  const handleAppsMenuClose = () => {
+    setAppsAnchorEl(null);
+  };
+
+  const handleAppsMenuOpen = (event) => {
+    setAppsAnchorEl(event.currentTarget);
   };
 
   const handleCloseMenu = () => {
@@ -225,11 +239,66 @@ const Topbar = (props) => {
 
         <Hidden mdDown>
           <p style={timer_style}>
-            <span>{date.toLocaleString()}</span>
+            <span>{formatDateString(date.toUTCString)}</span>
           </p>
         </Hidden>
 
         <div className={classes.flexGrow} />
+        <IconButton
+          className={classes.signOutButton}
+          color="inherit"
+          onClick={handleAppsMenuOpen}
+        >
+          <Tooltip title={"AirQo Apps"}>
+            <AppsOutlined />
+          </Tooltip>
+        </IconButton>
+
+        <Menu
+          id="menu-apps"
+          anchorEl={appsAnchorEl}
+          keepMounted
+          anchorOrigin={{
+            vertical: "bottom",
+            horizontal: "left",
+          }}
+          transformOrigin={{
+            vertical: "top",
+            horizontal: "left",
+          }}
+          getContentAnchorEl={null}
+          open={openAppsMenu}
+          onClose={handleAppsMenuClose}
+        >
+          <div style={{ width: "300px", height: "300px" }}>
+            <div style={{ height: "100%", padding: "10px" }}>
+              <a
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  justifyContent: "center",
+                  width: "54px",
+                  background: "#3067e2",
+                  padding: "2px",
+                  borderRadius: "5px",
+                  cursor: "pointer",
+                }}
+                href={CALIBRATE_APP_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img
+                  alt="airqo.net"
+                  style={{ width: "50px", height: "auto" }}
+                  src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png"
+                />
+                <span style={{ fontSize: "10px", color: "white" }}>
+                  Calibrate
+                </span>
+              </a>
+            </div>
+          </div>
+        </Menu>
 
         <Hidden lgUp>
           <IconButton
@@ -299,7 +368,9 @@ const Topbar = (props) => {
               color="primary"
               variant="dot"
             >
-              <HelpIcon />
+              <Tooltip title={"Documentation"}>
+                <HelpIcon />
+              </Tooltip>
             </Badge>
           </IconButton>
 
@@ -309,7 +380,9 @@ const Topbar = (props) => {
               color="primary"
               variant="dot"
             >
-              <NotificationsIcon />
+              <Tooltip title={"Notifications"}>
+                <NotificationsIcon />
+              </Tooltip>
             </Badge>
           </IconButton>
           <IconButton
@@ -317,7 +390,9 @@ const Topbar = (props) => {
             color="inherit"
             onClick={handleOpenMenu}
           >
-            <InputIcon />
+            <Tooltip title={"Manage account"}>
+              <InputIcon />
+            </Tooltip>
           </IconButton>
           <Menu
             id="menu-appbar"
