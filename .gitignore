@@ -9,6 +9,8 @@ mobile/android/app/google-services.json
 .DS_Store/
 .DS_Store
 .env
+.cache_ggshield
+secret
 .env.yaml
 .stage-env.yaml
 .prod-env.yaml
