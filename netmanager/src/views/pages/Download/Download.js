@@ -13,14 +13,12 @@ import {
   Tabs,
   Tab
 } from "@material-ui/core";
-import Alert from '@material-ui/lab/Alert';
 import Select from "react-select";
 import PropTypes from "prop-types";
 import clsx from "clsx";
 import TextField from "@material-ui/core/TextField";
 import { isEmpty } from "underscore";
 import Papa from 'papaparse';
-import moment from "moment";
 import { useDashboardSitesData } from "redux/Dashboard/selectors";
 import { loadSites } from "redux/Dashboard/operations";
 import { downloadDataApi } from "views/apis/analytics";
@@ -29,7 +27,6 @@ import { updateMainAlert } from "redux/MainAlert/operations";
 import { useInitScrollTop, usePollutantsOptions } from "utils/customHooks";
 import ErrorBoundary from "views/ErrorBoundary/ErrorBoundary";
 import { downloadUrbanBetterDataApi } from "../../apis/analytics";
-import { useMainAlertData } from "../../../redux/MainAlert/selectors";
 
 const { Parser } = require("json2csv");
 

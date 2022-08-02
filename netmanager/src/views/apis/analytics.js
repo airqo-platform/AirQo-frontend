@@ -5,7 +5,7 @@ import {
   DOWNLOAD_CUSTOMISED_DATA_URI,
   D3_CHART_DATA_URI,
 } from "config/urls/analytics";
-import { URBAN_BETTER_DOWNLOAD_DATA_URI } from "../../config/urls/analytics";
+import { URBAN_BETTER_DOWNLOAD_DATA_URI } from "config/urls/analytics";
 
 export const getMonitoringSitesInfoApi = async (pm25Category) => {
   return await axios

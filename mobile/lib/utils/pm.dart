@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:app/utils/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -293,36 +294,36 @@ Future<BitmapDescriptor> pmToMarker(double pm2_5) async {
   return BitmapDescriptor.fromBytes(data!.buffer.asUint8List());
 }
 
-BitmapDescriptor pmToMarkerPoint(double pm2_5, AqiColors aqiColors) {
+BitmapDescriptor pmToMarkerPoint(double pm2_5) {
   if (pm2_5 <= 12.09) {
     //good
     return BitmapDescriptor.defaultMarkerWithHue(HSVColor.fromColor(
-      aqiColors.aqiGreen ?? Colors.white,
+      CustomColors.aqiGreen,
     ).hue);
   } else if (pm2_5 >= 12.10 && pm2_5 <= 35.49) {
     //moderate
     return BitmapDescriptor.defaultMarkerWithHue(HSVColor.fromColor(
-      aqiColors.aqiYellow ?? Colors.white,
+      CustomColors.aqiYellow,
     ).hue);
   } else if (pm2_5 >= 35.50 && pm2_5 <= 55.49) {
     //sensitive
     return BitmapDescriptor.defaultMarkerWithHue(HSVColor.fromColor(
-      aqiColors.aqiOrange ?? Colors.white,
+      CustomColors.aqiOrange,
     ).hue);
   } else if (pm2_5 >= 55.50 && pm2_5 <= 150.49) {
     // unhealthy
     return BitmapDescriptor.defaultMarkerWithHue(HSVColor.fromColor(
-      aqiColors.aqiRed ?? Colors.white,
+      CustomColors.aqiRed,
     ).hue);
   } else if (pm2_5 >= 150.50 && pm2_5 <= 250.49) {
     // very unhealthy
     return BitmapDescriptor.defaultMarkerWithHue(HSVColor.fromColor(
-      aqiColors.aqiPurple ?? Colors.white,
+      CustomColors.aqiPurple,
     ).hue);
   } else if (pm2_5 >= 250.5) {
     // hazardous
     return BitmapDescriptor.defaultMarkerWithHue(HSVColor.fromColor(
-      aqiColors.aqiMaroon ?? Colors.white,
+      CustomColors.aqiMaroon,
     ).hue);
   } else {
     return BitmapDescriptor.defaultMarker;

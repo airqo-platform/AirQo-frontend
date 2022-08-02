@@ -6,6 +6,7 @@ import 'package:app/models/place_details.dart';
 import 'package:app/models/suggestion.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
 import 'package:app/themes/app_theme.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/widgets/dialogs.dart';
 import 'package:flutter/material.dart';
@@ -20,10 +21,10 @@ import '../../themes/colors.dart';
 import 'map_widgets.dart';
 
 class MapView extends StatefulWidget {
-  const MapView({super.key});
+  const MapView({Key? key}) : super(key: key);
 
   @override
-  State<MapView> createState() => _MapViewState();
+  _MapViewState createState() => _MapViewState();
 }
 
 class _MapViewState extends State<MapView> {
@@ -551,13 +552,13 @@ class _MapViewState extends State<MapView> {
           measurements.first.site.longitude,
         );
 
-        final cameraPosition = CameraPosition(
+        final _cameraPosition = CameraPosition(
           target: latLng,
           zoom: zoom,
         );
 
         await controller.animateCamera(
-          CameraUpdate.newCameraPosition(cameraPosition),
+          CameraUpdate.newCameraPosition(_cameraPosition),
         );
       } else {
         if (_displayRegions) {
@@ -745,7 +746,7 @@ class _MapViewState extends State<MapView> {
           Visibility(
             visible: _regionSites.isNotEmpty,
             child: Text(
-              _selectedRegion.toString(),
+              _selectedRegion.getName(),
               style: CustomTextStyle.overline1(context)?.copyWith(
                 color: CustomColors.appColorBlack.withOpacity(0.32),
               ),
@@ -770,7 +771,7 @@ class _MapViewState extends State<MapView> {
           Visibility(
             visible: _regionSites.isEmpty,
             child: EmptyView(
-              title: _selectedRegion.toString(),
+              title: _selectedRegion.getName(),
               topBars: false,
               bodyInnerText: 'region',
               showRegions: _showRegions,

@@ -1,5 +1,4 @@
 .vscode
-.DS_Store
 mobile/lib/config/env.dart
 mobile/android/app.properties
 mobile/lib/config/env.dart

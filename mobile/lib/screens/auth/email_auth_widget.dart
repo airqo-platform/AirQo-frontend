@@ -21,10 +21,10 @@ import 'auth_widgets.dart';
 
 class EmailAuthWidget extends StatefulWidget {
   const EmailAuthWidget({
-    super.key,
+    Key? key,
     this.emailAddress,
     required this.authProcedure,
-  });
+  }) : super(key: key);
   final String? emailAddress;
   final AuthProcedure authProcedure;
 
@@ -56,7 +56,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
         onWillPop: onWillPop,
         child: Container(
           color: Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.only(left: 24, right: 24),
           child: Center(
             child: Column(
               children: _getColumnWidget(),
@@ -72,7 +72,9 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
       FocusScope.of(context).unfocus();
       Future.delayed(
         const Duration(milliseconds: 400),
-        () => setState(() => _showAuthOptions = true),
+        () {
+          setState(() => _showAuthOptions = true);
+        },
       );
     }
 
@@ -88,14 +90,18 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
   Widget emailInputField() {
     return TextFormField(
       controller: _emailInputController,
-      onTap: () => setState(() => _showAuthOptions = false),
+      onTap: () {
+        setState(() => _showAuthOptions = false);
+      },
       onEditingComplete: () async {
         FocusScope.of(context).requestFocus(
           FocusNode(),
         );
         Future.delayed(
           const Duration(milliseconds: 400),
-          () => setState(() => _showAuthOptions = true),
+          () {
+            setState(() => _showAuthOptions = true);
+          },
         );
       },
       onChanged: emailValueChange,
@@ -708,8 +714,9 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
 }
 
 class EmailLoginWidget extends EmailAuthWidget {
-  const EmailLoginWidget({super.key, String? emailAddress})
+  const EmailLoginWidget({Key? key, String? emailAddress})
       : super(
+          key: key,
           emailAddress: emailAddress,
           authProcedure: AuthProcedure.login,
         );
@@ -721,8 +728,8 @@ class EmailLoginWidget extends EmailAuthWidget {
 class EmailLoginWidgetState extends EmailAuthWidgetState<EmailLoginWidget> {}
 
 class EmailSignUpWidget extends EmailAuthWidget {
-  const EmailSignUpWidget({super.key})
-      : super(authProcedure: AuthProcedure.signup);
+  const EmailSignUpWidget({Key? key})
+      : super(key: key, authProcedure: AuthProcedure.signup);
 
   @override
   EmailSignUpWidgetState createState() => EmailSignUpWidgetState();

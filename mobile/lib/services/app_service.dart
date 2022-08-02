@@ -196,7 +196,7 @@ class AppService {
 
     if (frequency != null) {
       return insights
-          .where((element) => element.frequency == frequency.toString())
+          .where((element) => element.frequency == frequency.getName())
           .toList();
     }
 
@@ -248,19 +248,19 @@ class AppService {
 
   Future<void> _loadFavPlaces(BuildContext buildContext) async {
     try {
-      final offlineFavPlaces = await DBHelper().getFavouritePlaces();
-      final cloudFavPlaces =
+      final _offlineFavPlaces = await DBHelper().getFavouritePlaces();
+      final _cloudFavPlaces =
           await CloudStore.getFavPlaces(CustomAuth.getUserId());
 
-      for (final place in offlineFavPlaces) {
-        cloudFavPlaces.removeWhere(
+      for (final place in _offlineFavPlaces) {
+        _cloudFavPlaces.removeWhere(
           (element) => element.placeId.equalsIgnoreCase(place.placeId),
         );
       }
 
       final favPlaces = [
-        ...offlineFavPlaces,
-        ...cloudFavPlaces,
+        ..._offlineFavPlaces,
+        ..._cloudFavPlaces,
       ];
       await Future.wait([
         DBHelper().setFavouritePlaces(favPlaces).then(
@@ -283,23 +283,23 @@ class AppService {
 
   Future<void> _loadNotifications() async {
     try {
-      final offlineNotifications =
+      final _offlineNotifications =
           Hive.box<AppNotification>(HiveBox.appNotifications)
               .values
               .toList()
               .cast<AppNotification>();
 
-      final cloudNotifications = await CloudStore.getNotifications();
+      final _cloudNotifications = await CloudStore.getNotifications();
 
-      for (final notification in offlineNotifications) {
-        cloudNotifications.removeWhere(
+      for (final notification in _offlineNotifications) {
+        _cloudNotifications.removeWhere(
           (element) => element.id.equalsIgnoreCase(notification.id),
         );
       }
 
       final notifications = [
-        ...offlineNotifications,
-        ...cloudNotifications,
+        ..._offlineNotifications,
+        ..._cloudNotifications,
       ];
 
       await AppNotification.load(notifications);

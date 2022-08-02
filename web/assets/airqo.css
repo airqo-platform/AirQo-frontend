@@ -1,0 +1,1333 @@
+
+@font-face {
+    font-family:Montserrat-Thin;
+    src: url(fonts/Montserrat-SemiBold.otf)
+}
+@font-face {
+    font-family:Montserrat-Thin;
+    src: url(fonts/Montserrat-Thin.otf)
+}
+@font-face {
+    font-family:Montserrat-Medium;
+    src: url(fonts/Montserrat-Medium.otf)
+}
+@font-face {
+    font-family:Montserrat-Regular;
+    src: url(fonts/Montserrat-Regular.otf)
+}
+@font-face {
+    font-family:Montserrat-Light;
+    src: url(fonts/Montserrat-Light.otf)
+}
+
+html, body {
+    position: relative;
+    margin: 0;
+    font-family: Montserrat-Light;
+    max-width:100%;
+    overflow-x: hidden;
+    background-color: #fff;
+}
+img{
+  object-fit: cover!important;
+}
+a:hover, a:focus{
+  color:#3399CC!important;
+  text-decoration: none;
+}
+h1, h2{
+  font-family:Montserrat-SemiBold;
+  /*text-transform: capitalize;*/
+}
+h3 {
+    font-family: Montserrat-Medium;
+    /*text-transform: capitalize;*/
+    font-size: 19px;
+    height: 21.2px;
+    overflow-y: hidden;
+}
+h4{
+    font-family:Montserrat-Regular;
+    /*text-transform: capitalize;*/
+    font-size: 17px;
+}
+p{
+    font-family: Montserrat-Light;
+    font-size: 15px;
+}
+@media(max-width: 768px){
+ p{
+    font-family: Montserrat-Thin;
+    font-size: 13px;
+} 
+body {
+    position: relative;
+    margin: 0;
+    font-family: Montserrat-Light;
+    max-width:100%!important;
+    overflow-x: hidden!important;
+    background-color: #fff;
+}
+h3 {
+    font-family: Montserrat-Medium;
+    /*text-transform: capitalize;*/
+    font-size: 17px;
+    height: 20px!important;
+    overflow-y: hidden;
+}
+h4{
+    font-family:Montserrat-Regular;
+    /*text-transform: capitalize;*/
+    font-size: 15px;
+}
+.col-md-3.phone-push{
+    width: 130%!important;
+    margin-left: -25%!important;
+}
+}
+@media(max-width: 1024px){
+ p{
+    font-family: Montserrat-Thin;
+    font-size: 15px;
+} 
+
+
+h3 {
+    font-family: Montserrat-Medium;
+    /*text-transform: capitalize;*/
+    font-size: 16px;
+    height: 19px!important;
+    overflow-y: hidden;
+}
+h4{
+    font-family:Montserrat-Regular;
+    /*text-transform: capitalize;*/
+    font-size: 15px;
+}
+.navfix {
+    position: fixed !important;
+}
+
+.buzen-footer .btn {
+    margin-left: 250px!important;
+    margin-top: -60px;
+    border-color: #373f49;
+    background-color: #373f49;
+    color: #627881;
+    padding: 0px;
+}
+.buzen-current-projects .icons #large {
+    color: #3399CC;
+    font-size: 25px;
+    margin-right: 0px!important;
+    position: relative;
+    float: right;
+}
+.buzen-current-projects.all-projects h5 {
+    margin-top: -6px;
+    height: 17px;
+    overflow-y: hidden;
+}
+.buzen-current-projects .project-big-tile {
+    background-color: #fff !important;
+    padding: 20px;
+    background-clip: padding-box;
+    box-shadow: 0px 0px 5px rgba(0,0,0,0.2);
+    position: relative;
+    top: 14% !important;
+    z-index: 3;
+}
+.buzen-current-projects h4 {
+    font-size: 16px;
+    /*text-transform: capitalize;*/
+    height: 19px !important;
+    overflow-y: hidden;
+}
+.buzen-app-section .downloads .left {
+    margin-left: -60px!important;
+}
+.buzen-current-projects .project-big-tile {
+    background-color: #fff !important;
+    padding: 20px;
+    background-clip: padding-box;
+    box-shadow: 0px 0px 5px rgba(0,0,0,0.2);
+    position: relative;
+    top: 24%!important;
+    z-index: 3;
+}
+.buzen-app-section .myimage img {
+    height: 350px!important;
+    width: 450px!important;
+    margin-top: -63px;
+}
+.home-image .appstore {
+    position: absolute;
+    top: 400px;
+    z-index: 15;
+    left: 15%!important;
+
+}
+.home-image .right-slider .carousel .carousel-inner .carousel-caption {
+    right: 5%;
+    left: 5%;
+    padding-bottom: 45%!important;
+}
+.big-nav .navbar-header img {
+    margin-top: -26px!important;
+    width: 100px!important;
+    height: 80px!important;
+    margin-left: -40px;
+}
+.big-nav .navbar-collapse .navbar-right a {
+    height: 80px;
+    margin-top: -12px;
+    padding-top: 30px;
+    font-weight: bold;
+    font-size: 17px;
+    color: #444;
+    font-size: 13px!important;
+}
+.below-nav .header-info h4 {
+    color: #fff;
+    line-height: 16px;
+    font-size: 16px;
+    margin-top: -1px;
+    height: 20px;
+    overflow-y: hidden;
+    font-size: 13px!important;
+}
+.below-nav .header-info p {
+    color: #fff;
+    height: 21px!important;
+    font-size: 12px!important;
+    overflow-y: hidden;
+    margin-top: -9px;
+}
+.col-md-3.phone-push{
+    width: 34%;
+    margin-left: -25%!important;
+}
+}
+@media(max-width: 990px){
+.appstore {
+    position: absolute;
+    top: 400px;
+    z-index: 15;
+    left:33%!important;
+    /*margin-left: 33%;*/
+
+}
+}
+@media(max-width: 1260px){
+ p{
+    font-family: Montserrat-Thin;
+    font-size: 15px!important;
+} 
+
+h3 {
+    font-family: Montserrat-Medium;
+    /*text-transform: capitalize;*/
+    font-size: 16px !important;
+    height: 19px!important;
+    overflow-y: hidden;
+}
+h4{
+    font-family:Montserrat-Regular;
+    /*text-transform: capitalize;*/
+    font-size: 15px !important;
+}
+.buzen-footer .btn {
+    margin-left: 250px!important;
+    margin-top: -60px;
+    border-color: #373f49;
+    background-color: #373f49;
+    color: #627881;
+    padding: 0px;
+}
+.buzen-current-projects.all-projects h5 {
+    margin-top: -6px;
+    height: 17px;
+    overflow-y: hidden;
+}
+.buzen-current-projects .project-big-tile {
+    background-color: #fff !important;
+    padding: 20px;
+    background-clip: padding-box;
+    box-shadow: 0px 0px 5px rgba(0,0,0,0.2);
+    position: relative;
+    top: 14% !important;
+    z-index: 3;
+}
+.buzen-current-projects h4 {
+    font-size: 16px;
+    /*text-transform: capitalize;*/
+    height: 19px !important;
+    overflow-y: hidden;
+}
+.buzen-app-section .downloads .left {
+    margin-left: -60px!important;
+}
+.buzen-current-projects .project-big-tile {
+    background-color: #fff !important;
+    padding: 20px;
+    background-clip: padding-box;
+    box-shadow: 0px 0px 5px rgba(0,0,0,0.2);
+    position: relative;
+    top: 24%!important;
+    z-index: 3;
+}
+.buzen-app-section .myimage img {
+    height: 350px!important;
+    width: 450px!important;
+    margin-top: -63px;
+}
+.home-image .appstore {
+    position: absolute;
+    top: 400px;
+    z-index: 15;
+    left: 15%!important;
+
+}
+.home-image .right-slider .carousel .carousel-inner .carousel-caption {
+    right: 5%;
+    left: 5%;
+    padding-bottom: 45%!important;
+}
+.big-nav .navbar-header img {
+    margin-top: -26px!important;
+    width: 100px!important;
+    height: 80px!important;
+    margin-left: -40px;
+}
+.big-nav .navbar-collapse .navbar-right a {
+    height: 80px;
+    margin-top: -12px;
+    padding-top: 30px;
+    font-weight: bold;
+    font-size: 17px;
+    color: #444;
+    font-size: 13px!important;
+}
+.below-nav .header-info h4 {
+    color: #fff;
+    line-height: 16px;
+    font-size: 16px;
+    margin-top: -1px;
+    height: 20px;
+    overflow-y: hidden;
+    font-size: 13px!important;
+}
+.below-nav .header-info p {
+    color: #fff;
+    height: 21px!important;
+    font-size: 12px!important;
+    overflow-y: hidden;
+    margin-top: -9px;
+}
+.col-md-3.phone-push{
+    width: 34%;
+    margin-left: -25%!important;
+}
+}
+
+/*@media(max-width: 1920px){
+  .buzen-current-projects .project-big-tile {
+    background-color: #fff !important;
+    padding: 20px;
+    background-clip: padding-box;
+    box-shadow: 0px 0px 5px rgba(0,0,0,0.2);
+    position: absolute!important;
+    top: 24%;
+    left: 6.5%!important;
+    z-index: 3;
+    min-height: 780px;
+    right: 6.5%!important;
+}
+}*/
+/*for center aligning columns*/
+.row-centered{
+  text-align: center;
+}
+.col-centered {
+  display: inline-block;
+  float: none;
+  text-align: left;
+  margin-right: -4px;
+  margin-bottom: 25px;
+}
+/*end of center aligning columns*/
+
+/*START OF THE SMALL CONTACT NAV*/
+/* NAVBAR */
+
+.buzen-navbar {
+    background: #333333;
+    color: #9d9c9c;
+    text-align: right;
+    height: 35px;
+}
+.buzen-navbar .navbar-default .navbar-nav > li > a:focus, .navbar-default .navbar-nav > li > a:hover {
+    color: #e12c29;
+    background-color: transparent;
+}
+.buzen-navbar p {
+    margin-top: 9px;
+    text-align: left;
+    font-size: 11px!important;
+    height: 16px;
+    overflow-y: hidden;
+    overflow-x: hidden;
+    width: 190%;
+}
+.buzen-navbar .contact{
+    padding-left: 10px;
+  }
+.container-dave{
+  padding-right: 55px;
+  padding-left: 55px;
+  margin-right: auto;
+  margin-left: auto;
+}
+.buzen-navbar .contact a{
+    margin-top: 9px;
+    text-align: left;
+    font-size: 12px;
+    color: #9d9c9c;
+    /* margin-left: -40px; */
+}
+.buzen-navbar .contact a:hover{
+  text-decoration: none;
+  color: #e12c29;
+}
+.buzen-navbar .social i{
+    /* border-right: 1px solid rgba(200,200,200,.3); */
+    padding: 10px 0px;
+    /* width:130px; */
+    height: 36px;
+    font-size: 13px;
+    /* margin-right:10px; */
+}
+.buzen-navbar .social a{
+  border-left: 1px solid rgba(200,200,200,.3);
+  height: 36px !important;
+  margin-top: 9px;
+  text-align: left;
+  font-size: 12px;
+  color: #9d9c9c;
+  padding-right:10px;
+  padding-left: 10px;
+}
+.buzen-navbar .social a:hover{
+  text-decoration: none;
+  color: #e12c29;
+}
+.buzen-navbar .social .first{
+
+    padding: 10px 30px;
+    height: 36px;
+    font-size: 13px;
+}
+.buzen-navbar .social .fa-play-circle-o{
+    margin-left: 5px;
+    width:15px !important;
+    height: 15px !important;
+    border-radius:50%;
+    padding: 0px!important;
+    /* border:1px solid silver; */
+}
+@media(max-width: 768px){
+  .buzen-navbar .contact .phone-push{
+    margin-left: -42px!important;
+  }
+  .buzen-navbar p {
+    margin-top: 9px;
+    text-align: left;
+    font-size: 11px!important;
+    height: 16px;
+    overflow-y: hidden;
+    overflow-x: hidden;
+    width: 190%;
+}
+}
+/*END OF THE SMALL CONTACT NAV*/
+/* Start of the second big navbar  */
+.big-nav {
+    border-radius: 0px;
+    width: 100%;
+    border-bottom: none;
+    border-right: none;
+    border-left: none;
+    height: 80px;
+    background-color: #fff;
+}
+.big-nav .boxsearch{
+  padding: 6px;
+  margin-left: -7px;
+  margin-top: 3px!important;
+  background-color:#3d729c;
+  border:1px solid #3d729c;
+
+
+}
+.big-nav .boxsearch i{
+  color:#fff;
+}
+.big-nav .boxsearch:hover{
+  background-color:#e12c29;
+  border-left:none;
+}
+
+.big-nav .navbar-header{
+  padding:10px;
+}
+.big-nav .navbar-header img{
+  margin-top: -22px;
+}
+.big-nav .navbar-header img {
+    margin-top: -62px;
+    width: 200px;
+    height: 116px;
+}
+.big-nav .navbar-collapse .navbar-right a {
+    height: 80px;
+    margin-top: -12px;
+    padding-top: 30px;
+    font-weight: bold;
+    font-size: 17px;
+    color: #444;
+}
+.navbar-default .navbar-nav > .active > a, .navbar-default .navbar-nav > .active > a:focus, .navbar-default .navbar-nav > .active > a:hover {
+  /*color: #fff;*/
+  background-color: transparent;
+
+}
+.big-nav .navbar-collapse .dropdown .drop_M {
+    display: none;
+    min-width: 150px;
+    box-shadow: 0px 1px 7px #00326f;
+    z-index: 11;
+    padding: 20px 10px 10px;
+    min-height: 50px;
+    border: none;
+    border-radius: 0px;
+}
+.big-nav .navbar-collapse .main_li:hover .drop_M {
+    display: inline-block!important;
+    z-index: 2000000000000!important;
+}
+.navbar-default .navbar-collapse, .navbar-default .navbar-form {
+    border-color: #e7e7e7;
+    min-height: 80px;
+    padding: 10px;
+}
+.navbar-toggle {
+    margin-right: -47%;
+  }
+.big-nav .navbar-collapse .navbar-right .fa-download{
+  font-size: 15px;
+  color:#fff;
+  background-color: #3d729c;
+  padding:8px;
+  margin-top:-10px;
+}
+.big-nav .navbar-collapse .navbar-right .download-pro{
+  color:#3d729c;
+}
+.big-nav .navbar-collapse .navbar-right .download-pro:hover{
+  color:#e12c29;
+}
+@media(max-width:768px){
+  body{
+    max-width:100%;
+    overflow-x: hidden;
+  }
+  .big-nav {
+    border-radius: 0px;
+    width:100%;
+    min-height: 80px;
+  }
+  .navbar-nav {
+    margin: 7px -15px;
+    background-color: #F5F5F5;
+    z-index: 2;
+    min-height: 350px;
+    overflow-x: hidden;
+    max-width: 100%;
+    padding: 20px;
+}
+.big-nav .navbar-collapse .navbar-right a {
+  height: 50px;
+  margin-top: 0px;
+  padding-top: 15px;
+  font-weight: bold;
+}
+.big-nav .navbar-collapse .dropdown .drop_M {
+    display: none;
+    min-width: 150px;
+    box-shadow: 0px 1px 7px #00326f;
+    z-index: 200000000000000000000;
+    padding: 10px 10px;
+    min-height: 50px;
+    border: none;
+    border-radius: 0px;
+}
+.big-nav .boxsearch{
+  padding: 6px;
+  margin-left: 146px;
+  margin-top: auto!important;
+  position: absolute;
+  top:8px;
+}
+.popover-footer{
+  margin-top:10px!important;
+  }
+.big-nav .navbar-collapse .navbar-right {
+    min-height: 78px !important;
+    margin-top: -10px;
+    margin-left: 0px;
+    z-index: 100!important;
+    position: relative;
+    width: 100%;
+}
+
+  .big-nav .navbar-header img{
+    margin-top: -22px;
+    height:65px;
+    width: 65px;
+  }
+  .big-nav .navbar-header img {
+    margin-top: -22px !important;
+    width: 65px !important;
+    height: 66px !important;
+    margin-left: -10% !important;
+}
+.navbar-toggle {
+    margin-right: 4%;
+}
+.container-dave.phone{
+  padding-right: 0px;
+  padding-left: 0px;
+  margin-right: auto;
+  margin-left: auto;
+}
+.big-nav .navbar-header {
+    padding: 6px;
+}
+.navbar-default .navbar-collapse, .navbar-default .navbar-form {
+    min-height: 80px;
+    padding: 0px;
+    width: 120%;
+    position: relative;
+    z-index: 1000000 !important;
+    margin: 0px;
+}
+.navbar-collapse.collapse.in {
+    display: none!important;
+    z-index: 999999!important;
+    position: relative!important;
+    background-color: #e7e7e7!important;
+    width: 120%!important;
+    top: 3px!important;
+    left: auto!important;
+    padding: 0px!important;
+    visibility: none;
+    padding: 0px!important;
+   }
+
+}
+@media(max-width: 1024px){
+}
+/* end of the second big navbar  */
+
+/*START OF HEADER INFO*/
+.below-nav {
+    background-color: rgba(51,153,204,0.8);
+    margin-top: 0px;
+    padding: 13px 0% !important;
+    z-index: 3;
+    box-shadow: 0px 3px 5px rgba(0,0,0,0.2);
+    position: relative;
+}
+.below-nav .header-info {
+    border-left: 1px solid #fff;
+    height: 40px;
+    margin-left: 15px;
+}
+ .below-nav .row.row-pad {
+    padding: 0px 10px;    
+}
+.below-nav .header-info.last {
+    border-right: 1px solid #fff;
+    border-height:30px;
+}
+.below-nav .header-info h4 {
+    color: #fff;
+    line-height: 16px;
+    font-size: 16px;
+    margin-top: -1px;
+    height: 20px;
+    overflow-y: hidden;
+}
+.below-nav .header-info p {
+    color: #fff;
+    height: 24px;
+    font-size: 14px;
+    overflow-y: hidden;
+    margin-top: -9px;
+}
+@media(max-width: 990px){
+.below-nav {
+    visibility: hidden!important;
+}
+ .home-image img {
+    position: relative;
+    z-index: 0;
+    margin-top: -30px!important;
+}
+.downloads .col-md-6{
+  display: inline-block;
+  margin-bottom: 100px;
+  margin-left: 30px;
+}
+}
+@media(max-width: 768px){
+.below-nav {
+    visibility: hidden!important;
+}
+
+.below-nav .header-info {
+    border-left: 1px solid #fff;
+    border-right: 1px solid #fff;
+    height: 40px;
+    margin-left: auto;
+    margin-bottom: 20px;
+    margin-right: auto;
+    display: block;
+    /*visibility: hidden;*/
+}
+ .below-nav .row.row-pad {
+    padding: 0px 10px;    
+}
+.below-nav .header-info.last {
+    border-right: 1px solid #fff;
+    border-height:30px;
+}
+.below-nav .header-info h4 {
+    color: #fff;
+    line-height: 20px;
+    font-size: 16px;
+    margin-top: -1px;
+}
+.below-nav .header-info p {
+    color: #fff;
+    line-height: 20px;
+    font-size: 14px;
+}
+}
+@media(max-width: 960px){
+ .below-nav {
+    visibility: hidden!important;
+}
+.home-image .appstore {
+    position: absolute;
+    top: 380px;
+    z-index: 15;
+    left: 32%!important;
+
+}
+.home-image .right-slider .carousel .carousel-inner .carousel-caption {
+    right: 5%;
+    left: 5%;
+    padding-bottom: 28%!important;
+}
+}
+/*END OF BELOW NAV*/
+
+/*START OF THE HOME SLIDER*/
+.home-image img{
+  position: relative;
+  z-index: 0;
+  margin-top: -66px;
+}
+.home-image .appstore{
+  position: absolute;
+  top: 400px;
+  z-index: 15;
+  left:24%;
+}
+.home-image .appstore .left{
+  margin-left:-10px; 
+}
+.home-image .appstore .right{
+ margin-right:-10px; 
+}
+.home-image .appstore img:hover{
+   transform: scale(1.01);
+}
+.home-image .right-slider .carousel {
+
+    position: relative;
+    margin-top: -600px;
+    z-index: 0;
+
+}
+.home-image .right-slider .carousel .carousel-control{
+ display:  none;
+
+}
+.home-image .right-slider .carousel .carousel-inner .item.blue{
+  background-color: rgba(51,153,204,0.8); 
+  height: 598px;
+
+}
+.home-image .right-slider .carousel .carousel-inner .carousel-caption {
+    right: 5%;
+    left: 5%;
+    padding-bottom: 35%;
+}
+.home-image .right-slider .carousel .carousel-indicators {
+    bottom: 25%;
+}
+@media(max-width: 768px){
+  .home-image .appstore{
+  position: absolute;
+  top: 399px;
+  z-index: 15;
+  left:15%!important;
+}
+.home-image .appstore .left{
+  margin-right: auto;
+  display: block;
+  width: 100px; 
+  height: 30px;
+}
+.home-image .appstore .right{
+   margin-right: auto;
+   display: block; 
+   width: 100px; 
+   height: 30px;
+
+}
+ .home-image img {
+    position: relative;
+    z-index: 0;
+    margin-top: -283px!important;
+    height: 300px;
+}
+.home-image .right-slider .carousel{
+  position: relative;
+  margin-top: -300px;
+  z-index: 0;
+}
+.home-image .right-slider .carousel .carousel-control{
+ display:  none;
+
+}
+.home-image .right-slider .carousel .carousel-inner .item.blue {
+    background-color: rgba(51,153,204,0.8);
+    height: 300px;
+    z-index: 0;
+}
+.home-image .right-slider .carousel .carousel-inner .carousel-caption {
+    right: 5%;
+    left: 5%;
+    padding-bottom: 160px!important;
+}
+.home-image .right-slider .carousel .carousel-indicators {
+    bottom: 35%;
+}
+}
+@media(max-width: 991px){
+ .home-image img {
+    position: relative;
+    z-index: 0;
+}
+.big-nav .navbar-collapse .navbar-right a {
+    font-size: 10px!important;
+    color: #444;
+}
+.navbar-toggle {
+    margin-right: 0%;
+  }
+  .big-nav .navbar-collapse .main_li:hover .drop_M {
+    display: inline-block!important;
+    z-index: 2000000000000!important;
+    margin-top:-20px;
+}
+.navbar-header {
+        float: none!important;
+    }
+    .navbar-header .navbar-toggle {
+        display: block!important;
+        float: right;
+    }
+
+    .navbar-collapse {
+        border-top: 1px solid transparent!important;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.1)!important;
+    }
+    .navbar-collapse.collapse {
+        display: none!important;
+    }
+    .navbar-nav {
+        float: none!important;
+        margin: 7.5px -15px!important;
+    }
+    .navbar-nav>li {
+        float: none!important;
+    }
+    .navbar-nav>li>a {
+        padding-top: 10px!important;
+        padding-bottom: 10px!important;
+    }
+    .navbar-text {
+        float: none!important;
+        margin: 15px 0!important;
+    }
+   
+   .navbar-collapse.collapse.in {
+    display: block !important;
+    z-index: 999999!important;
+    position: absolute;
+    background-color: #e7e7e7;
+    width: 100%;
+    top: 79px;
+    left: 0px;
+    padding: 30px;
+   }
+    .collapsing {
+        overflow: hidden!important;
+    }
+    .navbar-right {
+    float: left !important;
+    margin-left: 15px;
+}
+}
+   
+
+/*END OF THE HOME SLIDER*/
+
+/*END OF HEADER INFO*/
+
+/*start of the buzen-current-projects*/
+.buzen-current-projects{
+   margin-bottom: -400px;
+}
+.buzen-current-projects .project-big-tile {
+    background-color: #fff !important;
+    padding: 20px;
+    background-clip: padding-box;
+    box-shadow: 0px 0px 5px rgba(0,0,0,0.2);
+    position: relative;
+    z-index: 3;
+    min-height: 780px;
+    margin-top: -100px;
+    margin-bottom: -250px;
+}
+.all-projects .project-big-tile {
+    background-color: #fff !important;
+    padding: 20px;
+    background-clip: padding-box;
+    box-shadow: 0px 0px 5px rgba(0,0,0,0.2);
+    position: relative;
+    z-index: 3;
+    min-height: 780px;
+    margin-top: -450px;
+    margin-bottom: 170px;
+}
+.buzen-current-projects img{
+  transition:all ease 1s;
+   border-radius: 0% !important;
+}
+.buzen-current-projects .myrow a{
+  color: #555;
+}
+.buzen-current-projects .myrow a:hover{
+  color: #222;
+}
+.buzen-current-projects img:hover {
+  transform: scale(1.05);
+}
+
+.buzen-current-projects .myrow{
+  padding: 0px 30px;  
+}
+
+.buzen-current-projects .line{
+  height: 1px;
+  background-color: #444;
+  margin-top: 33px;  
+}
+
+.buzen-current-projects h4 {
+    font-size: 16px;
+    /*text-transform: capitalize;*/
+    height: 17px;
+    overflow-y: hidden;
+}
+.buzen-current-projects.all-projects h5 {
+    margin-top: -6px;
+}
+.modal .text-section{ 
+  padding: 1px 20px;
+ }
+.buzen-current-projects .align-myTitle{
+  margin-bottom: 35px;
+}
+.buzen-current-projects h6{
+  font-family: Montserrat-Medium;
+  font-size: 13px;
+  margin-bottom: 0px;
+  /*text-transform: capitalize;*/
+}
+.buzen-current-projects .icons {
+    margin-top: 22px;
+    margin-left: -68px;
+}
+.buzen-current-projects .icons #large {
+    color: #3399CC;
+    font-size: 25px;
+    margin-right: -40px;
+    position: relative;
+    float: right;
+}
+.buzen-current-projects .icons #list {
+    color: #3B4246;
+    font-size: 25px;
+    float: right;
+}
+.buzen-current-projects .image-section {
+    height: 250px;
+    width: 100%;
+    overflow: hidden;
+}
+.buzen-current-projects.all-projects.details .image-section {
+    height: 350px!important;
+    width: 100%;
+    overflow: hidden;
+}
+
+
+/*the project details page*/
+  .buzen-current-projects .myProject{
+    margin-bottom: 20px;
+  } 
+  .buzen-current-projects .myProjectTitle h3 {
+    text-align: center !important;
+    color: #3399CC;
+} 
+/*the project details page*/
+
+@media(max-width: 768px){
+
+.buzen-current-projects .project-big-tile {
+    background-color: #fff !important;
+    padding: 20px;
+    background-clip: padding-box;
+    box-shadow: 0px 0px 5px rgba(0,0,0,0.2);
+    position: relative;
+    z-index: 3;
+    min-height: 780px;
+    margin-top: -100px;
+    margin-bottom: -1200px;
+}
+
+.buzen-current-projects.all-projects .project-big-tile {
+    margin-top: -320px;
+    margin-bottom: -200px;
+}
+.buzen-current-projects img{
+  -webkit-transition:all 0.9s ease;
+   border-radius: 0% !important;
+}
+.buzen-current-projects img:hover {
+  transform: scale(1.01);
+}
+
+.buzen-current-projects .myrow{
+  padding: 0px 30px;  
+}
+
+.buzen-current-projects h4 {
+    font-size: 14px;
+    margin-bottom: 20px;
+    /*text-transform: capitalize;*/
+    margin-top: 10px;
+    height: 17px!important;
+}
+.buzen-current-projects h3 {
+    font-size: 16px;
+    margin-bottom: 5px;
+    /*text-transform: capitalize;*/
+    margin-top: 20px;
+    height: 19px;
+    overflow-y: hidden;
+}
+.buzen-current-projects .align-myTitle{
+  margin-bottom: 25px;
+}
+.buzen-current-projects h6{
+  font-family: Montserrat-Medium;
+  font-size: 13px;
+  margin-bottom: 0px;
+  /*text-transform: capitalize;*/
+}
+.buzen-current-projects .icons {
+    margin-top: 22px;
+    margin-left: -68px;
+}
+.buzen-current-projects .icons #large {
+    color: #3399CC;
+    font-size: 20px;
+    float: right;
+    margin-right: 0px;
+    position: normal;
+}
+
+.buzen-current-projects .icons #list {
+    color: #3B4246;
+    font-size: 20px;
+    float: right;
+}
+
+}
+/*buzen-app-section starts here*/
+.buzen-app-section {
+    margin-top: 530px;
+    padding: 170px 10px;
+    z-index: 0;
+    position: relative;
+    margin-bottom: 20px;
+    min-height: 600px;
+    
+    
+    background: rgba(51,153,204,1);
+    background: -moz-linear-gradient(left, rgba(51,153,204,1) 26%, rgba(141,198,226,1) 67%, rgba(177,216,236,1) 98%, rgba(177,216,236,1) 100%);
+    background: -webkit-gradient(left top, right top, color-stop(26%, rgba(51,153,204,1)), color-stop(67%, rgba(141,198,226,1)), color-stop(98%, rgba(177,216,236,1)), color-stop(100%, rgba(177,216,236,1)));
+    background: -webkit-linear-gradient(left, rgba(51,153,204,1) 26%, rgba(141,198,226,1) 67%, rgba(177,216,236,1) 98%, rgba(177,216,236,1) 100%);
+    background: -o-linear-gradient(left, rgba(51,153,204,1) 26%, rgba(141,198,226,1) 67%, rgba(177,216,236,1) 98%, rgba(177,216,236,1) 100%);
+    background: -ms-linear-gradient(left, rgba(51,153,204,1) 26%, rgba(141,198,226,1) 67%, rgba(177,216,236,1) 98%, rgba(177,216,236,1) 100%);
+    background: linear-gradient(to right, rgba(51,153,204,1) 26%, rgba(141,198,226,1) 67%, rgba(177,216,236,1) 98%, rgba(177,216,236,1) 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#3399cc', endColorstr='#b1d8ec', GradientType=1 );
+    progid: DXImageTransform.Microsoft.gradient( startColorstr='#21b4e2', endColorstr='#b7deed', GradientType=1 );
+
+}
+.buzen-app-section .downloads img {
+    background-color: rgba(51,153,204, 0.5);
+    overflow: hidden;
+    border-radius: 10px;
+    border-top: 1px solid #fff;
+    border-bottom: 1px solid #fff;
+} 
+.buzen-app-section .downloads .left {
+  margin-left:-100px;
+} 
+.buzen-app-section h3{
+  color: white;
+  /*font-size: 18px;*/
+}
+.buzen-app-section p {
+    color: white;
+    font-size: 15px;
+}
+.buzen-app-section .myimage img {
+    height: 400px;
+    width: 500px;
+    margin-top: -63px;
+}
+@media(max-width: 768px){
+  .buzen-app-section .downloads .left {
+  margin-left:auto!important;
+  margin-right: auto;
+  display: block;
+} 
+  .buzen-app-section {
+    margin-top: 1430px;
+    padding: 230px 10px;
+    z-index: 0;
+    position: relative;
+    margin-bottom: 20px;
+    height: 1050px;
+    background: rgba(51,153,204,1);
+    background: -moz-linear-gradient(left, rgba(51,153,204,1) 26%, rgba(141,198,226,1) 67%, rgba(177,216,236,1) 98%, rgba(177,216,236,1) 100%);
+    background: -webkit-gradient(left top, right top, color-stop(26%, rgba(51,153,204,1)), color-stop(67%, rgba(141,198,226,1)), color-stop(98%, rgba(177,216,236,1)), color-stop(100%, rgba(177,216,236,1)));
+    background: -webkit-linear-gradient(left, rgba(51,153,204,1) 26%, rgba(141,198,226,1) 67%, rgba(177,216,236,1) 98%, rgba(177,216,236,1) 100%);
+    background: -o-linear-gradient(left, rgba(51,153,204,1) 26%, rgba(141,198,226,1) 67%, rgba(177,216,236,1) 98%, rgba(177,216,236,1) 100%);
+    background: -ms-linear-gradient(left, rgba(51,153,204,1) 26%, rgba(141,198,226,1) 67%, rgba(177,216,236,1) 98%, rgba(177,216,236,1) 100%);
+    background: linear-gradient(to right, rgba(51,153,204,1) 26%, rgba(141,198,226,1) 67%, rgba(177,216,236,1) 98%, rgba(177,216,236,1) 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#3399cc', endColorstr='#b1d8ec', GradientType=1 );
+    progid: DXImageTransform.Microsoft.gradient( startColorstr='#21b4e2', endColorstr='#b7deed', GradientType=1 );
+}
+.buzen-app-section .downloads img {
+    background-color: rgba(51,153,204, 0.5);
+    overflow: hidden;
+    border-radius: 10px;
+    border-top: 1px solid #fff;
+    border-bottom: 1px solid #fff;
+    display: block;
+    margin-right: auto;
+    margin-left: auto;
+    margin-bottom: 5px;
+}
+.buzen-app-section h3{
+  color: white;
+  text-align: center;
+}
+.buzen-app-section p {
+    color: white;
+    font-size: 15px;
+    text-align: justify;
+}
+.buzen-app-section .myimage img {
+    height: 245px!important;
+    width: 300px!important;
+    margin-top: 10px;
+    display: block;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+/*end*/
+
+/*buzen-airqo-partners starts here*/
+.buzen-airqo-partners{
+  margin-bottom: -210px;
+}
+.buzen-airqo-partners .partner-tile {
+    z-index: 3;
+    background-color: #fff;
+    margin-top: -150px;
+    box-shadow: 0px 0px 5px rgba(0,0,0,0.2);
+    position: relative;
+    top: 80%;
+    margin-right: auto;
+    padding: 30PX;
+    margin-left: auto;
+    min-height: 200px;
+}
+.buzen-airqo-partners p {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 15px;
+}
+.buzen-airqo-partners .image-class img{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+@media (max-width: 768px){
+.buzen-airqo-partners{
+  margin-bottom: -600px;
+}
+.buzen-airqo-partners .partner-tile {
+    z-index: 3;
+    background-color: #fff;
+    margin-top: -200px;
+    box-shadow: 0px 0px 5px rgba(0,0,0,0.2);
+    position: relative;
+    top: 80%;
+    margin-right: auto;
+    padding: 30PX;
+    margin-left: auto;
+    min-height: 200px;
+}
+.buzen-airqo-partners p {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 15px;
+}
+.buzen-airqo-partners .image-class img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: auto;
+}
+}
+/*buzen-footer starts here*/
+.buzen-footer {
+    margin-top: 70px;
+    background-color: #373f49;
+    padding: 150px 50px 50px;
+}
+.buzen-footer h4{
+
+  color: #fff;
+  font-family: Montserrat-Regular;
+  font-size: 16px;
+  /*text-transform: capitalize;*/
+}
+.buzen-footer p {
+    color: #fff;
+    font-family: Montserrat-Thin;
+    /*text-transform: capitalize;*/
+    font-size: 15px;
+    max-height: 67px;
+    overflow-y: hidden;
+}
+.buzen-footer .form-control{
+  border-radius: 50px;
+  border-color: #fff;
+  background-color: #373f49;
+  color:#627881;
+}
+.buzen-footer .btn {
+    margin-left: 320px;
+    margin-top: -60px;
+    border-color: #373f49;
+    background-color: #373f49;
+    color: #627881;
+    padding: 0px;
+}
+.buzen-footer .container-fluid{
+  color:#fff;
+  font-family: Montserrat-Thin;
+   font-size: 14px;
+}
+
+@media(max-width: 768px){
+ .buzen-footer {
+    margin-top: 400px;
+    background-color: #373f49;
+    padding: 200px 50px 50px;
+}
+.buzen-footer h4{ 
+  color: #fff;
+  font-family: Montserrat-Regular
+  font-size: 16px;
+  /*text-transform: capitalize;*/
+}
+.buzen-footer p{
+  color: #fff;
+  font-family: Montserrat-Thin;
+  /*text-transform: capitalize;*/
+  font-size: 15px;
+}
+.buzen-footer .form-control{
+  border-radius: 50px;
+  border-color: #fff;
+  background-color: #373f49;
+  color:#627881;
+}
+@media screen and(-webkit-min-device-pixel-ratio:0) {
+  .buzen-footer .btn { 
+      margin-left: 86%!important;
+  } 
+}
+.buzen-footer .btn {
+    margin-left: 86%!important;
+    margin-left: 86%!important;
+    margin-top: -60px;
+    border-color: #373f49;
+    background-color: #373f49;
+    color: #627881;
+    padding: 0px;
+}
+.buzen-footer .container-fluid{
+  color:#fff;
+  font-family: Montserrat-Thin;
+   font-size: 14px;
+}
+
+#ckeditor {
+    color:black;
+}

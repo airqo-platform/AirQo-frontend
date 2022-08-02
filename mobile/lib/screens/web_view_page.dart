@@ -11,10 +11,10 @@ import '../widgets/custom_widgets.dart';
 
 class WebViewScreen extends StatefulWidget {
   const WebViewScreen({
-    super.key,
+    Key? key,
     required this.url,
     required this.title,
-  });
+  }) : super(key: key);
   final String url;
   final String title;
 
@@ -88,8 +88,8 @@ class _WebViewScreenState extends State<WebViewScreen> {
 class NavigationControls extends StatelessWidget {
   const NavigationControls({
     required this.controller,
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
 
   final Completer<WebViewController> controller;
 

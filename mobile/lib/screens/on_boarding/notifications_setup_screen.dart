@@ -14,8 +14,8 @@ import 'on_boarding_widgets.dart';
 
 class NotificationsSetupScreen extends StatefulWidget {
   const NotificationsSetupScreen({
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
 
   @override
   NotificationsSetupScreenState createState() =>

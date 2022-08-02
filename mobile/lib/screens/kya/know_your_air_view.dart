@@ -11,11 +11,11 @@ import 'kya_widgets.dart';
 
 class KnowYourAirView extends StatefulWidget {
   const KnowYourAirView({
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
 
   @override
-  State<KnowYourAirView> createState() => _KnowYourAirViewState();
+  _KnowYourAirViewState createState() => _KnowYourAirViewState();
 }
 
 class _KnowYourAirViewState extends State<KnowYourAirView> {
