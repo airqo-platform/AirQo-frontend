@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:app/app_config.dart';
 import 'package:app/screens/on_boarding/splash_screen.dart';
 import 'package:app/services/hive_service.dart';
 import 'package:app/services/native_api.dart';
@@ -18,7 +19,7 @@ import 'firebase_options.dart';
 import 'models/place_details.dart';
 import 'themes/app_theme.dart';
 
-void main() async {
+void mainCommon() async {
   HttpOverrides.global = AppHttpOverrides();
   await dotenv.load(fileName: Config.environmentFile);
 
@@ -62,6 +63,7 @@ class AirQoApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var config = AppConfig.of(context);
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
@@ -75,7 +77,7 @@ class AirQoApp extends StatelessWidget {
             FirebaseAnalyticsObserver(analytics: analytics),
             SentryNavigatorObserver(),
           ],
-          title: 'AirQo',
+          title: config.appTitle,
           theme: customTheme(),
           home: const SplashScreen(),
         );

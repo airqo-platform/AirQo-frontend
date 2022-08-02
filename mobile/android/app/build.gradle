@@ -68,6 +68,20 @@ android {
         manifestPlaceholders = [googleMapsKey:googleMapApiKey]
     }
 
+    flavorDimensions "airqo"
+    productFlavors {
+ 
+        airqodev {
+            dimension "airqo"
+            applicationIdSuffix ".dev"
+            
+        }
+ 
+        airqo {
+            dimension "airqo"
+        }
+    }
+
     signingConfigs {
         release {
             keyAlias releaseKeystoreProperties['keyAlias']
