@@ -29,8 +29,8 @@ OnBoardingPage getOnBoardingPageConstant(String value) {
 
 class OnBoardingAppBar extends StatelessWidget implements PreferredSizeWidget {
   const OnBoardingAppBar({
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
 
   @override
   PreferredSizeWidget build(BuildContext context) {
@@ -48,8 +48,8 @@ class OnBoardingAppBar extends StatelessWidget implements PreferredSizeWidget {
 
 class OnBoardingLocationIcon extends StatelessWidget {
   const OnBoardingLocationIcon({
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -72,8 +72,8 @@ class OnBoardingLocationIcon extends StatelessWidget {
 
 class OnBoardingNotificationIcon extends StatelessWidget {
   const OnBoardingNotificationIcon({
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -96,11 +96,11 @@ class OnBoardingNotificationIcon extends StatelessWidget {
 
 class ProfileSetupNameInputField extends StatelessWidget {
   const ProfileSetupNameInputField({
-    super.key,
+    Key? key,
     required this.nameChangeCallBack,
     required this.showTileOptionsCallBack,
     this.controller,
-  });
+  }) : super(key: key);
   final Function(String) nameChangeCallBack;
   final Function(bool) showTileOptionsCallBack;
   final TextEditingController? controller;
@@ -162,10 +162,10 @@ class ProfileSetupNameInputField extends StatelessWidget {
 
 class TitleDropDown extends StatelessWidget {
   const TitleDropDown({
-    super.key,
+    Key? key,
     required this.showTileOptionsCallBack,
     required this.profile,
-  });
+  }) : super(key: key);
   final Function(bool) showTileOptionsCallBack;
   final Profile profile;
 
@@ -201,8 +201,8 @@ class TitleDropDown extends StatelessWidget {
 
 class LogoWidget extends StatelessWidget {
   const LogoWidget({
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -217,9 +217,9 @@ class LogoWidget extends StatelessWidget {
 
 class TaglineWidget extends StatelessWidget {
   const TaglineWidget({
-    super.key,
+    Key? key,
     required this.visible,
-  });
+  }) : super(key: key);
   final bool visible;
 
   @override

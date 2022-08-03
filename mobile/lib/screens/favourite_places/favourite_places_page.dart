@@ -11,11 +11,11 @@ import 'favourite_places_widgets.dart';
 
 class FavouritePlaces extends StatefulWidget {
   const FavouritePlaces({
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
 
   @override
-  State<FavouritePlaces> createState() => _FavouritePlacesState();
+  _FavouritePlacesState createState() => _FavouritePlacesState();
 }
 
 class _FavouritePlacesState extends State<FavouritePlaces> {

@@ -84,9 +84,6 @@ class Insights {
               ));
 
         insight.time = formattedDate;
-        if (formattedDate.isBefore(DateTime.now())) {
-          insight.forecast = false;
-        }
 
         insights.add(insight);
       } catch (exception, stackTrace) {

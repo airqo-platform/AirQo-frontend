@@ -6,9 +6,9 @@ import '../themes/colors.dart';
 
 class CircularLoadingAnimation extends StatelessWidget {
   const CircularLoadingAnimation({
-    super.key,
+    Key? key,
     required this.size,
-  });
+  }) : super(key: key);
   final double size;
 
   @override
@@ -32,10 +32,10 @@ class CircularLoadingAnimation extends StatelessWidget {
 
 class ContainerLoadingAnimation extends StatelessWidget {
   const ContainerLoadingAnimation({
-    super.key,
+    Key? key,
     required this.radius,
     required this.height,
-  });
+  }) : super(key: key);
   final double radius;
   final double height;
 
@@ -65,9 +65,9 @@ class ContainerLoadingAnimation extends StatelessWidget {
 
 class LoadingIcon extends StatelessWidget {
   const LoadingIcon({
-    super.key,
+    Key? key,
     this.radius,
-  });
+  }) : super(key: key);
 
   final double? radius;
 
@@ -80,10 +80,10 @@ class LoadingIcon extends StatelessWidget {
   }
 }
 
-void loadingScreen(BuildContext context) async {
+void loadingScreen(BuildContext _context) async {
   await showDialog(
     barrierColor: Colors.transparent,
-    context: context,
+    context: _context,
     barrierDismissible: false,
     builder: (ctx) => CupertinoActivityIndicator(
       radius: 20,
@@ -93,7 +93,7 @@ void loadingScreen(BuildContext context) async {
 }
 
 class LoadingWidget extends StatelessWidget {
-  const LoadingWidget({super.key});
+  const LoadingWidget({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -111,11 +111,11 @@ class LoadingWidget extends StatelessWidget {
 
 class SizedContainerLoadingAnimation extends StatelessWidget {
   const SizedContainerLoadingAnimation({
-    super.key,
+    Key? key,
     required this.height,
     required this.width,
     required this.radius,
-  });
+  }) : super(key: key);
   final double height;
   final double width;
   final double radius;
@@ -149,10 +149,10 @@ class SizedContainerLoadingAnimation extends StatelessWidget {
 
 class TextLoadingAnimation extends StatelessWidget {
   const TextLoadingAnimation({
-    super.key,
+    Key? key,
     required this.height,
     required this.width,
-  });
+  }) : super(key: key);
   final double height;
   final double width;
 
@@ -184,7 +184,7 @@ class TextLoadingAnimation extends StatelessWidget {
 }
 
 class AnalyticsCardLoading extends StatelessWidget {
-  const AnalyticsCardLoading({super.key});
+  const AnalyticsCardLoading({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

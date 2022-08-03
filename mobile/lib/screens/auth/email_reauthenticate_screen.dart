@@ -11,8 +11,8 @@ import '../../themes/colors.dart';
 class EmailReAuthenticateScreen extends StatefulWidget {
   const EmailReAuthenticateScreen(
     this.userDetails, {
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
   final Profile userDetails;
 
   @override
@@ -34,7 +34,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
     return Scaffold(
       body: Container(
         color: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 24),
+        padding: const EdgeInsets.only(left: 24, right: 24),
         child: Center(
           child: Column(
             children: [
@@ -66,7 +66,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
                 height: 32,
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 36),
+                padding: const EdgeInsets.only(left: 36, right: 36),
                 child: OptField(
                   codeSent: true,
                   position: 0,

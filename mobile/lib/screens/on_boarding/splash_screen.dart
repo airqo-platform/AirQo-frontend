@@ -16,8 +16,8 @@ import 'on_boarding_widgets.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
 
   @override
   SplashScreenState createState() => SplashScreenState();

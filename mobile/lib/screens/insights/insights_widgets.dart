@@ -1,4 +1,4 @@
-import 'package:auto_size_text/auto_size_text.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -19,13 +19,13 @@ import '../../widgets/recommendation.dart';
 
 class AnalyticsGraph extends StatelessWidget {
   const AnalyticsGraph({
-    super.key,
+    Key? key,
     required this.pm2_5ChartData,
     required this.pm10ChartData,
     required this.pollutant,
     required this.frequency,
     required this.onBarSelection,
-  });
+  }) : super(key: key);
   final List<charts.Series<Insights, String>> pm2_5ChartData;
   final List<charts.Series<Insights, String>> pm10ChartData;
   final Pollutant pollutant;
@@ -81,13 +81,71 @@ class AnalyticsGraph extends StatelessWidget {
               ),
             ],
             domainAxis: _yAxisScale(
-              frequency.staticTicks(),
+              frequency == Frequency.daily
+                  ? _dailyStaticTicks()
+                  : _hourlyStaticTicks(),
             ),
             primaryMeasureAxis: _xAxisScale(),
           ),
         );
       },
     );
+  }
+
+  List<charts.TickSpec<String>> _dailyStaticTicks() {
+    final dailyTicks = <charts.TickSpec<String>>[];
+    final daysList = <String>['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    for (final day in daysList) {
+      dailyTicks.add(
+        charts.TickSpec(
+          day,
+          label: day,
+          style: charts.TextStyleSpec(
+            color: charts.ColorUtil.fromDartColor(
+              CustomColors.greyColor,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return dailyTicks;
+  }
+
+  List<charts.TickSpec<String>> _hourlyStaticTicks() {
+    final hourlyTicks = <charts.TickSpec<String>>[];
+    final labels = <int>[0, 6, 12, 18];
+
+    for (var i = 0; i <= 24; i++) {
+      if (labels.contains(i)) {
+        hourlyTicks.add(
+          charts.TickSpec(
+            i.toString().length == 1 ? '0$i' : '$i',
+            label: i.toString().length == 1 ? '0$i' : '$i',
+            style: charts.TextStyleSpec(
+              color: charts.ColorUtil.fromDartColor(
+                CustomColors.greyColor,
+              ),
+            ),
+          ),
+        );
+      } else {
+        hourlyTicks.add(
+          charts.TickSpec(
+            i.toString().length == 1 ? '0$i' : '$i',
+            label: i.toString().length == 1 ? '0$i' : '$i',
+            style: charts.TextStyleSpec(
+              color: charts.ColorUtil.fromDartColor(
+                Colors.transparent,
+              ),
+            ),
+          ),
+        );
+      }
+    }
+
+    return hourlyTicks;
   }
 
   charts.NumericAxisSpec _xAxisScale() {
@@ -146,11 +204,11 @@ class AnalyticsGraph extends StatelessWidget {
 
 class InsightsAvatar extends StatelessWidget {
   const InsightsAvatar({
-    super.key,
+    Key? key,
     required this.measurement,
     required this.size,
     required this.pollutant,
-  });
+  }) : super(key: key);
   final Insights measurement;
   final double size;
   final Pollutant pollutant;
@@ -209,15 +267,18 @@ class InsightsAvatar extends StatelessWidget {
         children: [
           const Spacer(),
           SvgPicture.asset(
-            pollutant.svg(),
+            pollutant == Pollutant.pm2_5
+                ? 'assets/icon/PM2.5.svg'
+                : 'assets/icon/PM10.svg',
             semanticsLabel: 'Pm2.5',
             height: 6,
             width: 32.45,
             color: pollutantColor,
           ),
-          AutoSizeText(
+          Text(
             value,
             maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: CustomTextStyle.insightsAvatar(
               context: context,
               pollutant: pollutant,
@@ -243,9 +304,9 @@ class InsightsAvatar extends StatelessWidget {
 
 class HealthTipsSection extends StatelessWidget {
   const HealthTipsSection({
-    super.key,
+    Key? key,
     required this.recommendations,
-  });
+  }) : super(key: key);
 
   final List<Recommendation> recommendations;
 
@@ -272,10 +333,10 @@ class HealthTipsSection extends StatelessWidget {
 
 class InsightsActionBar extends StatefulWidget {
   const InsightsActionBar({
-    super.key,
+    Key? key,
     required this.placeDetails,
     required this.shareKey,
-  });
+  }) : super(key: key);
 
   final PlaceDetails placeDetails;
   final GlobalKey shareKey;
@@ -352,10 +413,10 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
       return;
     }
     setState(() => _shareLoading = true);
-    final complete = await ShareService.shareWidget(
-      buildContext: context,
-      globalKey: widget.shareKey,
-      imageName: 'airqo_air_quality_graph',
+    final complete = await ShareService.shareGraph(
+      context,
+      widget.shareKey,
+      widget.placeDetails,
     );
     if (complete && mounted) {
       setState(() => _shareLoading = false);
@@ -376,11 +437,11 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
 
 class ListOption extends StatelessWidget {
   const ListOption({
-    super.key,
+    Key? key,
     required this.pollutantName,
     required this.pollutant,
     required this.varyingPollutant,
-  });
+  }) : super(key: key);
   final String pollutantName;
   final Pollutant pollutant;
   final Pollutant varyingPollutant;
@@ -408,10 +469,10 @@ class ListOption extends StatelessWidget {
 
 class PollutantToggle extends StatelessWidget {
   const PollutantToggle({
-    super.key,
+    Key? key,
     required this.text,
     required this.textColor,
-  });
+  }) : super(key: key);
   final String text;
   final Color textColor;
 
