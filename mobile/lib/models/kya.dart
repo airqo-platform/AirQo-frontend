@@ -83,14 +83,6 @@ class Kya extends HiveObject {
       await CacheService.cacheKyaImages(kya);
     }
   }
-
-  String imageUrlCacheKey() {
-    return 'kya-$id-image-url';
-  }
-
-  String secondaryImageUrlCacheKey() {
-    return 'kya-$id-secondary-image_url';
-  }
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -115,10 +107,6 @@ class KyaLesson {
   String body;
 
   Map<String, dynamic> toJson() => _$KyaLessonToJson(this);
-
-  String imageUrlCacheKey(Kya kya) {
-    return 'kya-${kya.id}-${kya.lessons.indexOf(this)}-lesson-image-url';
-  }
 }
 
 @JsonSerializable(explicitToJson: true)

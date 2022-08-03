@@ -21,10 +21,10 @@ import 'custom_shimmer.dart';
 
 class AppRefreshIndicator extends StatelessWidget {
   const AppRefreshIndicator({
-    super.key,
+    Key? key,
     this.onRefresh,
     required this.sliverChildDelegate,
-  });
+  }) : super(key: key);
   final Future Function()? onRefresh;
   final SliverChildDelegate sliverChildDelegate;
 
@@ -49,10 +49,10 @@ class AppRefreshIndicator extends StatelessWidget {
 class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
   const AppTopBar(
     this.title, {
-    super.key,
+    Key? key,
     this.actions,
     this.centerTitle,
-  });
+  }) : super(key: key);
   final String title;
   final List<Widget>? actions;
   final bool? centerTitle;
@@ -86,7 +86,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class AppIconTopBar extends StatelessWidget implements PreferredSizeWidget {
-  const AppIconTopBar({super.key});
+  const AppIconTopBar({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -119,9 +119,9 @@ class AppIconTopBar extends StatelessWidget implements PreferredSizeWidget {
 
 class AqiStringContainer extends StatelessWidget {
   const AqiStringContainer({
-    super.key,
+    Key? key,
     required this.measurement,
-  });
+  }) : super(key: key);
   final Measurement measurement;
 
   @override
@@ -166,7 +166,7 @@ class AqiStringContainer extends StatelessWidget {
 }
 
 class KnowYourAirAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const KnowYourAirAppBar({super.key});
+  const KnowYourAirAppBar({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -196,9 +196,9 @@ class KnowYourAirAppBar extends StatelessWidget implements PreferredSizeWidget {
 
 class MiniAnalyticsAvatar extends StatelessWidget {
   const MiniAnalyticsAvatar({
-    super.key,
+    Key? key,
     required this.measurement,
-  });
+  }) : super(key: key);
   final Measurement measurement;
 
   @override
@@ -220,7 +220,7 @@ class MiniAnalyticsAvatar extends StatelessWidget {
         children: [
           const Spacer(),
           SvgPicture.asset(
-            Pollutant.pm2_5.svg(),
+            'assets/icon/PM2.5.svg',
             semanticsLabel: 'Pm2.5',
             height: 5,
             width: 32.45,
@@ -256,10 +256,10 @@ class MiniAnalyticsAvatar extends StatelessWidget {
 
 class HeartIcon extends StatelessWidget {
   const HeartIcon({
-    super.key,
+    Key? key,
     required this.showAnimation,
     required this.placeDetails,
-  });
+  }) : super(key: key);
 
   final bool showAnimation;
   final PlaceDetails placeDetails;
@@ -300,12 +300,12 @@ class HeartIcon extends StatelessWidget {
 
 class AnalyticsCardFooter extends StatefulWidget {
   const AnalyticsCardFooter({
-    super.key,
+    Key? key,
     required this.placeDetails,
     required this.measurement,
     required this.shareKey,
     this.loadingRadius,
-  });
+  }) : super(key: key);
   final PlaceDetails placeDetails;
   final Measurement measurement;
   final GlobalKey shareKey;
@@ -360,9 +360,10 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
     setState(() => _shareLoading = true);
     final shareMeasurement = widget.measurement;
     shareMeasurement.site.name = widget.placeDetails.name;
-    final complete = await ShareService.shareWidget(
-      buildContext: context,
-      globalKey: widget.shareKey,
+    final complete = await ShareService.shareCard(
+      context,
+      widget.shareKey,
+      shareMeasurement,
     );
     if (complete && mounted) {
       setState(() => _shareLoading = false);

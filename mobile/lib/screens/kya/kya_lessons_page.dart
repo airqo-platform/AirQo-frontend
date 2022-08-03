@@ -1,4 +1,5 @@
 import 'package:app/models/kya.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -16,12 +17,12 @@ import 'kya_widgets.dart';
 class KyaLessonsPage extends StatefulWidget {
   const KyaLessonsPage(
     this.kya, {
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
   final Kya kya;
 
   @override
-  State<KyaLessonsPage> createState() => _KyaLessonsPageState();
+  _KyaLessonsPageState createState() => _KyaLessonsPageState();
 }
 
 class _KyaLessonsPageState extends State<KyaLessonsPage> {
@@ -119,12 +120,11 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
               ),
               const Spacer(),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.only(left: 20, right: 20),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Visibility(
-                      visible: currentIndex > 0,
                       child: GestureDetector(
                         onTap: () {
                           scrollToCard(direction: -1);
@@ -133,6 +133,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
                           icon: 'assets/icon/previous_arrow.svg',
                         ),
                       ),
+                      visible: currentIndex > 0,
                     ),
                     GestureDetector(
                       onTap: () {
@@ -160,12 +161,10 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
     super.initState();
     kya = widget.kya;
     currentIndex = 0;
-    var index = 0;
-    while (index != widget.kya.lessons.length) {
+    for (final _ in widget.kya.lessons) {
       _globalKeys.add(
         GlobalKey(),
       );
-      index++;
     }
     itemPositionsListener.itemPositions.addListener(scrollListener);
   }
@@ -175,10 +174,9 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
       return;
     }
     setState(() => _shareLoading = true);
-    final complete = await ShareService.shareWidget(
-      buildContext: context,
-      globalKey: _globalKeys[currentIndex],
-      imageName: 'airqo_know_your_air',
+    final complete = await ShareService.shareKya(
+      context,
+      _globalKeys[currentIndex],
     );
     if (complete && mounted) {
       setState(() => _shareLoading = false);
@@ -202,14 +200,22 @@ class _KyaLessonsPageState extends State<KyaLessonsPage> {
     required int direction,
   }) {
     if (direction == -1) {
-      setState(() => currentIndex = currentIndex - 1);
+      setState(
+        () {
+          currentIndex = currentIndex - 1;
+        },
+      );
       itemScrollController.scrollTo(
         index: currentIndex,
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeInOutCubic,
       );
     } else {
-      setState(() => currentIndex = currentIndex + 1);
+      setState(
+        () {
+          currentIndex = currentIndex + 1;
+        },
+      );
       if (currentIndex < kya.lessons.length) {
         itemScrollController.scrollTo(
           index: currentIndex,

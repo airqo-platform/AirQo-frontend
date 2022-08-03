@@ -1,6 +1,7 @@
 import 'package:app/models/profile.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/utils/exception.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/dialogs.dart';
@@ -16,8 +17,8 @@ import 'on_boarding_widgets.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
   const ProfileSetupScreen({
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
 
   @override
   ProfileSetupScreenState createState() => ProfileSetupScreenState();
@@ -165,13 +166,13 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
         GestureDetector(
           onTap: () {
             _updateTitleCallback(
-              option.value,
+              option.getValue(),
             );
           },
           child: AutoSizeText(
-            option.displayValue,
+            option.getDisplayName(),
             style: Theme.of(context).textTheme.bodyText1?.copyWith(
-                  color: _profile.title == option.value
+                  color: _profile.title == option.getValue()
                       ? CustomColors.appColorBlack
                       : CustomColors.appColorBlack.withOpacity(0.32),
                 ),

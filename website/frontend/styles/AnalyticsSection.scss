@@ -50,7 +50,7 @@
                 p {
                     width: 477.24px;
                     font-size: $subTextFont;
-                    line-height: 28px;
+                    line-height: 26px;
                     margin-bottom: 36px;
                     font-weight: 400;
                 }
@@ -89,10 +89,9 @@
         position: relative;
         height: 100%;
         width: 100%;
-        padding: 0 12px 16px 16px;
 
         .wrapper {
-            padding: 80px 0 0 0 ;
+            padding: 60px 16px 0 16px ;
             background-color: $aq-blue-1;
             margin: 0 auto;
             width: 100%;
@@ -109,6 +108,9 @@
                 margin: 0 auto;
     
                 h1 {
+                    font-size: 40px;
+                    font-weight: 500;
+                    line-height: 48px;
                     width: 100%;
                     margin: 0;
                     margin-bottom: 24px;
@@ -117,6 +119,8 @@
                 &-aside {
                     position: relative;
                     p {
+                        font-size: 20px;
+                        line-height: 28px;
                         width: 100%;
                     }
     
@@ -132,11 +136,10 @@
         }
 
         .analytics-img-sm {
-            display: flex;
-            width:100%;
+            display: block;
+            width: 100%;
             object-fit: cover;
             height: 100%;
-            overflow-x: hidden;
         }
     
     }

@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:app/models/kya.dart';
 import 'package:app/models/place_details.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
@@ -32,11 +30,11 @@ import 'dashboard_widgets.dart';
 
 class DashboardView extends StatefulWidget {
   const DashboardView({
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
 
   @override
-  State<DashboardView> createState() => _DashboardViewState();
+  _DashboardViewState createState() => _DashboardViewState();
 }
 
 class _DashboardViewState extends State<DashboardView> {
@@ -62,11 +60,6 @@ class _DashboardViewState extends State<DashboardView> {
   ];
 
   List<Widget> _dashBoardItems = [];
-  final Stream _timeStream =
-      Stream.periodic(const Duration(minutes: 30), (int count) {
-    return count;
-  });
-  late StreamSubscription _timeSubscription;
 
   @override
   Widget build(BuildContext context) {
@@ -249,16 +242,12 @@ class _DashboardViewState extends State<DashboardView> {
   @override
   void dispose() {
     _scrollController.removeListener(_scrollListener);
-    _timeSubscription.cancel();
     super.dispose();
   }
 
   @override
   void initState() {
     super.initState();
-    _timeSubscription = _timeStream.listen((_) {
-      _setGreetings();
-    });
     _initialize();
     _handleScroll();
   }
@@ -616,6 +605,7 @@ class _DashboardViewState extends State<DashboardView> {
 
   Future<void> _refresh() async {
     setState(() => _isRefreshing = true);
+    _setGreetings();
     await _appService.refreshDashboard(context);
     _getAnalyticsCards();
     _loadFavourites(reload: true);
