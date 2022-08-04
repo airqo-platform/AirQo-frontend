@@ -76,7 +76,7 @@ const CareerPage = () => {
             <div className="CareersPage">
                 <div className="careers-banner">
                     <div className="text-container">
-                        <div className="sub-text">Careers  >  Welcome to AirQo</div>
+                        <div className="sub-text">Careers  {'>'}  Welcome to AirQo</div>
                         <div className="main-text">Join our team</div>
                         <div className="text-brief">Be part of a team pioneering air quality monitoring in Africa. Together, we work passionately towards our vision for Clean Air for all African Cities</div>
                     </div>
