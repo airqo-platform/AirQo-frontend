@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/app_service.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/dialogs.dart';
 import 'package:app/widgets/text_fields.dart';
@@ -22,10 +23,10 @@ import 'email_auth_widget.dart';
 
 class PhoneAuthWidget extends StatefulWidget {
   const PhoneAuthWidget({
-    super.key,
+    Key? key,
     this.phoneNumber,
     required this.authProcedure,
-  });
+  }) : super(key: key);
   final String? phoneNumber;
   final AuthProcedure authProcedure;
 
@@ -848,8 +849,9 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
 }
 
 class PhoneLoginWidget extends PhoneAuthWidget {
-  const PhoneLoginWidget({super.key, String? phoneNumber})
+  const PhoneLoginWidget({Key? key, String? phoneNumber})
       : super(
+          key: key,
           phoneNumber: phoneNumber,
           authProcedure: AuthProcedure.login,
         );
@@ -861,8 +863,8 @@ class PhoneLoginWidget extends PhoneAuthWidget {
 class PhoneLoginWidgetState extends PhoneAuthWidgetState<PhoneLoginWidget> {}
 
 class PhoneSignUpWidget extends PhoneAuthWidget {
-  const PhoneSignUpWidget({super.key})
-      : super(authProcedure: AuthProcedure.signup);
+  const PhoneSignUpWidget({Key? key})
+      : super(key: key, authProcedure: AuthProcedure.signup);
 
   @override
   PhoneSignUpWidgetState createState() => PhoneSignUpWidgetState();

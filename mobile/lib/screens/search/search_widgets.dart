@@ -14,9 +14,9 @@ import '../insights/insights_page.dart';
 
 class SearchPlaceTile extends StatelessWidget {
   const SearchPlaceTile({
-    super.key,
+    Key? key,
     required this.searchSuggestion,
-  });
+  }) : super(key: key);
   final Suggestion searchSuggestion;
 
   @override
@@ -73,10 +73,10 @@ class SearchPlaceTile extends StatelessWidget {
 
 class SearchInputField extends StatelessWidget {
   const SearchInputField({
-    super.key,
+    Key? key,
     required this.textEditingController,
     required this.searchChanged,
-  });
+  }) : super(key: key);
   final TextEditingController textEditingController;
   final Function(String) searchChanged;
 
@@ -150,8 +150,8 @@ class SearchInputField extends StatelessWidget {
 
 class NoNearbyLocations extends StatelessWidget {
   const NoNearbyLocations({
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -217,9 +217,9 @@ class NoNearbyLocations extends StatelessWidget {
 
 class SearchLocationTile extends StatelessWidget {
   const SearchLocationTile({
-    super.key,
+    Key? key,
     required this.measurement,
-  });
+  }) : super(key: key);
   final Measurement measurement;
 
   @override
@@ -265,9 +265,9 @@ class SearchLocationTile extends StatelessWidget {
 
 class RequestLocationAccess extends StatelessWidget {
   const RequestLocationAccess({
-    super.key,
+    Key? key,
     required this.getUserLocation,
-  });
+  }) : super(key: key);
 
   final VoidCallback getUserLocation;
 
@@ -391,9 +391,9 @@ class RequestLocationAccess extends StatelessWidget {
 
 class NearbyLocations extends StatelessWidget {
   const NearbyLocations({
-    super.key,
+    Key? key,
     required this.nearbyLocations,
-  });
+  }) : super(key: key);
 
   final List<Measurement> nearbyLocations;
 

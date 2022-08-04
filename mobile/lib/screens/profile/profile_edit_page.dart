@@ -17,11 +17,11 @@ import '../home_page.dart';
 
 class ProfileEditPage extends StatefulWidget {
   const ProfileEditPage({
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
 
   @override
-  State<ProfileEditPage> createState() => _ProfileEditPageState();
+  _ProfileEditPageState createState() => _ProfileEditPageState();
 }
 
 class _ProfileEditPageState extends State<ProfileEditPage> {

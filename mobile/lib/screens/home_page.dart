@@ -17,13 +17,13 @@ import 'map/map_view.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({
-    super.key,
+    Key? key,
     this.refresh,
-  });
+  }) : super(key: key);
   final bool? refresh;
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
@@ -51,9 +51,9 @@ class _HomePageState extends State<HomePage> {
             Animation<double> secondaryAnimation,
           ) {
             return FadeThroughTransition(
+              child: child,
               animation: primaryAnimation,
               secondaryAnimation: secondaryAnimation,
-              child: child,
             );
           },
           // child: Center(

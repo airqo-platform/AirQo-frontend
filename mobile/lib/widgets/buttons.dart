@@ -6,10 +6,10 @@ import '../themes/app_theme.dart';
 
 class NextButton extends StatelessWidget {
   const NextButton({
-    super.key,
+    Key? key,
     required this.buttonColor,
     this.text,
-  });
+  }) : super(key: key);
   final String? text;
   final Color buttonColor;
 
@@ -55,8 +55,8 @@ class NextButton extends StatelessWidget {
 
 class AppBackButton extends StatelessWidget {
   const AppBackButton({
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -76,10 +76,10 @@ class AppBackButton extends StatelessWidget {
 
 class IconTextButton extends StatelessWidget {
   const IconTextButton({
-    super.key,
+    Key? key,
     required this.iconWidget,
     required this.text,
-  });
+  }) : super(key: key);
   final Widget iconWidget;
   final String text;
 
@@ -107,11 +107,11 @@ class IconTextButton extends StatelessWidget {
 
 class TabButton extends StatelessWidget {
   const TabButton({
-    super.key,
+    Key? key,
     required this.text,
     required this.index,
     required this.tabController,
-  });
+  }) : super(key: key);
   final String text;
   final int index;
   final TabController? tabController;

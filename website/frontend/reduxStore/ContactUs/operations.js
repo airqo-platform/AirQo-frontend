@@ -3,7 +3,8 @@ import { contactUsApi } from 'apis';
 
 
 export const postContactUsInquiry = (data) => async (dispatch) => await contactUsApi(data)
-    .then(() => {
+    .then((res) => {
+        console.log('User data:', data)
         dispatch({
             type: INQUIRY_SUCCESS,
             payload: { 
@@ -15,7 +16,9 @@ export const postContactUsInquiry = (data) => async (dispatch) => await contactU
             },
         });
     })
-    .catch(() => {
+    .catch((error) => {
+        console.log('Error:',error.response.data.errors)
+        console.log('Sent data:', data)
         dispatch({
             type: INQUIRY_FAILURE,
             success: false

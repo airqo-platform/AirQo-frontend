@@ -13,8 +13,8 @@ import 'auth_widgets.dart';
 class PhoneReAuthenticateScreen extends StatefulWidget {
   const PhoneReAuthenticateScreen(
     this.userDetails, {
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
   final Profile userDetails;
 
   @override

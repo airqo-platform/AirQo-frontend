@@ -1,0 +1,79 @@
+###########################################################
+# Start deployment of website - staging
+###########################################################
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airqo-stage-website
+  namespace: staging
+spec:
+  selector:
+    matchLabels:
+      app: sta-website
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: sta-website
+    spec:
+      containers:
+        - name: sta-website
+          image: us.gcr.io/airqo-250220/airqo-stage-website:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+              name: sta-website
+          envFrom:
+            - configMapRef:
+                name: stage-website-config
+          volumeMounts:
+          - name: config-volume
+            mountPath: /etc/config
+          resources: 
+            requests:
+              cpu: 100m
+              memory: 250Mi
+            limits:
+              cpu: 200m
+              memory: 700Mi
+          command: ["/app/wsgi-entrypoint.sh"]
+      volumes:
+        - name: config-volume
+          configMap:
+            name:  stage-website-config-files
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: airqo-stage-website-svc
+  namespace: staging
+spec:
+  selector:
+    app: sta-website
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+      nodePort: 31105
+  type: NodePort
+
+---
+kind: HorizontalPodAutoscaler
+apiVersion: autoscaling/v2
+metadata:
+  name: airqo-stage-website-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: airqo-stage-website
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 80

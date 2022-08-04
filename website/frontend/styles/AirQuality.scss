@@ -70,7 +70,7 @@
                     padding:15px 20px 8px 30px;
                     width:400px;
                     height:96px;
-                    // cursor: pointer;
+                    cursor: pointer;
                     h4{
                         font-size: 14px;
                         line-height: 22px;
@@ -85,13 +85,12 @@
                     }
                 }
                 .selected{
-                    // border: 2px solid $aq-blue-9;
-                    border: 2px solid $aq-white-6;
-                    // box-shadow: 0px 0px 0px 4px #ECF2FF;
-                    // background-color: rgba(255, 255, 255, 0.16);
+                    border: 2px solid #145DFF;
+                    box-shadow: 0px 0px 0px 4px #ECF2FF;
+                    background-color: rgba(255, 255, 255, 0.16);
                 }
                 .unselected{
-                    border: 2px solid $aq-white-6;
+                    border: 2px solid #E8EFFC;
                 }
                 #first{
                     margin-top: 24px;
@@ -122,7 +121,7 @@
                     font-size: 16px;
                 }
                 .tab.tab-selected{
-                    padding: 14px 4vw;
+                    padding: 14px 24px;
                 }
             }
             .content{
@@ -132,7 +131,7 @@
                 margin:53px 10px 0 10px;
                 .content-container{
                     .card{
-                        width: 85vw;
+                        width: 320px;
                         padding: 12px 0 0 16px;
                         border: 2px solid #E8EFFC;
                         h4{
@@ -156,9 +155,9 @@
                     }
                 }
                 .image{
-                    padding: 24px 5px 20px 5px;
+                    padding: 24px 5px 0 5px;
                     img{
-                        width: 85vw;
+                        width: 99%;
                         height: 99%;
                     }
                 }

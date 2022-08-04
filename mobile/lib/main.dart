@@ -56,8 +56,8 @@ void main() async {
 
 class AirQoApp extends StatelessWidget {
   AirQoApp({
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
   final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
 
   @override

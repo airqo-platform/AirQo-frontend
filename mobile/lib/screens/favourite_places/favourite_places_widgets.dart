@@ -6,8 +6,8 @@ import '../../themes/colors.dart';
 
 class EmptyFavouritePlaces extends StatelessWidget {
   const EmptyFavouritePlaces({
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

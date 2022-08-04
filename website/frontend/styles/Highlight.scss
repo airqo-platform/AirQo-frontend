@@ -2,6 +2,7 @@
 @import "lib/colors";
 
 .Highlight {
+
   width: 100%;
   min-height: 1157px;
 
@@ -42,7 +43,7 @@
         font-size: 16px;
         line-height: 24px;
 
-        color: $aq-blue-2;
+        color: #353E52;
         margin: 48px 0 8px 0;
       }
 
@@ -52,23 +53,25 @@
         font-size: 28px;
         line-height: 36px;
 
-        color: $aq-blue-2;
+        color: #353E52;
 
         margin: 8px 0 48px 0;
       }
 
       .link {
+        width: 113px;
+        height: 24px;
 
         font-style: normal;
         font-weight: 500;
-        font-size: $linkFont;
+        font-size: 16px;
         line-height: 24px;
 
         display: flex;
         align-items: center;
         text-align: center;
 
-        color: $aq-blue-2;
+        color: #353E52;
       }
     }
   }
@@ -95,7 +98,7 @@
     }
 
     .blue-bg {
-      background: $aq-blue-0;
+      background: #135DFF;
     }
 
     .light-blue-bg {
@@ -116,6 +119,9 @@
     }
 
     .link {
+      width: 400px;
+      height: 24px;
+
       font-style: normal;
       font-weight: 400;
       font-size: 16px;
@@ -135,7 +141,7 @@
     }
 
     .blue-color {
-      color: $aq-blue-0;
+      color: #135DFF;
     }
   }
 }
