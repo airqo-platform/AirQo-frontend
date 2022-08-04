@@ -1,0 +1,62 @@
+@import "lib/colors";
+.loadspinner{
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    margin: auto;
+    width: min-content;
+    height: min-content;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    .loader{
+        .bubbles{
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            left: 0;
+            margin: auto;
+            width:48%;
+            height:40%;
+            display: flex;
+            flex-flow: row wrap;
+            align-items: center;
+            justify-content: space-evenly;
+
+            border-right: 9px solid transparent;
+            border-left: 9px solid transparent;
+
+            animation-name: spin;
+            animation-duration: 2.5s;
+            animation-iteration-count: infinite;
+            animation-direction: normal;
+            
+            div{
+                border-radius: 100%;
+                background-color: $aq-white-0;
+                width: 34%;
+                height: 28%;
+            }
+        }
+
+    }
+}
+
+@keyframes spin{
+    0%{
+        justify-content: space-evenly;
+        transform: rotate(0deg) translate(0px);
+    }
+    30%{
+        justify-content: center;
+        transform: rotate(270deg) translateY(10px) translateX(-4px);
+    }
+    100%{
+        transform: rotate(360deg) translateY(10px);
+        justify-content: center;
+        align-content: flex-start;
+    }
+}

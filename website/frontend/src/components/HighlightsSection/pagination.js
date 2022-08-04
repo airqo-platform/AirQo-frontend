@@ -1,9 +1,9 @@
-import React from 'react'
+import React, { useState } from 'react'
 
-const Pagination = ({postsPerHighlight, totalPosts, paginate}) => {
+const Pagination = ({ number, totalPosts, leftTransition, rightTransition }) => {
     const postNumbers = [];
 
-    for (let i = 1; i <= Math.ceil(totalPosts / postsPerHighlight); i++) {
+    for (let i = 1; i <= totalPosts; i++) {
         postNumbers.push(i);
     }
 
@@ -11,28 +11,23 @@ const Pagination = ({postsPerHighlight, totalPosts, paginate}) => {
         <div>
             <nav className='pagination-nav'>
                 <ul>
+                    <li className='post-number'>
+                        <a>
+                            <span>{'0'}{number}</span>
+                            <span>{'/'}</span>
+                            <span>{'0'}{totalPosts}</span>
+                        </a>
+                    </li>
                     {
-                        postNumbers.map((number, index) => (
-                            <li className='post-number'>
-                                <a key={index}
-                                    onClick={() => paginate(number)}>
-                                    <span>{'0'}{number}</span>
-                                    <span>{'/'}</span>
-                                    <span>{'0'}{postsPerHighlight}</span>
-                                </a>
-                            </li>
-                        ))
-                    }
-                    {
-                        <li id='left'>
+                        <li id='left' onClick={(e) => { leftTransition(e);  }}>
                             <a
-                                >{'<-'}</a>
+                            >{'<-'}</a>
                         </li>
                     }
                     {
-                        <li id='right'>
+                        <li id='right' onClick={(e) => { rightTransition(e);  }}>
                             <a
-                                >{'->'}</a>
+                            >{'->'}</a>
                         </li>
                     }
                 </ul>

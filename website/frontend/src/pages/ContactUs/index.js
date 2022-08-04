@@ -17,13 +17,13 @@ const ContactUs = ({ children, arrow }) => {
                                 <p>Software Systems Centre, Block B, Level 3, College of Computing and Information Sciences, Plot 56 University Pool Road. Kampala, Uganda</p>
                             </span>
                             <span id='_3'>
-                                <p>T: <a href='tel:+256703734167'>+256 703734167</a> <br />E: <a href='mailto:info@airqo.net?subject=Mail from AirQo Website'>info@airqo.net</a></p>
+                                <p>E: <a href='mailto:info@airqo.net?subject=Mail from AirQo Website'>info@airqo.net</a></p>
                             </span>
                         </div>
                     </div>
                 </div>
                 <div className='right-section'>
-                    <Link to='/contact' className='icon'>{arrow}</Link>
+                    <Link to='/contact' className='icon' title='Back'>{arrow}</Link>
                     <div className='section-container'>
                         <div className='content'>
                             {children}

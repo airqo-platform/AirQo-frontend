@@ -87,21 +87,21 @@ class LocationService {
   }
 
   static Future<locate_api.LocationData?> getLocation() async {
-    bool _serviceEnabled;
-    locate_api.PermissionStatus _permissionGranted;
+    bool serviceEnabled;
+    locate_api.PermissionStatus permissionGranted;
     final location = locate_api.Location();
-    _serviceEnabled = await location.serviceEnabled();
-    if (!_serviceEnabled) {
-      _serviceEnabled = await location.requestService();
-      if (!_serviceEnabled) {
+    serviceEnabled = await location.serviceEnabled();
+    if (!serviceEnabled) {
+      serviceEnabled = await location.requestService();
+      if (!serviceEnabled) {
         return null;
       }
     }
 
-    _permissionGranted = await location.hasPermission();
-    if (_permissionGranted == locate_api.PermissionStatus.denied) {
-      _permissionGranted = await location.requestPermission();
-      if (_permissionGranted != locate_api.PermissionStatus.granted) {
+    permissionGranted = await location.hasPermission();
+    if (permissionGranted == locate_api.PermissionStatus.denied) {
+      permissionGranted = await location.requestPermission();
+      if (permissionGranted != locate_api.PermissionStatus.granted) {
         return null;
       }
     }
