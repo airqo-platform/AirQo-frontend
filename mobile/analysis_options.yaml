@@ -81,6 +81,8 @@ linter:
     - valid_regexps
 
 dart_code_metrics:
+  exclude:
+    - lib/firebase_options.dart
   anti-patterns:
     - long-method
     - long-parameter-list

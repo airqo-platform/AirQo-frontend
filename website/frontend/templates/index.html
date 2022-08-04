@@ -11,13 +11,31 @@
           manifest.json provides metadata used when your web app is installed on a
           user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
         -->
-        <link rel="shortcut icon" href={% static "favicon.ico" %} />
+        <link rel="shortcut icon" href="{% static "favicon.png" %}" />
         <link rel="apple-touch-icon" sizes="76x76" href="{% static "favicon-96x96.png" %}" />
+        <meta property="og:title" content="AirQo Africa | Clean Air for all African Cities" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://www.airqo.net" />
+        <meta property="og:image" content="{% static "opengraph.png" %}" />
+        <meta property="og:image:type" content="image/png" />
+        <meta property="og:image:width" content="400" />
+        <meta property="og:image:height" content="300" />
+        <meta property="og:description"
+        content="AirQo is Africa's leading air quality monitoring, research and analytics network. Collaborate with us as we use data to achieve clean air for all African cities." />
         <title>AirQo</title>
     </head>
 
     <body>
         <div id="app"></div>
         <script src="{% static "frontend/main.bundle.js" %}"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-79ZVCLEDSG"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-79ZVCLEDSG');
+        </script>
     </body>
 </html>

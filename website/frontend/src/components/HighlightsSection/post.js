@@ -3,7 +3,7 @@ import React from 'react'
 const Post = ({postImg, tag1, tag2, title, article_link, article_title}) => {
     return (
         <div className='feature'>
-            <img src={postImg} />
+            <div className='img-sm'><img src={postImg} /></div>
             <div className='feature-content'>
                 <div className='feature-pills'>
                     <span>{tag1}</span>
