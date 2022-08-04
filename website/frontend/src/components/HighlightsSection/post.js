@@ -1,13 +1,30 @@
-import React from 'react'
+import React, { useEffect } from 'react'
+import { useDispatch } from 'react-redux';
+import { loadTagsData } from '../../../reduxStore/Highlights/operations';
+import { useTagsData } from '../../../reduxStore/Highlights/selectors';
 
-const Post = ({postImg, tag1, tag2, title, article_link, article_title}) => {
+const Post = ({ postImg, Tags, title, article_link, article_title, key }) => {
+    const dispatch = useDispatch();
+    const tags = useTagsData();
+
+    useEffect(() => {
+        dispatch(loadTagsData);
+    }, []);
     return (
-        <div className='feature'>
+        <div className='feature' key={key}>
             <div className='img-sm'><img src={postImg} /></div>
             <div className='feature-content'>
                 <div className='feature-pills'>
-                    <span>{tag1}</span>
-                    <span>{tag2}</span>
+                    {
+                        Tags.length > 0 ? Tags.map((Tag) => (
+                            <span key={Tag.id}>
+                                {
+                                    tags.filter((tag) => { tag.id === Tag.id && tag.name })
+                                }
+                            </span>
+                        )) :
+                            <div />
+                    }
                 </div>
                 <h4>{title}</h4>
                 <span className='feature-link'>

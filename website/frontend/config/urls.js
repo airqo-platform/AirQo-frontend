@@ -32,6 +32,13 @@ export const CAREERS_URL = `${WEBSITE_BASE_URL}/career/`;
 
 export const DEPARTMENTS_URL = `${WEBSITE_BASE_URL}/departments/`;
 
+// members urls
 export const TEAMS_URL = `${WEBSITE_BASE_URL}/team/`;
 
+// netmanager url
 export const NETMANAGER_URL = stripTrailingSlash(process.env.REACT_NETMANAGER_BASE_URL.replace("/api/v1/", ""));
+
+// highlights urls
+export const HIGHLIGHTS_URL = `${WEBSITE_BASE_URL}/highlights/`;
+
+export const TAGS_URL = `${WEBSITE_BASE_URL}/tags/`;
