@@ -12,7 +12,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-import 'firebase_options_dev.dart';
+import 'firebase_options.dart';
 import 'constants/config.dart';
 
 void main() async {
@@ -30,8 +30,8 @@ void main() async {
   await initializeBackgroundServices();
 
   var configuredApp = AppConfig(
-    appTitle: 'AirQo Dev',
-    environment: Environment.dev,
+    appTitle: 'AirQo',
+    environment: Environment.prod,
     child: AirQoApp(),
   );
 

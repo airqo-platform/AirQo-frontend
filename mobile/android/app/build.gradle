@@ -61,6 +61,19 @@ android {
         versionName flutterVersionName
         manifestPlaceholders = [googleMapsKey:googleMapApiKey]
     }
+
+    flavorDimensions "airqo"
+    productFlavors {
+ 
+        airqodev {
+            dimension "airqo"
+            applicationIdSuffix "dev"
+        }
+ 
+        airqo {
+            dimension "app"
+        }
+    }
 // Add start
     signingConfigs {
         release {
