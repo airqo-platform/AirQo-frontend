@@ -7,19 +7,24 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
+import 'package:provider/provider.dart';
 
 import '../models/enum_constants.dart';
+import '../models/place_details.dart';
+import '../services/app_service.dart';
+import '../services/native_api.dart';
 import '../themes/app_theme.dart';
 import '../themes/colors.dart';
 import 'buttons.dart';
+import 'custom_shimmer.dart';
 
 class AppRefreshIndicator extends StatelessWidget {
   const AppRefreshIndicator({
-    Key? key,
+    super.key,
     this.onRefresh,
     required this.sliverChildDelegate,
-  }) : super(key: key);
+  });
   final Future Function()? onRefresh;
   final SliverChildDelegate sliverChildDelegate;
 
@@ -44,10 +49,10 @@ class AppRefreshIndicator extends StatelessWidget {
 class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
   const AppTopBar(
     this.title, {
-    Key? key,
+    super.key,
     this.actions,
     this.centerTitle,
-  }) : super(key: key);
+  });
   final String title;
   final List<Widget>? actions;
   final bool? centerTitle;
@@ -81,7 +86,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class AppIconTopBar extends StatelessWidget implements PreferredSizeWidget {
-  const AppIconTopBar({Key? key}) : super(key: key);
+  const AppIconTopBar({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -114,9 +119,9 @@ class AppIconTopBar extends StatelessWidget implements PreferredSizeWidget {
 
 class AqiStringContainer extends StatelessWidget {
   const AqiStringContainer({
-    Key? key,
+    super.key,
     required this.measurement,
-  }) : super(key: key);
+  });
   final Measurement measurement;
 
   @override
@@ -161,7 +166,7 @@ class AqiStringContainer extends StatelessWidget {
 }
 
 class KnowYourAirAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const KnowYourAirAppBar({Key? key}) : super(key: key);
+  const KnowYourAirAppBar({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -191,9 +196,9 @@ class KnowYourAirAppBar extends StatelessWidget implements PreferredSizeWidget {
 
 class MiniAnalyticsAvatar extends StatelessWidget {
   const MiniAnalyticsAvatar({
-    Key? key,
+    super.key,
     required this.measurement,
-  }) : super(key: key);
+  });
   final Measurement measurement;
 
   @override
@@ -215,7 +220,7 @@ class MiniAnalyticsAvatar extends StatelessWidget {
         children: [
           const Spacer(),
           SvgPicture.asset(
-            'assets/icon/PM2.5.svg',
+            Pollutant.pm2_5.svg(),
             semanticsLabel: 'Pm2.5',
             height: 5,
             width: 32.45,
@@ -227,16 +232,11 @@ class MiniAnalyticsAvatar extends StatelessWidget {
             measurement.getPm2_5Value().toStringAsFixed(0),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.robotoMono(
-              color: Pollutant.pm2_5.textColor(
-                value: measurement.getPm2_5Value(),
-              ),
-              fontStyle: FontStyle.normal,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              height: 1,
-              letterSpacing: 16 * -0.06,
-            ),
+            style: CustomTextStyle.insightsAvatar(
+              context: context,
+              pollutant: Pollutant.pm2_5,
+              value: measurement.getPm2_5Value(),
+            )?.copyWith(fontSize: 20),
           ),
           SvgPicture.asset(
             'assets/icon/unit.svg',
@@ -250,6 +250,133 @@ class MiniAnalyticsAvatar extends StatelessWidget {
           const Spacer(),
         ],
       ),
+    );
+  }
+}
+
+class HeartIcon extends StatelessWidget {
+  const HeartIcon({
+    super.key,
+    required this.showAnimation,
+    required this.placeDetails,
+  });
+
+  final bool showAnimation;
+  final PlaceDetails placeDetails;
+
+  @override
+  Widget build(BuildContext context) {
+    if (showAnimation) {
+      return SizedBox(
+        height: 16.67,
+        width: 16.67,
+        child: Lottie.asset(
+          'assets/lottie/animated_heart.json',
+          repeat: false,
+          reverse: false,
+          animate: true,
+          fit: BoxFit.cover,
+        ),
+      );
+    }
+
+    return Consumer<PlaceDetailsModel>(
+      builder: (context, placeDetailsModel, child) {
+        return SvgPicture.asset(
+          PlaceDetails.isFavouritePlace(
+            placeDetailsModel.favouritePlaces,
+            placeDetails,
+          )
+              ? 'assets/icon/heart.svg'
+              : 'assets/icon/heart_dislike.svg',
+          semanticsLabel: 'Favorite',
+          height: 16.67,
+          width: 16.67,
+        );
+      },
+    );
+  }
+}
+
+class AnalyticsCardFooter extends StatefulWidget {
+  const AnalyticsCardFooter({
+    super.key,
+    required this.placeDetails,
+    required this.measurement,
+    required this.shareKey,
+    this.loadingRadius,
+  });
+  final PlaceDetails placeDetails;
+  final Measurement measurement;
+  final GlobalKey shareKey;
+  final double? loadingRadius;
+
+  @override
+  State<AnalyticsCardFooter> createState() => _AnalyticsCardFooterState();
+}
+
+class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
+  bool _showHeartAnimation = false;
+  bool _shareLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _shareLoading
+              ? LoadingIcon(
+                  radius: widget.loadingRadius ?? 14,
+                )
+              : InkWell(
+                  onTap: () async => _share(),
+                  child: IconTextButton(
+                    iconWidget: SvgPicture.asset(
+                      'assets/icon/share_icon.svg',
+                      color: CustomColors.greyColor,
+                      semanticsLabel: 'Share',
+                    ),
+                    text: 'Share',
+                  ),
+                ),
+        ),
+        Expanded(
+          child: InkWell(
+            onTap: () async => _updateFavPlace(),
+            child: IconTextButton(
+              iconWidget: HeartIcon(
+                showAnimation: _showHeartAnimation,
+                placeDetails: widget.placeDetails,
+              ),
+              text: 'Favorite',
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _share() async {
+    setState(() => _shareLoading = true);
+    final shareMeasurement = widget.measurement;
+    shareMeasurement.site.name = widget.placeDetails.name;
+    final complete = await ShareService.shareWidget(
+      buildContext: context,
+      globalKey: widget.shareKey,
+    );
+    if (complete && mounted) {
+      setState(() => _shareLoading = false);
+    }
+  }
+
+  Future<void> _updateFavPlace() async {
+    setState(() => _showHeartAnimation = true);
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() => _showHeartAnimation = false);
+    });
+    await AppService().updateFavouritePlace(
+      widget.placeDetails,
+      context,
     );
   }
 }

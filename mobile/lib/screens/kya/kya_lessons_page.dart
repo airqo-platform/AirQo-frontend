@@ -1,7 +1,6 @@
 import 'package:app/screens/kya/kya_final_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-
 import '../../models/enum_constants.dart';
 import '../../models/kya.dart';
 import '../../services/native_api.dart';
@@ -14,6 +13,7 @@ class KyaLessonsPage extends StatefulWidget {
     Key? key,
     required this.kya,
   }) : super(key: key);
+
   final Kya kya;
 
   @override
@@ -60,7 +60,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage>
           titleSpacing: 0,
           title: Row(
             children: [
-              GestureDetector(
+              InkWell(
                 onTap: () {
                   updateProgress();
                   Navigator.of(context).pop(true);
@@ -94,12 +94,14 @@ class _KyaLessonsPageState extends State<KyaLessonsPage>
                 },
                 child: Padding(
                   padding: const EdgeInsets.only(left: 7, right: 24),
-                  child: SvgPicture.asset(
-                    'assets/icon/share_icon.svg',
-                    color: CustomColors.greyColor,
-                    height: 16,
-                    width: 16,
-                  ),
+                  child: _shareLoading
+                      ? const LoadingIcon(radius: 10)
+                      : SvgPicture.asset(
+                          'assets/icon/share_icon.svg',
+                          color: CustomColors.greyColor,
+                          height: 16,
+                          width: 16,
+                        ),
                 ),
               ),
             ],
@@ -254,7 +256,7 @@ class _KyaLessonsPageState extends State<KyaLessonsPage>
             height: 700.0,
             width: 80.0,
             color: Colors.transparent,
-          ),
+            ),
         );
       },
       onAccept: (int index) {

@@ -14,10 +14,10 @@ import '../../themes/colors.dart';
 import 'feedback_page_widgets.dart';
 
 class FeedbackPage extends StatefulWidget {
-  const FeedbackPage({Key? key}) : super(key: key);
+  const FeedbackPage({super.key});
 
   @override
-  _FeedbackPageState createState() => _FeedbackPageState();
+  State<FeedbackPage> createState() => _FeedbackPageState();
 }
 
 class _FeedbackPageState extends State<FeedbackPage> {
@@ -105,29 +105,19 @@ class _FeedbackPageState extends State<FeedbackPage> {
   }
 
   void _openWhatsapp() async {
-    final androidUrl =
-        '${Config.appAndroidWhatsappUrl}${_feedbackType.stringValue()}';
-    final iosUrl = '${Config.appIOSWhatsappUrl}${_feedbackType.stringValue()}';
-    if (Platform.isIOS) {
-      if (await canLaunchUrl(Uri.parse(iosUrl))) {
-        await launchUrl(
-          Uri.parse(iosUrl),
-        );
+    final whatsappUrl =
+        '${Config.whatsappUrl}${Uri.encodeFull(_feedbackType.toString())}';
 
-        return;
-      }
-    } else {
-      if (await canLaunchUrl(Uri.parse(androidUrl))) {
-        await launchUrl(
-          Uri.parse(androidUrl),
-        );
+    if (Platform.isIOS || Platform.isAndroid) {
+      if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
+        await launchUrl(Uri.parse(whatsappUrl));
 
         return;
       }
     }
     await showSnackBar(
       context,
-      'Failed to open Whatsapp. Try again later',
+      'Failed to open Whatsapp.',
     );
   }
 

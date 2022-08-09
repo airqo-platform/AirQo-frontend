@@ -2,7 +2,6 @@
 @import "lib/colors";
 
 .Highlight {
-
   width: 100%;
   min-height: 1157px;
 
@@ -43,7 +42,7 @@
         font-size: 16px;
         line-height: 24px;
 
-        color: #353E52;
+        color: $aq-blue-2;
         margin: 48px 0 8px 0;
       }
 
@@ -53,25 +52,23 @@
         font-size: 28px;
         line-height: 36px;
 
-        color: #353E52;
+        color: $aq-blue-2;
 
         margin: 8px 0 48px 0;
       }
 
       .link {
-        width: 113px;
-        height: 24px;
 
         font-style: normal;
         font-weight: 500;
-        font-size: 16px;
+        font-size: $linkFont;
         line-height: 24px;
 
         display: flex;
         align-items: center;
         text-align: center;
 
-        color: #353E52;
+        color: $aq-blue-2;
       }
     }
   }
@@ -92,13 +89,13 @@
       min-height: 216px;
 
       padding: 40px;
-
-
       border-radius: 16px;
+
+      cursor: pointer;
     }
 
     .blue-bg {
-      background: #135DFF;
+      background: $aq-blue-0;
     }
 
     .light-blue-bg {
@@ -119,9 +116,6 @@
     }
 
     .link {
-      width: 400px;
-      height: 24px;
-
       font-style: normal;
       font-weight: 400;
       font-size: 16px;
@@ -131,12 +125,17 @@
       align-items: center;
     }
 
+    .btn-disabled {
+      color: rgba(53, 62, 82, 0.28);
+      cursor: not-allowed;
+    }
+
     .white-color {
       color: #FFFFFF;
     }
 
     .blue-color {
-      color: #135DFF;
+      color: $aq-blue-0;
     }
   }
 }

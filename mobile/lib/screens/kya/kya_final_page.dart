@@ -7,13 +7,13 @@ import '../../themes/colors.dart';
 
 class KyaFinalPage extends StatefulWidget {
   const KyaFinalPage({
-    Key? key,
+    super.key,
     required this.kya,
-  }) : super(key: key);
+  });
   final Kya kya;
 
   @override
-  _KyaFinalPageState createState() => _KyaFinalPageState();
+  State<KyaFinalPage> createState() => _KyaFinalPageState();
 }
 
 class _KyaFinalPageState extends State<KyaFinalPage> {

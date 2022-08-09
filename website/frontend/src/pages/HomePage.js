@@ -7,10 +7,9 @@ import GetApp from '../components/get-app/GetApp';
 import MapSection from '../components/MapSection/MapSection';
 import { AnalyticsSection } from '../components/AnalyticsSection';
 import ApiSection from '../components/ApiSection/ApiSection';
-import HighlightSection from '../components/Highlight';
-import AirQommunitiesSection from '../components/AirQommunitiesSection/AirQommunitiesSection';
 import AirQuality from '../components/AirQuality/AirQuality';
 import Partners from '../components/Partners';
+import HighlightsSection from '../components/HighlightsSection';
 
 const HomePage = () => {
     useInitScrollTop();
@@ -25,8 +24,7 @@ const HomePage = () => {
                 <ApiSection />
                 <MapSection />
                 <GetApp />
-                {/* <AirQommunitiesSection /> */}
-                <HighlightSection />
+                <HighlightsSection />
             </div>
         </Page>
     );

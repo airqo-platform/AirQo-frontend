@@ -11,9 +11,8 @@ const AnalyticsSection = () => (
                 <h1>An interactive air quality analytics platform</h1>
                 <div className="AnalyticsSection-info-aside">
                     <p>Access and visualise real-time and historical air quality information across Africa through our easy-to-use air quality analytics dashboard</p>
-                    {/* <div className="AnalyticsSection-info-aside-btn">Learn more <ArrowForwardIcon className="AnalyticsSection-icon"/></div> */}
+                    <a href="https://platform.airqo.net/login" target="_blank" className="AnalyticsSection-info-aside-btn">Learn more {'-->'}</a>
                 </div>
-                
             </div>
         </div>
         <div className="analytics-img">
@@ -22,7 +21,7 @@ const AnalyticsSection = () => (
         <div className="analytics-img-sm">
             <AnalyticsMobile width={"100%"} />
         </div>
-        
+
     </div>
 );
 
