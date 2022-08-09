@@ -2,24 +2,25 @@ import 'package:app/screens/kya/kya_final_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../models/enum_constants.dart';
 import '../../models/kya.dart';
 import '../../services/native_api.dart';
 import '../../themes/colors.dart';
 import '../../utils/exception.dart';
 import 'kya_widgets.dart';
 
-class KyaLessonsPage1 extends StatefulWidget {
-  const KyaLessonsPage1({
+class KyaLessonsPage extends StatefulWidget {
+  const KyaLessonsPage({
     Key? key,
     required this.kya,
   }) : super(key: key);
   final Kya kya;
 
   @override
-  State<KyaLessonsPage1> createState() => _KyaLessonsPage1State();
+  State<KyaLessonsPage> createState() => _KyaLessonsPageState();
 }
 
-class _KyaLessonsPage1State extends State<KyaLessonsPage1>
+class _KyaLessonsPageState extends State<KyaLessonsPage>
     with SingleTickerProviderStateMixin {
   List<KyaLesson> _kyaLessons1 = []; //1st array to hold all stack
   final List<KyaLesson> _kyaLessons2 = []; //2nd  stores cards during swipe

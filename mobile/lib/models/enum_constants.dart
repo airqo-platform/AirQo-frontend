@@ -118,3 +118,9 @@ enum ToolTipType {
   forYou,
   forecast,
 }
+
+enum Swipe {
+  left,
+  right,
+  none,
+}

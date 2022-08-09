@@ -10,7 +10,7 @@ import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/custom_widgets.dart';
-import 'new_kya_lessons.dart';
+import 'kya_lessons_page.dart';
 
 class KyaTitlePage extends StatefulWidget {
   const KyaTitlePage(
@@ -70,7 +70,7 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
                         context,
                         MaterialPageRoute(
                           builder: (context) {
-                            return KyaLessonsPage1(
+                            return KyaLessonsPage(
                               kya: widget.kya,
                             );
                             // return;
