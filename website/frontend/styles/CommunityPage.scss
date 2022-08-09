@@ -1,23 +1,30 @@
-@import "lib/variables";
-@import "lib/colors";
+@import 'lib/variables';
+@import 'lib/colors';
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono&family=DM+Serif+Text&display=swap');
 
 .CommunityPage {
-    height: 100%;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     font-style: normal;
-    overflow-y: visible;
+    height: 100%;
 
-    h1, h2, h3, h6 {
+    h1,
+    h2,
+    h3,
+    h6 {
         margin: 0;
         padding: 0;
     }
 
     .hero {
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
         width: 100%;
-        height: 416px;
+        min-height: 416px;
         background-color: $aq-orange-0;
         margin: 0 auto;
 
@@ -28,7 +35,8 @@
             align-items: center;
             text-align: center;
 
-            h6, .arrow-forward {
+            h6,
+            .arrow-forward {
                 font-size: 14px;
                 font-weight: 400;
                 line-height: 28px;
@@ -37,7 +45,7 @@
 
             .arrow-forward {
                 margin: 0 7px;
-            }   
+            }
         }
 
         .header-2 {
@@ -61,7 +69,6 @@
     }
 
     .community_wrapper {
-        position: relative;
         max-width: $columnWidth;
         display: flex;
         flex-wrap: wrap;
@@ -92,10 +99,8 @@
                 align-items: center;
                 height: 482px;
                 z-index: 2;
-                
-                .text {
-                    flex: 0.5;
 
+                .text {
                     .row {
                         display: flex;
                         align-items: center;
@@ -104,7 +109,7 @@
                             box-sizing: border-box;
                             padding: 18px;
                             border-radius: 54px;
-                            background-color: #145DFF14;
+                            background-color: #145dff14;
                             margin-right: 24px;
                         }
                     }
@@ -152,7 +157,7 @@
                             margin-top: 15px;
                         }
                     }
-                    
+
                     .stack-2 {
                         margin-left: 24px;
                         flex: 0.5;
@@ -161,7 +166,6 @@
                         object-fit: cover;
                         border-radius: 8px;
                     }
-                    
                 }
             }
 
@@ -197,12 +201,11 @@
                 margin-right: 32px;
                 box-sizing: border-box;
 
-                
-                >span {
+                > span {
                     display: flex;
                     align-items: center;
 
-                    h3 {                      
+                    h3 {
                         font-family: 'DM Mono', monospace;
                         font-weight: 400;
                         font-size: 44.54px;
@@ -215,10 +218,9 @@
                         font-size: 44.54px;
                         line-height: 51.97px;
                     }
-                    
                 }
 
-                >h3 {
+                > h3 {
                     font-family: 'DM Serif Text', serif;
                     font-weight: 400;
                     font-size: 32.22px;
@@ -234,16 +236,15 @@
                 padding: 49px 59px;
                 box-sizing: border-box;
                 width: 655px;
-                height: 238px;
+                height: auto;
 
                 h3 {
-                    font-size: 32px;
+                    font-size: 28px;
                     font-weight: 300;
                     line-height: 40px;
                     color: $aq-black-2;
                     width: 557px;
                 }
-                
             }
         }
 
@@ -254,15 +255,15 @@
             background-color: $aq-orange-0;
             margin-bottom: 40px;
 
-            >img {
+            > img {
                 width: 60.64px;
                 height: 47.17px;
             }
 
             h2 {
                 font-weight: 500;
-                font-size: 48px;
-                line-height: 56px;
+                font-size: 40px;
+                line-height: 46px;
                 color: $aq-black-2;
                 padding-top: 14.83px;
             }
@@ -308,7 +309,7 @@
             max-width: $columnWidth;
             width: 100%;
             border-radius: 16px;
-            background-color: #FFEA2B;
+            background-color: #ffea2b;
 
             h3 {
                 padding-top: 64px;
@@ -330,34 +331,29 @@
     }
 }
 
-@media(max-width: $mainBreakPoint) {
+@media (max-width: $mainBreakPoint) {
     .CommunityPage {
+        .page-container{
+            overflow: hidden;
+        }
         .hero {
-            height: 100%;
             padding: 64px 16px 80px 16px;
-            position: relative;
-            
             .header-1 {
-                justify-content: flex-start;
                 padding: 0;
                 margin-bottom: 16px;
             }
 
             .header-2 {
                 margin: 0 0 16px 0;
-                text-align: left;
             }
 
             .header-3 {
-                text-align: left;
                 width: 100%;
             }
         }
-
         .community_wrapper {
             width: 100%;
             height: 100%;
-            position: relative;
 
             .blob-img {
                 display: none;
@@ -382,7 +378,7 @@
                         .row {
                             flex-direction: column;
                             align-items: flex-start;
-    
+
                             .img-star {
                                 margin-bottom: 20px;
                             }
@@ -393,7 +389,7 @@
                         width: 100%;
                         justify-content: flex-start;
                         flex-direction: column;
-                        
+
                         .stack-1 {
                             width: 100%;
                             img {
@@ -431,15 +427,13 @@
                     align-items: flex-start;
                     padding: 71px 41px 83px 67px;
                     box-sizing: border-box;
-                    
 
-                    >h3 {
+                    > h3 {
                         font-size: 28px;
                         line-height: 30.54px;
                     }
                 }
                 .right-strip {
-                    margin-top: 78px;
                     width: 326px;
                     height: auto;
                     padding: 39px 63px 39px 32px;
@@ -460,25 +454,17 @@
             .lower-banner {
                 margin: 0 16px;
                 margin-bottom: 40px;
-                padding: 40px 32px;
+                padding: 40px 16px;
                 h2 {
-                    font-size: 28px;
-                    line-height: 36px;
-                }
-
-                h3 {
-                    font-size: 20px;
-                    line-height: 28px;
-                }
-
-                h6 {
-                    font-size: 16px;
-                    line-height: 24px;
+                    line-height: 40px;
+                    font-size: 38px;
+                    font-weight: 400;
                 }
             }
 
             .bottom-hero-section {
-                margin: 0 16px;
+                margin: auto 16px;
+                padding: 0 16px;
             }
         }
     }

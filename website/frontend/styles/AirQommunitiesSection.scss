@@ -1,110 +1,110 @@
-@import "lib/variables";
+// @import "lib/variables";
 
-.AirQommunitiesSection {
-    display: flex;
-    align-items: center;
-    height: 800px;
-    width: 100%;
-    margin-top: 217px;
-    margin-bottom: 160px;
-    background-color: $aq-orange-0;
+// .AirQommunitiesSection {
+//     display: flex;
+//     align-items: center;
+//     height: 800px;
+//     width: 100%;
+//     margin-top: 217px;
+//     margin-bottom: 160px;
+//     background-color: $aq-orange-0;
 
-    &-img {
-        flex: 0.5;
-        width: 100%;
-        height: 800px;
-        object-fit: cover;
-        object-position: center center;
-    }
+//     &-img {
+//         flex: 0.5;
+//         width: 100%;
+//         height: 800px;
+//         object-fit: cover;
+//         object-position: center center;
+//     }
 
-    .img-mobile {
-        display: none;
-    }
+//     .img-mobile {
+//         display: none;
+//     }
 
-    .wrapper {
-        flex: 0.5;
-        max-width: 480px;
-        margin-left: 72px;
+//     .wrapper {
+//         flex: 0.5;
+//         max-width: 480px;
+//         margin-left: 72px;
 
-        h3 {
-            font-size: $pillFont;
-            font-weight: 500;
-            line-height: 26px;
-            color: $aq-blue-2;
-            background-color: $aq-white-0;
-            border-radius: 1000px;
-            margin-bottom: 24px;
-            width: 140px;
-            text-align: center;
-            padding: 4px 16px;
-            box-sizing: content-box;
-        }
-    }
+//         h3 {
+//             font-size: $pillFont;
+//             font-weight: 500;
+//             line-height: 26px;
+//             color: $aq-blue-2;
+//             background-color: $aq-white-0;
+//             border-radius: 1000px;
+//             margin-bottom: 24px;
+//             width: 140px;
+//             text-align: center;
+//             padding: 4px 16px;
+//             box-sizing: content-box;
+//         }
+//     }
 
-    &-info {
-        h1 {
-            font-size: $headingFont;
-            font-weight: 500;
-            line-height: 56px;
-            margin-bottom: 24px;
-            color: $aq-black-1;
-        }
+//     &-info {
+//         h1 {
+//             font-size: $headingFont;
+//             font-weight: 500;
+//             line-height: 56px;
+//             margin-bottom: 24px;
+//             color: $aq-black-1;
+//         }
 
-        p {
-            font-size: $subTextFont;
-            font-weight: 400;
-            line-height: 28px;
-            color: $aq-black-1;
-            margin-bottom: 48px;
-        }
-    }
+//         p {
+//             font-size: $subTextFont;
+//             font-weight: 400;
+//             line-height: 28px;
+//             color: $aq-black-1;
+//             margin-bottom: 48px;
+//         }
+//     }
 
-    &-btn {
-        display: flex;
-        align-items: center;
-        color: $aq-blue-4;
-        font-weight: 500;
-        font-size: $linkFont;
-        line-height: 24px;
-        cursor: pointer;
-    }
+//     &-btn {
+//         display: flex;
+//         align-items: center;
+//         color: $aq-blue-4;
+//         font-weight: 500;
+//         font-size: $linkFont;
+//         line-height: 24px;
+//         cursor: pointer;
+//     }
 
-    &-icon {
-        margin-left: 4px;
-    }
-}
+//     &-icon {
+//         margin-left: 4px;
+//     }
+// }
 
-@media(max-width: $mainBreakPoint) { 
-    .AirQommunitiesSection {
-        height: 100%;
-        width: 100%;
-        display: block;
-        margin: 0;
+// @media(max-width: $mainBreakPoint) { 
+//     .AirQommunitiesSection {
+//         height: 100%;
+//         width: 100%;
+//         display: block;
+//         margin: 0;
 
-        &-img {
-            flex: 0.5;
-            display: block;
-            height: 400px;
-            width: 100%;
-            object-fit: fill;
-        }
+//         &-img {
+//             flex: 0.5;
+//             display: block;
+//             height: 400px;
+//             width: 100%;
+//             object-fit: fill;
+//         }
 
-        .wrapper {
-            margin: 0 auto;
-            padding: 48px 16px 80px 16px;
-            width: 100%;
+//         .wrapper {
+//             margin: 0 auto;
+//             padding: 48px 16px 80px 16px;
+//             width: 100%;
 
-            h1 {
-                font-size: 40px;
-                font-weight: 500;
-                line-height: 48px;
-                width: 100%;
-                margin-bottom: 24px;
-            }
+//             h1 {
+//                 font-size: 40px;
+//                 font-weight: 500;
+//                 line-height: 48px;
+//                 width: 100%;
+//                 margin-bottom: 24px;
+//             }
 
-            p {
-                margin-bottom: 40px;
-            }
-        }
-    }
-}
+//             p {
+//                 margin-bottom: 40px;
+//             }
+//         }
+//     }
+// }

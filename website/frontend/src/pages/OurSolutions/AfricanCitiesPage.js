@@ -9,9 +9,6 @@ import Burundi from 'icons/africanCities/countries/burundi.svg';
 import Senegal from 'icons/africanCities/countries/senegal.svg';
 import Mozambique from 'icons/africanCities/countries/mozambique.svg';
 import { useInitScrollTop } from "utils/customHooks";
-import ConsultImg from "icons/research/consult.png";
-import ConsultLongImg from "icons/research/consult-long.png";
-import ConsultImg2 from "icons/research/consult-2.png";
 import BackgroundShape from "icons/africanCities/background-shape.svg";
 import ArrowRight from "icons/research/arrow-right.svg";
 import NEMACollabImg1 from "assets/img/community/AirQo_Web_IMG05.jpg";
@@ -20,11 +17,13 @@ import NEMACollabImg3 from "assets/img/community/AirQo_Web_IMG04.jpg";
 import KCCACollabImg1 from "assets/img/community/AirQo_Web_IMG09.jpg";
 import KCCACollabImg2 from "assets/img/community/AirQo_Web_IMG08.jpg";
 import KCCACollabImg3 from "assets/img/community/AirQo_Web_IMG07.jpg";
+import UnepKenyaImg1 from "assets/img/AfricanCities/UnepKenya.jpg";
+import UnepKenyaImg2 from 'assets/img/AfricanCities/UnepKenya-2.jpg';
 
 const CityHeroSection = () => {
     return (
         <div className="city-title">
-            <div className="page-nav">Solutions > For African Cities</div>
+            <div className="page-nav">Solutions {'>'} For African Cities</div>
             <div className="city-main-text">For African cities</div>
             <div className="city-sub-text">Leveraging a high-resolution air quality monitoring network to advance air quality management in African cities.</div>
         </div>
@@ -43,12 +42,12 @@ const AfricanCitiesApproach = () => (
     <section className="approach-section">
         <div className="section-row">
             <h2>Our Approach</h2>
-            <p>We empower city authorities and citizens with timely information and evidence to address the air pollution challenge.</p>
+            {/* <p>We empower city authorities and citizens with timely information and evidence to address the air pollution challenge.</p> */}
         </div>
         <div className="section-content">
             <div className="content">
                 <h3 className="outstanding-text">Locally developed high-resolution air quality monitoring network</h3>
-                <p>We want to see cleaner air in all African Cities. We leverage our understanding of the African context, technical know-how, and close collaborations with relevant partners to deliver a high resolution air quality network to inform contextualised and locally relevant approaches to air quality management for African cities.</p>
+                <p>We want to see cleaner air in all African Cities. We leverage our understanding of the African context and close collaborations with relevant partners to deliver a high resolution air quality network to inform contextualised and locally relevant approaches to air quality management for African cities.</p>
             </div>
             <hr/>
             <div className="content">
@@ -58,7 +57,7 @@ const AfricanCitiesApproach = () => (
             <hr/>
             <div className="content">
                 <h3>Policy Engagement</h3>
-                <p>We engage city authorities and Government agencies to build their capacity and empower them with evidence and digital tools for air quality management and informing air quality public policies.</p>
+                <p>We engage city authorities and government agencies to build their capacity and empower them with evidence and digital tools for air quality management and informing air quality public policies.</p>
             </div>
             <hr/>
             <div className="content">
@@ -119,7 +118,7 @@ export const ContentUganda = () => {
                         </span>
                         <span className="number-list">
                             <span>2</span>
-                            <span>Developed a dedicated data analytics dashboard and supporting capacity development on air quality monitoring</span>
+                            <span>Developed a dedicated data analytics dashboard and supporting capacity development on air quality monitoring.</span>
                         </span>
                         <span className="number-list">
                             <span>3</span>
@@ -144,11 +143,11 @@ export const ContentUganda = () => {
                         <p>NEMA is the lead government agency mandated to coordinate, supervise, and regulate environmental management in Uganda.</p>
                         <span className="number-list">
                             <span>1</span>
-                            <span>AirQo contributes to the air quality chapter in the national state of the environment report, a biennal statutory requirement</span>
+                            <span>AirQo contributes to the air quality chapter in the national state of the environment report, a biennal statutory requirement.</span>
                         </span>
                         <span className="number-list">
                             <span>2</span>
-                            <span>Officially contributed to the development of the national air quality regulations and standards for Uganda</span>
+                            <span>Officially contributed to the development of the national air quality regulations and standards for Uganda.</span>
                         </span>
                         <span className="number-list">
                             <span>3</span>
@@ -175,21 +174,32 @@ export const ContentKenya = () => {
                     <div className="consult-text">
                         <div>
                             <p>Network deployment in Kenya</p>
-                            <p>Nairobi is located over 600 km from Kampala. It is the first city outside Uganda to have an AirQo monitor.</p>
-                            <p>We are in advance stages of developing the air quality network in Nairobi and have so far established a collocation installation in Nairobi in partnership with United Nations Environemnt Programme (UNEP).</p>
-                            <p>The collocation will also be an opportunity to support existing initiatives on data quality assurance. for low-cost monitors</p>
+                            <p>
+                                Nairobi is located over 600 km from Kampala. It is the first city outside Uganda to have
+                                an AirQo monitor.
+                            </p>
+                            <p>
+                                We are in advanced stages of developing the air quality network in Nairobi and have so
+                                far established a collocation installation in Nairobi in partnership with United Nations
+                                Environment Programme (UNEP).
+                            </p>
+                            <p>
+                                The collocation will also be an opportunity to support existing initiatives on data
+                                quality assurance for low-cost monitors.
+                            </p>
                         </div>
                     </div>
                     <div className="consult-images">
-                        <img className="img-small" src={ConsultImg} alt="consult image" />
-                        <img className="img-long" src={ConsultLongImg} alt="consult long image" />
-                        <img className="img-small" src={ConsultImg2} alt="consult image 2" />
+                        <img className="img-small" src={UnepKenyaImg2} alt="consult image" />
+                        <img className="img-long" src={UnepKenyaImg1} alt="consult long image" />
+                        <img className="img-small" src={UnepKenyaImg2} alt="consult image 2" />
                         <BackgroundShape className="background-shape" />
                     </div>
                 </div>
             </div>
+            <div className="cities-divider" />
         </div>
-    )
+    );
 }
 
 const PublicationsSection = () => {

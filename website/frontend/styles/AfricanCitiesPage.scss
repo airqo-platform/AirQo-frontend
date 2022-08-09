@@ -298,7 +298,9 @@
           width: 100%;
           height: 100%;
           object-fit: cover;
+          object-position: center;
           border-radius: 8px;
+          max-height: 228px;
         }
 
         .img-long {
@@ -308,7 +310,9 @@
           width: 100%;
           height: 100%;
           object-fit: cover;
+          object-position: center;
           border-radius: 8px;
+          max-height: 482px;
         }
 
         .img-long-right {
@@ -319,6 +323,7 @@
           height: 100%;
           object-fit: cover;
           border-radius: 8px;
+          max-height: 482px;
         }
 
         .background-shape {
@@ -415,8 +420,8 @@
 
     .main-text {
       font-weight: 400;
-      font-size: 48px;
-      line-height: 56px;
+      font-size: 40px;
+      line-height: 46px;
       color: $aq-black-2;
       margin: 24px 0 32px 0;
     }
@@ -448,7 +453,7 @@
       color: $aq-black-1;
       border: 1px solid #000000;
       border-radius: 2px;
-      cursor: pointer;
+      // cursor: pointer;
       margin-bottom: 64px;
 
       .link-arrow {
@@ -587,7 +592,7 @@
             align-items: flex-start;
   
             span:first-child {
-              margin-bottom: 16px;
+              margin-bottom: 0px;
             }
   
             span:last-child {

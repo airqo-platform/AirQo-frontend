@@ -14,7 +14,7 @@ import { Link } from "react-router-dom";
 const ResearchHeroSection = () => {
     return (
         <div className="research-title">
-            <div className="page-nav">Solutions > For Research</div>
+            <div className="page-nav">Solutions {'>'} For Research</div>
             <div className="research-main-text">For Research</div>
             <div className="research-sub-text">We actively collaborate with researchers across the world to jointly tackle air quality research challenges.</div>
         </div>
@@ -64,13 +64,12 @@ const ResearchContent = () => {
                     <div>
                         <p>Collaboration with universities and academic institutions</p>
                         <p>We provide air quality data to facilitate university research. Universities get free access to periodical air quality reports through the AirQo dashboard and the AirQo API.</p>
-                        <p>During the deployment of air quality monitoring devices,  we recruit universities and other institutions as AirQo hosts. This ensures that they feel part of the mission right from the collection to the data dissemination.</p>
                     </div>
                 </div>
                 <div className="consult-images">
-                    <img className="img-small" src={UniversityImg1} alt="consult image" />
-                    <img className="img-long" src={UniversityImg3} alt="consult long image" />
-                    <img className="img-small" src={UniversityImg2} alt="consult image 2" />
+                    <img className="img-small" src={UniversityImg2} alt="consult image" />
+                    <img className="img-long" src={UniversityImg1} alt="consult long image" />
+                    <img className="img-small" src={UniversityImg3} alt="consult image 2" />
                     <BackgroundShape className="background-shape" />
                 </div>
             </div>
@@ -89,7 +88,7 @@ const ResearchPage = () => {
                 
                 <section className="bottom-hero-section">
                     <h3>Explore our digital air quality tools.</h3>
-                    <Link to="/explore-data" className="section-link"><span>Explore data --></span></Link>
+                    <Link to="/explore-data" className="section-link"><span>Explore data {'-->'}</span></Link>
                 </section>
             </div>
         </Page>

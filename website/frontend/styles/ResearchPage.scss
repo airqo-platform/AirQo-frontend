@@ -79,8 +79,8 @@
 
     .main-text {
       font-weight: 400;
-      font-size: 48px;
-      line-height: 56px;
+      font-size: 40px;
+      line-height: 46px;
       color: $aq-black-2;
       margin: 24px 0 32px 0;
     }
@@ -116,7 +116,7 @@
       color: $aq-black-1;
       border: 1px solid #000000;
       margin-bottom: 64px;
-      cursor: pointer;
+      // cursor: pointer;
 
       .link-arrow {
         display: inline-block;
@@ -223,7 +223,7 @@
           width: 100%;
           height: 100%;
           object-fit: cover;
-          object-position: left;
+          object-position: center;
           border-radius: 8px;
         }
 
@@ -342,7 +342,7 @@
 
 @media(max-width: $mainBreakPoint) {
   .ResearchPage {
-    overflow-x: visible;
+    overflow:hidden;
     .research-content {
       margin-bottom: 80px;
       .research-divider {
