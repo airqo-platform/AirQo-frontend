@@ -2,12 +2,11 @@ import 'package:app/screens/kya/kya_final_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../../models/kya.dart';
-import '../../../services/native_api.dart';
-import '../../../themes/colors.dart';
-import '../../../utils/exception.dart';
-import '../kya_widgets.dart';
-import 'kya_drag_widget.dart';
+import '../../models/kya.dart';
+import '../../services/native_api.dart';
+import '../../themes/colors.dart';
+import '../../utils/exception.dart';
+import 'kya_widgets.dart';
 
 class KyaLessonsPage1 extends StatefulWidget {
   const KyaLessonsPage1({

@@ -9,6 +9,7 @@ import '../../models/kya.dart';
 import '../../services/native_api.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
+import '../../widgets/custom_shimmer.dart';
 import 'kya_title_page.dart';
 
 class CircularKyaButton extends StatelessWidget {
@@ -230,6 +231,163 @@ class EmptyKya extends StatelessWidget {
       padding: const EdgeInsets.all(40.0),
       child: const Center(
         child: Text('No Lessons at the moment'),
+      ),
+    );
+  }
+}
+
+class KyaLessonCard extends StatelessWidget {
+  const KyaLessonCard({
+    Key? key,
+    required this.kyaLesson,
+  }) : super(key: key);
+  final KyaLesson kyaLesson;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.5,
+      width: MediaQuery.of(context).size.width * 0.9,
+      decoration: ShapeDecoration(
+        color: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        shadows: <BoxShadow>[
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0, right: 8.0, top: 8.0),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: CachedNetworkImage(
+                fit: BoxFit.contain,
+                placeholder: (context, url) => const SizedBox(
+                  child: ContainerLoadingAnimation(
+                    height: 180,
+                    radius: 8,
+                  ),
+                ),
+                imageUrl: kyaLesson.imageUrl,
+                errorWidget: (context, url, error) => Icon(
+                  Icons.error_outline,
+                  color: CustomColors.aqiRed,
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 36, right: 36, top: 12.0),
+            child: AutoSizeText(
+              kyaLesson.title,
+              maxLines: 2,
+              minFontSize: 20,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: CustomTextStyle.headline9(context),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 16, right: 16, top: 8.0),
+            child: AutoSizeText(
+              kyaLesson.body,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              minFontSize: 16,
+              style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                    color: CustomColors.appColorBlack.withOpacity(0.5),
+                  ),
+            ),
+          ),
+          const Spacer(),
+          SvgPicture.asset(
+            'assets/icon/tips_graphics.svg',
+            semanticsLabel: 'tips_graphics',
+          ),
+          const SizedBox(
+            height: 20,
+          )
+        ],
+      ),
+    );
+  }
+}
+
+class KyaDragWidget extends StatefulWidget {
+  const KyaDragWidget({
+    Key? key,
+    required this.kyaLesson,
+    required this.index,
+    required this.swipeNotifier,
+    this.isLastCard = false,
+  }) : super(key: key);
+  final KyaLesson kyaLesson;
+  final int index;
+  final ValueNotifier<Swipe> swipeNotifier;
+  final bool isLastCard;
+
+  @override
+  State<KyaDragWidget> createState() => _KyaDragWidgetState();
+}
+
+class _KyaDragWidgetState extends State<KyaDragWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Draggable<int>(
+        data: widget.index,
+        feedback: Material(
+          color: Colors.transparent,
+          child: ValueListenableBuilder(
+            valueListenable: widget.swipeNotifier,
+            builder: (context, swipe, _) {
+              return RotationTransition(
+                turns: widget.swipeNotifier.value != Swipe.none
+                    ? widget.swipeNotifier.value == Swipe.left
+                        ? const AlwaysStoppedAnimation(-15 / 360)
+                        : const AlwaysStoppedAnimation(15 / 360)
+                    : const AlwaysStoppedAnimation(0),
+                child: KyaLessonCard(kyaLesson: widget.kyaLesson),
+              );
+            },
+          ),
+        ),
+        onDragUpdate: (DragUpdateDetails dragUpdateDetails) {
+          if (dragUpdateDetails.delta.dx > 0 &&
+              dragUpdateDetails.globalPosition.dx >
+                  MediaQuery.of(context).size.width / 2) {
+            widget.swipeNotifier.value = Swipe.right;
+          }
+          if (dragUpdateDetails.delta.dx < 0 &&
+              dragUpdateDetails.globalPosition.dx <
+                  MediaQuery.of(context).size.width / 2) {
+            widget.swipeNotifier.value = Swipe.left;
+          }
+        },
+        onDragEnd: (drag) {
+          widget.swipeNotifier.value = Swipe.none;
+        },
+
+        childWhenDragging: Container(
+          color: Colors.transparent,
+        ),
+
+        //This will be visible when we press action button
+        child: ValueListenableBuilder(
+            valueListenable: widget.swipeNotifier,
+            builder: (BuildContext context, Swipe swipe, Widget? child) {
+              return KyaLessonCard(kyaLesson: widget.kyaLesson);
+            }),
       ),
     );
   }

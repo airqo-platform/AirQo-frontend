@@ -10,7 +10,7 @@ import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/custom_widgets.dart';
-import 'kya_tinder_swipe/new_kya_lessons.dart';
+import 'new_kya_lessons.dart';
 
 class KyaTitlePage extends StatefulWidget {
   const KyaTitlePage(
