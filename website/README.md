@@ -2,8 +2,9 @@
 ---
 
 - [Prerequisites](#prerequisites)
-  - [Docker](#docker)
   - [OSX, Linux, Windows](#osx-linux-windows)
+  - [Docker](#docker)
+  
 - [Setting up the development environment](#setting-up-the-development-environment)
   - [Clone the repository](#clone-the-repository)
   - [OSX](#osx)
@@ -11,7 +12,7 @@
   - [Windows](#windows)
 - [Running the stack](#running-the-stack)
   - [Create the .envrc and .env files](#create-the-envrc-and-env-files)
-  - [Docker](#docker-1)
+  - [Running the website](#running-the-website-application)
   - [OSX, Linux, and Windows](#osx-linux-and-windows)
 - [Development Invoke Commands](#development-invoke-commands)
   - [Running servers](#running-servers)
@@ -19,15 +20,13 @@
   - [Static builds](#static-builds)
 
 ## Prerequisites
-#### Docker
--   `Git` [Installing Git](https://gist.github.com/derhuerst/1b15ff4652a867391f03)
--   `Docker` [Install Docker Engine](https://docs.docker.com/engine/install/)
 
 #### OSX, Linux, Windows
 -   `Git` [Installing Git](https://gist.github.com/derhuerst/1b15ff4652a867391f03)
 -   `Python 3.6 or higher (Python 3.7 preferred)` [Python Software Foundation](https://www.python.org/)
--   `NodeJs` [Download nodejs](https://nodejs.org/en/download/)
--   `Npm` [NpmJs](https://www.npmjs.com/get-npm)
+-   `Node 12` [Download nodejs](https://nodejs.org/en/download/)
+-   `Npm 6` [NpmJs](https://www.npmjs.com/get-npm)
+-   `pipenv` [Get pipenv](https://pipenv.pypa.io/en/latest/)
 
 ## Setting up the development environment
 ### Clone the repository
@@ -97,32 +96,6 @@ Stop the postgresql service using
     or
     pg_ctl -D /usr/local/var/postgres stop  # if not installed using homebrew
     
-### Linux
-**_NOTE_**:
-
-Currently the environment does not run well on Windows Bash / WSL ( Windows Subsystem for Linux ).
-There are too many issues with line terminators and other environment inconsistencies.
-
-The best option is to run "bare metal" Linux or dual boot. You can run Linux in a VM, but performance will suffer, buyer beware.
-
-#### Direnv
-
-Install direnv on your local machine, and set it up so it works
-in your shell. These are the instructions for the (default) bash shell. If
-you're using a different shell, you probably know where to configure it for
-yours or the check the [direnv setup page](https://direnv.net/docs/hook.html) for your shell:
-
-    sudo apt install direnv   # for Linux
-
-Then, add the following line to the end of your shell configuration file as follows:
-
-For BASH, add below to `.bashrc`
-
-    eval "$(direnv hook bash)"
-
-For ZSH, add below to `.zshrc`
-
-    eval "$(direnv hook zsh)"
     
 #### PostgreSQL
 
@@ -168,16 +141,11 @@ or
     sudo systemctl stop postgresql
     
 ### Windows
-**NOTE**: Currently the environment does not run well on Windows Bash / WSL ( Windows Subsystem for Linux ).
-There are too many issues with line terminators and other environment inconsistencies.
-
-We will have to configure the environment manually, `direnv` cant help us here.
-
 First install postgresql on windows [Postgresql Windows Installers](https://www.postgresql.org/download/windows/)
 
 
-
 #### Create Python Virtual Environment
+
 In your Windows command shell prompt type in
 
     pip install virtualenv
@@ -189,9 +157,25 @@ Create the virtual environment
 Activate the environment
 
     \env\Scripts\activate.bat
-    
 **NOTE**: It is important at this point to add the path to the `node_modules` in the environment path variable. check [windows setting path](https://www.windows-commandline.com/set-path-command-line/)
 for more details.
+    
+
+### Linux
+
+#### Create Python Virtual Environment
+
+In your command shell prompt type in
+
+    pip install --user pipenv
+ 
+Create the virtual environment 
+  
+    pipenv install shell
+    
+Activate the environment
+    
+    pipenv shell
 
 ## Running the stack
 #### Create the `.envrc` and `.env` files
@@ -209,41 +193,20 @@ The `PATH` variable is updated with the `node_modules` path and `.env` loaded.
 Populate the `.env` file with the following keys and their respective values.
 
     DEBUG                   
-    DATABASE_URI            
-    SECRET                  
+    DATABASE_URI              
     SECRET_KEY
     CLOUDINARY_NAME
     CLOUDINARY_KEY
     CLOUDINARY_SECRET
-    REACT_WEB_STATIC_HOST
     DJANGO_ALLOWED_HOSTS     
     GS_BUCKET_NAME
+    GOOGLE_APPLICATION_CREDENTIALS
     REACT_NETMANAGER_BASE_URL
     REACT_APP_BASE_AIRQLOUDS_URL
     REACT_APP_BASE_NEWSLETTER_URL
-    GOOGLE_APPLICATION_CREDENTIALS
     REACT_APP_WEBSITE_BASE_URL
-
-#### Docker
-
-Build the application docker image with the command below. Make sure that your `google_application_credentials.json` file is at the root of the website folder just as your .env file
-
-    docker build . \
-        --build-arg REACT_WEB_STATIC_HOST=<<enter REACT_WEB_STATIC_HOST value>> \
-        --build-arg REACT_NETMANAGER_BASE_URL=<<enter REACT_NETMANAGER_BASE_URL value>> \
-        --build-arg REACT_APP_BASE_AIRQLOUDS_URL=<<enter REACT_APP_BASE_AIRQLOUDS_URL value>> \
-        --build-arg REACT_APP_BASE_NEWSLETTER_URL=<<enter REACT_APP_BASE_NEWSLETTER_URL value>> \
-        --build-arg REACT_APP_WEBSITE_BASE_URL=<<enter REACT_APP_WEBSITE_BASE_URL value>> \
-        --tag <<enter an image tag of choice>>
-
-Run the website application container with the command bellow
-
-    docker run -d \
-        -p 8080:8080 \
-        --env-file=.env \
-        <<enter an image tag used in the step above>>
-
-After a few minutes, you should be able to access the website via port 8080 http://localhost:8080/
+    SECURE_SSL_REDIRECT
+    HTTP_X_FORWARDED_PROTO
 
 #### OSX, Linux, and Windows
 
@@ -261,14 +224,16 @@ Node requirements
 
     npm install
 
-##### Run the website app
+### Running the website application
 
 Once properly setup, run the following in two separate terminals:
 
-    # Terminal 1
+    # Terminal 1 in virtual environment
+    python manage.py collectstatic
     inv run-web
 
     # Terminal 2
+    npm run build
     inv webpack-server
 
 At this point you should be able to navigate to the local instance at http://localhost:8000/
@@ -300,3 +265,24 @@ Auto fixing `JS` lint issues
 Running `Webpack` build (production)
 
     inv run-build
+    
+#### Docker
+
+Build the application docker image with the command below. Make sure that your `google_application_credentials.json` file is at the root of the website folder just as your .env file
+
+    docker build . \
+        --build-arg REACT_WEB_STATIC_HOST=<<enter REACT_WEB_STATIC_HOST value>> \
+        --build-arg REACT_NETMANAGER_BASE_URL=<<enter REACT_NETMANAGER_BASE_URL value>> \
+        --build-arg REACT_APP_BASE_AIRQLOUDS_URL=<<enter REACT_APP_BASE_AIRQLOUDS_URL value>> \
+        --build-arg REACT_APP_BASE_NEWSLETTER_URL=<<enter REACT_APP_BASE_NEWSLETTER_URL value>> \
+        --build-arg REACT_APP_WEBSITE_BASE_URL=<<enter REACT_APP_WEBSITE_BASE_URL value>> \
+        --tag <<enter an image tag of choice>>
+
+Run the website application container with the command bellow
+
+    docker run -d \
+        -p 8080:8080 \
+        --env-file=.env \
+        <<enter an image tag used in the step above>>
+
+After a few minutes, you should be able to access the website via port 8080 http://localhost:8080/
