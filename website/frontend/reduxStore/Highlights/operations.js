@@ -10,7 +10,6 @@ export const loadHighlightsData = () => async (dispatch) => {
                 type: LOAD_HIGHLIGHTS_SUCCESS,
                 payload: resData,
             });
-            console.log(resData);
         })
         .catch((err) => {
             dispatch({

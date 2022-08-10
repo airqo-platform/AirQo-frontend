@@ -1,38 +1,36 @@
-import React, { useEffect } from 'react'
-import { useDispatch } from 'react-redux';
-import { loadTagsData } from '../../../reduxStore/Highlights/operations';
+import React, { useEffect } from 'react';
 import { useTagsData } from '../../../reduxStore/Highlights/selectors';
+import ImageLoader from '../LoadSpinner/ImageLoader';
 
 const Post = ({ postImg, Tags, title, article_link, article_title, key }) => {
-    const dispatch = useDispatch();
     const tags = useTagsData();
 
-    useEffect(() => {
-        dispatch(loadTagsData);
-    }, []);
     return (
-        <div className='feature' key={key}>
-            <div className='img-sm'><img src={postImg} /></div>
-            <div className='feature-content'>
-                <div className='feature-pills'>
-                    {
-                        Tags.length > 0 ? Tags.map((Tag) => (
-                            <span key={Tag.id}>
-                                {
-                                    tags.filter((tag) => { tag.id === Tag.id && tag.name })
-                                }
+        <div className="feature" key={key}>
+            <div className="img-sm">
+                <img src={postImg !== null ? postImg : <ImageLoader/>} alt="Photo" />
+            </div>
+            <div className="feature-content">
+                <div className="feature-pills">
+                    {Tags.length > 0 ? (
+                        Tags.slice(0, 3).map((Tag) => (
+                            <span key={Tag.id} className="highlights-tag">
+                                {tags.filter((tag) => tag.id === Tag).map((t) => t.name)}
                             </span>
-                        )) :
-                            <div />
-                    }
+                        ))
+                    ) : (
+                        <div />
+                    )}
                 </div>
                 <h4>{title}</h4>
-                <span className='feature-link'>
-                    <a href={article_link} target='_blank'>{article_title} {'-->'}</a>
+                <span className="feature-link">
+                    <a href={article_link} target="_blank">
+                        {article_title} {'-->'}
+                    </a>
                 </span>
             </div>
         </div>
-    )
-}
+    );
+};
 
 export default Post;
