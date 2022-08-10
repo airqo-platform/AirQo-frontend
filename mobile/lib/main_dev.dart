@@ -18,6 +18,7 @@ import 'constants/config.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
+    name: 'airqo-dev',
     options: DefaultFirebaseOptions.currentPlatform,
   );
   HttpOverrides.global = AppHttpOverrides();
