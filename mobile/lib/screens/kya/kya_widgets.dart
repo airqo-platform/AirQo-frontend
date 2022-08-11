@@ -316,7 +316,7 @@ class KyaLessonCard extends StatelessWidget {
           ),
           const SizedBox(
             height: 20,
-          )
+          ),
         ],
       ),
     );
@@ -384,10 +384,11 @@ class _KyaDragWidgetState extends State<KyaDragWidget> {
 
         //This will be visible when we press action button
         child: ValueListenableBuilder(
-            valueListenable: widget.swipeNotifier,
-            builder: (BuildContext context, Swipe swipe, Widget? child) {
-              return KyaLessonCard(kyaLesson: widget.kyaLesson);
-            }),
+          valueListenable: widget.swipeNotifier,
+          builder: (BuildContext context, Swipe swipe, Widget? child) {
+            return KyaLessonCard(kyaLesson: widget.kyaLesson);
+          },
+        ),
       ),
     );
   }
