@@ -24,6 +24,11 @@ if (googleMapApiKey == null) {
     throw new GradleException("Google Maps Key not found. Define google.maps.key in the key.properties file.")
 }
 
+def googleMapApiKey_airqodev = appProperties.getProperty('google.maps.key_dev')
+if (googleMapApiKey_airqodev == null) {
+    throw new GradleException("Google Maps Key not found. Define google.maps.key_dev in the key.properties file.")
+}
+
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
 if (flutterVersionCode == null) {
     flutterVersionCode = '1'
@@ -68,10 +73,12 @@ android {
         airqodev {
             dimension "airqo"
             applicationIdSuffix "dev"
+            manifestPlaceholders = [googleMapsKey:googleMapApiKey_airqodev]
         }
  
         airqo {
             dimension "app"
+            manifestPlaceholders = [googleMapsKey:googleMapApiKey]
         }
     }
 // Add start
