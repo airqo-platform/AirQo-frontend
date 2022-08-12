@@ -58,3 +58,4 @@ google-services.json
 *.env*
 metrics/
 obfuscate/
+firebase_options_dev.dart
