@@ -101,7 +101,7 @@ const CareerPage = () => {
 
                         <div className="self-intro">
                             <span>Don’t see a <br/>position that fits you perfectly? Introduce yourself here </span>
-                            <span>careers@airqo.africa</span>
+                            <span>careers@airqo.net</span>
                         </div>
                     </div>
 
