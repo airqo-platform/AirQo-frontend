@@ -4,7 +4,7 @@
 - [Prerequisites](#prerequisites)
   - [OSX, Linux, Windows](#osx-linux-windows)
   - [Docker](#docker)
-  
+  - [Git](#git)
 - [Setting up the development environment](#setting-up-the-development-environment)
   - [Clone the repository](#clone-the-repository)
   - [OSX](#osx)
@@ -12,25 +12,29 @@
   - [Windows](#windows)
 - [Running the stack](#running-the-stack)
   - [Create the .envrc and .env files](#create-the-envrc-and-env-files)
-  - [Running the website](#running-the-website-application)
-  - [OSX, Linux, and Windows](#osx-linux-and-windows)
+  - [Docker](#docker-1)
+  - [Running the website application](#run-the-website-app)
+- [Database Management](#database-management)
 - [Development Invoke Commands](#development-invoke-commands)
   - [Running servers](#running-servers)
   - [Lint checks and auto fixing](#lint-checks-and-auto-fixing)
   - [Static builds](#static-builds)
 
 ## Prerequisites
-
 #### OSX, Linux, Windows
+-   `Python 3.6 or higher (Python 3.7 preferred)` [Python Download](https://www.python.org/)
+-   `NodeJs v12` [Node Download](https://nodejs.org/en/download/)
+-   `Npm` [NpmJs](https://www.npmjs.com/get-npm)
+
+#### Docker
+-   `Docker` [Install Docker Engine](https://docs.docker.com/engine/install/)
+
+
+#### Git
 -   `Git` [Installing Git](https://gist.github.com/derhuerst/1b15ff4652a867391f03)
--   `Python 3.6 or higher (Python 3.7 preferred)` [Python Software Foundation](https://www.python.org/)
--   `Node 12` [Download nodejs](https://nodejs.org/en/download/)
--   `Npm 6` [NpmJs](https://www.npmjs.com/get-npm)
--   `pipenv` [Get pipenv](https://pipenv.pypa.io/en/latest/)
 
 ## Setting up the development environment
 ### Clone the repository
-Clone the AirQo repo
 
     git clone https://github.com/airqo-platform/AirQo-frontend.git
 
@@ -96,6 +100,26 @@ Stop the postgresql service using
     or
     pg_ctl -D /usr/local/var/postgres stop  # if not installed using homebrew
     
+### Linux
+
+#### Pip
+Install pip on your local machine in order to setup a virtual environment. [Setup](https://pip.pypa.io/en/stable/installation/) 
+Then install pipenv to create the virtual environment shell.
+
+    pip install --user pipenv
+
+To create a virtual environment:
+    
+    pipenv install shell
+
+To activate virtual environment:
+
+    pipenv shell
+
+To deactivate virtual environment:
+
+    $ exit
+
     
 #### PostgreSQL
 
@@ -109,10 +133,6 @@ To use the apt repository, follow these steps:
 
     # Update the package lists:
     sudo apt-get update
-
-    # Install the latest version of PostgreSQL.
-    # If you want a specific version, use 'postgresql-12' or similar instead of 'postgresql':
-    sudo apt-get -y install postgresql
 
 #### Set up PostgreSQL
 
@@ -141,11 +161,16 @@ or
     sudo systemctl stop postgresql
     
 ### Windows
+**NOTE**: Currently the environment does not run well on Windows Bash / WSL ( Windows Subsystem for Linux ).
+There are too many issues with line terminators and other environment inconsistencies.
+
+We will have to configure the environment manually, `direnv` cant help us here.
+
 First install postgresql on windows [Postgresql Windows Installers](https://www.postgresql.org/download/windows/)
 
 
-#### Create Python Virtual Environment
 
+#### Create Python Virtual Environment
 In your Windows command shell prompt type in
 
     pip install virtualenv
@@ -157,29 +182,13 @@ Create the virtual environment
 Activate the environment
 
     \env\Scripts\activate.bat
+    
 **NOTE**: It is important at this point to add the path to the `node_modules` in the environment path variable. check [windows setting path](https://www.windows-commandline.com/set-path-command-line/)
 for more details.
-    
-
-### Linux
-
-#### Create Python Virtual Environment
-
-In your command shell prompt type in
-
-    pip install --user pipenv
- 
-Create the virtual environment 
-  
-    pipenv install shell
-    
-Activate the environment
-    
-    pipenv shell
 
 ## Running the stack
-#### Create the `.envrc` and `.env` files
-**Note:** You will only need a .env file if you intend on running this website application with docker
+### Create the `.envrc` and `.env` files
+**Note:** You will only need a .env file if you intend on running this website application on Linux or with docker
 
 In the `.envrc` file add the following code
 
@@ -193,28 +202,36 @@ The `PATH` variable is updated with the `node_modules` path and `.env` loaded.
 Populate the `.env` file with the following keys and their respective values.
 
     DEBUG                   
-    DATABASE_URI              
+    DATABASE_URI            
+    SECRET                  
     SECRET_KEY
     CLOUDINARY_NAME
     CLOUDINARY_KEY
     CLOUDINARY_SECRET
+    REACT_WEB_STATIC_HOST
     DJANGO_ALLOWED_HOSTS     
     GS_BUCKET_NAME
-    GOOGLE_APPLICATION_CREDENTIALS
     REACT_NETMANAGER_BASE_URL
     REACT_APP_BASE_AIRQLOUDS_URL
     REACT_APP_BASE_NEWSLETTER_URL
+    GOOGLE_APPLICATION_CREDENTIALS
     REACT_APP_WEBSITE_BASE_URL
     SECURE_SSL_REDIRECT
     HTTP_X_FORWARDED_PROTO
 
-#### OSX, Linux, and Windows
+**Note**: Remove `DATABASE_URI` variable  if you are using docker
 
-**For OSX and Linux**, you need to allow `direnv` to load the new changes, so run the command below
+### OSX, Linux, and Windows
+
+**For OSX**, you need to allow `direnv` to load the new changes, so run the command below
 
     direnv allow .
 
-##### Install `Python` and `node` requirements
+**For Linux**, activate your virtual environment
+
+    pipenv shell
+
+#### Install `Python` and `node` requirements
 
 Python requirements
 
@@ -224,23 +241,36 @@ Node requirements
 
     npm install
 
-### Running the website application
+### Run the website app
 
-Once properly setup, run the following in two separate terminals:
+For Linux activate a virtual environment. Once properly setup, run the following in two separate terminals: 
 
-    # Terminal 1 in virtual environment
+    # Terminal 1 (shell)
     python manage.py collectstatic
+    python manage.py makemigrations
     inv run-web
 
     # Terminal 2
-    npm run build
+    inv run-build
     inv webpack-server
 
 At this point you should be able to navigate to the local instance at http://localhost:8000/
 
+## Database Management
+Create a superuser to access the content management portal. In your virtual environment:
+
+    python manage.py createsuperuser
+
+Follow the prompts and take note of your inputs.
+
+To make changes [run the website app](#run-the-website-app) and route to http://localhost:8000/admin/. <br>
+Sign in and choose the table you'd like to make edits to. Your changes can be viewed on the frontend http://localhost:8000/ 
+
+To view the API route to http://localhost:8000/api
+
 ## Development Invoke Commands
 
-#### Running servers
+### Running servers
 
 Running django server
 
@@ -250,7 +280,7 @@ Running webpack dev-server
 
     inv webpack-server
 
-#### Lint checks and auto fixing
+### Lint checks and auto fixing
 
 Running `JS` lint checks
 
@@ -265,8 +295,8 @@ Auto fixing `JS` lint issues
 Running `Webpack` build (production)
 
     inv run-build
-    
-#### Docker
+
+### Docker
 
 Build the application docker image with the command below. Make sure that your `google_application_credentials.json` file is at the root of the website folder just as your .env file
 
