@@ -5,7 +5,7 @@ import { isEmpty } from 'underscore';
 import { useInitScrollTop } from 'utils/customHooks';
 import { useTeamData } from 'reduxStore/Team/selectors';
 import { loadTeamData } from 'reduxStore/Team/operations';
-import Profile from '../components/Profile';
+import Profile from 'components/Profile';
 import Page from './Page';
 import WorldBankLogo from 'assets/img/partners/World Bank.png';
 import GoogleLogo from 'assets/img/partners/partner-logo-2.png';
