@@ -223,6 +223,10 @@ Populate the `.env` file with the following keys and their respective values.
     REACT_APP_BASE_NEWSLETTER_URL
     GOOGLE_APPLICATION_CREDENTIALS
     REACT_APP_WEBSITE_BASE_URL
+    SECURE_SSL_REDIRECT
+    HTTP_X_FORWARDED_PROTO
+
+**Note**: Remove `DATABASE_URI` variable  if you are using docker
 
 #### Docker
 

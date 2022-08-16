@@ -140,7 +140,9 @@ const CareerPage = () => {
                                     Don’t see a <br />
                                     position that fits you perfectly? Introduce yourself here{' '}
                                 </span>
-                                <a href="mailto:careers@airqo.net" className='mail-link'>careers@airqo.net</a>
+                                <a href="mailto:careers@airqo.net" className="mail-link">
+                                    careers@airqo.net
+                                </a>
                             </div>
                         </div>
                     </div>

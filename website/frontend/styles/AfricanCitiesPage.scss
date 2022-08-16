@@ -6,6 +6,15 @@
   flex-wrap: wrap;
   justify-content: center;
   font-style: normal;
+  position: relative;
+
+  .cities-divider {
+    width: 100%;
+    max-width: $columnWidth;
+    height: 0px;
+    border: 8px solid #EBF1FF;
+    margin: 80px auto 120px auto;
+  }
 
   .city-title {
     display: flex;
@@ -47,8 +56,9 @@
 
   .city-banner {
     width: 100%;
-    max-width: $columnWidth;
+    max-width: 900px;
     min-height: 144px;
+    width: 100%;
 
     font-style: normal;
     font-weight: 400;
@@ -59,10 +69,11 @@
 
     color: $aq-black-2;
 
-    margin: 80px 0 77px 0;
+    margin: 80px 16px 77px 16px;
   }
 
   .city-tabs-wrapper {
+    position: relative;
     width: 100%;
     display: flex;
     justify-content: center;
@@ -194,14 +205,6 @@
       margin: 110px auto 124px auto;
     }
 
-    .cities-divider {
-      width: 100%;
-      max-width: $columnWidth;
-      height: 0px;
-      border: 8px solid #EBF1FF;
-      margin: 80px auto 120px auto;
-    }
-
     .ug-container, .ke-container {
       display: flex;
       flex-wrap: wrap;
@@ -293,8 +296,11 @@
         .img-small {
           align-self: center;
           width: 100%;
-          height: auto;
+          height: 100%;
+          object-fit: cover;
+          object-position: center;
           border-radius: 8px;
+          max-height: 228px;
         }
 
         .img-long {
@@ -302,8 +308,11 @@
           grid-row: 1/3;
           align-self: center;
           width: 100%;
-          height: auto;
+          height: 100%;
+          object-fit: cover;
+          object-position: center;
           border-radius: 8px;
+          max-height: 482px;
         }
 
         .img-long-right {
@@ -311,8 +320,10 @@
           grid-row: 1/3;
           align-self: center;
           width: 100%;
-          height: auto;
+          height: 100%;
+          object-fit: cover;
           border-radius: 8px;
+          max-height: 482px;
         }
 
         .background-shape {
@@ -389,6 +400,7 @@
     background: #EBF1FF;
     border-radius: 8px;
     padding: 10px;
+    margin: 0 16px;
     margin-top: 48px;
 
     >* {
@@ -402,13 +414,14 @@
       line-height: 28px;
       letter-spacing: 0.2em;
       text-transform: uppercase;
-      color: $aq-black-3;
+      color: $aq-blue-0;
+      padding-top: 64px;
     }
 
     .main-text {
-      font-weight: 500;
-      font-size: 48px;
-      line-height: 56px;
+      font-weight: 400;
+      font-size: 40px;
+      line-height: 46px;
       color: $aq-black-2;
       margin: 24px 0 32px 0;
     }
@@ -431,15 +444,17 @@
 
     .link {
       display: flex;
-      width: 280px;
-      height: 48px;
-      padding: 11px 24px;
+      width: 248px;
+      height: 54px;
+      padding: 14px 24px;
       font-weight: 400;
       font-size: 20px;
       line-height: 26px;
       color: $aq-black-1;
-      background: $aq-white-0;
-      border-radius: 16px;
+      border: 1px solid #000000;
+      border-radius: 2px;
+      // cursor: pointer;
+      margin-bottom: 64px;
 
       .link-arrow {
         display: inline-block;
@@ -458,4 +473,136 @@
     }
   }
 
+  .approach-section {
+    position: relative;
+    height: 100%;
+    max-width: $columnWidth;
+    width: 100%;
+    margin: 0 16px;
+    margin-bottom: 140px;
+
+    .section-row {
+      display: flex;
+      margin-bottom: 64px;
+
+      h2 {
+        font-size: 48px;
+        line-height: 56px;
+        font-weight: 500;
+        color: $aq-black-1;
+        width: 100%;
+        margin: 0;
+      }
+
+      p {
+        max-width: 565px;
+        width: 100%;
+        font-size: 24px;
+        line-height: 32px;
+        margin: 0;
+      }
+    }
+    
+    .section-content {
+      padding: 80px 64px;
+      background-color: #F2F1F6;
+      border-radius: 16px;
+
+      hr {
+        margin: 64px 0;
+      }
+
+      .content {
+        .outstanding-text {
+          max-width: 514px;
+        }
+
+        h3 {
+          max-width: 725px;
+          width: 100%;
+          font-size: 32px;
+          font-weight: 400;
+          line-height: 40px;
+          margin: 0;
+          margin-bottom: 24px;
+        }
+
+        p {
+          max-width: 691px;
+          width: 100%;
+          height: auto;
+          font-size: 18px;
+          font-weight: 400;
+          line-height: 26px;
+          margin: 0;
+        }
+      }
+    }
+
+  }
+
+}
+
+@media(max-width: $mainBreakPoint) {
+  .AfricanCitiesPage {
+    .cities-divider {
+      margin: 64px auto;
+    }
+    .approach-section {
+      .section-row {
+        flex-direction: column;
+
+        h2 {
+          padding-bottom: 24px;
+        }
+      }
+
+      .section-content {
+        padding: 80px 16px;
+      }
+    }
+
+    .cities-content {
+      .ug-container {
+        .consult-images {
+          display: block;
+          height: auto;
+          
+          .img-small {
+            display: block;
+            width: 100%;
+            height: 231px;
+            object-fit: cover;
+            margin-bottom: 24px;
+          }
+
+          .img-long {
+            display: none;
+          }
+
+          .img-long-right {
+            display: none;
+          }
+        }
+
+        .consult-text {
+          .number-list {
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: flex-start;
+  
+            span:first-child {
+              margin-bottom: 0px;
+            }
+  
+            span:last-child {
+              width: 100%;
+              margin: 0;
+            }
+          }
+        }
+        
+      }
+    }
+  }
 }

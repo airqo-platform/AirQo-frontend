@@ -7,9 +7,9 @@ import Loadspinner from './src/components/LoadSpinner';
 const HomePage = React.lazy(() => import('src/pages/HomePage'));
 const Press = React.lazy(() => import('src/pages/Press/Press'));
 const Terms = React.lazy(() => import('src/pages/Legal/Terms'));
-const ResearchPage = React.lazy(() => import('src/pages/ResearchPage'));
-const CommunityPage = React.lazy(() => import('src/pages/CommunityPage'));
-const AfricanCitiesPage = React.lazy(() => import('src/pages/AfricanCitiesPage'));
+const ResearchPage = React.lazy(() => import('src/pages/OurSolutions/ResearchPage'));
+const CommunityPage = React.lazy(() => import('src/pages/OurSolutions/CommunityPage'));
+const AfricanCitiesPage = React.lazy(() => import('src/pages/OurSolutions/AfricanCitiesPage'));
 const AboutUsPage = React.lazy(() => import('src/pages/AboutUsPage'));
 const ContactUsPage = React.lazy(() => import('src/pages/ContactUs/ContactUs'));
 const ContactForm = React.lazy(() => import('src/pages/ContactUs/ContactForm'));
@@ -22,7 +22,7 @@ const CareerPage = React.lazy(() => import('src/pages/CareerPage'));
 const CareerDetailPage = React.lazy(() => import('src/pages/CareerDetailPage'));
 
 import { loadAirQloudSummaryData } from 'reduxStore/AirQlouds/operations';
-import { ContentUganda, ContentKenya } from './src/pages/AfricanCitiesPage';
+import { ContentUganda, ContentKenya } from './src/pages/OurSolutions/AfricanCitiesPage';
 import store from './store';
 import {
     ExploreGetStarted, ExploreUserCategory, ExploreUserProfessionType, ExploreOrganisationType, ExploreUserRegistry, ExploreRegistryConfirmation, ExploreApp, ExploreBusinessRegistry, ExploreOrganisationRegistry,
