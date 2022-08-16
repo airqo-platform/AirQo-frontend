@@ -8,4 +8,6 @@ a) Install all the needed dependencies
 
     yarn add
 
-b) After the installation is complete, run `yarn dev` to start the development server on `http://localhost:3000`
+b)  Create the `.env` file and fill it with the needed information. You can find the needed information in the `.env.example` file.
+
+c) After the installation is complete, run `yarn dev` to start the development server on `http://localhost:3000`
