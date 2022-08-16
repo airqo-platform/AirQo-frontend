@@ -288,7 +288,7 @@ jobs:
         run: |
           cd platform/
           echo "========== Creating app.yaml file =========="  
-          echo "NEXT_PUBLIC_ORIGINAL_PLATFORM=${{ secrets.NEW_PLATFORM_STAGE_ORIGINAL_PLATFORM }}" > .env
+          echo "NEXT_PUBLIC_ORIGINAL_PLATFORM=${{ secrets.NEW_PLATFORM_STAGE_ORIGINAL_PLATFORM }}" >> .env
 
       - name: Build and Push Image
         run: |

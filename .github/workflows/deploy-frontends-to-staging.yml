@@ -311,14 +311,11 @@ jobs:
           method: kubeconfig
           kubeconfig: ${{ secrets.K8S_CONFIG_STAGE }}
 
-      - name: NPM Setup and Build
-        uses: actions/setup-node@v2
-        with:
-          node-version: '12'
-      - run: |
+      - name: Create .env file
+        run: |
           cd platform/
-          npm install    
-          CI=false npm run build
+          echo "========== Creating app.yaml file =========="  
+          echo "NEXT_PUBLIC_ORIGINAL_PLATFORM=${{ secrets.NEW_PLATFORM_STAGE_ORIGINAL_PLATFORM }}" >> .env
 
       - name: Build and Push Docker Image
         run: |
