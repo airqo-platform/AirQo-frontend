@@ -1,5 +1,5 @@
 ###########################################################
-# Start deployment of platform frontend - staging
+# Start deployment of next platform - staging
 ###########################################################
 apiVersion: apps/v1
 kind: Deployment
