@@ -6,12 +6,18 @@ import DevexIcon from 'icons/press/devex.svg';
 import PMLDailyIcon from 'icons/press/pml-daily.svg';
 import Article from './Article';
 import Page from '../Page';
+import SEO from 'utils/seo';
 
 const Press = () => {
   useInitScrollTop();
   return (
     <Page>
       <div className="press-page">
+        <SEO
+          title="Press"
+          siteTitle="AirQo"
+          description="Find stories about AirQo that we think you'll love."
+        />
         <div className="p-header">
           <div className="content">
             <div className="press-top">
