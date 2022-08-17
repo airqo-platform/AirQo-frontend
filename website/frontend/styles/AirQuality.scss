@@ -5,7 +5,7 @@
     display: grid;
     grid-template-columns: $gridColumn;
     background-color: $aq-blue-1;
-    padding: 0 0 60px 0;
+    padding: 0 0 80px 0;
     .backdrop{
         grid-column: 2 / 3;
         .header{
@@ -33,7 +33,7 @@
                 align-items: center;
                 justify-content: space-around;
                 padding:4px;
-                background: rgba(233, 237, 245, 0.64);
+                background: transparent;
                 border-radius: 8px;
                 width:360px;
                 height:56px;
@@ -133,6 +133,7 @@
                 .content-container{
                     .card{
                         width: 85vw;
+                        height: fit-content;
                         padding: 12px 0 0 16px;
                         border: 2px solid #E8EFFC;
                         h4{
@@ -159,6 +160,34 @@
                     padding: 24px 5px 20px 5px;
                     img{
                         width: 85vw;
+                        height: 99%;
+                    }
+                }
+            }
+        }
+    }
+}
+@media screen and(min-width:$mainBreakPoint)and(max-width: $tabBreakPoint){
+    .airquality-section{
+        .backdrop{
+            .content{
+                flex-flow:column;
+                align-items: center;
+                .content-container{
+                    .card{
+                        width: 90vw;
+                        height: fit-content;
+                        ol{
+                            li{
+                                margin-left: -6%;
+                            }
+                        }
+                    }
+                }
+                .image{
+                    padding: 24px 5px 20px 5px;
+                    img{
+                        width: 90vw;
                         height: 99%;
                     }
                 }
