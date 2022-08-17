@@ -19,6 +19,7 @@ import KCCACollabImg2 from "assets/img/community/AirQo_Web_IMG08.jpg";
 import KCCACollabImg3 from "assets/img/community/AirQo_Web_IMG07.jpg";
 import UnepKenyaImg1 from "assets/img/AfricanCities/UnepKenya.jpg";
 import UnepKenyaImg2 from 'assets/img/AfricanCities/UnepKenya-2.jpg';
+import SEO from 'utils/seo';
 
 const CityHeroSection = () => {
     return (

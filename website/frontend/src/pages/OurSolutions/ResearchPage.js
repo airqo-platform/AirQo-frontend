@@ -10,6 +10,7 @@ import ResearchImg1 from 'assets/img/community/AirQo_Web_IMG06.jpg';
 import BackgroundShape from 'icons/research/background-shape.svg';
 import { useInitScrollTop } from "utils/customHooks";
 import { Link } from "react-router-dom";
+import SEO from 'utils/seo';
 
 const ResearchHeroSection = () => {
     return (
