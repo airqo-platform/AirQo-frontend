@@ -36,7 +36,7 @@ const TopBar = () => {
                         <NavTab
                           text="Solutions"
                         />
-                        <div className="dropdown" id="african-cities-dropdown">
+                        <div className="dropdown" id="solutions-dropdown">
                             <h3 className="title">Solutions</h3>
                             <div className="dropdown-list">
                                 <div className="dropdown-list-item">

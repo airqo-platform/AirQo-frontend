@@ -247,7 +247,16 @@ const Download = (props) => {
           link.remove();
         }
       })
-      .catch((err) => console.log(err && err.response && err.response.data));
+      .catch((err) => {
+        console.log(err && err.response && err.response.data);
+        dispatch(
+          updateMainAlert({
+            show: true,
+            message: "Unable to fetch data. Please try again",
+            severity: "error",
+          })
+        );
+      });
     setLoading(false);
     setStartDate(null);
     setEndDate(null);
@@ -319,7 +328,7 @@ const Download = (props) => {
         dispatch(
           updateMainAlert({
             show: true,
-            message: err,
+            message: "Unable to fetch data. Please try again",
             severity: "error",
           })
         );
