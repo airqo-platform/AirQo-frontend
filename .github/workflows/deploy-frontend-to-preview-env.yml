@@ -304,7 +304,7 @@ jobs:
             --timeout=60 \
             --concurrency=10 \
             --image=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/next-platform-pr-previews:${{ github.sha }} \
-            --port=80 \
+            --port=3000 \
             --cpu=1000m \
             --memory=256Mi \
             --update-secrets=/etc/env/.env=sta-env-next-platform:latest \
