@@ -1,11 +1,33 @@
-# Platform setup
+# Platform beta
+---
+- [Prerequisites](#prerequisites)
+- [Setup](#setup)
+- [Running the application](#running-the-application)
 
-Yarn is our package manager of choice. If you don't have it installed, follow this [link](https://classic.yarnpkg.com/lang/en/docs/install/#windows-stable).
+## Prerequisites
+-   [Git](https://gist.github.com/derhuerst/1b15ff4652a867391f03)
+-   [NodeJs](https://nodejs.org/en/) v16 or later
+-   [Yarn](https://classic.yarnpkg.com/lang/en/)
 
-To run the app, ensure you are in the `platform` directory in the `AirQo-frontend` root directory.
+## Setup
+a) Clone the repository
 
-a) Install all the needed dependencies
+    git clone https://github.com/airqo-platform/AirQo-frontend.git
+
+b) Change to the platform folder in the cloned repository directory
+
+    cd AirQo-frontend/platform
+
+c)  Create the `.env` file and fill it with the needed information. You can find the needed information in the `.env.example` file.
+
+## Running the application
+
+a) Install dependencies
 
     yarn add
 
-b) After the installation is complete, run `yarn dev` to start the development server on `http://localhost:3000`
+b) Start the development server
+
+    yarn dev
+ 
+c) Access the application at [http://localhost:3000](http://localhost:3000)
