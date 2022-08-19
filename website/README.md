@@ -2,8 +2,9 @@
 ---
 
 - [Prerequisites](#prerequisites)
-  - [Docker](#docker)
   - [OSX, Linux, Windows](#osx-linux-windows)
+  - [Docker](#docker)
+  - [Git](#git)
 - [Setting up the development environment](#setting-up-the-development-environment)
   - [Clone the repository](#clone-the-repository)
   - [OSX](#osx)
@@ -12,26 +13,28 @@
 - [Running the stack](#running-the-stack)
   - [Create the .envrc and .env files](#create-the-envrc-and-env-files)
   - [Docker](#docker-1)
-  - [OSX, Linux, and Windows](#osx-linux-and-windows)
+  - [Running the website application](#run-the-website-app)
+- [Database Management](#database-management)
 - [Development Invoke Commands](#development-invoke-commands)
   - [Running servers](#running-servers)
   - [Lint checks and auto fixing](#lint-checks-and-auto-fixing)
   - [Static builds](#static-builds)
 
 ## Prerequisites
+#### OSX, Linux, Windows
+-   `Python 3.6 or higher (Python 3.7 preferred)` [Python Download](https://www.python.org/)
+-   `NodeJs v12` [Node Download](https://nodejs.org/en/download/)
+-   `Npm` [NpmJs](https://www.npmjs.com/get-npm)
+
 #### Docker
--   `Git` [Installing Git](https://gist.github.com/derhuerst/1b15ff4652a867391f03)
 -   `Docker` [Install Docker Engine](https://docs.docker.com/engine/install/)
 
-#### OSX, Linux, Windows
+
+#### Git
 -   `Git` [Installing Git](https://gist.github.com/derhuerst/1b15ff4652a867391f03)
--   `Python 3.6 or higher (Python 3.7 preferred)` [Python Software Foundation](https://www.python.org/)
--   `NodeJs` [Download nodejs](https://nodejs.org/en/download/)
--   `Npm` [NpmJs](https://www.npmjs.com/get-npm)
 
 ## Setting up the development environment
 ### Clone the repository
-Clone the AirQo repo
 
     git clone https://github.com/airqo-platform/AirQo-frontend.git
 
@@ -98,31 +101,25 @@ Stop the postgresql service using
     pg_ctl -D /usr/local/var/postgres stop  # if not installed using homebrew
     
 ### Linux
-**_NOTE_**:
 
-Currently the environment does not run well on Windows Bash / WSL ( Windows Subsystem for Linux ).
-There are too many issues with line terminators and other environment inconsistencies.
+#### Pip
+Install pip on your local machine in order to setup a virtual environment. [Setup](https://pip.pypa.io/en/stable/installation/) 
+Then install pipenv to create the virtual environment shell.
 
-The best option is to run "bare metal" Linux or dual boot. You can run Linux in a VM, but performance will suffer, buyer beware.
+    pip install --user pipenv
 
-#### Direnv
+To create a virtual environment:
+    
+    pipenv install shell
 
-Install direnv on your local machine, and set it up so it works
-in your shell. These are the instructions for the (default) bash shell. If
-you're using a different shell, you probably know where to configure it for
-yours or the check the [direnv setup page](https://direnv.net/docs/hook.html) for your shell:
+To activate virtual environment:
 
-    sudo apt install direnv   # for Linux
+    pipenv shell
 
-Then, add the following line to the end of your shell configuration file as follows:
+To deactivate virtual environment:
 
-For BASH, add below to `.bashrc`
+    $ exit
 
-    eval "$(direnv hook bash)"
-
-For ZSH, add below to `.zshrc`
-
-    eval "$(direnv hook zsh)"
     
 #### PostgreSQL
 
@@ -136,10 +133,6 @@ To use the apt repository, follow these steps:
 
     # Update the package lists:
     sudo apt-get update
-
-    # Install the latest version of PostgreSQL.
-    # If you want a specific version, use 'postgresql-12' or similar instead of 'postgresql':
-    sudo apt-get -y install postgresql
 
 #### Set up PostgreSQL
 
@@ -194,8 +187,8 @@ Activate the environment
 for more details.
 
 ## Running the stack
-#### Create the `.envrc` and `.env` files
-**Note:** You will only need a .env file if you intend on running this website application with docker
+### Create the `.envrc` and `.env` files
+**Note:** You will only need a .env file if you intend on running this website application on Linux or with docker
 
 In the `.envrc` file add the following code
 
@@ -228,7 +221,82 @@ Populate the `.env` file with the following keys and their respective values.
 
 **Note**: Remove `DATABASE_URI` variable  if you are using docker
 
-#### Docker
+### OSX, Linux, and Windows
+
+**For OSX**, you need to allow `direnv` to load the new changes, so run the command below
+
+    direnv allow .
+
+**For Linux**, activate your virtual environment
+
+    pipenv shell
+
+#### Install `Python` and `node` requirements
+
+Python requirements
+
+    pip install -r requirements.txt
+
+Node requirements
+
+    npm install
+
+### Run the website app
+
+For Linux activate a virtual environment. Once properly setup, run the following in two separate terminals: 
+
+    # Terminal 1 (shell)
+    python manage.py collectstatic
+    python manage.py makemigrations
+    inv run-web
+
+    # Terminal 2
+    inv run-build
+    inv webpack-server
+
+At this point you should be able to navigate to the local instance at http://localhost:8000/
+
+## Database Management
+Create a superuser to access the content management portal. In your virtual environment:
+
+    python manage.py createsuperuser
+
+Follow the prompts and take note of your inputs.
+
+To make changes [run the website app](#run-the-website-app) and route to http://localhost:8000/admin/. <br>
+Sign in and choose the table you'd like to make edits to. Your changes can be viewed on the frontend http://localhost:8000/ 
+
+To view the API route to http://localhost:8000/api
+
+## Development Invoke Commands
+
+### Running servers
+
+Running django server
+
+    inv run-web
+
+Running webpack dev-server
+
+    inv webpack-server
+
+### Lint checks and auto fixing
+
+Running `JS` lint checks
+
+    inv lint-js
+
+Auto fixing `JS` lint issues
+
+    inv prettier-js
+
+#### Static builds
+
+Running `Webpack` build (production)
+
+    inv run-build
+
+### Docker
 
 Build the application docker image with the command below. Make sure that your `google_application_credentials.json` file is at the root of the website folder just as your .env file
 
@@ -248,59 +316,3 @@ Run the website application container with the command bellow
         <<enter an image tag used in the step above>>
 
 After a few minutes, you should be able to access the website via port 8080 http://localhost:8080/
-
-#### OSX, Linux, and Windows
-
-**For OSX and Linux**, you need to allow `direnv` to load the new changes, so run the command below
-
-    direnv allow .
-
-##### Install `Python` and `node` requirements
-
-Python requirements
-
-    pip install -r requirements.txt
-
-Node requirements
-
-    npm install
-
-##### Run the website app
-
-Once properly setup, run the following in two separate terminals:
-
-    # Terminal 1
-    inv run-web
-
-    # Terminal 2
-    inv webpack-server
-
-At this point you should be able to navigate to the local instance at http://localhost:8000/
-
-## Development Invoke Commands
-
-#### Running servers
-
-Running django server
-
-    inv run-web
-
-Running webpack dev-server
-
-    inv webpack-server
-
-#### Lint checks and auto fixing
-
-Running `JS` lint checks
-
-    inv lint-js
-
-Auto fixing `JS` lint issues
-
-    inv prettier-js
-
-#### Static builds
-
-Running `Webpack` build (production)
-
-    inv run-build

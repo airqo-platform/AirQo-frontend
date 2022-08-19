@@ -19,6 +19,7 @@ import KCCACollabImg2 from "assets/img/community/AirQo_Web_IMG08.jpg";
 import KCCACollabImg3 from "assets/img/community/AirQo_Web_IMG07.jpg";
 import UnepKenyaImg1 from "assets/img/AfricanCities/UnepKenya.jpg";
 import UnepKenyaImg2 from 'assets/img/AfricanCities/UnepKenya-2.jpg';
+import SEO from 'utils/seo';
 
 const CityHeroSection = () => {
     return (
@@ -221,6 +222,11 @@ const AfricanCitiesPage = () => {
     return (
         <Page>
             <div className="AfricanCitiesPage">
+                <SEO
+                    title="Our Solutions"
+                    siteTitle="African Cities"
+                    description="Some cities already have programs for air quality monitoring, so we collaborate with them on how to increase their network coverage."
+                />
                 <CityHeroSection />
                 <CityBanner />
                 <div className="cities-divider" />

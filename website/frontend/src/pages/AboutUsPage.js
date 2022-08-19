@@ -37,6 +37,7 @@ import MMU from 'assets/img/partners/MMU.jpg'
 import TeamImg from 'assets/img/team.png';
 import Vector1 from 'assets/img/about_us_vector_3.png';
 import Vector2 from 'assets/img/about-us-vector-2.png';
+import SEO from 'utils/seo';
 
 const AboutUsPage = () => {
     useInitScrollTop();
@@ -56,6 +57,11 @@ const AboutUsPage = () => {
     return (
         <Page>
             <div className="AboutUsPage">
+                <SEO
+                    title="About Us"
+                    siteTitle="AirQo"
+                    description="At AirQo we empower communities across Africa with accurate, hyperlocal, and timely air quality data to drive air pollution mitigation actions."
+                />
                 <div className="AboutUsPage__hero">
                     <div className="content">
                         <h2>About</h2>
