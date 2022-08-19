@@ -307,8 +307,6 @@ jobs:
             --port=3000 \
             --cpu=1000m \
             --memory=256Mi \
-            --update-secrets=/etc/env/.env=sta-env-next-platform:latest \
-            --command="/bin/sh","-c","cat /etc/env/.env >> /etc/environment" \
             --allow-unauthenticated
 
       - name: Get preview service url
