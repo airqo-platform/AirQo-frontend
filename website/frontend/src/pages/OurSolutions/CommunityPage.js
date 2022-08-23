@@ -15,6 +15,7 @@ import AirQoQuotes from 'assets/img/community/AirQo_quotes.png';
 import Page from '../Page';
 import { useDispatch } from 'react-redux';
 import { showGetInvolvedModal } from 'reduxStore/GetInvolved/operations';
+import SEO from 'utils/seo';
 
 const CommunityPage = () => {
     useInitScrollTop();
@@ -23,6 +24,11 @@ const CommunityPage = () => {
     return (
         <Page>
             <div className="CommunityPage">
+                <SEO
+                    title="Our Solutions"
+                    siteTitle="African Cities"
+                    description="Some cities already have programs for air quality monitoring, so we collaborate with them on how to increase their network coverage."
+                />
                 <div className='page-container'>
                     <div className="hero">
                         <div className="header-1">

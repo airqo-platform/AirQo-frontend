@@ -10,6 +10,7 @@ import ResearchImg1 from 'assets/img/community/AirQo_Web_IMG06.jpg';
 import BackgroundShape from 'icons/research/background-shape.svg';
 import { useInitScrollTop } from "utils/customHooks";
 import { Link } from "react-router-dom";
+import SEO from 'utils/seo';
 
 const ResearchHeroSection = () => {
     return (
@@ -82,6 +83,11 @@ const ResearchPage = () => {
     return (
         <Page>
             <div className="ResearchPage">
+                <SEO
+                    title="Our Solutions"
+                    siteTitle="Research"
+                    description="With the exciting air quality data, we actively collaborate with partners across Africa to jointly tackle air quality research challenges."
+                />
                 <ResearchHeroSection />
                 <ResearchContent />
                 <PublicationsSection />

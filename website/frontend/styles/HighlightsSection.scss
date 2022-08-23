@@ -178,3 +178,28 @@
         }
     }
 }
+
+@media screen and(min-width:$mainBreakPoint)and(max-width: $tabBreakPoint){
+    .highlights-section{
+        padding: 100px 0 0 20px;
+        height: auto;
+        .content{
+            .feature{
+                @include flex-column();
+                padding: 0;
+                padding-right: 30px;
+                img{
+                    max-height: 410px;
+                }
+                .feature-content{
+                    padding: 0;
+                    padding-top: 20px;
+                    padding-bottom: 30px;
+                }
+            }
+        }
+        .pagination{
+            display: none;
+        }
+    }
+}

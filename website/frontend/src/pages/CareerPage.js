@@ -8,6 +8,7 @@ import { useCareerListingData, useCareerDepartmentsData } from 'reduxStore/Caree
 import { isEmpty } from 'underscore';
 import { groupBy } from 'underscore';
 import SectionLoader from '../components/LoadSpinner/SectionLoader';
+import SEO from 'utils/seo';
 
 const JobListing = ({ title, uniqueTitle, type, key }) => {
     const navigate = useNavigate();
@@ -87,6 +88,11 @@ const CareerPage = () => {
     return (
         <Page>
             <div className="CareersPage">
+                <SEO
+                    title="Careers"
+                    siteTitle="AirQo"
+                    description="Be part of a team pioneering air quality monitoring in Africa. Together, we work passionately towards our vision for Clean Air for all African Cities."
+                />
                 <div className="careers-banner">
                     <div className="text-container">
                         <div className="sub-text">Careers {'>'} Welcome to AirQo</div>
