@@ -21,8 +21,6 @@
 
 @import "MapSection";
 
-@import "AirQommunitiesSection";
-
 @import "GetApp";
 
 @import "Hero";
@@ -55,9 +53,17 @@
 
 @import "Highlight";
 
+@import "ExploreData";
+
 @import "GetInvolvedModal";
 
 @import "HighlightsSection";
+
+@import "Loadspinner";
+
+@import "CareersPage";
+
+@import "CareersDetailPage";
 
 *, *::before, *::after {
   box-sizing: inherit;
@@ -69,8 +75,9 @@ html {
 
 body {
   font-family: 'Inter', sans-serif;
-  overflow-y: scroll;
-  overflow-x: hidden;
+  height: auto;
+  overflow-x:hidden ;
+
 }
 
 a, a:hover{
@@ -81,12 +88,19 @@ a, a:hover{
 
 .Page {
   width: 100%;
-  margin: auto;
+  margin: 0 auto;
+  
+  .page-wrapper {
+    overflow-x: hidden !important;
+  }
 }
 
 .Page-mini{
-  overflow-y: hidden;
   width:100%;
   margin:auto;
   scrollbar-width: none;
+  .page-mini-wrapper{
+    overflow-x: hidden;
+  }
 }
+

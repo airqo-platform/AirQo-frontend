@@ -5,7 +5,7 @@
     display: grid;
     grid-template-columns: $gridColumn;
     background-color: $aq-blue-1;
-    padding: 0 0 60px 0;
+    padding: 0 0 80px 0;
     .backdrop{
         grid-column: 2 / 3;
         .header{
@@ -33,7 +33,7 @@
                 align-items: center;
                 justify-content: space-around;
                 padding:4px;
-                background: rgba(233, 237, 245, 0.64);
+                background: transparent;
                 border-radius: 8px;
                 width:360px;
                 height:56px;
@@ -70,7 +70,7 @@
                     padding:15px 20px 8px 30px;
                     width:400px;
                     height:96px;
-                    cursor: pointer;
+                    // cursor: pointer;
                     h4{
                         font-size: 14px;
                         line-height: 22px;
@@ -85,12 +85,13 @@
                     }
                 }
                 .selected{
-                    border: 2px solid #145DFF;
-                    box-shadow: 0px 0px 0px 4px #ECF2FF;
-                    background-color: rgba(255, 255, 255, 0.16);
+                    // border: 2px solid $aq-blue-9;
+                    border: 2px solid $aq-white-6;
+                    // box-shadow: 0px 0px 0px 4px #ECF2FF;
+                    // background-color: rgba(255, 255, 255, 0.16);
                 }
                 .unselected{
-                    border: 2px solid #E8EFFC;
+                    border: 2px solid $aq-white-6;
                 }
                 #first{
                     margin-top: 24px;
@@ -121,7 +122,7 @@
                     font-size: 16px;
                 }
                 .tab.tab-selected{
-                    padding: 14px 24px;
+                    padding: 14px 4vw;
                 }
             }
             .content{
@@ -131,7 +132,8 @@
                 margin:53px 10px 0 10px;
                 .content-container{
                     .card{
-                        width: 320px;
+                        width: 85vw;
+                        height: fit-content;
                         padding: 12px 0 0 16px;
                         border: 2px solid #E8EFFC;
                         h4{
@@ -155,9 +157,37 @@
                     }
                 }
                 .image{
-                    padding: 24px 5px 0 5px;
+                    padding: 24px 5px 20px 5px;
                     img{
-                        width: 99%;
+                        width: 85vw;
+                        height: 99%;
+                    }
+                }
+            }
+        }
+    }
+}
+@media screen and(min-width:$mainBreakPoint)and(max-width: $tabBreakPoint){
+    .airquality-section{
+        .backdrop{
+            .content{
+                flex-flow:column;
+                align-items: center;
+                .content-container{
+                    .card{
+                        width: 90vw;
+                        height: fit-content;
+                        ol{
+                            li{
+                                margin-left: -6%;
+                            }
+                        }
+                    }
+                }
+                .image{
+                    padding: 24px 5px 20px 5px;
+                    img{
+                        width: 90vw;
                         height: 99%;
                     }
                 }
