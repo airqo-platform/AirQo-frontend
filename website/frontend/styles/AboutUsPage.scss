@@ -244,11 +244,39 @@
             width: 336px;
             margin-bottom: 66px;
 
-            img {
+            .img-preview-container {
+                position: relative;
+                overflow: hidden;
                 width: 100%;
                 height: 390px;
-                object-fit: cover;
+                background-color: $aq-white-4;
                 margin-bottom: 32px;
+            }
+
+            img {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+            }
+
+            .profile-image {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+            }
+
+            .profile-image-thumb {
+                filter: blur(20px);
+                transform: scale(1.1);
+                transition: visibility 0ms ease 400ms;
+            }
+
+            .profile-image-full {
+                transition: opacity 400ms ease 0ms;
             }
 
             .info {
