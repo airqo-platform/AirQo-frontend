@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import TwitterIcon from '@mui/icons-material/Twitter';
+import { useIntersectionObserver } from 'utils/customHooks';
 
 const Image = props => {
   const [isLoaded, setIsLoaded] = useState(false);
