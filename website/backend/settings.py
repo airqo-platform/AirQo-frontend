@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/3.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
+from email.policy import default
 import environ
 import os
 from pathlib import Path
@@ -56,7 +57,7 @@ CORS_ORIGIN_REGEX_WHITELIST = [
 
 CORS_ORIGIN_REGEX_WHITELIST = (CORS_ORIGIN_REGEX_WHITELIST + EXTRA_CORS_ORIGIN_REGEX_WHITELIST)
 
-CORS_ORIGIN_ALLOW_ALL = False
+CORS_ORIGIN_ALLOW_ALL = env.bool("CORS_ORIGIN_ALLOW_ALL", default=False)
 
 CSRF_TRUSTED_ORIGINS = env.list(
     "CSRF_TRUSTED_ORIGINS",
