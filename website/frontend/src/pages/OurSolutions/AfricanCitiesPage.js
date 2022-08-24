@@ -86,13 +86,14 @@ const CityTabs = () => {
                     link="/solutions/african-cities/uganda"
                     onClick={handleClick("uganda")}
                 />
-                <CityTab
+                {/* <CityTab
                     className={`available ${markActive("kenya")}`}
                     flag={<Kenya />}
                     name="Nairobi"
                     link="/solutions/african-cities/kenya"
                     onClick={handleClick("kenya")}
-                />
+                /> */}
+                <span className="not-available"><Kenya /> <span className="text">Nairobi</span></span>
                 <span className="not-available"><Nigeria /> <span className="text">Lagos</span></span>
                 <span className="not-available"><Ghana /> <span className="text">Accra</span></span>
                 <span className="not-available"><Burundi /> <span className="text">Bujumbura</span></span>
