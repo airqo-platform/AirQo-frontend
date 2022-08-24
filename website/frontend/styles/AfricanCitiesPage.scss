@@ -215,9 +215,9 @@
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-        width: 100%;
         max-width: 520px;
         min-height: 346px;
+        padding-right: 30px;
 
         p:first-child {
           font-weight: 500;
@@ -399,7 +399,7 @@
     min-height: 482px;
     background: #EBF1FF;
     border-radius: 8px;
-    padding: 10px;
+    padding: 16px;
     margin: 0 16px;
     margin-top: 48px;
 
