@@ -59,7 +59,7 @@
     min-height: 482px;
     background: $aq-green-0;
     border-radius: 8px;
-    padding: 10px;
+    padding: 16px;
     margin-bottom: 42px;
 
     >* {
@@ -168,9 +168,9 @@
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-        width: 100%;
         max-width: 520px;
         min-height: 346px;
+        padding-right: 30px;
 
         p:first-child {
           font-weight: 500;
