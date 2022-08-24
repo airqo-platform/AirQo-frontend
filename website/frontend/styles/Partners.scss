@@ -39,6 +39,12 @@
                 height: 80px;
                 border-radius: 0;
                 mix-blend-mode: multiply;
+                img{
+                    height: 60px;
+                    width: 120px;
+                    object-fit: contain;
+                    max-width: 120px;
+                }
                 }
             }
         }
