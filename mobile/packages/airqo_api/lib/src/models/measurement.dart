@@ -37,7 +37,7 @@ List<Measurement> parseMeasurements(dynamic jsonBody) {
       final measurement = Measurement.fromJson(jsonElement);
       measurement.dateTime = measurement.dateTime.add(Duration(hours: offSet));
       measurements.add(measurement);
-    } catch (exception) {
+    } catch (exception, stackTrace) {
       // TODO create utils package
       // await logException(
       //   exception,

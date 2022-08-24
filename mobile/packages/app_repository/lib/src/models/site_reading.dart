@@ -65,7 +65,7 @@ List<SiteReading> parseSitesReadings(List<Measurement> measurements) {
   for (final measurement in measurements) {
     try {
       airQuality.add(SiteReading.fromMeasurement(measurement));
-    } catch (exception) {
+    } catch (exception, stackTrace) {
       // TODO create utils package
       // await logException(
       //   exception,

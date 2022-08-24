@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../constants/config.dart';
+import 'enum_constants.dart';
 
 part 'air_quality_reading.g.dart';
 
