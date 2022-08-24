@@ -8,7 +8,7 @@ const Image = props => {
   return (
     <React.Fragment>
       <img
-        className="profile-image-thumb"
+        className="profile-image profile-image-thumb"
         alt={props.alt}
         src={props.thumb}
         style={{ visibility: isLoaded ? "hidden" : "visible" }}
@@ -17,7 +17,7 @@ const Image = props => {
         onLoad={() => {
           setIsLoaded(true);
         }}
-        className="profile-image-loaded"
+        className="profile-image profile-image-loaded"
         style={{ opacity: isLoaded ? 1 : 0 }}
         alt={props.alt}
         src={props.src}
