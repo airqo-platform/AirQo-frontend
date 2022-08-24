@@ -6,7 +6,7 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-   width: 100%;
+    width: 100%;
     max-width: 720px;
     min-height: 604px;
     background: #FFFFFF;
@@ -168,11 +168,10 @@
   width: 100%;
   padding: 80px 16px 16px 16px;
 
-
-
   .body-section {
     display: flex;
     flex-wrap: wrap;
+    padding:0 16px;
     .logo {
         width: 44%;
 
@@ -440,6 +439,7 @@
     .copyright-section {
       display: flex;
       height: 80px;
+      padding: 0 16px;
     }
 
     .copyright-container {
