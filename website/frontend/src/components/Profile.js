@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import TwitterIcon from '@mui/icons-material/Twitter';
 import { useIntersectionObserver } from 'utils/customHooks';
+import LinkedIn from '../icons/footer/LinkedIn.svg';
 
 const Image = props => {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -26,7 +27,7 @@ const Image = props => {
   );
 };
 
-const Profile = ({ImgPath, name, title}) => {
+const Profile = ({ImgPath, name, title, twitter, linkedin}) => {
     const ref = useRef();
     const [isVisible, setIsVisible] = useState(false);
     
@@ -51,7 +52,11 @@ const Profile = ({ImgPath, name, title}) => {
                     <h3>{name}</h3>
                     <h6>{title}</h6>
                 </div>
-                <TwitterIcon className="profile_twitter_handle"/>
+                <div className="social-container">
+                  {linkedin && <a href={linkedin} target="_blank"><LinkedIn /></a>}
+                  {twitter && <a href={twitter} target="_blank"><TwitterIcon className="profile_twitter_handle"/></a>} 
+                </div>
+                
             </div>
         </div>
     );
