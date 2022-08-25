@@ -101,7 +101,7 @@ const AboutUsPage = () => {
                         data to drive air pollution mitigation actions.
                     </h2>
 
-                    <img src={TeamImg} className="team_img" alt="Team Photo" />
+                    <img src={TeamImg} className="team_img" alt="Team Photo" loading="lazy" />
 
                     <div className="AboutUsPage__banner" id="vision">
                         <div className="section-title">
