@@ -212,7 +212,7 @@ const PublicationsSection = () => {
             <div className="author">Published by</div>
             <div className="team">Kampala Capital City Authority(KCCA)</div>
             <div>
-                <div className="link"><span>Read action plan <ArrowRight /></span></div>
+                <div className="link"><span>Coming Soon <ArrowRight /></span></div>
             </div>
         </div>
     )
