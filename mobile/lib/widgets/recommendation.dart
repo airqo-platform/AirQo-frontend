@@ -6,8 +6,7 @@ import '../themes/app_theme.dart';
 import '../themes/colors.dart';
 
 class RecommendationContainer extends StatelessWidget {
-  const RecommendationContainer(this.recommendation, {Key? key})
-      : super(key: key);
+  const RecommendationContainer(this.recommendation, {super.key});
   final Recommendation recommendation;
 
   @override

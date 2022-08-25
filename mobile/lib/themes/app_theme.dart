@@ -1,5 +1,4 @@
 import 'package:app/models/enum_constants.dart';
-import 'package:app/utils/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -420,21 +419,51 @@ ThemeData customTheme() {
         height: 18.0 / 14.0,
       ),
     ).apply(
-      fontFamily: 'Inter',
+      fontFamily: GoogleFonts.inter().fontFamily,
       bodyColor: CustomColors.appColorBlack,
       displayColor: CustomColors.appColorBlack,
     ),
     primaryTextTheme: ThemeData.light().textTheme.apply(
-          fontFamily: 'Inter',
-          bodyColor: CustomColors.appColor,
-          displayColor: CustomColors.appColor,
+          fontFamily: GoogleFonts.inter().fontFamily,
+          bodyColor: CustomColors.appColorBlack,
+          displayColor: CustomColors.appColorBlack,
         ),
     iconTheme: IconThemeData(
-      color: CustomColors.appColor,
+      color: CustomColors.appColorBlack,
     ),
     appBarTheme: const AppBarTheme(
       elevation: 0.0,
     ),
+    extensions: <ThemeExtension<dynamic>>[
+      AppColors(
+        appBodyColor: const Color(0xffF2F1F6),
+        appColorBlack: const Color(0xff121723),
+        appColorBlue: const Color(0xff145DFF),
+        appColorDisabled: const Color(0xff145DFF).withOpacity(0.5),
+        appLoadingColor: const Color(0xffEBEAEF),
+        appPicColor: const Color(0xffFF79C1),
+        greyColor: const Color(0xffD1D3D9),
+        snackBarBgColor: const Color(0xff121723).withOpacity(0.8),
+        toolTipGreyColor: Colors.white.withOpacity(0.32),
+        inactiveColor: const Color(0xff121723).withOpacity(0.4),
+        pollutantToggleBgColor: const Color(0xffF5F8FF),
+        darkGreyColor: const Color(0xffADAFB6),
+      ),
+      const AqiColors(
+        aqiGreen: Color(0xff3AFF38),
+        aqiGreenTextColor: Color(0xff03B600),
+        aqiYellow: Color(0xffFFFF35),
+        aqiYellowTextColor: Color(0xffA8A800),
+        aqiOrange: Color(0xffFE9E35),
+        aqiOrangeTextColor: Color(0xffB86000),
+        aqiRed: Color(0xffFF4034),
+        aqiRedTextColor: Color(0xffB80B00),
+        aqiPurple: Color(0xFFDD38FF),
+        aqiPurpleTextColor: Color(0xff8E00AC),
+        aqiMaroon: Color(0xffA51F3F),
+        aqiMaroonTextColor: Color(0xffDBA5B2),
+      ),
+    ],
   );
 }
 
