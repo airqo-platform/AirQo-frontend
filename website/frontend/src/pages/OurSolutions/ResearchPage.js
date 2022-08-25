@@ -33,7 +33,7 @@ const PublicationsSection = () => {
             <div className="author">Supported by</div>
             <div className="team">AirQo and Makerere University</div>
             <div>
-                <div className="link"><span>Read full whitepaper <ArrowRight /></span></div>
+                <div className="link"><span>Coming Soon <ArrowRight /></span></div>
             </div>
         </div>
     )
