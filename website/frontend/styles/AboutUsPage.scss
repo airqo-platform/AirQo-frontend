@@ -356,10 +356,6 @@
             cursor: pointer;
         }
 
-        table, td {
-            border: 1px solid $aq-blue-2;
-        }
-
         table {
             table-layout: fixed;
             width: 100%;
@@ -367,8 +363,13 @@
         }
 
         td {
-            width: 264px;
+            max-width: 264px;
+            width: 100%;
             height: 144px;
+        }
+
+        td:nth-child(1),td:nth-child(2),td:nth-child(3),td:nth-child(4) {
+            border: 1px solid $aq-blue-2;
         }
 
         img {
@@ -580,9 +581,18 @@
                 flex-wrap: wrap;
                 width: 100%;
             }
+
+            table {
+                border-top: 1px solid $aq-blue-2;
+            }
     
             td {
-                width: 100%;
+                max-width: none
+            }
+
+            td:nth-child(1),td:nth-child(2),td:nth-child(3),td:nth-child(4) {
+                border-top-width: 0;
+                border-bottom: 1px solid $aq-blue-2;
             }
     
         }
