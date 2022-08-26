@@ -85,7 +85,7 @@ const ResearchPage = () => {
             <div className="ResearchPage">
                 <SEO
                     title="Our Solutions"
-                    siteTitle="Research"
+                    siteTitle="For Research"
                     description="With the exciting air quality data, we actively collaborate with partners across Africa to jointly tackle air quality research challenges."
                 />
                 <ResearchHeroSection />

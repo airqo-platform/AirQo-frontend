@@ -225,7 +225,7 @@ const AfricanCitiesPage = () => {
             <div className="AfricanCitiesPage">
                 <SEO
                     title="Our Solutions"
-                    siteTitle="African Cities"
+                    siteTitle="For African Cities"
                     description="Some cities already have programs for air quality monitoring, so we collaborate with them on how to increase their network coverage."
                 />
                 <CityHeroSection />
