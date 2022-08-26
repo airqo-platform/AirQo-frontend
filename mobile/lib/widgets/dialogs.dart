@@ -427,6 +427,45 @@ class AuthProcedureDialog extends StatelessWidget {
   }
 }
 
+class ErrorDialog extends StatelessWidget {
+  const ErrorDialog({
+    super.key,
+    required this.errorMessage,
+  });
+  final ErrorMessage errorMessage;
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoAlertDialog(
+      title: Text(
+        errorMessage.title,
+        textAlign: TextAlign.center,
+      ),
+      content: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Text(
+          errorMessage.message,
+          textAlign: TextAlign.center,
+        ),
+      ),
+      actions: <Widget>[
+        CupertinoDialogAction(
+          onPressed: () {
+            Navigator.of(context).pop(ConfirmationAction.ok);
+          },
+          isDefaultAction: true,
+          isDestructiveAction: false,
+          child: Text(
+            'Close',
+            style: CustomTextStyle.caption4(context)
+                ?.copyWith(color: CustomColors.appColorBlue),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class ChangeAuthCredentialsDialog extends StatelessWidget {
   const ChangeAuthCredentialsDialog({
     super.key,

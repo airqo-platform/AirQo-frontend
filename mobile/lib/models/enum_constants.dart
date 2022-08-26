@@ -336,6 +336,18 @@ enum ConfirmationAction {
   ok,
 }
 
+enum ErrorMessage {
+  logout('Failed to logout', 'Try again later');
+
+  const ErrorMessage(this.title, this.message);
+
+  final String title;
+  final String message;
+
+  @override
+  String toString() => title;
+}
+
 enum OnBoardingPage {
   signup('signup'),
   profile('profile'),

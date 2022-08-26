@@ -237,9 +237,14 @@ class _ProfileViewState extends State<ProfileView> {
       );
     } else {
       Navigator.pop(loadingContext);
-      await showSnackBar(
-        context,
-        'failed to logout. Try again later',
+      await showDialog<ConfirmationAction>(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const ErrorDialog(
+            errorMessage: ErrorMessage.logout,
+          );
+        },
       );
     }
   }

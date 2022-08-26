@@ -334,6 +334,7 @@ class AppService {
         exception,
         stackTrace,
       );
+      return false;
     }
 
     return true;
