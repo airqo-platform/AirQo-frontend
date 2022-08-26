@@ -33,7 +33,7 @@ const Press = () => {
                                   subtitle="Ugandan researchers have developed low-cost air quality monitoring sensors that work in extreme conditions"
                                   url="https://www.voanews.com/a/ugandan-researchers-develop-low-cost-sensors-to-track-air-pollution/6595195.html"
                                   date="May 30, 2022"
-                                  icon={<VOAIcon />}
+                                  icon={<VOAIcon style={{height:'52px'}}/>}
                               />
                           </div>
                           <div className="card">
@@ -98,7 +98,7 @@ const Press = () => {
                   <div className="show-more">
                       <span>
                           {' '}
-                          <a>Show more {'->'} </a>
+                          <a>See More {'->'} </a>
                       </span>
                   </div>
               </div>

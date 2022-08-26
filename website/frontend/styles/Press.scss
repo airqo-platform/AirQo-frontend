@@ -91,8 +91,9 @@
                     padding:10px 0;
                     max-width: 220px;
                     max-height: 55px;
-                    svg{
-                    }
+                    display: flex;
+                    justify-content: flex-start;
+                    align-items: flex-start;
                 }
                 .date{
                     float: right;
@@ -110,7 +111,7 @@
                 display: grid;
                 grid-template-columns: 1fr;
                 grid-template-rows: 250px 50px;
-                overflow-y: hidden;
+                overflow-y: visible;
                 .teaser{
                     .article-name{
                         font-size: 32px;
@@ -212,7 +213,7 @@
                     .date{
                         float: left;
                         text-align: left;
-                        padding:10px 0 0 0;
+                        padding:15px 0 0 0;
                     }
                     .image{
                         padding: 10px 0;
@@ -248,7 +249,7 @@
                         .date{
                             float: left;
                             text-align: left;
-                            padding: 10px 0 0 0;
+                            padding: 25px 0 0 0;
                         }
                     }
                     .a-body{
@@ -257,6 +258,7 @@
                         display: grid;
                         grid-template-columns: 1fr;
                         grid-template-rows: 250px 50px;
+                        overflow-y: visible;
                         .teaser{
                             .article-name{
                                 font-size: 28px;
