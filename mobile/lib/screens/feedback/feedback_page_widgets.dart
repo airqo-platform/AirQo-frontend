@@ -597,7 +597,7 @@ class _FeedbackChannelStepState extends State<FeedbackChannelStep> {
           height: 32,
         ),
         Text(
-          'Send Us Feedback Via Email Or Whatsapp',
+          'Send Us Feedback Via Email',
           style: CustomTextStyle.headline9(context),
         ),
         const SizedBox(
@@ -622,11 +622,14 @@ class _FeedbackChannelStepState extends State<FeedbackChannelStep> {
         const SizedBox(
           height: 16,
         ),
-        FeedbackCard(
-          title: FeedbackChannel.whatsApp.toString(),
-          activeCard: activeCard,
-          index: 1,
-          updateIndex: _updateIndex,
+        Visibility(
+          visible: false,
+          child: FeedbackCard(
+            title: FeedbackChannel.whatsApp.toString(),
+            activeCard: activeCard,
+            index: 1,
+            updateIndex: _updateIndex,
+          ),
         ),
       ],
     );
