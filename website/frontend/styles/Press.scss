@@ -62,7 +62,7 @@
             .press-cards{
                 display: grid;
                 grid-template-columns: repeat(2, 4fr);
-                grid-auto-rows: 400px;
+                grid-auto-rows: 450px;
                 grid-gap: 30px;
                 .card{
                     background: linear-gradient(150.48deg, #f2f1f6 45.54%, #EEF7FF 100%);
@@ -72,7 +72,7 @@
             .press-cards-lg{
                 display: grid;
                 grid-template-columns: 1fr;
-                margin-top: 30px;
+                margin: 30px 0;
                 .card-lg{
                     background: linear-gradient(150.48deg, #F2F1F6 45.54%, #EEF7FF 100%);
                     border-radius: 8px;
@@ -85,9 +85,14 @@
                 display: grid;
                 grid-template-columns: 1fr 1fr;
                 align-items: center;
-                image{
+                padding-bottom: 20px;
+                .image{
                     float: left;
-                    padding:30px 0;
+                    padding:10px 0;
+                    max-width: 220px;
+                    max-height: 55px;
+                    svg{
+                    }
                 }
                 .date{
                     float: right;
@@ -101,10 +106,11 @@
             }
             .a-body{
                 padding-right:20px;
-                min-height: 300px;
+                min-height: 250px;
                 display: grid;
                 grid-template-columns: 1fr;
                 grid-template-rows: 250px 50px;
+                overflow-y: hidden;
                 .teaser{
                     .article-name{
                         font-size: 32px;
