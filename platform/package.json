@@ -1,22 +1,25 @@
 {
-  "name": "platform",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "cypress:open": "cypress open"
-  },
-  "dependencies": {
-    "next": "^12.2.4",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "sass": "^1.54.3"
-  },
-  "devDependencies": {
-    "cypress": "^10.6.0",
-    "webpack": "^5.74.0"
-  }
+    "name": "platform",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "dev": "next dev",
+        "build": "next build",
+        "start": "next start",
+        "lint": "next lint",
+        "cypress:open": "cypress open"
+    },
+    "dependencies": {
+        "next": "^12.2.4",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "sass": "^1.54.3"
+    },
+    "devDependencies": {
+        "cypress": "^10.6.0",
+        "webpack": "^5.74.0"
+    },
+    "engines": {
+        "node": ">=12.22.0"
+    }
 }
