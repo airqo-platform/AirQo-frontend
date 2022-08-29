@@ -71,7 +71,7 @@ jobs:
           DEBUG: code-coverage
 
       - name: Deploy code coverage report 🚀
-        uses: peaceiris/actions-gh-pages@v3
+        uses: codecov/codecov-action@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./coverage/lcov-report
