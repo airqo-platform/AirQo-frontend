@@ -62,7 +62,7 @@ jobs:
           working-directory: ./platform/
           build: yarn build
           start: yarn start
-          browser: firefox
+          browser: chrome
           record: true
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
