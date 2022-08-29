@@ -43,7 +43,7 @@ jobs:
   test-next-platform:
     name: test-next-platform
     needs: [check]
-    if: needs.check.outputs.run_next_platform == 'true'
+    # if: needs.check.outputs.run_next_platform == 'true'
     runs-on: ubuntu-latest  
     container: cypress/browsers:node16.14.0-chrome99-ff97
     steps:
@@ -75,3 +75,4 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./coverage/lcov-report
+          working-directory: ./platform/
