@@ -1,9 +1,11 @@
 name: run-tests
 
-on:
-  pull_request:
-    branches:
-      - staging
+# on:
+#   pull_request:
+#     branches:
+#       - staging
+
+on: [pull_request]
   
 jobs:
   check:
