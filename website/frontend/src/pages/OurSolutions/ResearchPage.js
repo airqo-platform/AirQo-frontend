@@ -33,7 +33,7 @@ const PublicationsSection = () => {
             <div className="author">Supported by</div>
             <div className="team">AirQo and Makerere University</div>
             <div>
-                <div className="link"><span>Read full whitepaper <ArrowRight /></span></div>
+                <div className="link"><span>Coming Soon <ArrowRight /></span></div>
             </div>
         </div>
     )
@@ -85,7 +85,7 @@ const ResearchPage = () => {
             <div className="ResearchPage">
                 <SEO
                     title="Our Solutions"
-                    siteTitle="Research"
+                    siteTitle="For Research"
                     description="With the exciting air quality data, we actively collaborate with partners across Africa to jointly tackle air quality research challenges."
                 />
                 <ResearchHeroSection />

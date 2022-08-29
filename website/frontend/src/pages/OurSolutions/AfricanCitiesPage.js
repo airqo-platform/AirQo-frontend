@@ -86,13 +86,14 @@ const CityTabs = () => {
                     link="/solutions/african-cities/uganda"
                     onClick={handleClick("uganda")}
                 />
-                <CityTab
+                {/* <CityTab
                     className={`available ${markActive("kenya")}`}
                     flag={<Kenya />}
                     name="Nairobi"
                     link="/solutions/african-cities/kenya"
                     onClick={handleClick("kenya")}
-                />
+                /> */}
+                <span className="not-available"><Kenya /> <span className="text">Nairobi</span></span>
                 <span className="not-available"><Nigeria /> <span className="text">Lagos</span></span>
                 <span className="not-available"><Ghana /> <span className="text">Accra</span></span>
                 <span className="not-available"><Burundi /> <span className="text">Bujumbura</span></span>
@@ -211,7 +212,7 @@ const PublicationsSection = () => {
             <div className="author">Published by</div>
             <div className="team">Kampala Capital City Authority(KCCA)</div>
             <div>
-                <div className="link"><span>Read action plan <ArrowRight /></span></div>
+                <div className="link"><span>Coming Soon <ArrowRight /></span></div>
             </div>
         </div>
     )
@@ -224,7 +225,7 @@ const AfricanCitiesPage = () => {
             <div className="AfricanCitiesPage">
                 <SEO
                     title="Our Solutions"
-                    siteTitle="African Cities"
+                    siteTitle="For African Cities"
                     description="Some cities already have programs for air quality monitoring, so we collaborate with them on how to increase their network coverage."
                 />
                 <CityHeroSection />

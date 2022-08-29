@@ -16,23 +16,23 @@ import ZindiLogo from 'assets/img/partners/partner-logo-6.png';
 import AfriqairLogo from 'assets/img/partners/Afriqair.png';
 import DevelopmentImpactLabLogo from 'assets/img/partners/Development Impact lab.png';
 import SwedishEmbassyKampalaLogo from 'assets/img/partners/Embassy of Sweden KLA.png';
-import EnabelLogo from 'assets/img/partners/Enabel Wehubit.png';
 import FortPortalCityLogo from 'assets/img/partners/Fort Portal City.png';
 import HorizonteCiudadanoLogo from 'assets/img/partners/Horizonte Ciudadano Foundation.png';
 import KccaLogo from 'assets/img/partners/KCCA.png';
 import KiiraLogo from 'assets/img/partners/Kiira.png';
 import MappingForChangeLogo from 'assets/img/partners/Mapping for Change UK.png';
-import MLandsLogo from 'assets/img/partners/MLands.png';
-import MoWTLogo from 'assets/img/partners/MoWT.png';
-import MUKLogo from 'assets/img/partners/MUK_Logo@4x 1.png';
+import MinistriesLogo from 'assets/img/partners/Ministries.png'
+import MUKLogo from 'assets/img/partners/MUK_Logo.png';
 import NEMALogo from 'assets/img/partners/NEMA.png';
 import SheffieldUniversityLogo from 'assets/img/partners/Sheffield University UK.png';
 import UNEPLogo from 'assets/img/partners/UNEP.png';
 import UniversityOfColoradoBoulderLogo from 'assets/img/partners/University of Colorado Boulder US.png';
-import UniversityOfFloridaLogo from 'assets/img/partners/University of Florida US.png';
-import USEmbassyKampalaLogo from 'assets/img/partners/US Embassy UG.png';
-import TAHMO from 'assets/img/partners/TAHMO.png';
-import MMU from 'assets/img/partners/MMU.jpg'
+import UniversityOfFloridaLogo from 'assets/img/partners/University of Florida US.png' 
+import TAHMOLogo from 'assets/img/partners/TAHMO.png';
+import MMULogo from 'assets/img/partners/MMU.jpg';
+import WeHubitLogo from 'assets/img/partners/WeHubit.png';
+import USEmbassyLogo from 'assets/img/partners/USEmbassy.png';
+import WRILogo from 'assets/img/partners/WRI.png';
 
 import TeamImg from 'assets/img/team.png';
 import Vector1 from 'assets/img/about_us_vector_3.png';
@@ -43,7 +43,7 @@ const AboutUsPage = () => {
     useInitScrollTop();
     const dispatch = useDispatch();
     const teamData = useTeamData();
-
+    
     const [togglePartnersDisplay, setTogglePartnersDisplay] = useState(false);
 
     const toggleFullPartnersListDisplay = () => {
@@ -101,7 +101,7 @@ const AboutUsPage = () => {
                         data to drive air pollution mitigation actions.
                     </h2>
 
-                    <img src={TeamImg} className="team_img" alt="Team Photo" />
+                    <img src={TeamImg} className="team_img" alt="Team Photo" loading="lazy" />
 
                     <div className="AboutUsPage__banner" id="vision">
                         <div className="section-title">
@@ -197,7 +197,7 @@ const AboutUsPage = () => {
                         </div>
                         <div className="AboutUsPage__pictorial">
                             {teamData.map((member) => (
-                                <Profile ImgPath={member.picture} name={member.name} title={member.title} />
+                                <Profile ImgPath={member.picture} name={member.name} title={member.title} twitter={member.twitter} linkedin={member.linked_in} />
                             ))}
                         </div>
                     </div>
@@ -215,16 +215,16 @@ const AboutUsPage = () => {
                         <table>
                             <tr>
                                 <td>
+                                    <img src={MUKLogo} alt="Makerere University" />
+                                </td>
+                                <td>
                                     <img src={GoogleLogo} alt="Google.org" />
                                 </td>
                                 <td>
-                                    <img src={USEmbassyKampalaLogo} alt="US Embassy Uganda" />
+                                    <img src={WeHubitLogo} alt="WeHubit" />
                                 </td>
                                 <td>
-                                    <img src={EnabelLogo} alt="Enabel" />
-                                </td>
-                                <td>
-                                    <img src={WorldBankLogo} alt="World Bank Group" />
+                                    <img src={USEmbassyLogo} alt="US Mission" />
                                 </td>
                             </tr>
                             <tr>
@@ -232,58 +232,57 @@ const AboutUsPage = () => {
                                     <img src={UNEPLogo} alt="UNEP" />
                                 </td>
                                 <td>
-                                    <img src={MUKLogo} alt="Makerere University" />
+                                    <img src={WRILogo} alt="World Resource Institute" />
                                 </td>
                                 <td>
-                                    <img src={EpsrcLogo} alt="EPSRC" />
+                                    <img src={TAHMOLogo} alt="TAHMO" />
                                 </td>
                                 <td>
-                                    <img src={ZindiLogo} alt="Zindi" />
+                                    <img src={WorldBankLogo} alt="World Bank Group" />
                                 </td>
                             </tr>
                             <tr>
                                 <td>
-                                    <img src={NRFLogo} alt="National Research Foundation" />
-                                </td>
-                                <td>
-                                    <img src={DevelopmentImpactLabLogo} alt="Development Impact Lab" />
-                                </td>
-                                <td>
-                                    <img src={TAHMO} alt="TAHMO" />
+                                    <img src={NEMALogo} alt="NEMA" />
                                 </td>
                                 <td>
                                     <img src={KccaLogo} alt="KCCA" />
                                 </td>
+                                <td>
+                                    <img src={MinistriesLogo} alt="Ugandan Ministries" />
+                                </td>
+                                <td>
+                                    <img src={FortPortalCityLogo} alt="Fort Portal City" />
+                                </td>
                             </tr>
-
                             {togglePartnersDisplay && (
                                 <>
                                     <tr>
                                         <td>
-                                            <img src={HorizonteCiudadanoLogo} alt="Horizonte Ciudadano" />
-                                        </td>
-                                        <td>
-                                            <img src={NEMALogo} alt="NEMA" />
-                                        </td>
-                                        <td>
-                                            <img src={FortPortalCityLogo} alt="Fort Portal City" />
-                                        </td>
-                                        <td>
                                             <img src={KiiraLogo} alt="Kiira" />
+                                        </td>
+                                        <td>
+                                            <img src={NRFLogo} alt="National Research Foundation" />
+                                        </td>
+                                        <td>
+                                            <img src={ZindiLogo} alt="Zindi" />
+                                        </td>
+                                        <td>
+                                            <img src={EpsrcLogo} alt="EPSRC" />
                                         </td>
                                     </tr>
                                     <tr>
                                         <td>
-                                            <img src={MLandsLogo} alt="Ministry of Lands and Housing" />
+                                            <img src={DevelopmentImpactLabLogo} alt="Development Impact Lab" />
                                         </td>
                                         <td>
-                                            <img src={MoWTLogo} alt="Ministry of Works And Transport" />
+                                            <img src={HorizonteCiudadanoLogo} alt="Horizonte Ciudadano" />
                                         </td>
                                         <td>
-                                            <img src={SheffieldUniversityLogo} alt="Sheffield University" />
+                                            <img src={SwedishEmbassyKampalaLogo} alt="Swedish Embassy Uganda" />
                                         </td>
                                         <td>
-                                            <img src={BirminghamUniLogo} alt="University of Birmingham" />
+                                            <img src={MMULogo} alt="Mountains of the Moon university" />
                                         </td>
                                     </tr>
                                     <tr>
@@ -291,7 +290,7 @@ const AboutUsPage = () => {
                                             <img src={AfriqairLogo} alt="Afriqair" />
                                         </td>
                                         <td>
-                                            <img src={SwedishEmbassyKampalaLogo} alt="Swedish Embassy Uganda" />
+                                            <img src={MappingForChangeLogo} alt="Mapping for Change" />
                                         </td>
                                         <td>
                                             <img
@@ -305,10 +304,10 @@ const AboutUsPage = () => {
                                     </tr>
                                     <tr>
                                         <td>
-                                            <img src={MappingForChangeLogo} alt="Mapping for Change" />
+                                            <img src={SheffieldUniversityLogo} alt="Sheffield University" />
                                         </td>
                                         <td>
-                                            <img src={MMU} alt="Mountains of the Moon university" />
+                                            <img src={BirminghamUniLogo} alt="University of Birmingham" />
                                         </td>
                                     </tr>
                                 </>
