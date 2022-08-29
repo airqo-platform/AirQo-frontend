@@ -16,6 +16,8 @@
         "sass": "^1.54.3"
     },
     "devDependencies": {
+        "@cypress/code-coverage": "^3.10.0",
+        "babel-plugin-istanbul": "^6.1.1",
         "cypress": "^10.6.0",
         "webpack": "^5.74.0"
     }

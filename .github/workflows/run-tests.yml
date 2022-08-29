@@ -1,9 +1,11 @@
 name: run-tests
 
-on:
-  pull_request:
-    branches:
-      - staging
+# on:
+#   pull_request:
+#     branches:
+#       - staging
+
+on: [pull_request]
   
 jobs:
   check:
@@ -53,6 +55,7 @@ jobs:
           cd platform/
           echo "========== Creating app.yaml file =========="  
           echo "NEXT_PUBLIC_ORIGINAL_PLATFORM=${{ secrets.NEW_PLATFORM_STAGE_ORIGINAL_PLATFORM }}" > .env
+          echo "INSTRUMENT_CODE=1" >> .env
 
       - name: Cypress run
         uses: cypress-io/github-action@v4
@@ -65,3 +68,10 @@ jobs:
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEBUG: code-coverage
+
+      - name: Deploy code coverage report 🚀
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./coverage/lcov-report
