@@ -1,0 +1,10 @@
+-   id: pretty-quick
+    name: pretty-quick
+    description: ''
+    entry: pretty-quick --stagedlint staged
+    language: node
+    'types': [text]
+    args: []
+    require_serial: false
+    additional_dependencies: ["pretty-quick@v3.1.3"]
+    minimum_pre_commit_version: '0'
