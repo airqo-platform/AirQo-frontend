@@ -1,11 +1,9 @@
 name: run-tests
 
-# on:
-#   pull_request:
-#     branches:
-#       - staging
-
-on: [pull_request]
+on:
+  pull_request:
+    branches:
+      - staging
   
 jobs:
   check:
@@ -70,9 +68,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEBUG: code-coverage
 
-      - name: Upload code coverage report 🚀
-        run: |
-          cd platform/
-          curl -Os https://uploader.codecov.io/latest/linux/codecov chmod +x codecov ./codecov
-          chmod +x codecov
-          ./codecov
+      - name: Deploy code coverage report 🚀
+        uses: codecov/codecov-action@v3
+        with:
+          directory: ./platform/coverage/lcov-report
