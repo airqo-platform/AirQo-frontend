@@ -18,8 +18,5 @@
     "devDependencies": {
         "cypress": "^10.6.0",
         "webpack": "^5.74.0"
-    },
-    "engines": {
-        "node": ">=12.22.0"
     }
 }
