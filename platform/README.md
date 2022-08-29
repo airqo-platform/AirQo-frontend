@@ -1,5 +1,7 @@
 # Platform beta
----
+
+[![AirQo next platform](https://img.shields.io/endpoint?url=https://dashboard.cypress.io/badge/simple/ap5jjk/staging&style=flat&logo=cypress)](https://dashboard.cypress.io/projects/ap5jjk/runs)
+
 - [Prerequisites](#prerequisites)
 - [Setup](#setup)
 - [Running the application](#running-the-application)
