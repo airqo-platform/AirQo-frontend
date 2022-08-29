@@ -39,8 +39,8 @@ jobs:
 
           done < files.txt
 
-  ### test next-platform changes ###
-  test-next-platform:
+  ### next-platform changes ###
+  next-platform:
     name: test-next-platform
     needs: [check]
     # if: needs.check.outputs.run_next_platform == 'true'
@@ -73,5 +73,4 @@ jobs:
       - name: Deploy code coverage report 🚀
         uses: codecov/codecov-action@v3
         with:
-          directory: ./coverage/reports/
-          working-directory: ./platform/
+          directory: ./platform/coverage/reports/
