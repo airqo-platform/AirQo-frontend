@@ -1,0 +1,63 @@
+name: run-tests
+
+on:
+  pull_request:
+    branches:
+      - staging
+  
+jobs:
+  check:
+    name: check for changed frontends
+    outputs:
+      run_next_platform: ${{ steps.check_files.outputs.run_next_platform }} # next platform
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
+
+      - name: check modified frontends
+        id: check_files
+        run: |
+          echo "=============== list modified files ==============="
+          git diff --name-only HEAD^ HEAD
+          
+          echo "========== check paths of modified files =========="
+          git diff --name-only HEAD^ HEAD > files.txt
+
+          echo "::set-output name=run_next_platform::false"  
+
+          while IFS= read -r file
+          do
+            if [[ $file == platform/* ]]; then
+              echo "::set-output name=run_next_platform::true"
+            fi
+
+          done < files.txt
+
+  ### test next-platform changes ###
+  test-next-platform:
+    name: test-next-platform
+    needs: [check]
+    if: needs.check.outputs.run_next_platform == 'true'
+    runs-on: ubuntu-latest  
+    container: cypress/browsers:node12.18.3-chrome87-ff82
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      
+      - name: Create .env file
+        run: |
+          cd platform/
+          echo "========== Creating app.yaml file =========="  
+          echo "NEXT_PUBLIC_ORIGINAL_PLATFORM=${{ secrets.NEW_PLATFORM_STAGE_ORIGINAL_PLATFORM }}" > .env
+
+      - name: Cypress run
+        uses: cypress-io/github-action@v4
+        with:
+          working-directory: ./platform/
+          build: npm run build
+          start: npm start
+          browser: firefox
