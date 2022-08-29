@@ -126,7 +126,13 @@ WSGI_APPLICATION = "backend.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
-DATABASES = {"default": dj_database_url.config(default=env("DATABASE_URI"))}
+DATABASES = {
+    "default": dj_database_url.config(default=env("DATABASE_URI")),
+    "prod_database": dj_database_url.config(default=env("PROD_DATABASE_URI")),
+    "stage_database": dj_database_url.config(default=env("STAGE_DATABASE_URI"))
+}
+
+IMPORT_EXPORT_USE_TRANSACTIONS = True
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
