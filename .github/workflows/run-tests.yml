@@ -73,4 +73,5 @@ jobs:
       - name: Deploy code coverage report 🚀
         uses: codecov/codecov-action@v3
         with:
-          directory: .plaform/coverage/reports/
+          directory: ./coverage/reports/
+          working-directory: ./platform/
