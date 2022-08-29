@@ -92,7 +92,7 @@
         "source-map-explorer": "^2.5.2",
         "spin.js": "^4.1.0",
         "styled-components": "^5.1.0",
-        "underscore": "^1.11.0",
+        "underscore": "^1.12.1",
         "urijs": "^1.19.7",
         "validate.js": "^0.13.1",
         "worker-loader": "^3.0.8",
