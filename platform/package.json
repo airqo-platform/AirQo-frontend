@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "npx pretty-quick",
+    "lint-staged": "npx pretty-quick --stagedlint staged"
   },
   "dependencies": {
     "next": "^12.2.4",
