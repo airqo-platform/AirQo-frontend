@@ -43,7 +43,7 @@ const AboutUsPage = () => {
     useInitScrollTop();
     const dispatch = useDispatch();
     const teamData = useTeamData();
-
+    
     const [togglePartnersDisplay, setTogglePartnersDisplay] = useState(false);
 
     const toggleFullPartnersListDisplay = () => {
@@ -101,7 +101,7 @@ const AboutUsPage = () => {
                         data to drive air pollution mitigation actions.
                     </h2>
 
-                    <img src={TeamImg} className="team_img" alt="Team Photo" />
+                    <img src={TeamImg} className="team_img" alt="Team Photo" loading="lazy" />
 
                     <div className="AboutUsPage__banner" id="vision">
                         <div className="section-title">
@@ -197,7 +197,7 @@ const AboutUsPage = () => {
                         </div>
                         <div className="AboutUsPage__pictorial">
                             {teamData.map((member) => (
-                                <Profile ImgPath={member.picture} name={member.name} title={member.title} />
+                                <Profile ImgPath={member.picture} name={member.name} title={member.title} twitter={member.twitter} linkedin={member.linked_in} />
                             ))}
                         </div>
                     </div>

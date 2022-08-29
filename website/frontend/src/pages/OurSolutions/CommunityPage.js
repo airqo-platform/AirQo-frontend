@@ -26,7 +26,7 @@ const CommunityPage = () => {
             <div className="CommunityPage">
                 <SEO
                     title="Our Solutions"
-                    siteTitle="African Cities"
+                    siteTitle="For Communities"
                     description="Some cities already have programs for air quality monitoring, so we collaborate with them on how to increase their network coverage."
                 />
                 <div className='page-container'>
