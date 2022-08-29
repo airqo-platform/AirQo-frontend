@@ -10,9 +10,10 @@ class SecureStorage {
   static final SecureStorage _instance = SecureStorage._internal();
 
   final _secureStorage = const FlutterSecureStorage(
-      aOptions: AndroidOptions(
-    encryptedSharedPreferences: true,
-  ));
+    aOptions: AndroidOptions(
+      encryptedSharedPreferences: true,
+    ),
+  );
 
   Future<void> clearUserData() async {
     await _secureStorage.deleteAll();
