@@ -1,4 +1,4 @@
 module.exports = {
-    // Adding support for Docker
-    output: 'standalone',
-  }
+  // Adding support for Docker
+  output: 'standalone',
+};
