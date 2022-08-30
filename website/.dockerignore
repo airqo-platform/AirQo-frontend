@@ -140,7 +140,13 @@ cython_debug/
 
 node_modules/
 
-**/static/
 .prettierrc
 .gitignore
-.eslintrc.js
+.dockerignore
+
+# Python pycache:
+__pycache__/
+# Ignored by the build system
+/setup.cfg
+venv/
+/node_modules/

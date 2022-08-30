@@ -8,10 +8,9 @@
     align-items: center;
     max-width: $columnWidth;
     margin: 0 auto;
-    height: 900px;
+    padding: 80px 0;
 
   .monitor-content {
-    margin: 80px 0 0 0;
     width:520px;
   }
 
@@ -78,7 +77,6 @@
 
 @media (min-width: $mainBreakPoint) {
   .Monitor {
-    height: 900px;
     align-items: center;
 
     .monitor-content {
@@ -92,8 +90,6 @@
 
     .text-sub {
       width: 477px;
-      font-size: 18px;
-      line-height: 26px;
       margin: 24px 0 32px 0;
     }
 
@@ -110,7 +106,6 @@
   .Monitor {
     height: 100%;
     width: 100%;
-    margin-bottom: 77px;
     flex-direction: column;
 
     .monitor-content {
@@ -128,26 +123,49 @@
       width: 100%;
       margin: 0;
       margin-bottom: 24px;
-      font-weight: 500;
     }
 
     .text-sub {
       width: 100%;
-      font-size: 20px;
-      line-height: 28px;
-      font-weight: 400;
       margin: 0;
       margin-bottom: 36px;
     }
 
     .Monitor-img {
-      height: 400px;
+      height: 100%;
       width: 100%;
+      display: flex;
+      justify-content: center;
       
       > img {
-        width: 100%;
+        width: 500px;
         height: 100%;
         object-fit: cover;
+      
+      }
+    }
+  }
+}
+
+@media screen and(min-width:$mainBreakPoint)and(max-width: $tabBreakPoint){
+  .Monitor{
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding: 80px 20px;
+    .monitor-content{
+      width: 100%;
+    }
+    .text-main{
+      width: auto;
+    }
+    .text-sub{
+      width: auto;
+    }
+    .Monitor-img{
+      img{
+        width: auto;
+        height: auto;
       }
     }
   }

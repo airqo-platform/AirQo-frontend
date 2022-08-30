@@ -4,16 +4,20 @@ import Footer from 'src/components/Footer';
 import TopBar from 'src/components/nav/TopBar';
 import NewsletterSection from "src/components/NewsletterSection/NewsletterSection";
 import GetInvolvedModal from "src/components/GetInvolvedModal";
+import MiniHighlights from '../components/MiniHighlights';
 
 const Page = ({ children }) => (
-        <div className="Page">
-            {/* <NotificationBanner /> */}
-            <TopBar />
+    <div className='Page'>
+        {/* <NotificationBanner /> */}
+        <TopBar />
+        <div className='page-wrapper'>
             {children}
-            <NewsletterSection />
-            <Footer />
-            <GetInvolvedModal />
         </div>
+        <MiniHighlights />
+        <NewsletterSection />
+        <Footer />
+        <GetInvolvedModal />
+    </div>
 );
 
 export default Page;

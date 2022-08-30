@@ -22,8 +22,8 @@ import '../settings/settings_page.dart';
 
 class LogoutButton extends StatelessWidget {
   const LogoutButton({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +50,7 @@ class LogoutButton extends StatelessWidget {
 }
 
 class SignUpSection extends StatelessWidget {
-  const SignUpSection({Key? key}) : super(key: key);
+  const SignUpSection({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -144,7 +144,7 @@ class SignUpSection extends StatelessWidget {
 }
 
 class SettingsButton extends StatelessWidget {
-  const SettingsButton({Key? key}) : super(key: key);
+  const SettingsButton({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -194,7 +194,7 @@ class SettingsButton extends StatelessWidget {
 }
 
 class DummyProfilePicture extends StatelessWidget {
-  const DummyProfilePicture({Key? key, required this.text}) : super(key: key);
+  const DummyProfilePicture({super.key, required this.text});
   final String text;
   @override
   Widget build(BuildContext context) {
@@ -238,9 +238,9 @@ class DummyProfilePicture extends StatelessWidget {
 
 class ProfilePicture extends StatelessWidget {
   const ProfilePicture({
-    Key? key,
+    super.key,
     required this.userDetails,
-  }) : super(key: key);
+  });
   final Profile userDetails;
 
   @override
@@ -301,11 +301,11 @@ class ProfilePicture extends StatelessWidget {
 
 class CardSection extends StatelessWidget {
   const CardSection({
-    Key? key,
+    super.key,
     required this.icon,
     required this.iconColor,
     required this.text,
-  }) : super(key: key);
+  });
   final String icon;
   final String text;
   final Color? iconColor;
@@ -343,7 +343,7 @@ class CardSection extends StatelessWidget {
 }
 
 class ProfileSection extends StatefulWidget {
-  const ProfileSection({Key? key, required this.userDetails}) : super(key: key);
+  const ProfileSection({super.key, required this.userDetails});
   final Profile userDetails;
 
   @override
@@ -449,10 +449,10 @@ class _ProfileSectionState extends State<ProfileSection> {
 
 class EditProfilePicSection extends StatelessWidget {
   const EditProfilePicSection({
-    Key? key,
+    super.key,
     required this.profile,
     required this.getFromGallery,
-  }) : super(key: key);
+  });
   final Profile profile;
   final VoidCallback getFromGallery;
 
@@ -538,7 +538,7 @@ class EditProfilePicSection extends StatelessWidget {
 }
 
 class EditCredentialsIcon extends StatelessWidget {
-  const EditCredentialsIcon({Key? key}) : super(key: key);
+  const EditCredentialsIcon({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -554,10 +554,10 @@ class EditCredentialsIcon extends StatelessWidget {
 
 class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
   const EditProfileAppBar({
-    Key? key,
+    super.key,
     required this.updateProfile,
     required this.hasChangedProfile,
-  }) : super(key: key);
+  });
   final VoidCallback updateProfile;
   final bool hasChangedProfile;
 
@@ -600,9 +600,9 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
 
 class ProfilePhoneNumberEditFields extends StatelessWidget {
   const ProfilePhoneNumberEditFields({
-    Key? key,
+    super.key,
     required this.profile,
-  }) : super(key: key);
+  });
 
   final Profile profile;
 
@@ -683,9 +683,9 @@ class ProfilePhoneNumberEditFields extends StatelessWidget {
 
 class ProfileEmailEditFields extends StatelessWidget {
   const ProfileEmailEditFields({
-    Key? key,
+    super.key,
     required this.profile,
-  }) : super(key: key);
+  });
 
   final Profile profile;
 
@@ -757,10 +757,10 @@ class ProfileEmailEditFields extends StatelessWidget {
 
 class NameEditField extends StatelessWidget {
   const NameEditField({
-    Key? key,
+    super.key,
     required this.value,
     required this.valueChange,
-  }) : super(key: key);
+  });
   final String value;
   final Function(String) valueChange;
 

@@ -5,12 +5,13 @@
 @mixin flex-column{
     display: flex;
     flex-direction: column;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
 }
 
 @mixin flex-row{
     display: flex;
     flex-direction: row;
+    flex-wrap:wrap ;
 }
 
 $h2-font:$headingFont;
@@ -19,14 +20,14 @@ $p-font:$subTextFont;
 .get-app{
     display:grid;
     grid-template-columns: $gridColumn;
-    padding: 40px 0 80px 0;
-    margin-bottom: 230px;
+    align-items: center;
+    height: 1020px;
     .back-drop{
         grid-column: 2 / 3;
         display:grid;
         grid-template-columns: 2fr 3fr;
         grid-gap:30px;
-        padding:30px;
+        padding: 0 30px;
         height:400px;
         background-color: $aq-blue-1;
         border-radius: 8px;
@@ -35,13 +36,13 @@ $p-font:$subTextFont;
             margin-left: 3%;
             float:left;
             .get-text{
-                padding: 28px 0 0 30px;
+                padding: 60px 0 0 30px;
                 width:480px;
                 h2{
                     color:$aq-blue-0;
                     font-weight: 600;
                     font-size: $h2-font;
-                    line-height: 28px;
+                    line-height: 48px;
                 }
                 span{
                     color: $aq-blue-2;
@@ -78,16 +79,6 @@ $p-font:$subTextFont;
             .get-btn:hover, .get-btn:focus{
                 outline:none;
                 cursor: pointer;
-
-                div{
-                    opacity: 1;
-                }
-                #google{
-                    opacity: 1;
-                }
-                #play{
-                    opacity: 1;
-                }
             }
         }
         .get-graphics{
@@ -107,8 +98,8 @@ $p-font:$subTextFont;
 
 @media (max-width: $mainBreakPoint){
     .get-app{
-        padding: 80px 0 120px 0;
-        margin: 50% 0 0 0;
+        padding: 80px 0 40px 0;
+        margin: 250px 0 80px 0;
         background-color: $aq-blue-1;
         .back-drop{
             @include flex-column();
@@ -116,7 +107,6 @@ $p-font:$subTextFont;
             flex-direction: column-reverse;
             height: 100%;
             padding:0;
-
             .get-graphics{
                 align-self: center;
                 .get-graphics-lg{
@@ -124,35 +114,56 @@ $p-font:$subTextFont;
                 }
                 .get-graphics-sm{
                     display:block;
-                    margin: -220px 0 0 0;
+                    margin: -240px 0 0 0;
                 }
             }
-
             .get-content{
-                margin:0 4% 0 3%;
-                @include flex-column();
-                justify-content: center;
+                display: grid;
+                grid-template-columns: 1fr;
+                margin: -30px 10px 0 8px;
                 .get-text{
-                    padding: 10px 17px 17px 20px;
+                    padding: 0px 12px 17px 16px;
                     width: 100%;
                 }
                 .get-btns{
-                    @include flex-column();
-                    padding:0 0 20px 0px;
-                    margin:10% 6% 10% 5%;
-                    button{
+                    display: grid;
+                    grid-template-columns: 1fr;
+                    padding:0;
+                    margin:10px 15px;
+                    .get-btn{
+                        display: flex;
+                        align-content: center;
+                        justify-content: center;
+                        min-height: 65px;
                         width: 100%;
-                        outline: none;
                     }
                     .get-android{
-                        margin:0;
                         margin-top: 21px;
+                        margin-left: 0;
                     }
-                    .get-btn{
-                        justify-content: center;
-                        align-items: center;
-                        padding:6px 0 4px 0;
-                        width: 100%;
+                }
+            }
+        }
+    }
+}
+
+@media screen and(min-width:$mainBreakPoint)and(max-width: $tabBreakPoint){
+    .get-app{
+        padding: 0;
+        .back-drop{
+            padding: 0;
+            .get-content{
+                margin: 0 auto;
+                float: none;
+                width: 52vw;
+                .get-text{
+                    padding: 30px 0 0 20px;
+                    width: auto;
+                }
+                .get-btns{
+                    padding-left: 20px;
+                    .get-android{
+                        margin-left: 15px;
                     }
                 }
             }

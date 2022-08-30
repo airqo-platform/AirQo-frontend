@@ -62,7 +62,7 @@
             .press-cards{
                 display: grid;
                 grid-template-columns: repeat(2, 4fr);
-                grid-auto-rows: 400px;
+                grid-auto-rows: 450px;
                 grid-gap: 30px;
                 .card{
                     background: linear-gradient(150.48deg, #f2f1f6 45.54%, #EEF7FF 100%);
@@ -72,7 +72,7 @@
             .press-cards-lg{
                 display: grid;
                 grid-template-columns: 1fr;
-                margin-top: 30px;
+                margin: 30px 0;
                 .card-lg{
                     background: linear-gradient(150.48deg, #F2F1F6 45.54%, #EEF7FF 100%);
                     border-radius: 8px;
@@ -85,12 +85,19 @@
                 display: grid;
                 grid-template-columns: 1fr 1fr;
                 align-items: center;
-                image{
+                padding-bottom: 20px;
+                .image{
                     float: left;
+                    padding:10px 0;
+                    max-width: 220px;
+                    max-height: 55px;
+                    display: flex;
+                    justify-content: flex-start;
+                    align-items: flex-start;
                 }
                 .date{
                     float: right;
-                    font-size: 12.5px;
+                    font-size: 16px;
                     font-weight: 500;
                     color: $aq-black-2;
                     line-height: 20px;
@@ -100,14 +107,15 @@
             }
             .a-body{
                 padding-right:20px;
-                min-height: 300px;
+                min-height: 250px;
                 display: grid;
                 grid-template-columns: 1fr;
                 grid-template-rows: 250px 50px;
+                overflow-y: visible;
                 .teaser{
                     .article-name{
-                        font-size: 1.8rem;
-                        line-height: 35px;
+                        font-size: 32px;
+                        line-height: 40px;
                         font-weight: 500;
                         color:$aq-black-2;
                         max-height: 180px;
@@ -155,26 +163,34 @@
             }
         }
     }
-
+    .show-more{
+        display: none;
+    }
 }
 
 @media (max-width: $mainBreakPoint) {
     .press-page {
         .content {
-            //grid-template-columns: 1 / 4;
+            display: grid;
+            grid-template-columns: 1fr;
             .press-top{
-                padding: 10px;
+                padding: 0 10px;
             }
             .press-cards{
-                grid-column: 1 / 4;
-                padding: 10px;
+                padding: 0 20px;
             }
             .press-cards-lg{
-                //grid-column: 1 / 4;
-                padding: 10px;
+                padding: 0 10px;
             }
         }
-
+        .p-header{
+            .content{
+                height: 292px;
+                h2{
+                    padding-top: 14px;
+                }
+            }
+        }
         .p-body{
             margin-bottom: 20px;
             .content {
@@ -189,32 +205,51 @@
                 }
             }
             .article {
+                padding: 28px 20px 20px 25px;
+                .a-header{
+                    display: grid;
+                    grid-template-columns: 1fr;
+                    justify-content: flex-start;
+                    .date{
+                        float: left;
+                        text-align: left;
+                        padding:15px 0 0 0;
+                    }
+                    .image{
+                        padding: 10px 0;
+                    }
+                }
                .a-body {
+                height: fit-content;
+                padding-bottom: 45px;
                    .teaser {
+                    .article-name{
+                        font-size: 28px;
+                        line-height: 36px;
+                    }
                        .first-line {
                            display: none;
                        }
+                   }
+                   .a-link{
+                    top: 65px;
                    }
                }
             }
             .card-lg {
                 .article {
-                    padding:40px 40px 40px 60px;
+                    padding:20px 20px 20px 25px;
                     .a-header{
                         display: grid;
-                        grid-template-columns: 1fr 1fr;
-                        align-items: center;
+                        grid-template-columns: 1fr;
+                        justify-content: flex-start;
                         image{
                             float: left;
                         }
                         .date{
-                            float: right;
-                            font-size: 12.5px;
-                            font-weight: 500;
-                            color: $aq-black-2;
-                            line-height: 20px;
-                            text-align: right;
-                            letter-spacing: -0.4px;
+                            float: left;
+                            text-align: left;
+                            padding: 25px 0 0 0;
                         }
                     }
                     .a-body{
@@ -223,22 +258,16 @@
                         display: grid;
                         grid-template-columns: 1fr;
                         grid-template-rows: 250px 50px;
+                        overflow-y: visible;
                         .teaser{
                             .article-name{
-                                font-size: 1.8rem;
-                                line-height: 35px;
+                                font-size: 28px;
+                                line-height: 36px;
                                 font-weight: 500;
                                 color:$aq-black-2;
-                                max-height: 180px;
                             }
                             .first-line{
-                                max-width:260px;
-                                white-space: nowrap;
-                                overflow: hidden;
-                                text-overflow: ellipsis;
-                                margin-top:-10px;
-                                font-size: 15px;
-                                font-weight: 400;
+                                display: none;
                             }
                         }
                         .a-link{
@@ -252,6 +281,7 @@
                             justify-content: center;
                             width:fit-content;
                             height:35px;
+                            top: 48px;
                             small{
                                 font-size: 12px;
                                 padding-right: 5px;
@@ -265,6 +295,15 @@
                     }
                 }
             }
+        }
+        .show-more {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 0 80px 0;
+            font-size: 16px;
+            font-weight: 500;
+            color: $aq-blue-2;
         }
     }
 }
