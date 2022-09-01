@@ -25,11 +25,12 @@ spec:
               name: prod-calibrate
           resources:
             requests:
-              cpu: 100m
-              memory: 250Mi
+              # Average usage was 0.0001 vCPU and 25Mi over the last 30 days
+              cpu: 5m
+              memory: 25Mi
             limits:
-              cpu: 200m
-              memory: 700Mi
+              cpu: 50m
+              memory: 100Mi
           envFrom:
             - configMapRef:
                 name: env-calibrate-prod
@@ -49,7 +50,7 @@ spec:
   metrics:
   - type: Resource
     resource:
-      name: cpu
+      name: memory
       target:
         type: Utilization
         averageUtilization: 70
