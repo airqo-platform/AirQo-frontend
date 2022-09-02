@@ -87,7 +87,7 @@ The src folder is meant to separate application level code from the top-level co
     │   │   │   │   │   └── index.js
     │   │   │   │   │   └── Profile.module.scss
     │   ├── styles
-    │   │   ├── styles.scss
+    │   │   ├── index.scss
     ├── pages
     │   ├── app.js
     │   ├── Dashboard.js
