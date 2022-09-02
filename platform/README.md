@@ -5,8 +5,8 @@
 ## Table of contents
 
 1. [Prerequisites](#prerequisites)
-2. [Getting started](#setup)
-3. [Running the application](#run)
+2. [Getting started](#getting-started)
+3. [Running the application](#running-the-application)
    - [Cypress tests](#cypress-tests)
    - [The linter](#the-linter)
    - [The server](#the-server)
@@ -34,7 +34,7 @@ d) Install the dependencies
 
     yarn add
 
-## Run:
+## Running the application
 
 Run the following commands to start corresponding services
 
