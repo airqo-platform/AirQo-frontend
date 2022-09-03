@@ -79,12 +79,6 @@ jobs:
               echo "::set-output name=run_calibrate_app::true"
             fi
 
-            if [[ $file == workflow-trigger.txt ]]; then
-              echo "::set-output name=run_platform::true"
-              echo "::set-output name=run_website::true"
-              echo "::set-output name=run_calibrate_app::true"
-            fi
-
           done < files.txt
 
   ### deploy platform ###
