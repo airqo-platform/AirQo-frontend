@@ -32,7 +32,7 @@ c) Create the `.env` file and fill it with the needed information. You can find 
 
 d) Install the dependencies
 
-    yarn add
+    yarn install
 
 ## Running the application
 
