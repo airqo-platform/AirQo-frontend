@@ -60,7 +60,7 @@ jobs:
   ### deploy platform ###
   platform:
     name: build-push-deploy-netmanager
-    needs: [check, image-tag, branch-name]
+    needs: [check]
     if: needs.check.outputs.run_platform == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -79,7 +79,7 @@ jobs:
   ### calibrate app ###
   calibrate-app:
     name: build-push-deploy-calibrate-app
-    needs: [check, image-tag]
+    needs: [check]
     if: needs.check.outputs.run_calibrate_app == 'true'
     runs-on: ubuntu-latest
     steps:
