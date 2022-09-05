@@ -37,11 +37,6 @@ class DefaultFirebaseOptions {
           'DefaultFirebaseOptions have not been configured for windows - '
           'you can reconfigure this by running the FlutterFire CLI again.',
         );
-      case TargetPlatform.linux:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for linux - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
       default:
         throw UnsupportedError(
           'DefaultFirebaseOptions are not supported for this platform.',
@@ -60,7 +55,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyD05_4qJWF4K0hpluiu8vj8xE6IjSojCMY',
+    apiKey: 'AIzaSyAcra-90bskaBWH8i-B_TR9EDeYQO36r_I',
     appId: '1:394593516776:ios:68b713e52cbf0feb9e1d5d',
     messagingSenderId: '394593516776',
     projectId: 'airqo-dev',

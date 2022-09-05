@@ -70,7 +70,6 @@ android {
         targetSdkVersion 33
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
-        manifestPlaceholders = [googleMapsKey:googleMapApiKey]
     }
 
     flavorDimensions "airqo"
@@ -78,7 +77,7 @@ android {
  
         airqodev {
             dimension "airqo"
-            applicationIdSuffix "dev"
+            applicationIdSuffix ".dev"
             manifestPlaceholders = [googleMapsKey:googleMapApiKey_airqodev]
         }
  
