@@ -4,6 +4,10 @@ import 'dart:typed_data';
 import 'package:app/models/models.dart';
 import 'package:app_repository/app_repository.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+import 'package:app/models/profile.dart';
+import 'package:app/services/secure_storage.dart';
+
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'firebase_service.dart';
@@ -45,16 +49,16 @@ class HiveService {
   }
 
   static Future<Uint8List> getEncryptionKey() async {
-    const secureStorage = FlutterSecureStorage();
-    var encodedKey = await secureStorage.read(key: HiveBox.encryptionKey);
+    final secureStorage = SecureStorage();
+    var encodedKey = await secureStorage.getValue(HiveBox.encryptionKey);
     if (encodedKey == null) {
       final secureKey = Hive.generateSecureKey();
-      await secureStorage.write(
+      await secureStorage.setValue(
         key: HiveBox.encryptionKey,
         value: base64UrlEncode(secureKey),
       );
     }
-    encodedKey = await secureStorage.read(key: HiveBox.encryptionKey);
+    encodedKey = await secureStorage.getValue(HiveBox.encryptionKey);
 
     return base64Url.decode(encodedKey!);
   }

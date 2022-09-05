@@ -51,7 +51,7 @@ dependencies:
   sentry_flutter: ^6.9.0
   lottie: ^1.4.1
   share_plus: ^4.0.10
-  flutter_secure_storage: ^5.1.0
+  flutter_secure_storage: ^6.0.0
   geocoding: ^2.0.4
   flutter_dotenv: ^5.0.2
   auto_size_text: ^3.0.0
