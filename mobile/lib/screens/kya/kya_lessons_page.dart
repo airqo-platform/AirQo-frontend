@@ -114,9 +114,8 @@ class _KyaLessonsPageState extends State<KyaLessonsPage>
                 child: AutoSizeText(
                   'Swipe Left Or Right to Move to Next Card',
                   style: CustomTextStyle.headline7(context)?.copyWith(
-                      color: CustomColors.appColorBlue,
-                      
-                      ),
+                    color: CustomColors.appColorBlue,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ),
