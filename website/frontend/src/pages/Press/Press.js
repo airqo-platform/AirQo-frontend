@@ -5,7 +5,9 @@ import ZindiIcon from 'icons/press/zindi.svg';
 import DevexIcon from 'icons/press/devex.svg';
 import PMLDailyIcon from 'icons/press/pml-daily.svg';
 import LifeWireIcon from 'icons/press/Lifewire-logo.svg';
-import VOAIcon from 'icons/press/VoaLogo.svg';
+import VOAIcon from 'icons/press/VoiceOfAfrica.svg';
+import WorldEconomicForumIcon from 'icons/press/WorldEconomicForum.svg';
+import XinhuaNetIcon from 'icons/press/XinhuaNet.svg';
 import Article from './Article';
 import Page from '../Page';
 import SEO from 'utils/seo';
@@ -29,11 +31,20 @@ const Press = () => {
                       <div className="press-cards">
                           <div className="card">
                               <Article
-                                  title="Ugandan Researchers Develop Low-Cost Sensors to Track Air Pollution "
+                                  title="Ugandan scientists build low-cost air quality monitoring system"
+                                  subtitle="In a tiny workshop at Uganda's top university, Makerere University, tech-savvy youths develop a low cost air quality monitoring system"
+                                  url="https://english.news.cn/20220616/2809c8d2db6e412caad2181a08d13b8b/c.html"
+                                  date="Jun 16, 2022"
+                                  icon={<XinhuaNetIcon />}
+                              />
+                          </div>
+                          <div className="card">
+                              <Article
+                                  title="These low-cost sensors are helping Uganda tackle rising air pollution "
                                   subtitle="Ugandan researchers have developed low-cost air quality monitoring sensors that work in extreme conditions"
-                                  url="https://www.voanews.com/a/ugandan-researchers-develop-low-cost-sensors-to-track-air-pollution/6595195.html"
-                                  date="May 30, 2022"
-                                  icon={<VOAIcon style={{height:'52px'}}/>}
+                                  url="https://www.weforum.org/agenda/2022/06/ugandan-researchers-low-cost-sensors-air-pollution/#:~:text=The%20AirQo%20project%2C%20partly%20funded,public%20via%20a%20smartphone%20app."
+                                  date="Jun 09, 2022"
+                                  icon={<WorldEconomicForumIcon />}
                               />
                           </div>
                           <div className="card">
@@ -43,6 +54,15 @@ const Press = () => {
                                   url="https://www.lifewire.com/low-cost-sensors-could-help-monitor-air-pollution-5324278"
                                   date="Jun 2, 2022"
                                   icon={<LifeWireIcon />}
+                              />
+                          </div>
+                          <div className="card">
+                              <Article
+                                  title="Ugandan Researchers Develop Low-Cost Sensors to Track Air Pollution"
+                                  subtitle="Ugandan researchers have developed low-cost air quality monitoring sensors that work in extreme conditions"
+                                  url="https://www.voanews.com/a/ugandan-researchers-develop-low-cost-sensors-to-track-air-pollution/6595195.html"
+                                  date="May 30, 2022"
+                                  icon={<VOAIcon />}
                               />
                           </div>
                           <div className="card">
