@@ -24,17 +24,6 @@ jobs:
           echo "::set-output name=build_id::stage-${sha}-${timestamp}"
           echo "::set-output name=datetime::${datetime}"
 
-  branch-name:
-    name: Format branch name string
-    runs-on: ubuntu-latest
-    outputs:
-      lowercase: ${{ steps.string.outputs.lowercase }} # lowercase version
-    steps:
-      - id: string
-        uses: ASzc/change-string-case-action@v2
-        with:
-          string: ${{ github.head_ref || github.ref_name }}
-
   check:
     # this job will only run if the PR has been merged
     if: github.event.pull_request.merged == true
@@ -90,7 +79,7 @@ jobs:
   ### deploy platform ###
   platform:
     name: build-push-deploy-netmanager
-    needs: [check, image-tag, branch-name]
+    needs: [check, image-tag]
     if: needs.check.outputs.run_platform == 'true'
     runs-on: ubuntu-latest
     steps:
