@@ -303,7 +303,7 @@ jobs:
   ### deploy next platform ###
   next-platform:
     name: build-push-deploy-next-platform
-    needs: [check, image-tag, branch-name]
+    needs: [check, image-tag]
     if: needs.check.outputs.run_next_platform == 'true'
     runs-on: ubuntu-latest
     steps:
