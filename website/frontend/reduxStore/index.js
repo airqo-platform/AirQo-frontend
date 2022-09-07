@@ -5,6 +5,7 @@ import getInvolvedReducer from './GetInvolved/reducers';
 import exploreDataReducer from './ExploreData/reducers';
 import careersReducer from './Careers/reducers';
 import teamReducer from './Team/reducers'
+import highlightsReducer from './Highlights/reducers'
 
 export default combineReducers({
   airqlouds: airqloudsReducer,
@@ -13,4 +14,5 @@ export default combineReducers({
   exploreData: exploreDataReducer,
   careersData: careersReducer,
   teamData: teamReducer,
+  highlightsData: highlightsReducer,
 });

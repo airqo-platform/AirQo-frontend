@@ -34,6 +34,7 @@ $p-text:16px;
     grid-template-columns: 3fr 5fr;
     grid-template-rows: max-content;
     justify-items: center;
+    overflow: hidden;
     .section-container{
         display:grid;
         grid-template-columns: $gridColumn;
@@ -238,6 +239,44 @@ $p-text:16px;
             grid-template-columns: 1fr;
             padding-bottom:50px;
             padding-top: 25px;
+            justify-content: center;
+            .content{
+                grid-column: none;
+            }
+        }
+        .left-section{
+            display:none;
+        }
+        .right-section{
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            .cards{
+                grid-column: 2 / 3;
+                align-items: center;
+                justify-content: center;
+            }
+            .contact-card{
+                width:90vw;
+            }
+            .icon{
+                grid-column: 2 / 3;
+                padding: 0;
+            }
+        }
+    }
+}
+
+@media screen and(min-width:$mainBreakPoint)and(max-width: $tabBreakPoint){
+    .contact-us{
+        padding: 0;
+        margin: 0;
+        grid-template-columns: none;
+        .section-container{
+            grid-column: 2 / 3;
+            display: grid;
+            grid-template-columns: 1fr;
+            padding-bottom:50px;
+            padding-top: 80px;
             justify-content: center;
             .content{
                 grid-column: none;

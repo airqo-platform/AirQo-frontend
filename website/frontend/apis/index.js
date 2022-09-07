@@ -2,6 +2,7 @@ import axios from 'axios';
 import {
   AIRQLOUD_SUMMARY, NEWSLETTER_SUBSCRIPTION, INQUIRY_URL, EXPLORE_DATA_URL, CAREERS_URL, DEPARTMENTS_URL, TEAMS_URL
 } from 'config/urls';
+import { HIGHLIGHTS_URL, TAGS_URL } from '../config/urls';
 
 export const getAirQloudSummaryApi = async () => await axios
   .get(AIRQLOUD_SUMMARY)
@@ -30,3 +31,7 @@ export const getAllDepartmentsApi = async () => await axios.get(DEPARTMENTS_URL)
 
 // Teams endpoints
 export const getAllTeamMembersApi = async () => await axios.get(TEAMS_URL).then((response) => response.data);
+
+// Highlights endpoints
+export const getAllHighlightsApi = async () => await axios.get(HIGHLIGHTS_URL).then((response)=>(response.data));
+export const getAllTagsApi = async () => await axios.get(TAGS_URL).then((response) => (response.data));

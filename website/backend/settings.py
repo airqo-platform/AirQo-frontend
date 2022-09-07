@@ -37,13 +37,13 @@ DEBUG = env.bool("DEBUG", default=False)
 TESTING = env.bool("TESTING", default=False)
 
 SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=True)
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+HTTP_X_FORWARDED_PROTO_VALUE = env("HTTP_X_FORWARDED_PROTO", default="https")
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', HTTP_X_FORWARDED_PROTO_VALUE)
 
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS")
 
-EXTRA_CORS_ORIGIN_REGEX_WHITELIST = env.list(
-    "EXTRA_CORS_ORIGIN_REGEX_WHITELIST", default=[]
-)
+EXTRA_CORS_ORIGIN_REGEX_WHITELIST = env.list("EXTRA_CORS_ORIGIN_REGEX_WHITELIST", default=[])
 
 CORS_ORIGIN_REGEX_WHITELIST = [
     r"^https://[a-zA-Z0-9_\-]+\.airqo\.net$",
@@ -54,11 +54,9 @@ CORS_ORIGIN_REGEX_WHITELIST = [
     r"^https://staging-dot-airqo-frontend.appspot.com$",
 ]
 
-CORS_ORIGIN_REGEX_WHITELIST = (
-    CORS_ORIGIN_REGEX_WHITELIST + EXTRA_CORS_ORIGIN_REGEX_WHITELIST
-)
+CORS_ORIGIN_REGEX_WHITELIST = (CORS_ORIGIN_REGEX_WHITELIST + EXTRA_CORS_ORIGIN_REGEX_WHITELIST)
 
-CORS_ORIGIN_ALLOW_ALL = False
+CORS_ORIGIN_ALLOW_ALL = env.bool("CORS_ORIGIN_ALLOW_ALL", default=False)
 
 CSRF_TRUSTED_ORIGINS = env.list(
     "CSRF_TRUSTED_ORIGINS",
@@ -128,15 +126,7 @@ WSGI_APPLICATION = "backend.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
-DATABASES = {
-    "default": dj_database_url.config(
-        # Default values for DATABASE_URI are for the development environment
-        default=env(
-            "DATABASE_URI", default="postgresql://user:password@dbHost:5432/database"
-        )
-    )
-}
-
+DATABASES = {"default": dj_database_url.config(default=env("DATABASE_URI"))}
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators

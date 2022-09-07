@@ -9,11 +9,25 @@ class SecureStorage {
   SecureStorage._internal();
   static final SecureStorage _instance = SecureStorage._internal();
 
-  final _secureStorage = const FlutterSecureStorage();
+  final _secureStorage = const FlutterSecureStorage(
+    aOptions: AndroidOptions(
+      encryptedSharedPreferences: true,
+    ),
+  );
 
   Future<void> clearUserData() async {
-    const secureStorage = FlutterSecureStorage();
-    await secureStorage.deleteAll();
+    await _secureStorage.deleteAll();
+  }
+
+  Future<String?> getValue(String key) async {
+    return _secureStorage.read(key: key);
+  }
+
+  Future<void> setValue({required String key, required String value}) async {
+    await _secureStorage.write(
+      key: key,
+      value: value,
+    );
   }
 
   Future<void> updateUserDetailsField(String key, String value) async {

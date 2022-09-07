@@ -10,12 +10,18 @@ import ApiSection from '../components/ApiSection/ApiSection';
 import AirQuality from '../components/AirQuality/AirQuality';
 import Partners from '../components/Partners';
 import HighlightsSection from '../components/HighlightsSection';
+import SEO from 'utils/seo';
 
 const HomePage = () => {
     useInitScrollTop();
     return(
         <Page>
             <div className="HomePage">
+                <SEO
+                    title="AirQo Africa"
+                    siteTitle="Clean Air for all African Cities"
+                    description="AirQo is Africa's leading air quality monitoring, research and analytics network. We use low cost technologies and AI to close the gaps in air quality data across the continent. Work with us to find data-driven solutions to your air quality challenges."
+                />
                 <Hero />
                 <Partners />
                 <AirQuality />

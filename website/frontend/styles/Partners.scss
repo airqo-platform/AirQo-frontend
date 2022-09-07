@@ -12,7 +12,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 80px;
+            padding: 80px 0;
             .title{
                 display: flex;
                 flex-flow: row wrap;
@@ -39,6 +39,12 @@
                 height: 80px;
                 border-radius: 0;
                 mix-blend-mode: multiply;
+                img{
+                    height: 60px;
+                    width: 120px;
+                    object-fit: contain;
+                    max-width: 120px;
+                }
                 }
             }
         }
@@ -50,7 +56,7 @@
         margin-top:80px;
         .backdrop{
             .content{
-                padding:50px 0;
+                padding:80px 0;
                 .logos{
                     >div{
                         min-width: 164px;
