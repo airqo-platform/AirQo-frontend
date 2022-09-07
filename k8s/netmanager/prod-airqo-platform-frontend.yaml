@@ -16,6 +16,23 @@ spec:
       labels:
         app: airqo-platform
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 10
+              preference:
+                matchExpressions:
+                  - key: node-type
+                    operator: In
+                    values:
+                      - general-purpose
+            - weight: 1
+              preference:
+                matchExpressions:
+                  - key: node-type
+                    operator: In
+                    values:
+                      - high-memory
       containers:
         - name: airqo-platform
           image: us.gcr.io/airqo-250220/airqo-platform-frontend:latest
@@ -28,11 +45,12 @@ spec:
                 name: env-platform-production
           resources:
             requests:
-              cpu: 100m
-              memory: 250Mi
+              # Average usage was 0.00001 vCPU and 60Mi over the last 30 days
+              cpu: 5m
+              memory: 60Mi
             limits:
-              cpu: 200m
-              memory: 700Mi
+              cpu: 100m
+              memory: 150Mi
 
 ---
 kind: Service
@@ -63,9 +81,9 @@ spec:
   minReplicas: 1
   maxReplicas: 4
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 70

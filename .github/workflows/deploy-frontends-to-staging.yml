@@ -2,7 +2,7 @@ name: deploy-frontends-to-staging
 
 on:
   pull_request:
-    branches: 
+    branches:
       - staging
     types:
       - closed
@@ -18,11 +18,11 @@ jobs:
       - name: generate build ID
         id: prep
         run: |
-            sha=${GITHUB_SHA::8}
-            timestamp=$(date +%s)
-            datetime=$(date)
-            echo "::set-output name=build_id::stage-${sha}-${timestamp}"
-            echo "::set-output name=datetime::${datetime}"
+          sha=${GITHUB_SHA::8}
+          timestamp=$(date +%s)
+          datetime=$(date)
+          echo "::set-output name=build_id::stage-${sha}-${timestamp}"
+          echo "::set-output name=datetime::${datetime}"
 
   branch-name:
     name: Format branch name string
@@ -43,6 +43,7 @@ jobs:
       run_platform: ${{ steps.check_files.outputs.run_platform }} # platform
       run_website: ${{ steps.check_files.outputs.run_website }} # website
       run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }} # calibrate app
+      run_next_platform: ${{ steps.check_files.outputs.run_next_platform }} # next platform
 
     runs-on: ubuntu-latest
     steps:
@@ -56,13 +57,14 @@ jobs:
         run: |
           echo "=============== list modified files ==============="
           git diff --name-only HEAD^ HEAD
-          
+
           echo "========== check paths of modified files =========="
           git diff --name-only HEAD^ HEAD > files.txt
 
           echo "::set-output name=run_platform::false"
           echo "::set-output name=run_website::false" 
-          echo "::set-output name=run_calibrate_app::false"  
+          echo "::set-output name=run_calibrate_app::false"
+          echo "::set-output name=run_next_platform::false"  
 
           while IFS= read -r file
           do
@@ -79,10 +81,8 @@ jobs:
               echo "::set-output name=run_calibrate_app::true"
             fi
 
-            if [[ $file == workflow-trigger.txt ]]; then
-              echo "::set-output name=run_platform::true"
-              echo "::set-output name=run_website::true"
-              echo "::set-output name=run_calibrate_app::true"
+            if [[ $file == platform/* ]]; then
+              echo "::set-output name=run_next_platform::true"
             fi
 
           done < files.txt
@@ -96,7 +96,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      
+
       - name: Login to GCR
         uses: docker/login-action@v1
         with:
@@ -113,7 +113,7 @@ jobs:
       - name: NPM Setup and Build
         uses: actions/setup-node@v2
         with:
-          node-version: '12'
+          node-version: "12"
       - run: |
           cd netmanager/
 
@@ -126,7 +126,7 @@ jobs:
           export PORT=${{ secrets.NODE_PORT }}
 
           npm install
-    
+
           CI=false npm run build
 
       - name: Build and Push Docker Image
@@ -139,7 +139,7 @@ jobs:
 
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-analytics-api:${{ needs.image-tag.outputs.build_id }}
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-analytics-api:latest
-            
+
       - name: Login to GCP
         uses: google-github-actions/auth@v0
         with:
@@ -156,7 +156,7 @@ jobs:
 
       - name: Deploy to K8S
         run: |
-          kubectl apply -f k8s/platform/stage-airqo-platform-frontend.yaml
+          kubectl apply -f k8s/netmanager/stage-airqo-platform-frontend.yaml
           kubectl set image deployment/airqo-stage-platform-frontend sta-platform-ui=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} -n staging
           kubectl annotate deployment/airqo-stage-platform-frontend kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n staging
 
@@ -184,10 +184,10 @@ jobs:
         id: auth
         uses: google-github-actions/auth@v0
         with:
-          credentials_json: '${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}'
-          
+          credentials_json: "${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}"
+
       - name: Setup Cloud SDK
-        uses: 'google-github-actions/setup-gcloud@v0'
+        uses: "google-github-actions/setup-gcloud@v0"
 
       - name: Create google_application_credentials.json file
         id: create-google-application-credentials-file
@@ -196,7 +196,7 @@ jobs:
         with:
           name: "google_application_credentials.json"
           json: ${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}
-          dir: 'website/'
+          dir: "website/"
 
       - name: Create app.yaml and .env.yaml files
         run: |
@@ -224,7 +224,7 @@ jobs:
           echo "  DEBUG: False" >> .env.yaml
           echo "  GOOGLE_APPLICATION_CREDENTIALS: /app/google_application_credentials.json" >> .env.yaml
           echo "  REACT_APP_WEBSITE_BASE_URL: ${{ secrets.WEBSITE_STAGE_REACT_APP_WEBSITE_BASE_URL }}" >> .env.yaml
-        
+
       - name: Build and Push Docker Image
         run: |
           cd website/
@@ -256,7 +256,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      
+
       - name: Login to GCR
         uses: docker/login-action@v1
         with:
@@ -273,7 +273,7 @@ jobs:
       - name: NPM Setup and Build
         uses: actions/setup-node@v2
         with:
-          node-version: '12'
+          node-version: "12"
       - run: |
           cd calibrate/
 
@@ -283,7 +283,7 @@ jobs:
           export PORT=${{ secrets.NODE_PORT }}
 
           npm install
-    
+
           CI=false npm run build
 
       - name: Build and Push Docker Image
@@ -293,7 +293,7 @@ jobs:
           docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }}
-      
+
       - name: Login to GCP
         uses: google-github-actions/auth@v0
         with:
@@ -313,3 +313,60 @@ jobs:
           kubectl apply -f k8s/calibrate/stage-airqo-calibrate-app.yaml
           kubectl set image deployment/airqo-stage-calibrate-app sta-calibrate-app=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }} -n staging
           kubectl annotate deployment/airqo-stage-calibrate-app kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n staging
+
+  ### deploy next platform ###
+  next-platform:
+    name: build-push-deploy-next-platform
+    needs: [check, image-tag, branch-name]
+    if: needs.check.outputs.run_next_platform == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Login to GCR
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ secrets.REGISTRY_URL }}
+          username: _json_key
+          password: ${{ secrets.GCR_CONFIG }}
+
+      - name: Login to K8S
+        uses: azure/k8s-set-context@v1
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.K8S_CONFIG_STAGE }}
+
+      - name: Create .env file
+        run: |
+          cd platform/
+          echo "========== Creating app.yaml file =========="  
+          echo "NEXT_PUBLIC_ORIGINAL_PLATFORM=${{ secrets.NEW_PLATFORM_STAGE_ORIGINAL_PLATFORM }}" >> .env
+
+      - name: Build and Push Docker Image
+        run: |
+          cd platform/
+          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }} .
+          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-next-platform:latest
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-next-platform:latest
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }}
+
+      - name: Login to GCP
+        uses: google-github-actions/auth@v0
+        with:
+          credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
+
+      - name: Setup Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0
+
+      - name: Update the corresponding k8s configmap(s)
+        run: |
+          cd platform/
+          gcloud secrets versions access latest --secret="sta-env-next-platform" > .env
+          kubectl create configmap --dry-run=client -o yaml --from-env-file=.env env-next-platform-staging | kubectl replace -f - -n staging
+
+      - name: Deploy to K8S
+        run: |
+          kubectl apply -f k8s/platform/stage-airqo-next-platform.yaml
+          kubectl set image deployment/airqo-stage-next-platform sta-next-platform=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }} -n staging
+          kubectl annotate deployment/airqo-stage-next-platform kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n staging
