@@ -1,0 +1,71 @@
+###########################################################
+# Start deployment of next platform - staging
+###########################################################
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airqo-stage-next-platform
+  namespace: staging
+spec:
+  selector:
+    matchLabels:
+      app: sta-next-platform
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: sta-next-platform
+    spec:
+      containers:
+        - name: sta-next-platform
+          image: us.gcr.io/airqo-250220/airqo-stage-next-platform:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+              name: next-platform
+          envFrom:
+            - configMapRef:
+                name: env-next-platform-staging
+          resources:
+            requests:
+              cpu: 100m
+              memory: 250Mi
+            limits:
+              cpu: 200m
+              memory: 700Mi
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: airqo-stage-next-platform-svc
+  namespace: staging
+spec:
+  selector:
+    app: sta-next-platform
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+      nodePort: 31107
+  type: NodePort
+
+---
+kind: HorizontalPodAutoscaler
+apiVersion: autoscaling/v2
+metadata:
+  name: airqo-stage-next-platform-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: airqo-stage-next-platform
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 80
