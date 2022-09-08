@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 // 1
-enum Environment { dev, prod } 
+enum Environment { dev, prod }
 
 // 2
 class AppConfig extends InheritedWidget {
@@ -10,10 +10,10 @@ class AppConfig extends InheritedWidget {
   final String appTitle;
 
   // 4
-  const AppConfig({ 
-    Key? key, 
-    required Widget child, 
-    required this.environment, 
+  const AppConfig({
+    Key? key,
+    required Widget child,
+    required this.environment,
     required this.appTitle,
   }) : super(
           key: key,
@@ -27,5 +27,5 @@ class AppConfig extends InheritedWidget {
 
   // 6
   @override
-  bool updateShouldNotify(covariant InheritedWidget oldWidget) => false; 
+  bool updateShouldNotify(covariant InheritedWidget oldWidget) => false;
 }

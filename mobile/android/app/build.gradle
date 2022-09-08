@@ -74,17 +74,17 @@ android {
 
     flavorDimensions "airqo"
     productFlavors {
+        airqo {
+            dimension "airqo"
+            manifestPlaceholders = [googleMapsKey:googleMapApiKey]
+        }
  
         airqodev {
             dimension "airqo"
             applicationIdSuffix ".dev"
             manifestPlaceholders = [googleMapsKey:googleMapApiKey_airqodev]
         }
- 
-        airqo {
-            dimension "app"
-            manifestPlaceholders = [googleMapsKey:googleMapApiKey]
-        }
+        
     }
 // Add start
     signingConfigs {
