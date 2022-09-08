@@ -10,11 +10,10 @@ h3, h4 {
   position: sticky;
   top: 0;
   width: 100%;
-  height: 88px;
+  height: auto;
   background: $aq-white-0;
-  box-shadow: 0 0 13px -11px #0000001a;
-  padding-top: 16px;
-  padding-bottom: 16px;
+  box-shadow: 0 0 1px 1.2px #8a8a8a1a;
+  padding:16px 0;
   box-sizing: border-box;
   background-color: $aq-white-0;
   z-index: 1000;
@@ -25,7 +24,12 @@ h3, h4 {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: -2px;
+    
+    .logo{
+      svg{
+        height:48px;
+      }
+    }
     
     .nav-center, .nav-right {
       display: flex;
@@ -142,7 +146,10 @@ h3, h4 {
       .logo {
         position: absolute;
         top: -68px;
-        left: 16px;;
+        left: 16px;
+        svg{
+          height: 48;
+        }
       }
 
       #nav-center.nav-center, #nav-right.nav-right {
