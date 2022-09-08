@@ -20,6 +20,7 @@ class AirQoApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var config = AppConfig.of(context);
+
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
