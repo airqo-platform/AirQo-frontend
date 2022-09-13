@@ -497,17 +497,20 @@ enum Pollutant {
 }
 
 enum TitleOptions {
-  ms(value: 'Ms', displayValue: 'Ms.'),
-  mr(value: 'Mr', displayValue: 'Mr.'),
-  undefined(value: 'Rather Not Say', displayValue: 'Rather Not Say');
+  ms(value: 'Ms', displayValue: 'Ms.', abbr: 'Ms.'),
+  mr(value: 'Mr', displayValue: 'Mr.', abbr: 'Mr.'),
+  undefined(
+      value: 'Rather Not Say', displayValue: 'Rather Not Say', abbr: 'Ra.');
 
   const TitleOptions({
     required this.value,
     required this.displayValue,
+    required this.abbr,
   });
 
   final String value;
   final String displayValue;
+  final String abbr;
 }
 
 enum ToolTipType {

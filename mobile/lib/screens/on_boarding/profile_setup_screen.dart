@@ -27,12 +27,12 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   DateTime? _exitTime;
   Color nextBtnColor = CustomColors.appColorDisabled;
   bool _showDropDown = false;
-  late Profile _profile;
 
   final _formKey = GlobalKey<FormState>();
   bool _showOptions = true;
   final TextEditingController _controller = TextEditingController();
   late BuildContext dialogContext;
+  TitleOptions _title = TitleOptions.ms;
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +66,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   children: <Widget>[
                     TitleDropDown(
                       showTileOptionsCallBack: _showTileOptionsCallBack,
-                      profile: _profile,
+                      title: _title,
                     ),
                     const SizedBox(
                       width: 16,
@@ -164,14 +164,12 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
       options.add(
         GestureDetector(
           onTap: () {
-            _updateTitleCallback(
-              option.value,
-            );
+            _updateTitleCallback(option);
           },
           child: AutoSizeText(
             option.displayValue,
             style: Theme.of(context).textTheme.bodyText1?.copyWith(
-                  color: _profile.title == option.value
+                  color: _title.displayValue == option.value
                       ? CustomColors.appColorBlack
                       : CustomColors.appColorBlack.withOpacity(0.32),
                 ),
@@ -183,20 +181,16 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
     return options;
   }
 
-  void _initialize() async {
-    _profile = await Profile.getProfile();
-  }
-
   @override
   void initState() {
     super.initState();
     dialogContext = context;
-    _initialize();
     updateOnBoardingPage();
   }
 
   void _showTileOptionsCallBack(bool showTitleOptions) {
     setState(() => _showOptions = showTitleOptions);
+    setState(() => _showDropDown = showTitleOptions);
   }
 
   void _nameChangeCallBack(String name) {
@@ -263,16 +257,14 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
           },
         );
 
-        setState(
-          () {
-            nextBtnColor = CustomColors.appColorDisabled;
-            _profile
-              ..firstName = Profile.getNames(_fullName).first
-              ..lastName = Profile.getNames(_fullName).last;
-          },
-        );
+        setState(() => nextBtnColor = CustomColors.appColorDisabled);
 
-        await _profile.update();
+        Profile profile = await Profile.getProfile();
+        profile
+          ..firstName = Profile.getNames(_fullName).first
+          ..lastName = Profile.getNames(_fullName).last;
+
+        await profile.update();
 
         Navigator.pop(dialogContext);
         await Navigator.pushAndRemoveUntil(
@@ -305,10 +297,10 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
     await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.profile);
   }
 
-  void _updateTitleCallback(String text) {
+  void _updateTitleCallback(TitleOptions title) {
     setState(
       () {
-        _profile.title = text;
+        _title = title;
         _showDropDown = false;
       },
     );

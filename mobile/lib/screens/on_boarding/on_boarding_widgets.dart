@@ -144,10 +144,10 @@ class TitleDropDown extends StatelessWidget {
   const TitleDropDown({
     super.key,
     required this.showTileOptionsCallBack,
-    required this.profile,
+    required this.title,
   });
   final Function(bool) showTileOptionsCallBack;
-  final Profile profile;
+  final TitleOptions title;
 
   @override
   Widget build(BuildContext context) {
@@ -166,7 +166,7 @@ class TitleDropDown extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('${profile.title.substring(0, 2)}.'),
+              Text(title.abbr),
               const Icon(
                 Icons.keyboard_arrow_down_sharp,
                 color: Colors.black,
