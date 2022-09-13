@@ -19,6 +19,7 @@ export const loadPM25HeatMapData = () => async (dispatch) => {
         longitude: "longitude",
         latitude: "latitude",
       });
+      console.log("Heatmap Payload:", payload);
       dispatch({
         type: LOAD_PM25_HEATMAP_DATA_SUCCESS,
         payload,
