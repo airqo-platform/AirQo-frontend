@@ -7,7 +7,6 @@ import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
-import '../constants/config.dart';
 
 class DBHelper {
   factory DBHelper() {

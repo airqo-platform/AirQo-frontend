@@ -121,6 +121,12 @@ class Profile extends HiveObject {
     }
   }
 
+  Future<void> updateName(String fullName) async {
+    firstName = Profile.getNames(fullName).first;
+    lastName = Profile.getNames(fullName).last;
+    await update();
+  }
+
   Future<void> update({
     bool logout = false,
     bool? enableNotification,

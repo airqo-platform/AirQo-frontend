@@ -4,6 +4,7 @@ import 'package:bloc/bloc.dart';
 import '../../services/hive_service.dart';
 import '../../services/location_service.dart';
 import '../../services/native_api.dart';
+import '../../utils/exception.dart';
 import 'nearby_location_event.dart';
 import 'nearby_location_state.dart';
 
@@ -18,38 +19,46 @@ class NearbyLocationBloc
     SearchNearbyLocations event,
     Emitter<NearbyLocationState> emit,
   ) async {
-    emit(SearchingNearbyLocationsState());
+    try {
+      emit(SearchingNearbyLocationsState());
 
-    final locationEnabled =
-        await PermissionService.checkPermission(AppPermission.location);
+      final locationEnabled =
+          await PermissionService.checkPermission(AppPermission.location);
 
-    if (!locationEnabled) {
-      await HiveService.updateNearbyAirQualityReadings([]);
+      if (!locationEnabled) {
+        await HiveService.updateNearbyAirQualityReadings([]);
+
+        return emit(
+          const NearbyLocationStateError(
+            error: NearbyAirQualityError.locationDisabled,
+          ),
+        );
+      }
+
+      final nearbyAirQualityReadings =
+          await LocationService.getNearbyAirQualityReadings(top: 8);
+
+      await HiveService.updateNearbyAirQualityReadings(
+          nearbyAirQualityReadings);
+
+      if (nearbyAirQualityReadings.isEmpty) {
+        return emit(
+          const NearbyLocationStateError(
+            error: NearbyAirQualityError.noNearbyAirQualityReadings,
+          ),
+        );
+      }
 
       return emit(
-        const NearbyLocationStateError(
-          error: NearbyAirQualityError.locationDisabled,
+        NearbyLocationStateSuccess(
+          airQualityReadings: nearbyAirQualityReadings,
         ),
       );
-    }
-
-    final nearbyAirQualityReadings =
-        await LocationService.getNearbyAirQualityReadings(top: 8);
-
-    await HiveService.updateNearbyAirQualityReadings(nearbyAirQualityReadings);
-
-    if (nearbyAirQualityReadings.isEmpty) {
-      return emit(
-        const NearbyLocationStateError(
-          error: NearbyAirQualityError.noNearbyAirQualityReadings,
-        ),
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
       );
     }
-
-    return emit(
-      NearbyLocationStateSuccess(
-        airQualityReadings: nearbyAirQualityReadings,
-      ),
-    );
   }
 }

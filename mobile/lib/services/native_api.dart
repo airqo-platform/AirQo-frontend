@@ -25,7 +25,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:workmanager/workmanager.dart' as workmanager;
 
 import '../utils/exception.dart';
-import 'firebase_service.dart';
 import 'hive_service.dart';
 
 class SystemProperties {

@@ -10,7 +10,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:location/location.dart' as locate_api;
 
-import 'firebase_service.dart';
 import 'hive_service.dart';
 import 'native_api.dart';
 

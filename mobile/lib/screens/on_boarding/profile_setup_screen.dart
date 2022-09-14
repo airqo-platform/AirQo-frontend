@@ -31,7 +31,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _showOptions = true;
   final TextEditingController _controller = TextEditingController();
-  late BuildContext dialogContext;
+
   TitleOptions _title = TitleOptions.ms;
 
   @override
@@ -184,7 +184,6 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   @override
   void initState() {
     super.initState();
-    dialogContext = context;
     updateOnBoardingPage();
   }
 
@@ -245,7 +244,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   Future<void> _saveName() async {
     try {
       if (_formKey.currentState!.validate()) {
-        loadingScreen(dialogContext);
+        loadingScreen(context);
 
         FocusScope.of(context).requestFocus(
           FocusNode(),
@@ -259,14 +258,10 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
         setState(() => nextBtnColor = CustomColors.appColorDisabled);
 
-        Profile profile = await Profile.getProfile();
-        profile
-          ..firstName = Profile.getNames(_fullName).first
-          ..lastName = Profile.getNames(_fullName).last;
+        final profile = await Profile.getProfile();
+        await profile.updateName(_fullName);
 
-        await profile.update();
-
-        Navigator.pop(dialogContext);
+        Navigator.pop(context);
         await Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) {
@@ -276,7 +271,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
         );
       }
     } on Exception catch (exception, stackTrace) {
-      Navigator.pop(dialogContext);
+      Navigator.pop(context);
       setState(
         () {
           nextBtnColor = CustomColors.appColorBlue;

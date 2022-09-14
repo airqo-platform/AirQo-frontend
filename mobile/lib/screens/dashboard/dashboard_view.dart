@@ -5,6 +5,7 @@ import 'package:app/screens/analytics/analytics_widgets.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/utils/dashboard.dart';
 import 'package:app/utils/date.dart';
+import 'package:app/utils/exception.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -347,11 +348,20 @@ class _DashboardViewState extends State<DashboardView> {
   Future<void> _refresh() async {
     setState(() => _isRefreshing = true);
 
-    await PermissionService.checkPermission(
-      AppPermission.location,
-      request: true,
-    ).then((value) =>
-        context.read<NearbyLocationBloc>().add(const SearchNearbyLocations()));
+    try {
+      await PermissionService.checkPermission(
+        AppPermission.location,
+        request: true,
+      ).then((value) => context
+          .read<NearbyLocationBloc>()
+          .add(const SearchNearbyLocations()));
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
     await _appService.refreshDashboard(context);
     context.read<MapBloc>().add(const ShowAllSites());
     _refreshAnalyticsCards();

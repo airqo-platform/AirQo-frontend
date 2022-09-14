@@ -9,7 +9,6 @@ import '../../services/rest_api.dart';
 import '../../themes/colors.dart';
 import '../../widgets/custom_widgets.dart';
 
-import 'auth_widgets.dart';
 
 class EmailReAuthenticateScreen extends StatefulWidget {
   const EmailReAuthenticateScreen(

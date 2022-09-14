@@ -52,18 +52,22 @@ class _MapLandscapeState extends State<MapLandscape> {
 
   @override
   Widget build(BuildContext context) {
-    return GoogleMap(
-      compassEnabled: false,
-      onMapCreated: _onMapCreated,
-      mapType: MapType.normal,
-      myLocationButtonEnabled: false,
-      myLocationEnabled: false,
-      rotateGesturesEnabled: false,
-      tiltGesturesEnabled: false,
-      mapToolbarEnabled: false,
-      zoomControlsEnabled: true,
-      initialCameraPosition: _defaultCameraPosition,
-      markers: _markers.values.toSet(),
+    return SizedBox(
+      width: MediaQuery.of(context).size.width,
+      height: MediaQuery.of(context).size.height,
+      child: GoogleMap(
+        compassEnabled: false,
+        onMapCreated: _onMapCreated,
+        mapType: MapType.normal,
+        myLocationButtonEnabled: false,
+        myLocationEnabled: false,
+        rotateGesturesEnabled: false,
+        tiltGesturesEnabled: false,
+        mapToolbarEnabled: false,
+        zoomControlsEnabled: true,
+        initialCameraPosition: _defaultCameraPosition,
+        markers: _markers.values.toSet(),
+      ),
     );
   }
 
@@ -114,17 +118,11 @@ class _MapLandscapeState extends State<MapLandscape> {
     context.read<MapBloc>().stream.listen((state) {
       if (state is AllSitesState) {
         _setMarkers(state.airQualityReadings);
-      }
-
-      if (state is RegionSitesState) {
+      } else if (state is RegionSitesState) {
         _setMarkers(state.airQualityReadings);
-      }
-
-      if (state is SingleSiteState) {
+      } else if (state is SingleSiteState) {
         _setMarkers([state.airQualityReading]);
-      }
-
-      if (state is SearchSitesState) {
+      } else if (state is SearchSitesState) {
         _setMarkers(state.airQualityReadings);
       }
     });
@@ -139,9 +137,9 @@ class _MapLandscapeState extends State<MapLandscape> {
       return;
     }
 
-    if (airQualityReadings.isEmpty) {
-      final controller = _mapController;
+    final controller = _mapController;
 
+    if (airQualityReadings.isEmpty) {
       await controller?.animateCamera(
         CameraUpdate.newCameraPosition(_defaultCameraPosition),
       );
@@ -180,8 +178,6 @@ class _MapLandscapeState extends State<MapLandscape> {
     }
 
     if (mounted) {
-      final controller = _mapController;
-
       if (airQualityReadings.length == 1) {
         final latLng = LatLng(
           airQualityReadings.first.latitude,
