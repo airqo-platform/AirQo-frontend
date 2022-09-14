@@ -75,8 +75,8 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
               ),
               if (widget.userDetails.phoneNumber.length > 8)
                 Text(
-                  'Enter the 6 digits code sent to your\n'
-                  'number ${widget.userDetails.phoneNumber}',
+                  'Enter the 6 digits code sent to your number\n'
+                  '${widget.userDetails.phoneNumber}',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,

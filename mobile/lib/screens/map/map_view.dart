@@ -45,7 +45,7 @@ class MapLandscape extends StatefulWidget {
 }
 
 class _MapLandscapeState extends State<MapLandscape> {
-  GoogleMapController? _mapController;
+  late GoogleMapController _mapController;
   Map<String, Marker> _markers = {};
   final _defaultCameraPosition =
       const CameraPosition(target: LatLng(1.6183002, 32.504365), zoom: 6.6);
@@ -72,11 +72,7 @@ class _MapLandscapeState extends State<MapLandscape> {
   }
 
   Future<void> _loadTheme() async {
-    if (_mapController == null) {
-      return;
-    }
-
-    await _mapController?.setMapStyle(
+    await _mapController.setMapStyle(
       jsonEncode(googleMapsTheme),
     );
   }
@@ -85,6 +81,9 @@ class _MapLandscapeState extends State<MapLandscape> {
     _mapController = controller;
     await _loadTheme();
     await _setMarkers([]);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _listenToAirQualityReadingChanges();
+    });
   }
 
   LatLngBounds _getBounds(List<Marker> markers) {
@@ -106,14 +105,6 @@ class _MapLandscapeState extends State<MapLandscape> {
     return bounds;
   }
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _listenToAirQualityReadingChanges();
-    });
-  }
-
   Future<void> _listenToAirQualityReadingChanges() async {
     context.read<MapBloc>().stream.listen((state) {
       if (state is AllSitesState) {
@@ -133,14 +124,10 @@ class _MapLandscapeState extends State<MapLandscape> {
       return;
     }
 
-    if (_mapController == null) {
-      return;
-    }
-
     final controller = _mapController;
 
     if (airQualityReadings.isEmpty) {
-      await controller?.animateCamera(
+      await controller.animateCamera(
         CameraUpdate.newCameraPosition(_defaultCameraPosition),
       );
 
@@ -189,17 +176,16 @@ class _MapLandscapeState extends State<MapLandscape> {
           zoom: 100,
         );
 
-        await controller?.animateCamera(
+        await controller.animateCamera(
           CameraUpdate.newCameraPosition(cameraPosition),
         );
       } else {
-        await controller?.animateCamera(
-          CameraUpdate.newLatLngBounds(
-            _getBounds(
-              markers.values.toList(),
-            ),
-            40.0,
-          ),
+        final latLngBounds = _getBounds(
+          markers.values.toList(),
+        );
+
+        await controller.animateCamera(
+          CameraUpdate.newLatLngBounds(latLngBounds, 40.0),
         );
       }
 

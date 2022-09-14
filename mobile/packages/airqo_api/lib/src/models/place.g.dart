@@ -1,30 +1,46 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
+// ignore_for_file: implicit_dynamic_parameter
+
 part of 'place.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-Geometry _$GeometryFromJson(Map<String, dynamic> json) => Geometry(
-      location: Location.fromJson(json['location'] as Map<String, dynamic>),
+Geometry _$GeometryFromJson(Map<String, dynamic> json) => $checkedCreate(
+      'Geometry',
+      json,
+      ($checkedConvert) {
+        final val = Geometry(
+          location: $checkedConvert(
+              'location', (v) => Location.fromJson(v as Map<String, dynamic>)),
+        );
+        return val;
+      },
     );
 
-Map<String, dynamic> _$GeometryToJson(Geometry instance) => <String, dynamic>{
-      'location': instance.location,
-    };
-
-Location _$LocationFromJson(Map<String, dynamic> json) => Location(
-      lat: (json['lat'] as num).toDouble(),
-      lng: (json['lng'] as num).toDouble(),
+Location _$LocationFromJson(Map<String, dynamic> json) => $checkedCreate(
+      'Location',
+      json,
+      ($checkedConvert) {
+        final val = Location(
+          lat: $checkedConvert('lat', (v) => (v as num).toDouble()),
+          lng: $checkedConvert('lng', (v) => (v as num).toDouble()),
+        );
+        return val;
+      },
     );
 
-Map<String, dynamic> _$LocationToJson(Location instance) => <String, dynamic>{
-      'lat': instance.lat,
-      'lng': instance.lng,
-    };
-
-Place _$PlaceFromJson(Map<String, dynamic> json) => Place(
-      Geometry.fromJson(json['geometry'] as Map<String, dynamic>),
-      json['name'] as String,
+Place _$PlaceFromJson(Map<String, dynamic> json) => $checkedCreate(
+      'Place',
+      json,
+      ($checkedConvert) {
+        final val = Place(
+          $checkedConvert(
+              'geometry', (v) => Geometry.fromJson(v as Map<String, dynamic>)),
+          $checkedConvert('name', (v) => v as String),
+        );
+        return val;
+      },
     );

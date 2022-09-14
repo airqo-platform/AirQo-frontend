@@ -401,7 +401,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
         padding: const EdgeInsets.only(left: 40, right: 40),
         child: AutoSizeText(
           'Enter the 6 digits code sent to your '
-          'number $_countryCode $_phoneNumber',
+          'number\n$_countryCode $_phoneNumber',
           textAlign: TextAlign.center,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,

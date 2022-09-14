@@ -12,7 +12,9 @@ class Site {
     required this.longitude,
     required this.country,
     required this.name,
-    required this.location,
+    required this.locationName,
+    required this.searchName,
+    required this.description,
     required this.region,
     required this.tenant,
   });
@@ -22,10 +24,12 @@ class Site {
   final double latitude;
   final double longitude;
   final String country;
-  @JsonKey(name: 'search_name')
   final String name;
-  @JsonKey(name: 'location_name')
-  final String location;
+  final String description;
+  @JsonKey(name: 'search_name', defaultValue: '', required: false)
+  final String searchName;
+  @JsonKey(name: 'location_name', defaultValue: '', required: false)
+  final String locationName;
   final String region;
   @JsonKey(defaultValue: 'AirQo', required: false)
   final String tenant;

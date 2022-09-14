@@ -101,8 +101,8 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
                     // 'Enter the 6 digits code sent to your\n'
                     //     'number that ends with ...'
                     //     '${phoneNumber.substring(phoneNumber.length - 3)}',
-                    'Enter the 6 digits code sent to your\n'
-                    'number $_countryCode$_phoneNumber',
+                    'Enter the 6 digits code sent to your number'
+                    '\n$_countryCode$_phoneNumber',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,

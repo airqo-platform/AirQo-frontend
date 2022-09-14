@@ -11,8 +11,6 @@ class Geometry {
     required this.location,
   });
   Location location;
-
-  Map<String, dynamic> toJson() => _$GeometryToJson(this);
 }
 
 @JsonSerializable()
@@ -27,8 +25,6 @@ class Location {
   double lat;
 
   double lng;
-
-  Map<String, dynamic> toJson() => _$LocationToJson(this);
 }
 
 @JsonSerializable()

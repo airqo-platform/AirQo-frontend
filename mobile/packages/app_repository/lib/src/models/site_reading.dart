@@ -26,8 +26,12 @@ class SiteReading extends Equatable {
         latitude: measurement.site.latitude,
         longitude: measurement.site.longitude,
         country: measurement.site.country,
-        name: measurement.site.name,
-        location: measurement.site.location,
+        name: measurement.site.searchName == ''
+            ? measurement.site.name
+            : measurement.site.searchName,
+        location: measurement.site.locationName == ''
+            ? measurement.site.description
+            : measurement.site.locationName,
         region: measurement.site.region,
         dateTime: measurement.dateTime,
         pm2_5: double.parse(
@@ -65,7 +69,7 @@ List<SiteReading> parseSitesReadings(List<Measurement> measurements) {
   for (final measurement in measurements) {
     try {
       airQuality.add(SiteReading.fromMeasurement(measurement));
-    } catch (exception, stackTrace) {
+    } catch (exception) {
       // TODO create utils package
       // await logException(
       //   exception,

@@ -17,16 +17,19 @@ Site _$SiteFromJson(Map<String, dynamic> json) => $checkedCreate(
           latitude: $checkedConvert('latitude', (v) => (v as num).toDouble()),
           longitude: $checkedConvert('longitude', (v) => (v as num).toDouble()),
           country: $checkedConvert('country', (v) => v as String),
-          name: $checkedConvert('search_name', (v) => v as String),
-          location: $checkedConvert('location_name', (v) => v as String),
+          name: $checkedConvert('name', (v) => v as String),
+          locationName:
+              $checkedConvert('location_name', (v) => v as String? ?? ''),
+          searchName: $checkedConvert('search_name', (v) => v as String? ?? ''),
+          description: $checkedConvert('description', (v) => v as String),
           region: $checkedConvert('region', (v) => v as String),
-          tenant: $checkedConvert('tenant', (v) => v as String? ?? 'airqo'),
+          tenant: $checkedConvert('tenant', (v) => v as String? ?? 'AirQo'),
         );
         return val;
       },
       fieldKeyMap: const {
         'id': '_id',
-        'name': 'search_name',
-        'location': 'location_name'
+        'locationName': 'location_name',
+        'searchName': 'search_name'
       },
     );
