@@ -15,6 +15,18 @@
   "plugins": ["react"],
   "rules": {
     "react/react-in-jsx-scope": "off",
-    "react/jsx-filename-extension": [1, { "extensions": [".js", ".jsx"] }]
+    "react/jsx-filename-extension": [1, { "extensions": [".js", ".jsx"] }],
+    "import/no-restricted-paths": [
+      "error",
+      {
+        "zones": [
+          { "target": "./src/core", "from": "./src/components" },
+          { "target": "./src/core", "from": "./src/lib" },
+          { "target": "./src/core", "from": "./src/pages" },
+          { "target": "./src/lib", "from": "./src/pages" },
+          { "target": "./src/components", "from": "./src/pages" }
+        ]
+      }
+    ]
   }
 }
