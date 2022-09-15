@@ -1,0 +1,71 @@
+###########################################################
+# Start deployment of next platform - production
+###########################################################
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airqo-next-platform
+  namespace: production
+spec:
+  selector:
+    matchLabels:
+      app: airqo-next-platform
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: airqo-next-platform
+    spec:
+      containers:
+        - name: airqo-next-platform
+          image: us.gcr.io/airqo-250220/airqo-next-platform:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+              name: next-platform
+          envFrom:
+            - configMapRef:
+                name: env-next-platform-production
+          resources:
+            requests:
+              cpu: 100m
+              memory: 250Mi
+            limits:
+              cpu: 200m
+              memory: 700Mi
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: airqo-next-platform-svc
+  namespace: production
+spec:
+  selector:
+    app: airqo-next-platform
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+      nodePort: 30103
+  type: NodePort
+
+---
+kind: HorizontalPodAutoscaler
+apiVersion: autoscaling/v2
+metadata:
+  name: airqo-next-platform-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: airqo-next-platform
+  minReplicas: 1
+  maxReplicas: 4
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70

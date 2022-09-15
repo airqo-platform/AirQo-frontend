@@ -16,6 +16,23 @@ spec:
       labels:
         app: sta-calibrate-app
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 10
+            preference:
+              matchExpressions:
+              - key: node-type
+                operator: In
+                values:
+                - general-purpose
+          - weight: 1
+            preference:
+              matchExpressions:
+              - key: node-type
+                operator: In
+                values:
+                - high-memory
       containers:
         - name: sta-calibrate-app
           image: us.gcr.io/airqo-250220/airqo-stage-calibrate-app:latest
@@ -25,11 +42,12 @@ spec:
               name: sta-calibrate
           resources:
             requests:
-              cpu: 100m
-              memory: 250Mi
+              # Average usage was 0.0001 vCPU and 20Mi over the last 30 days
+              cpu: 5m
+              memory: 20Mi
             limits:
-              cpu: 200m
-              memory: 700Mi
+              cpu: 50m
+              memory: 80Mi
           envFrom:
             - configMapRef:
                 name: env-calibrate-staging
@@ -49,7 +67,7 @@ spec:
   metrics:
   - type: Resource
     resource:
-      name: cpu
+      name: memory
       target:
         type: Utilization
         averageUtilization: 80

@@ -21,7 +21,8 @@ jobs:
     name: check for changed frontends
     outputs:
       run_platform: ${{ steps.check_files.outputs.run_platform }} # platform
-      run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }} # calibrate app
+      run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }} # calibrate 
+      run_next_platform: ${{ steps.check_files.outputs.run_next_platform }} # next platform
 
     runs-on: ubuntu-latest
     steps:
@@ -40,7 +41,8 @@ jobs:
           git diff --name-only HEAD^ HEAD > files.txt
 
           echo "::set-output name=run_platform::false"
-          echo "::set-output name=run_calibrate_app::false"  
+          echo "::set-output name=run_calibrate_app::false"
+          echo "::set-output name=run_next_platform::false"  
 
           while IFS= read -r file
           do
@@ -51,6 +53,10 @@ jobs:
 
             if [[ $file == calibrate/* ]]; then
               echo "::set-output name=run_calibrate_app::true"
+            fi
+
+            if [[ $file == platform/* ]]; then
+              echo "::set-output name=run_next_platform::true"
             fi
 
           done < files.txt
@@ -246,3 +252,84 @@ jobs:
               body: 'New calibrate app changes available for preview [here](${{ needs.calibrate-app.outputs.url }})'
             })
   
+  ### deploy next-platform preview ###
+  next-platform:
+    name: build-push-deploy-next-platform-preview
+    needs: [check, branch-name]
+    if: needs.check.outputs.run_next_platform == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write    
+    outputs:
+      url: ${{ steps.preview-url.outputs.url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Google Auth
+        id: auth
+        uses: google-github-actions/auth@v0
+        with:
+          credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
+          
+      - name: Setup Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0
+
+      - name: Login to GCR
+        id: docker-auth
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ secrets.REGISTRY_URL }}
+          username: _json_key
+          password: ${{ secrets.GCP_SA_CREDENTIALS }}
+
+      - name: Create .env file
+        run: |
+          cd platform/
+          echo "========== Creating app.yaml file =========="  
+          echo "NEXT_PUBLIC_ORIGINAL_PLATFORM=${{ secrets.NEW_PLATFORM_STAGE_ORIGINAL_PLATFORM }}" >> .env
+
+      - name: Build and Push Image
+        run: |
+          cd platform/
+          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/next-platform-pr-previews:${{ github.sha }} .
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/next-platform-pr-previews:${{ github.sha }}
+      
+      - name: Deploy to Cloud Run
+        run: |-
+          gcloud run deploy ${{ needs.branch-name.outputs.lowercase }}-next-platform-preview \
+            --region=${{ secrets.REGION }} \
+            --max-instances=10 \
+            --timeout=60 \
+            --concurrency=10 \
+            --image=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/next-platform-pr-previews:${{ github.sha }} \
+            --port=3000 \
+            --cpu=1000m \
+            --memory=256Mi \
+            --allow-unauthenticated
+
+      - name: Get preview service url
+        id: preview-url
+        run: |
+          read service_url < <(gcloud run services describe ${{ needs.branch-name.outputs.lowercase }}-next-platform-preview \
+            --format='value(status.url)' \
+            --platform managed \
+            --region ${{ secrets.REGION }})
+          echo "::set-output name=url::${service_url}"
+
+  next-platform-pr-comment:
+    name: next-platform-preview-link-comment
+    if: needs.check.outputs.run_next_platform == 'true'
+    needs: [next-platform]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'New next-platform changes available for preview [here](${{ needs.next-platform.outputs.url }})'
+            })  
