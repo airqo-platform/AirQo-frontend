@@ -80,8 +80,9 @@ class _MapLandscapeState extends State<MapLandscape> {
   Future<void> _onMapCreated(GoogleMapController controller) async {
     _mapController = controller;
     await _loadTheme();
-    await _setMarkers([]);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final state = BlocProvider.of<MapBloc>(context).state;
+      _updateMapState(state);
       _listenToAirQualityReadingChanges();
     });
   }
@@ -106,17 +107,19 @@ class _MapLandscapeState extends State<MapLandscape> {
   }
 
   Future<void> _listenToAirQualityReadingChanges() async {
-    context.read<MapBloc>().stream.listen((state) {
-      if (state is AllSitesState) {
-        _setMarkers(state.airQualityReadings);
-      } else if (state is RegionSitesState) {
-        _setMarkers(state.airQualityReadings);
-      } else if (state is SingleSiteState) {
-        _setMarkers([state.airQualityReading]);
-      } else if (state is SearchSitesState) {
-        _setMarkers(state.airQualityReadings);
-      }
-    });
+    context.read<MapBloc>().stream.listen(_updateMapState);
+  }
+
+  Future<void> _updateMapState(MapState state) async {
+    if (state is AllSitesState) {
+      await _setMarkers(state.airQualityReadings);
+    } else if (state is RegionSitesState) {
+      await _setMarkers(state.airQualityReadings);
+    } else if (state is SingleSiteState) {
+      await _setMarkers([state.airQualityReading]);
+    } else if (state is SearchSitesState) {
+      await _setMarkers(state.airQualityReadings);
+    }
   }
 
   Future<void> _setMarkers(List<AirQualityReading> airQualityReadings) async {
