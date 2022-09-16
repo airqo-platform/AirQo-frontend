@@ -457,10 +457,6 @@
 }
 
 @media(max-width: $mainBreakPoint) {
-    .ExploreDataModalWrapper {
-        height: auto;
-    }
-
     .ExploreDataModal {
         max-height: none;
     }

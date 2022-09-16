@@ -25,9 +25,9 @@ import SEO from 'utils/seo';
 
 const CATEGORY_TYPE = {
   researcher: 'researcher',
-  environmentalEnthusiasts: 'environmental enthusiasts',
+  environmentalEnthusiasts: 'environmental enthusiast',
   business: 'business',
-  governmentEnthusiasts: 'government enthusiasts',
+  governmentEnthusiasts: 'governance & policy',
 };
 
 const compareCategory = (value, target) => isEqual(value.toLowerCase(), target.toLowerCase());
@@ -176,7 +176,7 @@ export const ExploreUserProfessionType = () => {
                       control={
                             <Checkbox checked={compareCategory(exploreData.category, CATEGORY_TYPE.environmentalEnthusiasts)} onChange={handleCategoryChange} name="environmental enthusiasts" />
                         }
-                      label="Environmental enthusiasts"
+                      label="Environmental enthusiast"
                     />
                 </FormControl>
             </div>
@@ -211,14 +211,14 @@ export const ExploreOrganisationType = () => {
                       control={
                             <Checkbox checked={compareCategory(exploreData.category, CATEGORY_TYPE.business)} onChange={handleCategoryChange} name="business" />
                         }
-                      label="Business"
+                      label="Business Owner"
                     />
                     <FormControlLabel
                       className="radio-field-option"
                       control={
                             <Checkbox checked={compareCategory(exploreData.category, CATEGORY_TYPE.governmentEnthusiasts)} onChange={handleCategoryChange} name="government enthusiasts" />
                         }
-                      label="Government enthusiasts"
+                      label="Government or Policy Officer"
                     />
                 </FormControl>
             </div>
