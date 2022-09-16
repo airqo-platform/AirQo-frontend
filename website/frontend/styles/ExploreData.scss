@@ -246,11 +246,12 @@
         height: 240px;
         border-radius: 16px;
         border: 1px solid #C1C8D7;
+        padding: 10px 15px 10px 10px;
 
         hr {
             height: 208px;
             width: 0;
-            margin: 0 24px;
+            margin: 0 20px;
             border-color: #C1C8D7;
         }
 
@@ -354,6 +355,9 @@
 
 .ExploreFormWrapper {
     margin: auto 14%;
+    a{
+        text-decoration: underline;
+    }
 
     h2 {
         font-size: 32px;
@@ -456,10 +460,6 @@
 }
 
 @media(max-width: $mainBreakPoint) {
-    .ExploreDataModalWrapper {
-        height: auto;
-    }
-
     .ExploreDataModal {
         max-height: none;
     }
