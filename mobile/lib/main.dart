@@ -22,22 +22,21 @@ import 'firebase_options.dart';
 import 'themes/app_theme.dart';
 
 void main() async {
-  HttpOverrides.global = AppHttpOverrides();
-  await dotenv.load(fileName: Config.environmentFile);
 
   WidgetsFlutterBinding.ensureInitialized();
-
-  await HiveService.initialize();
-
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  await SystemProperties.setDefault();
+  await Future.wait([
+    HiveService.initialize(),
+    SystemProperties.setDefault(),
+    NotificationService.listenToNotifications(),
+    dotenv.load(fileName: Config.environmentFile),
+    // initializeBackgroundServices()
+  ]);
 
-  await NotificationService.listenToNotifications();
-
-  await initializeBackgroundServices();
+  HttpOverrides.global = AppHttpOverrides();
 
   if (kReleaseMode) {
     FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
