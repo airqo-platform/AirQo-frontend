@@ -25,9 +25,9 @@ import SEO from 'utils/seo';
 
 const CATEGORY_TYPE = {
   researcher: 'researcher',
-  environmentalEnthusiasts: 'environmental enthusiast',
+  environmentalEnthusiasts: 'environmental enthusiasts',
   business: 'business',
-  governmentEnthusiasts: 'governance & policy',
+  governmentEnthusiasts: 'government enthusiasts',
 };
 
 const compareCategory = (value, target) => isEqual(value.toLowerCase(), target.toLowerCase());
@@ -238,22 +238,22 @@ export const ExploreUserRegistry = () => {
   const registerOrganisation = async (e) => {
     e.preventDefault();
 
-    // console.log("Local state:", exploreDataLocal);
-
-    if (exploreDataLocal.category === 'business') {
-      navigate('/explore-data/get-started/user/register/business');
-    } else if (exploreDataLocal.category === 'government enthusiasts') {
-      navigate('/explore-data/get-started/user/register/organisation');
+    if (exploreDataLocal.category === CATEGORY_TYPE.business) {
+        navigate('/explore-data/get-started/user/register/business');
+    } else if (exploreDataLocal.category === CATEGORY_TYPE.governmentEnthusiasts) {
+        navigate('/explore-data/get-started/user/register/organisation');
     } else {
-      setLoading(true);
-      await dispatch(postExploreDataRequest({
-        ...exploreDataLocal,
-        long_organization: exploreDataLocal.category,
-        jobTitle: exploreDataLocal.category,
-        website: 'airqo.net',
-        description: 'Request Access to Data',
-      }));
-      setLoading(false);
+        setLoading(true);
+        await dispatch(
+            postExploreDataRequest({
+                ...exploreDataLocal,
+                long_organization: exploreDataLocal.category,
+                jobTitle: exploreDataLocal.category,
+                website: 'airqo.net',
+                description: 'Request Access to Data',
+            })
+        );
+        setLoading(false);
     }
   };
 
@@ -281,7 +281,7 @@ export const ExploreUserRegistry = () => {
                       fieldId="lastName"
                       onChange={handleChange('lastName')}
                   />
-                  {exploreDataLocal.category === 'researcher' && (
+                  {exploreDataLocal.category === CATEGORY_TYPE.researcher && (
                       <ExploreTemplateFormFieldOption
                           label="Email address"
                           inputType="email"
@@ -289,7 +289,7 @@ export const ExploreUserRegistry = () => {
                           onChange={handleChange('email')}
                       />
                   )}
-                  {exploreDataLocal.category === 'environmental enthusiasts' && (
+                  {exploreDataLocal.category === CATEGORY_TYPE.environmentalEnthusiasts && (
                       <ExploreTemplateFormFieldOption
                           label="Email address"
                           inputType="email"
@@ -443,7 +443,7 @@ export const ExploreOrganisationRegistry = () => {
   return (
       <PageWithImageLayout imgPath={ManExploring}>
           <div className="ExploreFormWrapper">
-              <h2>Details about your business</h2>
+              <h2>Details about your Organisation</h2>
               <ExploreFormTemplate onSubmit={handleSubmit}>
                   <ExploreTemplateFormFieldOption
                       label="Organisation name"
@@ -469,7 +469,7 @@ export const ExploreOrganisationRegistry = () => {
                       radioOption
                       fieldClassName="tos"
                       formOptionClassName="tos">
-                      <Link to="/terms">Terms of Service</Link> and <Link to="/terms">Privacy Policy</Link>
+                      I agree to the <Link to="/terms">Terms of Service</Link> and <Link to="/terms">Privacy Policy</Link>
                   </ExploreTemplateFormFieldOption>
                   <button className="nav-button" type="submit">
                       {loading ? <CircularProgress /> : 'Create Account'}
