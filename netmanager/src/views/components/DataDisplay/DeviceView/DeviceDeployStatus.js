@@ -723,46 +723,6 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
               fullWidth
             />
 
-            <TextField
-              label="Latitude"
-              disabled={true}
-              style={{ marginBottom: "15px" }}
-              value={latitude}
-              variant="outlined"
-              onChange={(event) => {
-                setLatitude(event.target.value);
-                setErrors({
-                  ...errors,
-                  latitude:
-                    event.target.value.length > 0 ? "" : errors.latitude,
-                });
-              }}
-              fullWidth
-              error={!!errors.latitude}
-              helperText={errors.latitude}
-              required
-            />
-
-            <TextField
-              label="Longitude"
-              style={{ marginBottom: "15px" }}
-              disabled={true}
-              variant="outlined"
-              value={longitude}
-              onChange={(event) => {
-                setLongitude(event.target.value);
-                setErrors({
-                  ...errors,
-                  longitude:
-                    event.target.value.length > 0 ? "" : errors.longitude,
-                });
-              }}
-              fullWidth
-              error={!!errors.longitude}
-              helperText={errors.longitude}
-              required
-            />
-
             <div style={{ margin: "30px 0 20px 0" }}>
               <Grid container item xs={12} spacing={3}>
                 <FormControlLabel
