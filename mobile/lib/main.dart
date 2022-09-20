@@ -9,32 +9,34 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
+import 'blocs/map/map_bloc.dart';
+import 'blocs/nearby_location/nearby_location_bloc.dart';
+import 'blocs/search/search_bloc.dart';
 import 'constants/config.dart';
 import 'firebase_options.dart';
-import 'models/place_details.dart';
 import 'themes/app_theme.dart';
 
 void main() async {
-  HttpOverrides.global = AppHttpOverrides();
-  await dotenv.load(fileName: Config.environmentFile);
 
   WidgetsFlutterBinding.ensureInitialized();
-
-  await HiveService.initialize();
-
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  await SystemProperties.setDefault();
+  await Future.wait([
+    HiveService.initialize(),
+    SystemProperties.setDefault(),
+    NotificationService.listenToNotifications(),
+    dotenv.load(fileName: Config.environmentFile),
+    // initializeBackgroundServices()
+  ]);
 
-  await NotificationService.listenToNotifications();
-
-  await initializeBackgroundServices();
+  HttpOverrides.global = AppHttpOverrides();
 
   if (kReleaseMode) {
     FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
@@ -46,33 +48,36 @@ void main() async {
           ..tracesSampleRate = 1.0;
       },
       appRunner: () => runApp(
-        AirQoApp(),
+        const AirQoApp(),
       ),
     );
   } else {
-    runApp(AirQoApp());
+    runApp(const AirQoApp());
   }
 }
 
 class AirQoApp extends StatelessWidget {
-  AirQoApp({
-    super.key,
-  });
-  final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
+  const AirQoApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (context) => PlaceDetailsModel(),
+        BlocProvider(
+          create: (BuildContext context) => SearchBloc(),
+        ),
+        BlocProvider(
+          create: (BuildContext context) => NearbyLocationBloc(),
+        ),
+        BlocProvider(
+          create: (BuildContext context) => MapBloc(),
         ),
       ],
       builder: (context, child) {
         return MaterialApp(
           debugShowCheckedModeBanner: kReleaseMode ? false : true,
           navigatorObservers: [
-            FirebaseAnalyticsObserver(analytics: analytics),
+            FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
             SentryNavigatorObserver(),
           ],
           title: 'AirQo',

@@ -2,7 +2,7 @@ name: remove-deploy-previews
 
 on:
   pull_request:
-    branches: 
+    branches:
       - staging
     types:
       - closed
@@ -26,6 +26,8 @@ jobs:
     outputs:
       remove_platform_preview: ${{ steps.check_files.outputs.remove_platform_preview }} # remove platform preview
       remove_calibrate_app_preview: ${{ steps.check_files.outputs.remove_calibrate_app_preview }} # remove calibrate app preview
+      remove_next_platform: ${{ steps.check_files.outputs.remove_next_platform }} # next platform
+      remove_docs: ${{ steps.check_files.outputs.remove_docs }} # docs
 
     runs-on: ubuntu-latest
     steps:
@@ -39,12 +41,14 @@ jobs:
         run: |
           echo "=============== list modified files ==============="
           git diff --name-only HEAD^ HEAD
-          
+
           echo "========== check paths of modified files =========="
           git diff --name-only HEAD^ HEAD > files.txt
 
           echo "::set-output name=remove_platform_preview::false"  
-          echo "::set-output name=remove_calibrate_app_preview::false"  
+          echo "::set-output name=remove_calibrate_app_preview::false"
+          echo "::set-output name=remove_next_platform::false"  
+          echo "::set-output name=remove_docs::false"   
 
           while IFS= read -r file
           do
@@ -55,6 +59,14 @@ jobs:
 
             if [[ $file == calibrate/* ]]; then
               echo "::set-output name=remove_calibrate_app_preview::true"  
+            fi
+
+            if [[ $file == platform/* ]]; then
+              echo "::set-output name=remove_next_platform::true"
+            fi
+
+            if [[ $file == docs/* ]]; then
+              echo "::set-output name=remove_docs::true"
             fi
 
           done < files.txt
@@ -70,11 +82,11 @@ jobs:
         id: auth
         uses: google-github-actions/auth@v0
         with:
-          credentials_json: '${{ secrets.GCP_SA_CREDENTIALS }}'
-          
+          credentials_json: "${{ secrets.GCP_SA_CREDENTIALS }}"
+
       - name: Setup Cloud SDK
-        uses: 'google-github-actions/setup-gcloud@v0'
-        
+        uses: "google-github-actions/setup-gcloud@v0"
+
       - name: Delete PR deploy preview
         run: |-
           gcloud run services delete ${{ needs.branch-name.outputs.lowercase }}-platform-preview \
@@ -92,13 +104,57 @@ jobs:
         id: auth
         uses: google-github-actions/auth@v0
         with:
-          credentials_json: '${{ secrets.GCP_SA_CREDENTIALS }}'
-          
+          credentials_json: "${{ secrets.GCP_SA_CREDENTIALS }}"
+
       - name: Setup Cloud SDK
-        uses: 'google-github-actions/setup-gcloud@v0'
-        
+        uses: "google-github-actions/setup-gcloud@v0"
+
       - name: Delete PR deploy preview
         run: |-
           gcloud run services delete ${{ needs.branch-name.outputs.lowercase }}-calibrate-app-preview \
+            --region=${{ secrets.REGION }} \
+            --quiet
+
+  ### remove next-platform deploy preview ###
+  remove-next-platform-preview:
+    name: remove-next-platform-preview
+    needs: [check, branch-name]
+    if: needs.check.outputs.remove_next_platform == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Google Auth
+        id: auth
+        uses: google-github-actions/auth@v0
+        with:
+          credentials_json: "${{ secrets.GCP_SA_CREDENTIALS }}"
+
+      - name: Setup Cloud SDK
+        uses: "google-github-actions/setup-gcloud@v0"
+
+      - name: Delete PR deploy preview
+        run: |-
+          gcloud run services delete ${{ needs.branch-name.outputs.lowercase }}-next-platform-preview \
+            --region=${{ secrets.REGION }} \
+            --quiet
+
+  ### remove docs deploy preview ###
+  remove-docs-preview:
+    name: remove-docs-preview
+    needs: [check, branch-name]
+    if: needs.check.outputs.remove_docs == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Google Auth
+        id: auth
+        uses: google-github-actions/auth@v0
+        with:
+          credentials_json: "${{ secrets.GCP_SA_CREDENTIALS }}"
+
+      - name: Setup Cloud SDK
+        uses: "google-github-actions/setup-gcloud@v0"
+
+      - name: Delete PR deploy preview
+        run: |-
+          gcloud run services delete ${{ needs.branch-name.outputs.lowercase }}-docs-preview \
             --region=${{ secrets.REGION }} \
             --quiet

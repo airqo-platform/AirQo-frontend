@@ -1,13 +1,11 @@
+import 'package:app/models/models.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:provider/provider.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
-import '../../models/enum_constants.dart';
-import '../../models/insights.dart';
-import '../../models/place_details.dart';
-import '../../services/app_service.dart';
+import '../../services/hive_service.dart';
 import '../../services/native_api.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
@@ -209,7 +207,7 @@ class InsightsAvatar extends StatelessWidget {
         children: [
           const Spacer(),
           SvgPicture.asset(
-            pollutant.svg(),
+            pollutant.svg,
             semanticsLabel: 'Pm2.5',
             height: 6,
             width: 32.45,
@@ -273,11 +271,11 @@ class HealthTipsSection extends StatelessWidget {
 class InsightsActionBar extends StatefulWidget {
   const InsightsActionBar({
     super.key,
-    required this.placeDetails,
+    required this.airQualityReading,
     required this.shareKey,
   });
 
-  final PlaceDetails placeDetails;
+  final AirQualityReading airQualityReading;
   final GlobalKey shareKey;
 
   @override
@@ -322,24 +320,20 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
                   ),
           ),
           Expanded(
-            child: Consumer<PlaceDetailsModel>(
-              builder: (context, placeDetailsModel, child) {
-                return InkWell(
-                  onTap: () async {
-                    _updateFavPlace();
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 21),
-                    child: IconTextButton(
-                      iconWidget: HeartIcon(
-                        showAnimation: _showHeartAnimation,
-                        placeDetails: widget.placeDetails,
-                      ),
-                      text: 'Favorite',
-                    ),
-                  ),
-                );
+            child: InkWell(
+              onTap: () async {
+                _updateFavPlace();
               },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 21),
+                child: IconTextButton(
+                  iconWidget: HeartIcon(
+                    showAnimation: _showHeartAnimation,
+                    airQualityReading: widget.airQualityReading,
+                  ),
+                  text: 'Favorite',
+                ),
+              ),
             ),
           ),
         ],
@@ -363,14 +357,16 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
   }
 
   void _updateFavPlace() async {
-    setState(() => _showHeartAnimation = true);
-    Future.delayed(const Duration(seconds: 2), () {
-      setState(() => _showHeartAnimation = false);
-    });
-    await AppService().updateFavouritePlace(
-      widget.placeDetails,
-      context,
-    );
+    if (!Hive.box<FavouritePlace>(HiveBox.favouritePlaces)
+        .keys
+        .contains(widget.airQualityReading.placeId)) {
+      setState(() => _showHeartAnimation = true);
+      Future.delayed(const Duration(seconds: 2), () {
+        setState(() => _showHeartAnimation = false);
+      });
+    }
+
+    await HiveService.updateFavouritePlaces(widget.airQualityReading);
   }
 }
 

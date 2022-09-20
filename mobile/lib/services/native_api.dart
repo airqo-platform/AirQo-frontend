@@ -4,12 +4,12 @@ import 'dart:ui' as ui;
 import 'dart:ui';
 
 import 'package:app/constants/config.dart';
-import 'package:app/models/measurement.dart';
+import 'package:app/models/models.dart';
 import 'package:app/services/firebase_service.dart';
 import 'package:app/services/local_storage.dart';
-import 'package:app/services/rest_api.dart';
 import 'package:app/utils/pm.dart';
 import 'package:app/widgets/dialogs.dart';
+import 'package:app_repository/app_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -24,11 +24,8 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:workmanager/workmanager.dart' as workmanager;
 
-import '../models/enum_constants.dart';
-import '../models/kya.dart';
-import '../models/profile.dart';
 import '../utils/exception.dart';
-import 'firebase_service.dart';
+import 'hive_service.dart';
 
 class SystemProperties {
   static Future<void> setDefault() async {
@@ -140,20 +137,20 @@ class ShareService {
     ]);
   }
 
-  static void shareMeasurementText(Measurement measurement) {
+  static void shareMeasurementText(AirQualityReading airQualityReading) {
     final recommendationList =
-        getHealthRecommendations(measurement.getPm2_5Value(), Pollutant.pm2_5);
+        getHealthRecommendations(airQualityReading.pm2_5, Pollutant.pm2_5);
     var recommendations = '';
     for (final value in recommendationList) {
       recommendations = '$recommendations\n- ${value.body}';
     }
     Share.share(
-      '${measurement.site.name}, Current Air Quality.\n\n'
-      'PM2.5 : ${measurement.getPm2_5Value().toStringAsFixed(2)} µg/m\u00B3 (${Pollutant.pm2_5.stringValue(measurement.getPm2_5Value())}) \n'
-      'PM10 : ${measurement.getPm10Value().toStringAsFixed(2)} µg/m\u00B3 \n'
+      '${airQualityReading.name}, Current Air Quality.\n\n'
+      'PM2.5 : ${airQualityReading.pm2_5.toStringAsFixed(2)} µg/m\u00B3 (${Pollutant.pm2_5.stringValue(airQualityReading.pm2_5)}) \n'
+      'PM10 : ${airQualityReading.pm2_5.toStringAsFixed(2)} µg/m\u00B3 \n'
       '$recommendations\n\n'
       'Source: AirQo App',
-      subject: 'AirQo, ${measurement.site.name}!',
+      subject: 'AirQo, ${airQualityReading.name}!',
     ).then(
       (value) => {updateUserShares()},
     );
@@ -219,13 +216,15 @@ void backgroundCallbackDispatcher() {
       try {
         switch (task) {
           case BackgroundService.airQualityUpdates:
-            final measurements =
-                await AirqoApiClient().fetchLatestMeasurements();
+            final siteReadings = await AppRepository(
+              airqoApiKey: Config.airqoApiToken,
+              baseUrl: Config.airqoApiUrl,
+            ).getSitesReadings();
             final sendPort = IsolateNameServer.lookupPortByName(
               BackgroundService.taskChannel(task),
             );
             if (sendPort != null) {
-              sendPort.send(measurements);
+              sendPort.send(siteReadings);
             } else {
               // TODO: implement saving
               // final SharedPreferences prefs = await
@@ -304,7 +303,7 @@ class BackgroundService {
     );
     port.listen(
       (dynamic data) async {
-        await DBHelper().insertLatestMeasurements(data);
+        await HiveService.updateAirQualityReadings(data);
       },
     );
   }

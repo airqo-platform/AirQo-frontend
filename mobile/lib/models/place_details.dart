@@ -1,18 +1,6 @@
-import 'dart:collection';
-
-import 'package:app/models/site.dart';
-import 'package:app/services/local_storage.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:json_annotation/json_annotation.dart';
+import 'package:app/models/air_quality_reading.dart';
 import 'package:uuid/uuid.dart';
 
-import '../utils/exception.dart';
-import 'measurement.dart';
-
-part 'place_details.g.dart';
-
-@JsonSerializable(explicitToJson: true)
 class PlaceDetails {
   PlaceDetails({
     required this.name,
@@ -23,127 +11,23 @@ class PlaceDetails {
     required this.longitude,
   });
 
-  factory PlaceDetails.fromJson(Map<String, dynamic> json) =>
-      _$PlaceDetailsFromJson(json);
+  factory PlaceDetails.fromAirQualityReading(
+    AirQualityReading airQualityReading,
+  ) {
+    return PlaceDetails(
+      name: airQualityReading.name,
+      location: airQualityReading.location,
+      siteId: airQualityReading.referenceSite,
+      placeId: airQualityReading.placeId,
+      latitude: airQualityReading.latitude,
+      longitude: airQualityReading.longitude,
+    );
+  }
+
   String name = '';
   String location = '';
   String siteId;
   String placeId = const Uuid().v4();
   double latitude;
   double longitude;
-
-  Map<String, dynamic> toJson() => _$PlaceDetailsToJson(this);
-
-  static String createTableStmt() => 'CREATE TABLE IF NOT EXISTS ${dbName()}('
-      'placeId TEXT PRIMARY KEY, latitude REAL, '
-      'location TEXT, longitude REAL, siteId TEXT, name TEXT)';
-
-  static String dbName() => 'fav_places';
-
-  static String dropTableStmt() => 'DROP TABLE IF EXISTS ${dbName()}';
-
-  static bool isFavouritePlace(
-    List<PlaceDetails> favouritePlaces,
-    PlaceDetails subject,
-  ) {
-    for (final place in favouritePlaces) {
-      if (place.siteId == subject.siteId) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  static List<Map<String, dynamic>> listToJson(List<PlaceDetails> places) {
-    final placesJson = <Map<String, dynamic>>[];
-    for (final place in places) {
-      final placeJson = place.toJson();
-      placesJson.add(placeJson);
-    }
-
-    return placesJson;
-  }
-
-  static PlaceDetails measurementToPlace(Measurement measurement) {
-    return PlaceDetails(
-      name: measurement.site.name,
-      location: measurement.site.location,
-      siteId: measurement.site.id,
-      placeId: const Uuid().v4(),
-      latitude: measurement.site.latitude,
-      longitude: measurement.site.longitude,
-    );
-  }
-
-  static List<PlaceDetails> parseMultiPlaceDetails(dynamic jsonBody) {
-    final placeDetails = <PlaceDetails>[];
-
-    for (final jsonElement in jsonBody) {
-      try {
-        final placeDetail = PlaceDetails.fromJson(jsonElement);
-        placeDetails.add(placeDetail);
-      } catch (exception, stackTrace) {
-        debugPrint('$exception\n$stackTrace');
-      }
-    }
-
-    return placeDetails;
-  }
-
-  static PlaceDetails? parsePlaceDetails(dynamic jsonBody) {
-    try {
-      return PlaceDetails.fromJson(jsonBody);
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-
-    return null;
-  }
-
-  static PlaceDetails siteToPLace(Site site) {
-    return PlaceDetails(
-      name: site.name,
-      location: site.location,
-      siteId: site.id,
-      placeId: const Uuid().v4(),
-      latitude: site.latitude,
-      longitude: site.longitude,
-    );
-  }
-}
-
-class PlaceDetailsModel extends ChangeNotifier {
-  final List<PlaceDetails> _favouritePlaces = [];
-  final DBHelper _dbHelper = DBHelper();
-
-  UnmodifiableListView<PlaceDetails> get favouritePlaces =>
-      UnmodifiableListView(_favouritePlaces);
-
-  Future<void> clearFavouritePlaces() async {
-    try {
-      _favouritePlaces.clear();
-      await _dbHelper.clearFavouritePlaces();
-      notifyListeners();
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-  }
-
-  Future<void> reloadFavouritePlaces() async {
-    try {
-      _favouritePlaces.clear();
-      final favPlaces = await _dbHelper.getFavouritePlaces();
-      _favouritePlaces.addAll(favPlaces);
-      notifyListeners();
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-  }
 }

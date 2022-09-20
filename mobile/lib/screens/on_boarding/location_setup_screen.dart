@@ -1,4 +1,4 @@
-import 'package:app/models/enum_constants.dart';
+import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/screens/on_boarding/setup_complete_screeen.dart';
 import 'package:app/widgets/buttons.dart';
@@ -27,6 +27,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: const OnBoardingTopBar(),
       backgroundColor: CustomColors.appBodyColor,
       body: WillPopScope(
         onWillPop: onWillPop,

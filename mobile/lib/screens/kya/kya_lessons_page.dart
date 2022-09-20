@@ -1,10 +1,10 @@
+import 'package:app/models/models.dart';
 import 'package:app/screens/kya/kya_final_page.dart';
 import 'package:app/themes/app_theme.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import '../../models/enum_constants.dart';
-import '../../models/kya.dart';
+
 import '../../services/native_api.dart';
 import '../../themes/colors.dart';
 import '../../widgets/custom_shimmer.dart';

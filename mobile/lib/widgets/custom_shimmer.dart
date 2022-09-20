@@ -93,12 +93,13 @@ void loadingScreen(BuildContext context) async {
 }
 
 class LoadingWidget extends StatelessWidget {
-  const LoadingWidget({super.key});
+  const LoadingWidget({super.key, this.backgroundColor});
+  final Color? backgroundColor;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: CustomColors.appBodyColor,
+      color: backgroundColor ?? CustomColors.appBodyColor,
       child: Center(
         child: CupertinoActivityIndicator(
           radius: 20,
