@@ -1,20 +1,20 @@
 ###########################################################
-# Start deployment of platform frontend - staging
+# Start deployment of next platform - staging
 ###########################################################
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: airqo-stage-platform-frontend
+  name: airqo-stage-docs
   namespace: staging
 spec:
   selector:
     matchLabels:
-      app: sta-platform-ui
-  replicas: 3
+      app: sta-docs
+  replicas: 1
   template:
     metadata:
       labels:
-        app: sta-platform-ui
+        app: sta-docs
     spec:
       affinity:
         nodeAffinity:
@@ -26,64 +26,53 @@ spec:
                     operator: In
                     values:
                       - general-purpose
-            - weight: 1
-              preference:
-                matchExpressions:
-                  - key: node-type
-                    operator: In
-                    values:
-                      - high-memory
       containers:
-        - name: sta-platform-ui
-          image: us.gcr.io/airqo-250220/airqo-stage-platform-frontend:latest
+        - name: sta-docs
+          image: us.gcr.io/airqo-250220/airqo-stage-docs:latest
           imagePullPolicy: Always
           ports:
-            - containerPort: 80
-              name: sta-platform-ui
-          envFrom:
-            - configMapRef:
-                name: env-platform-staging
+            - containerPort: 3000
+              name: docs
           resources:
             requests:
-              # Average usage was 0.00001 vCPU and 50Mi over the last 30 days
-              cpu: 5m
+              cpu: 10m
               memory: 20Mi
             limits:
               cpu: 50m
-              memory: 80Mi
+              memory: 100Mi
 
 ---
 kind: Service
 apiVersion: v1
 metadata:
-  name: airqo-stage-platform-ui-svc
+  name: airqo-stage-docs-svc
   namespace: staging
 spec:
   selector:
-    app: sta-platform-ui
+    app: sta-docs
   ports:
     - protocol: TCP
-      port: 80
-      targetPort: 80
-      nodePort: 31101
+      port: 3000
+      targetPort: 3000
+      nodePort: 31104
   type: NodePort
 
 ---
 kind: HorizontalPodAutoscaler
 apiVersion: autoscaling/v2
 metadata:
-  name: airqo-stage-platform-frontend-hpa
+  name: airqo-stage-docs-hpa
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: airqo-stage-platform-frontend
+    name: airqo-stage-docs
   minReplicas: 1
-  maxReplicas: 3
+  maxReplicas: 2
   metrics:
     - type: Resource
       resource:
-        name: memory
+        name: cpu
         target:
           type: Utilization
           averageUtilization: 80

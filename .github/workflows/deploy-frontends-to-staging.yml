@@ -33,6 +33,7 @@ jobs:
       run_website: ${{ steps.check_files.outputs.run_website }} # website
       run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }} # calibrate app
       run_next_platform: ${{ steps.check_files.outputs.run_next_platform }} # next platform
+      run_docs: ${{ steps.check_files.outputs.run_docs }} # docs
 
     runs-on: ubuntu-latest
     steps:
@@ -54,6 +55,7 @@ jobs:
           echo "::set-output name=run_website::false" 
           echo "::set-output name=run_calibrate_app::false"
           echo "::set-output name=run_next_platform::false"  
+          echo "::set-output name=run_docs::false"  
 
           while IFS= read -r file
           do
@@ -72,6 +74,10 @@ jobs:
 
             if [[ $file == platform/* ]]; then
               echo "::set-output name=run_next_platform::true"
+            fi
+
+            if [[ $file == docs/* ]]; then
+              echo "::set-output name=run_docs::false"
             fi
 
           done < files.txt
@@ -181,7 +187,6 @@ jobs:
       - name: Create google_application_credentials.json file
         id: create-google-application-credentials-file
         uses: jsdaniell/create-json@1.1.2
-        # Backup for this action: airqo-platform/create-json@1.1.2
         with:
           name: "google_application_credentials.json"
           json: ${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}
@@ -359,3 +364,40 @@ jobs:
           kubectl apply -f k8s/platform/stage-airqo-next-platform.yaml
           kubectl set image deployment/airqo-stage-next-platform sta-next-platform=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }} -n staging
           kubectl annotate deployment/airqo-stage-next-platform kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n staging
+
+  ### deploy docs ###
+  docs:
+    name: build-push-deploy-docs
+    needs: [check, image-tag]
+    if: needs.check.outputs.run_docs == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Login to GCR
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ secrets.REGISTRY_URL }}
+          username: _json_key
+          password: ${{ secrets.GCR_CONFIG }}
+
+      - name: Login to K8S
+        uses: azure/k8s-set-context@v1
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.K8S_CONFIG_STAGE }}
+
+      - name: Build and Push Docker Image
+        run: |
+          cd docs/
+          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }} .
+          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-docs:latest
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-docs:latest
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }}
+
+      - name: Deploy to K8S
+        run: |
+          kubectl apply -f k8s/docs/stage-airqo-next-platform.yaml
+          kubectl set image deployment/airqo-stage-docs sta-docs=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }} -n staging
+          kubectl annotate deployment/aairqo-stage-docs kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n staging
