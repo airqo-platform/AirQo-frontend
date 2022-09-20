@@ -5,16 +5,34 @@
     "node": true
   },
   "extends": ["plugin:react/recommended", "airbnb", "prettier"],
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "paths": ["src"],
+        "extensions": [".js", ".jsx"]
+      }
+    }
+  },
   "parserOptions": {
-    "ecmaFeatures": {
-      "jsx": true
-    },
+    "ecmaFeatures": { "jsx": true },
     "ecmaVersion": "latest",
     "sourceType": "module"
   },
   "plugins": ["react"],
   "rules": {
     "react/react-in-jsx-scope": "off",
-    "react/jsx-filename-extension": [1, { "extensions": [".js", ".jsx"] }]
+    "react/jsx-filename-extension": [1, { "extensions": [".js", ".jsx"] }],
+    "import/no-restricted-paths": [
+      "error",
+      {
+        "zones": [
+          { "target": "./src/core", "from": "./src/components" },
+          { "target": "./src/core", "from": "./src/lib" },
+          { "target": "./src/core", "from": "./src/pages" },
+          { "target": "./src/lib", "from": "./src/pages" },
+          { "target": "./src/components", "from": "./src/pages" }
+        ]
+      }
+    ]
   }
 }
