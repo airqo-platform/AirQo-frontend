@@ -48,11 +48,7 @@ const DeviceDetails = ({ deviceData }) => {
                 <b>Deployment status</b>
               </TableCell>
               <TableCell>
-                {deviceData.isActive ? (
-                  <span style={{ color: "green" }}>Deployed</span>
-                ) : (
-                  <span style={{ color: "red" }}>Not deployed</span>
-                )}
+                <span style={{ color: "green", textTransform:"capitalize" }}>{deviceData.status}</span>
               </TableCell>
             </TableRow>
             <TableRow>

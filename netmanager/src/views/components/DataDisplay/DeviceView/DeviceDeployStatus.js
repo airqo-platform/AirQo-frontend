@@ -18,6 +18,7 @@ import {
   deployDeviceApi,
   getDeviceRecentFeedByChannelIdApi,
   recallDeviceApi,
+  updateDeviceDetails,
 } from "../../../apis/deviceRegistry";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import {
@@ -31,6 +32,12 @@ import { loadDevicesData } from "redux/DeviceRegistry/operations";
 import { capitalize } from "utils/string";
 import { filterSite } from "utils/sites";
 import { loadSitesData } from "redux/SiteRegistry/operations";
+
+const DEPLOYMENT_STATUSES = {
+  deployed: 'deployed',
+  notDeployed: 'not deployed',
+  recalled: 'recalled'
+}
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -399,6 +406,41 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
     return false;
   };
 
+  const updateDeviceDeploymentStatus = async (deviceId, deploymentStatus) => {
+    const params = {
+      _id: deviceId,
+      status: deploymentStatus
+    }
+
+    await updateDeviceDetails(params)
+      .then((responseData) => {
+        dispatch(loadDevicesData());
+        dispatch(
+          updateMainAlert({
+            message: responseData.message,
+            show: true,
+            severity: "success",
+          })
+        );
+      })
+      .catch((err) => {
+        const newErrors =
+          (err.response && err.response.data && err.response.data.errors) || {};
+        setErrors(newErrors);
+        dispatch(
+          updateMainAlert({
+            message:
+              (err.response &&
+                err.response.data &&
+                err.response.data.message) ||
+              (err.response && err.response.message),
+            show: true,
+            severity: "error",
+          })
+        );
+      });
+  }
+
   const handleDeploySubmit = async () => {
     if (checkErrors()) {
       return;
@@ -418,6 +460,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
     setDeployLoading(true);
     await deployDeviceApi(deviceData.name, deployData)
       .then((responseData) => {
+        updateDeviceDeploymentStatus(deviceData._id, DEPLOYMENT_STATUSES.deployed);
         dispatch(loadDevicesData());
         dispatch(loadSitesData());
         dispatch(
@@ -448,6 +491,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
 
     await recallDeviceApi(deviceData.name)
       .then((responseData) => {
+        updateDeviceDeploymentStatus(deviceData._id, DEPLOYMENT_STATUSES.recalled);
         dispatch(loadDevicesData());
         dispatch(loadSitesData());
         dispatch(
@@ -517,11 +561,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
             >
               Deploy status
             </span>{" "}
-            {deviceData.isActive ? (
-              <span style={{ color: "green" }}>Deployed</span>
-            ) : (
-              <span style={{ color: "red" }}>Not Deployed</span>
-            )}
+            <span style={{ color: "green", textTransform:"capitalize" }}>{deviceData.status}</span>
           </span>
           <Tooltip
             arrow
@@ -838,7 +878,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
             <Tooltip
               arrow
               title={
-                deviceData.isActive
+                deviceData.status === "deployed"
                   ? "Device already deployed"
                   : "Run device test to activate"
               }
