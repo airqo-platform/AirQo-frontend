@@ -15,8 +15,8 @@ const HighlightsSection = () => {
         dispatch(loadHighlightsData());
     }, [highlightsData.length]);
 
-    const firstPost = highlightsData.length - 1;
-    const lastPost = highlightsData.length - 4;
+    const firstPost = highlightsData.length;
+    const lastPost = highlightsData.length <= 3 ? 0 : highlightsData.length - 3;
     const highlights = highlightsData.slice(lastPost, firstPost);
 
     const [startNumber, setStartNumber] = useState(1);
@@ -33,7 +33,7 @@ const HighlightsSection = () => {
         paginateRight(startNumber);
         const slider = document.getElementById('content');
         const width = slider.clientWidth;
-        startNumber <= 1
+        startNumber == 1
             ? (slider.style.transform = `translateX(${-0.96 * width}px)`)
             : (slider.style.transform = `translateX(${-1.84 * width}px)`);
     };
@@ -50,7 +50,7 @@ const HighlightsSection = () => {
         <div className="highlights-section">
             <div className="highlights-container">
                 <div className="content" id="content">
-                    {highlightsData.length >= 4 ? (
+                    {highlightsData.length > 0 ? (
                         highlights
                             .reverse()
                             .map((highlight) => (
@@ -59,7 +59,7 @@ const HighlightsSection = () => {
                                     postImg={highlight.image}
                                     Tags={highlight.tags}
                                     title={highlight.title}
-                                    article_title="Read article"
+                                    article_title={highlight.link_title}
                                     article_link={highlight.link}
                                 />
                             ))
@@ -70,7 +70,7 @@ const HighlightsSection = () => {
                         </div>
                     )}
                 </div>
-                {highlightsData.length >= 4 && (
+                {highlightsData.length > 0 && (
                     <div className="pagination">
                         <Pagination
                             totalPosts={totalPosts}

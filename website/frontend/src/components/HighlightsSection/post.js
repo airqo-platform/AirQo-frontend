@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useTagsData } from '../../../reduxStore/Highlights/selectors';
 import ImageLoader from '../LoadSpinner/ImageLoader';
 
@@ -8,7 +8,7 @@ const Post = ({ postImg, Tags, title, article_link, article_title, key }) => {
     return (
         <div className="feature" key={key}>
             <div className="img-sm">
-                <img src={postImg !== null ? postImg : <ImageLoader/>} alt="Photo" />
+                <img src={postImg !== null ? postImg : <ImageLoader/>} alt="" />
             </div>
             <div className="feature-content">
                 <div className="feature-pills">
@@ -25,7 +25,7 @@ const Post = ({ postImg, Tags, title, article_link, article_title, key }) => {
                 <h4>{title}</h4>
                 <span className="feature-link">
                     <a href={article_link} target="_blank">
-                        {article_title} {'-->'}
+                        {article_title || "Read Article"} {'-->'}
                     </a>
                 </span>
             </div>

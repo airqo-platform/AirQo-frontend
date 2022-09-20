@@ -19,6 +19,11 @@ class Highlight(BaseModel):
     tags = models.ManyToManyField(Tag)
     image = CloudinaryField("Image", overwrite=True, resource_type="image")
     link = models.URLField()
+    link_title = models.CharField(max_length=100, blank=True)
+    order = models.IntegerField(default=1)
+
+    class Meta:
+        ordering = ['order', 'id']
 
     def __str__(self):
         return self.title
