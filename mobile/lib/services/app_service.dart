@@ -9,12 +9,10 @@ import 'package:app/services/secure_storage.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/utils/network.dart';
 import 'package:app/widgets/dialogs.dart';
-import 'package:app_repository/app_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../constants/config.dart';
 import '../utils/exception.dart';
 import 'location_service.dart';
 
@@ -148,7 +146,7 @@ class AppService {
         buildContext,
         notifyUser: true,
       ),
-      refreshAirQualityReadings(),
+      HiveService.reloadAirQualityReadings(),
       _loadKya(),
       _loadNotifications(),
       _loadFavouritePlaces(),
@@ -240,18 +238,6 @@ class AppService {
         }
       }
       await Kya.load(kyas);
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-    }
-  }
-
-  Future<void> refreshAirQualityReadings() async {
-    try {
-      final siteReadings = await AppRepository(
-        airqoApiKey: Config.airqoApiToken,
-        baseUrl: Config.airqoApiUrl,
-      ).getSitesReadings();
-      await HiveService.updateAirQualityReadings(siteReadings);
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
@@ -387,7 +373,7 @@ class AppService {
         buildContext,
         notifyUser: true,
       ),
-      refreshAirQualityReadings(),
+      HiveService.reloadAirQualityReadings(),
       _loadKya(),
       _loadNotifications(),
       _updateFavouritePlacesReferenceSites(),
@@ -400,7 +386,7 @@ class AppService {
         buildContext,
         notifyUser: true,
       ),
-      refreshAirQualityReadings(),
+      HiveService.reloadAirQualityReadings(),
       _loadKya(),
       _loadNotifications(),
       _updateFavouritePlacesReferenceSites(),
@@ -413,7 +399,7 @@ class AppService {
         buildContext,
         notifyUser: true,
       ),
-      refreshAirQualityReadings(),
+      HiveService.reloadAirQualityReadings(),
       _loadKya(),
       fetchFavPlacesInsights(),
     ]);

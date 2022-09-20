@@ -95,9 +95,6 @@ class _AnalyticsViewState extends State<AnalyticsView> {
   }
 
   Future<void> _refresh() async {
-    await Future.wait([
-      AppService().refreshAirQualityReadings(),
-      AppService().refreshAnalytics(context),
-    ]);
+    await AppService().refreshAnalytics(context);
   }
 }

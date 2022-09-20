@@ -75,6 +75,18 @@ class HiveService {
         .put(airQualityReading.placeId, airQualityReading);
   }
 
+  static Future<void> reloadAirQualityReadings() async {
+    final airQualityReadings = await CloudStore.getAirQualityReadings();
+    final airQualityReadingsMap = <dynamic, AirQualityReading>{};
+
+    for (final airQualityReading in airQualityReadings) {
+      airQualityReadingsMap[airQualityReading.placeId] = airQualityReading;
+    }
+
+    await Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+        .putAll(airQualityReadingsMap);
+  }
+
   static Future<void> updateAirQualityReadings(
     List<SiteReading> siteReadings, {
     bool reload = false,
