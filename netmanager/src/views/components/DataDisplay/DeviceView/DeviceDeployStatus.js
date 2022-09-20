@@ -725,7 +725,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
 
             <TextField
               label="Latitude"
-              disabled={false}
+              disabled={true}
               style={{ marginBottom: "15px" }}
               value={latitude}
               variant="outlined"
@@ -746,7 +746,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
             <TextField
               label="Longitude"
               style={{ marginBottom: "15px" }}
-              disabled={false}
+              disabled={true}
               variant="outlined"
               value={longitude}
               onChange={(event) => {
