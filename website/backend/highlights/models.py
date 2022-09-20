@@ -23,7 +23,7 @@ class Highlight(BaseModel):
     order = models.IntegerField(default=1)
 
     class Meta:
-        ordering = ['order', 'id']
+        ordering = ['order', '-id']
 
     def __str__(self):
         return self.title
