@@ -30,13 +30,14 @@ class AirQualityReadingAdapter extends TypeAdapter<AirQualityReading> {
       pm10: fields[10] as double,
       distanceToReferenceSite: fields[11] as double,
       placeId: fields[12] as String,
+      airQuality: fields[13] as AirQuality,
     );
   }
 
   @override
   void write(BinaryWriter writer, AirQualityReading obj) {
     writer
-      ..writeByte(13)
+      ..writeByte(14)
       ..writeByte(0)
       ..write(obj.referenceSite)
       ..writeByte(1)
@@ -62,7 +63,9 @@ class AirQualityReadingAdapter extends TypeAdapter<AirQualityReading> {
       ..writeByte(11)
       ..write(obj.distanceToReferenceSite)
       ..writeByte(12)
-      ..write(obj.placeId);
+      ..write(obj.placeId)
+      ..writeByte(13)
+      ..write(obj.airQuality);
   }
 
   @override
@@ -96,6 +99,8 @@ AirQualityReading _$AirQualityReadingFromJson(Map<String, dynamic> json) =>
       distanceToReferenceSite:
           (json['distanceToReferenceSite'] as num?)?.toDouble() ?? 0.0,
       placeId: json['placeId'] as String? ?? '',
+      airQuality:
+          const AirQualityConverter().fromJson(json['airQuality'] as String),
     );
 
 Map<String, dynamic> _$AirQualityReadingToJson(AirQualityReading instance) =>
@@ -113,4 +118,5 @@ Map<String, dynamic> _$AirQualityReadingToJson(AirQualityReading instance) =>
       'pm10': instance.pm10,
       'distanceToReferenceSite': instance.distanceToReferenceSite,
       'placeId': instance.placeId,
+      'airQuality': const AirQualityConverter().toJson(instance.airQuality),
     };

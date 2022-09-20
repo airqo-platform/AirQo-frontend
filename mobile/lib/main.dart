@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:app/screens/on_boarding/splash_screen.dart';
+import 'package:app/services/firebase_service.dart';
 import 'package:app/services/hive_service.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/services/notification_service.dart';
@@ -22,7 +23,6 @@ import 'firebase_options.dart';
 import 'themes/app_theme.dart';
 
 void main() async {
-
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -33,6 +33,7 @@ void main() async {
     SystemProperties.setDefault(),
     NotificationService.listenToNotifications(),
     dotenv.load(fileName: Config.environmentFile),
+    CloudStore.listenToAirQualityUpdates(),
     // initializeBackgroundServices()
   ]);
 

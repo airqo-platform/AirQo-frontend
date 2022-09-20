@@ -24,6 +24,7 @@ class AirQualityReading extends HiveObject {
     required this.pm10,
     required this.distanceToReferenceSite,
     required this.placeId,
+    required this.airQuality,
   });
 
   factory AirQualityReading.fromJson(Map<String, dynamic> json) =>
@@ -44,6 +45,8 @@ class AirQualityReading extends HiveObject {
       pm10: siteReading.pm10,
       distanceToReferenceSite: 0.0,
       placeId: siteReading.siteId,
+      airQuality:
+          AirQuality.fromPollutantValue(siteReading.pm2_5, Pollutant.pm2_5),
     );
   }
 
@@ -62,6 +65,7 @@ class AirQualityReading extends HiveObject {
       pm10: 0.0,
       distanceToReferenceSite: 0.0,
       placeId: favouritePlace.placeId,
+      airQuality: AirQuality.fromPollutantValue(0.0, Pollutant.pm2_5),
     );
   }
 
@@ -80,6 +84,7 @@ class AirQualityReading extends HiveObject {
       pm10: airQualityReading.pm10,
       distanceToReferenceSite: airQualityReading.distanceToReferenceSite,
       placeId: airQualityReading.placeId,
+      airQuality: airQualityReading.airQuality,
     );
   }
 
@@ -94,6 +99,7 @@ class AirQualityReading extends HiveObject {
     DateTime? dateTime,
     double? pm2_5,
     double? pm10,
+    AirQuality? airQuality,
   }) {
     return AirQualityReading(
       referenceSite: referenceSite ?? this.referenceSite,
@@ -107,6 +113,7 @@ class AirQualityReading extends HiveObject {
       dateTime: dateTime ?? this.dateTime,
       pm2_5: pm2_5 ?? this.pm2_5,
       pm10: pm10 ?? this.pm10,
+      airQuality: airQuality ?? this.airQuality,
       distanceToReferenceSite:
           distanceToReferenceSite ?? this.distanceToReferenceSite,
       placeId: placeId ?? this.placeId,
@@ -129,6 +136,7 @@ class AirQualityReading extends HiveObject {
         pm2_5: pm2_5,
         pm10: pm10,
         distanceToReferenceSite: distanceToReferenceSite,
+        airQuality: airQuality,
       ),
     );
   }
@@ -183,6 +191,10 @@ class AirQualityReading extends HiveObject {
   @HiveField(12)
   @JsonKey(defaultValue: '')
   final String placeId;
+
+  @HiveField(13)
+  @AirQualityConverter()
+  final AirQuality airQuality;
 
   Map<String, dynamic> toJson() => _$AirQualityReadingToJson(this);
 }

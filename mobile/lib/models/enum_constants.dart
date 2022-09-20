@@ -113,20 +113,87 @@ class RegionConverter implements JsonConverter<Region, String> {
   }
 }
 
+@HiveType(typeId: 150, adapterName: 'AirQualityAdapter')
 enum AirQuality {
+  @HiveField(1)
   good('Good'),
+  @HiveField(2)
   moderate('Moderate'),
+  @HiveField(3)
   ufsgs('Unhealthy For Sensitive Groups'),
+  @HiveField(4)
   unhealthy('Unhealthy'),
+  @HiveField(5)
   veryUnhealthy('Very Unhealthy'),
+  @HiveField(6)
   hazardous('Hazardous');
 
   const AirQuality(this.string);
+
+  factory AirQuality.fromPollutantValue(double value, Pollutant pollutant) {
+    switch (pollutant) {
+      case Pollutant.pm2_5:
+        if (value <= 12.09) {
+          return AirQuality.good;
+        } else if (value.isWithin(12.1, 35.49)) {
+          return AirQuality.moderate;
+        } else if (value.isWithin(35.5, 55.49)) {
+          return AirQuality.ufsgs;
+        } else if (value.isWithin(55.5, 150.49)) {
+          return AirQuality.unhealthy;
+        } else if (value.isWithin(150.5, 250.49)) {
+          return AirQuality.veryUnhealthy;
+        } else if (value >= 250.5) {
+          return AirQuality.hazardous;
+        } else {
+          return AirQuality.good;
+        }
+      case Pollutant.pm10:
+        if (value <= 50.99) {
+          return AirQuality.good;
+        } else if (value.isWithin(51.00, 100.99)) {
+          return AirQuality.moderate;
+        } else if (value.isWithin(101.00, 250.99)) {
+          return AirQuality.ufsgs;
+        } else if (value.isWithin(251.00, 350.99)) {
+          return AirQuality.unhealthy;
+        } else if (value.isWithin(351.00, 430.99)) {
+          return AirQuality.veryUnhealthy;
+        } else if (value >= 431.00) {
+          return AirQuality.hazardous;
+        } else {
+          return AirQuality.good;
+        }
+    }
+  }
+
+  factory AirQuality.fromString(String string) {
+    for (final airQuality in AirQuality.values) {
+      if (string.equalsIgnoreCase(airQuality.string)) {
+        return airQuality;
+      }
+    }
+    return AirQuality.good;
+  }
 
   final String string;
 
   @override
   String toString() => string;
+}
+
+class AirQualityConverter implements JsonConverter<AirQuality, String> {
+  const AirQualityConverter();
+
+  @override
+  String toJson(AirQuality airQuality) {
+    return airQuality.toString();
+  }
+
+  @override
+  AirQuality fromJson(String jsonString) {
+    return AirQuality.fromString(jsonString);
+  }
 }
 
 enum FeedbackType {
@@ -373,45 +440,8 @@ enum Pollutant {
 
   final String svg;
 
-  AirQuality airQuality(double value) {
-    switch (this) {
-      case Pollutant.pm2_5:
-        if (value <= 12.09) {
-          return AirQuality.good;
-        } else if (value.isWithin(12.1, 35.49)) {
-          return AirQuality.moderate;
-        } else if (value.isWithin(35.5, 55.49)) {
-          return AirQuality.ufsgs;
-        } else if (value.isWithin(55.5, 150.49)) {
-          return AirQuality.unhealthy;
-        } else if (value.isWithin(150.5, 250.49)) {
-          return AirQuality.veryUnhealthy;
-        } else if (value >= 250.5) {
-          return AirQuality.hazardous;
-        } else {
-          return AirQuality.good;
-        }
-      case Pollutant.pm10:
-        if (value <= 50.99) {
-          return AirQuality.good;
-        } else if (value.isWithin(51.00, 100.99)) {
-          return AirQuality.moderate;
-        } else if (value.isWithin(101.00, 250.99)) {
-          return AirQuality.ufsgs;
-        } else if (value.isWithin(251.00, 350.99)) {
-          return AirQuality.unhealthy;
-        } else if (value.isWithin(351.00, 430.99)) {
-          return AirQuality.veryUnhealthy;
-        } else if (value >= 431.00) {
-          return AirQuality.hazardous;
-        } else {
-          return AirQuality.good;
-        }
-    }
-  }
-
   String infoDialogText(double value) {
-    switch (airQuality(value)) {
+    switch (AirQuality.fromPollutantValue(value, this)) {
       case AirQuality.good:
         return 'Air quality is safe for everyone!';
       case AirQuality.moderate:
@@ -438,7 +468,7 @@ enum Pollutant {
   }
 
   Color color(double value) {
-    switch (airQuality(value)) {
+    switch (AirQuality.fromPollutantValue(value, this)) {
       case AirQuality.good:
         return CustomColors.aqiGreen;
       case AirQuality.moderate:
@@ -455,11 +485,11 @@ enum Pollutant {
   }
 
   String stringValue(double value) {
-    return airQuality(value).toString();
+    return AirQuality.fromPollutantValue(value, this).toString();
   }
 
   charts.Color chartColor(double value) {
-    switch (airQuality(value)) {
+    switch (AirQuality.fromPollutantValue(value, this)) {
       case AirQuality.good:
         return charts.ColorUtil.fromDartColor(CustomColors.aqiGreen);
       case AirQuality.moderate:
@@ -476,7 +506,7 @@ enum Pollutant {
   }
 
   Color textColor({required double value, bool graph = false}) {
-    switch (airQuality(value)) {
+    switch (AirQuality.fromPollutantValue(value, this)) {
       case AirQuality.good:
         return CustomColors.aqiGreenTextColor;
       case AirQuality.moderate:

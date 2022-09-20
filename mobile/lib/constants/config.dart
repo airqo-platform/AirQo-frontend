@@ -53,6 +53,9 @@ class Config {
 
   static String get kyaCollection => dotenv.env['KYA_COLLECTION'] ?? '';
 
+  static String get airQualityCollection =>
+      dotenv.env['AIR_QUALITY_COLLECTION'] ?? '';
+
   static String get allowLocationMessage =>
       'Turn on and allow location permissions';
 

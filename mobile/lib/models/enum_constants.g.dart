@@ -108,3 +108,62 @@ class RegionAdapter extends TypeAdapter<Region> {
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
+
+class AirQualityAdapter extends TypeAdapter<AirQuality> {
+  @override
+  final int typeId = 150;
+
+  @override
+  AirQuality read(BinaryReader reader) {
+    switch (reader.readByte()) {
+      case 1:
+        return AirQuality.good;
+      case 2:
+        return AirQuality.moderate;
+      case 3:
+        return AirQuality.ufsgs;
+      case 4:
+        return AirQuality.unhealthy;
+      case 5:
+        return AirQuality.veryUnhealthy;
+      case 6:
+        return AirQuality.hazardous;
+      default:
+        return AirQuality.good;
+    }
+  }
+
+  @override
+  void write(BinaryWriter writer, AirQuality obj) {
+    switch (obj) {
+      case AirQuality.good:
+        writer.writeByte(1);
+        break;
+      case AirQuality.moderate:
+        writer.writeByte(2);
+        break;
+      case AirQuality.ufsgs:
+        writer.writeByte(3);
+        break;
+      case AirQuality.unhealthy:
+        writer.writeByte(4);
+        break;
+      case AirQuality.veryUnhealthy:
+        writer.writeByte(5);
+        break;
+      case AirQuality.hazardous:
+        writer.writeByte(6);
+        break;
+    }
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AirQualityAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}

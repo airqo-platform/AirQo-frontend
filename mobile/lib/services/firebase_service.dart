@@ -58,6 +58,29 @@ class CloudStore {
     }
   }
 
+  static Future<void> listenToAirQualityUpdates() async {
+    final airQualityRef = FirebaseFirestore.instance
+        .collection(Config.airQualityCollection)
+        .withConverter<AirQualityReading>(
+          fromFirestore: (snapshots, _) =>
+              AirQualityReading.fromJson(snapshots.data()!),
+          toFirestore: (airQuality, _) => airQuality.toJson(),
+        );
+
+    airQualityRef.snapshots().listen(
+      (event) async {
+        for (final doc in event.docs) {
+          try {
+            await HiveService.updateAirQualityReading(doc.data());
+          } catch (exception, stackTrace) {
+            await logException(exception, stackTrace);
+          }
+        }
+      },
+      onError: (error) => logException(error, null),
+    );
+  }
+
   static Future<List<Kya>> _getReferenceKya() async {
     final referenceKyaCollection =
         await FirebaseFirestore.instance.collection(Config.kyaCollection).get();
