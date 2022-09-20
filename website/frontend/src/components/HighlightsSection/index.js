@@ -52,7 +52,6 @@ const HighlightsSection = () => {
                 <div className="content" id="content">
                     {highlightsData.length > 0 ? (
                         highlights
-                            .reverse()
                             .map((highlight) => (
                                 <Post
                                     key={highlight.id}
