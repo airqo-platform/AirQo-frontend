@@ -1,8 +1,7 @@
+import 'package:app/models/models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../models/enum_constants.dart';
-import '../../models/profile.dart';
 import '../../themes/colors.dart';
 import '../../widgets/text_fields.dart';
 
@@ -25,25 +24,6 @@ OnBoardingPage getOnBoardingPageConstant(String value) {
     default:
       return OnBoardingPage.signup;
   }
-}
-
-class OnBoardingAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const OnBoardingAppBar({
-    super.key,
-  });
-
-  @override
-  PreferredSizeWidget build(BuildContext context) {
-    return AppBar(
-      automaticallyImplyLeading: false,
-      elevation: 0,
-      toolbarHeight: 0,
-      backgroundColor: CustomColors.appBodyColor,
-    );
-  }
-
-  @override
-  Size get preferredSize => Size.zero;
 }
 
 class OnBoardingLocationIcon extends StatelessWidget {
@@ -164,10 +144,10 @@ class TitleDropDown extends StatelessWidget {
   const TitleDropDown({
     super.key,
     required this.showTileOptionsCallBack,
-    required this.profile,
+    required this.title,
   });
   final Function(bool) showTileOptionsCallBack;
-  final Profile profile;
+  final TitleOptions title;
 
   @override
   Widget build(BuildContext context) {
@@ -186,7 +166,7 @@ class TitleDropDown extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('${profile.title.substring(0, 2)}.'),
+              Text(title.abbr),
               const Icon(
                 Icons.keyboard_arrow_down_sharp,
                 color: Colors.black,
@@ -251,4 +231,19 @@ class TaglineWidget extends StatelessWidget {
       ),
     );
   }
+}
+
+class OnBoardingTopBar extends StatelessWidget implements PreferredSizeWidget {
+  const OnBoardingTopBar({super.key});
+
+  @override
+  PreferredSizeWidget build(BuildContext context) {
+    return AppBar(
+      toolbarHeight: 0,
+      backgroundColor: CustomColors.appBodyColor,
+    );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(0);
 }

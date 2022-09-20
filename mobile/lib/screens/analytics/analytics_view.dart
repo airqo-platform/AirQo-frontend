@@ -1,13 +1,10 @@
 import 'package:app/constants/config.dart';
-import 'package:app/models/place_details.dart';
+import 'package:app/models/models.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../../models/analytics.dart';
-import '../../models/measurement.dart';
 import '../../services/app_service.dart';
 import '../../services/hive_service.dart';
-import '../../services/local_storage.dart';
 import '../../themes/colors.dart';
 import '../../widgets/custom_widgets.dart';
 import 'analytics_widgets.dart';
@@ -20,9 +17,6 @@ class AnalyticsView extends StatefulWidget {
 }
 
 class _AnalyticsViewState extends State<AnalyticsView> {
-  final AppService _appService = AppService();
-  List<Measurement> _places = [];
-
   @override
   Widget build(BuildContext context) {
     final appColors = Theme.of(context).extension<AppColors>()!;
@@ -38,6 +32,14 @@ class _AnalyticsViewState extends State<AnalyticsView> {
             return AppRefreshIndicator(
               sliverChildDelegate: SliverChildBuilderDelegate(
                 (context, index) {
+                  final airQualityReading =
+                      Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+                          .get(analytics[index].site);
+
+                  if (airQualityReading == null) {
+                    return Container();
+                  }
+
                   return Padding(
                     padding: EdgeInsets.only(
                       top: Config.refreshIndicatorPadding(
@@ -45,7 +47,8 @@ class _AnalyticsViewState extends State<AnalyticsView> {
                       ),
                     ),
                     child: MiniAnalyticsCard(
-                      analytics[index].toPlaceDetails(),
+                      airQualityReading,
+                      animateOnClick: true,
                     ),
                   );
                 },
@@ -55,47 +58,46 @@ class _AnalyticsViewState extends State<AnalyticsView> {
             );
           }
 
-          if (_places.isNotEmpty) {
-            return AppRefreshIndicator(
-              sliverChildDelegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  return Padding(
-                    padding: EdgeInsets.only(
-                      top: Config.refreshIndicatorPadding(index),
-                    ),
-                    child: MiniAnalyticsCard(
-                      PlaceDetails.measurementToPlace(
-                        _places[index],
-                      ),
-                    ),
-                  );
-                },
-                childCount: _places.length,
-              ),
-              onRefresh: _refresh,
-            );
-          }
+          return ValueListenableBuilder<Box>(
+            valueListenable:
+                Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+                    .listenable(),
+            builder: (context, box, widget) {
+              if (box.isNotEmpty) {
+                final airQualityReadings =
+                    box.values.toList().cast<AirQualityReading>();
 
-          return const EmptyAnalytics();
+                return AppRefreshIndicator(
+                  sliverChildDelegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          top: Config.refreshIndicatorPadding(index),
+                        ),
+                        child: MiniAnalyticsCard(
+                          airQualityReadings[index],
+                          animateOnClick: true,
+                        ),
+                      );
+                    },
+                    childCount: airQualityReadings.length,
+                  ),
+                  onRefresh: _refresh,
+                );
+              }
+
+              return const EmptyAnalytics();
+            },
+          );
         },
       ),
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _initialize();
-  }
-
   Future<void> _refresh() async {
-    await _appService.refreshAnalytics(context).then(
-          (value) => _initialize(),
-        );
-  }
-
-  Future<void> _initialize() async {
-    final places = await DBHelper().getLatestMeasurements();
-    setState(() => _places = places);
+    await Future.wait([
+      AppService().refreshAirQualityReadings(),
+      AppService().refreshAnalytics(context),
+    ]);
   }
 }

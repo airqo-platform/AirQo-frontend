@@ -1,18 +1,15 @@
+import 'package:app/models/models.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-import '../models/enum_constants.dart';
-import '../models/profile.dart';
 import '../utils/exception.dart';
 import 'firebase_service.dart';
 import 'native_api.dart';
 
 class NotificationService {
-  static Future<bool> revokePermission() async {
+  static Future<void> revokePermission() async {
     final profile = await Profile.getProfile();
     await profile.update(enableNotification: false);
-
-    return false;
   }
 
   static Future<void> initNotifications() async {
@@ -32,7 +29,9 @@ class NotificationService {
     FirebaseMessaging.onBackgroundMessage(
       NotificationService.notificationHandler,
     );
-    FirebaseMessaging.onMessage.listen(NotificationService.notificationHandler);
+    // Temporarily disabling on notification listeners
+    // FirebaseMessaging.onMessage
+    // .listen(NotificationService.notificationHandler);
     FirebaseMessaging.onMessageOpenedApp.listen(
       (_) {
         CloudAnalytics.logEvent(
@@ -104,18 +103,17 @@ class NotificationService {
     }
   }
 
-  static Future<bool> allowNotifications() async {
+  static Future<void> allowNotifications() async {
     final enabled = await PermissionService.checkPermission(
       AppPermission.notification,
       request: true,
     );
     if (enabled) {
+      final profile = await Profile.getProfile();
       await Future.wait([
         CloudAnalytics.logEvent(AnalyticsEvent.allowNotification),
-        Profile.getProfile().then((profile) => profile.update()),
+        profile.update(enableNotification: true),
       ]);
     }
-
-    return enabled;
   }
 }

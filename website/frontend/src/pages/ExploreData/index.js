@@ -176,7 +176,7 @@ export const ExploreUserProfessionType = () => {
                       control={
                             <Checkbox checked={compareCategory(exploreData.category, CATEGORY_TYPE.environmentalEnthusiasts)} onChange={handleCategoryChange} name="environmental enthusiasts" />
                         }
-                      label="Environmental enthusiasts"
+                      label="Environmental enthusiast"
                     />
                 </FormControl>
             </div>
@@ -211,14 +211,14 @@ export const ExploreOrganisationType = () => {
                       control={
                             <Checkbox checked={compareCategory(exploreData.category, CATEGORY_TYPE.business)} onChange={handleCategoryChange} name="business" />
                         }
-                      label="Business"
+                      label="Business Owner"
                     />
                     <FormControlLabel
                       className="radio-field-option"
                       control={
                             <Checkbox checked={compareCategory(exploreData.category, CATEGORY_TYPE.governmentEnthusiasts)} onChange={handleCategoryChange} name="government enthusiasts" />
                         }
-                      label="Government enthusiasts"
+                      label="Government or Policy Officer"
                     />
                 </FormControl>
             </div>
@@ -238,22 +238,22 @@ export const ExploreUserRegistry = () => {
   const registerOrganisation = async (e) => {
     e.preventDefault();
 
-    // console.log("Local state:", exploreDataLocal);
-
-    if (exploreDataLocal.category === 'business') {
-      navigate('/explore-data/get-started/user/register/business');
-    } else if (exploreDataLocal.category === 'government enthusiasts') {
-      navigate('/explore-data/get-started/user/register/organisation');
+    if (exploreDataLocal.category === CATEGORY_TYPE.business) {
+        navigate('/explore-data/get-started/user/register/business');
+    } else if (exploreDataLocal.category === CATEGORY_TYPE.governmentEnthusiasts) {
+        navigate('/explore-data/get-started/user/register/organisation');
     } else {
-      setLoading(true);
-      await dispatch(postExploreDataRequest({
-        ...exploreDataLocal,
-        long_organization: exploreDataLocal.category,
-        jobTitle: exploreDataLocal.category,
-        website: 'airqo.net',
-        description: 'Request Access to Data',
-      }));
-      setLoading(false);
+        setLoading(true);
+        await dispatch(
+            postExploreDataRequest({
+                ...exploreDataLocal,
+                long_organization: exploreDataLocal.category,
+                jobTitle: exploreDataLocal.category,
+                website: 'airqo.net',
+                description: 'Request Access to Data',
+            })
+        );
+        setLoading(false);
     }
   };
 
@@ -265,22 +265,61 @@ export const ExploreUserRegistry = () => {
   }, [exploreData]);
 
   return (
-        <PageWithImageLayout imgPath={ManExploring}>
-            <div className="ExploreFormWrapper">
-                <h2>Create your AirQo account</h2>
-                <ExploreFormTemplate onSubmit={registerOrganisation}>
-                    <ExploreTemplateFormFieldOption label="First name" inputType="text" fieldId="firstName" onChange={handleChange('firstName')} />
-                    <ExploreTemplateFormFieldOption label="Last name" inputType="text" fieldId="lastName" onChange={handleChange('lastName')} />
-                    {exploreDataLocal.category === 'researcher' && <ExploreTemplateFormFieldOption label="Email address" inputType="email" fieldId="email" onChange={handleChange('email')} />}
-                    {exploreDataLocal.category === 'environmental enthusiasts' && <ExploreTemplateFormFieldOption label="Email address" inputType="email" fieldId="emailAddress" onChange={handleChange('email')} />}
-                    <ExploreTemplateFormFieldOption inputType="checkbox" fieldId="tos" radioOption fieldClassName="tos" formOptionClassName="tos">
-                        I agree to the <a>Terms of Service</a> and <a>Privacy Policy</a>
-                    </ExploreTemplateFormFieldOption>
-                    <button className="nav-button" type="submit" onSubmit={registerOrganisation}>{ loading ? <CircularProgress /> : 'Create Account' }</button>
-                    <small>Already have an account?<span><a href={NETMANAGER_URL} target="_blank" rel="noreferrer">Log in</a></span></small>
-                </ExploreFormTemplate>
-            </div>
-        </PageWithImageLayout>
+      <PageWithImageLayout imgPath={ManExploring}>
+          <div className="ExploreFormWrapper">
+              <h2>Create your AirQo account</h2>
+              <ExploreFormTemplate onSubmit={registerOrganisation}>
+                  <ExploreTemplateFormFieldOption
+                      label="First name"
+                      inputType="text"
+                      fieldId="firstName"
+                      onChange={handleChange('firstName')}
+                  />
+                  <ExploreTemplateFormFieldOption
+                      label="Last name"
+                      inputType="text"
+                      fieldId="lastName"
+                      onChange={handleChange('lastName')}
+                  />
+                  {exploreDataLocal.category === CATEGORY_TYPE.researcher && (
+                      <ExploreTemplateFormFieldOption
+                          label="Email address"
+                          inputType="email"
+                          fieldId="email"
+                          onChange={handleChange('email')}
+                      />
+                  )}
+                  {exploreDataLocal.category === CATEGORY_TYPE.environmentalEnthusiasts && (
+                      <ExploreTemplateFormFieldOption
+                          label="Email address"
+                          inputType="email"
+                          fieldId="emailAddress"
+                          onChange={handleChange('email')}
+                      />
+                  )}
+                  <ExploreTemplateFormFieldOption
+                      inputType="checkbox"
+                      fieldId="tos"
+                      radioOption
+                      fieldClassName="tos"
+                      formOptionClassName="tos">
+                      I agree to the <Link to="/terms">Terms of Service</Link> and{' '}
+                      <Link to="/terms">Privacy Policy</Link>
+                  </ExploreTemplateFormFieldOption>
+                  <button className="nav-button" type="submit" onSubmit={registerOrganisation}>
+                      {loading ? <CircularProgress /> : 'Create Account'}
+                  </button>
+                  <small>
+                      Already have an account?
+                      <span>
+                          <a href={NETMANAGER_URL} target="_blank" rel="noreferrer">
+                              Log in
+                          </a>
+                      </span>
+                  </small>
+              </ExploreFormTemplate>
+          </div>
+      </PageWithImageLayout>
   );
 };
 
@@ -300,8 +339,8 @@ export const ExploreBusinessRegistry = () => {
 
     await dispatch(postExploreDataRequest({
       ...exploreDataLocal,
-      firstName: 'N/A',
-      lastName: 'N/A',
+      firstName: exploreDataLocal.firstName,
+      lastName: exploreData.lastName,
       long_organization: exploreDataLocal.business,
       jobTitle: exploreDataLocal.position,
       website: 'airqo.net',
@@ -319,21 +358,51 @@ export const ExploreBusinessRegistry = () => {
   }, [exploreData]);
 
   return (
-        <PageWithImageLayout imgPath={ManExploring}>
-            <div className="ExploreFormWrapper">
-                <h2>Details about your business</h2>
-                <ExploreFormTemplate onSubmit={handleSubmit}>
-                    <ExploreTemplateFormFieldOption label="Business name" inputType="text" fieldId="businessName" onChange={handleChange('business')} />
-                    <ExploreTemplateFormFieldOption label="Your position" inputType="text" fieldId="position" onChange={handleChange('position')} />
-                    <ExploreTemplateFormFieldOption label="Email address" inputType="email" fieldId="emailAddress" onChange={handleChange('email')} />
-                    <ExploreTemplateFormFieldOption inputType="checkbox" fieldId="tos" radioOption fieldClassName="tos" formOptionClassName="tos">
-                        I agree to the <a>Terms of Service</a> and <a>Privacy Policy</a>
-                    </ExploreTemplateFormFieldOption>
-                    <button type="submit" className="nav-button">{ loading ? <CircularProgress /> : 'Create Account' }</button>
-                    <small>Already have an account?<span><a href={NETMANAGER_URL} target="_blank" rel="noreferrer">Log in</a></span></small>
-                </ExploreFormTemplate>
-            </div>
-        </PageWithImageLayout>
+      <PageWithImageLayout imgPath={ManExploring}>
+          <div className="ExploreFormWrapper">
+              <h2>Details about your business</h2>
+              <ExploreFormTemplate onSubmit={handleSubmit}>
+                  <ExploreTemplateFormFieldOption
+                      label="Business name"
+                      inputType="text"
+                      fieldId="businessName"
+                      onChange={handleChange('business')}
+                  />
+                  <ExploreTemplateFormFieldOption
+                      label="Your position"
+                      inputType="text"
+                      fieldId="position"
+                      onChange={handleChange('position')}
+                  />
+                  <ExploreTemplateFormFieldOption
+                      label="Email address"
+                      inputType="email"
+                      fieldId="emailAddress"
+                      onChange={handleChange('email')}
+                  />
+                  <ExploreTemplateFormFieldOption
+                      inputType="checkbox"
+                      fieldId="tos"
+                      radioOption
+                      fieldClassName="tos"
+                      formOptionClassName="tos">
+                      I agree to the <Link to="/terms">Terms of Service</Link> and{' '}
+                      <Link to="/terms">Privacy Policy</Link>
+                  </ExploreTemplateFormFieldOption>
+                  <button type="submit" className="nav-button">
+                      {loading ? <CircularProgress /> : 'Create Account'}
+                  </button>
+                  <small>
+                      Already have an account?
+                      <span>
+                          <a href={NETMANAGER_URL} target="_blank" rel="noreferrer">
+                              Log in
+                          </a>
+                      </span>
+                  </small>
+              </ExploreFormTemplate>
+          </div>
+      </PageWithImageLayout>
   );
 };
 
@@ -353,8 +422,8 @@ export const ExploreOrganisationRegistry = () => {
 
     await dispatch(postExploreDataRequest({
       ...exploreDataLocal,
-      firstName: 'N/A',
-      lastName: 'N/A',
+      firstName: exploreDataLocal.firstName,
+      lastName: exploreDataLocal.lastName,
       long_organization: exploreDataLocal.business,
       jobTitle: exploreDataLocal.position,
       website: 'airqo.net',
@@ -372,21 +441,50 @@ export const ExploreOrganisationRegistry = () => {
   }, [exploreData]);
 
   return (
-        <PageWithImageLayout imgPath={ManExploring}>
-            <div className="ExploreFormWrapper">
-                <h2>Details about your business</h2>
-                <ExploreFormTemplate onSubmit={handleSubmit}>
-                    <ExploreTemplateFormFieldOption label="Organisation name" inputType="text" fieldId="orgName" onChange={handleChange('business')} />
-                    <ExploreTemplateFormFieldOption label="Your position" inputType="text" fieldId="position" onChange={handleChange('position')} />
-                    <ExploreTemplateFormFieldOption label="Email address" inputType="email" fieldId="emailAddress" onChange={handleChange('email')} />
-                    <ExploreTemplateFormFieldOption inputType="checkbox" fieldId="tos" radioOption fieldClassName="tos" formOptionClassName="tos">
-                        I agree to the <a>Terms of Service</a> and <a>Privacy Policy</a>
-                    </ExploreTemplateFormFieldOption>
-                    <button className="nav-button" type="submit">{ loading ? <CircularProgress /> : 'Create Account' }</button>
-                    <small>Already have an account?<span><a href={NETMANAGER_URL} target="_blank" rel="noreferrer">Log in</a></span></small>
-                </ExploreFormTemplate>
-            </div>
-        </PageWithImageLayout>
+      <PageWithImageLayout imgPath={ManExploring}>
+          <div className="ExploreFormWrapper">
+              <h2>Details about your Organisation</h2>
+              <ExploreFormTemplate onSubmit={handleSubmit}>
+                  <ExploreTemplateFormFieldOption
+                      label="Organisation name"
+                      inputType="text"
+                      fieldId="orgName"
+                      onChange={handleChange('business')}
+                  />
+                  <ExploreTemplateFormFieldOption
+                      label="Your position"
+                      inputType="text"
+                      fieldId="position"
+                      onChange={handleChange('position')}
+                  />
+                  <ExploreTemplateFormFieldOption
+                      label="Email address"
+                      inputType="email"
+                      fieldId="emailAddress"
+                      onChange={handleChange('email')}
+                  />
+                  <ExploreTemplateFormFieldOption
+                      inputType="checkbox"
+                      fieldId="tos"
+                      radioOption
+                      fieldClassName="tos"
+                      formOptionClassName="tos">
+                      I agree to the <Link to="/terms">Terms of Service</Link> and <Link to="/terms">Privacy Policy</Link>
+                  </ExploreTemplateFormFieldOption>
+                  <button className="nav-button" type="submit">
+                      {loading ? <CircularProgress /> : 'Create Account'}
+                  </button>
+                  <small>
+                      Already have an account?
+                      <span>
+                          <a href={NETMANAGER_URL} target="_blank" rel="noreferrer">
+                              Log in
+                          </a>
+                      </span>
+                  </small>
+              </ExploreFormTemplate>
+          </div>
+      </PageWithImageLayout>
   );
 };
 export const ExploreRegistryConfirmation = () => (

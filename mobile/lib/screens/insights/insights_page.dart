@@ -1,19 +1,18 @@
-import 'package:app/models/place_details.dart';
+import 'package:app/models/models.dart';
 import 'package:app/screens/insights/insights_tab.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
 
-import '../../models/enum_constants.dart';
 import '../../themes/colors.dart';
 import '../../utils/network.dart';
 import '../../widgets/buttons.dart';
 
 class InsightsPage extends StatefulWidget {
   const InsightsPage(
-    this.placeDetails, {
+    this.airQualityReading, {
     super.key,
   });
-  final PlaceDetails placeDetails;
+  final AirQualityReading airQualityReading;
 
   @override
   State<InsightsPage> createState() => _InsightsPageState();
@@ -84,11 +83,11 @@ class _InsightsPageState extends State<InsightsPage>
                 physics: const NeverScrollableScrollPhysics(),
                 children: <Widget>[
                   InsightsTab(
-                    widget.placeDetails,
+                    widget.airQualityReading,
                     Frequency.hourly,
                   ),
                   InsightsTab(
-                    widget.placeDetails,
+                    widget.airQualityReading,
                     Frequency.daily,
                   ),
                 ],
