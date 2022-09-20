@@ -564,7 +564,12 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
             >
               Deploy status
             </span>{" "}
-            <span style={{ color: "green", textTransform: "capitalize" }}>
+            <span
+              style={{
+                color: deviceData.status === "deployed" ? "green" : "red",
+                textTransform: "capitalize",
+              }}
+            >
               {deviceData.status}
             </span>
           </span>

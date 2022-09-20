@@ -160,7 +160,16 @@ const createDeviceColumns = (history, setDelState) => [
     field: "isActive",
     render: (data) => (
       <Cell
-        fieldValue={<span style={{ color: "green", textTransform:"capitalize" }}>{data.status}</span>}
+        fieldValue={
+          <span
+            style={{
+              color: data.status === "deployed" ? "green" : "red",
+              textTransform: "capitalize",
+            }}
+          >
+            {data.status}
+          </span>
+        }
       />
     ),
   },
@@ -204,7 +213,7 @@ const CreateDevice = ({ open, setOpen }) => {
     generation_version: "",
     generation_count: "",
     category: "",
-    status: "not deployed"
+    status: "not deployed",
   };
 
   const initialErrors = {
