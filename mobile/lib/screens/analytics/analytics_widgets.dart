@@ -1,30 +1,28 @@
 import 'dart:async';
 
-import 'package:app/models/measurement.dart';
-import 'package:app/models/place_details.dart';
+import 'package:app/blocs/map/map_bloc.dart';
+import 'package:app/models/models.dart';
 import 'package:app/screens/insights/insights_page.dart';
-import 'package:app/services/app_service.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/widgets/dialogs.dart';
 import 'package:app/widgets/tooltip.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:provider/provider.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
-import '../../models/enum_constants.dart';
-import '../../services/local_storage.dart';
+import '../../services/hive_service.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
-import '../../widgets/custom_shimmer.dart';
 import '../../widgets/custom_widgets.dart';
 
 class AnalyticsAvatar extends StatelessWidget {
   const AnalyticsAvatar({
     super.key,
-    required this.measurement,
+    required this.airQualityReading,
   });
-  final Measurement measurement;
+  final AirQualityReading airQualityReading;
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +32,7 @@ class AnalyticsAvatar extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: Pollutant.pm2_5.color(
-          measurement.getPm2_5Value(),
+          airQualityReading.pm2_5,
         ),
         border: Border.all(color: Colors.transparent),
       ),
@@ -43,22 +41,22 @@ class AnalyticsAvatar extends StatelessWidget {
         children: [
           const Spacer(),
           SvgPicture.asset(
-            Pollutant.pm2_5.svg(),
+            Pollutant.pm2_5.svg,
             semanticsLabel: 'Pm2.5',
             height: 9.7,
             width: 32.45,
             color: Pollutant.pm2_5.textColor(
-              value: measurement.getPm2_5Value(),
+              value: airQualityReading.pm2_5,
             ),
           ),
           Text(
-            measurement.getPm2_5Value().toStringAsFixed(0),
+            airQualityReading.pm2_5.toStringAsFixed(0),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: CustomTextStyle.insightsAvatar(
               context: context,
               pollutant: Pollutant.pm2_5,
-              value: measurement.getPm2_5Value(),
+              value: airQualityReading.pm2_5,
             ),
           ),
           SvgPicture.asset(
@@ -67,7 +65,7 @@ class AnalyticsAvatar extends StatelessWidget {
             height: 12.14,
             width: 32.45,
             color: Pollutant.pm2_5.textColor(
-              value: measurement.getPm2_5Value(),
+              value: airQualityReading.pm2_5,
             ),
           ),
           const Spacer(),
@@ -80,9 +78,7 @@ class AnalyticsAvatar extends StatelessWidget {
 class MapAnalyticsMoreInsights extends StatelessWidget {
   const MapAnalyticsMoreInsights({
     super.key,
-    required this.placeDetails,
   });
-  final PlaceDetails placeDetails;
 
   @override
   Widget build(BuildContext context) {
@@ -126,11 +122,7 @@ class MapAnalyticsMoreInsights extends StatelessWidget {
 }
 
 class AnalyticsMoreInsights extends StatelessWidget {
-  const AnalyticsMoreInsights({
-    super.key,
-    required this.placeDetails,
-  });
-  final PlaceDetails placeDetails;
+  const AnalyticsMoreInsights({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -168,12 +160,10 @@ class AnalyticsMoreInsights extends StatelessWidget {
 class AnalyticsShareCard extends StatelessWidget {
   const AnalyticsShareCard({
     super.key,
-    required this.measurement,
-    required this.placeDetails,
+    required this.airQualityReading,
   });
 
-  final Measurement measurement;
-  final PlaceDetails placeDetails;
+  final AirQualityReading airQualityReading;
 
   @override
   Widget build(BuildContext context) {
@@ -201,21 +191,21 @@ class AnalyticsShareCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              AnalyticsAvatar(measurement: measurement),
+              AnalyticsAvatar(airQualityReading: airQualityReading),
               const SizedBox(width: 10.0),
               Flexible(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     AutoSizeText(
-                      placeDetails.name,
+                      airQualityReading.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       minFontSize: 17,
                       style: CustomTextStyle.headline9(context),
                     ),
                     AutoSizeText(
-                      placeDetails.location,
+                      airQualityReading.location,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       minFontSize: 12,
@@ -227,13 +217,13 @@ class AnalyticsShareCard extends StatelessWidget {
                       height: 12,
                     ),
                     AqiStringContainer(
-                      measurement: measurement,
+                      airQualityReading: airQualityReading,
                     ),
                     const SizedBox(
                       height: 8,
                     ),
                     Text(
-                      dateToShareString(measurement.time),
+                      dateToShareString(airQualityReading.dateTime),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -278,14 +268,12 @@ class AnalyticsShareCard extends StatelessWidget {
 
 class AnalyticsCard extends StatefulWidget {
   const AnalyticsCard(
-    this.placeDetails,
-    this.measurement,
+    this.airQualityReading,
     this.isRefreshing,
     this.showHelpTip, {
     super.key,
   });
-  final PlaceDetails placeDetails;
-  final Measurement measurement;
+  final AirQualityReading airQualityReading;
   final bool isRefreshing;
   final bool showHelpTip;
 
@@ -294,18 +282,238 @@ class AnalyticsCard extends StatefulWidget {
 }
 
 class MapAnalyticsCard extends StatefulWidget {
-  const MapAnalyticsCard(
-    this.placeDetails,
-    this.measurement,
-    this.closeCallBack, {
+  const MapAnalyticsCard({
     super.key,
+    required this.airQualityReading,
   });
-  final PlaceDetails placeDetails;
-  final Measurement measurement;
-  final VoidCallback closeCallBack;
+  final AirQualityReading airQualityReading;
 
   @override
   State<MapAnalyticsCard> createState() => _MapAnalyticsCardState();
+}
+
+class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
+  final GlobalKey _shareWidgetKey = GlobalKey();
+  late final AirQualityReading _airQualityReading;
+
+  @override
+  void initState() {
+    super.initState();
+    _airQualityReading = widget.airQualityReading;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final appColors = Theme.of(context).extension<AppColors>()!;
+
+    return ValueListenableBuilder<Box>(
+      valueListenable: Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+          .listenable(keys: [_airQualityReading.placeId]),
+      builder: (context, box, widget) {
+        final airQualityReadings = box.values
+            .cast<AirQualityReading>()
+            .where((element) => element.placeId == _airQualityReading.placeId)
+            .toList();
+        var reading = _airQualityReading;
+        if (airQualityReadings.isNotEmpty) {
+          reading = _airQualityReading.copyWith(
+            dateTime: airQualityReadings[0].dateTime,
+            pm2_5: airQualityReadings[0].pm2_5,
+            pm10: airQualityReadings[0].pm10,
+          );
+        }
+
+        return Container(
+          constraints: const BoxConstraints(
+            maxHeight: 251,
+            minHeight: 251,
+            minWidth: 328,
+            maxWidth: 328,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: const BorderRadius.all(
+              Radius.circular(
+                16.0,
+              ),
+            ),
+            border: Border.all(
+              color: const Color(0xffC4C4C4),
+            ),
+          ),
+          child: Stack(
+            children: [
+              RepaintBoundary(
+                key: _shareWidgetKey,
+                child: AnalyticsShareCard(airQualityReading: reading),
+              ),
+              InkWell(
+                onTap: () async => _goToInsights(),
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(16.0),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          const Spacer(),
+                          InkWell(
+                            onTap: () {
+                              context
+                                  .read<MapBloc>()
+                                  .add(ShowRegionSites(region: reading.region));
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                right: 12,
+                                top: 12,
+                                left: 20,
+                              ),
+                              child: SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: SvgPicture.asset(
+                                  'assets/icon/close.svg',
+                                  height: 20,
+                                  width: 20,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Column(
+                        children: [
+                          SizedBox(
+                            height: 104,
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                left: 24,
+                                right: 24,
+                              ),
+                              child: Row(
+                                children: [
+                                  AnalyticsAvatar(
+                                    airQualityReading: reading,
+                                  ),
+                                  const SizedBox(
+                                    width: 16.0,
+                                  ),
+                                  // TODO : investigate ellipsis
+                                  Flexible(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          reading.name,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: CustomTextStyle.headline9(
+                                            context,
+                                          ),
+                                        ),
+                                        Text(
+                                          reading.location,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style:
+                                              CustomTextStyle.bodyText4(context)
+                                                  ?.copyWith(
+                                            color: appColors.appColorBlack
+                                                .withOpacity(0.3),
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          height: 12,
+                                        ),
+                                        AqiStringContainer(
+                                          airQualityReading: reading,
+                                        ),
+                                        const SizedBox(
+                                          height: 8,
+                                        ),
+                                        Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Container(
+                                              constraints: BoxConstraints(
+                                                maxWidth: MediaQuery.of(context)
+                                                        .size
+                                                        .width /
+                                                    3.2,
+                                              ),
+                                              child: Text(
+                                                dateToString(
+                                                  reading.dateTime,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  fontSize: 8,
+                                                  color: Colors.black
+                                                      .withOpacity(0.3),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 30,
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.only(
+                              left: 24,
+                              right: 24,
+                            ),
+                            child: AnalyticsMoreInsights(),
+                          ),
+                          const SizedBox(height: 12),
+                          const Divider(
+                            color: Color(0xffC4C4C4),
+                            height: 1.0,
+                          ),
+                        ],
+                      ),
+                      Expanded(
+                        child: AnalyticsCardFooter(
+                          shareKey: _shareWidgetKey,
+                          airQualityReading: reading,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _goToInsights() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) {
+          return InsightsPage(_airQualityReading);
+        },
+      ),
+    );
+  }
 }
 
 class _AnalyticsCardState extends State<AnalyticsCard> {
@@ -328,8 +536,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
           RepaintBoundary(
             key: _shareWidgetKey,
             child: AnalyticsShareCard(
-              measurement: widget.measurement,
-              placeDetails: widget.placeDetails,
+              airQualityReading: widget.airQualityReading,
             ),
           ),
           InkWell(
@@ -350,7 +557,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                         onTap: () {
                           pmInfoDialog(
                             context,
-                            widget.measurement.getPm2_5Value(),
+                            widget.airQualityReading.pm2_5,
                           );
                         },
                         child: Padding(
@@ -385,7 +592,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                             children: [
                               GestureDetector(
                                 child: AnalyticsAvatar(
-                                  measurement: widget.measurement,
+                                  airQualityReading: widget.airQualityReading,
                                 ),
                                 onTap: () {
                                   ToolTip(context, ToolTipType.info).show(
@@ -402,13 +609,13 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      widget.placeDetails.name,
+                                      widget.airQualityReading.name,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: CustomTextStyle.headline9(context),
                                     ),
                                     Text(
-                                      widget.placeDetails.location,
+                                      widget.airQualityReading.location,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: CustomTextStyle.bodyText4(context)
@@ -422,7 +629,8 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                     ),
                                     GestureDetector(
                                       child: AqiStringContainer(
-                                        measurement: widget.measurement,
+                                        airQualityReading:
+                                            widget.airQualityReading,
                                       ),
                                       onTap: () {
                                         ToolTip(
@@ -449,7 +657,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                           ),
                                           child: Text(
                                             dateToString(
-                                              widget.measurement.time,
+                                              widget.airQualityReading.dateTime,
                                             ),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
@@ -464,7 +672,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                           width: 4.0,
                                         ),
                                         Visibility(
-                                          visible: widget.isRefreshing,
+                                          visible: false,
                                           child: SvgPicture.asset(
                                             'assets/icon/loader.svg',
                                             semanticsLabel: 'loader',
@@ -484,14 +692,12 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                       const SizedBox(
                         height: 30,
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(
+                      const Padding(
+                        padding: EdgeInsets.only(
                           left: 24,
                           right: 24,
                         ),
-                        child: AnalyticsMoreInsights(
-                          placeDetails: widget.placeDetails,
-                        ),
+                        child: AnalyticsMoreInsights(),
                       ),
                       const SizedBox(height: 12),
                       const Divider(
@@ -502,9 +708,8 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                   ),
                   Expanded(
                     child: AnalyticsCardFooter(
-                      placeDetails: widget.placeDetails,
                       shareKey: _shareWidgetKey,
-                      measurement: widget.measurement,
+                      airQualityReading: widget.airQualityReading,
                     ),
                   ),
                 ],
@@ -521,203 +726,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
       context,
       MaterialPageRoute(
         builder: (context) {
-          return InsightsPage(widget.placeDetails);
-        },
-      ),
-    );
-  }
-}
-
-class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
-  final GlobalKey _shareWidgetKey = GlobalKey();
-
-  @override
-  Widget build(BuildContext context) {
-    final appColors = Theme.of(context).extension<AppColors>()!;
-
-    return Container(
-      constraints: const BoxConstraints(
-        maxHeight: 251,
-        minHeight: 251,
-        minWidth: 328,
-        maxWidth: 328,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: const BorderRadius.all(
-          Radius.circular(
-            16.0,
-          ),
-        ),
-        border: Border.all(
-          color: const Color(0xffC4C4C4),
-        ),
-      ),
-      child: Stack(
-        children: [
-          RepaintBoundary(
-            key: _shareWidgetKey,
-            child: AnalyticsShareCard(
-              measurement: widget.measurement,
-              placeDetails: widget.placeDetails,
-            ),
-          ),
-          InkWell(
-            onTap: () async => _goToInsights(),
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(16.0),
-                ),
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      const Spacer(),
-                      InkWell(
-                        onTap: () => widget.closeCallBack(),
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                            right: 12,
-                            top: 12,
-                            left: 20,
-                          ),
-                          child: SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: SvgPicture.asset(
-                              'assets/icon/close.svg',
-                              height: 20,
-                              width: 20,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Column(
-                    children: [
-                      SizedBox(
-                        height: 104,
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                            left: 24,
-                            right: 24,
-                          ),
-                          child: Row(
-                            children: [
-                              AnalyticsAvatar(
-                                measurement: widget.measurement,
-                              ),
-                              const SizedBox(
-                                width: 16.0,
-                              ),
-                              // TODO : investigate ellipsis
-                              Flexible(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      widget.placeDetails.name,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: CustomTextStyle.headline9(context),
-                                    ),
-                                    Text(
-                                      widget.placeDetails.location,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: CustomTextStyle.bodyText4(context)
-                                          ?.copyWith(
-                                        color: appColors.appColorBlack
-                                            .withOpacity(0.3),
-                                      ),
-                                    ),
-                                    const SizedBox(
-                                      height: 12,
-                                    ),
-                                    AqiStringContainer(
-                                      measurement: widget.measurement,
-                                    ),
-                                    const SizedBox(
-                                      height: 8,
-                                    ),
-                                    Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                          constraints: BoxConstraints(
-                                            maxWidth: MediaQuery.of(context)
-                                                    .size
-                                                    .width /
-                                                3.2,
-                                          ),
-                                          child: Text(
-                                            dateToString(
-                                              widget.measurement.time,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              fontSize: 8,
-                                              color:
-                                                  Colors.black.withOpacity(0.3),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 30,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          left: 24,
-                          right: 24,
-                        ),
-                        child: AnalyticsMoreInsights(
-                          placeDetails: widget.placeDetails,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      const Divider(
-                        color: Color(0xffC4C4C4),
-                        height: 1.0,
-                      ),
-                    ],
-                  ),
-                  Expanded(
-                    child: AnalyticsCardFooter(
-                      placeDetails: widget.placeDetails,
-                      shareKey: _shareWidgetKey,
-                      measurement: widget.measurement,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _goToInsights() async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) {
-          return InsightsPage(widget.placeDetails);
+          return InsightsPage(widget.airQualityReading);
         },
       ),
     );
@@ -726,21 +735,26 @@ class _MapAnalyticsCardState extends State<MapAnalyticsCard> {
 
 class MiniAnalyticsCard extends StatefulWidget {
   const MiniAnalyticsCard(
-    this.placeDetails, {
+    this.airQualityReading, {
     super.key,
+    required this.animateOnClick,
   });
-  final PlaceDetails placeDetails;
+  final AirQualityReading airQualityReading;
+  final bool animateOnClick;
 
   @override
   State<MiniAnalyticsCard> createState() => _MiniAnalyticsCard();
 }
 
 class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
-  late Measurement measurement;
-  bool showHeartAnimation = false;
-  bool isNull = true;
+  late final AirQualityReading airQualityReading;
+  bool _showHeartAnimation = false;
 
-  final AppService _appService = AppService();
+  @override
+  void initState() {
+    super.initState();
+    airQualityReading = widget.airQualityReading;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -752,178 +766,168 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
           context,
           MaterialPageRoute(
             builder: (context) {
-              return InsightsPage(widget.placeDetails);
+              return InsightsPage(airQualityReading);
             },
           ),
         );
       },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: const BorderRadius.all(
-              Radius.circular(8.0),
-            ),
-            border: Border.all(color: Colors.transparent),
-          ),
-          child: Column(
-            children: [
-              const SizedBox(
-                height: 5,
+      child: ValueListenableBuilder<Box>(
+        valueListenable: Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+            .listenable(keys: [airQualityReading.placeId]),
+        builder: (context, box, widget) {
+          final airQualityReadings = box.values
+              .where((element) => element.placeId == airQualityReading.placeId)
+              .toList();
+          var reading = airQualityReading;
+          if (airQualityReadings.isNotEmpty) {
+            reading = airQualityReadings.first;
+          }
+
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: const BorderRadius.all(
+                  Radius.circular(8.0),
+                ),
+                border: Border.all(color: Colors.transparent),
               ),
-              Container(
-                padding: const EdgeInsets.only(left: 32),
-                child: Row(
-                  children: [
-                    if (!isNull) MiniAnalyticsAvatar(measurement: measurement),
-                    if (isNull) const CircularLoadingAnimation(size: 40),
-                    const SizedBox(
-                      width: 12,
-                    ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          AutoSizeText(
-                            widget.placeDetails.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: CustomTextStyle.headline8(context),
+              child: Column(
+                children: [
+                  const SizedBox(
+                    height: 5,
+                  ),
+                  Container(
+                    padding: const EdgeInsets.only(left: 32),
+                    child: Row(
+                      children: [
+                        MiniAnalyticsAvatar(airQualityReading: reading),
+                        const SizedBox(
+                          width: 12,
+                        ),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Text(
+                                reading.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: CustomTextStyle.headline8(context),
+                              ),
+                              Text(
+                                reading.location,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: CustomTextStyle.bodyText4(context)
+                                    ?.copyWith(
+                                  color:
+                                      appColors.appColorBlack.withOpacity(0.3),
+                                ),
+                              ),
+                            ],
                           ),
-                          AutoSizeText(
-                            widget.placeDetails.location,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: CustomTextStyle.bodyText4(context)?.copyWith(
-                              color: appColors.appColorBlack.withOpacity(0.3),
+                        ),
+                        InkWell(
+                          onTap: () async => _updateFavPlace(),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 32,
+                              vertical: 24,
+                            ),
+                            child: HeartIcon(
+                              showAnimation: _showHeartAnimation,
+                              airQualityReading: reading,
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 12,
-                    ),
-                    InkWell(
-                      onTap: () async => updateFavPlace(),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 24,
                         ),
-                        child: Consumer<PlaceDetailsModel>(
-                          builder: (context, placeDetailsModel, child) {
-                            return HeartIcon(
-                              showAnimation: showHeartAnimation,
-                              placeDetails: widget.placeDetails,
-                            );
-                          },
-                        ),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-              const Divider(
-                color: Color(0xffC4C4C4),
-              ),
-              const SizedBox(
-                height: 11,
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Row(
-                  children: [
-                    Container(
-                      height: 16,
-                      width: 16,
-                      decoration: BoxDecoration(
-                        color: appColors.appColorBlue,
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(3.0),
+                  ),
+                  const Divider(
+                    color: Color(0xffC4C4C4),
+                  ),
+                  const SizedBox(
+                    height: 11,
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: Row(
+                      children: [
+                        Container(
+                          height: 16,
+                          width: 16,
+                          decoration: BoxDecoration(
+                            color: appColors.appColorBlue,
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(3.0),
+                            ),
+                            border: Border.all(
+                              color: Colors.transparent,
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.bar_chart,
+                            size: 14,
+                            color: Colors.white,
+                          ),
                         ),
-                        border: Border.all(
-                          color: Colors.transparent,
+                        const SizedBox(width: 8.0),
+                        Text(
+                          'View More Insights',
+                          style: CustomTextStyle.caption3(context)?.copyWith(
+                            color: appColors.appColorBlue,
+                          ),
                         ),
-                      ),
-                      child: const Icon(
-                        Icons.bar_chart,
-                        size: 14,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(width: 8.0),
-                    Text(
-                      'View More Insights',
-                      style: CustomTextStyle.caption3(context)?.copyWith(
-                        color: appColors.appColorBlue,
-                      ),
-                    ),
-                    const Spacer(),
-                    Container(
-                      height: 16,
-                      width: 16,
-                      padding: const EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                        color: appColors.appColorBlue.withOpacity(0.24),
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(3.0),
+                        const Spacer(),
+                        Container(
+                          height: 16,
+                          width: 16,
+                          padding: const EdgeInsets.all(5),
+                          decoration: BoxDecoration(
+                            color: appColors.appColorBlue.withOpacity(0.24),
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(3.0),
+                            ),
+                            border: Border.all(color: Colors.transparent),
+                          ),
+                          child: SvgPicture.asset(
+                            'assets/icon/more_arrow.svg',
+                            semanticsLabel: 'more',
+                            height: 6.99,
+                            width: 4,
+                          ),
                         ),
-                        border: Border.all(color: Colors.transparent),
-                      ),
-                      child: SvgPicture.asset(
-                        'assets/icon/more_arrow.svg',
-                        semanticsLabel: 'more',
-                        height: 6.99,
-                        width: 4,
-                      ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                ],
               ),
-              const SizedBox(
-                height: 20,
-              ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
 
-  void getMeasurement() {
-    DBHelper().getMeasurement(widget.placeDetails.siteId).then(
-          (value) => {
-            if (value != null && mounted)
-              {
-                setState(
-                  () {
-                    measurement = value;
-                    isNull = false;
-                  },
-                ),
-              },
-          },
-        );
-  }
+  void _updateFavPlace() async {
+    if (!Hive.box<FavouritePlace>(HiveBox.favouritePlaces)
+        .keys
+        .contains(widget.airQualityReading.placeId)) {
+      setState(() => _showHeartAnimation = true);
 
-  @override
-  void initState() {
-    super.initState();
-    getMeasurement();
-  }
+      if (!mounted) return;
+      Future.delayed(const Duration(seconds: 2), () {
+        setState(() => _showHeartAnimation = false);
+      });
+    }
 
-  void updateFavPlace() async {
-    setState(() => showHeartAnimation = true);
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() => showHeartAnimation = false);
-      }
-    });
-
-    await _appService.updateFavouritePlace(widget.placeDetails, context);
+    await HiveService.updateFavouritePlaces(widget.airQualityReading);
   }
 }
 

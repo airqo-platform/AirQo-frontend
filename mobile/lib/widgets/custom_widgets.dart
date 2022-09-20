@@ -1,18 +1,18 @@
 import 'dart:io';
 
 import 'package:app/constants/config.dart';
-import 'package:app/models/measurement.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:lottie/lottie.dart';
-import 'package:provider/provider.dart';
 
+import '../models/air_quality_reading.dart';
 import '../models/enum_constants.dart';
-import '../models/place_details.dart';
-import '../services/app_service.dart';
+import '../models/favourite_place.dart';
+import '../services/hive_service.dart';
 import '../services/native_api.dart';
 import '../themes/app_theme.dart';
 import '../themes/colors.dart';
@@ -120,9 +120,9 @@ class AppIconTopBar extends StatelessWidget implements PreferredSizeWidget {
 class AqiStringContainer extends StatelessWidget {
   const AqiStringContainer({
     super.key,
-    required this.measurement,
+    required this.airQualityReading,
   });
-  final Measurement measurement;
+  final AirQualityReading airQualityReading;
 
   @override
   Widget build(BuildContext context) {
@@ -139,7 +139,7 @@ class AqiStringContainer extends StatelessWidget {
         ),
         color: Pollutant.pm2_5
             .color(
-              measurement.getPm2_5Value(),
+              airQualityReading.pm2_5,
             )
             .withOpacity(0.4),
         border: Border.all(color: Colors.transparent),
@@ -147,7 +147,7 @@ class AqiStringContainer extends StatelessWidget {
       child: AutoSizeText(
         Pollutant.pm2_5
             .stringValue(
-              measurement.getPm2_5Value(),
+              airQualityReading.pm2_5,
             )
             .trimEllipsis(),
         maxFontSize: 14,
@@ -156,7 +156,7 @@ class AqiStringContainer extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
         style: CustomTextStyle.button2(context)?.copyWith(
           color: Pollutant.pm2_5.textColor(
-            value: measurement.getPm2_5Value(),
+            value: airQualityReading.pm2_5,
             graph: true,
           ),
         ),
@@ -197,9 +197,9 @@ class KnowYourAirAppBar extends StatelessWidget implements PreferredSizeWidget {
 class MiniAnalyticsAvatar extends StatelessWidget {
   const MiniAnalyticsAvatar({
     super.key,
-    required this.measurement,
+    required this.airQualityReading,
   });
-  final Measurement measurement;
+  final AirQualityReading airQualityReading;
 
   @override
   Widget build(BuildContext context) {
@@ -209,7 +209,7 @@ class MiniAnalyticsAvatar extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: Pollutant.pm2_5.color(
-          measurement.getPm2_5Value(),
+          airQualityReading.pm2_5,
         ),
         border: Border.all(
           color: Colors.transparent,
@@ -220,22 +220,21 @@ class MiniAnalyticsAvatar extends StatelessWidget {
         children: [
           const Spacer(),
           SvgPicture.asset(
-            Pollutant.pm2_5.svg(),
+            Pollutant.pm2_5.svg,
             semanticsLabel: 'Pm2.5',
             height: 5,
             width: 32.45,
             color: Pollutant.pm2_5.textColor(
-              value: measurement.getPm2_5Value(),
+              value: airQualityReading.pm2_5,
             ),
           ),
-          Text(
-            measurement.getPm2_5Value().toStringAsFixed(0),
+          AutoSizeText(
+            airQualityReading.pm2_5.toStringAsFixed(0),
             maxLines: 1,
-            overflow: TextOverflow.ellipsis,
             style: CustomTextStyle.insightsAvatar(
               context: context,
               pollutant: Pollutant.pm2_5,
-              value: measurement.getPm2_5Value(),
+              value: airQualityReading.pm2_5,
             )?.copyWith(fontSize: 20),
           ),
           SvgPicture.asset(
@@ -244,7 +243,7 @@ class MiniAnalyticsAvatar extends StatelessWidget {
             height: 5,
             width: 32,
             color: Pollutant.pm2_5.textColor(
-              value: measurement.getPm2_5Value(),
+              value: airQualityReading.pm2_5,
             ),
           ),
           const Spacer(),
@@ -258,11 +257,11 @@ class HeartIcon extends StatelessWidget {
   const HeartIcon({
     super.key,
     required this.showAnimation,
-    required this.placeDetails,
+    required this.airQualityReading,
   });
 
   final bool showAnimation;
-  final PlaceDetails placeDetails;
+  final AirQualityReading airQualityReading;
 
   @override
   Widget build(BuildContext context) {
@@ -280,13 +279,14 @@ class HeartIcon extends StatelessWidget {
       );
     }
 
-    return Consumer<PlaceDetailsModel>(
-      builder: (context, placeDetailsModel, child) {
+    return ValueListenableBuilder<Box>(
+      valueListenable:
+          Hive.box<FavouritePlace>(HiveBox.favouritePlaces).listenable(),
+      builder: (context, box, widget) {
+        final placesIds = box.keys.toList();
+
         return SvgPicture.asset(
-          PlaceDetails.isFavouritePlace(
-            placeDetailsModel.favouritePlaces,
-            placeDetails,
-          )
+          placesIds.contains(airQualityReading.placeId)
               ? 'assets/icon/heart.svg'
               : 'assets/icon/heart_dislike.svg',
           semanticsLabel: 'Favorite',
@@ -301,13 +301,12 @@ class HeartIcon extends StatelessWidget {
 class AnalyticsCardFooter extends StatefulWidget {
   const AnalyticsCardFooter({
     super.key,
-    required this.placeDetails,
-    required this.measurement,
+    required this.airQualityReading,
     required this.shareKey,
     this.loadingRadius,
   });
-  final PlaceDetails placeDetails;
-  final Measurement measurement;
+
+  final AirQualityReading airQualityReading;
   final GlobalKey shareKey;
   final double? loadingRadius;
 
@@ -346,7 +345,7 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
             child: IconTextButton(
               iconWidget: HeartIcon(
                 showAnimation: _showHeartAnimation,
-                placeDetails: widget.placeDetails,
+                airQualityReading: widget.airQualityReading,
               ),
               text: 'Favorite',
             ),
@@ -358,8 +357,6 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
 
   Future<void> _share() async {
     setState(() => _shareLoading = true);
-    final shareMeasurement = widget.measurement;
-    shareMeasurement.site.name = widget.placeDetails.name;
     final complete = await ShareService.shareWidget(
       buildContext: context,
       globalKey: widget.shareKey,
@@ -370,13 +367,38 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
   }
 
   Future<void> _updateFavPlace() async {
-    setState(() => _showHeartAnimation = true);
-    Future.delayed(const Duration(seconds: 2), () {
-      setState(() => _showHeartAnimation = false);
-    });
-    await AppService().updateFavouritePlace(
-      widget.placeDetails,
-      context,
+    if (!Hive.box<FavouritePlace>(HiveBox.favouritePlaces)
+        .keys
+        .contains(widget.airQualityReading.placeId)) {
+      setState(() => _showHeartAnimation = true);
+      Future.delayed(const Duration(seconds: 2), () {
+        setState(() => _showHeartAnimation = false);
+      });
+    }
+
+    await HiveService.updateFavouritePlaces(widget.airQualityReading);
+  }
+}
+
+class CustomSafeArea extends StatelessWidget {
+  const CustomSafeArea({
+    super.key,
+    required this.widget,
+    this.verticalPadding,
+    this.backgroundColor,
+  });
+  final Widget widget;
+  final double? verticalPadding;
+  final Color? backgroundColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: backgroundColor ?? Colors.white,
+      padding: EdgeInsets.symmetric(vertical: verticalPadding ?? 15),
+      child: SafeArea(
+        child: widget,
+      ),
     );
   }
 }

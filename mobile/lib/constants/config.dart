@@ -58,7 +58,7 @@ class Config {
 
   static String get feedbackSuccessMessage => 'Thanks for the feedback';
 
-  static String get shareFailedMessage => 'Could\'nt share image.';
+  static String get shareFailedMessage => 'Could’nt share image.';
 
   static String get feedbackFailureMessage =>
       'Could not capture your feedback. Try again later';

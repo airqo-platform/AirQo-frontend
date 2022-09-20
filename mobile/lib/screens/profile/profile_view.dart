@@ -1,4 +1,4 @@
-import 'package:app/models/profile.dart';
+import 'package:app/models/models.dart';
 import 'package:app/screens/profile/profile_edit_page.dart';
 import 'package:app/screens/profile/profile_widgets.dart';
 import 'package:app/services/app_service.dart';
@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/adapters.dart';
 
-import '../../models/notification.dart';
 import '../../services/firebase_service.dart';
 import '../../services/hive_service.dart';
 import '../../themes/app_theme.dart';
@@ -208,6 +207,20 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   Future<void> _logOut() async {
+    final action = await showDialog<ConfirmationAction>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const AuthProcedureDialog(
+          authProcedure: AuthProcedure.logout,
+        );
+      },
+    );
+
+    if (action == null || action == ConfirmationAction.cancel) {
+      return;
+    }
+
     final loadingContext = context;
     loadingScreen(loadingContext);
     final successful = await AppService().logOut(context);
@@ -224,9 +237,14 @@ class _ProfileViewState extends State<ProfileView> {
       );
     } else {
       Navigator.pop(loadingContext);
-      await showSnackBar(
-        context,
-        'failed to logout. Try again later',
+      await showDialog<ConfirmationAction>(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const ErrorDialog(
+            errorMessage: ErrorMessage.logout,
+          );
+        },
       );
     }
   }

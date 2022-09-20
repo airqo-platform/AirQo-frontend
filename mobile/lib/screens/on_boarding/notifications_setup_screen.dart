@@ -1,9 +1,9 @@
+import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/dialogs.dart';
 import 'package:flutter/material.dart';
 
-import '../../models/enum_constants.dart';
 import '../../services/local_storage.dart';
 import '../../services/notification_service.dart';
 import '../../themes/app_theme.dart';
@@ -28,6 +28,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: const OnBoardingTopBar(),
       backgroundColor: CustomColors.appBodyColor,
       body: WillPopScope(
         onWillPop: onWillPop,
