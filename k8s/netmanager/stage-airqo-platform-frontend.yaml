@@ -16,6 +16,23 @@ spec:
       labels:
         app: sta-platform-ui
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 10
+              preference:
+                matchExpressions:
+                  - key: node-type
+                    operator: In
+                    values:
+                      - general-purpose
+            - weight: 1
+              preference:
+                matchExpressions:
+                  - key: node-type
+                    operator: In
+                    values:
+                      - high-memory
       containers:
         - name: sta-platform-ui
           image: us.gcr.io/airqo-250220/airqo-stage-platform-frontend:latest
@@ -28,11 +45,12 @@ spec:
                 name: env-platform-staging
           resources:
             requests:
-              cpu: 100m
-              memory: 250Mi
+              # Average usage was 0.00001 vCPU and 50Mi over the last 30 days
+              cpu: 5m
+              memory: 20Mi
             limits:
-              cpu: 200m
-              memory: 700Mi
+              cpu: 50m
+              memory: 80Mi
 
 ---
 kind: Service
@@ -63,9 +81,9 @@ spec:
   minReplicas: 1
   maxReplicas: 3
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 80
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
