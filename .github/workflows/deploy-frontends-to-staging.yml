@@ -187,7 +187,6 @@ jobs:
       - name: Create google_application_credentials.json file
         id: create-google-application-credentials-file
         uses: jsdaniell/create-json@1.1.2
-        # Backup for this action: airqo-platform/create-json@1.1.2
         with:
           name: "google_application_credentials.json"
           json: ${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}
