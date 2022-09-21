@@ -16,7 +16,7 @@ const HighlightsSection = () => {
     }, [highlightsData.length]);
 
     const highlights = highlightsData.slice(0, 3);
-    
+
     const [startNumber, setStartNumber] = useState(1);
     const totalPosts = highlights.length;
 
