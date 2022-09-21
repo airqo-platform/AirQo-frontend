@@ -22,6 +22,7 @@ class HighlightAdmin(admin.ModelAdmin):
         "link_title",
         "tags",
         "image",
+        "order",
         "created",
         "author",
         "modified",
