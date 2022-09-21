@@ -1,4 +1,4 @@
-import 'package:app/models/profile.dart';
+import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/utils/exception.dart';
 import 'package:app/widgets/buttons.dart';
@@ -7,7 +7,6 @@ import 'package:app/widgets/dialogs.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
-import '../../models/enum_constants.dart';
 import '../../services/local_storage.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
@@ -28,16 +27,17 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   DateTime? _exitTime;
   Color nextBtnColor = CustomColors.appColorDisabled;
   bool _showDropDown = false;
-  late Profile _profile;
 
   final _formKey = GlobalKey<FormState>();
   bool _showOptions = true;
   final TextEditingController _controller = TextEditingController();
-  late BuildContext dialogContext;
+
+  TitleOptions _title = TitleOptions.ms;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: const OnBoardingTopBar(),
       backgroundColor: CustomColors.appBodyColor,
       body: WillPopScope(
         onWillPop: onWillPop,
@@ -66,7 +66,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   children: <Widget>[
                     TitleDropDown(
                       showTileOptionsCallBack: _showTileOptionsCallBack,
-                      profile: _profile,
+                      title: _title,
                     ),
                     const SizedBox(
                       width: 16,
@@ -164,14 +164,12 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
       options.add(
         GestureDetector(
           onTap: () {
-            _updateTitleCallback(
-              option.value,
-            );
+            _updateTitleCallback(option);
           },
           child: AutoSizeText(
             option.displayValue,
             style: Theme.of(context).textTheme.bodyText1?.copyWith(
-                  color: _profile.title == option.value
+                  color: _title.displayValue == option.value
                       ? CustomColors.appColorBlack
                       : CustomColors.appColorBlack.withOpacity(0.32),
                 ),
@@ -183,20 +181,15 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
     return options;
   }
 
-  void _initialize() async {
-    _profile = await Profile.getProfile();
-  }
-
   @override
   void initState() {
     super.initState();
-    dialogContext = context;
-    _initialize();
     updateOnBoardingPage();
   }
 
   void _showTileOptionsCallBack(bool showTitleOptions) {
     setState(() => _showOptions = showTitleOptions);
+    setState(() => _showDropDown = showTitleOptions);
   }
 
   void _nameChangeCallBack(String name) {
@@ -251,7 +244,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   Future<void> _saveName() async {
     try {
       if (_formKey.currentState!.validate()) {
-        loadingScreen(dialogContext);
+        loadingScreen(context);
 
         FocusScope.of(context).requestFocus(
           FocusNode(),
@@ -263,18 +256,12 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
           },
         );
 
-        setState(
-          () {
-            nextBtnColor = CustomColors.appColorDisabled;
-            _profile
-              ..firstName = Profile.getNames(_fullName).first
-              ..lastName = Profile.getNames(_fullName).last;
-          },
-        );
+        setState(() => nextBtnColor = CustomColors.appColorDisabled);
 
-        await _profile.update();
+        final profile = await Profile.getProfile();
+        await profile.updateName(_fullName);
 
-        Navigator.pop(dialogContext);
+        Navigator.pop(context);
         await Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) {
@@ -284,7 +271,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
         );
       }
     } on Exception catch (exception, stackTrace) {
-      Navigator.pop(dialogContext);
+      Navigator.pop(context);
       setState(
         () {
           nextBtnColor = CustomColors.appColorBlue;
@@ -305,10 +292,10 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
     await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.profile);
   }
 
-  void _updateTitleCallback(String text) {
+  void _updateTitleCallback(TitleOptions title) {
     setState(
       () {
-        _profile.title = text;
+        _title = title;
         _showDropDown = false;
       },
     );

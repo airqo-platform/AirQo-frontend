@@ -1,20 +1,16 @@
 import 'package:app/constants/config.dart';
-import 'package:app/models/measurement.dart';
-import 'package:app/models/site.dart';
+import 'package:app/models/models.dart';
 import 'package:app/services/firebase_service.dart';
-import 'package:app/services/local_storage.dart';
 import 'package:app/utils/distance.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:location/location.dart' as locate_api;
 
-import '../models/analytics.dart';
-import '../models/enum_constants.dart';
-import '../models/profile.dart';
-import 'firebase_service.dart';
+import 'hive_service.dart';
 import 'native_api.dart';
 
 class LocationService {
@@ -24,13 +20,13 @@ class LocationService {
       request: true,
     );
     if (enabled) {
+      final profile = await Profile.getProfile();
+
       await Future.wait([
         CloudAnalytics.logEvent(
           AnalyticsEvent.allowLocation,
         ),
-        Profile.getProfile().then(
-          (profile) => profile.update(),
-        ),
+        profile.update(enableLocation: true),
       ]);
     }
 
@@ -41,7 +37,16 @@ class LocationService {
     final placeMarks = await placemarkFromCoordinates(lat, lng);
     final addresses = <String>[];
     for (final place in placeMarks) {
-      var name = place.thoroughfare ?? place.name;
+      // print('subThoroughfare : ${place.subThoroughfare}');
+      // print('thoroughfare ${place.thoroughfare}');
+      // print('name ${place.name}');
+      // print('locality ${place.locality}');
+      // print('subLocality ${place.subLocality}');
+      // print('subAdministrativeArea ${place.subAdministrativeArea}');
+      // print('administrativeArea ${place.administrativeArea}');
+      // print('street ${place.street}');
+
+      var name = place.name ?? place.thoroughfare;
       name = name ?? place.subLocality;
       name = name ?? place.locality;
       name = name ?? '';
@@ -66,12 +71,13 @@ class LocationService {
           final longitude = locationData.longitude;
 
           if (latitude != null && longitude != null) {
-            final site = await getNearestSite(latitude, longitude);
+            final airQualityReading =
+                await getNearestSiteAirQualityReading(latitude, longitude);
             final addresses = await getAddresses(latitude, longitude);
-            if (site != null) {
+            if (airQualityReading != null) {
               final analytics = Analytics.init()
-                ..site = site.id
-                ..location = site.location
+                ..site = airQualityReading.referenceSite
+                ..location = airQualityReading.location
                 ..latitude = latitude
                 ..longitude = longitude
                 ..name = addresses.first;
@@ -90,6 +96,10 @@ class LocationService {
     bool serviceEnabled;
     locate_api.PermissionStatus permissionGranted;
     final location = locate_api.Location();
+    await location.changeSettings(
+      accuracy: locate_api.LocationAccuracy.balanced,
+    );
+
     serviceEnabled = await location.serviceEnabled();
     if (!serviceEnabled) {
       serviceEnabled = await location.requestService();
@@ -125,11 +135,11 @@ class LocationService {
     final longitude = locationData.longitude;
 
     if (latitude != null && longitude != null) {
-      final site = await getNearestSite(latitude, longitude);
+      final site = await getNearestSiteAirQualityReading(latitude, longitude);
       final addresses = await getAddresses(latitude, longitude);
       if (site != null) {
         final analytics = Analytics.init()
-          ..site = site.id
+          ..site = site.referenceSite
           ..location = site.location
           ..latitude = latitude
           ..longitude = longitude
@@ -165,7 +175,64 @@ class LocationService {
     return await Geolocator.getCurrentPosition();
   }
 
-  static Future<List<Measurement>> getNearbyLocationReadings() async {
+  static Future<List<AirQualityReading>> getNearbyAirQualityReadings({
+    int top = 5,
+  }) async {
+    try {
+      final location = await getLocation();
+
+      if (location == null ||
+          location.longitude == null ||
+          location.latitude == null) {
+        return [];
+      }
+
+      final addresses = await getAddresses(
+        location.latitude!,
+        location.longitude!,
+      );
+      final airQualityReadings =
+          Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+              .values
+              .toList();
+
+      if (airQualityReadings.isEmpty) {
+        return [];
+      }
+
+      final nearestAirQualityReadings = <AirQualityReading>[];
+
+      for (final airQualityReading in airQualityReadings) {
+        final distanceInMeters = metersToKmDouble(
+          Geolocator.distanceBetween(
+            airQualityReading.latitude,
+            airQualityReading.longitude,
+            location.latitude!,
+            location.longitude!,
+          ),
+        );
+        nearestAirQualityReadings.add(
+          AirQualityReading.duplicate(airQualityReading).copyWith(
+            distanceToReferenceSite: distanceInMeters,
+          ),
+        );
+      }
+
+      final sortedReadings =
+          sortAirQualityReadingsByDistance(nearestAirQualityReadings)
+              .take(top)
+              .toList();
+      sortedReadings[0] = sortedReadings[0].copyWith(name: addresses[0]);
+
+      return sortedReadings;
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+
+      return [];
+    }
+  }
+
+  static Future<List<AirQualityReading>> getNearbyLocationReadings() async {
     try {
       final location = await getLocation();
       if (location == null ||
@@ -178,34 +245,40 @@ class LocationService {
         location.latitude!,
         location.longitude!,
       );
-      final latestMeasurements = await DBHelper().getLatestMeasurements();
+      final airQualityReadings =
+          Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+              .values
+              .toList();
 
-      final nearestMeasurements = <Measurement>[];
+      final nearestAirQualityReadings = <AirQualityReading>[];
 
-      for (final measurement in latestMeasurements) {
+      for (final airQualityReading in airQualityReadings) {
         final distanceInMeters = metersToKmDouble(
           Geolocator.distanceBetween(
-            measurement.site.latitude,
-            measurement.site.longitude,
+            airQualityReading.latitude,
+            airQualityReading.longitude,
             location.latitude!,
             location.longitude!,
           ),
         );
         if (distanceInMeters < (Config.maxSearchRadius.toDouble() * 2)) {
-          measurement.site.distance = distanceInMeters;
-          nearestMeasurements.add(measurement);
+          nearestAirQualityReadings.add(airQualityReading.copyWith(
+            distanceToReferenceSite: distanceInMeters,
+          ));
         }
       }
 
-      if (nearestMeasurements.isEmpty) {
+      if (nearestAirQualityReadings.isEmpty) {
         return [];
       }
 
-      final measurements =
-          Measurement.sortByDistance(nearestMeasurements).take(2).toList();
-      measurements[0].site.name = addresses[0];
+      final sortedReadings =
+          sortAirQualityReadingsByDistance(nearestAirQualityReadings)
+              .take(2)
+              .toList();
+      sortedReadings[0] = sortedReadings[0].copyWith(name: addresses[0]);
 
-      return measurements;
+      return airQualityReadings;
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
 
@@ -213,7 +286,10 @@ class LocationService {
     }
   }
 
-  static Future<Site?> getNearestSite(double latitude, double longitude) async {
+  static Future<AirQualityReading?> getNearestSiteAirQualityReading(
+    double latitude,
+    double longitude,
+  ) async {
     try {
       final nearestSites = await getNearestSites(latitude, longitude);
       if (nearestSites.isEmpty) {
@@ -223,12 +299,13 @@ class LocationService {
       var nearestSite = nearestSites.first;
 
       for (final site in nearestSites) {
-        if (nearestSite.site.distance > site.site.distance) {
+        if (nearestSite.distanceToReferenceSite >
+            site.distanceToReferenceSite) {
           nearestSite = site;
         }
       }
 
-      return nearestSite.site;
+      return nearestSite;
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
 
@@ -236,66 +313,68 @@ class LocationService {
     }
   }
 
-  static Future<List<Measurement>> getNearestSites(
+  static Future<List<AirQualityReading>> getNearestSites(
     double latitude,
     double longitude,
   ) async {
-    final nearestSites = <Measurement>[];
+    final nearestSites = <AirQualityReading>[];
     double distanceInMeters;
-    final dbHelper = DBHelper();
-    final latestMeasurements = await dbHelper.getLatestMeasurements();
+    final airQualityReadings =
+        Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
 
-    for (final measurement in latestMeasurements) {
+    for (final airQualityReading in airQualityReadings) {
       distanceInMeters = metersToKmDouble(
         Geolocator.distanceBetween(
-          measurement.site.latitude,
-          measurement.site.longitude,
+          airQualityReading.latitude,
+          airQualityReading.longitude,
           latitude,
           longitude,
         ),
       );
       if (distanceInMeters < Config.maxSearchRadius.toDouble()) {
-        measurement.site.distance = distanceInMeters;
-        nearestSites.add(measurement);
+        nearestSites.add(airQualityReading.copyWith(
+          distanceToReferenceSite: distanceInMeters,
+        ));
       }
     }
 
-    return Measurement.sortByDistance(nearestSites);
+    return sortAirQualityReadingsByDistance(nearestSites);
   }
 
-  static Future<bool> revokePermission() async {
+  static Future<void> revokePermission() async {
     final profile = await Profile.getProfile();
     await profile.update(enableLocation: false);
-
-    return false;
   }
 
-  static Future<List<Measurement>> searchNearestSites(
+  static Future<List<AirQualityReading>> searchNearestSites(
     double latitude,
     double longitude,
     String term,
   ) async {
-    final nearestSites = <Measurement>[];
+    final nearestSites = <AirQualityReading>[];
     double distanceInMeters;
-    final dbHelper = DBHelper();
-    final latestMeasurements = await dbHelper.getLatestMeasurements();
 
-    for (final measurement in latestMeasurements) {
+    final latestAirQualityReadings =
+        Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
+
+    for (final airQualityReading in latestAirQualityReadings) {
       distanceInMeters = metersToKmDouble(
         Geolocator.distanceBetween(
-          measurement.site.latitude,
-          measurement.site.longitude,
+          airQualityReading.latitude,
+          airQualityReading.longitude,
           latitude,
           longitude,
         ),
       );
-      if (measurement.site.name.inStatement(term)) {
-        measurement.site.distance = distanceInMeters;
-        nearestSites.add(measurement);
+      if (airQualityReading.name.inStatement(term)) {
+        nearestSites.add(airQualityReading.copyWith(
+          distanceToReferenceSite: distanceInMeters,
+        ));
       } else {
         if (distanceInMeters < Config.maxSearchRadius.toDouble()) {
-          measurement.site.distance = distanceInMeters;
-          nearestSites.add(measurement);
+          nearestSites.add(airQualityReading.copyWith(
+            distanceToReferenceSite: distanceInMeters,
+          ));
         }
       }
     }
@@ -303,25 +382,24 @@ class LocationService {
     return nearestSites;
   }
 
-  static List<Measurement> textSearchNearestSites(
-    String term,
-    List<Measurement> measurements,
-  ) {
-    final nearestSites = <Measurement>[];
+  static List<AirQualityReading> textSearchNearestSites(String term) {
+    final nearestReadings = <AirQualityReading>[];
+    final airQualityReadings =
+        Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
 
-    for (final measurement in measurements) {
-      if (measurement.site.name
+    for (final airQualityReading in airQualityReadings) {
+      if (airQualityReading.name
               .trim()
               .toLowerCase()
               .contains(term.trim().toLowerCase()) ||
-          measurement.site.location
+          airQualityReading.location
               .trim()
               .toLowerCase()
               .contains(term.trim().toLowerCase())) {
-        nearestSites.add(measurement);
+        nearestReadings.add(airQualityReading);
       }
     }
 
-    return nearestSites;
+    return nearestReadings;
   }
 }

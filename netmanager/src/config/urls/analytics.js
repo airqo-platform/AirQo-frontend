@@ -17,12 +17,12 @@ export const EXCEEDANCES_URI = `${BASE_ANALYTICS_URL}/analytics/dashboard/exceed
 export const GET_SITES = `${BASE_ANALYTICS_URL}/analytics/dashboard/sites`;
 
 // pending verification
-export const GET_MONITORING_SITES_LOCATIONS_URI = `${BASE_ANALYTICS_URL}/analytics/dashboard/monitoringsites/locations?organisation_name=KCCA`;
+export const GET_MONITORING_SITES_LOCATIONS_URI = `${BASE_ANALYTICS_URL}/analytics/dashboard/sites/locations?organisation_name=KCCA`;
 
 export const DOWNLOAD_DATA = `${BASE_ANALYTICS_URL}/analytics/data/download?type=`;
 
-export const GET_MONITORING_SITES_URI = `${BASE_ANALYTICS_URL}/analytics/dashboard/monitoringsites?organisation_name=KCCA`;
+export const GET_MONITORING_SITES_URI = `${BASE_ANALYTICS_URL}/analytics/dashboard/sites?organisation_name=KCCA`;
 
-export const GET_DATA_MAP = `${BASE_ANALYTICS_URL}/analytics/dashboard/monitoringsites?organisation_name=KCCA&pm25_category=`;
+export const GET_DATA_MAP = `${BASE_ANALYTICS_URL}/analytics/dashboard/sites?organisation_name=KCCA`;
 
 export const URBAN_BETTER_DOWNLOAD_DATA_URI = `${BASE_ANALYTICS_URL}/analytics/data/download?tenant=urbanbetter`;

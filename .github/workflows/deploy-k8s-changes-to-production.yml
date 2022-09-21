@@ -2,7 +2,7 @@ name: deploy-k8s-manifest-updates-to-master
 
 on:
   pull_request:
-    branches: 
+    branches:
       - master
     types:
       - closed
@@ -15,6 +15,7 @@ jobs:
     outputs:
       run_platform: ${{ steps.check_files.outputs.run_platform }} # platform
       run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }} # calibrate app
+      run_docs: ${{ steps.check_files.outputs.run_docs }} # docs
 
     runs-on: ubuntu-latest
     steps:
@@ -28,12 +29,13 @@ jobs:
         run: |
           echo "=============== list modified files ==============="
           git diff --name-only HEAD^ HEAD
-          
+
           echo "========== check paths of modified files =========="
           git diff --name-only HEAD^ HEAD > files.txt
 
           echo "::set-output name=run_platform::false"
           echo "::set-output name=run_calibrate_app::false"  
+          echo "::set-output name=run_docs::false"  
 
           while IFS= read -r file
           do
@@ -43,16 +45,24 @@ jobs:
               echo "::set-output name=run_platform::true"
             fi
 
-            if [[ $file == k8s/calibrate/* ]]; then
-              echo "::set-output name=run_calibrate_app::true"
-            fi
-
             if [[ $file == platform/* ]]; then
               echo "::set-output name=run_platform::false"
             fi
 
+            if [[ $file == k8s/calibrate/* ]]; then
+              echo "::set-output name=run_calibrate_app::true"
+            fi
+
             if [[ $file == calibrate/* ]]; then
               echo "::set-output name=run_calibrate_app::false"
+            fi
+
+            if [[ $file == k8s/docs/* ]]; then
+              echo "::set-output name=run_docs::true"
+            fi
+
+            if [[ $file == docs/* ]]; then
+              echo "::set-output name=run_docs::false"
             fi
 
           done < files.txt
@@ -94,3 +104,22 @@ jobs:
 
       - name: Deploy to K8S
         run: kubectl apply -f k8s/calibrate/prod-airqo-calibrate-app.yaml
+
+  ### docs ###
+  docs:
+    name: build-push-deploy-docs
+    needs: [check]
+    if: needs.check.outputs.run_docs == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Login to K8S
+        uses: azure/k8s-set-context@v1
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
+
+      - name: Deploy to K8S
+        run: kubectl apply -f k8s/docs/prod-airqo-docs.yaml

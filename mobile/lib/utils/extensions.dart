@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 
+import '../models/profile.dart';
+
 extension DoubleExtension on double {
   bool isWithin(double start, double end) {
     return this >= start && this <= end;
@@ -26,6 +28,24 @@ extension DateTimeExtension on DateTime {
     }
 
     return firstDate.getDateOfFirstHourOfDay();
+  }
+
+  Future<String> getGreetings() async {
+    final profile = await Profile.getProfile();
+
+    if (00 <= hour && hour < 12) {
+      return 'Good morning ${profile.firstName}'.trim();
+    }
+
+    if (12 <= hour && hour < 16) {
+      return 'Good afternoon ${profile.firstName}'.trim();
+    }
+
+    if (16 <= hour && hour <= 23) {
+      return 'Good evening ${profile.firstName}'.trim();
+    }
+
+    return 'Hello ${profile.firstName}'.trim();
   }
 
   DateTime getDateOfFirstHourOfDay() {
@@ -156,7 +176,7 @@ extension DateTimeExtension on DateTime {
         return abbreviate ? 'Dec' : 'December';
       default:
         throw UnimplementedError(
-          '$month does\'nt have a month string implementation',
+          '$month does’nt have a month string implementation',
         );
     }
   }
@@ -187,7 +207,7 @@ extension DateTimeExtension on DateTime {
         return 'sunday';
       default:
         throw UnimplementedError(
-          '$weekday does\'nt have a weekday string implementation',
+          '$weekday does’nt have a weekday string implementation',
         );
     }
   }

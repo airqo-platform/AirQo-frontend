@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { isEmpty } from "underscore";
-import { heatMapPaint } from "./paints";
+import { circlePointPaint, heatMapPaint } from "./paints";
 import { getFirstDuration } from "utils/dateTime";
 import Filter from "../Dashboard/components/Map/Filter";
 import Divider from "@material-ui/core/Divider";
@@ -24,6 +24,9 @@ import "assets/css/overlay-map.css";
 
 import "mapbox-gl/dist/mapbox-gl.css";
 import mapboxgl from "mapbox-gl";
+import { ErrorEvent } from "mapbox-gl";
+import BoundaryAlert from "../../ErrorBoundary/Alert";
+import CircularLoader from "../../components/Loader/CircularLoader";
 
 // eslint-disable-next-line import/no-webpack-loader-syntax
 mapboxgl.workerClass = require("worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker").default;
@@ -265,9 +268,9 @@ export const OverlayMap = ({
   const sitesData = useDashboardSitesData();
   const MAX_OFFLINE_DURATION = 86400; // 24 HOURS
   const mapContainerRef = useRef(null);
-  const [map, setMap] = useState(null);
-  const [showSensors, setShowSensors] = useState(true);
-  const [showHeatMap, setShowHeatMap] = useState(false);
+  const [map, setMap] = useState();
+  const [showSensors, setShowSensors] = useState(false);
+  const [showHeatMap, setShowHeatMap] = useState(true);
   const [showCalibratedValues, setShowCalibratedValues] = useState(true);
   const [showPollutant, setShowPollutant] = useState({
     pm2_5: true,
@@ -282,40 +285,51 @@ export const OverlayMap = ({
   useEffect(() => {
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
-      style: "mapbox://styles/mapbox/streets-v11",
-      // style: "mapbox://styles/mapbox/dark-v10",
+      style: "mapbox://styles/mapbox/light-v10",
       center,
       zoom,
-      maxZoom: 18,
+      maxZoom: 20,
     });
-    map.addControl(
-      new mapboxgl.FullscreenControl({ container: mapContainerRef.current }),
-      "bottom-right"
-    );
-    map.addControl(new mapboxgl.NavigationControl(), "bottom-right");
-
+    map.on("style.load", () => {
+      map.setFog({
+        range: [-1, 2],
+        "horizon-blend": 0.3,
+        color: "white",
+      });
+    });
     map.on("load", () => {
       map.addSource("heatmap-data", {
         type: "geojson",
         data: heatMapData,
       });
       map.addLayer({
-        id: "circular-points-layer",
+        id: "sensor-heat",
+        type: "heatmap",
         source: "heatmap-data",
-        type: "circle",
         paint: heatMapPaint,
       });
+      map.addLayer({
+        id: "sensor-point",
+        source: "heatmap-data",
+        type: "circle",
+        paint: circlePointPaint,
+      });
       map.setLayoutProperty(
-        "circular-points-layer",
+        "sensor-heat",
         "visibility",
         showHeatMap ? "visible" : "none"
       );
-      map.on("mousemove", function (e) {
+      map.setLayoutProperty(
+        "sensor-point",
+        "visibility",
+        showHeatMap ? "visible" : "none"
+      );
+      map.on("mousemove", (e) => {
         const features = map.queryRenderedFeatures(e.point, {
-          layers: ["circular-points-layer"],
+          layers: ["sensor-point"],
         });
         // Change the cursor style as a UI indicator.
-        map.getCanvas().style.cursor = features.length ? "pointer" : "";
+        map.getCanvas().style.cursor = features.length > 0 ? "pointer" : "";
 
         if (map.getZoom() < 9) {
           popup.remove();
@@ -341,12 +355,12 @@ export const OverlayMap = ({
           .setHTML(
             `<table>
                 <tr>
-                    <td><b>Predicted value</b></td>
-                    <td>${average_predicted_value.toFixed(2)}</td>
+                    <td><b>Predicted AQI</b></td>
+                    <td>${average_predicted_value.toFixed(4)}</td>
                 </tr>
                 <tr>
-                    <td><b>Confidence interval</b></td>
-                    <td>&#177; ${average_confidence_int.toFixed(2)}</td>
+                    <td><b>Confidence Level</b></td>
+                    <td>&#177; ${average_confidence_int.toFixed(4)}</td>
                 </tr>
             </table>`
           )
@@ -354,14 +368,18 @@ export const OverlayMap = ({
       });
     });
 
-    map.on("click", async () => {
-      console.log("zoom", map.getZoom());
-    });
+    map.addControl(
+      new mapboxgl.FullscreenControl({
+        container: mapContainerRef.current,
+      }),
+      "bottom-right"
+    );
+    map.addControl(new mapboxgl.NavigationControl(), "bottom-right");
 
     setMap(map);
 
     // clean up on unmount
-    return () => map.remove();
+    // return () => map.remove();
   }, []);
 
   useEffect(() => {
@@ -369,6 +387,12 @@ export const OverlayMap = ({
       map.getSource("heatmap-data") &&
         map.getSource("heatmap-data").setData(heatMapData);
     }
+    // if (map) {
+    //   map.getLayer("sensor-point") && map.removeLayer("sensor-point");
+    // }
+    // if (map) {
+    //   map.getLayer("sensor-heat") && map.removeLayer("sensor-heat");
+    // }
   });
 
   const toggleSensors = () => {
@@ -385,13 +409,15 @@ export const OverlayMap = ({
   const toggleHeatMap = () => {
     try {
       map.setLayoutProperty(
-        "circular-points-layer",
+        "sensor-heat",
         "visibility",
-        !showHeatMap ? "visible" : "none"
+        showHeatMap ? "visible" : "none"
       );
       setShowHeatMap(!showHeatMap);
       // eslint-disable-next-line no-empty
-    } catch (err) {}
+    } catch (err) {
+      console.log("Heatmap Load error:", err);
+    }
   };
 
   return (
@@ -441,7 +467,7 @@ export const OverlayMap = ({
           el.className = `marker ${
             seconds >= MAX_OFFLINE_DURATION ? "marker-grey" : markerClass
           }`;
-          el.innerText = (pollutantValue && pollutantValue.toFixed(0)) || "n/a";
+          el.innerText = (pollutantValue && pollutantValue.toFixed(0)) || "N/A";
 
           if (
             feature.geometry.coordinates.length >= 2 &&
@@ -494,17 +520,9 @@ const MapContainer = () => {
   const monitoringSiteData = useEventsMapData();
 
   useEffect(() => {
-    // const locationData = {
-    //   min_long: 32.4,
-    //   max_long: 32.8,
-    //   min_lat: 0.1,
-    //   max_lat: 0.5,
-    // };
-
     if (isEmpty(heatMapData.features)) {
       dispatch(loadPM25HeatMapData());
     }
-
     if (isEmpty(monitoringSiteData.features)) {
       dispatch(loadMapEventsData({ recent: "yes", external: "no" }));
     }
@@ -513,12 +531,16 @@ const MapContainer = () => {
   return (
     <div>
       <ErrorBoundary>
-        <OverlayMap
-          center={[32.5600613, 0.3341424]}
-          zoom={11}
-          heatMapData={heatMapData}
-          monitoringSiteData={monitoringSiteData}
-        />
+        {heatMapData.features.length > 0 ? (
+          <OverlayMap
+            center={[22.5600613, 0.8341424]}
+            zoom={2}
+            heatMapData={heatMapData}
+            monitoringSiteData={monitoringSiteData}
+          />
+        ) : (
+          <CircularLoader loading={true}/>
+        )}
       </ErrorBoundary>
     </div>
   );

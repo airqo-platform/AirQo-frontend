@@ -1,12 +1,12 @@
+import 'package:app/models/models.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
-import '../../models/enum_constants.dart';
-import '../../models/kya.dart';
-import '../../models/measurement.dart';
+import '../../services/hive_service.dart';
 import '../../services/native_api.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
@@ -15,14 +15,85 @@ import '../../widgets/custom_shimmer.dart';
 import '../kya/kya_widgets.dart';
 import '../search/search_page.dart';
 
+class DashboardTopCard extends StatelessWidget {
+  const DashboardTopCard({
+    super.key,
+    required this.widgetKey,
+    required this.title,
+    required this.children,
+    required this.toolTipType,
+    required this.nextScreenClickHandler,
+  });
+
+  final GlobalKey widgetKey;
+  final String title;
+  final List<Widget> children;
+  final ToolTipType toolTipType;
+  final VoidCallback nextScreenClickHandler;
+
+  double getWidth(int length) {
+    if (length <= 1) {
+      return 31.9;
+    }
+
+    if (length <= 2) {
+      return 40.0;
+    }
+
+    return 46.0;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      key: widgetKey,
+      child: GestureDetector(
+        onTap: nextScreenClickHandler,
+        child: Container(
+          height: 56,
+          padding: const EdgeInsets.all(12.0),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.all(
+              Radius.circular(8.0),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                height: 32,
+                width: getWidth(children.length),
+                child: Stack(
+                  children: children,
+                ),
+              ),
+              const SizedBox(
+                width: 8,
+              ),
+              Text(
+                title,
+                style: CustomTextStyle.bodyText4(context)?.copyWith(
+                  color: CustomColors.appColorBlue,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class DashboardFavPlaceAvatar extends StatelessWidget {
   const DashboardFavPlaceAvatar({
     super.key,
     required this.rightPadding,
-    required this.measurement,
+    required this.airQualityReading,
   });
   final double rightPadding;
-  final Measurement measurement;
+  final AirQualityReading airQualityReading;
 
   @override
   Widget build(BuildContext context) {
@@ -38,21 +109,78 @@ class DashboardFavPlaceAvatar extends StatelessWidget {
             width: 2,
           ),
           color: Pollutant.pm2_5.color(
-            measurement.getPm2_5Value(),
+            airQualityReading.pm2_5,
           ),
           shape: BoxShape.circle,
         ),
         child: Center(
           child: Text(
-            '${measurement.getPm2_5Value()}',
+            '${airQualityReading.pm2_5}',
             style: TextStyle(
               fontSize: 7,
               color: Pollutant.pm2_5.textColor(
-                value: measurement.getPm2_5Value(),
+                value: airQualityReading.pm2_5,
               ),
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class FavouritePlaceDashboardAvatar extends StatelessWidget {
+  const FavouritePlaceDashboardAvatar({
+    super.key,
+    required this.rightPadding,
+    required this.favouritePlace,
+  });
+
+  final double rightPadding;
+  final FavouritePlace favouritePlace;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      right: rightPadding,
+      child: ValueListenableBuilder<Box>(
+        valueListenable: Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+            .listenable(keys: [favouritePlace.referenceSite]),
+        builder: (context, box, widget) {
+          final airQualityReading = box.get(favouritePlace.referenceSite);
+          if (airQualityReading == null) {
+            return const CircularLoadingAnimation(
+              size: 32,
+            );
+          }
+
+          return Container(
+            height: 32.0,
+            width: 32.0,
+            padding: const EdgeInsets.all(2.0),
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: CustomColors.appBodyColor,
+                width: 2,
+              ),
+              color: Pollutant.pm2_5.color(
+                airQualityReading.pm2_5,
+              ),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                '${airQualityReading.pm2_5}',
+                style: TextStyle(
+                  fontSize: 7,
+                  color: Pollutant.pm2_5.textColor(
+                    value: airQualityReading.pm2_5,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -303,7 +431,7 @@ List<Widget> completeKyaWidgets(List<Kya> completeKya) {
         break;
       case 1:
         widgets.add(
-          KyaDashboardAvatar(rightPadding: 7, kya: completeKya[0]),
+          KyaDashboardAvatar(rightPadding: 0, kya: completeKya[0]),
         );
         break;
       case 2:
@@ -320,6 +448,66 @@ List<Widget> completeKyaWidgets(List<Kya> completeKya) {
             ..add(KyaDashboardAvatar(rightPadding: 7, kya: completeKya[1]))
             ..add(
               KyaDashboardAvatar(rightPadding: 14, kya: completeKya[2]),
+            );
+        }
+        break;
+    }
+  } catch (exception, stackTrace) {
+    logException(exception, stackTrace);
+  }
+
+  return widgets;
+}
+
+List<Widget> favouritePlacesWidgets(List<FavouritePlace> favouritePlaces) {
+  final widgets = <Widget>[];
+
+  try {
+    switch (favouritePlaces.length) {
+      case 0:
+        widgets.add(
+          SvgPicture.asset(
+            'assets/icon/add_avator.svg',
+          ),
+        );
+        break;
+      case 1:
+        widgets.add(
+          FavouritePlaceDashboardAvatar(
+            rightPadding: 0,
+            favouritePlace: favouritePlaces[0],
+          ),
+        );
+        break;
+      case 2:
+        widgets
+          ..add(FavouritePlaceDashboardAvatar(
+            rightPadding: 0,
+            favouritePlace: favouritePlaces[0],
+          ))
+          ..add(
+            FavouritePlaceDashboardAvatar(
+              rightPadding: 7,
+              favouritePlace: favouritePlaces[1],
+            ),
+          );
+        break;
+      default:
+        if (favouritePlaces.length >= 3) {
+          widgets
+            ..add(FavouritePlaceDashboardAvatar(
+              rightPadding: 0,
+              favouritePlace: favouritePlaces[0],
+            ))
+            ..add(FavouritePlaceDashboardAvatar(
+              rightPadding: 7,
+              favouritePlace: favouritePlaces[1],
+            ))
+            ..add(
+              FavouritePlaceDashboardAvatar(
+                rightPadding: 14,
+                favouritePlace: favouritePlaces[2],
+              ),
             );
         }
         break;

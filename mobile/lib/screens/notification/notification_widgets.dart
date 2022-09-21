@@ -1,4 +1,4 @@
-import 'package:app/models/notification.dart';
+import 'package:app/models/models.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';

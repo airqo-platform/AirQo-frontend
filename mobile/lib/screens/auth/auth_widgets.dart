@@ -1,10 +1,13 @@
+import 'package:app/models/models.dart';
 import 'package:app/screens/auth/phone_auth_widget.dart';
 import 'package:app/screens/home_page.dart';
+import 'package:app/services/app_service.dart';
 import 'package:app/services/firebase_service.dart';
+import 'package:app/widgets/custom_shimmer.dart';
+import 'package:app/widgets/dialogs.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
-import '../../models/enum_constants.dart';
 import '../../themes/colors.dart';
 
 class ProceedAsGuest extends StatelessWidget {
@@ -14,20 +17,9 @@ class ProceedAsGuest extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return InkWell(
       onTap: () async {
-        await Future.wait([
-          CloudAnalytics.logEvent(
-            AnalyticsEvent.browserAsAppGuest,
-          ),
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) {
-              return const HomePage();
-            }),
-            (r) => false,
-          ),
-        ]);
+        await _proceedAsQuest(context);
       },
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -53,6 +45,37 @@ class ProceedAsGuest extends StatelessWidget {
       ),
     );
   }
+
+  Future<void> _proceedAsQuest(BuildContext buildContext) async {
+    loadingScreen(buildContext);
+    final successful = await AppService().authenticateUser(
+      authMethod: AuthMethod.none,
+      authProcedure: AuthProcedure.anonymousLogin,
+      buildContext: buildContext,
+    );
+
+    if (successful) {
+      Navigator.pop(buildContext);
+      await Future.wait([
+        CloudAnalytics.logEvent(
+          AnalyticsEvent.browserAsAppGuest,
+        ),
+        Navigator.pushAndRemoveUntil(
+          buildContext,
+          MaterialPageRoute(builder: (context) {
+            return const HomePage();
+          }),
+          (r) => false,
+        ),
+      ]);
+    } else {
+      Navigator.pop(buildContext);
+      await showSnackBar(
+        buildContext,
+        'Failed to proceed as guest. Try again later',
+      );
+    }
+  }
 }
 
 class SignUpButton extends StatelessWidget {
@@ -60,6 +83,7 @@ class SignUpButton extends StatelessWidget {
     super.key,
     required this.text,
   });
+
   final String text;
 
   @override
@@ -210,7 +234,7 @@ class LoginOptions extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Don\'t have an account',
+                'Don’t have an account',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.caption?.copyWith(
                       color: CustomColors.appColorBlack.withOpacity(0.6),
