@@ -4,33 +4,30 @@ import 'package:intl/intl.dart';
 import '../models/enum_constants.dart';
 import 'exception.dart';
 
-String dateToShareString(String formattedString) {
+String dateToShareString(DateTime dateTime) {
   try {
-    final formattedDate = DateTime.parse(formattedString);
     final dateFormatter = DateFormat('EEE, d MMM yyyy hh:mm a');
 
-    return dateFormatter.format(formattedDate);
+    return dateFormatter.format(dateTime);
   } catch (exception, stackTrace) {
     logException(exception, stackTrace);
 
-    return dateToString(formattedString);
+    return dateToString(dateTime);
   }
 }
 
-String dateToString(String formattedString) {
+String dateToString(DateTime dateTime) {
   try {
     final now = DateTime.now();
-    final formattedDate = DateTime.parse(formattedString);
-
-    if (now.day == formattedDate.day) {
-      return 'Updated today at ${DateFormat('hh:mm a').format(formattedDate)}';
-    } else if (now.isAfter(formattedDate)) {
+    if (now.day == dateTime.day) {
+      return 'Updated today at ${DateFormat('hh:mm a').format(dateTime)}';
+    } else if (now.isAfter(dateTime)) {
       final yesterday = now.subtract(const Duration(hours: 24));
-      if (formattedDate.day == yesterday.day) {
+      if (dateTime.day == yesterday.day) {
         return 'Updated yesterday at'
-            ' ${DateFormat('hh:mm a').format(formattedDate)}';
+            ' ${DateFormat('hh:mm a').format(dateTime)}';
       } else {
-        final daysAgo = now.difference(formattedDate).inDays;
+        final daysAgo = now.difference(dateTime).inDays;
 
         return daysAgo == 1
             ? 'Updated $daysAgo day ago'
@@ -39,14 +36,14 @@ String dateToString(String formattedString) {
     } else {
       final tomorrow = now.add(const Duration(hours: 24));
 
-      return tomorrow.day == formattedDate.day
-          ? 'Tomorrow, ${DateFormat('hh:mm a').format(formattedDate)}'
-          : DateFormat('d MMM, hh:mm a').format(formattedDate);
+      return tomorrow.day == dateTime.day
+          ? 'Tomorrow, ${DateFormat('hh:mm a').format(dateTime)}'
+          : DateFormat('d MMM, hh:mm a').format(dateTime);
     }
   } catch (exception, stackTrace) {
     logException(exception, stackTrace);
 
-    return formattedString;
+    return dateTime.toIso8601String();
   }
 }
 
@@ -56,27 +53,6 @@ String getDateTime() {
   return '${now.getWeekday()} ${DateFormat('d').format(now)},'
           ' ${DateFormat('MMMM').format(now)}'
       .toUpperCase();
-}
-
-String getGreetings(String name) {
-  if (name.isNull() || name.toLowerCase() == 'guest') {
-    name = '';
-  }
-
-  final hour = DateTime.now().hour;
-  if (00 <= hour && hour < 12) {
-    return 'Good morning $name'.trim();
-  }
-
-  if (12 <= hour && hour < 16) {
-    return 'Good afternoon $name'.trim();
-  }
-
-  if (18 <= hour && hour <= 23) {
-    return 'Good evening $name'.trim();
-  }
-
-  return 'Hello $name'.trim();
 }
 
 String insightsChartTitleDateTimeToString(

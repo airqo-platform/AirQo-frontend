@@ -27,11 +27,8 @@ Future<void> logException(
         exception.runtimeType,
       )) {
     await Future.wait([
-      FirebaseCrashlytics.instance.recordError(
-        exception,
-        stackTrace,
-        fatal: true,
-      ),
+      FirebaseCrashlytics.instance
+          .recordError(exception, stackTrace, fatal: true, printDetails: true),
       Sentry.captureException(
         exception,
         stackTrace: stackTrace ?? '',

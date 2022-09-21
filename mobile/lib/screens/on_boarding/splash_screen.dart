@@ -1,12 +1,16 @@
 import 'package:animations/animations.dart';
+import 'package:app/models/models.dart';
 import 'package:app/screens/on_boarding/profile_setup_screen.dart';
 import 'package:app/screens/on_boarding/setup_complete_screeen.dart';
 import 'package:app/screens/on_boarding/welcome_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../models/enum_constants.dart';
+import '../../blocs/nearby_location/nearby_location_bloc.dart';
+import '../../blocs/nearby_location/nearby_location_event.dart';
 import '../../services/app_service.dart';
+import '../../services/firebase_service.dart';
 import '../../services/local_storage.dart';
 import '../auth/phone_auth_widget.dart';
 import '../home_page.dart';
@@ -20,7 +24,7 @@ class SplashScreen extends StatefulWidget {
   });
 
   @override
-  SplashScreenState createState() => SplashScreenState();
+  State<SplashScreen> createState() => SplashScreenState();
 }
 
 class SplashScreenState extends State<SplashScreen> {
@@ -51,7 +55,9 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> initialize() async {
-    final isLoggedIn = _appService.isLoggedIn();
+    context.read<NearbyLocationBloc>().add(const SearchNearbyLocations());
+
+    final isLoggedIn = CustomAuth.isLoggedIn();
 
     final nextPage = getOnBoardingPageConstant(
       await SharedPreferencesHelper.getOnBoardingPage(),

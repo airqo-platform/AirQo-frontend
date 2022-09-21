@@ -4,7 +4,7 @@ on:
   pull_request:
     branches:
       - staging
-  
+
 jobs:
   branch-name:
     name: Format branch name string
@@ -21,8 +21,9 @@ jobs:
     name: check for changed frontends
     outputs:
       run_platform: ${{ steps.check_files.outputs.run_platform }} # platform
-      run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }} # calibrate 
+      run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }} # calibrate
       run_next_platform: ${{ steps.check_files.outputs.run_next_platform }} # next platform
+      run_docs: ${{ steps.check_files.outputs.run_docs }} # docs
 
     runs-on: ubuntu-latest
     steps:
@@ -36,13 +37,14 @@ jobs:
         run: |
           echo "=============== list modified files ==============="
           git diff --name-only HEAD^ HEAD
-          
+
           echo "========== check paths of modified files =========="
           git diff --name-only HEAD^ HEAD > files.txt
 
           echo "::set-output name=run_platform::false"
           echo "::set-output name=run_calibrate_app::false"
-          echo "::set-output name=run_next_platform::false"  
+          echo "::set-output name=run_next_platform::false"
+          echo "::set-output name=run_docs::false"    
 
           while IFS= read -r file
           do
@@ -59,17 +61,21 @@ jobs:
               echo "::set-output name=run_next_platform::true"
             fi
 
+            if [[ $file == docs/* ]]; then
+              echo "::set-output name=run_docs::true"
+            fi
+
           done < files.txt
 
   ### deploy netmanager preview ###
   netmanager:
     name: build-push-deploy-netmanager-preview
-    needs: [check,branch-name]
+    needs: [check, branch-name]
     if: needs.check.outputs.run_platform == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write    
+      id-token: write
     outputs:
       url: ${{ steps.preview-url.outputs.url }}
     steps:
@@ -81,7 +87,7 @@ jobs:
         uses: google-github-actions/auth@v0
         with:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
-          
+
       - name: Setup Cloud SDK
         uses: google-github-actions/setup-gcloud@v0
 
@@ -96,7 +102,7 @@ jobs:
       - name: NPM Setup and Build
         uses: actions/setup-node@v2
         with:
-          node-version: '12'
+          node-version: "12"
       - run: |
           cd netmanager/
 
@@ -109,7 +115,7 @@ jobs:
           export PORT=${{ secrets.NODE_PORT }}
 
           npm install
-    
+
           CI=false npm run build
 
       - name: Build and Push Image
@@ -117,7 +123,7 @@ jobs:
           cd netmanager/
           docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} ./
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }}
-      
+
       - name: Deploy to Cloud Run
         run: |-
           gcloud run deploy ${{ needs.branch-name.outputs.lowercase }}-netmanager-preview \
@@ -157,16 +163,16 @@ jobs:
               repo: context.repo.repo,
               body: 'New netmanager changes available for preview [here](${{ needs.netmanager.outputs.url }})'
             })
-    
+
   ### deploy calibrate-app preview ###
   calibrate-app:
     name: build-push-deploy-calibrate-app-preview
-    needs: [check,branch-name]
+    needs: [check, branch-name]
     if: needs.check.outputs.run_calibrate_app == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write    
+      id-token: write
     outputs:
       url: ${{ steps.preview-url.outputs.url }}
     steps:
@@ -178,7 +184,7 @@ jobs:
         uses: google-github-actions/auth@v0
         with:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
-          
+
       - name: Setup Cloud SDK
         uses: google-github-actions/setup-gcloud@v0
 
@@ -193,7 +199,7 @@ jobs:
       - name: NPM Setup and Build
         uses: actions/setup-node@v2
         with:
-          node-version: '12'
+          node-version: "12"
       - run: |
           cd calibrate/
 
@@ -203,7 +209,7 @@ jobs:
           export PORT=${{ secrets.NODE_PORT }}
 
           npm install
-    
+
           CI=false npm run build
 
       - name: Build and Push Image
@@ -211,7 +217,7 @@ jobs:
           cd website/
           docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:${{ github.sha }} .
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:${{ github.sha }}
-      
+
       - name: Deploy to Cloud Run
         run: |-
           gcloud run deploy ${{ needs.branch-name.outputs.lowercase }}-calibrate-app-preview \
@@ -251,7 +257,7 @@ jobs:
               repo: context.repo.repo,
               body: 'New calibrate app changes available for preview [here](${{ needs.calibrate-app.outputs.url }})'
             })
-  
+
   ### deploy next-platform preview ###
   next-platform:
     name: build-push-deploy-next-platform-preview
@@ -260,7 +266,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write    
+      id-token: write
     outputs:
       url: ${{ steps.preview-url.outputs.url }}
     steps:
@@ -272,7 +278,7 @@ jobs:
         uses: google-github-actions/auth@v0
         with:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
-          
+
       - name: Setup Cloud SDK
         uses: google-github-actions/setup-gcloud@v0
 
@@ -295,7 +301,7 @@ jobs:
           cd platform/
           docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/next-platform-pr-previews:${{ github.sha }} .
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/next-platform-pr-previews:${{ github.sha }}
-      
+
       - name: Deploy to Cloud Run
         run: |-
           gcloud run deploy ${{ needs.branch-name.outputs.lowercase }}-next-platform-preview \
@@ -332,4 +338,80 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: 'New next-platform changes available for preview [here](${{ needs.next-platform.outputs.url }})'
-            })  
+            })
+
+  ### deploy docs preview ###
+  docs:
+    name: build-push-deploy-docs-preview
+    needs: [check, branch-name]
+    if: needs.check.outputs.run_docs == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      url: ${{ steps.preview-url.outputs.url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Google Auth
+        id: auth
+        uses: google-github-actions/auth@v0
+        with:
+          credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
+
+      - name: Setup Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0
+
+      - name: Login to GCR
+        id: docker-auth
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ secrets.REGISTRY_URL }}
+          username: _json_key
+          password: ${{ secrets.GCP_SA_CREDENTIALS }}
+
+      - name: Build and Push Image
+        run: |
+          cd docs/
+          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }} .
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }}
+
+      - name: Deploy to Cloud Run
+        run: |-
+          gcloud run deploy ${{ needs.branch-name.outputs.lowercase }}-docs-preview \
+            --region=${{ secrets.REGION }} \
+            --max-instances=10 \
+            --timeout=60 \
+            --concurrency=10 \
+            --image=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }} \
+            --port=3000 \
+            --cpu=1000m \
+            --memory=256Mi \
+            --allow-unauthenticated
+
+      - name: Get preview service url
+        id: preview-url
+        run: |
+          read service_url < <(gcloud run services describe ${{ needs.branch-name.outputs.lowercase }}-docs-preview \
+            --format='value(status.url)' \
+            --platform managed \
+            --region ${{ secrets.REGION }})
+          echo "::set-output name=url::${service_url}"
+
+  docs-pr-comment:
+    name: docs-preview-link-comment
+    if: needs.check.outputs.run_docs == 'true'
+    needs: [docs]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'New Docs changes available for preview [here](${{ needs.docs.outputs.url }})'
+            })

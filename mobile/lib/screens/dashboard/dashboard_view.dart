@@ -1,29 +1,26 @@
 import 'dart:async';
 
-import 'package:app/models/kya.dart';
-import 'package:app/models/place_details.dart';
+import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/utils/dashboard.dart';
 import 'package:app/utils/date.dart';
+import 'package:app/utils/exception.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/custom_shimmer.dart';
-import 'package:app/widgets/tooltip.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../models/enum_constants.dart';
-import '../../services/firebase_service.dart';
+import '../../blocs/map/map_bloc.dart';
+import '../../blocs/nearby_location/nearby_location_bloc.dart';
+import '../../blocs/nearby_location/nearby_location_event.dart';
 import '../../services/hive_service.dart';
-import '../../services/local_storage.dart';
-import '../../services/location_service.dart';
+import '../../services/native_api.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
-import '../../utils/exception.dart';
 import '../../widgets/custom_widgets.dart';
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
@@ -42,8 +39,6 @@ class DashboardView extends StatefulWidget {
 class _DashboardViewState extends State<DashboardView> {
   String _greetings = '';
 
-  List<Widget> _favLocations = [];
-
   final AppService _appService = AppService();
   late SharedPreferences _preferences;
 
@@ -51,7 +46,6 @@ class _DashboardViewState extends State<DashboardView> {
   final GlobalKey _kyaToolTipKey = GlobalKey();
   bool _isRefreshing = false;
 
-  final ScrollController _scrollController = ScrollController();
   List<Widget> _analyticsCards = [
     const AnalyticsCardLoading(),
     const AnalyticsCardLoading(),
@@ -63,7 +57,7 @@ class _DashboardViewState extends State<DashboardView> {
 
   List<Widget> _dashBoardItems = [];
   final Stream _timeStream =
-      Stream.periodic(const Duration(minutes: 30), (int count) {
+      Stream.periodic(const Duration(minutes: 5), (int count) {
     return count;
   });
   late StreamSubscription _timeSubscription;
@@ -88,141 +82,66 @@ class _DashboardViewState extends State<DashboardView> {
               height: 16,
             ),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                Expanded(
-                  key: _favToolTipKey,
-                  child: GestureDetector(
-                    onTap: () async {
-                      if (_favLocations.isEmpty) {
-                        ToolTip(context, ToolTipType.favouritePlaces).show(
-                          widgetKey: _favToolTipKey,
-                        );
+                ValueListenableBuilder<Box>(
+                  valueListenable:
+                      Hive.box<FavouritePlace>(HiveBox.favouritePlaces)
+                          .listenable(),
+                  builder: (context, box, widget) {
+                    final favouritePlaces =
+                        box.values.cast<FavouritePlace>().take(3).toList();
 
-                        return;
-                      }
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) {
-                            return const FavouritePlaces();
-                          },
-                        ),
-                      );
-                    },
-                    child: Container(
-                      height: 56,
-                      padding: const EdgeInsets.all(12.0),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(8.0),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Consumer<PlaceDetailsModel>(
-                            builder: (context, placeDetailsModel, child) {
-                              if (placeDetailsModel.favouritePlaces.isEmpty) {
-                                return SvgPicture.asset(
-                                  'assets/icon/add_avator.svg',
-                                );
-                              }
-                              _loadFavourites(reload: false);
+                    final widgets = favouritePlacesWidgets(favouritePlaces);
 
-                              return SizedBox(
-                                height: 32,
-                                width: 47,
-                                child: Stack(
-                                  children: _favLocations,
-                                ),
-                              );
+                    return DashboardTopCard(
+                      toolTipType: ToolTipType.favouritePlaces,
+                      title: 'Favorites',
+                      widgetKey: _favToolTipKey,
+                      nextScreenClickHandler: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) {
+                              return const FavouritePlaces();
                             },
                           ),
-                          const SizedBox(
-                            width: 8,
-                          ),
-                          Text(
-                            'Favorites',
-                            style: CustomTextStyle.bodyText4(context)?.copyWith(
-                              color: CustomColors.appColorBlue,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                        );
+                      },
+                      children: widgets,
+                    );
+                  },
                 ),
                 const SizedBox(
                   width: 16,
                 ),
-                Expanded(
-                  key: _kyaToolTipKey,
-                  child: ValueListenableBuilder<Box>(
-                    valueListenable: Hive.box<Kya>(HiveBox.kya).listenable(),
-                    builder: (context, box, widget) {
-                      final completeKya = box.values
-                          .toList()
-                          .cast<Kya>()
-                          .where((element) => element.progress == -1)
-                          .toList();
+                ValueListenableBuilder<Box>(
+                  valueListenable: Hive.box<Kya>(HiveBox.kya).listenable(),
+                  builder: (context, box, widget) {
+                    final completeKya = box.values
+                        .cast<Kya>()
+                        .where((element) => element.progress == -1)
+                        .take(3)
+                        .toList();
 
-                      final kyaWidgets = completeKyaWidgets(completeKya);
+                    final widgets = completeKyaWidgets(completeKya);
 
-                      return GestureDetector(
-                        onTap: () async {
-                          if (completeKya.isEmpty) {
-                            ToolTip(context, ToolTipType.forYou).show(
-                              widgetKey: _kyaToolTipKey,
-                            );
-
-                            return;
-                          }
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) {
-                                return const ForYouPage(analytics: false);
-                              },
-                            ),
-                          );
-                        },
-                        child: Container(
-                          height: 56,
-                          padding: const EdgeInsets.all(12.0),
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(8.0),
-                            ),
+                    return DashboardTopCard(
+                      toolTipType: ToolTipType.forYou,
+                      title: 'For You',
+                      widgetKey: _kyaToolTipKey,
+                      nextScreenClickHandler: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) {
+                              return const ForYouPage(analytics: false);
+                            },
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SizedBox(
-                                height: 32,
-                                width: 47,
-                                child: Stack(
-                                  children: kyaWidgets,
-                                ),
-                              ),
-                              const SizedBox(
-                                width: 8,
-                              ),
-                              Text(
-                                'For You',
-                                style: CustomTextStyle.bodyText4(context)
-                                    ?.copyWith(
-                                  color: CustomColors.appColorBlue,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+                        );
+                      },
+                      children: widgets,
+                    );
+                  },
                 ),
               ],
             ),
@@ -248,7 +167,6 @@ class _DashboardViewState extends State<DashboardView> {
 
   @override
   void dispose() {
-    _scrollController.removeListener(_scrollListener);
     _timeSubscription.cancel();
     super.dispose();
   }
@@ -260,161 +178,117 @@ class _DashboardViewState extends State<DashboardView> {
       _setGreetings();
     });
     _initialize();
-    _handleScroll();
   }
 
-  void _buildAnalyticsCards(List<Widget> cards) {
+  void _updateAnalyticsCards(List<Widget> cards) {
     cards.shuffle();
+
+    if (cards.isEmpty) return;
+
+    final analyticsCards = <Widget>[
+      cards[0],
+      const SizedBox(
+        height: 16,
+      ),
+      ValueListenableBuilder<Box>(
+        valueListenable: Hive.box<Kya>(HiveBox.kya).listenable(),
+        builder: (context, box, widget) {
+          final incompleteKya = box.values
+              .toList()
+              .cast<Kya>()
+              .where((element) => element.progress != -1)
+              .toList();
+          if (incompleteKya.isEmpty) {
+            return const SizedBox();
+          }
+
+          return DashboardKyaCard(
+            kyaClickCallBack: _handleKyaOnClick,
+            kya: incompleteKya[0],
+          );
+        },
+      ),
+      ValueListenableBuilder<Box>(
+        valueListenable: Hive.box<Kya>(HiveBox.kya).listenable(),
+        builder: (context, box, widget) {
+          final incompleteKya = box.values
+              .toList()
+              .cast<Kya>()
+              .where((element) => element.progress != -1)
+              .toList();
+          if (incompleteKya.isEmpty) {
+            return const SizedBox();
+          }
+
+          return const SizedBox(
+            height: 16,
+          );
+        },
+      ),
+    ];
+
+    for (final card in cards) {
+      if (card == cards[0]) continue;
+
+      analyticsCards
+        ..add(card)
+        ..add(const SizedBox(
+          height: 16,
+        ));
+    }
 
     setState(
       () {
-        _analyticsCards = [
-          if (cards.isNotEmpty) cards[0],
-          if (cards.isNotEmpty)
-            const SizedBox(
-              height: 16,
-            ),
-          ValueListenableBuilder<Box>(
-            valueListenable: Hive.box<Kya>(HiveBox.kya).listenable(),
-            builder: (context, box, widget) {
-              final incompleteKya = box.values
-                  .toList()
-                  .cast<Kya>()
-                  .where((element) => element.progress != -1)
-                  .toList();
-              if (incompleteKya.isEmpty) {
-                return const SizedBox();
-              }
-
-              return DashboardKyaCard(
-                kyaClickCallBack: _handleKyaOnClick,
-                kya: incompleteKya[0],
-              );
-            },
-          ),
-          ValueListenableBuilder<Box>(
-            valueListenable: Hive.box<Kya>(HiveBox.kya).listenable(),
-            builder: (context, box, widget) {
-              final incompleteKya = box.values
-                  .toList()
-                  .cast<Kya>()
-                  .where((element) => element.progress != -1)
-                  .toList();
-              if (incompleteKya.isEmpty) {
-                return const SizedBox();
-              }
-
-              return const SizedBox(
-                height: 16,
-              );
-            },
-          ),
-          if (cards.length >= 2) cards[1],
-          Visibility(
-            visible: cards.length >= 2,
-            child: const SizedBox(
-              height: 16,
-            ),
-          ),
-          if (cards.length >= 3) cards[2],
-          Visibility(
-            visible: cards.length >= 3,
-            child: const SizedBox(
-              height: 16,
-            ),
-          ),
-          if (cards.length >= 4) cards[3],
-          Visibility(
-            visible: cards.length >= 4,
-            child: const SizedBox(
-              height: 16,
-            ),
-          ),
-          if (cards.length >= 5) cards[4],
-          Visibility(
-            visible: cards.length >= 5,
-            child: const SizedBox(
-              height: 16,
-            ),
-          ),
-          if (cards.length >= 6) cards[5],
-          Visibility(
-            visible: cards.length >= 6,
-            child: const SizedBox(
-              height: 16,
-            ),
-          ),
-          if (cards.length >= 7) cards[6],
-          Visibility(
-            visible: cards.length >= 7,
-            child: const SizedBox(
-              height: 16,
-            ),
-          ),
-          if (cards.length >= 8) cards[7],
-          Visibility(
-            visible: cards.length >= 8,
-            child: const SizedBox(
-              height: 16,
-            ),
-          ),
-        ];
+        _analyticsCards = analyticsCards;
         _dashBoardItems = _initializeDashBoardItems();
       },
     );
   }
 
-  void _getAnalyticsCards() async {
-    final region = getNextDashboardRegion(_preferences);
-    final measurements = await DBHelper().getRegionSites(region);
-    final dashboardCards = <AnalyticsCard>[];
+  void _refreshAnalyticsCards() async {
+    final airQualityCards = <AnalyticsCard>[];
 
-    if (measurements.isNotEmpty) {
-      for (var i = 0; i <= 5; i++) {
-        if (measurements.isEmpty) {
-          break;
-        }
+    final nearestAirQualityReadings = sortAirQualityReadingsByDistance(
+      Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
+          .values
+          .toList(),
+    );
 
-        final randomMeasurement = (measurements..shuffle()).first;
-
-        if (mounted) {
-          dashboardCards.add(
-            AnalyticsCard(
-              PlaceDetails.measurementToPlace(randomMeasurement),
-              randomMeasurement,
-              _isRefreshing,
-              false,
-            ),
-          );
-        }
-
-        measurements.remove(randomMeasurement);
-      }
-
-      if (!mounted) {
-        return;
-      }
-      _buildAnalyticsCards(dashboardCards);
-    }
-
-    final locationMeasurements =
-        await LocationService.getNearbyLocationReadings();
-
-    for (final location in locationMeasurements) {
-      dashboardCards.add(
+    for (final nearestAirQualityReading in nearestAirQualityReadings.take(2)) {
+      airQualityCards.add(
         AnalyticsCard(
-          PlaceDetails.measurementToPlace(location),
-          location,
+          AirQualityReading.duplicate(nearestAirQualityReading),
           _isRefreshing,
           false,
         ),
       );
     }
-    if (!mounted) {
-      return;
+
+    final region = getNextDashboardRegion(_preferences);
+    final regionAirQualityReadings =
+        Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+            .values
+            .where((element) => element.region == region)
+            .toList()
+          ..shuffle();
+
+    for (final regionAirQualityReading in regionAirQualityReadings.take(8)) {
+      if (nearestAirQualityReadings
+          .where((element) =>
+              element.referenceSite == regionAirQualityReading.referenceSite)
+          .isNotEmpty) continue;
+      airQualityCards.add(
+        AnalyticsCard(
+          AirQualityReading.duplicate(regionAirQualityReading),
+          _isRefreshing,
+          false,
+        ),
+      );
+      if (airQualityCards.length >= 8) break;
     }
-    if (dashboardCards.isNotEmpty) {
-      _buildAnalyticsCards(dashboardCards);
+
+    if (airQualityCards.isNotEmpty && mounted) {
+      _updateAnalyticsCards(airQualityCards);
     }
   }
 
@@ -435,26 +309,11 @@ class _DashboardViewState extends State<DashboardView> {
     await _refresh();
   }
 
-  void _scrollListener() {
-    if (mounted) {
-      if (_scrollController.position.userScrollDirection ==
-          ScrollDirection.reverse) {
-        // TODO : review usage of this listener
-      }
-
-      return;
-    }
-  }
-
-  void _handleScroll() async {
-    _scrollController.addListener(_scrollListener);
-  }
-
   Future<void> _initialize() async {
     _preferences = await SharedPreferences.getInstance();
-    _buildAnalyticsCards(_analyticsCards);
+    _updateAnalyticsCards(_analyticsCards);
     _setGreetings();
-    _getAnalyticsCards();
+    _refreshAnalyticsCards();
   }
 
   List<Widget> _initializeDashBoardItems() {
@@ -486,148 +345,34 @@ class _DashboardViewState extends State<DashboardView> {
     ];
   }
 
-  void _loadFavourites({
-    required bool reload,
-  }) async {
-    final widgets = <Widget>[];
-
-    if (_favLocations.length != 3 || reload) {
-      try {
-        final favouritePlaces = await DBHelper().getFavouritePlaces();
-
-        if (!reload) {
-          if (_favLocations.length >= favouritePlaces.length) {
-            return;
-          }
-        }
-
-        final siteIds = <String>[];
-        for (final place in favouritePlaces) {
-          siteIds.add(place.siteId);
-        }
-        final measurements = await DBHelper().getMeasurements(siteIds);
-
-        if (favouritePlaces.length == 1) {
-          if (measurements.isNotEmpty) {
-            widgets.add(
-              DashboardFavPlaceAvatar(
-                rightPadding: 7,
-                measurement: measurements[0],
-              ),
-            );
-          } else {
-            widgets.add(
-              const DashboardEmptyAvatar(
-                rightPadding: 0,
-              ),
-            );
-          }
-        } else if (favouritePlaces.length == 2) {
-          if (measurements.isNotEmpty) {
-            widgets.add(
-              DashboardFavPlaceAvatar(
-                rightPadding: 0,
-                measurement: measurements[0],
-              ),
-            );
-          } else {
-            widgets.add(
-              const DashboardEmptyAvatar(
-                rightPadding: 0,
-              ),
-            );
-          }
-
-          if (measurements.length >= 2) {
-            widgets.add(
-              DashboardFavPlaceAvatar(
-                rightPadding: 7,
-                measurement: measurements[1],
-              ),
-            );
-          } else {
-            widgets.add(
-              const DashboardEmptyAvatar(rightPadding: 7),
-            );
-          }
-        } else if (favouritePlaces.length >= 3) {
-          if (measurements.isNotEmpty) {
-            widgets.add(
-              DashboardFavPlaceAvatar(
-                rightPadding: 0,
-                measurement: measurements[0],
-              ),
-            );
-          } else {
-            widgets.add(
-              const DashboardEmptyAvatar(
-                rightPadding: 0,
-              ),
-            );
-          }
-
-          if (measurements.length >= 2) {
-            widgets.add(
-              DashboardFavPlaceAvatar(
-                rightPadding: 7,
-                measurement: measurements[1],
-              ),
-            );
-          } else {
-            widgets.add(
-              const DashboardEmptyAvatar(
-                rightPadding: 7,
-              ),
-            );
-          }
-
-          if (measurements.length >= 3) {
-            widgets.add(
-              DashboardFavPlaceAvatar(
-                rightPadding: 14,
-                measurement: measurements[2],
-              ),
-            );
-          } else {
-            widgets.add(
-              const DashboardEmptyAvatar(
-                rightPadding: 14,
-              ),
-            );
-          }
-        }
-      } catch (exception, stackTrace) {
-        await logException(
-          exception,
-          stackTrace,
-        );
-      }
-
-      if (mounted) {
-        setState(
-          () {
-            _favLocations.clear();
-            _favLocations = widgets;
-          },
-        );
-      }
-    }
-  }
-
   Future<void> _refresh() async {
     setState(() => _isRefreshing = true);
+
+    try {
+      await PermissionService.checkPermission(
+        AppPermission.location,
+        request: true,
+      ).then((value) => context
+          .read<NearbyLocationBloc>()
+          .add(const SearchNearbyLocations()));
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
     await _appService.refreshDashboard(context);
-    _getAnalyticsCards();
-    _loadFavourites(reload: true);
+    context.read<MapBloc>().add(const ShowAllSites());
+    _refreshAnalyticsCards();
     setState(() => _isRefreshing = false);
   }
 
-  void _setGreetings() {
+  void _setGreetings() async {
+    final greetings = await DateTime.now().getGreetings();
     if (mounted) {
       setState(
-        () => _greetings = getGreetings(
-          CustomAuth.getDisplayName(),
-        ),
+        () => _greetings = greetings,
       );
     }
   }

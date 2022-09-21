@@ -1,3 +1,4 @@
+import 'package:app/models/enum_constants.dart';
 import 'package:app/services/firebase_service.dart';
 import 'package:app/utils/network.dart';
 import 'package:app/widgets/buttons.dart';
@@ -7,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../themes/colors.dart';
+import '../../widgets/custom_widgets.dart';
 import 'auth_widgets.dart';
 
 class ChangePhoneScreen extends StatefulWidget {
@@ -37,7 +39,11 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
   User? _user;
 
   Future<void> autoVerifyPhoneFn(PhoneAuthCredential credential) async {
-    final success = await CustomAuth.updatePhoneNumber(credential, context);
+    final success = await CustomAuth.updateCredentials(
+      context: context,
+      phoneCredential: credential,
+      authMethod: AuthMethod.phone,
+    );
 
     if (success) {
       Navigator.pop(context, true);
@@ -55,55 +61,59 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        color: Colors.white,
-        padding: const EdgeInsets.only(left: 24, right: 24),
-        child: Center(
-          child: Column(children: [
-            // Start Common widgets
-
-            const SizedBox(
-              height: 42,
-            ),
-
-            Visibility(
-              visible: _verifyCode,
-              child: const Text(
-                'Verify your phone number!',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 24,
-                  color: Colors.black,
-                ),
-              ),
-            ),
-            Visibility(
-              visible: !_verifyCode,
-              child: const Text(
-                'Change mobile number',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 24,
-                  color: Colors.black,
-                ),
-              ),
-            ),
-
-            const SizedBox(
-              height: 8,
-            ),
-
-            if (_phoneNumber.length > 8)
+      body: CustomSafeArea(
+        widget: Container(
+          color: Colors.white,
+          padding: const EdgeInsets.only(left: 24, right: 24),
+          child: Center(
+            child: Column(children: [
               Visibility(
                 visible: _verifyCode,
+                child: const Text(
+                  'Verify your phone number!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 24,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+              Visibility(
+                visible: !_verifyCode,
+                child: const Text(
+                  'Change mobile number',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 24,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 8,
+              ),
+              if (_phoneNumber.length > 8)
+                Visibility(
+                  visible: _verifyCode,
+                  child: Text(
+                    // 'Enter the 6 digits code sent to your\n'
+                    //     'number that ends with ...'
+                    //     '${phoneNumber.substring(phoneNumber.length - 3)}',
+                    'Enter the 6 digits code sent to your number'
+                    '\n$_countryCode$_phoneNumber',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.black.withOpacity(0.6),
+                    ),
+                  ),
+                ),
+              Visibility(
+                visible: !_verifyCode,
                 child: Text(
-                  // 'Enter the 6 digits code sent to your\n'
-                  //     'number that ends with ...'
-                  //     '${phoneNumber.substring(phoneNumber.length - 3)}',
-                  'Enter the 6 digits code sent to your\n'
-                  'number $_countryCode$_phoneNumber',
+                  'We’ll send you a verification code',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
@@ -111,173 +121,154 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
                   ),
                 ),
               ),
-            Visibility(
-              visible: !_verifyCode,
-              child: Text(
-                'We’ll send you a verification code',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.black.withOpacity(0.6),
+              const SizedBox(
+                height: 32,
+              ),
+              Visibility(
+                visible: _verifyCode,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 36, right: 36),
+                  child: OptField(
+                    codeSent: _codeSent,
+                    position: 0,
+                    callbackFn: setCode,
+                  ),
                 ),
               ),
-            ),
-
-            const SizedBox(
-              height: 32,
-            ),
-
-            Visibility(
-              visible: _verifyCode,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 36, right: 36),
-                child: OptField(
-                  codeSent: _codeSent,
-                  position: 0,
-                  callbackFn: setCode,
-                ),
-              ),
-            ),
-            Visibility(
-              visible: !_verifyCode,
-              child: Form(
-                key: _phoneFormKey,
-                child: SizedBox(
-                  height: 48,
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 64,
-                        child: CountryCodePickerField(
-                          valueChange: codeValueChange,
-                          placeholder: _countryCode,
+              Visibility(
+                visible: !_verifyCode,
+                child: Form(
+                  key: _phoneFormKey,
+                  child: SizedBox(
+                    height: 48,
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 64,
+                          child: CountryCodePickerField(
+                            valueChange: codeValueChange,
+                            placeholder: _countryCode,
+                          ),
                         ),
+                        const SizedBox(
+                          width: 16,
+                        ),
+                        Expanded(
+                          child: phoneInputField(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 24,
+              ),
+              Visibility(
+                visible: !_codeSent && _verifyCode,
+                child: Text(
+                  'The code should arrive with in 5 sec',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.black.withOpacity(0.5),
+                  ),
+                ),
+              ),
+              Visibility(
+                visible: _codeSent && _verifyCode,
+                child: GestureDetector(
+                  onTap: () async {
+                    await resendVerificationCode();
+                  },
+                  child: Text(
+                    'Resend code',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: _isResending
+                          ? Colors.black.withOpacity(0.5)
+                          : CustomColors.appColorBlue,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 19,
+              ),
+              Visibility(
+                visible: _verifyCode,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 36, right: 36),
+                  child: Stack(
+                    alignment: AlignmentDirectional.center,
+                    children: [
+                      Container(
+                        height: 1.09,
+                        color: Colors.black.withOpacity(0.05),
                       ),
-                      const SizedBox(
-                        width: 16,
-                      ),
-                      Expanded(
-                        child: phoneInputField(),
+                      Container(
+                        color: Colors.white,
+                        padding: const EdgeInsets.only(left: 5, right: 5),
+                        child: const Text(
+                          'Or',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Color(0xffD1D3D9),
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
               ),
-            ),
-
-            const SizedBox(
-              height: 24,
-            ),
-
-            Visibility(
-              visible: !_codeSent && _verifyCode,
-              child: Text(
-                'The code should arrive with in 5 sec',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.black.withOpacity(0.5),
+              Visibility(
+                visible: _verifyCode,
+                child: const SizedBox(
+                  height: 19,
                 ),
               ),
-            ),
-            Visibility(
-              visible: _codeSent && _verifyCode,
-              child: GestureDetector(
-                onTap: () async {
-                  await resendVerificationCode();
-                },
-                child: Text(
-                  'Resend code',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: _isResending
-                        ? Colors.black.withOpacity(0.5)
-                        : CustomColors.appColorBlue,
+              Visibility(
+                visible: _verifyCode,
+                child: GestureDetector(
+                  onTap: initialize,
+                  child: Text(
+                    'Change Phone Number',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: _resendCode
+                          ? CustomColors.appColorBlue
+                          : Colors.black.withOpacity(0.5),
+                    ),
                   ),
                 ),
               ),
-            ),
-
-            const SizedBox(
-              height: 19,
-            ),
-
-            Visibility(
-              visible: _verifyCode,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 36, right: 36),
-                child: Stack(
-                  alignment: AlignmentDirectional.center,
-                  children: [
-                    Container(
-                      height: 1.09,
-                      color: Colors.black.withOpacity(0.05),
-                    ),
-                    Container(
-                      color: Colors.white,
-                      padding: const EdgeInsets.only(left: 5, right: 5),
-                      child: const Text(
-                        'Or',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Color(0xffD1D3D9),
-                        ),
-                      ),
-                    ),
-                  ],
+              const Spacer(),
+              Visibility(
+                visible: _verifyCode,
+                child: GestureDetector(
+                  onTap: () async {
+                    await verifySentCode();
+                  },
+                  child: NextButton(buttonColor: _nextBtnColor),
                 ),
               ),
-            ),
-            Visibility(
-              visible: _verifyCode,
-              child: const SizedBox(
-                height: 19,
-              ),
-            ),
-            Visibility(
-              visible: _verifyCode,
-              child: GestureDetector(
-                onTap: initialize,
-                child: Text(
-                  'Change Phone Number',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: _resendCode
-                        ? CustomColors.appColorBlue
-                        : Colors.black.withOpacity(0.5),
-                  ),
+              Visibility(
+                visible: !_verifyCode,
+                child: GestureDetector(
+                  onTap: () async {
+                    await requestVerification();
+                  },
+                  child: NextButton(buttonColor: _nextBtnColor),
                 ),
               ),
-            ),
-            const Spacer(),
-            Visibility(
-              visible: _verifyCode,
-              child: GestureDetector(
-                onTap: () async {
-                  await verifySentCode();
-                },
-                child: NextButton(buttonColor: _nextBtnColor),
+              const SizedBox(
+                height: 20,
               ),
-            ),
-            Visibility(
-              visible: !_verifyCode,
-              child: GestureDetector(
-                onTap: () async {
-                  await requestVerification();
-                },
-                child: NextButton(buttonColor: _nextBtnColor),
-              ),
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            const CancelOption(),
-            const SizedBox(
-              height: 36,
-            ),
-          ]),
+              const CancelOption(),
+            ]),
+          ),
         ),
       ),
     );
@@ -532,7 +523,11 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
       smsCode: _phoneVerificationCode.join(''),
     );
     try {
-      final success = await CustomAuth.updatePhoneNumber(credential, context);
+      final success = await CustomAuth.updateCredentials(
+        context: context,
+        phoneCredential: credential,
+        authMethod: AuthMethod.phone,
+      );
 
       if (success) {
         Navigator.pop(context, true);

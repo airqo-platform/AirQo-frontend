@@ -4,9 +4,9 @@ from .models import Highlight, Tag
 
 @admin.register(Highlight)
 class HighlightAdmin(admin.ModelAdmin):
-    list_display = ("title", "highlight_tags", "image_preview")
+    list_display = ("title", "highlight_tags", "image_preview", "created")
     list_filter = ("tags", "created")
-    list_per_page = 15
+    list_per_page = 8
     search_fields = ("title", "tags")
     readonly_fields = (
         "id",
@@ -14,12 +14,15 @@ class HighlightAdmin(admin.ModelAdmin):
         "author",
         "updated_by",
         "modified",
+        "image_preview",
     )
     fields = (
         "title",
         "link",
+        "link_title",
         "tags",
         "image",
+        "order",
         "created",
         "author",
         "modified",
@@ -30,7 +33,7 @@ class HighlightAdmin(admin.ModelAdmin):
         return [tag.name for tag in instance.tags.all()]
 
     def image_preview(self, obj):
-        width, height = 180, 200
+        width, height = 120, 100
         from django.utils.html import escape, format_html
 
         return format_html(f'<img src="{escape(obj.image.url)}" width="{width}" height="{height}" />')

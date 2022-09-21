@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 
 import '../../themes/colors.dart';
 import '../../utils/network.dart';
+import '../../widgets/custom_widgets.dart';
 import 'auth_widgets.dart';
 
 class PhoneReAuthenticateScreen extends StatefulWidget {
@@ -54,97 +55,93 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        color: Colors.white,
-        padding: const EdgeInsets.only(left: 24, right: 24),
-        child: Center(
-          child: Column(children: [
-            const SizedBox(
-              height: 42,
-            ),
-            const Text(
-              'Verify your action!',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 24,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(
-              height: 8,
-            ),
-            if (widget.userDetails.phoneNumber.length > 8)
-              Text(
-                'Enter the 6 digits code sent to your\n'
-                'number ${widget.userDetails.phoneNumber}',
+      body: CustomSafeArea(
+        widget: Container(
+          color: Colors.white,
+          padding: const EdgeInsets.only(left: 24, right: 24),
+          child: Center(
+            child: Column(children: [
+              const Text(
+                'Verify your action!',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.black.withOpacity(0.6),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 24,
+                  color: Colors.black,
                 ),
               ),
-            const SizedBox(
-              height: 32,
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 36, right: 36),
-              child: OptField(
-                codeSent: _codeSent,
-                position: 0,
-                callbackFn: setCode,
+              const SizedBox(
+                height: 8,
               ),
-            ),
-            const SizedBox(
-              height: 24,
-            ),
-            Visibility(
-              visible: !_codeSent,
-              child: Text(
-                'The code should arrive with in 5 sec',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.black.withOpacity(0.5),
+              if (widget.userDetails.phoneNumber.length > 8)
+                Text(
+                  'Enter the 6 digits code sent to your number\n'
+                  '${widget.userDetails.phoneNumber}',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.black.withOpacity(0.6),
+                  ),
+                ),
+              const SizedBox(
+                height: 32,
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 36, right: 36),
+                child: OptField(
+                  codeSent: _codeSent,
+                  position: 0,
+                  callbackFn: setCode,
                 ),
               ),
-            ),
-            Visibility(
-              visible: _codeSent,
-              child: GestureDetector(
-                onTap: () async {
-                  await _resendVerificationCode();
-                },
+              const SizedBox(
+                height: 24,
+              ),
+              Visibility(
+                visible: !_codeSent,
                 child: Text(
-                  'Resend code',
+                  'The code should arrive with in 5 sec',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 12,
-                    color: _isResending
-                        ? Colors.black.withOpacity(0.5)
-                        : CustomColors.appColorBlue,
+                    color: Colors.black.withOpacity(0.5),
                   ),
                 ),
               ),
-            ),
-            const Spacer(),
-            GestureDetector(
-              onTap: () async {
-                await _verifySentCode();
-              },
-              child: NextButton(
-                text: 'Verify',
-                buttonColor: _nextBtnColor,
+              Visibility(
+                visible: _codeSent,
+                child: GestureDetector(
+                  onTap: () async {
+                    await _resendVerificationCode();
+                  },
+                  child: Text(
+                    'Resend code',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: _isResending
+                          ? Colors.black.withOpacity(0.5)
+                          : CustomColors.appColorBlue,
+                    ),
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            const CancelOption(),
-            const SizedBox(
-              height: 36,
-            ),
-          ]),
+              const Spacer(),
+              GestureDetector(
+                onTap: () async {
+                  await _verifySentCode();
+                },
+                child: NextButton(
+                  text: 'Verify',
+                  buttonColor: _nextBtnColor,
+                ),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              const CancelOption(),
+            ]),
+          ),
         ),
       ),
     );

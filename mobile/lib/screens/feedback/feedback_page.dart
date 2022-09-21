@@ -1,14 +1,13 @@
 import 'dart:io';
 
 import 'package:app/constants/config.dart';
-import 'package:app/models/feedback.dart';
+import 'package:app/models/models.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/widgets/dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../models/enum_constants.dart';
 import '../../services/rest_api.dart';
 import '../../themes/colors.dart';
 import 'feedback_page_widgets.dart';
