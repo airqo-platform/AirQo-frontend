@@ -15,10 +15,8 @@ const HighlightsSection = () => {
         dispatch(loadHighlightsData());
     }, [highlightsData.length]);
 
-    const firstPost = highlightsData.length;
-    const lastPost = highlightsData.length <= 3 ? 0 : highlightsData.length - 3;
-    const highlights = highlightsData.slice(lastPost, firstPost);
-
+    const highlights = highlightsData.slice(0, 3);
+    
     const [startNumber, setStartNumber] = useState(1);
     const totalPosts = highlights.length;
 
