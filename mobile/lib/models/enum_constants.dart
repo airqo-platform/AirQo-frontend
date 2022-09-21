@@ -237,7 +237,7 @@ enum AuthProcedure {
   logout(
     confirmationTitle: 'Heads up!!!.. you are about to logout!',
     confirmationBody:
-        'You will miss out on notifications and won’t be able to saved favourite places',
+        'You will miss out on notifications and won’t be able to save favourite places',
     confirmationOkayText: 'Proceed',
     confirmationCancelText: 'Cancel',
   );
