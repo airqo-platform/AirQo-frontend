@@ -1,5 +1,6 @@
 import 'package:app/models/models.dart';
 import 'package:app_repository/app_repository.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -29,6 +30,32 @@ class AirQualityReading extends HiveObject {
 
   factory AirQualityReading.fromJson(Map<String, dynamic> json) =>
       _$AirQualityReadingFromJson(json);
+
+  factory AirQualityReading.fromFirestore(
+    DocumentSnapshot<Map<String, dynamic>> snapshot,
+  ) {
+    final data = snapshot.data()!;
+
+    return AirQualityReading(
+      referenceSite: data['referenceSite'] as String? ?? '',
+      source: data['source'] as String? ?? '',
+      latitude: (data['latitude'] as num?)?.toDouble() ?? 0.0,
+      longitude: (data['longitude'] as num?)?.toDouble() ?? 0.0,
+      country: data['country'] as String? ?? '',
+      name: data['name'] as String? ?? '',
+      location: data['location'] as String? ?? '',
+      region: const RegionConverter().fromJson(data['region'] as String),
+      dateTime: DateTime.fromMillisecondsSinceEpoch(
+          (data['dateTime'] as Timestamp).millisecondsSinceEpoch),
+      pm2_5: (data['pm2_5'] as num?)?.toDouble() ?? 0.0,
+      pm10: (data['pm10'] as num?)?.toDouble() ?? 0.0,
+      distanceToReferenceSite:
+          (data['distanceToReferenceSite'] as num?)?.toDouble() ?? 0.0,
+      placeId: data['placeId'] as String? ?? '',
+      airQuality:
+          const AirQualityConverter().fromJson(data['airQuality'] as String),
+    );
+  }
 
   factory AirQualityReading.fromSiteReading(SiteReading siteReading) {
     return AirQualityReading(

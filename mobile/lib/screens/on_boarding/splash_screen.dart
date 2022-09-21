@@ -99,6 +99,7 @@ class SplashScreenState extends State<SplashScreen> {
     );
 
     await _appService.fetchData(context);
+    await CloudStore.listenToAirQualityUpdates();
   }
 
   @override

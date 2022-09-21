@@ -22,7 +22,8 @@ class HiveService {
       ..registerAdapter(UserPreferencesTypeAdapter())
       ..registerAdapter(FavouritePlaceAdapter())
       ..registerAdapter(AirQualityReadingAdapter())
-      ..registerAdapter(RegionAdapter());
+      ..registerAdapter(RegionAdapter())
+      ..registerAdapter(AirQualityAdapter());
 
     final encryptionKey = await getEncryptionKey();
 

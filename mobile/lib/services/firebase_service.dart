@@ -62,8 +62,8 @@ class CloudStore {
     final airQualityRef = FirebaseFirestore.instance
         .collection(Config.airQualityCollection)
         .withConverter<AirQualityReading>(
-          fromFirestore: (snapshots, _) =>
-              AirQualityReading.fromJson(snapshots.data()!),
+          fromFirestore: (snapshot, _) =>
+              AirQualityReading.fromFirestore(snapshot),
           toFirestore: (airQuality, _) => airQuality.toJson(),
         );
 
@@ -85,8 +85,8 @@ class CloudStore {
     final airQualityRef = await FirebaseFirestore.instance
         .collection(Config.airQualityCollection)
         .withConverter<AirQualityReading>(
-          fromFirestore: (snapshots, _) =>
-              AirQualityReading.fromJson(snapshots.data()!),
+          fromFirestore: (snapshot, _) =>
+              AirQualityReading.fromFirestore(snapshot),
           toFirestore: (airQuality, _) => airQuality.toJson(),
         )
         .get();

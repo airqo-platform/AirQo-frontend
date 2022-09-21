@@ -33,7 +33,6 @@ void main() async {
     SystemProperties.setDefault(),
     NotificationService.listenToNotifications(),
     dotenv.load(fileName: Config.environmentFile),
-    CloudStore.listenToAirQualityUpdates(),
     // initializeBackgroundServices()
   ]);
 
