@@ -221,6 +221,7 @@ const CreateDevice = ({ open, setOpen }) => {
     generation_version: "",
     generation_count: "",
     category: "",
+    status: "not deployed",
   };
 
   const [newDevice, setNewDevice] = useState(newDeviceInitState);
@@ -244,6 +245,7 @@ const CreateDevice = ({ open, setOpen }) => {
 
   let handleRegisterSubmit = (e) => {
     setOpen(false);
+
     axios
       .post(REGISTER_DEVICE_URI, dropEmpty(newDevice), {
         headers: { "Content-Type": "application/json" },
