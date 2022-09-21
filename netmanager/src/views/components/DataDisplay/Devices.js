@@ -161,11 +161,14 @@ const createDeviceColumns = (history, setDelState) => [
     render: (data) => (
       <Cell
         fieldValue={
-          data.isActive ? (
-            <span style={{ color: "green" }}>Deployed</span>
-          ) : (
-            <span style={{ color: "red" }}>Not Deployed</span>
-          )
+          <span
+            style={{
+              color: data.status === "deployed" ? "green" : "red",
+              textTransform: "capitalize",
+            }}
+          >
+            {data.status}
+          </span>
         }
       />
     ),
@@ -210,6 +213,7 @@ const CreateDevice = ({ open, setOpen }) => {
     generation_version: "",
     generation_count: "",
     category: "",
+    status: "not deployed",
   };
 
   const initialErrors = {
@@ -217,6 +221,7 @@ const CreateDevice = ({ open, setOpen }) => {
     generation_version: "",
     generation_count: "",
     category: "",
+    status: "not deployed",
   };
 
   const [newDevice, setNewDevice] = useState(newDeviceInitState);
@@ -240,6 +245,7 @@ const CreateDevice = ({ open, setOpen }) => {
 
   let handleRegisterSubmit = (e) => {
     setOpen(false);
+
     axios
       .post(REGISTER_DEVICE_URI, dropEmpty(newDevice), {
         headers: { "Content-Type": "application/json" },
