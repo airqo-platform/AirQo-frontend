@@ -4,6 +4,9 @@ import {
   TRAIN_CALIBRATE_TOOL_URL,
 } from "../../configs/urls";
 
+axios.defaults.headers.common.Authorization =
+  process.env.REACT_APP_AUTHORIZATION_TOKEN;
+
 export const calibrateDataApi = async (data) => {
   return await axios
     .request({
