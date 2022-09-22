@@ -10,24 +10,19 @@ import {
 } from 'config/urls';
 import { HIGHLIGHTS_URL, TAGS_URL } from '../config/urls';
 
-const header = {
-    Authorization: process.env.REACT_APP_AUTHORIZATION_TOKEN,
-};
+axios.defaults.headers.common['Authorization'] = process.env.REACT_APP_AUTHORIZATION_TOKEN;
 
-export const getAirQloudSummaryApi = async () =>
-    await axios.get(AIRQLOUD_SUMMARY, { headers: { header } }).then((response) => response.data);
+export const getAirQloudSummaryApi = async () => await axios.get(AIRQLOUD_SUMMARY).then((response) => response.data);
 
 export const newsletterSubscriptionApi = async (data) =>
-    await axios.post(NEWSLETTER_SUBSCRIPTION, data, { headers: { header } }).then((response) => response.data);
+    await axios.post(NEWSLETTER_SUBSCRIPTION, data).then((response) => response.data);
 
-export const contactUsApi = async (data) =>
-    await axios.post(INQUIRY_URL, data, { headers: { header } }).then((response) => response.data);
+export const contactUsApi = async (data) => await axios.post(INQUIRY_URL, data).then((response) => response.data);
 
-export const sendInquiryApi = async (data) =>
-    await axios.post(INQUIRY_URL, data, { headers: { header } }).then((response) => response.data);
+export const sendInquiryApi = async (data) => await axios.post(INQUIRY_URL, data).then((response) => response.data);
 
 export const requestDataAccessApi = async (data) =>
-    await axios.post(EXPLORE_DATA_URL, data, { headers: { header } }).then((response) => response.data);
+    await axios.post(EXPLORE_DATA_URL, data).then((response) => response.data);
 
 // Careers endpoints
 export const getAllCareersApi = async () => await axios.get(CAREERS_URL).then((response) => response.data);
