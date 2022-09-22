@@ -10,7 +10,7 @@ import {
 } from 'config/urls';
 import { HIGHLIGHTS_URL, TAGS_URL } from '../config/urls';
 
-axios.defaults.headers.common['Authorization'] = process.env.REACT_APP_AUTHORIZATION_TOKEN;
+axios.defaults.headers.common.Authorization = `JWT ${process.env.REACT_APP_AUTHORIZATION_TOKEN}`;
 
 export const getAirQloudSummaryApi = async () => await axios.get(AIRQLOUD_SUMMARY).then((response) => response.data);
 
