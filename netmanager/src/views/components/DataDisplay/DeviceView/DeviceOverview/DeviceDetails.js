@@ -23,6 +23,12 @@ const DeviceDetails = ({ deviceData }) => {
     });
   };
 
+  const deviceStatus = !deviceData.status
+    ? deviceData.isActive === true
+      ? "deployed"
+      : "not deployed"
+    : deviceData.status;
+
   useEffect(() => {
     if (!isEmpty(deviceData)) {
       decryptKey(deviceData.readKey, setReadKey);
@@ -50,11 +56,11 @@ const DeviceDetails = ({ deviceData }) => {
               <TableCell>
                 <span
                   style={{
-                    color: deviceData.status === "deployed" ? "green" : "red",
+                    color: deviceStatus === "deployed" ? "green" : "red",
                     textTransform: "capitalize",
                   }}
                 >
-                  {deviceData.status}
+                  {deviceStatus}
                 </span>
               </TableCell>
             </TableRow>
