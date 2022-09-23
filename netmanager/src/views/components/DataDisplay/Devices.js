@@ -157,7 +157,7 @@ const createDeviceColumns = (history, setDelState) => [
   },
   {
     title: "Deployment status",
-    field: "isActive",
+    field: "status",
     render: (data) => {
       const deviceStatus = !data.status
         ? data.isActive === true
