@@ -336,6 +336,12 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
     site_id: "",
   });
 
+  const deviceStatus = !deviceData.status
+    ? deviceData.isActive === true
+      ? "deployed"
+      : "not deployed"
+    : deviceData.status;
+
   useEffect(() => {
     if (recentFeed.longitude && recentFeed.latitude) {
       setLongitude(recentFeed.longitude);
@@ -566,11 +572,11 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
             </span>{" "}
             <span
               style={{
-                color: deviceData.status === "deployed" ? "green" : "red",
+                color: deviceStatus === "deployed" ? "green" : "red",
                 textTransform: "capitalize",
               }}
             >
-              {deviceData.status}
+              {deviceStatus}
             </span>
           </span>
           <Tooltip
@@ -836,7 +842,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
             <Tooltip
               arrow
               title={
-                deviceData.status === "deployed"
+                deviceStatus === "deployed"
                   ? "Device already deployed"
                   : "Run device test to activate"
               }
