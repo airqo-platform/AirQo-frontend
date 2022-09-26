@@ -218,6 +218,7 @@ jobs:
           echo "  DEBUG: False" >> .env.yaml
           echo "  GOOGLE_APPLICATION_CREDENTIALS: /app/google_application_credentials.json" >> .env.yaml
           echo "  REACT_APP_WEBSITE_BASE_URL: ${{ secrets.WEBSITE_STAGE_REACT_APP_WEBSITE_BASE_URL }}" >> .env.yaml
+          echo "  REACT_APP_AUTHORIZATION_TOKEN: ${{ secrets.WEBSITE_STAGE_REACT_APP_AUTHORIZATION_TOKEN }}" >> .env.yaml
 
       - name: Build and Push Docker Image
         run: |
@@ -228,6 +229,7 @@ jobs:
           --build-arg REACT_APP_BASE_AIRQLOUDS_URL=${{ secrets.WEBSITE_REACT_APP_BASE_AIRQLOUDS_URL }} \
           --build-arg REACT_APP_BASE_NEWSLETTER_URL=${{ secrets.WEBSITE_REACT_APP_BASE_NEWSLETTER_URL }} \
           --build-arg REACT_APP_WEBSITE_BASE_URL=${{ secrets.WEBSITE_STAGE_REACT_APP_WEBSITE_BASE_URL }} \
+          --build-arg REACT_APP_AUTHORIZATION_TOKEN=${{ secrets.WEBSITE_STAGE_REACT_APP_AUTHORIZATION_TOKEN }} \
           --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }}
           docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }}

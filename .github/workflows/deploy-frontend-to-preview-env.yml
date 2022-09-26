@@ -214,7 +214,7 @@ jobs:
 
       - name: Build and Push Image
         run: |
-          cd website/
+          cd calibrate/
           docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:${{ github.sha }} .
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:${{ github.sha }}
 

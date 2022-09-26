@@ -39,7 +39,8 @@ class NearbyLocationBloc
           await LocationService.getNearbyAirQualityReadings(top: 8);
 
       await HiveService.updateNearbyAirQualityReadings(
-          nearbyAirQualityReadings);
+        nearbyAirQualityReadings,
+      );
 
       if (nearbyAirQualityReadings.isEmpty) {
         return emit(
