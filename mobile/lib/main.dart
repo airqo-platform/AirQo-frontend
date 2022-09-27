@@ -9,13 +9,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-import 'blocs/map/map_bloc.dart';
-import 'blocs/nearby_location/nearby_location_bloc.dart';
-import 'blocs/search/search_bloc.dart';
 import 'constants/config.dart';
 import 'firebase_options.dart';
 
@@ -24,13 +20,14 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  HttpOverrides.global = AppHttpOverrides();
-  await dotenv.load(fileName: Config.environmentFile);
-  await HiveService.initialize();
-  await SystemProperties.setDefault();
 
-  await NotificationService.listenToNotifications();
-
+  await Future.wait([
+    HiveService.initialize(),
+    SystemProperties.setDefault(),
+    NotificationService.listenToNotifications(),
+    dotenv.load(fileName: Config.environmentFile),
+    // initializeBackgroundServices()
+  ]);
   HttpOverrides.global = AppHttpOverrides();
 
   var configuredApp = AppConfig(
