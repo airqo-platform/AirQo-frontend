@@ -1,4 +1,4 @@
-import { NEXT_PLATFORM_ENV } from 'lib/envConstants';
+import { LEGACY_PLATFORM_ENV } from 'lib/envConstants';
 
 function HomePage() {
   return (
@@ -8,7 +8,7 @@ function HomePage() {
         Find the original airqo platform
         <a
           className='text-3xl p-2 underline font-bold'
-          href={NEXT_PLATFORM_ENV}
+          href={LEGACY_PLATFORM_ENV}
         >
           here
         </a>
