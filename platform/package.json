@@ -35,5 +35,5 @@
     "tailwindcss": "^3.1.8",
     "webpack": "^5.74.0"
   },
-  "packageManager": "yarn@3.2.3"
+  "packageManager": "yarn@1.22.19"
 }
