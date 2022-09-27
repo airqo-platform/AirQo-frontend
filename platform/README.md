@@ -20,6 +20,7 @@
 
 ## Getting started
 
+
 a) To get started, start by cloning the repository
 
     git clone https://github.com/airqo-platform/AirQo-frontend.git
