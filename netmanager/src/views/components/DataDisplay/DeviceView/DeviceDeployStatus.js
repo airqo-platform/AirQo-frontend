@@ -18,6 +18,7 @@ import {
   deployDeviceApi,
   getDeviceRecentFeedByChannelIdApi,
   recallDeviceApi,
+  updateDeviceDetails,
 } from "../../../apis/deviceRegistry";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import {
@@ -31,6 +32,12 @@ import { loadDevicesData } from "redux/DeviceRegistry/operations";
 import { capitalize } from "utils/string";
 import { filterSite } from "utils/sites";
 import { loadSitesData } from "redux/SiteRegistry/operations";
+
+const DEPLOYMENT_STATUSES = {
+  deployed: "deployed",
+  notDeployed: "not deployed",
+  recalled: "recalled",
+};
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -179,10 +186,8 @@ const DeviceRecentFeedView = ({ recentFeed, runReport }) => {
   const feedKeys = Object.keys(
     omit(recentFeed, "isCache", "created_at", "errors", "success", "message")
   );
-  const [
-    elapsedDurationSeconds,
-    elapsedDurationMapper,
-  ] = getElapsedDurationMapper(recentFeed.created_at);
+  const [elapsedDurationSeconds, elapsedDurationMapper] =
+    getElapsedDurationMapper(recentFeed.created_at);
   const elapseLimit = 5 * 3600; // 5 hours
 
   return (
@@ -315,7 +320,6 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
     error: false,
   });
   const [deviceTestLoading, setDeviceTestLoading] = useState(false);
-  const [manualCoordinate, setManualCoordinate] = useState(false);
   const [longitude, setLongitude] = useState(deviceData.longitude || "");
   const [latitude, setLatitude] = useState(deviceData.latitude || "");
   const [site, setSite] = useState(
@@ -331,6 +335,12 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
     latitude: "",
     site_id: "",
   });
+
+  const deviceStatus = !deviceData.status
+    ? deviceData.isActive === true
+      ? "deployed"
+      : "not deployed"
+    : deviceData.status;
 
   useEffect(() => {
     if (recentFeed.longitude && recentFeed.latitude) {
@@ -399,6 +409,41 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
     return false;
   };
 
+  const updateDeviceDeploymentStatus = async (deviceId, deploymentStatus) => {
+    const params = {
+      _id: deviceId,
+      status: deploymentStatus,
+    };
+
+    await updateDeviceDetails(params)
+      .then((responseData) => {
+        dispatch(loadDevicesData());
+        dispatch(
+          updateMainAlert({
+            message: responseData.message,
+            show: true,
+            severity: "success",
+          })
+        );
+      })
+      .catch((err) => {
+        const newErrors =
+          (err.response && err.response.data && err.response.data.errors) || {};
+        setErrors(newErrors);
+        dispatch(
+          updateMainAlert({
+            message:
+              (err.response &&
+                err.response.data &&
+                err.response.data.message) ||
+              (err.response && err.response.message),
+            show: true,
+            severity: "error",
+          })
+        );
+      });
+  };
+
   const handleDeploySubmit = async () => {
     if (checkErrors()) {
       return;
@@ -418,6 +463,10 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
     setDeployLoading(true);
     await deployDeviceApi(deviceData.name, deployData)
       .then((responseData) => {
+        updateDeviceDeploymentStatus(
+          deviceData._id,
+          DEPLOYMENT_STATUSES.deployed
+        );
         dispatch(loadDevicesData());
         dispatch(loadSitesData());
         dispatch(
@@ -448,6 +497,10 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
 
     await recallDeviceApi(deviceData.name)
       .then((responseData) => {
+        updateDeviceDeploymentStatus(
+          deviceData._id,
+          DEPLOYMENT_STATUSES.recalled
+        );
         dispatch(loadDevicesData());
         dispatch(loadSitesData());
         dispatch(
@@ -517,11 +570,14 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
             >
               Deploy status
             </span>{" "}
-            {deviceData.isActive ? (
-              <span style={{ color: "green" }}>Deployed</span>
-            ) : (
-              <span style={{ color: "red" }}>Not Deployed</span>
-            )}
+            <span
+              style={{
+                color: deviceStatus === "deployed" ? "green" : "red",
+                textTransform: "capitalize",
+              }}
+            >
+              {deviceStatus}
+            </span>
           </span>
           <Tooltip
             arrow
@@ -678,58 +734,6 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
               fullWidth
             />
 
-            <TextField
-              label="Latitude"
-              disabled={!manualCoordinate}
-              style={{ marginBottom: "15px" }}
-              value={latitude}
-              variant="outlined"
-              onChange={(event) => {
-                setLatitude(event.target.value);
-                setErrors({
-                  ...errors,
-                  latitude:
-                    event.target.value.length > 0 ? "" : errors.latitude,
-                });
-              }}
-              fullWidth
-              error={!!errors.latitude}
-              helperText={errors.latitude}
-              required
-            />
-
-            <TextField
-              label="Longitude"
-              style={{ marginBottom: "15px" }}
-              disabled={!manualCoordinate}
-              variant="outlined"
-              value={longitude}
-              onChange={(event) => {
-                setLongitude(event.target.value);
-                setErrors({
-                  ...errors,
-                  longitude:
-                    event.target.value.length > 0 ? "" : errors.longitude,
-                });
-              }}
-              fullWidth
-              error={!!errors.longitude}
-              helperText={errors.longitude}
-              required
-            />
-            
-            <span
-              style={coordinatesActivateStyles}
-              onClick={(event) => setManualCoordinate(!manualCoordinate)}
-            >
-              Manually fill in coordinates
-              <Checkbox
-                checked={manualCoordinate}
-                name="primaryDevice"
-                color="primary"
-              />
-            </span>
-
             <div style={{ margin: "30px 0 20px 0" }}>
               <Grid container item xs={12} spacing={3}>
                 <FormControlLabel
@@ -838,7 +842,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
             <Tooltip
               arrow
               title={
-                deviceData.isActive
+                deviceStatus === "deployed"
                   ? "Device already deployed"
                   : "Run device test to activate"
               }
