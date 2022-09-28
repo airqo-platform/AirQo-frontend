@@ -342,7 +342,9 @@ class _DashboardViewState extends State<DashboardView> {
           }
 
           if (state is NearbyLocationStateError) {
-            showSnackBar(context, Config.locationErrorMessage);
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              showSnackBar(context, Config.locationErrorMessage);
+            });
           }
 
           return const SizedBox();

@@ -149,12 +149,6 @@ class LocationService {
         distanceFilter: 100,
         forceLocationManager: true,
         intervalDuration: const Duration(seconds: 10),
-        foregroundNotificationConfig: const ForegroundNotificationConfig(
-          notificationText:
-              'AirQo app continue to receive your location and update the air quality readings',
-          notificationTitle: 'Running in Background',
-          enableWakeLock: true,
-        ),
       );
     } else if (defaultTargetPlatform == TargetPlatform.iOS ||
         defaultTargetPlatform == TargetPlatform.macOS) {
@@ -172,18 +166,22 @@ class LocationService {
       );
     }
 
-    Geolocator.getPositionStream(locationSettings: locationSettings)
-        .listen((Position? position) async {
-      if (position != null) {
-        final nearbyAirQualityReadings =
-            await LocationService.getNearbyAirQualityReadings(
-          position: position,
-        );
-        await HiveService.updateNearbyAirQualityReadings(
-          nearbyAirQualityReadings,
-        );
-      }
-    });
+    Geolocator.getPositionStream(locationSettings: locationSettings).listen(
+      (Position? position) async {
+        if (position != null) {
+          final nearbyAirQualityReadings =
+              await LocationService.getNearbyAirQualityReadings(
+            position: position,
+          );
+          await HiveService.updateNearbyAirQualityReadings(
+            nearbyAirQualityReadings,
+          );
+        }
+      },
+      onError: (error) {
+        debugPrint('error listening to locations : $error');
+      },
+    );
   }
 
   static Future<AirQualityReading?> getNearestSiteAirQualityReading(
