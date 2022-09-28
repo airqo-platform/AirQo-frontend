@@ -48,6 +48,7 @@ const AboutUsPage = () => {
 
     const toggleFullPartnersListDisplay = () => {
         setTogglePartnersDisplay(!togglePartnersDisplay);
+        document.getElementById('logo-table').scrollIntoView();
     };
 
     useEffect(() => {
@@ -197,7 +198,13 @@ const AboutUsPage = () => {
                         </div>
                         <div className="AboutUsPage__pictorial">
                             {teamData.map((member) => (
-                                <Profile ImgPath={member.picture} name={member.name} title={member.title} twitter={member.twitter} linkedin={member.linked_in} />
+                                <Profile
+                                    ImgPath={member.picture}
+                                    name={member.name}
+                                    title={member.title}
+                                    twitter={member.twitter}
+                                    linkedin={member.linked_in}
+                                />
                             ))}
                         </div>
                     </div>
@@ -211,7 +218,7 @@ const AboutUsPage = () => {
                             policy changes that combat air pollution.
                         </p>
                     </div>
-                    <div className="partner-logos">
+                    <div className="partner-logos" id="logo-table">
                         <table>
                             <tr>
                                 <td>

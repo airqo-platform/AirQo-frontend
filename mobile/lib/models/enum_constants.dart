@@ -304,7 +304,7 @@ enum AuthProcedure {
   logout(
     confirmationTitle: 'Heads up!!!.. you are about to logout!',
     confirmationBody:
-        'You will miss out on notifications and won’t be able to saved favourite places',
+        'You will miss out on notifications and won’t be able to save favourite places',
     confirmationOkayText: 'Proceed',
     confirmationCancelText: 'Cancel',
   );
@@ -530,7 +530,10 @@ enum TitleOptions {
   ms(value: 'Ms', displayValue: 'Ms.', abbr: 'Ms.'),
   mr(value: 'Mr', displayValue: 'Mr.', abbr: 'Mr.'),
   undefined(
-      value: 'Rather Not Say', displayValue: 'Rather Not Say', abbr: 'Ra.');
+    value: 'Rather Not Say',
+    displayValue: 'Rather Not Say',
+    abbr: 'Ra.',
+  );
 
   const TitleOptions({
     required this.value,
