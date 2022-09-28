@@ -50,6 +50,8 @@ key.properties
 local.properties
 env.dart
 google-services.json
+firebase_options.dart
+firebase_options_dev.dart
 
 *.zip
 *.env
