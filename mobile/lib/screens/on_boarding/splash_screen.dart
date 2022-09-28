@@ -12,6 +12,7 @@ import '../../blocs/nearby_location/nearby_location_event.dart';
 import '../../services/app_service.dart';
 import '../../services/firebase_service.dart';
 import '../../services/local_storage.dart';
+import '../../services/location_service.dart';
 import '../auth/phone_auth_widget.dart';
 import '../home_page.dart';
 import 'location_setup_screen.dart';
@@ -99,6 +100,8 @@ class SplashScreenState extends State<SplashScreen> {
     );
 
     await _appService.fetchData(context);
+
+    await LocationService.listenToLocationUpdates();
   }
 
   @override
