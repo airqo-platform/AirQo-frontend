@@ -1,11 +1,6 @@
 name: deploy-frontends-to-staging
 
-on:
-  pull_request:
-    branches:
-      - staging
-    types:
-      - closed
+on: [push]
 
 jobs:
   image-tag:
