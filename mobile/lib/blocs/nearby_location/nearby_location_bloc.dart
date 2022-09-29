@@ -20,6 +20,15 @@ class NearbyLocationBloc
     Emitter<NearbyLocationState> emit,
   ) async {
     try {
+      final profile = await Profile.getProfile();
+      if (!profile.preferences.location) {
+        return emit(
+          const NearbyLocationStateError(
+            error: NearbyAirQualityError.locationNotAllowed,
+          ),
+        );
+      }
+
       emit(SearchingNearbyLocationsState());
 
       final locationEnabled =

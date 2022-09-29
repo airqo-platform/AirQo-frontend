@@ -47,6 +47,7 @@ enum AppPermission {
 
 enum NearbyAirQualityError {
   locationDisabled,
+  locationNotAllowed,
   noNearbyAirQualityReadings,
 }
 

@@ -329,12 +329,13 @@ class _DashboardViewState extends State<DashboardView> {
                 );
 
                 return Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: AnalyticsCard(
-                      airQualityReadings.first,
-                      _isRefreshing,
-                      false,
-                    ));
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: AnalyticsCard(
+                    airQualityReadings.first,
+                    _isRefreshing,
+                    false,
+                  ),
+                );
               },
             );
           }
@@ -351,12 +352,13 @@ class _DashboardViewState extends State<DashboardView> {
                       .toList();
 
               return Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: AnalyticsCard(
-                    sortedReadings.first,
-                    _isRefreshing,
-                    false,
-                  ));
+                padding: const EdgeInsets.only(bottom: 16),
+                child: AnalyticsCard(
+                  sortedReadings.first,
+                  _isRefreshing,
+                  false,
+                ),
+              );
             }
           }
 
