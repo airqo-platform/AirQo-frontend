@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:app/screens/on_boarding/splash_screen.dart';
-import 'package:app/services/firebase_service.dart';
 import 'package:app/services/hive_service.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/services/notification_service.dart';

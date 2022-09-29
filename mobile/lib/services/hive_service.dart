@@ -71,7 +71,8 @@ class HiveService {
   }
 
   static Future<void> updateAirQualityReading(
-      AirQualityReading airQualityReading) async {
+    AirQualityReading airQualityReading,
+  ) async {
     await Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
         .put(airQualityReading.placeId, airQualityReading);
   }

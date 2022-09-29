@@ -173,6 +173,7 @@ enum AirQuality {
         return airQuality;
       }
     }
+
     return AirQuality.good;
   }
 

@@ -46,7 +46,8 @@ class AirQualityReading extends HiveObject {
       location: data['location'] as String? ?? '',
       region: const RegionConverter().fromJson(data['region'] as String),
       dateTime: DateTime.fromMillisecondsSinceEpoch(
-          (data['dateTime'] as Timestamp).millisecondsSinceEpoch),
+        (data['dateTime'] as Timestamp).millisecondsSinceEpoch,
+      ),
       pm2_5: (data['pm2_5'] as num?)?.toDouble() ?? 0.0,
       pm10: (data['pm10'] as num?)?.toDouble() ?? 0.0,
       distanceToReferenceSite:

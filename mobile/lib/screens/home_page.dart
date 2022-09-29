@@ -173,7 +173,7 @@ class _HomePageState extends State<HomePage> {
         context.read<NearbyLocationBloc>().add(const SearchNearbyLocations()));
 
     if (refresh) {
-      await _appService.fetchData(context);
+      await _appService.fetchData();
     } else {
       await checkNetworkConnection(
         context,
