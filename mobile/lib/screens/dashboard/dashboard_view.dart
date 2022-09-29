@@ -328,17 +328,36 @@ class _DashboardViewState extends State<DashboardView> {
                   box.values.cast<AirQualityReading>().toList(),
                 );
 
-                return AnalyticsCard(
-                  airQualityReadings.first,
-                  _isRefreshing,
-                  false,
-                );
+                return Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: AnalyticsCard(
+                      airQualityReadings.first,
+                      _isRefreshing,
+                      false,
+                    ));
               },
             );
           }
 
           if (state is SearchingNearbyLocationsState) {
-            return const AnalyticsCardLoading();
+            final nearbyAirQualityReadings =
+                Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
+                    .values
+                    .toList();
+            if (nearbyAirQualityReadings.isNotEmpty) {
+              final sortedReadings =
+                  sortAirQualityReadingsByDistance(nearbyAirQualityReadings)
+                      .take(1)
+                      .toList();
+
+              return Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: AnalyticsCard(
+                    sortedReadings.first,
+                    _isRefreshing,
+                    false,
+                  ));
+            }
           }
 
           if (state is NearbyLocationStateError) {
@@ -349,9 +368,6 @@ class _DashboardViewState extends State<DashboardView> {
 
           return const SizedBox();
         },
-      ),
-      const SizedBox(
-        height: 16,
       ),
       ..._analyticsCards,
       Visibility(
