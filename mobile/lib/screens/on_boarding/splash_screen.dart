@@ -13,6 +13,7 @@ import '../../services/app_service.dart';
 import '../../services/firebase_service.dart';
 import '../../services/local_storage.dart';
 import '../../services/location_service.dart';
+import '../../utils/network.dart';
 import '../auth/phone_auth_widget.dart';
 import '../home_page.dart';
 import 'location_setup_screen.dart';
@@ -57,6 +58,10 @@ class SplashScreenState extends State<SplashScreen> {
 
   Future<void> initialize() async {
     context.read<NearbyLocationBloc>().add(const SearchNearbyLocations());
+    await checkNetworkConnection(
+      context,
+      notifyUser: true,
+    );
 
     final isLoggedIn = CustomAuth.isLoggedIn();
 
@@ -99,7 +104,7 @@ class SplashScreenState extends State<SplashScreen> {
       },
     );
 
-    await _appService.fetchData(context);
+    await _appService.fetchData();
     await CloudStore.listenToAirQualityUpdates();
     await LocationService.listenToLocationUpdates();
   }
