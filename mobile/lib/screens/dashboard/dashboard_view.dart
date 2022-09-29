@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
 import 'package:app/services/app_service.dart';
@@ -8,6 +9,7 @@ import 'package:app/utils/date.dart';
 import 'package:app/utils/exception.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/custom_shimmer.dart';
+import 'package:app/widgets/dialogs.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,6 +19,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../blocs/map/map_bloc.dart';
 import '../../blocs/nearby_location/nearby_location_bloc.dart';
 import '../../blocs/nearby_location/nearby_location_event.dart';
+import '../../blocs/nearby_location/nearby_location_state.dart';
 import '../../services/hive_service.dart';
 import '../../services/native_api.dart';
 import '../../themes/app_theme.dart';
@@ -181,8 +184,6 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   void _updateAnalyticsCards(List<Widget> cards) {
-    cards.shuffle();
-
     if (cards.isEmpty) return;
 
     final analyticsCards = <Widget>[
@@ -247,23 +248,6 @@ class _DashboardViewState extends State<DashboardView> {
 
   void _refreshAnalyticsCards() async {
     final airQualityCards = <AnalyticsCard>[];
-
-    final nearestAirQualityReadings = sortAirQualityReadingsByDistance(
-      Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
-          .values
-          .toList(),
-    );
-
-    for (final nearestAirQualityReading in nearestAirQualityReadings.take(2)) {
-      airQualityCards.add(
-        AnalyticsCard(
-          AirQualityReading.duplicate(nearestAirQualityReading),
-          _isRefreshing,
-          false,
-        ),
-      );
-    }
-
     final region = getNextDashboardRegion(_preferences);
     final regionAirQualityReadings =
         Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
@@ -273,10 +257,6 @@ class _DashboardViewState extends State<DashboardView> {
           ..shuffle();
 
     for (final regionAirQualityReading in regionAirQualityReadings.take(8)) {
-      if (nearestAirQualityReadings
-          .where((element) =>
-              element.referenceSite == regionAirQualityReading.referenceSite)
-          .isNotEmpty) continue;
       airQualityCards.add(
         AnalyticsCard(
           AirQualityReading.duplicate(regionAirQualityReading),
@@ -284,7 +264,6 @@ class _DashboardViewState extends State<DashboardView> {
           false,
         ),
       );
-      if (airQualityCards.length >= 8) break;
     }
 
     if (airQualityCards.isNotEmpty && mounted) {
@@ -336,6 +315,43 @@ class _DashboardViewState extends State<DashboardView> {
       ),
       const SizedBox(
         height: 24,
+      ),
+      BlocBuilder<NearbyLocationBloc, NearbyLocationState>(
+        builder: (context, state) {
+          if (state is NearbyLocationStateSuccess) {
+            return ValueListenableBuilder<Box>(
+              valueListenable:
+                  Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
+                      .listenable(),
+              builder: (context, box, widget) {
+                final airQualityReadings = filterNearestLocations(
+                  box.values.cast<AirQualityReading>().toList(),
+                );
+
+                return AnalyticsCard(
+                  airQualityReadings.first,
+                  _isRefreshing,
+                  false,
+                );
+              },
+            );
+          }
+
+          if (state is SearchingNearbyLocationsState) {
+            return const AnalyticsCardLoading();
+          }
+
+          if (state is NearbyLocationStateError) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              showSnackBar(context, Config.locationErrorMessage);
+            });
+          }
+
+          return const SizedBox();
+        },
+      ),
+      const SizedBox(
+        height: 16,
       ),
       ..._analyticsCards,
       Visibility(

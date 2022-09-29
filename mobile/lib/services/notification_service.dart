@@ -82,7 +82,7 @@ class NotificationService {
                   channelDescription: channel.description,
                   icon: 'notification_icon',
                 ),
-                iOS: const IOSNotificationDetails(
+                iOS: const DarwinNotificationDetails(
                   presentAlert: true,
                   presentSound: true,
                   presentBadge: true,
