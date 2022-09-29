@@ -572,6 +572,10 @@ class NearbyLocations extends StatelessWidget {
               return const RequestLocationAccess();
             case NearbyAirQualityError.noNearbyAirQualityReadings:
               return const AirQualityNotAvailable();
+            case NearbyAirQualityError.locationNotAllowed:
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                showSnackBar(context, state.error.message);
+              });
           }
         }
 

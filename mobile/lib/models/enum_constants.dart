@@ -46,9 +46,16 @@ enum AppPermission {
 }
 
 enum NearbyAirQualityError {
-  locationDisabled,
-  locationNotAllowed,
-  noNearbyAirQualityReadings,
+  locationDisabled('Enable location in the your phone settings'),
+  locationNotAllowed('Enable location in the app settings page'),
+  noNearbyAirQualityReadings('No nearby air quality readings');
+
+  const NearbyAirQualityError(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
 }
 
 @HiveType(typeId: 110, adapterName: 'AppNotificationTypeAdapter')

@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
 import 'package:app/services/app_service.dart';
@@ -364,7 +363,7 @@ class _DashboardViewState extends State<DashboardView> {
 
           if (state is NearbyLocationStateError) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              showSnackBar(context, Config.locationErrorMessage);
+              showSnackBar(context, state.error.message);
             });
           }
 
