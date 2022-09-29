@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import { useDispatch } from "react-redux";
 import CopyIcon, { CopySuccessIcon } from "assets/img/CopyIcon";
 import { updateMainAlert } from "redux/MainAlert/operations";
+import { Button } from "@material-ui/core";
 
 const Copyable = ({ value, className, width, format }) => {
   const copyRef = useRef();
@@ -55,7 +56,9 @@ const Copyable = ({ value, className, width, format }) => {
       {copied ? (
         <CopySuccessIcon />
       ) : (
-        <CopyIcon onClick={onClick} className={className} />
+        <Button disabled={value === "-"} onClick={onClick}>
+          <CopyIcon className={className} />
+        </Button>
       )}
     </div>
   );
