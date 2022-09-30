@@ -39,8 +39,9 @@ COPY ./backend /app/backend
 COPY --from=frontend /app/frontend /app/frontend
 
 EXPOSE 8080
-# The migrate command migrates the results of the makemigrations command to the
-# remote database which may (supposed to) be different from the local database
+# The "python manage.py migrate" command migrates the results of 
+# "python manage.py makemigrations" command to the [remote] deployment database
+# which may (supposed to) be different from the [local] development database
 CMD python manage.py migrate && \
     python manage.py collectstatic --noinput && \
     gunicorn --bind=0.0.0.0:8080 backend.wsgi
