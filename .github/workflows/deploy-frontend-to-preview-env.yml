@@ -24,7 +24,7 @@ jobs:
       run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }} # calibrate
       run_next_platform: ${{ steps.check_files.outputs.run_next_platform }} # next platform
       run_docs: ${{ steps.check_files.outputs.run_docs }} # docs
-      run_website: ${{ steps.check_files.outputs.run_website }} # docs
+      run_website: ${{ steps.check_files.outputs.run_website }} # website
 
     runs-on: ubuntu-latest
     steps:
@@ -46,6 +46,7 @@ jobs:
           echo "::set-output name=run_calibrate_app::false"
           echo "::set-output name=run_next_platform::false"
           echo "::set-output name=run_docs::false"    
+          echo "::set-output name=run_website::false"    
 
           while IFS= read -r file
           do
@@ -64,6 +65,10 @@ jobs:
 
             if [[ $file == docs/* ]]; then
               echo "::set-output name=run_docs::true"
+            fi
+
+            if [[ $file == website/* ]]; then
+              echo "::set-output name=run_website::true"
             fi
 
           done < files.txt
