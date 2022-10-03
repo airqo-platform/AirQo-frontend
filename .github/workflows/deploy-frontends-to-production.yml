@@ -78,7 +78,7 @@ jobs:
             fi
 
             if [[ $file == docs/* ]]; then
-              echo "::set-output name=run_docs::false"
+              echo "::set-output name=run_docs::true"
             fi
 
           done < files.txt
@@ -393,6 +393,6 @@ jobs:
 
       - name: Deploy to K8S
         run: |
-          kubectl apply -f k8s/docs/prod-airqo-next-platform.yaml
+          kubectl apply -f k8s/docs/prod-airqo-docs.yaml
           kubectl set image deployment/airqo-prod-docs airqo-prod-docs=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-prod-docs:${{ needs.image-tag.outputs.build_id }} -n production
-          kubectl annotate deployment/aairqo-prod-docs kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-prod-docs:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n production
+          kubectl annotate deployment/airqo-prod-docs kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-prod-docs:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n production
