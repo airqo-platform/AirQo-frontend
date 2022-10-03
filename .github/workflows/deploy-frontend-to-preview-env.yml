@@ -88,41 +88,32 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Google Auth
-        id: auth
+      - name: Login to GCP
         uses: google-github-actions/auth@v0
         with:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
 
-      - name: Setup Cloud SDK
+      - name: Setup Cloud SDK(gcloud)
         uses: google-github-actions/setup-gcloud@v0
 
-      - name: Login to GCR
-        id: docker-auth
-        uses: docker/login-action@v1
-        with:
-          registry: ${{ secrets.REGISTRY_URL }}
-          username: _json_key
-          password: ${{ secrets.GCP_SA_CREDENTIALS }}
+      - name: Add environment variables
+        run: gcloud secrets versions access latest --secret="sta-env-netmanager" >> /etc/environment
 
-      - name: NPM Setup and Build
+      - name: npm Install and Build
         uses: actions/setup-node@v2
         with:
           node-version: "12"
       - run: |
           cd netmanager/
-
-          export REACT_APP_BASE_URL=${{ secrets.REACT_APP_BASE_URL_STAGE }}
-          export REACT_APP_CLOUDINARY_NAME=${{ secrets.REACT_APP_CLOUDINARY_NAME }}
-          export REACT_APP_CLOUDINARY_PRESET=${{ secrets.REACT_APP_CLOUDINARY_PRESET }}
-          export REACT_APP_MAPBOX_TOKEN=${{ secrets.REACT_APP_MAPBOX_TOKEN }}
-          export REACT_APP_JIRA_KEY=${{ secrets.REACT_APP_JIRA_KEY }}
-          export NODE_PATH=${{ secrets.NODE_PATH }}
-          export PORT=${{ secrets.NODE_PORT }}
-
           npm install
-
           CI=false npm run build
+
+      - name: Login to GCR
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ secrets.REGISTRY_URL }}
+          username: _json_key
+          password: ${{ secrets.GCP_SA_CREDENTIALS }}
 
       - name: Build and Push Image
         run: |
@@ -185,38 +176,32 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Google Auth
-        id: auth
+      - name: Login to GCP
         uses: google-github-actions/auth@v0
         with:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
 
-      - name: Setup Cloud SDK
+      - name: Setup Cloud SDK(gcloud)
         uses: google-github-actions/setup-gcloud@v0
 
-      - name: Login to GCR
-        id: docker-auth
-        uses: docker/login-action@v1
-        with:
-          registry: ${{ secrets.REGISTRY_URL }}
-          username: _json_key
-          password: ${{ secrets.GCP_SA_CREDENTIALS }}
+      - name: Add environment variables
+        run: gcloud secrets versions access latest --secret="sta-env-calibrate-app" >> /etc/environment
 
-      - name: NPM Setup and Build
+      - name: npm Install and Build
         uses: actions/setup-node@v2
         with:
           node-version: "12"
       - run: |
           cd calibrate/
-
-          export REACT_APP_BASE_URL=${{ secrets.REACT_APP_BASE_URL_STAGE }}
-          export REACT_APP_BASE_CALIBRATE_URL=${{ secrets.REACT_APP_BASE_CALIBRATE_URL }}
-          export NODE_PATH=${{ secrets.NODE_PATH }}
-          export PORT=${{ secrets.NODE_PORT }}
-
           npm install
-
           CI=false npm run build
+
+      - name: Login to GCR
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ secrets.REGISTRY_URL }}
+          username: _json_key
+          password: ${{ secrets.GCP_SA_CREDENTIALS }}
 
       - name: Build and Push Image
         run: |
@@ -279,28 +264,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Google Auth
-        id: auth
+      - name: Login to GCP
         uses: google-github-actions/auth@v0
         with:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
 
-      - name: Setup Cloud SDK
+      - name: Setup Cloud SDK(gcloud)
         uses: google-github-actions/setup-gcloud@v0
 
+      - name: Create .env file
+        run: |
+          cd platform/
+          gcloud secrets versions access latest --secret="sta-env-next-platform" > .env
+
       - name: Login to GCR
-        id: docker-auth
         uses: docker/login-action@v1
         with:
           registry: ${{ secrets.REGISTRY_URL }}
           username: _json_key
           password: ${{ secrets.GCP_SA_CREDENTIALS }}
-
-      - name: Create .env file
-        run: |
-          cd platform/
-          echo "========== Creating app.yaml file =========="  
-          echo "NEXT_PUBLIC_ORIGINAL_PLATFORM=${{ secrets.NEW_PLATFORM_STAGE_ORIGINAL_PLATFORM }}" >> .env
 
       - name: Build and Push Image
         run: |
@@ -361,17 +343,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Google Auth
-        id: auth
+      - name: Login to GCP
         uses: google-github-actions/auth@v0
         with:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
 
-      - name: Setup Cloud SDK
+      - name: Setup Cloud SDK(gcloud)
         uses: google-github-actions/setup-gcloud@v0
 
       - name: Login to GCR
-        id: docker-auth
         uses: docker/login-action@v1
         with:
           registry: ${{ secrets.REGISTRY_URL }}
@@ -442,13 +422,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      - name: Google Auth
-        id: auth
+      - name: Login to GCP
         uses: google-github-actions/auth@v0
         with:
           credentials_json: "${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}"
 
-      - name: Setup Cloud SDK
+      - name: Setup Cloud SDK(gcloud)
         uses: "google-github-actions/setup-gcloud@v0"
 
       - name: Create google_application_credentials.json file
