@@ -7,16 +7,15 @@ import Filter from "../Dashboard/components/Map/Filter";
 import Divider from "@material-ui/core/Divider";
 import {
   loadPM25HeatMapData,
-  loadMapEventsData,
+  loadMapSensorsData,
 } from "redux/MapData/operations";
-import { usePM25HeatMapData, useEventsMapData } from "redux/MapData/selectors";
+import { usePM25HeatMapData, useMapSensorsData } from "redux/MapData/selectors";
 import SettingsIcon from "@material-ui/icons/Settings";
 import RichTooltip from "../../containers/RichToolTip";
 import { MenuItem } from "@material-ui/core";
 import Checkbox from "@material-ui/core/Checkbox";
 import { useInitScrollTop } from "utils/customHooks";
 import { ErrorBoundary } from "../../ErrorBoundary";
-import { useDashboardSitesData } from "redux/Dashboard/selectors";
 import { useOrgData } from "redux/Join/selectors";
 
 // css
@@ -263,9 +262,8 @@ export const OverlayMap = ({
   center,
   zoom,
   heatMapData,
-  monitoringSiteData,
+  mapSensorsData,
 }) => {
-  const sitesData = useDashboardSitesData();
   const MAX_OFFLINE_DURATION = 86400; // 24 HOURS
   const mapContainerRef = useRef(null);
   const [map, setMap] = useState();
@@ -424,34 +422,30 @@ export const OverlayMap = ({
     <div className="overlay-map-container" ref={mapContainerRef}>
       {showSensors &&
         map &&
-        monitoringSiteData.features.forEach((feature) => {
-          const [seconds, duration] = getFirstDuration(feature.properties.time);
+        mapSensorsData.forEach((feature) => {
+          const [seconds, duration] = getFirstDuration(feature.timestamp);
           let pollutantValue =
             (showPollutant.pm2_5 &&
-              feature.properties.pm2_5 &&
-              feature.properties.pm2_5.value) ||
+              feature.pm2_5_raw_value) ||
             (showPollutant.pm10 &&
-              feature.properties.pm10 &&
-              feature.properties.pm10.value) ||
+              feature.pm10_raw_value) ||
             (showPollutant.no2 &&
-              feature.properties.no2 &&
-              feature.properties.no2.value) ||
+              feature.no2_raw_value) ||
             null;
+          
+          const device = feature.device_name;
+          const tenant = feature.tenant;
+          const deviceCategory = feature.device_category;
+          const siteName = feature.site_name;
 
           if (showCalibratedValues) {
             pollutantValue =
               (showPollutant.pm2_5 &&
-                feature.properties.pm2_5 &&
-                feature.properties.pm2_5.calibratedValue &&
-                feature.properties.pm2_5.calibratedValue) ||
+                feature.pm2_5_calibrated_value) ||
               (showPollutant.pm10 &&
-                feature.properties.pm10 &&
-                feature.properties.pm10.calibratedValue &&
-                feature.properties.pm10.calibratedValue) ||
+                feature.pm10_calibrated_value) ||
               (showPollutant.no2 &&
-                feature.properties.no2 &&
-                feature.properties.no2.calibratedValue &&
-                feature.properties.no2.calibratedValue) ||
+                feature.no2_calibrated_value) ||
               null;
           }
           let markerKey = "";
@@ -469,33 +463,25 @@ export const OverlayMap = ({
           }`;
           el.innerText = (pollutantValue && pollutantValue.toFixed(0)) || "N/A";
 
-          if (
-            feature.geometry.coordinates.length >= 2 &&
-            feature.geometry.coordinates[0] &&
-            feature.geometry.coordinates[1]
-          ) {
+          if (feature.longitude && feature.latitude) {
             new mapboxgl.Marker(el)
-              .setLngLat(feature.geometry.coordinates)
+              .setLngLat([feature.longitude, feature.latitude])
               .setPopup(
                 new mapboxgl.Popup({ offset: 25 }).setHTML(
                   `<div>
-                    <div><span style="text-transform: uppercase"><b>${
-                      (sitesData[feature.properties.site_id] &&
-                        sitesData[feature.properties.site_id].name) ||
-                      (sitesData[feature.properties.site_id] &&
-                        sitesData[feature.properties.site_id].description) ||
-                      feature.properties.device ||
-                      feature.properties._id
-                    }</b></span></div>
+                    <div><span><b>${device}</b></span></div>
+                    <div><span><b>${deviceCategory}</b></span></div>
+                    <div><span><b>${siteName}</b></span></div>
+                    <div><span><b>${tenant}</b></span></div>
                     <div class="${"popup-body " + markerClass}"> AQI: ${
-                    (pollutantValue && pollutantValue.toFixed(2)) || "n/a"
+                    (pollutantValue && pollutantValue.toFixed(2)) || "N/A"
                   } - ${desc}</div>
                     <span>Last Refreshed: <b>${duration}</b> ago</span>
                 </div>`
                 )
               )
               .addTo(map);
-          }
+            }
         })}
       <Filter pollutants={showPollutant} />
       {map && (
@@ -517,14 +503,14 @@ export const OverlayMap = ({
 const MapContainer = () => {
   const dispatch = useDispatch();
   const heatMapData = usePM25HeatMapData();
-  const monitoringSiteData = useEventsMapData();
+  const mapSensorsData = useMapSensorsData();
 
   useEffect(() => {
     if (isEmpty(heatMapData.features)) {
       dispatch(loadPM25HeatMapData());
     }
-    if (isEmpty(monitoringSiteData.features)) {
-      dispatch(loadMapEventsData({ recent: "yes", external: "no" }));
+    if (isEmpty(mapSensorsData)) {
+      dispatch(loadMapSensorsData());
     }
   }, []);
 
@@ -536,7 +522,7 @@ const MapContainer = () => {
             center={[22.5600613, 0.8341424]}
             zoom={2}
             heatMapData={heatMapData}
-            monitoringSiteData={monitoringSiteData}
+            mapSensorsData={mapSensorsData}
           />
         ) : (
           <CircularLoader loading={true}/>

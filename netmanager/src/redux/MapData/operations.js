@@ -6,9 +6,14 @@ import {
   LOAD_PM25_SENSOR_DATA_FAILURE,
   LOAD_MAP_EVENTS_SUCCESS,
   LOAD_MAP_EVENTS_FAILURE,
+  LOAD_MAP_SENSORS_DATA_SUCCESS,
+  LOAD_MAP_SENSORS_DATA_FAILURE,
 } from "./actions";
 import { heatmapPredictApi } from "views/apis/predict";
-import { getMonitoringSitesInfoApi } from "views/apis/analytics";
+import {
+  getMonitoringSitesInfoApi,
+  getLatestAirQualityApi,
+} from "views/apis/analytics";
 import { transformDataToGeoJson } from "views/pages/Map/utils";
 import { getEventsApi } from "views/apis/deviceRegistry";
 
@@ -34,6 +39,23 @@ export const loadPM25HeatMapData = () => async (dispatch) => {
     .catch(() => {
       dispatch({
         type: LOAD_PM25_HEATMAP_DATA_FAILURE,
+      });
+    });
+};
+
+export const loadMapSensorsData = () => async (dispatch) => {
+  return await getLatestAirQualityApi()
+    .then((responseData) => {
+      const payload = responseData.data;
+
+      dispatch({
+        type: LOAD_MAP_SENSORS_DATA_SUCCESS,
+        payload,
+      });
+    })
+    .catch(() => {
+      dispatch({
+        type: LOAD_MAP_SENSORS_DATA_FAILURE,
       });
     });
 };

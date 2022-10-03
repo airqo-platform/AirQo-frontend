@@ -4,12 +4,19 @@ import {
   GET_SITES,
   DOWNLOAD_CUSTOMISED_DATA_URI,
   D3_CHART_DATA_URI,
+  GET_MAP_SENSORS_DATA,
 } from "config/urls/analytics";
 import { URBAN_BETTER_DOWNLOAD_DATA_URI } from "../../config/urls/analytics";
 
 export const getMonitoringSitesInfoApi = async (pm25Category) => {
   return await axios
     .get(GET_DATA_MAP + pm25Category)
+    .then((response) => response.data);
+};
+
+export const getLatestAirQualityApi = async () => {
+  return await axios
+    .get(GET_MAP_SENSORS_DATA)
     .then((response) => response.data);
 };
 

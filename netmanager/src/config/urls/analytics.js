@@ -4,6 +4,8 @@ const BASE_ANALYTICS_URL = stripTrailingSlash(
   process.env.REACT_APP_BASE_ANALYTICS_URL || process.env.REACT_APP_BASE_URL
 );
 
+export const GET_MAP_SENSORS_DATA = `${BASE_ANALYTICS_URL}/analytics/map/latest-readings`;
+
 export const GENERATE_CUSTOMISABLE_CHARTS_URI = `${BASE_ANALYTICS_URL}/analytics/dashboard/chart/data`;
 
 export const DAILY_MEAN_AVERAGES_URI = `${BASE_ANALYTICS_URL}/analytics/dashboard/historical/daily-averages`;

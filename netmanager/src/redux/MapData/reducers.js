@@ -3,6 +3,7 @@ import {
   LOAD_PM25_HEATMAP_DATA_SUCCESS,
   LOAD_PM25_SENSOR_DATA_SUCCESS,
   LOAD_MAP_EVENTS_SUCCESS,
+  LOAD_MAP_SENSORS_DATA_SUCCESS,
 } from "./actions";
 import { transformDataToGeoJson } from "views/pages/Map/utils";
 
@@ -19,6 +20,7 @@ const initialState = {
     longitude: "Longitude",
     latitude: "Latitude",
   }),
+  sensorsData: [],
 };
 
 export default function (state = initialState, action) {
@@ -34,6 +36,9 @@ export default function (state = initialState, action) {
 
     case LOAD_MAP_EVENTS_SUCCESS:
       return { ...state, eventsData: action.payload };
+
+    case LOAD_MAP_SENSORS_DATA_SUCCESS:
+      return { ...state, sensorsData: action.payload };
 
     default:
       return state;

@@ -11,3 +11,7 @@ export const usePM25SensorData = () => {
 export const useEventsMapData = () => {
   return useSelector((state) => state.mapData.eventsData);
 };
+
+export const useMapSensorsData = () => {
+  return useSelector((state) => state.mapData.sensorsData);
+};
