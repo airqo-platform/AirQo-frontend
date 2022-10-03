@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
 import 'package:app/services/app_service.dart';
@@ -15,10 +16,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../blocs/map/map_bloc.dart';
-import '../../blocs/nearby_location/nearby_location_bloc.dart';
-import '../../blocs/nearby_location/nearby_location_event.dart';
-import '../../blocs/nearby_location/nearby_location_state.dart';
 import '../../services/hive_service.dart';
 import '../../services/native_api.dart';
 import '../../themes/app_theme.dart';
