@@ -1,2 +1,3 @@
 - [API](api/)
+- [Platform](platform/)
 - [Mobile App](mobile_app/)
