@@ -1,1 +1,2 @@
-- Analytics](platform/analytics.md)
+- [Join the Platform](platform/join.md)
+- [Analytics](platform/analytics.md)
