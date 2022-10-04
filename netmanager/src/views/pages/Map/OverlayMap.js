@@ -285,7 +285,7 @@ export const OverlayMap = ({
   useEffect(() => {
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
-      style: "mapbox://styles/mapbox/light-v10",
+      style: "mapbox://styles/mapbox/dark-v10",
       center,
       zoom,
       maxZoom: 20,
@@ -467,7 +467,7 @@ export const OverlayMap = ({
           el.className = `marker ${
             seconds >= MAX_OFFLINE_DURATION ? "marker-grey" : markerClass
           }`;
-          el.innerText = (pollutantValue && pollutantValue.toFixed(0)) || "N/A";
+          el.innerText = (pollutantValue && pollutantValue.toFixed(0)) || "--";
 
           if (
             feature.geometry.coordinates.length >= 2 &&
@@ -488,7 +488,7 @@ export const OverlayMap = ({
                       feature.properties._id
                     }</b></span></div>
                     <div class="${"popup-body " + markerClass}"> AQI: ${
-                    (pollutantValue && pollutantValue.toFixed(2)) || "n/a"
+                    (pollutantValue && pollutantValue.toFixed(2)) || "--"
                   } - ${desc}</div>
                     <span>Last Refreshed: <b>${duration}</b> ago</span>
                 </div>`
