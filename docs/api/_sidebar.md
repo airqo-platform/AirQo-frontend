@@ -1,5 +1,5 @@
 - [Home](/)
-- [Login](api/login.md)
+- [Users](api/users.md)
 - [Measurements](api/measurements.md)
 - [Devices](api/devices.md)
 - [Sites](api/sites.md)

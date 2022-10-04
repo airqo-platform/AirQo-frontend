@@ -1,4 +1,4 @@
-## Sites
+## Get sites
 
 This get request gives you all the public sites' details.
 

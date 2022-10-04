@@ -1,4 +1,4 @@
-## Measurements
+## Get measurements
 
 This get request gives you measurements
 

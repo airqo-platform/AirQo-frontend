@@ -1,4 +1,4 @@
-## Devices
+## Get devices
 
 This get request lists for you public devices.
 
