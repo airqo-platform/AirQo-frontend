@@ -2,3 +2,4 @@
 - [Measurements](api/measurements.md)
 - [Devices](api/devices.md)
 - [Sites](api/sites.md)
+- [Release Notes](api/release_notes.md)
