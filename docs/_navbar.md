@@ -1,2 +1,1 @@
-- [Home](/)
-- [API](api/)
+- [AirQo](https://airqo.net/)
