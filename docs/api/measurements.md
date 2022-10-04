@@ -8,7 +8,7 @@ This is the API method for retrieving device measurements
 
 | Param     | Type     | Required               | Description                                                                                                                                       |
 | :-------- | :------- | :--------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------ |
-| tenant    | string   | True                   | The organisation, default is airqo. Otherwise, please ensure that you utilise the right tenant key.                                               |
+| tenant    | string   | True                   | The organisation, default is airqo. Otherwise, ensure that you utilise the right tenant key.                                                      |
 | site      | string   | False                  | Unique name of the site                                                                                                                           |
 | site_id   | objectID | False                  | Object ID of the site                                                                                                                             |
 | device    | string   | If device_id is absent | Unique device name                                                                                                                                |
@@ -150,7 +150,7 @@ This is the second version for getting device measurements.
 
 | Param         | Type     | Required               | Description                                                                                                                                       |
 | :------------ | :------- | :--------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------ |
-| tenant        | string   | True                   | The organisation, default is airqo. Otherwise, please ensure that you utilise the right tenant key.                                               |
+| tenant        | string   | True                   | The organisation, default is airqo. Otherwise, ensure that you utilise the right tenant key.                                                      |
 | device        | string   | If device_id is absent | Unique device name                                                                                                                                |
 | limit         | integer  | False                  | Limit to your query, default limit is 50                                                                                                          |
 | skip          | integer  | False                  | Number of items to skip in the query.                                                                                                             |
@@ -162,7 +162,7 @@ This is the second version for getting device measurements.
 **Example**
 
 ```curl
-curl --location --request GET 'https://api.airqo.net/api/v1/devices/events?tenant=airqo' \
+curl --location --request GET 'https://api.airqo.net/api/v2/devices/events?tenant=airqo' \
 --header 'Authorization: JWT ey123abc'
 ```
 

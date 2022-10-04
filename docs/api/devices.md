@@ -20,7 +20,7 @@ This is the API method for retrieving device measurements
 **Example**
 
 ```curl
-curl --location --request GET 'https://api.airqo.net/api/v1/devices/events?tenant=airqo' \
+curl --location --request GET 'https://api.airqo.net/api/v1/devices?tenant=airqo' \
 --header 'Authorization: JWT ey123abc'
 ```
 

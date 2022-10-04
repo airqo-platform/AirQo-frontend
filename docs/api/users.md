@@ -8,9 +8,9 @@ Note that to login, **you need to have a registered account**, if you don't foll
 
 **Query**
 
-| Param  | Type   | Required | Description                                                                                         |
-| :----- | :----- | :------- | :-------------------------------------------------------------------------------------------------- |
-| tenant | string | True     | The organisation, default is airqo. Otherwise, please ensure that you utilise the right tenant key. |
+| Param  | Type   | Required | Description                                                                                  |
+| :----- | :----- | :------- | :------------------------------------------------------------------------------------------- |
+| tenant | string | True     | The organisation, default is airqo. Otherwise, ensure that you utilise the right tenant key. |
 
 **Body**
 
