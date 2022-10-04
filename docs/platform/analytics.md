@@ -2,8 +2,6 @@
 
 On successful login you will be directed directly to the dashboard, this is the starting point for all activities with AirQo Analytics.
 
----
-
 ## Select Location
 
 The platform provides a drop down menu which enables you to easily select a city or location of interest. This ensures that all your analysis on the page just focuses on that Location's Sites.
@@ -20,8 +18,6 @@ In the image above, the Fort Portal Location is selected. This means that all th
 
 Image above indicates the various locations for selection. A user is free to select any location as long as they are configured to access it. At the moment, all users are able to access data for all locations as long as they have an AirQo dashboard account.
 
----
-
 ## Region status cards
 
 Across the top of the dashboard, you will see the below cards.
@@ -30,16 +26,12 @@ These cards show the number of air quality monitors in the AirQo network and the
 
 For example, the diagram above shows that 11 monitors are recording moderate air quality 25 monitors are recording air quality is unhealthy for sensitive groups (UHFSG) 57 monitors are recording unhealthy air quality while 5 monitors are recording very unhealthy air quality
 
----
-
 ## Mean daily PM
 
 ![mean_daily_pm](../_media/analytics_mean_daily_pm.png)
 This chart shows the 24 hour mean (average) PM <small>2.5</small> levels for each device location for the last complete 28 days, usually from the day before the present day. This provides a medium term comparison of air quality in different locations. The colour of the bar represents the risk category at the location according to AQI. WHO Air Quality Guideline thresholds are shown by the horizontal line.
 
 By clicking on the ellipsis (...), the 3 dots in the top right hand corner of the chart a drop down menu appears. The chart can be printed, exported as a pdf, jpeg, or png. jpeg and png are most suitable formats for including in reports or social media, either will do the job.
-
----
 
 ## Exceedances
 
@@ -49,8 +41,6 @@ Exceedances measure the number of days in the past 28 days for which daily pollu
 To switch between WHO and AQI thresholds select the ellipsis / three dots (...) in the top right hand corner of the chart and select ‘Customize charts’. For WHO the chart shows the number of days in the past 28 days where the mean is above the WHO Air Quality Guideline of 25 μg/m3. In many cases NO2 levels are well below WHO and EPA levels so no values are visible.
 
 Also, by clicking on the ellipsis (...) 3 dots in the top right hand corner of the chart, the charts can be printed, exported as a pdf, jpeg, or png. jpeg and png are most suitable for including in reports or social media.
-
----
 
 ## Customisable Charts
 
@@ -85,3 +75,18 @@ To change the settings for the chart click on the ellipsis or three dots (...) i
 
 **How to delete your chart**
 Click the ellipsis (...) or the 3 dots in the top right-hand corner of the chart. A drop-down menu appears click delete to delete your chart.
+
+---
+
+# Data export
+
+**Good to know:**
+In some cases, you may wish to access the underlying data in order to conduct further analysis.
+
+- To download your data, click select the 'Export' icon in the left-hand bar.
+- To download your data, click save as JPEG, PNG or PDF. Your data will download automatically.
+
+## Download data
+
+Click select the 'Export' icon in the left-hand bar. To download your data, just select your appropriate date range and proceed with the data download.
+![download_data](../_media/analytics_download_data.png)

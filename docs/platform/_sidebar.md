@@ -1,2 +1,1 @@
-- [Privacy Policy](mobile_app/privacy_policy.md)
-- [Release Notes](mobile_app/release_notes.md)
+- Analytics](platform/analytics.md)
