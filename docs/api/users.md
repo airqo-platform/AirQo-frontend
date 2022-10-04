@@ -4,25 +4,27 @@ This is a post request that returns an authentication token that can be used by 
 
 Note that to login, **you need to have a registered account**, if you don't follow the [Request Access](../platform/join.md#request-access) guide to request and get one.
 
-```
-curl --location --request POST 'https://api.airqo.net/api/v1/users/loginUser?tenant=airqo'
-```
-
 **Parameters**
 
 **Query**
-| Param | Data type | Required | Description |
-|:--------|:----------|:---------|:---------------|
-| tenant | string | True | The organisation, default is airqo. Otherwise, please ensure that you utilise the right tenant key. |
+
+| Param  | Type   | Required | Description                                                                                         |
+| :----- | :----- | :------- | :-------------------------------------------------------------------------------------------------- |
+| tenant | string | True     | The organisation, default is airqo. Otherwise, please ensure that you utilise the right tenant key. |
 
 **Body**
-| Field | Data type | Required |
-|:-------- |:----------|:--------- |
-| email | string | If userName is absent |
-| userName | string | If email is absent |
-| password | string | True |
 
-**Example**:
+| Field    | Type   | Required              |
+| :------- | :----- | :-------------------- |
+| email    | string | If userName is absent |
+| userName | string | If email is absent    |
+| password | string | True                  |
+
+**Example**
+
+```curl
+curl --location --request POST 'https://api.airqo.net/api/v1/users/loginUser?tenant=airqo'
+```
 
 ```json
 {
@@ -33,6 +35,7 @@ curl --location --request POST 'https://api.airqo.net/api/v1/users/loginUser?ten
 ```
 
 **Responses**
+
 <small>**200**</small>
 
 ```json
@@ -45,6 +48,7 @@ curl --location --request POST 'https://api.airqo.net/api/v1/users/loginUser?ten
 ```
 
 <small>**403**</small>
+
 When wrong credentials are used
 
 ```json
