@@ -1,3 +1,5 @@
+# Joining the platform
+
 # Request Access
 
 In case you are interested in accessing AirQo data, you can do so using [this request access form](http://platform.airqo.net).
