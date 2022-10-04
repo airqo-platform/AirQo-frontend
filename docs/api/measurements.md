@@ -2,10 +2,11 @@
 
 This get request gives you measurements
 
-`https://api.airqo.net/api/v2/devices/events?tenant=airqo`
+```curl
+curl --location --request GET 'https://api.airqo.net/api/v2/devices/events?tenant=airqo' \
+--header 'Authorization: JWT ey123abc'
+```
 
-#### PARAMS
+**Query Params**
 
----
-
-- **tenant:** airqo
+tenant: airqo

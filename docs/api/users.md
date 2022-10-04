@@ -8,19 +8,32 @@ Note that to login, **you need to have a registered account**, if you don't foll
 curl --location --request POST 'https://api.airqo.net/api/v1/users/loginUser?tenant=airqo'
 ```
 
-**Query Params**
-tenant: airqo
-**Request Body**:
+**Parameters**
+
+**Query**
+| Param | Data type | Required | Description |
+|:--------|:----------|:---------|:---------------|
+| tenant | string | True | The organisation, default is airqo. Otherwise, please ensure that you utilise the right tenant key. |
+
+**Body**
+| Field | Data type | Required |
+|:-------- |:----------|:--------- |
+| email | string | If userName is absent |
+| userName | string | If email is absent |
+| password | string | True |
+
+**Example**:
 
 ```json
 {
-  "email": "api-user@gmail.com", # Required if email is absent
-  "userName": "api-user", # Required if email is absent
-  "password": "142526246Asxdqdq" # Required
+  "email": "api-user@gmail.com",
+  "userName": "api-user",
+  "password": "142526246Asxdqdq"
 }
 ```
 
-**Response Body**
+**Responses**
+<small>**200**</small>
 
 ```json
 {
@@ -28,5 +41,15 @@ tenant: airqo
   "userName": "api-user",
   "token": "JWT ey123abc",
   "email": "api-user@gmail.com"
+}
+```
+
+<small>**403**</small>
+When wrong credentials are used
+
+```json
+{
+  "success": false,
+  "message": "incorrect username or password"
 }
 ```

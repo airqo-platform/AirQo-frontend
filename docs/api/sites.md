@@ -2,10 +2,23 @@
 
 This get request gives you all the public sites' details.
 
-`https://api.airqo.net/api/v1/devices/sites?tenant=airqo`
+```curl
+curl --location --request GET 'https://api.airqo.net/api/v1/devices/sites?tenant=airqo' \
+--header 'Authorization: JWT ey123abc'
+```
 
-#### PARAMS
+**Query Params**
 
----
+tenant: airqo
 
-- **Tenant:** airqo
+**Response Body**
+
+```json
+{
+  "success": "true",
+  "message": "successfully retrieved the site details",
+  "sites": [
+    // Array of sites
+  ]
+}
+```
