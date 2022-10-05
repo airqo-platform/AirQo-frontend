@@ -16,10 +16,11 @@ part 'dashboard_state.dart';
 class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   DashboardBloc()
       : super(const DashboardState(
-            greetings: '',
-            incompleteKya: [],
-            airQualityReadings: [],
-            loading: false)) {
+          greetings: '',
+          incompleteKya: [],
+          airQualityReadings: [],
+          loading: false,
+        )) {
     on<UpdateGreetings>(_onUpdateGreetings);
     on<InitializeDashboard>(_onInitializeDashboard);
   }
@@ -29,11 +30,13 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     Emitter<DashboardState> emit,
   ) async {
     emit(DashboardLoading(
-        greetings: state.greetings,
-        incompleteKya: state.incompleteKya,
-        airQualityReadings: state.airQualityReadings,
-        loading: true));
+      greetings: state.greetings,
+      incompleteKya: state.incompleteKya,
+      airQualityReadings: state.airQualityReadings,
+      loading: true,
+    ));
     final greetings = await DateTime.now().getGreetings();
+
     return emit(state.copyWith(greetings: greetings));
   }
 
@@ -54,6 +57,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
         AirQualityReading.duplicate(regionAirQualityReading),
       );
     }
+
     return airQualityCards;
   }
 
@@ -62,19 +66,21 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     Emitter<DashboardState> emit,
   ) async {
     emit(DashboardLoading(
-        greetings: state.greetings,
-        incompleteKya: state.incompleteKya,
-        airQualityReadings: state.airQualityReadings,
-        loading: true));
+      greetings: state.greetings,
+      incompleteKya: state.incompleteKya,
+      airQualityReadings: state.airQualityReadings,
+      loading: true,
+    ));
 
     final greetings = await DateTime.now().getGreetings();
     final incompleteKya = await Kya.getIncompleteKya();
     final airQualityReadings = await _getAirQualityReadings();
 
     return emit(DashboardState(
-        greetings: greetings,
-        incompleteKya: incompleteKya,
-        airQualityReadings: airQualityReadings,
-        loading: false));
+      greetings: greetings,
+      incompleteKya: incompleteKya,
+      airQualityReadings: airQualityReadings,
+      loading: false,
+    ));
   }
 }

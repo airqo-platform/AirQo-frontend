@@ -143,53 +143,59 @@ class _DashboardViewState extends State<DashboardView> {
               'Today’s air quality',
               style: CustomTextStyle.headline11(context),
             ),
+            const SizedBox(
+              height: 5,
+            ),
             Expanded(
               child: AppRefreshIndicator(
                 sliverChildDelegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final items = [
                       BlocConsumer<NearbyLocationBloc, NearbyLocationState>(
-                          listener: (context, state) {
-                        if (state is NearbyLocationStateError) {
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            showSnackBar(context, state.error.message);
-                          });
-                        }
-                      }, builder: (context, state) {
-                        if (state is NearbyLocationStateSuccess ||
-                            state is SearchingNearbyLocationsState) {
-                          return ValueListenableBuilder<Box>(
-                            valueListenable: Hive.box<AirQualityReading>(
-                                    HiveBox.nearByAirQualityReadings)
-                                .listenable(),
-                            builder: (context, box, widget) {
-                              final airQualityReadings = filterNearestLocations(
-                                box.values.cast<AirQualityReading>().toList(),
-                              );
-
-                              if (airQualityReadings.isNotEmpty) {
-                                final sortedReadings =
-                                    sortAirQualityReadingsByDistance(
-                                            airQualityReadings)
-                                        .take(1)
-                                        .toList();
-
-                                return Padding(
-                                  padding: EdgeInsets.only(top: 24),
-                                  child: AnalyticsCard(
-                                    sortedReadings.first,
-                                    false,
-                                    false,
-                                  ),
+                        listener: (context, state) {
+                          if (state is NearbyLocationStateError) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              showSnackBar(context, state.error.message);
+                            });
+                          }
+                        },
+                        builder: (context, state) {
+                          if (state is NearbyLocationStateSuccess ||
+                              state is SearchingNearbyLocationsState) {
+                            return ValueListenableBuilder<Box>(
+                              valueListenable: Hive.box<AirQualityReading>(
+                                HiveBox.nearByAirQualityReadings,
+                              ).listenable(),
+                              builder: (context, box, widget) {
+                                final airQualityReadings =
+                                    filterNearestLocations(
+                                  box.values.cast<AirQualityReading>().toList(),
                                 );
-                              }
 
-                              return const SizedBox();
-                            },
-                          );
-                        }
-                        return const SizedBox();
-                      }),
+                                if (airQualityReadings.isNotEmpty) {
+                                  final sortedReadings =
+                                      sortAirQualityReadingsByDistance(
+                                    airQualityReadings,
+                                  ).take(1).toList();
+
+                                  return Padding(
+                                    padding: const EdgeInsets.only(top: 24),
+                                    child: AnalyticsCard(
+                                      sortedReadings.first,
+                                      false,
+                                      false,
+                                    ),
+                                  );
+                                }
+
+                                return const SizedBox();
+                              },
+                            );
+                          }
+
+                          return const SizedBox();
+                        },
+                      ),
                       ValueListenableBuilder<Box>(
                         valueListenable:
                             Hive.box<Kya>(HiveBox.kya).listenable(),
@@ -220,6 +226,7 @@ class _DashboardViewState extends State<DashboardView> {
                               ),
                             );
                           }
+
                           return ListView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
@@ -229,7 +236,8 @@ class _DashboardViewState extends State<DashboardView> {
                                 padding: const EdgeInsets.only(top: 16),
                                 child: AnalyticsCard(
                                   AirQualityReading.duplicate(
-                                      airQualityReadings[index]),
+                                    airQualityReadings[index],
+                                  ),
                                   state.loading,
                                   false,
                                 ),
@@ -237,8 +245,9 @@ class _DashboardViewState extends State<DashboardView> {
                             },
                           );
                         },
-                      )
+                      ),
                     ];
+
                     return items[index];
                   },
                   childCount: 3,

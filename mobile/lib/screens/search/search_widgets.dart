@@ -564,7 +564,7 @@ class NearbyLocations extends StatelessWidget {
 
         if (state is NearbyLocationStateError) {
           switch (state.error) {
-            case NearbyAirQualityError.locationDisabled:
+            case NearbyAirQualityError.locationDenied:
               return const RequestLocationAccess();
             case NearbyAirQualityError.noNearbyAirQualityReadings:
               return const AirQualityNotAvailable();
