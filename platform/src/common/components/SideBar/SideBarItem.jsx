@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 import ArrowDropDownIcon from '@/icons/arrow_drop_down.svg';
 
-const DropdownItem = ({ itemLabel, itemPath }) => {
+export const DropdownItem = ({ itemLabel, itemPath }) => {
   const router = useRouter();
 
   return (
@@ -19,7 +19,7 @@ const DropdownItem = ({ itemLabel, itemPath }) => {
   );
 };
 
-const SideBarItem = ({ Icon, label, dropdown, active, navPath }) => {
+const SideBarItem = ({ Icon, label, dropdown, active, navPath, children }) => {
   const [toggleDropdown, setToggleDropdown] = useState(false);
 
   const handleToggleDropdown = () => setToggleDropdown(!toggleDropdown);
@@ -49,14 +49,7 @@ const SideBarItem = ({ Icon, label, dropdown, active, navPath }) => {
         </div>
       </Link>
 
-      {toggleDropdown && (
-        <div className='flex flex-col'>
-          <DropdownItem itemLabel='Overview' itemPath='' />
-          <DropdownItem itemLabel='AirQlouds' itemPath='/analytics/airqlouds' />
-          <DropdownItem itemLabel='Map view' itemPath='' />
-          <DropdownItem itemLabel='Reports' itemPath='' />
-        </div>
-      )}
+      {toggleDropdown && <div className='flex flex-col'>{children}</div>}
     </div>
   );
 };
