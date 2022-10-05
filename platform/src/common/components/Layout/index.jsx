@@ -1,5 +1,5 @@
-import SideBar from '../SideBar';
-import TopBar from '../TopBar';
+import SideBar from '@/components/SideBar';
+import TopBar from '@/components/TopBar';
 
 const Layout = ({ children }) => (
   <div className='relative w-screen h-screen'>

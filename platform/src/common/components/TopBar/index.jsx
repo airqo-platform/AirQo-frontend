@@ -1,7 +1,7 @@
-import AirqoLogo from '../../../../public/icons/airqo_logo.svg';
-import HelpCenterIcon from '../../../../public/icons/help_center.svg';
-import NotificationsIcon from '../../../../public/icons/notifications.svg';
-import ArrowDropDownIcon from '../../../../public/icons/arrow_drop_down.svg';
+import AirqoLogo from '@/icons/airqo_logo.svg';
+import HelpCenterIcon from '@/icons/help_center.svg';
+import NotificationsIcon from '@/icons/notifications.svg';
+import ArrowDropDownIcon from '@/icons/arrow_drop_down.svg';
 
 const TopBar = () => {
   return (

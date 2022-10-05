@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
-import ArrowDropDownIcon from '../../../../public/icons/arrow_drop_down.svg';
+import ArrowDropDownIcon from '@/icons/arrow_drop_down.svg';
 
 const DropdownItem = ({ itemLabel, itemPath }) => {
   const router = useRouter();

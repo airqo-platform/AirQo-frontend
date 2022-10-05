@@ -1,9 +1,9 @@
-import BarChartIcon from '../../../../public/icons/bar_chart.svg';
+import BarChartIcon from '@/icons/bar_chart.svg';
 import SideBarItem from './SideBarItem';
-import ArrowDropDownIcon from '../../../../public/icons/arrow_drop_down.svg';
-import MenuBarIcon from '../../../../public/icons/menu_bar.js';
+import ArrowDropDownIcon from '@/icons/arrow_drop_down.svg';
+import MenuBarIcon from '@/icons/menu_bar.js';
 import { useState } from 'react';
-import { useWindowSize } from 'lib/windowSize';
+import { useWindowSize } from '@/lib/windowSize';
 
 const SideBar = () => {
   const [toggleDrawer, setToggleDrawer] = useState(false);
