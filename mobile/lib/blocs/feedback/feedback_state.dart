@@ -30,18 +30,6 @@ class FeedbackTypeState extends FeedbackState {
   List<Object> get props => [];
 }
 
-class FeedbackSubmissionState extends FeedbackState {
-  const FeedbackSubmissionState(
-      {required super.feedbackType,
-      required super.feedbackChannel,
-      required super.contact,
-      required super.feedback,
-      required super.loading});
-
-  @override
-  List<Object> get props => [];
-}
-
 class FeedbackErrorState extends FeedbackState {
   const FeedbackErrorState(this.error,
       {required super.feedbackType,

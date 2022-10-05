@@ -100,66 +100,71 @@ class FeedbackNextButton extends StatelessWidget {
 class FeedbackProgressBar extends StatelessWidget {
   const FeedbackProgressBar({
     super.key,
-    required this.feedbackType,
-    required this.index,
-    required this.feedbackChannel,
   });
-
-  final int index;
-  final FeedbackType feedbackType;
-  final FeedbackChannel feedbackChannel;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          height: 16,
-          width: 16,
-          decoration: BoxDecoration(
-            color: feedbackType == FeedbackType.none
-                ? CustomColors.greyColor
-                : CustomColors.appColorBlue,
-            shape: BoxShape.circle,
+    return BlocBuilder<FeedbackBloc, FeedbackState>(
+        buildWhen: (previous, current) {
+      if (current is FeedbackErrorState || current is FeedbackLoadingState) {
+        return false;
+      }
+      return true;
+    }, builder: (context, state) {
+      return Row(
+        children: [
+          Container(
+            height: 16,
+            width: 16,
+            decoration: BoxDecoration(
+              color: state.feedbackType == FeedbackType.none
+                  ? CustomColors.greyColor
+                  : CustomColors.appColorBlue,
+              shape: BoxShape.circle,
+            ),
           ),
-        ),
-        Expanded(
-          child: Divider(
-            thickness: 2,
-            color:
-                index >= 1 ? CustomColors.appColorBlue : CustomColors.greyColor,
+          Expanded(
+            child: Divider(
+              thickness: 2,
+              color: state is FeedbackChannelState || state is FeedbackFormState
+                  ? CustomColors.appColorBlue
+                  : CustomColors.greyColor,
+            ),
           ),
-        ),
-        Container(
-          height: 16,
-          width: 16,
-          decoration: BoxDecoration(
-            color: feedbackChannel != FeedbackChannel.none && index >= 1
-                ? CustomColors.appColorBlue
-                : CustomColors.greyColor,
-            shape: BoxShape.circle,
+          Container(
+            height: 16,
+            width: 16,
+            decoration: BoxDecoration(
+              color: state.feedbackChannel != FeedbackChannel.none &&
+                      state.contact != '' &&
+                      (state is FeedbackChannelState ||
+                          state is FeedbackFormState)
+                  ? CustomColors.appColorBlue
+                  : CustomColors.greyColor,
+              shape: BoxShape.circle,
+            ),
           ),
-        ),
-        Expanded(
-          child: Divider(
-            thickness: 2,
-            color: index >= 2 || feedbackChannel == FeedbackChannel.whatsApp
-                ? CustomColors.appColorBlue
-                : CustomColors.greyColor,
+          Expanded(
+            child: Divider(
+              thickness: 2,
+              color: state is FeedbackFormState
+                  ? CustomColors.appColorBlue
+                  : CustomColors.greyColor,
+            ),
           ),
-        ),
-        Container(
-          height: 16,
-          width: 16,
-          decoration: BoxDecoration(
-            color: index >= 2 || feedbackChannel == FeedbackChannel.whatsApp
-                ? CustomColors.appColorBlue
-                : CustomColors.greyColor,
-            shape: BoxShape.circle,
+          Container(
+            height: 16,
+            width: 16,
+            decoration: BoxDecoration(
+              color: state.feedback != '' && state is FeedbackFormState
+                  ? CustomColors.appColorBlue
+                  : CustomColors.greyColor,
+              shape: BoxShape.circle,
+            ),
           ),
-        ),
-      ],
-    );
+        ],
+      );
+    });
   }
 }
 
@@ -224,84 +229,6 @@ class FeedbackForm extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(
-          height: 32,
-        ),
-        Text(
-          'Go Ahead, Tell Us More?',
-          style: CustomTextStyle.headline9(context),
-        ),
-        const SizedBox(
-          height: 16,
-        ),
-        BlocBuilder<FeedbackBloc, FeedbackState>(builder: (context, state) {
-          return Container(
-            height: 255,
-            alignment: Alignment.center,
-            padding: const EdgeInsets.only(left: 15, right: 15),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: const BorderRadius.all(
-                Radius.circular(8.0),
-              ),
-              border: Border.all(color: Colors.white),
-            ),
-            child: Center(
-              child: TextFormField(
-                initialValue: state.feedback,
-                style: Theme.of(context).textTheme.bodyText2,
-                enableSuggestions: false,
-                cursorWidth: 1,
-                maxLines: 12,
-                cursorColor: CustomColors.appColorBlue,
-                keyboardType: TextInputType.text,
-                onChanged: (String feedback) {
-                  if (feedback != '') {
-                    context
-                        .read<FeedbackBloc>()
-                        .add(SetFeedback(feedback: feedback));
-                  }
-                },
-                onFieldSubmitted: (String feedback) {
-                  if (feedback == '') {
-                    context
-                        .read<FeedbackBloc>()
-                        .add(const FeedbackFormError('Enter feedback'));
-                    return;
-                  }
-                  context
-                      .read<FeedbackBloc>()
-                      .add(SetFeedback(feedback: feedback));
-                },
-                decoration: InputDecoration(
-                  focusedBorder: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  hintText: 'Please tell us the details',
-                  hintStyle: Theme.of(context).textTheme.bodyText2?.copyWith(
-                        color: CustomColors.appColorBlack.withOpacity(0.32),
-                      ),
-                  counterStyle: Theme.of(context).textTheme.bodyText2,
-                ),
-              ),
-            ),
-          );
-        }),
-      ],
-    );
-  }
-}
-
-class FeedbackSubmission extends StatelessWidget {
-  const FeedbackSubmission({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(
-          height: 32,
-        ),
         Text(
           'Go Ahead, Tell Us More?',
           style: CustomTextStyle.headline9(context),
@@ -473,6 +400,9 @@ class FeedbackNavigationButtons extends StatelessWidget {
                               context.read<FeedbackBloc>().add(
                                   FeedbackFormError(
                                       Config.feedbackSuccessMessage)),
+                              context
+                                  .read<FeedbackBloc>()
+                                  .add(const ClearFeedback()),
                               Navigator.pushAndRemoveUntil(
                                 context,
                                 MaterialPageRoute(builder: (context) {
@@ -509,9 +439,6 @@ class FeedbackTypeStep extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(
-            height: 32,
-          ),
           Text(
             'What Type Of Feedback?',
             style: CustomTextStyle.headline9(context),
@@ -585,9 +512,6 @@ class FeedbackChannelStep extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(
-          height: 32,
-        ),
         Text(
           'Send Us Feedback Via Email',
           style: CustomTextStyle.headline9(context),

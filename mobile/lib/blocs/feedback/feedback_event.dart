@@ -4,34 +4,41 @@ abstract class FeedbackEvent extends Equatable {
   const FeedbackEvent();
 }
 
+class ClearFeedback extends FeedbackEvent {
+  const ClearFeedback();
+
+  @override
+  List<Object?> get props => ['clear feedback'];
+}
+
 class SetFeedbackType extends FeedbackEvent {
   const SetFeedbackType({required this.feedbackType});
 
   final FeedbackType feedbackType;
 
   @override
-  List<Object?> get props => ['feedback type'];
+  List<Object?> get props => ['set feedback type'];
 }
 
 class GoToChannelStep extends FeedbackEvent {
   const GoToChannelStep();
 
   @override
-  List<Object?> get props => ['feedback type'];
+  List<Object?> get props => ['go to channel'];
 }
 
 class GoToTypeStep extends FeedbackEvent {
   const GoToTypeStep();
 
   @override
-  List<Object?> get props => ['feedback type'];
+  List<Object?> get props => ['go to type'];
 }
 
 class GoToFormStep extends FeedbackEvent {
   const GoToFormStep();
 
   @override
-  List<Object?> get props => ['feedback type'];
+  List<Object?> get props => ['go to form'];
 }
 
 class FeedbackFormError extends FeedbackEvent {
@@ -66,5 +73,5 @@ class SetFeedback extends FeedbackEvent {
   final String feedback;
 
   @override
-  List<Object?> get props => ['feedback'];
+  List<Object?> get props => ['set feedback'];
 }

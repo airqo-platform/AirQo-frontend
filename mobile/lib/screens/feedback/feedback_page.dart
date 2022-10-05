@@ -25,14 +25,13 @@ class _FeedbackPageState extends State<FeedbackPage> {
         color: CustomColors.appBodyColor,
         child: Column(
           children: [
-            // const SizedBox(
-            //   height: 37,
-            // ),
-            // FeedbackProgressBar(
-            //   feedbackType: _feedbackType,
-            //   index: _step,
-            //   feedbackChannel: _feedbackChannel,
-            // ),
+            const SizedBox(
+              height: 27,
+            ),
+            const FeedbackProgressBar(),
+            const SizedBox(
+              height: 27,
+            ),
             BlocConsumer<FeedbackBloc, FeedbackState>(
                 listenWhen: (previous, current) {
               return current is FeedbackErrorState;

@@ -24,6 +24,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     on<SetFeedbackChannel>(_onSetFeedbackChannel);
     on<FeedbackFormError>(_onFeedbackFormError);
     on<SetFeedback>(_onSetFeedback);
+    on<ClearFeedback>(_onClearFeedback);
   }
 
   void _onFeedbackFormError(
@@ -99,6 +100,18 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
         feedbackChannel: state.feedbackChannel,
         contact: state.contact,
         feedback: state.feedback,
+        loading: false));
+  }
+
+  void _onClearFeedback(
+    ClearFeedback event,
+    Emitter<FeedbackState> emit,
+  ) {
+    return emit(const FeedbackTypeState(
+        feedbackType: FeedbackType.none,
+        feedbackChannel: FeedbackChannel.none,
+        contact: '',
+        feedback: '',
         loading: false));
   }
 
