@@ -26,13 +26,17 @@ Future<void> logException(
       !unHandledSentryExceptions.contains(
         exception.runtimeType,
       )) {
-    await Future.wait([
-      FirebaseCrashlytics.instance
-          .recordError(exception, stackTrace, fatal: true, printDetails: true),
-      Sentry.captureException(
-        exception,
-        stackTrace: stackTrace ?? '',
-      ),
-    ]);
+    try {
+      await Future.wait([
+        FirebaseCrashlytics.instance.recordError(exception, stackTrace,
+            fatal: true, printDetails: true),
+        Sentry.captureException(
+          exception,
+          stackTrace: stackTrace ?? '',
+        ),
+      ]);
+    } catch (e) {
+      debugPrint(e.toString());
+    }
   }
 }

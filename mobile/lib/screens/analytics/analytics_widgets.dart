@@ -672,7 +672,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                           width: 4.0,
                                         ),
                                         Visibility(
-                                          visible: false,
+                                          visible: widget.isRefreshing,
                                           child: SvgPicture.asset(
                                             'assets/icon/loader.svg',
                                             semanticsLabel: 'loader',

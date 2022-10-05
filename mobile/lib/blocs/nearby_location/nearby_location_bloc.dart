@@ -69,6 +69,11 @@ class NearbyLocationBloc
         exception,
         stackTrace,
       );
+      return emit(
+        const NearbyLocationStateError(
+          error: NearbyAirQualityError.locationDisabled,
+        ),
+      );
     }
   }
 }
