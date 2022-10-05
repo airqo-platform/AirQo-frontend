@@ -17,7 +17,7 @@ const SideBar = () => {
       <div
         className={`${
           size.width >= 768 ? 'flex' : sideBarDisplayStyle
-        } bg-white h-[calc(100vh-64px)] md:relative flex-col justify-between overflow-y-scroll`}
+        } bg-white h-[calc(100vh-64px)] md:relative flex-col justify-between overflow-y-scroll border-t-0 border-r-[1px] border-r-[#E8E8E8]`}
       >
         <div>
           <div className='border border-[#E8E8E8] h-10 p-2 box-border rounded-lg flex items-center justify-between mx-4 mt-4 opacity-[0.16]'>

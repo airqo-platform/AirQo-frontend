@@ -10,8 +10,10 @@ const TopBar = () => {
 
       <div className='hidden md:block w-[452.97px]'>
         <input
-          type='text'
-          className='w-full h-10 rounded-[4px] bg-[#0000000A] outline-0 text-black'
+          type='search'
+          id='search'
+          placeholder='hello world'
+          className='w-full h-10 rounded-[4px] bg-[#0000000A] focus:outline-none text-black px-4'
         />
       </div>
 
