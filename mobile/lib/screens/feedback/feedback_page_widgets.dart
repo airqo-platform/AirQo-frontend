@@ -105,66 +105,70 @@ class FeedbackProgressBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<FeedbackBloc, FeedbackState>(
-        buildWhen: (previous, current) {
-      if (current is FeedbackErrorState || current is FeedbackLoadingState) {
-        return false;
-      }
-      return true;
-    }, builder: (context, state) {
-      return Row(
-        children: [
-          Container(
-            height: 16,
-            width: 16,
-            decoration: BoxDecoration(
-              color: state.feedbackType == FeedbackType.none
-                  ? CustomColors.greyColor
-                  : CustomColors.appColorBlue,
-              shape: BoxShape.circle,
+      buildWhen: (previous, current) {
+        if (current is FeedbackErrorState || current is FeedbackLoadingState) {
+          return false;
+        }
+
+        return true;
+      },
+      builder: (context, state) {
+        return Row(
+          children: [
+            Container(
+              height: 16,
+              width: 16,
+              decoration: BoxDecoration(
+                color: state.feedbackType == FeedbackType.none
+                    ? CustomColors.greyColor
+                    : CustomColors.appColorBlue,
+                shape: BoxShape.circle,
+              ),
             ),
-          ),
-          Expanded(
-            child: Divider(
-              thickness: 2,
-              color: state is FeedbackChannelState || state is FeedbackFormState
-                  ? CustomColors.appColorBlue
-                  : CustomColors.greyColor,
+            Expanded(
+              child: Divider(
+                thickness: 2,
+                color:
+                    state is FeedbackChannelState || state is FeedbackFormState
+                        ? CustomColors.appColorBlue
+                        : CustomColors.greyColor,
+              ),
             ),
-          ),
-          Container(
-            height: 16,
-            width: 16,
-            decoration: BoxDecoration(
-              color: state.feedbackChannel != FeedbackChannel.none &&
-                      state.contact != '' &&
-                      (state is FeedbackChannelState ||
-                          state is FeedbackFormState)
-                  ? CustomColors.appColorBlue
-                  : CustomColors.greyColor,
-              shape: BoxShape.circle,
+            Container(
+              height: 16,
+              width: 16,
+              decoration: BoxDecoration(
+                color: state.feedbackChannel != FeedbackChannel.none &&
+                        state.contact != '' &&
+                        (state is FeedbackChannelState ||
+                            state is FeedbackFormState)
+                    ? CustomColors.appColorBlue
+                    : CustomColors.greyColor,
+                shape: BoxShape.circle,
+              ),
             ),
-          ),
-          Expanded(
-            child: Divider(
-              thickness: 2,
-              color: state is FeedbackFormState
-                  ? CustomColors.appColorBlue
-                  : CustomColors.greyColor,
+            Expanded(
+              child: Divider(
+                thickness: 2,
+                color: state is FeedbackFormState
+                    ? CustomColors.appColorBlue
+                    : CustomColors.greyColor,
+              ),
             ),
-          ),
-          Container(
-            height: 16,
-            width: 16,
-            decoration: BoxDecoration(
-              color: state.feedback != '' && state is FeedbackFormState
-                  ? CustomColors.appColorBlue
-                  : CustomColors.greyColor,
-              shape: BoxShape.circle,
+            Container(
+              height: 16,
+              width: 16,
+              decoration: BoxDecoration(
+                color: state.feedback != '' && state is FeedbackFormState
+                    ? CustomColors.appColorBlue
+                    : CustomColors.greyColor,
+                shape: BoxShape.circle,
+              ),
             ),
-          ),
-        ],
-      );
-    });
+          ],
+        );
+      },
+    );
   }
 }
 
@@ -259,21 +263,22 @@ class FeedbackForm extends StatelessWidget {
                 keyboardType: TextInputType.text,
                 onChanged: (String feedback) {
                   if (feedback != '') {
-                    context
-                        .read<FeedbackBloc>()
-                        .add(SetFeedback(feedback: feedback));
+                    context.read<FeedbackBloc>().add(
+                          SetFeedback(feedback: feedback),
+                        );
                   }
                 },
                 onFieldSubmitted: (String feedback) {
                   if (feedback == '') {
-                    context
-                        .read<FeedbackBloc>()
-                        .add(const FeedbackFormError('Enter feedback'));
+                    context.read<FeedbackBloc>().add(
+                          const FeedbackFormError('Enter feedback'),
+                        );
+
                     return;
                   }
-                  context
-                      .read<FeedbackBloc>()
-                      .add(SetFeedback(feedback: feedback));
+                  context.read<FeedbackBloc>().add(
+                        SetFeedback(feedback: feedback),
+                      );
                 },
                 decoration: InputDecoration(
                   focusedBorder: InputBorder.none,
@@ -299,133 +304,153 @@ class FeedbackNavigationButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<FeedbackBloc, FeedbackState>(
-        buildWhen: (previous, current) {
-      if (current is FeedbackErrorState) {
-        return false;
-      }
-      return previous is FeedbackLoadingState;
-    }, builder: (context, state) {
-      if (state is FeedbackLoadingState) {
-        return const CircularProgressIndicator();
-      }
+      buildWhen: (previous, current) {
+        if (current is FeedbackErrorState) {
+          return false;
+        }
 
-      if (state is FeedbackTypeState) {
-        return GestureDetector(
-          onTap: () {
-            if (state.feedbackType != FeedbackType.none) {
-              context.read<FeedbackBloc>().add(const GoToChannelStep());
-            }
-          },
-          child: NextButton(
-            buttonColor: state.feedbackType == FeedbackType.none
-                ? CustomColors.appColorBlue.withOpacity(0.24)
-                : CustomColors.appColorBlue,
-          ),
-        );
-      }
+        return previous is FeedbackLoadingState;
+      },
+      builder: (context, state) {
+        if (state is FeedbackLoadingState) {
+          return const CircularProgressIndicator();
+        }
 
-      if (state is FeedbackChannelState) {
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            GestureDetector(
-              child: const FeedbackBackButton(),
-              onTap: () {
-                context.read<FeedbackBloc>().add(const GoToTypeStep());
-              },
+        if (state is FeedbackTypeState) {
+          return GestureDetector(
+            onTap: () {
+              if (state.feedbackType != FeedbackType.none) {
+                context.read<FeedbackBloc>().add(
+                      const GoToChannelStep(),
+                    );
+              }
+            },
+            child: NextButton(
+              buttonColor: state.feedbackType == FeedbackType.none
+                  ? CustomColors.appColorBlue.withOpacity(0.24)
+                  : CustomColors.appColorBlue,
             ),
-            GestureDetector(
-              onTap: () {
-                if (state.feedbackChannel != FeedbackChannel.none &&
-                    state.contact == '') {
-                  context
-                      .read<FeedbackBloc>()
-                      .add(const FeedbackFormError('Enter your email address'));
-                  return;
-                }
-                if (!state.contact.isValidEmail()) {
-                  context
-                      .read<FeedbackBloc>()
-                      .add(const FeedbackFormError('Invalid email address'));
-                  return;
-                }
-                context.read<FeedbackBloc>().add(const GoToFormStep());
-              },
-              child: FeedbackNextButton(
-                text: 'Next',
-                buttonColor: state.feedbackChannel == FeedbackChannel.none ||
-                        !state.contact.isValidEmail()
-                    ? CustomColors.appColorBlue.withOpacity(0.24)
-                    : CustomColors.appColorBlue,
+          );
+        }
+
+        if (state is FeedbackChannelState) {
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              GestureDetector(
+                child: const FeedbackBackButton(),
+                onTap: () {
+                  context.read<FeedbackBloc>().add(
+                        const GoToTypeStep(),
+                      );
+                },
               ),
-            ),
-          ],
-        );
-      }
+              GestureDetector(
+                onTap: () {
+                  if (state.feedbackChannel != FeedbackChannel.none &&
+                      state.contact == '') {
+                    context.read<FeedbackBloc>().add(
+                          const FeedbackFormError('Enter your email address'),
+                        );
 
-      if (state is FeedbackFormState) {
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            GestureDetector(
-              child: const FeedbackBackButton(),
-              onTap: () {
-                context.read<FeedbackBloc>().add(const GoToChannelStep());
-              },
-            ),
-            GestureDetector(
-              onTap: () async {
-                if (state.feedback == '') {
-                  context
-                      .read<FeedbackBloc>()
-                      .add(const FeedbackFormError('Enter your feedback'));
-                  return;
-                }
-                loadingScreen(context);
-                await AirqoApiClient()
-                    .sendFeedback(
-                      UserFeedback(
+                    return;
+                  }
+                  if (!state.contact.isValidEmail()) {
+                    context.read<FeedbackBloc>().add(
+                          const FeedbackFormError('Invalid email address'),
+                        );
+
+                    return;
+                  }
+                  context.read<FeedbackBloc>().add(
+                        const GoToFormStep(),
+                      );
+                },
+                child: FeedbackNextButton(
+                  text: 'Next',
+                  buttonColor: state.feedbackChannel == FeedbackChannel.none ||
+                          !state.contact.isValidEmail()
+                      ? CustomColors.appColorBlue.withOpacity(0.24)
+                      : CustomColors.appColorBlue,
+                ),
+              ),
+            ],
+          );
+        }
+
+        if (state is FeedbackFormState) {
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              GestureDetector(
+                child: const FeedbackBackButton(),
+                onTap: () {
+                  context.read<FeedbackBloc>().add(
+                        const GoToChannelStep(),
+                      );
+                },
+              ),
+              GestureDetector(
+                onTap: () async {
+                  if (state.feedback == '') {
+                    context.read<FeedbackBloc>().add(
+                          const FeedbackFormError('Enter your feedback'),
+                        );
+
+                    return;
+                  }
+                  loadingScreen(context);
+                  await AirqoApiClient()
+                      .sendFeedback(
+                        UserFeedback(
                           contactDetails: state.contact,
                           message: state.feedback,
-                          feedbackType: state.feedbackType),
-                    )
-                    .then((value) => {
-                          Navigator.of(context).pop(),
-                          context.read<FeedbackBloc>().add(FeedbackFormError(
-                              value
-                                  ? Config.feedbackSuccessMessage
-                                  : Config.feedbackFailureMessage)),
-                          if (value)
-                            {
-                              context.read<FeedbackBloc>().add(
+                          feedbackType: state.feedbackType,
+                        ),
+                      )
+                      .then((value) => {
+                            Navigator.of(context).pop(),
+                            context.read<FeedbackBloc>().add(
                                   FeedbackFormError(
-                                      Config.feedbackSuccessMessage)),
-                              context
-                                  .read<FeedbackBloc>()
-                                  .add(const ClearFeedback()),
-                              Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(builder: (context) {
-                                  return const HomePage(refresh: true);
-                                }),
-                                (r) => false,
-                              )
-                            }
-                        });
-              },
-              child: FeedbackNextButton(
-                text: 'Next',
-                buttonColor: state.feedback == ''
-                    ? CustomColors.appColorBlue.withOpacity(0.24)
-                    : CustomColors.appColorBlue,
+                                    value
+                                        ? Config.feedbackSuccessMessage
+                                        : Config.feedbackFailureMessage,
+                                  ),
+                                ),
+                            if (value)
+                              {
+                                context.read<FeedbackBloc>().add(
+                                      FeedbackFormError(
+                                        Config.feedbackSuccessMessage,
+                                      ),
+                                    ),
+                                context
+                                    .read<FeedbackBloc>()
+                                    .add(const ClearFeedback()),
+                                Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute(builder: (context) {
+                                    return const HomePage(refresh: true);
+                                  }),
+                                  (r) => false,
+                                ),
+                              },
+                          });
+                },
+                child: FeedbackNextButton(
+                  text: 'Next',
+                  buttonColor: state.feedback == ''
+                      ? CustomColors.appColorBlue.withOpacity(0.24)
+                      : CustomColors.appColorBlue,
+                ),
               ),
-            ),
-          ],
-        );
-      }
+            ],
+          );
+        }
 
-      return Container();
-    });
+        return Container();
+      },
+    );
   }
 }
 
@@ -497,9 +522,9 @@ class FeedbackTypeStep extends StatelessWidget {
   }
 
   void _updateType(BuildContext context, FeedbackType feedbackType) {
-    context
-        .read<FeedbackBloc>()
-        .add(SetFeedbackType(feedbackType: feedbackType));
+    context.read<FeedbackBloc>().add(
+          SetFeedbackType(feedbackType: feedbackType),
+        );
   }
 }
 
@@ -522,8 +547,11 @@ class FeedbackChannelStep extends StatelessWidget {
         BlocBuilder<FeedbackBloc, FeedbackState>(builder: (context, state) {
           return GestureDetector(
             onTap: () {
-              context.read<FeedbackBloc>().add(const SetFeedbackChannel(
-                  feedbackChannel: FeedbackChannel.email));
+              context.read<FeedbackBloc>().add(
+                    const SetFeedbackChannel(
+                      feedbackChannel: FeedbackChannel.email,
+                    ),
+                  );
             },
             child: FeedbackCard(
               title: FeedbackChannel.email.toString(),
@@ -536,67 +564,67 @@ class FeedbackChannelStep extends StatelessWidget {
         ),
         BlocBuilder<FeedbackBloc, FeedbackState>(builder: (context, state) {
           return Visibility(
-              visible: state.feedbackChannel == FeedbackChannel.email,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: const BorderRadius.all(
-                    Radius.circular(8.0),
-                  ),
-                  border: Border.all(color: Colors.white),
+            visible: state.feedbackChannel == FeedbackChannel.email,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: const BorderRadius.all(
+                  Radius.circular(8.0),
                 ),
-                child: TextFormField(
-                  initialValue: state.contact,
-                  onFieldSubmitted: (String email) {
-                    if (!email.isValidEmail()) {
-                      context.read<FeedbackBloc>().add(
-                          const FeedbackFormError('Invalid email address'));
-                      return;
-                    }
-                    context
-                        .read<FeedbackBloc>()
-                        .add(SetFeedbackContact(contact: email));
-                  },
-                  style: Theme.of(context).textTheme.bodyText1,
-                  enableSuggestions: true,
-                  cursorWidth: 1,
-                  autofocus: false,
-                  cursorColor: CustomColors.appColorBlue,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    contentPadding: const EdgeInsets.fromLTRB(16, 12, 0, 12),
-                    fillColor: Colors.white,
-                    focusedBorder: OutlineInputBorder(
-                      borderSide:
-                          const BorderSide(color: Colors.white, width: 1.0),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide:
-                          const BorderSide(color: Colors.white, width: 1.0),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    border: OutlineInputBorder(
-                      borderSide:
-                          const BorderSide(color: Colors.white, width: 1.0),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    hintText: 'Enter your email',
-                    hintStyle: Theme.of(context).textTheme.bodyText1?.copyWith(
-                          color: CustomColors.appColorBlack.withOpacity(0.32),
-                        ),
-                    prefixStyle: Theme.of(context)
-                        .textTheme
-                        .bodyText1
-                        ?.copyWith(
-                          color: CustomColors.appColorBlack.withOpacity(0.32),
-                        ),
-                    errorStyle: const TextStyle(
-                      fontSize: 0,
-                    ),
+                border: Border.all(color: Colors.white),
+              ),
+              child: TextFormField(
+                initialValue: state.contact,
+                onFieldSubmitted: (String email) {
+                  if (!email.isValidEmail()) {
+                    context.read<FeedbackBloc>().add(
+                          const FeedbackFormError('Invalid email address'),
+                        );
+
+                    return;
+                  }
+                  context.read<FeedbackBloc>().add(
+                        SetFeedbackContact(contact: email),
+                      );
+                },
+                style: Theme.of(context).textTheme.bodyText1,
+                enableSuggestions: true,
+                cursorWidth: 1,
+                autofocus: false,
+                cursorColor: CustomColors.appColorBlue,
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(
+                  contentPadding: const EdgeInsets.fromLTRB(16, 12, 0, 12),
+                  fillColor: Colors.white,
+                  focusedBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(color: Colors.white, width: 1.0),
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(color: Colors.white, width: 1.0),
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  border: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(color: Colors.white, width: 1.0),
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  hintText: 'Enter your email',
+                  hintStyle: Theme.of(context).textTheme.bodyText1?.copyWith(
+                        color: CustomColors.appColorBlack.withOpacity(0.32),
+                      ),
+                  prefixStyle: Theme.of(context).textTheme.bodyText1?.copyWith(
+                        color: CustomColors.appColorBlack.withOpacity(0.32),
+                      ),
+                  errorStyle: const TextStyle(
+                    fontSize: 0,
                   ),
                 ),
-              ));
+              ),
+            ),
+          );
         }),
         const SizedBox(
           height: 16,

@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
@@ -10,12 +8,15 @@ part 'feedback_state.dart';
 
 class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
   FeedbackBloc()
-      : super(const FeedbackState(
+      : super(
+          const FeedbackState(
             feedbackType: FeedbackType.none,
             feedbackChannel: FeedbackChannel.none,
             contact: '',
             feedback: '',
-            loading: false)) {
+            loading: false,
+          ),
+        ) {
     on<SetFeedbackType>(_onSetFeedbackType);
     on<SetFeedbackContact>(_onSetFeedbackContact);
     on<GoToTypeStep>(_onGoToTypeStep);
@@ -31,163 +32,215 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     FeedbackFormError event,
     Emitter<FeedbackState> emit,
   ) {
-    emit(FeedbackLoadingState(
+    emit(
+      FeedbackLoadingState(
         feedbackType: state.feedbackType,
         feedbackChannel: state.feedbackChannel,
         contact: state.contact,
         feedback: state.feedback,
-        loading: true));
+        loading: true,
+      ),
+    );
 
-    return emit(FeedbackErrorState(event.error,
+    return emit(
+      FeedbackErrorState(
+        event.error,
         feedbackType: state.feedbackType,
         feedbackChannel: state.feedbackChannel,
         contact: state.contact,
         feedback: state.feedback,
-        loading: false));
+        loading: false,
+      ),
+    );
   }
 
   void _onGoToTypeStep(
     GoToTypeStep event,
     Emitter<FeedbackState> emit,
   ) {
-    emit(FeedbackLoadingState(
+    emit(
+      FeedbackLoadingState(
         feedbackType: state.feedbackType,
         feedbackChannel: state.feedbackChannel,
         contact: state.contact,
         feedback: state.feedback,
-        loading: true));
+        loading: true,
+      ),
+    );
 
-    return emit(FeedbackTypeState(
+    return emit(
+      FeedbackTypeState(
         feedbackType: state.feedbackType,
         feedbackChannel: state.feedbackChannel,
         contact: state.contact,
         feedback: state.feedback,
-        loading: false));
+        loading: false,
+      ),
+    );
   }
 
   void _onGoToChannelStep(
     GoToChannelStep event,
     Emitter<FeedbackState> emit,
   ) {
-    emit(FeedbackLoadingState(
+    emit(
+      FeedbackLoadingState(
         feedbackType: state.feedbackType,
         feedbackChannel: state.feedbackChannel,
         contact: state.contact,
         feedback: state.feedback,
-        loading: true));
+        loading: true,
+      ),
+    );
 
-    return emit(FeedbackChannelState(
+    return emit(
+      FeedbackChannelState(
         feedbackType: state.feedbackType,
         feedbackChannel: state.feedbackChannel,
         contact: state.contact,
         feedback: state.feedback,
-        loading: false));
+        loading: false,
+      ),
+    );
   }
 
   void _onGoToFormStep(
     GoToFormStep event,
     Emitter<FeedbackState> emit,
   ) {
-    emit(FeedbackLoadingState(
+    emit(
+      FeedbackLoadingState(
         feedbackType: state.feedbackType,
         feedbackChannel: state.feedbackChannel,
         contact: state.contact,
         feedback: state.feedback,
-        loading: true));
+        loading: true,
+      ),
+    );
 
-    return emit(FeedbackFormState(
+    return emit(
+      FeedbackFormState(
         feedbackType: state.feedbackType,
         feedbackChannel: state.feedbackChannel,
         contact: state.contact,
         feedback: state.feedback,
-        loading: false));
+        loading: false,
+      ),
+    );
   }
 
   void _onClearFeedback(
     ClearFeedback event,
     Emitter<FeedbackState> emit,
   ) {
-    return emit(const FeedbackTypeState(
+    return emit(
+      const FeedbackTypeState(
         feedbackType: FeedbackType.none,
         feedbackChannel: FeedbackChannel.none,
         contact: '',
         feedback: '',
-        loading: false));
+        loading: false,
+      ),
+    );
   }
 
   void _onSetFeedback(
     SetFeedback event,
     Emitter<FeedbackState> emit,
   ) {
-    emit(FeedbackLoadingState(
+    emit(
+      FeedbackLoadingState(
         feedbackType: state.feedbackType,
         feedbackChannel: state.feedbackChannel,
         contact: state.contact,
         feedback: state.feedback,
-        loading: true));
+        loading: true,
+      ),
+    );
 
-    return emit(FeedbackFormState(
+    return emit(
+      FeedbackFormState(
         feedbackType: state.feedbackType,
         feedbackChannel: state.feedbackChannel,
         contact: state.contact,
         feedback: event.feedback,
-        loading: false));
+        loading: false,
+      ),
+    );
   }
 
   void _onSetFeedbackContact(
     SetFeedbackContact event,
     Emitter<FeedbackState> emit,
   ) {
-    emit(FeedbackLoadingState(
+    emit(
+      FeedbackLoadingState(
         feedbackType: state.feedbackType,
         feedbackChannel: state.feedbackChannel,
         contact: state.contact,
         feedback: state.feedback,
-        loading: true));
+        loading: true,
+      ),
+    );
 
-    return emit(FeedbackChannelState(
+    return emit(
+      FeedbackChannelState(
         feedbackType: state.feedbackType,
         feedbackChannel: state.feedbackChannel,
         contact: event.contact,
         feedback: state.feedback,
-        loading: false));
+        loading: false,
+      ),
+    );
   }
 
   void _onSetFeedbackType(
     SetFeedbackType event,
     Emitter<FeedbackState> emit,
   ) {
-    emit(FeedbackLoadingState(
+    emit(
+      FeedbackLoadingState(
         feedbackType: state.feedbackType,
         feedbackChannel: state.feedbackChannel,
         contact: state.contact,
         feedback: state.feedback,
-        loading: true));
+        loading: true,
+      ),
+    );
 
-    return emit(FeedbackTypeState(
+    return emit(
+      FeedbackTypeState(
         feedbackType: event.feedbackType,
         feedbackChannel: state.feedbackChannel,
         contact: state.contact,
         feedback: state.feedback,
-        loading: false));
+        loading: false,
+      ),
+    );
   }
 
   void _onSetFeedbackChannel(
     SetFeedbackChannel event,
     Emitter<FeedbackState> emit,
   ) {
-    emit(FeedbackLoadingState(
+    emit(
+      FeedbackLoadingState(
         feedbackType: state.feedbackType,
         feedbackChannel: state.feedbackChannel,
         contact: state.contact,
         feedback: state.feedback,
-        loading: true));
+        loading: true,
+      ),
+    );
 
-    return emit(FeedbackChannelState(
+    return emit(
+      FeedbackChannelState(
         feedbackType: state.feedbackType,
         feedbackChannel: event.feedbackChannel,
         contact: state.contact,
         feedback: state.feedback,
-        loading: false));
+        loading: false,
+      ),
+    );
   }
 }

@@ -33,28 +33,33 @@ class _FeedbackPageState extends State<FeedbackPage> {
               height: 27,
             ),
             BlocConsumer<FeedbackBloc, FeedbackState>(
-                listenWhen: (previous, current) {
-              return current is FeedbackErrorState;
-            }, listener: (context, state) {
-              if (state is FeedbackErrorState) {
-                showSnackBar(context, state.error);
-              }
-            }, buildWhen: (previous, current) {
-              if (current is FeedbackErrorState) {
-                return false;
-              }
-              return previous is FeedbackLoadingState;
-            }, builder: (context, state) {
-              if (state is FeedbackChannelState) {
-                return const FeedbackChannelStep();
-              }
+              listenWhen: (previous, current) {
+                return current is FeedbackErrorState;
+              },
+              listener: (context, state) {
+                if (state is FeedbackErrorState) {
+                  showSnackBar(context, state.error);
+                }
+              },
+              buildWhen: (previous, current) {
+                if (current is FeedbackErrorState) {
+                  return false;
+                }
 
-              if (state is FeedbackFormState) {
-                return const FeedbackForm();
-              }
+                return previous is FeedbackLoadingState;
+              },
+              builder: (context, state) {
+                if (state is FeedbackChannelState) {
+                  return const FeedbackChannelStep();
+                }
 
-              return const FeedbackTypeStep();
-            }),
+                if (state is FeedbackFormState) {
+                  return const FeedbackForm();
+                }
+
+                return const FeedbackTypeStep();
+              },
+            ),
             const Spacer(),
             const FeedbackNavigationButtons(),
             const SizedBox(
