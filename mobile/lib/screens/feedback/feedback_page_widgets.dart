@@ -1,11 +1,18 @@
 import 'package:app/models/enum_constants.dart';
+import 'package:app/utils/extensions.dart';
+import 'package:app/widgets/custom_shimmer.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../blocs/feedback/feedback_bloc.dart';
+import '../../constants/config.dart';
+import '../../models/feedback.dart';
+import '../../services/rest_api.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
 import '../../widgets/buttons.dart';
-import '../../widgets/text_fields.dart';
+import '../home_page.dart';
 
 class FeedbackBackButton extends StatelessWidget {
   const FeedbackBackButton({
@@ -90,35 +97,6 @@ class FeedbackNextButton extends StatelessWidget {
   }
 }
 
-class FeedbackTypeAvatar extends StatelessWidget {
-  const FeedbackTypeAvatar({
-    super.key,
-    required this.active,
-  });
-  final bool active;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 24,
-      width: 24,
-      decoration: BoxDecoration(
-        color: active ? CustomColors.appColorBlue : Colors.white,
-        shape: BoxShape.circle,
-        border: active
-            ? Border.all(
-                color: CustomColors.appColorBlue,
-                width: 0,
-              )
-            : Border.all(
-                color: CustomColors.greyColor,
-                width: 3,
-              ),
-      ),
-    );
-  }
-}
-
 class FeedbackProgressBar extends StatelessWidget {
   const FeedbackProgressBar({
     super.key,
@@ -185,159 +163,61 @@ class FeedbackProgressBar extends StatelessWidget {
   }
 }
 
-class EmailFeedbackInputField extends StatelessWidget {
-  const EmailFeedbackInputField({
-    super.key,
-    required this.onEmailChange,
-    required this.initialValue,
-  });
-  final Function(String) onEmailChange;
-  final String initialValue;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 56,
-      alignment: Alignment.center,
-      padding: const EdgeInsets.only(left: 15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: const BorderRadius.all(
-          Radius.circular(8.0),
-        ),
-        border: Border.all(color: Colors.white),
-      ),
-      child: Center(
-        child: TextFormField(
-          initialValue: initialValue,
-          autofocus: true,
-          style: Theme.of(context).textTheme.bodyText2,
-          enableSuggestions: false,
-          cursorWidth: 1,
-          cursorColor: CustomColors.appColorBlue,
-          keyboardType: TextInputType.emailAddress,
-          onChanged: onEmailChange,
-          decoration: InputDecoration(
-            focusedBorder: InputBorder.none,
-            enabledBorder: InputBorder.none,
-            hintText: 'Enter your email',
-            suffixIcon: GestureDetector(
-              onTap: () {
-                onEmailChange('');
-              },
-              child: const TextInputCloseButton(),
-            ),
-            hintStyle: Theme.of(context).textTheme.bodyText2?.copyWith(
-                  color: CustomColors.appColorBlack.withOpacity(0.32),
-                ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class FeedbackFormInputField extends StatelessWidget {
-  const FeedbackFormInputField({
-    super.key,
-    required this.onFeedbackChange,
-    required this.initialValue,
-  });
-  final Function(String) onFeedbackChange;
-  final String initialValue;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 255,
-      alignment: Alignment.center,
-      padding: const EdgeInsets.only(left: 15, right: 15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: const BorderRadius.all(
-          Radius.circular(8.0),
-        ),
-        border: Border.all(color: Colors.white),
-      ),
-      child: Center(
-        child: TextFormField(
-          autofocus: true,
-          initialValue: initialValue,
-          style: Theme.of(context).textTheme.bodyText2,
-          enableSuggestions: false,
-          cursorWidth: 1,
-          maxLines: 12,
-          cursorColor: CustomColors.appColorBlue,
-          keyboardType: TextInputType.emailAddress,
-          onChanged: onFeedbackChange,
-          decoration: InputDecoration(
-            focusedBorder: InputBorder.none,
-            enabledBorder: InputBorder.none,
-            hintText: 'Please tell us the details',
-            hintStyle: Theme.of(context).textTheme.bodyText2?.copyWith(
-                  color: CustomColors.appColorBlack.withOpacity(0.32),
-                ),
-            counterStyle: Theme.of(context).textTheme.bodyText2,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class FeedbackCard extends StatelessWidget {
   const FeedbackCard({
     super.key,
-    required this.activeCard,
-    required this.index,
+    required this.active,
     required this.title,
-    required this.updateIndex,
   });
 
-  final int activeCard;
-  final int index;
+  final bool active;
   final String title;
-  final Function(int) updateIndex;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => updateIndex(index),
-      child: Container(
-        padding: const EdgeInsets.only(left: 16, right: 16),
-        height: 56,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(
-            Radius.circular(8.0),
+    return Container(
+      padding: const EdgeInsets.only(left: 16, right: 16),
+      height: 56,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.all(
+          Radius.circular(8.0),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            height: 24,
+            width: 24,
+            decoration: BoxDecoration(
+              color: active ? CustomColors.appColorBlue : Colors.white,
+              shape: BoxShape.circle,
+              border: active
+                  ? Border.all(
+                      color: CustomColors.appColorBlue,
+                      width: 0,
+                    )
+                  : Border.all(
+                      color: CustomColors.greyColor,
+                      width: 3,
+                    ),
+            ),
           ),
-        ),
-        child: Row(
-          children: [
-            FeedbackTypeAvatar(active: index == activeCard),
-            const SizedBox(
-              width: 16,
-            ),
-            Text(
-              title,
-              style: Theme.of(context).textTheme.bodyText1,
-            ),
-          ],
-        ),
+          const SizedBox(
+            width: 16,
+          ),
+          Text(
+            title,
+            style: Theme.of(context).textTheme.bodyText1,
+          ),
+        ],
       ),
     );
   }
 }
 
 class FeedbackForm extends StatelessWidget {
-  const FeedbackForm({
-    super.key,
-    required this.onFeedbackChange,
-    required this.initialValue,
-  });
-  final Function(String) onFeedbackChange;
-  final String initialValue;
-
+  const FeedbackForm({super.key});
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -354,134 +234,65 @@ class FeedbackForm extends StatelessWidget {
         const SizedBox(
           height: 16,
         ),
-        FeedbackFormInputField(
-          onFeedbackChange: onFeedbackChange,
-          initialValue: initialValue,
-        ),
+        BlocBuilder<FeedbackBloc, FeedbackState>(builder: (context, state) {
+          return Container(
+            height: 255,
+            alignment: Alignment.center,
+            padding: const EdgeInsets.only(left: 15, right: 15),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: const BorderRadius.all(
+                Radius.circular(8.0),
+              ),
+              border: Border.all(color: Colors.white),
+            ),
+            child: Center(
+              child: TextFormField(
+                initialValue: state.feedback,
+                style: Theme.of(context).textTheme.bodyText2,
+                enableSuggestions: false,
+                cursorWidth: 1,
+                maxLines: 12,
+                cursorColor: CustomColors.appColorBlue,
+                keyboardType: TextInputType.text,
+                onChanged: (String feedback) {
+                  if (feedback != '') {
+                    context
+                        .read<FeedbackBloc>()
+                        .add(SetFeedback(feedback: feedback));
+                  }
+                },
+                onFieldSubmitted: (String feedback) {
+                  if (feedback == '') {
+                    context
+                        .read<FeedbackBloc>()
+                        .add(const FeedbackFormError('Enter feedback'));
+                    return;
+                  }
+                  context
+                      .read<FeedbackBloc>()
+                      .add(SetFeedback(feedback: feedback));
+                },
+                decoration: InputDecoration(
+                  focusedBorder: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  hintText: 'Please tell us the details',
+                  hintStyle: Theme.of(context).textTheme.bodyText2?.copyWith(
+                        color: CustomColors.appColorBlack.withOpacity(0.32),
+                      ),
+                  counterStyle: Theme.of(context).textTheme.bodyText2,
+                ),
+              ),
+            ),
+          );
+        }),
       ],
     );
   }
 }
 
-class FeedbackNavigationButtons extends StatelessWidget {
-  const FeedbackNavigationButtons({
-    super.key,
-    required this.step,
-    required this.feedbackType,
-    required this.feedbackChannel,
-    required this.updateStep,
-    required this.isLoading,
-    required this.onNextButtonClick,
-  });
-  final int step;
-  final FeedbackType feedbackType;
-  final FeedbackChannel feedbackChannel;
-  final Function(int) updateStep;
-  final bool isLoading;
-  final VoidCallback onNextButtonClick;
-
-  @override
-  Widget build(BuildContext context) {
-    return step == 0
-        ? GestureDetector(
-            onTap: () {
-              if (feedbackType != FeedbackType.none) {
-                updateStep(1);
-              }
-            },
-            child: NextButton(
-              buttonColor: feedbackType == FeedbackType.none
-                  ? CustomColors.appColorBlue.withOpacity(0.24)
-                  : CustomColors.appColorBlue,
-            ),
-          )
-        : Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              GestureDetector(
-                child: const FeedbackBackButton(),
-                onTap: () {
-                  updateStep(step - 1);
-                },
-              ),
-              GestureDetector(
-                onTap: onNextButtonClick,
-                child: step == 2 || feedbackChannel == FeedbackChannel.whatsApp
-                    ? FeedbackNextButton(
-                        text: 'Send',
-                        buttonColor: isLoading
-                            ? CustomColors.appColorBlue.withOpacity(0.24)
-                            : CustomColors.appColorBlue,
-                      )
-                    : FeedbackNextButton(
-                        text: 'Next',
-                        buttonColor: CustomColors.appColorBlue,
-                      ),
-              ),
-            ],
-          );
-  }
-}
-
-class FeedbackTypeStep extends StatefulWidget {
-  const FeedbackTypeStep({
-    super.key,
-    required this.feedbackType,
-    required this.initialSelection,
-  });
-  final Function(FeedbackType) feedbackType;
-  final FeedbackType initialSelection;
-  @override
-  State<FeedbackTypeStep> createState() => _FeedbackTypeStepState();
-}
-
-class _FeedbackTypeStepState extends State<FeedbackTypeStep> {
-  late int activeCard;
-
-  @override
-  void initState() {
-    super.initState();
-    switch (widget.initialSelection) {
-      case FeedbackType.inquiry:
-        setState(() => activeCard = 0);
-        break;
-      case FeedbackType.suggestion:
-        setState(() => activeCard = 1);
-        break;
-      case FeedbackType.appBugs:
-        setState(() => activeCard = 2);
-        break;
-      case FeedbackType.reportAirPollution:
-        setState(() => activeCard = 3);
-        break;
-      case FeedbackType.none:
-        setState(() => activeCard = -1);
-        break;
-    }
-  }
-
-  void _updateIndex(int index) {
-    setState(
-      () {
-        activeCard = index;
-        switch (index) {
-          case 0:
-            widget.feedbackType(FeedbackType.reportAirPollution);
-            break;
-          case 1:
-            widget.feedbackType(FeedbackType.inquiry);
-            break;
-          case 2:
-            widget.feedbackType(FeedbackType.suggestion);
-            break;
-          case 3:
-            widget.feedbackType(FeedbackType.appBugs);
-            break;
-        }
-      },
-    );
-  }
-
+class FeedbackSubmission extends StatelessWidget {
+  const FeedbackSubmission({super.key});
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -492,100 +303,281 @@ class _FeedbackTypeStepState extends State<FeedbackTypeStep> {
           height: 32,
         ),
         Text(
-          'What Type Of Feedback?',
+          'Go Ahead, Tell Us More?',
           style: CustomTextStyle.headline9(context),
         ),
         const SizedBox(
           height: 16,
         ),
-        FeedbackCard(
-          title: FeedbackType.reportAirPollution.toString(),
-          activeCard: activeCard,
-          index: 0,
-          updateIndex: _updateIndex,
-        ),
-        const SizedBox(
-          height: 4,
-        ),
-        FeedbackCard(
-          title: FeedbackType.inquiry.toString(),
-          activeCard: activeCard,
-          index: 1,
-          updateIndex: _updateIndex,
-        ),
-        const SizedBox(
-          height: 4,
-        ),
-        FeedbackCard(
-          title: FeedbackType.suggestion.toString(),
-          activeCard: activeCard,
-          index: 2,
-          updateIndex: _updateIndex,
-        ),
-        const SizedBox(
-          height: 4,
-        ),
-        FeedbackCard(
-          title: FeedbackType.appBugs.toString(),
-          activeCard: activeCard,
-          index: 3,
-          updateIndex: _updateIndex,
-        ),
+        BlocBuilder<FeedbackBloc, FeedbackState>(builder: (context, state) {
+          return Container(
+            height: 255,
+            alignment: Alignment.center,
+            padding: const EdgeInsets.only(left: 15, right: 15),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: const BorderRadius.all(
+                Radius.circular(8.0),
+              ),
+              border: Border.all(color: Colors.white),
+            ),
+            child: Center(
+              child: TextFormField(
+                initialValue: state.feedback,
+                style: Theme.of(context).textTheme.bodyText2,
+                enableSuggestions: false,
+                cursorWidth: 1,
+                maxLines: 12,
+                cursorColor: CustomColors.appColorBlue,
+                keyboardType: TextInputType.text,
+                onChanged: (String feedback) {
+                  if (feedback != '') {
+                    context
+                        .read<FeedbackBloc>()
+                        .add(SetFeedback(feedback: feedback));
+                  }
+                },
+                onFieldSubmitted: (String feedback) {
+                  if (feedback == '') {
+                    context
+                        .read<FeedbackBloc>()
+                        .add(const FeedbackFormError('Enter feedback'));
+                    return;
+                  }
+                  context
+                      .read<FeedbackBloc>()
+                      .add(SetFeedback(feedback: feedback));
+                },
+                decoration: InputDecoration(
+                  focusedBorder: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  hintText: 'Please tell us the details',
+                  hintStyle: Theme.of(context).textTheme.bodyText2?.copyWith(
+                        color: CustomColors.appColorBlack.withOpacity(0.32),
+                      ),
+                  counterStyle: Theme.of(context).textTheme.bodyText2,
+                ),
+              ),
+            ),
+          );
+        }),
       ],
     );
   }
 }
 
-class FeedbackChannelStep extends StatefulWidget {
-  const FeedbackChannelStep({
-    super.key,
-    required this.feedbackChannel,
-    required this.onEmailChange,
-    required this.initialSelection,
-    required this.initialEmailValue,
-  });
-  final Function(FeedbackChannel) feedbackChannel;
-  final Function(String) onEmailChange;
-  final FeedbackChannel initialSelection;
-  final String initialEmailValue;
+class FeedbackNavigationButtons extends StatelessWidget {
+  const FeedbackNavigationButtons({super.key});
+
   @override
-  State<FeedbackChannelStep> createState() => _FeedbackChannelStepState();
+  Widget build(BuildContext context) {
+    return BlocBuilder<FeedbackBloc, FeedbackState>(
+        buildWhen: (previous, current) {
+      if (current is FeedbackErrorState) {
+        return false;
+      }
+      return previous is FeedbackLoadingState;
+    }, builder: (context, state) {
+      if (state is FeedbackLoadingState) {
+        return const CircularProgressIndicator();
+      }
+
+      if (state is FeedbackTypeState) {
+        return GestureDetector(
+          onTap: () {
+            if (state.feedbackType != FeedbackType.none) {
+              context.read<FeedbackBloc>().add(const GoToChannelStep());
+            }
+          },
+          child: NextButton(
+            buttonColor: state.feedbackType == FeedbackType.none
+                ? CustomColors.appColorBlue.withOpacity(0.24)
+                : CustomColors.appColorBlue,
+          ),
+        );
+      }
+
+      if (state is FeedbackChannelState) {
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            GestureDetector(
+              child: const FeedbackBackButton(),
+              onTap: () {
+                context.read<FeedbackBloc>().add(const GoToTypeStep());
+              },
+            ),
+            GestureDetector(
+              onTap: () {
+                if (state.feedbackChannel != FeedbackChannel.none &&
+                    state.contact == '') {
+                  context
+                      .read<FeedbackBloc>()
+                      .add(const FeedbackFormError('Enter your email address'));
+                  return;
+                }
+                if (!state.contact.isValidEmail()) {
+                  context
+                      .read<FeedbackBloc>()
+                      .add(const FeedbackFormError('Invalid email address'));
+                  return;
+                }
+                context.read<FeedbackBloc>().add(const GoToFormStep());
+              },
+              child: FeedbackNextButton(
+                text: 'Next',
+                buttonColor: state.feedbackChannel == FeedbackChannel.none ||
+                        !state.contact.isValidEmail()
+                    ? CustomColors.appColorBlue.withOpacity(0.24)
+                    : CustomColors.appColorBlue,
+              ),
+            ),
+          ],
+        );
+      }
+
+      if (state is FeedbackFormState) {
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            GestureDetector(
+              child: const FeedbackBackButton(),
+              onTap: () {
+                context.read<FeedbackBloc>().add(const GoToChannelStep());
+              },
+            ),
+            GestureDetector(
+              onTap: () async {
+                if (state.feedback == '') {
+                  context
+                      .read<FeedbackBloc>()
+                      .add(const FeedbackFormError('Enter your feedback'));
+                  return;
+                }
+                loadingScreen(context);
+                await AirqoApiClient()
+                    .sendFeedback(
+                      UserFeedback(
+                          contactDetails: state.contact,
+                          message: state.feedback,
+                          feedbackType: state.feedbackType),
+                    )
+                    .then((value) => {
+                          Navigator.of(context).pop(),
+                          context.read<FeedbackBloc>().add(FeedbackFormError(
+                              value
+                                  ? Config.feedbackSuccessMessage
+                                  : Config.feedbackFailureMessage)),
+                          if (value)
+                            {
+                              context.read<FeedbackBloc>().add(
+                                  FeedbackFormError(
+                                      Config.feedbackSuccessMessage)),
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(builder: (context) {
+                                  return const HomePage(refresh: true);
+                                }),
+                                (r) => false,
+                              )
+                            }
+                        });
+              },
+              child: FeedbackNextButton(
+                text: 'Next',
+                buttonColor: state.feedback == ''
+                    ? CustomColors.appColorBlue.withOpacity(0.24)
+                    : CustomColors.appColorBlue,
+              ),
+            ),
+          ],
+        );
+      }
+
+      return Container();
+    });
+  }
 }
 
-class _FeedbackChannelStepState extends State<FeedbackChannelStep> {
-  late int activeCard;
+class FeedbackTypeStep extends StatelessWidget {
+  const FeedbackTypeStep({Key? key}) : super(key: key);
 
   @override
-  void initState() {
-    super.initState();
-    switch (widget.initialSelection) {
-      case FeedbackChannel.email:
-        setState(() => activeCard = 0);
-        break;
-      case FeedbackChannel.whatsApp:
-        setState(() => activeCard = 1);
-        break;
-      case FeedbackChannel.none:
-        setState(() => activeCard = -1);
-        break;
-    }
+  Widget build(BuildContext context) {
+    return BlocBuilder<FeedbackBloc, FeedbackState>(builder: (context, state) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(
+            height: 32,
+          ),
+          Text(
+            'What Type Of Feedback?',
+            style: CustomTextStyle.headline9(context),
+          ),
+          const SizedBox(
+            height: 16,
+          ),
+          GestureDetector(
+            onTap: () {
+              _updateType(context, FeedbackType.reportAirPollution);
+            },
+            child: FeedbackCard(
+              title: FeedbackType.reportAirPollution.toString(),
+              active: state.feedbackType == FeedbackType.reportAirPollution,
+            ),
+          ),
+          const SizedBox(
+            height: 4,
+          ),
+          GestureDetector(
+            onTap: () {
+              _updateType(context, FeedbackType.inquiry);
+            },
+            child: FeedbackCard(
+              title: FeedbackType.inquiry.toString(),
+              active: state.feedbackType == FeedbackType.inquiry,
+            ),
+          ),
+          const SizedBox(
+            height: 4,
+          ),
+          GestureDetector(
+            onTap: () {
+              _updateType(context, FeedbackType.suggestion);
+            },
+            child: FeedbackCard(
+              title: FeedbackType.suggestion.toString(),
+              active: state.feedbackType == FeedbackType.suggestion,
+            ),
+          ),
+          const SizedBox(
+            height: 4,
+          ),
+          GestureDetector(
+            onTap: () {
+              _updateType(context, FeedbackType.appBugs);
+            },
+            child: FeedbackCard(
+              title: FeedbackType.appBugs.toString(),
+              active: state.feedbackType == FeedbackType.appBugs,
+            ),
+          ),
+        ],
+      );
+    });
   }
 
-  void _updateIndex(int index) {
-    setState(
-      () {
-        activeCard = index;
-        switch (index) {
-          case 0:
-            widget.feedbackChannel(FeedbackChannel.email);
-            break;
-          case 1:
-            widget.feedbackChannel(FeedbackChannel.whatsApp);
-            break;
-        }
-      },
-    );
+  void _updateType(BuildContext context, FeedbackType feedbackType) {
+    context
+        .read<FeedbackBloc>()
+        .add(SetFeedbackType(feedbackType: feedbackType));
   }
+}
+
+class FeedbackChannelStep extends StatelessWidget {
+  const FeedbackChannelStep({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -603,33 +595,87 @@ class _FeedbackChannelStepState extends State<FeedbackChannelStep> {
         const SizedBox(
           height: 16,
         ),
-        FeedbackCard(
-          title: FeedbackChannel.email.toString(),
-          activeCard: activeCard,
-          index: 0,
-          updateIndex: _updateIndex,
-        ),
+        BlocBuilder<FeedbackBloc, FeedbackState>(builder: (context, state) {
+          return GestureDetector(
+            onTap: () {
+              context.read<FeedbackBloc>().add(const SetFeedbackChannel(
+                  feedbackChannel: FeedbackChannel.email));
+            },
+            child: FeedbackCard(
+              title: FeedbackChannel.email.toString(),
+              active: state.feedbackChannel == FeedbackChannel.email,
+            ),
+          );
+        }),
         const SizedBox(
           height: 4,
         ),
-        Visibility(
-          visible: activeCard == 0,
-          child: EmailFeedbackInputField(
-            onEmailChange: widget.onEmailChange,
-            initialValue: widget.initialEmailValue,
-          ),
-        ),
+        BlocBuilder<FeedbackBloc, FeedbackState>(builder: (context, state) {
+          return Visibility(
+              visible: state.feedbackChannel == FeedbackChannel.email,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: const BorderRadius.all(
+                    Radius.circular(8.0),
+                  ),
+                  border: Border.all(color: Colors.white),
+                ),
+                child: TextFormField(
+                  initialValue: state.contact,
+                  onFieldSubmitted: (String email) {
+                    if (!email.isValidEmail()) {
+                      context.read<FeedbackBloc>().add(
+                          const FeedbackFormError('Invalid email address'));
+                      return;
+                    }
+                    context
+                        .read<FeedbackBloc>()
+                        .add(SetFeedbackContact(contact: email));
+                  },
+                  style: Theme.of(context).textTheme.bodyText1,
+                  enableSuggestions: true,
+                  cursorWidth: 1,
+                  autofocus: false,
+                  cursorColor: CustomColors.appColorBlue,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: InputDecoration(
+                    contentPadding: const EdgeInsets.fromLTRB(16, 12, 0, 12),
+                    fillColor: Colors.white,
+                    focusedBorder: OutlineInputBorder(
+                      borderSide:
+                          const BorderSide(color: Colors.white, width: 1.0),
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide:
+                          const BorderSide(color: Colors.white, width: 1.0),
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    border: OutlineInputBorder(
+                      borderSide:
+                          const BorderSide(color: Colors.white, width: 1.0),
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    hintText: 'Enter your email',
+                    hintStyle: Theme.of(context).textTheme.bodyText1?.copyWith(
+                          color: CustomColors.appColorBlack.withOpacity(0.32),
+                        ),
+                    prefixStyle: Theme.of(context)
+                        .textTheme
+                        .bodyText1
+                        ?.copyWith(
+                          color: CustomColors.appColorBlack.withOpacity(0.32),
+                        ),
+                    errorStyle: const TextStyle(
+                      fontSize: 0,
+                    ),
+                  ),
+                ),
+              ));
+        }),
         const SizedBox(
           height: 16,
-        ),
-        Visibility(
-          visible: false,
-          child: FeedbackCard(
-            title: FeedbackChannel.whatsApp.toString(),
-            activeCard: activeCard,
-            index: 1,
-            updateIndex: _updateIndex,
-          ),
         ),
       ],
     );
