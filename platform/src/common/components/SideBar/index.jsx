@@ -1,5 +1,5 @@
 import BarChartIcon from '@/icons/bar_chart.svg';
-import SideBarItem, { DropdownItem } from './SideBarItem';
+import SideBarItem, { SideBarDropdownItem } from './SideBarItem';
 import ArrowDropDownIcon from '@/icons/arrow_drop_down.svg';
 import MenuBarIcon from '@/icons/menu_bar.js';
 import { useState } from 'react';
@@ -33,13 +33,13 @@ const SideBar = () => {
             <SideBarItem label='Home' Icon={BarChartIcon} navPath='/' />
             <SideBarItem label='Notifications' Icon={BarChartIcon} />
             <SideBarItem label='Analytics' Icon={BarChartIcon} dropdown>
-              <DropdownItem itemLabel='Overview' itemPath='' />
-              <DropdownItem
+              <SideBarDropdownItem itemLabel='Overview' itemPath='' />
+              <SideBarDropdownItem
                 itemLabel='AirQlouds'
                 itemPath='/analytics/airqlouds'
               />
-              <DropdownItem itemLabel='Map view' itemPath='' />
-              <DropdownItem itemLabel='Reports' itemPath='' />
+              <SideBarDropdownItem itemLabel='Map view' itemPath='' />
+              <SideBarDropdownItem itemLabel='Reports' itemPath='' />
             </SideBarItem>
 
             <hr className='my-3 border border-[#00000014]' />

@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 import ArrowDropDownIcon from '@/icons/arrow_drop_down.svg';
 
-export const DropdownItem = ({ itemLabel, itemPath }) => {
+export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
   const router = useRouter();
 
   return (
