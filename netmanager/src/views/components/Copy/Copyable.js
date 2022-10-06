@@ -3,11 +3,13 @@ import { useDispatch } from "react-redux";
 import CopyIcon, { CopySuccessIcon } from "assets/img/CopyIcon";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import { Button } from "@material-ui/core";
+import clsx from "clsx";
 
 const Copyable = ({ value, className, width, format }) => {
   const copyRef = useRef();
   const [copied, setCopied] = useState(false);
   const dispatch = useDispatch();
+  let isDisabled = value === "-";
 
   const onClick = () => {
     // let comp = document.getElementById(componentID);
@@ -57,7 +59,9 @@ const Copyable = ({ value, className, width, format }) => {
         <CopySuccessIcon />
       ) : (
         <Button disabled={value === "-"} onClick={onClick}>
-          <CopyIcon className={className} />
+          <CopyIcon
+            className={clsx(isDisabled && "disabled-copyable-icon", className)}
+          />
         </Button>
       )}
     </div>

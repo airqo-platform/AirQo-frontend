@@ -22,6 +22,8 @@ import {
 import { DEVICE_MAINTENANCE_LOG_URI } from "config/urls/deviceMonitoring";
 import { DEVICE_RECENT_FEEDS } from "config/urls/dataManagement";
 
+axios.defaults.headers.common.Authorization = `JWT ${process.env.Authorization}`;
+
 export const getAllDevicesApi = async () => {
   return await axios.get(ALL_DEVICES_URI).then((response) => response.data);
 };
