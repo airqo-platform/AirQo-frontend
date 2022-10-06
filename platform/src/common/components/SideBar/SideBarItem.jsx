@@ -25,7 +25,11 @@ const SideBarItem = ({ Icon, label, dropdown, active, navPath, children }) => {
   const handleToggleDropdown = () => setToggleDropdown(!toggleDropdown);
 
   return (
-    <div className={`${toggleDropdown && 'bg-[#D9D9D9] rounded-lg'}`}>
+    <div
+      className={`${
+        toggleDropdown && 'bg-[#D9D9D9] rounded-lg'
+      } cursor-pointer`}
+    >
       <Link href={navPath || ''}>
         <div
           className={`flex items-center justify-between w-full h-12 ${
