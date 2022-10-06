@@ -1,4 +1,5 @@
 import 'package:animations/animations.dart';
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/on_boarding/profile_setup_screen.dart';
 import 'package:app/screens/on_boarding/setup_complete_screeen.dart';
@@ -7,8 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../blocs/nearby_location/nearby_location_bloc.dart';
-import '../../blocs/nearby_location/nearby_location_event.dart';
 import '../../services/app_service.dart';
 import '../../services/firebase_service.dart';
 import '../../services/local_storage.dart';

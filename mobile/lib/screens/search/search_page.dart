@@ -1,10 +1,8 @@
+import 'package:app/blocs/blocs.dart';
 import 'package:app/screens/search/search_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../blocs/search/search_bloc.dart';
-import '../../blocs/search/search_event.dart';
-import '../../blocs/search/search_state.dart';
 import '../../themes/colors.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/custom_shimmer.dart';

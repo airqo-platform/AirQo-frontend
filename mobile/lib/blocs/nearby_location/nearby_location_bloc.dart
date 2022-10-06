@@ -1,5 +1,6 @@
 import 'package:app/models/models.dart';
 import 'package:bloc/bloc.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../../services/hive_service.dart';
 import '../../services/location_service.dart';
@@ -22,15 +23,22 @@ class NearbyLocationBloc
     try {
       emit(SearchingNearbyLocationsState());
 
+      final profile = await Profile.getProfile();
+      if (!profile.preferences.location) {
+        return emit(
+          const NearbyLocationStateError(
+            error: NearbyAirQualityError.locationNotAllowed,
+          ),
+        );
+      }
+
       final locationEnabled =
           await PermissionService.checkPermission(AppPermission.location);
 
       if (!locationEnabled) {
-        await HiveService.updateNearbyAirQualityReadings([]);
-
         return emit(
           const NearbyLocationStateError(
-            error: NearbyAirQualityError.locationDisabled,
+            error: NearbyAirQualityError.locationDenied,
           ),
         );
       }
@@ -59,6 +67,12 @@ class NearbyLocationBloc
       await logException(
         exception,
         stackTrace,
+      );
+
+      return emit(
+        const NearbyLocationStateError(
+          error: NearbyAirQualityError.locationDenied,
+        ),
       );
     }
   }

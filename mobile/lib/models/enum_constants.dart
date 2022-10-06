@@ -46,8 +46,21 @@ enum AppPermission {
 }
 
 enum NearbyAirQualityError {
-  locationDisabled,
-  noNearbyAirQualityReadings,
+  locationDenied(
+    'Grant location to the AirQo app in the your phone settings',
+  ),
+  locationDisabled(
+    'Turn on location to get air quality near you',
+  ),
+  locationNotAllowed('Enable location in the settings page'),
+  noNearbyAirQualityReadings('No nearby air quality readings');
+
+  const NearbyAirQualityError(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
 }
 
 @HiveType(typeId: 110, adapterName: 'AppNotificationTypeAdapter')
