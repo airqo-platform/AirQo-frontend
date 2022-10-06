@@ -36,25 +36,45 @@ class AirQualityReading extends HiveObject {
   ) {
     final data = snapshot.data()!;
 
+    final referenceSite =
+        data.containsKey('referenceSite') ? data['referenceSite'] : '';
+    final source = data.containsKey('source') ? data['source'] : '';
+    final latitude = data.containsKey('latitude') ? data['latitude'] : 0.0;
+    final longitude = data.containsKey('longitude') ? data['longitude'] : 0.0;
+    final pm2_5 = data.containsKey('pm2_5') ? data['pm2_5'] : 0.0;
+    final pm10 = data.containsKey('pm10') ? data['pm10'] : 0.0;
+    final distanceToReferenceSite = data.containsKey('distanceToReferenceSite')
+        ? data['distanceToReferenceSite']
+        : 0.0;
+    final country = data.containsKey('country') ? data['country'] : '';
+    final name = data.containsKey('name') ? data['name'] : '';
+    final placeId = data.containsKey('placeId') ? data['placeId'] : '';
+    final airQuality = data.containsKey('airQuality') ? data['airQuality'] : '';
+    final location = data.containsKey('location') ? data['location'] : '';
+    final region = data.containsKey('region') ? data['region'] : '';
+    final dateTime =
+        data.containsKey('dateTime') ? data['dateTime'] : DateTime.now();
+
     return AirQualityReading(
-      referenceSite: data['referenceSite'] as String? ?? '',
-      source: data['source'] as String? ?? '',
-      latitude: (data['latitude'] as num?)?.toDouble() ?? 0.0,
-      longitude: (data['longitude'] as num?)?.toDouble() ?? 0.0,
-      country: data['country'] as String? ?? '',
-      name: data['name'] as String? ?? '',
-      location: data['location'] as String? ?? '',
-      region: const RegionConverter().fromJson(data['region'] as String),
+      referenceSite: referenceSite is String ? referenceSite : '',
+      source: source is String ? source : '',
+      latitude: latitude is double ? latitude : 0.0,
+      longitude: longitude is double ? longitude : 0.0,
+      country: country is String ? country : '',
+      name: name is String ? name : '',
+      location: location is String ? location : '',
+      region: const RegionConverter().fromJson(region is String ? region : ''),
       dateTime: DateTime.fromMillisecondsSinceEpoch(
-        (data['dateTime'] as Timestamp).millisecondsSinceEpoch,
+        (dateTime is DateTime ? dateTime : DateTime.now())
+            .millisecondsSinceEpoch,
       ),
-      pm2_5: (data['pm2_5'] as num?)?.toDouble() ?? 0.0,
-      pm10: (data['pm10'] as num?)?.toDouble() ?? 0.0,
+      pm2_5: pm2_5 is double ? pm2_5 : 0.0,
+      pm10: pm10 is double ? pm10 : 0.0,
       distanceToReferenceSite:
-          (data['distanceToReferenceSite'] as num?)?.toDouble() ?? 0.0,
-      placeId: data['placeId'] as String? ?? '',
-      airQuality:
-          const AirQualityConverter().fromJson(data['airQuality'] as String),
+          distanceToReferenceSite is double ? distanceToReferenceSite : 0.0,
+      placeId: placeId is String ? placeId : '',
+      airQuality: const AirQualityConverter()
+          .fromJson(airQuality is String ? airQuality : ''),
     );
   }
 
