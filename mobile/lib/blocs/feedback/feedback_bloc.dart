@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../models/enum_constants.dart';
+import '../../models/profile.dart';
 
 part 'feedback_event.dart';
 part 'feedback_state.dart';
@@ -129,15 +130,17 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     );
   }
 
-  void _onClearFeedback(
+  Future<void> _onClearFeedback(
     ClearFeedback event,
     Emitter<FeedbackState> emit,
-  ) {
+  ) async {
+    final profile = await Profile.getProfile();
+    
     return emit(
-      const FeedbackTypeState(
+      FeedbackTypeState(
         feedbackType: FeedbackType.none,
         feedbackChannel: FeedbackChannel.none,
-        contact: '',
+        contact: profile.emailAddress,
         feedback: '',
         loading: false,
       ),
