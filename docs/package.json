@@ -14,7 +14,9 @@
   },
   "homepage": "https://github.com/airqo-platform/AirQo-frontend/docs#readme",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "docker:build": "docker build -f Dockerfile -t docsify-test:local .",
+    "docker:clean": "docker rmi docsify-test:local",
+    "docker:cli": "docker run --rm -it -p 3000:3000 docsify-test:local"
   },
   "dependencies": {
     "ansi-align": "^3.0.1",
