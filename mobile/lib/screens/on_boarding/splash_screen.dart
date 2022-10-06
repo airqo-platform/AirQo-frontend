@@ -58,10 +58,15 @@ class SplashScreenState extends State<SplashScreen> {
 
   Future<void> initialize() async {
     context.read<NearbyLocationBloc>().add(const SearchNearbyLocations());
-    await checkNetworkConnection(
-      context,
-      notifyUser: true,
-    );
+    await Future.wait([
+      checkNetworkConnection(
+        context,
+        notifyUser: true,
+      ),
+      _appService.fetchData(),
+      CloudStore.listenToAirQualityUpdates(),
+      LocationService.listenToLocationUpdates()
+    ]);
 
     final isLoggedIn = CustomAuth.isLoggedIn();
 
@@ -103,10 +108,6 @@ class SplashScreenState extends State<SplashScreen> {
         );
       },
     );
-
-    await _appService.fetchData();
-    await CloudStore.listenToAirQualityUpdates();
-    await LocationService.listenToLocationUpdates();
   }
 
   @override

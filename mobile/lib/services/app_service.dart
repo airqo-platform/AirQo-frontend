@@ -140,12 +140,8 @@ class AppService {
     }
   }
 
-  Future<void> fetchData(BuildContext buildContext) async {
+  Future<void> fetchData() async {
     await Future.wait([
-      checkNetworkConnection(
-        buildContext,
-        notifyUser: true,
-      ),
       HiveService.reloadAirQualityReadings(),
       _loadKya(),
       _loadNotifications(),
