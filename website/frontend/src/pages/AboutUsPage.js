@@ -21,13 +21,13 @@ import HorizonteCiudadanoLogo from 'assets/img/partners/Horizonte Ciudadano Foun
 import KccaLogo from 'assets/img/partners/KCCA.png';
 import KiiraLogo from 'assets/img/partners/Kiira.png';
 import MappingForChangeLogo from 'assets/img/partners/Mapping for Change UK.png';
-import MinistriesLogo from 'assets/img/partners/Ministries.png'
+import MinistriesLogo from 'assets/img/partners/Ministries.png';
 import MUKLogo from 'assets/img/partners/MUK_Logo.png';
 import NEMALogo from 'assets/img/partners/NEMA.png';
 import SheffieldUniversityLogo from 'assets/img/partners/Sheffield University UK.png';
 import UNEPLogo from 'assets/img/partners/UNEP.png';
 import UniversityOfColoradoBoulderLogo from 'assets/img/partners/University of Colorado Boulder US.png';
-import UniversityOfFloridaLogo from 'assets/img/partners/University of Florida US.png' 
+import UniversityOfFloridaLogo from 'assets/img/partners/University of Florida US.png';
 import TAHMOLogo from 'assets/img/partners/TAHMO.png';
 import MMULogo from 'assets/img/partners/MMU.jpg';
 import WeHubitLogo from 'assets/img/partners/WeHubit.png';
@@ -39,11 +39,17 @@ import Vector1 from 'assets/img/about_us_vector_3.png';
 import Vector2 from 'assets/img/about-us-vector-2.png';
 import SEO from 'utils/seo';
 
+import { showGetInvolvedModal } from 'reduxStore/GetInvolved/operations';
+import { usePartnersData } from '../../reduxStore/Partners/selectors';
+import { loadPartnersData } from '../../reduxStore/Partners/operations';
+
 const AboutUsPage = () => {
     useInitScrollTop();
     const dispatch = useDispatch();
     const teamData = useTeamData();
-    
+    const partnersData = usePartnersData();
+    const showModal = () => dispatch(showGetInvolvedModal(true));
+
     const [togglePartnersDisplay, setTogglePartnersDisplay] = useState(false);
 
     const toggleFullPartnersListDisplay = () => {
@@ -51,10 +57,21 @@ const AboutUsPage = () => {
         document.getElementById('logo-table').scrollIntoView();
     };
 
+    const partnerDataGroup = partnersData
+        .map((e, i) => {
+            return i % 4 === 0 ? partnersData.slice(i, i + 4) : null;
+        })
+        .filter((e) => {
+            return e;
+        });
+    console.log('Partner Groups', partnerDataGroup);
+
+    const lastGroupArray = partnerDataGroup.length;
+
     useEffect(() => {
         if (isEmpty(teamData)) dispatch(loadTeamData());
+        if (isEmpty(partnersData)) dispatch(loadPartnersData());
     }, []);
-
     return (
         <Page>
             <div className="AboutUsPage">
@@ -189,12 +206,17 @@ const AboutUsPage = () => {
                     </div>
                     <hr />
                     <div className="AboutUsPage__team" id="team">
-                        <div className="AboutUsPage__team_info">
-                            <h3 className="section-title">Meet the team</h3>
+                        <h3 className="section-title">Meet the team</h3>
+                        <div>
                             <p className="section-info">
                                 This is our team, a community of spirited individuals who work hard to bridge the gap in
                                 air quality monitoring in Africa.
                             </p>
+                            <span className="cta-link">
+                                <a className="link" href="/careers">
+                                    Join the Team {'-->'}
+                                </a>
+                            </span>
                         </div>
                         <div className="AboutUsPage__pictorial">
                             {teamData.map((member) => (
@@ -211,114 +233,46 @@ const AboutUsPage = () => {
                     <hr />
                     <div className="AboutUsPage__partners">
                         <h3 className="section-title">Our partners</h3>
-                        <p className="section-info">
-                            We believe in the power of being stronger together. Together with our partners, we are
-                            solving large, complex air quality monitoring challenges across Africa. We are providing
-                            much-needed air quality data to Governments and individuals in the continent to facilitate
-                            policy changes that combat air pollution.
-                        </p>
+                        <div>
+                            <p className="section-info">
+                                Together with our partners, we are solving large, complex air quality monitoring
+                                challenges across Africa. We are providing much-needed air quality data to Governments
+                                and individuals in the continent to facilitate policy changes that combat air pollution.
+                            </p>
+                            <span className="cta-link">
+                                <span className="link" onClick={showModal}>
+                                    Partner with Us
+                                </span>
+                            </span>
+                        </div>
                     </div>
                     <div className="partner-logos" id="logo-table">
                         <table>
-                            <tr>
-                                <td>
-                                    <img src={MUKLogo} alt="Makerere University" />
-                                </td>
-                                <td>
-                                    <img src={GoogleLogo} alt="Google.org" />
-                                </td>
-                                <td>
-                                    <img src={WeHubitLogo} alt="WeHubit" />
-                                </td>
-                                <td>
-                                    <img src={USEmbassyLogo} alt="US Mission" />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <img src={UNEPLogo} alt="UNEP" />
-                                </td>
-                                <td>
-                                    <img src={WRILogo} alt="World Resource Institute" />
-                                </td>
-                                <td>
-                                    <img src={TAHMOLogo} alt="TAHMO" />
-                                </td>
-                                <td>
-                                    <img src={WorldBankLogo} alt="World Bank Group" />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <img src={NEMALogo} alt="NEMA" />
-                                </td>
-                                <td>
-                                    <img src={KccaLogo} alt="KCCA" />
-                                </td>
-                                <td>
-                                    <img src={MinistriesLogo} alt="Ugandan Ministries" />
-                                </td>
-                                <td>
-                                    <img src={FortPortalCityLogo} alt="Fort Portal City" />
-                                </td>
-                            </tr>
-                            {togglePartnersDisplay && (
-                                <>
-                                    <tr>
-                                        <td>
-                                            <img src={KiiraLogo} alt="Kiira" />
-                                        </td>
-                                        <td>
-                                            <img src={NRFLogo} alt="National Research Foundation" />
-                                        </td>
-                                        <td>
-                                            <img src={ZindiLogo} alt="Zindi" />
-                                        </td>
-                                        <td>
-                                            <img src={EpsrcLogo} alt="EPSRC" />
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <img src={DevelopmentImpactLabLogo} alt="Development Impact Lab" />
-                                        </td>
-                                        <td>
-                                            <img src={HorizonteCiudadanoLogo} alt="Horizonte Ciudadano" />
-                                        </td>
-                                        <td>
-                                            <img src={SwedishEmbassyKampalaLogo} alt="Swedish Embassy Uganda" />
-                                        </td>
-                                        <td>
-                                            <img src={MMULogo} alt="Mountains of the Moon university" />
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <img src={AfriqairLogo} alt="Afriqair" />
-                                        </td>
-                                        <td>
-                                            <img src={MappingForChangeLogo} alt="Mapping for Change" />
-                                        </td>
-                                        <td>
-                                            <img
-                                                src={UniversityOfColoradoBoulderLogo}
-                                                alt="University of Colorado Boulder"
-                                            />
-                                        </td>
-                                        <td>
-                                            <img src={UniversityOfFloridaLogo} alt="University of Florida" />
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <img src={SheffieldUniversityLogo} alt="Sheffield University" />
-                                        </td>
-                                        <td>
-                                            <img src={BirminghamUniLogo} alt="University of Birmingham" />
-                                        </td>
-                                    </tr>
-                                </>
-                            )}
+                            <tbody>
+                                {partnersData.length > 0 ? (
+                                    partnerDataGroup.slice(0, 3).map((partnerGroup, key) => (
+                                        <tr key={key}>
+                                            {partnerGroup.map((partner) => (
+                                                <td key={partner.id}>
+                                                    <img src={partner.partner_logo} alt={partner.partner_name} />
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <span></span>
+                                )}
+                                {togglePartnersDisplay &&
+                                    partnerDataGroup.slice(3, lastGroupArray).map((partnerGroup, key) => (
+                                        <tr key={key}>
+                                            {partnerGroup.map((partner) => (
+                                                <td key={partner.id}>
+                                                    <img src={partner.partner_logo} alt={partner.partner_name} />
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    ))}
+                            </tbody>
                         </table>
                         <button className="partners-toggle-button" onClick={toggleFullPartnersListDisplay}>
                             {togglePartnersDisplay ? 'See less' : 'See more'}

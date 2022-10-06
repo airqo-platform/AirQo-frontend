@@ -13,9 +13,6 @@ const AfricanCitiesPage = React.lazy(() => import('src/pages/OurSolutions/Africa
 const AboutUsPage = React.lazy(() => import('src/pages/AboutUsPage'));
 const ContactUsPage = React.lazy(() => import('src/pages/ContactUs/ContactUs'));
 const ContactForm = React.lazy(() => import('src/pages/ContactUs/ContactForm'));
-const GetInvolved = React.lazy(() => import('src/pages/GetInvolved'));
-const Register = React.lazy(() => import('src/pages/GetInvolved/Register'));
-const CheckMail = React.lazy(() => import('src/pages/GetInvolved/CheckMail'));
 const Feedback = React.lazy(() => import('src/pages/ContactUs/Feedback'));
 const ExploreData = React.lazy(() => import('src/pages/ExploreData'));
 const CareerPage = React.lazy(() => import('src/pages/CareerPage'));
@@ -53,9 +50,6 @@ const App = () => {
                         <Route path="/contact" element={<ContactUsPage />} />
                         <Route path="/contact/form" element={<ContactForm />} />
                         <Route path="/contact/sent" element={<Feedback />} />
-                        <Route path="/get-involved" element={<GetInvolved />} />
-                        <Route path="/get-involved/register" element={<Register />} />
-                        <Route path="/get-involved/check-mail" element={<CheckMail />} />
                         <Route path="/explore-data" element={<ExploreData />} />
                         <Route path="/explore-data/download-apps" element={<ExploreApp />} />
                         <Route path="/explore-data/get-started" element={<ExploreGetStarted />} />
