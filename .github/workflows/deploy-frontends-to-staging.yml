@@ -9,6 +9,7 @@ on:
 
 jobs:
   image-tag:
+    if: github.event.pull_request.merged == true
     name: create image tag
     runs-on: ubuntu-latest
     outputs:
@@ -211,14 +212,9 @@ jobs:
           echo "  GS_BUCKET_NAME: ${{ secrets.WEBSITE_STAGE_GS_BUCKET_NAME }}" >> .env.yaml
           echo "  REACT_WEB_STATIC_HOST: ${{ secrets.WEBSITE_STAGE_REACT_WEB_STATIC_HOST }}" >> .env.yaml
           echo "  SECRET_KEY: ${{ secrets.WEBSITE_STAGE_SECRET_KEY }}" >> .env.yaml
-          echo "  REACT_NETMANAGER_BASE_URL: ${{ secrets.WEBSITE_STAGE_REACT_NETMANAGER_BASE_URL }}" >> .env.yaml
-          echo "  REACT_APP_BASE_AIRQLOUDS_URL: ${{ secrets.WEBSITE_REACT_APP_BASE_AIRQLOUDS_URL }}" >> .env.yaml
-          echo "  REACT_APP_BASE_NEWSLETTER_URL: ${{ secrets.WEBSITE_REACT_APP_BASE_NEWSLETTER_URL }}" >> .env.yaml
           echo "  DJANGO_ALLOWED_HOSTS: ${{ secrets.WEBSITE_DJANGO_ALLOWED_HOSTS }}" >> .env.yaml
           echo "  DEBUG: False" >> .env.yaml
           echo "  GOOGLE_APPLICATION_CREDENTIALS: /app/google_application_credentials.json" >> .env.yaml
-          echo "  REACT_APP_WEBSITE_BASE_URL: ${{ secrets.WEBSITE_STAGE_REACT_APP_WEBSITE_BASE_URL }}" >> .env.yaml
-          echo "  REACT_APP_AUTHORIZATION_TOKEN: ${{ secrets.WEBSITE_STAGE_REACT_APP_AUTHORIZATION_TOKEN }}" >> .env.yaml
 
       - name: Build and Push Docker Image
         run: |
