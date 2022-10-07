@@ -69,7 +69,7 @@ const markerDetailsMapper = {
 
 const getMarkerDetail = (markerValue, markerKey) => {
   if (markerValue === null || markerValue === undefined)
-    return ["marker-unknown", "UnCategorised"];
+    return ["marker-unknown", "uncategorised"];
 
   const markerDetails = markerDetailsMapper[markerKey] || markerDetailsPM2_5;
   let keys = Object.keys(markerDetails);
@@ -81,7 +81,7 @@ const getMarkerDetail = (markerValue, markerKey) => {
       return markerDetails[keys[i]];
     }
   }
-  return ["marker-unknown", "UnCategorised"];
+  return ["marker-unknown", "uncategorised"];
 };
 
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
@@ -208,14 +208,24 @@ const MapSettings = ({
           <MenuItem onClick={() => onSensorChange(!showSensors)}>
             <Checkbox checked={showSensors} color="default" /> Sensors
           </MenuItem>
-          <MenuItem disabled onClick={() => onHeatmapChange(!showHeatmap)}>
+          <MenuItem onClick={() => onHeatmapChange(!showHeatmap)}>
             <Checkbox checked={showHeatmap} color="default" /> Heatmap
           </MenuItem>
           <Divider />
-          <MenuItem onClick={() => onCalibratedChange(!showCalibratedValues)}>
-            <Checkbox checked={showCalibratedValues} color="default" />{" "}
-            Calibrated values
-          </MenuItem>
+          {showSensors ? (
+            <MenuItem onClick={() => onCalibratedChange(!showCalibratedValues)}>
+              <Checkbox checked={showCalibratedValues} color="default" />{" "}
+              Calibrated values
+            </MenuItem>
+          ) : (
+            <MenuItem
+              onClick={() => onCalibratedChange(!showCalibratedValues)}
+              disabled
+            >
+              <Checkbox checked={showCalibratedValues} color="default" />{" "}
+              Calibrated values
+            </MenuItem>
+          )}
         </div>
       }
       open={open}
@@ -271,7 +281,7 @@ export const OverlayMap = ({
   const [map, setMap] = useState();
   const [showSensors, setShowSensors] = useState(false);
   const [showHeatMap, setShowHeatMap] = useState(true);
-  const [showCalibratedValues, setShowCalibratedValues] = useState(true);
+  const [showCalibratedValues, setShowCalibratedValues] = useState(false);
   const [showPollutant, setShowPollutant] = useState({
     pm2_5: true,
     no2: false,
@@ -285,17 +295,10 @@ export const OverlayMap = ({
   useEffect(() => {
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
-      style: "mapbox://styles/mapbox/dark-v10",
+      style: "mapbox://styles/mapbox/light-v10",
       center,
       zoom,
       maxZoom: 20,
-    });
-    map.on("style.load", () => {
-      map.setFog({
-        range: [-1, 2],
-        "horizon-blend": 0.3,
-        color: "white",
-      });
     });
     map.on("load", () => {
       map.addSource("heatmap-data", {
@@ -353,7 +356,7 @@ export const OverlayMap = ({
         popup
           .setLngLat(e.lngLat)
           .setHTML(
-            `<table>
+            `<table class="popup-table">
                 <tr>
                     <td><b>Predicted AQI</b></td>
                     <td>${average_predicted_value.toFixed(4)}</td>
@@ -407,13 +410,18 @@ export const OverlayMap = ({
   };
 
   const toggleHeatMap = () => {
+    setShowHeatMap(!showHeatMap);
     try {
       map.setLayoutProperty(
         "sensor-heat",
         "visibility",
-        showHeatMap ? "visible" : "none"
+        showHeatMap ? "none" : "visible"
       );
-      setShowHeatMap(!showHeatMap);
+      map.setLayoutProperty(
+        "sensor-point",
+        "visibility",
+        showHeatMap ? "none" : "visible"
+      );
       // eslint-disable-next-line no-empty
     } catch (err) {
       console.log("Heatmap Load error:", err);
@@ -477,21 +485,35 @@ export const OverlayMap = ({
             new mapboxgl.Marker(el)
               .setLngLat(feature.geometry.coordinates)
               .setPopup(
-                new mapboxgl.Popup({ offset: 25 }).setHTML(
-                  `<div>
-                    <div><span style="text-transform: uppercase"><b>${
-                      (sitesData[feature.properties.site_id] &&
-                        sitesData[feature.properties.site_id].name) ||
-                      (sitesData[feature.properties.site_id] &&
-                        sitesData[feature.properties.site_id].description) ||
-                      feature.properties.device ||
-                      feature.properties._id
-                    }</b></span></div>
-                    <div class="${"popup-body " + markerClass}"> AQI: ${
-                    (pollutantValue && pollutantValue.toFixed(2)) || "--"
-                  } - ${desc}</div>
+                new mapboxgl.Popup({
+                  offset: 25,
+                  className: "map-popup",
+                }).setHTML(
+                  `<div class="popup-body">
+                    <div>
+                      <span class="popup-title">
+                        <b>${
+                          (sitesData[feature.properties.site_id] &&
+                            sitesData[feature.properties.site_id].name) ||
+                          (sitesData[feature.properties.site_id] &&
+                            sitesData[feature.properties.site_id]
+                              .description) ||
+                          feature.properties.device ||
+                          feature.properties._id
+                        }</b>
+                      </span>
+                    </div>
+                    <div class="${"popup-aqi " + markerClass}"> 
+                      <span>AQI</span> </hr>  
+                      <div class="pollutant-info">
+                        <div class="pollutant-number">${
+                          (pollutantValue && pollutantValue.toFixed(2)) || "--"
+                        }</div> 
+                        <div class="pollutant-desc">${desc}</div>
+                      </div>
+                    </div>
                     <span>Last Refreshed: <b>${duration}</b> ago</span>
-                </div>`
+                  </div>`
                 )
               )
               .addTo(map);
@@ -527,6 +549,7 @@ const MapContainer = () => {
       dispatch(loadMapEventsData({ recent: "yes", external: "no" }));
     }
   }, []);
+  console.log("Heatmap values:", heatMapData);
 
   return (
     <div>
@@ -539,7 +562,7 @@ const MapContainer = () => {
             monitoringSiteData={monitoringSiteData}
           />
         ) : (
-          <CircularLoader loading={true}/>
+          <CircularLoader loading={true} />
         )}
       </ErrorBoundary>
     </div>

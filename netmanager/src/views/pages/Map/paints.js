@@ -36,8 +36,8 @@ export const circlePointPaint = {
     "interpolate",
     ["linear"],
     ["get", "predicted_value"],
-    // 0,
-    // "rgba(236,222,239,0)",
+    0,
+    "rgba(236,222,239,0)",
     0.001,
     "#28a013",
     10,
@@ -77,8 +77,8 @@ export const circlePointPaint = {
     "interpolate",
     ["linear"],
     ["get", "predicted_value"],
-    // 0,
-    // "rgba(236,222,239,0)",
+    0,
+    "rgba(236,222,239,0)",
     0.001,
     "#44e527",
     10,
@@ -137,8 +137,8 @@ export const heatMapPaint = {
   },
   "heatmap-intensity": {
     stops: [
-      [11, 1],
-      [15, 3],
+      [1, 1],
+      [500, 3],
     ],
   },
   "heatmap-color": [
@@ -161,8 +161,7 @@ export const heatMapPaint = {
   "heatmap-radius": {
     stops: [
       [1, 12],
-      [12, 22],
-      [22, 28],
+      [12, 18],
     ],
   },
   "heatmap-opacity": {
