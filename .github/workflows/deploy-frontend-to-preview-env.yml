@@ -88,7 +88,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Login to GCP
+      - name: Google login
         uses: google-github-actions/auth@v0
         with:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
@@ -176,7 +176,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Login to GCP
+      - name: Google login
         uses: google-github-actions/auth@v0
         with:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
@@ -264,7 +264,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Login to GCP
+      - name: Google login
         uses: google-github-actions/auth@v0
         with:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
@@ -341,7 +341,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Login to GCP
+      - name: Google login
         uses: google-github-actions/auth@v0
         with:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
@@ -417,7 +417,7 @@ jobs:
           username: _json_key
           password: ${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}
 
-      - name: Login to GCP
+      - name: Google login
         uses: google-github-actions/auth@v0
         with:
           credentials_json: "${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}"
