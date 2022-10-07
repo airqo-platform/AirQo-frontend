@@ -276,7 +276,7 @@ jobs:
       - name: Deploy to K8S
         run: |
           echo "=============== Update the corresponding configmap ==============="
-          kubectl create configmap --dry-run=client -o yaml --from-env-file=.calibrate/.env env-calibrate-staging | kubectl replace -f - -n staging
+          kubectl create configmap --dry-run=client -o yaml --from-env-file=calibrate/.env env-calibrate-staging | kubectl replace -f - -n staging
           echo "=============== Deploy the application ==============="
           kubectl apply -f k8s/calibrate/stage-airqo-calibrate-app.yaml
           kubectl set image deployment/airqo-stage-calibrate-app sta-calibrate-app=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }} -n staging
