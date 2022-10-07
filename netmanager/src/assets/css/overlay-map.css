@@ -28,12 +28,12 @@
     justify-content: center;
     font-size: 1.1rem;
     background: blue;
-    width: 36px;
-    height: 36px;
+    width: 23px;
+    height: 23px;
     cursor: pointer;
     color: #f3f3f3;
     font-weight: 600;
-    border-radius: 50% 50% 50% 50%;
+    border-radius: 50% 50% 50% 0;
 }
 
 
@@ -44,37 +44,37 @@
 
 .marker-good {
     background: #44e527;
-    box-shadow: 0 0 8px 3px #7eca71;
+    box-shadow: 0 0 2px 2px #7eca71;
 }
 
 .marker-moderate {
     background: #f8fe39;
     color:#4b4747;
-    box-shadow: 0 0 4px 3px #e9ec7d;
+    box-shadow: 0 0 2px 2px #e9ec7d;
 }
 
 .marker-uhfsg {
     background: #ee8327;
-    box-shadow: 0 0 6px 3px #f3a662;
+    box-shadow: 0 0 2px 2px #f3a662;
 }
 
 .marker-unhealthy {
     background: #fe0023;
-    box-shadow: 0 0 6px 3px #fe0023;
+    box-shadow: 0 0 2px 2px #ec3f56;
 }
 
 .marker-v-unhealthy {
     background: #8639c0;
-    box-shadow: 0 0 6px 3px #8639c0;
+    box-shadow: 0 0 2px 2px #8639c0;
 }
 
 .marker-hazardous {
     background: #81202e;
-    box-shadow: 0 0 6px 3px #81202e;
+    box-shadow: 0 0 2px 2px #81202e;
 }
 
 .marker-unknown {
-    background: #d1b091;
+    background: #b19174;
 }
 
 .map-popup{

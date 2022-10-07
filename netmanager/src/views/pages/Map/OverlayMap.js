@@ -111,7 +111,7 @@ const MapControllerPosition = ({ className, children, position }) => {
   );
 };
 
-const PollutantSelector = ({ className, onChange }) => {
+const PollutantSelector = ({ className, onChange, showHeatMap }) => {
   useInitScrollTop();
   const orgData = useOrgData();
   const [open, setOpen] = useState(false);
@@ -264,7 +264,11 @@ const CustomMapControl = ({
         onHeatmapChange={onHeatmapChange}
         onCalibratedChange={onCalibratedChange}
       />
-      <PollutantSelector className={className} onChange={onPollutantChange} />
+      <PollutantSelector
+        className={className}
+        onChange={onPollutantChange}
+        showHeatMap={showHeatmap}
+      />
     </MapControllerPosition>
   );
 };
@@ -279,8 +283,8 @@ export const OverlayMap = ({
   const MAX_OFFLINE_DURATION = 86400; // 24 HOURS
   const mapContainerRef = useRef(null);
   const [map, setMap] = useState();
-  const [showSensors, setShowSensors] = useState(false);
-  const [showHeatMap, setShowHeatMap] = useState(true);
+  const [showSensors, setShowSensors] = useState(true);
+  const [showHeatMap, setShowHeatMap] = useState(false);
   const [showCalibratedValues, setShowCalibratedValues] = useState(false);
   const [showPollutant, setShowPollutant] = useState({
     pm2_5: true,
@@ -295,7 +299,7 @@ export const OverlayMap = ({
   useEffect(() => {
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
-      style: "mapbox://styles/mapbox/light-v10",
+      style: "mapbox://styles/mapbox/dark-v10",
       center,
       zoom,
       maxZoom: 20,
@@ -475,14 +479,14 @@ export const OverlayMap = ({
           el.className = `marker ${
             seconds >= MAX_OFFLINE_DURATION ? "marker-grey" : markerClass
           }`;
-          el.innerText = (pollutantValue && pollutantValue.toFixed(0)) || "--";
+          // el.innerText = (pollutantValue && pollutantValue.toFixed(0)) || "--";
 
           if (
             feature.geometry.coordinates.length >= 2 &&
             feature.geometry.coordinates[0] &&
             feature.geometry.coordinates[1]
           ) {
-            new mapboxgl.Marker(el)
+            new mapboxgl.Marker(el, { rotation: -45, scale: 0.4 })
               .setLngLat(feature.geometry.coordinates)
               .setPopup(
                 new mapboxgl.Popup({
@@ -549,7 +553,6 @@ const MapContainer = () => {
       dispatch(loadMapEventsData({ recent: "yes", external: "no" }));
     }
   }, []);
-  console.log("Heatmap values:", heatMapData);
 
   return (
     <div>
