@@ -12,16 +12,8 @@
         "extensions": [".js", ".jsx"],
         "moduleDirectory": ["src", "node_modules"]
       },
-      "alias": {
-        "map": [
-          ["@/core/*", "src/core/*"],
-          ["@/lib/*", "src/lib/*"],
-          ["@/styles/*", "src/common/styles/*"],
-          ["@/icons/*", "public/icons/*"],
-          ["@/components/*", "src/common/components/*"],
-          ["@/pages/*", "src/pages/*"]
-        ],
-        "extensions": [".js", ".jsx", ".scss", ".svg"]
+      "jsconfig": {
+        "config": "jsconfig.json"
       }
     }
   },
