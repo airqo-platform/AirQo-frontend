@@ -8,7 +8,7 @@
   "settings": {
     "import/resolver": {
       "node": {
-        "paths": ["src"],
+        "paths": ["."],
         "extensions": [".js", ".jsx"]
       }
     }
