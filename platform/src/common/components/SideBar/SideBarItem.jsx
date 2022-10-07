@@ -35,6 +35,9 @@ const SideBarItem = ({ Icon, label, dropdown, active, navPath, children }) => {
           className={`flex items-center justify-between w-full h-12 ${
             !active && 'opacity-[0.16]'
           } hover:cursor-pointer`}
+          role='button'
+          tabIndex={0}
+          onKeyDown={dropdown && handleToggleDropdown}
           onClick={dropdown && handleToggleDropdown}
         >
           <div className='flex items-center'>

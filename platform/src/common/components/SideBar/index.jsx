@@ -1,16 +1,17 @@
 import BarChartIcon from '@/icons/bar_chart.svg';
-import SideBarItem, { SideBarDropdownItem } from './SideBarItem';
+
 import ArrowDropDownIcon from '@/icons/arrow_drop_down.svg';
-import MenuBarIcon from '@/icons/menu_bar.js';
+import MenuBarIcon from '@/icons/menu_bar';
 import { useState } from 'react';
 import { useWindowSize } from '@/lib/windowSize';
+import SideBarItem, { SideBarDropdownItem } from './SideBarItem';
 
 const SideBar = () => {
   const [toggleDrawer, setToggleDrawer] = useState(false);
-  let sideBarDisplayStyle = toggleDrawer
+  const sideBarDisplayStyle = toggleDrawer
     ? 'flex absolute top-16 left-0 z-10'
     : 'hidden';
-  let size = useWindowSize();
+  const size = useWindowSize();
 
   return (
     <div className='w-64'>
@@ -57,6 +58,9 @@ const SideBar = () => {
       </div>
       <div
         className='block md:hidden absolute top-4 left-4 z-30'
+        role='button'
+        tabIndex={0}
+        onKeyDown={() => setToggleDrawer(!toggleDrawer)}
         onClick={() => setToggleDrawer(!toggleDrawer)}
       >
         <MenuBarIcon />
