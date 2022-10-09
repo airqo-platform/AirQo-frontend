@@ -3,39 +3,41 @@ import 'dart:async';
 import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/firebase_service.dart';
+import 'package:app/services/rest_api.dart';
 import 'package:app/utils/distance.dart';
 import 'package:flutter/foundation.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:network_info_plus/network_info_plus.dart';
 
+import '../utils/exception.dart';
 import 'hive_service.dart';
 import 'native_api.dart';
 
 class LocationService {
-  static Future<List<String>> getAddresses(double lat, double lng) async {
-    final placeMarks = await placemarkFromCoordinates(lat, lng);
-    final addresses = <String>[];
-    for (final place in placeMarks) {
-      // print('subThoroughfare : ${place.subThoroughfare}');
-      // print('thoroughfare ${place.thoroughfare}');
-      // print('name ${place.name}');
-      // print('locality ${place.locality}');
-      // print('subLocality ${place.subLocality}');
-      // print('subAdministrativeArea ${place.subAdministrativeArea}');
-      // print('administrativeArea ${place.administrativeArea}');
-      // print('street ${place.street}');
+  static Future<String> getAddress({
+    required double latitude,
+    required double longitude,
+  }) async {
+    try {
+      final landMarks = await placemarkFromCoordinates(latitude, longitude);
+      String? address = '';
+      final landMark = landMarks.take(1).first;
 
-      var name = place.name ?? place.thoroughfare;
-      name = name ?? place.subLocality;
-      name = name ?? place.locality;
-      name = name ?? '';
-      if (name != '') {
-        addresses.add(name);
-      }
+      address = landMark.name ?? landMark.thoroughfare;
+      address = address ?? landMark.subLocality;
+      address = address ?? landMark.locality;
+
+      return address ?? '';
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
     }
 
-    return addresses;
+    return '';
   }
 
   static Future<Position?> getCurrentPosition() async {
@@ -43,16 +45,26 @@ class LocationService {
       return await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.best,
         forceAndroidLocationManager: true,
+        timeLimit: const Duration(seconds: 5),
       );
-    } catch (exception) {
-      // TODO: handle exceptions
+    } on TimeoutException catch (exception, stackTrace) {
+      debugPrint(exception.message);
+      debugPrintStack(stackTrace: stackTrace);
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
 
       try {
         return await Geolocator.getLastKnownPosition(
           forceAndroidLocationManager: true,
         );
-      } catch (exception) {
-        debugPrint(exception.toString());
+      } catch (exception, stackTrace) {
+        await logException(
+          exception,
+          stackTrace,
+        );
       }
     }
 
@@ -65,16 +77,29 @@ class LocationService {
   }) async {
     try {
       position ??= await getCurrentPosition();
+      var address = '';
 
       if (position == null) {
-        // TODO: get nearest air quality readings
-        return [];
+        final info = NetworkInfo();
+        final wifiIP = await info.getWifiIP() ?? '';
+        final geoCoordinates = await AirqoApiClient().getLocation(wifiIP);
+        position = Position(
+          longitude: geoCoordinates['longitude'],
+          latitude: geoCoordinates['latitude'],
+          timestamp: DateTime.now(),
+          accuracy: 0.0,
+          altitude: 0.0,
+          heading: 0.0,
+          speed: 0.0,
+          speedAccuracy: 0.0,
+        );
+      } else {
+        address = await getAddress(
+          latitude: position.latitude,
+          longitude: position.longitude,
+        );
       }
 
-      final addresses = await getAddresses(
-        position.latitude,
-        position.longitude,
-      );
       final airQualityReadings =
           Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
               .values
@@ -106,7 +131,9 @@ class LocationService {
           sortAirQualityReadingsByDistance(nearestAirQualityReadings)
               .take(top)
               .toList();
-      sortedReadings[0] = sortedReadings[0].copyWith(name: addresses[0]);
+      if (address.isNotEmpty) {
+        sortedReadings[0] = sortedReadings[0].copyWith(name: address);
+      }
 
       return sortedReadings;
     } catch (exception, stackTrace) {

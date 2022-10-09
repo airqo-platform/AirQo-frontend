@@ -51,6 +51,30 @@ class AirqoApiClient {
       () => 'JWT ${Config.airqoApiToken}',
     );
 
+  Future<Map<String, dynamic>> getLocation(String ipAddress) async {
+    try {
+      headers.putIfAbsent(
+        'Content-Type',
+        () => 'application/json',
+      );
+
+      final response = await httpClient.post(
+        Uri.parse(AirQoUrls.geoCoordinates),
+        headers: headers,
+        body: jsonEncode({'ip_address': ipAddress}),
+      );
+
+      return json.decode(response.body);
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return {};
+  }
+
   Future<bool> checkIfUserExists({
     String? phoneNumber,
     String? emailAddress,
@@ -258,9 +282,9 @@ class AirqoApiClient {
       };
 
       await _performPostRequest(
-        <String, dynamic>{},
-        AirQoUrls.welcomeMessage,
-        jsonEncode(body),
+        queryParams: <String, dynamic>{},
+        url: AirQoUrls.welcomeMessage,
+        body: jsonEncode(body),
       );
     } catch (exception, stackTrace) {
       await logException(
@@ -294,11 +318,11 @@ class AirqoApiClient {
     return null;
   }
 
-  Future<bool> _performPostRequest(
-    Map<String, dynamic> queryParams,
-    String url,
-    dynamic body,
-  ) async {
+  Future<bool> _performPostRequest({
+    required Map<String, dynamic> queryParams,
+    required String url,
+    required dynamic body,
+  }) async {
     try {
       url = addQueryParameters(
         queryParams,

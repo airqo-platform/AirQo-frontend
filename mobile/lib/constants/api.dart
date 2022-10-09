@@ -24,4 +24,7 @@ class AirQoUrls {
 
   static String get welcomeMessage =>
       '${Config.airqoApiUrl}notifications/welcomeMessage';
+
+  static String get geoCoordinates =>
+      '${Config.airqoApiUrl}meta-data/geo-coordinates';
 }

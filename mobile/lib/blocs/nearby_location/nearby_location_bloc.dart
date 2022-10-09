@@ -1,6 +1,5 @@
 import 'package:app/models/models.dart';
 import 'package:bloc/bloc.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import '../../services/hive_service.dart';
 import '../../services/location_service.dart';

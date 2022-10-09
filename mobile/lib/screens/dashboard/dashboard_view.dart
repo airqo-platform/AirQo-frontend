@@ -130,27 +130,27 @@ class _DashboardViewState extends State<DashboardView> {
             const SizedBox(
               height: 24,
             ),
-            Text(
-              getDateTime(),
-              style: Theme.of(context).textTheme.caption?.copyWith(
-                    color: Colors.black.withOpacity(0.5),
-                  ),
-            ),
-            const SizedBox(
-              height: 4,
-            ),
-            Text(
-              'Today’s air quality',
-              style: CustomTextStyle.headline11(context),
-            ),
-            const SizedBox(
-              height: 5,
-            ),
             Expanded(
               child: AppRefreshIndicator(
                 sliverChildDelegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final items = [
+                      Text(
+                        getDateTime(),
+                        style: Theme.of(context).textTheme.caption?.copyWith(
+                              color: Colors.black.withOpacity(0.5),
+                            ),
+                      ),
+                      const SizedBox(
+                        height: 4,
+                      ),
+                      Text(
+                        'Today’s air quality',
+                        style: CustomTextStyle.headline11(context),
+                      ),
+                      const SizedBox(
+                        height: 8,
+                      ),
                       BlocConsumer<NearbyLocationBloc, NearbyLocationState>(
                         listener: (context, state) {
                           if (state is NearbyLocationStateError) {
@@ -179,7 +179,7 @@ class _DashboardViewState extends State<DashboardView> {
                                   ).take(1).toList();
 
                                   return Padding(
-                                    padding: const EdgeInsets.only(top: 24),
+                                    padding: const EdgeInsets.only(top: 16),
                                     child: AnalyticsCard(
                                       sortedReadings.first,
                                       false,
@@ -209,21 +209,24 @@ class _DashboardViewState extends State<DashboardView> {
                             return const SizedBox();
                           }
 
-                          return DashboardKyaCard(
-                            kyaClickCallBack: _handleKyaOnClick,
-                            kya: incompleteKya[0],
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 16),
+                            child: DashboardKyaCard(
+                              kyaClickCallBack: _handleKyaOnClick,
+                              kya: incompleteKya[0],
+                            ),
                           );
                         },
+                      ),
+                      const SizedBox(
+                        height: 16,
                       ),
                       BlocBuilder<DashboardBloc, DashboardState>(
                         builder: (context, state) {
                           final airQualityReadings = state.airQualityReadings;
                           if (airQualityReadings.isEmpty) {
-                            return const Padding(
-                              padding: EdgeInsets.only(top: 16),
-                              child: Center(
-                                child: CircularProgressIndicator(),
-                              ),
+                            return const Center(
+                              child: CircularProgressIndicator(),
                             );
                           }
 
@@ -233,7 +236,8 @@ class _DashboardViewState extends State<DashboardView> {
                             itemCount: airQualityReadings.length,
                             itemBuilder: (BuildContext context, int index) {
                               return Padding(
-                                padding: const EdgeInsets.only(top: 16),
+                                padding:
+                                    EdgeInsets.only(top: index == 0 ? 0 : 16),
                                 child: AnalyticsCard(
                                   AirQualityReading.duplicate(
                                     airQualityReadings[index],
@@ -250,7 +254,7 @@ class _DashboardViewState extends State<DashboardView> {
 
                     return items[index];
                   },
-                  childCount: 3,
+                  childCount: 8,
                 ),
                 onRefresh: _refresh,
               ),

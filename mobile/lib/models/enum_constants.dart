@@ -53,7 +53,7 @@ enum NearbyAirQualityError {
     'Turn on location to get air quality near you',
   ),
   locationNotAllowed('Enable location in the settings page'),
-  noNearbyAirQualityReadings('No nearby air quality readings');
+  noNearbyAirQualityReadings('Cannot get nearby air quality readings');
 
   const NearbyAirQualityError(this.message);
 
