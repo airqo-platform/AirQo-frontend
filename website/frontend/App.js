@@ -22,9 +22,17 @@ import { loadAirQloudSummaryData } from 'reduxStore/AirQlouds/operations';
 import { ContentUganda, ContentKenya } from './src/pages/OurSolutions/AfricanCitiesPage';
 import store from './store';
 import {
-    ExploreGetStarted, ExploreUserCategory, ExploreUserProfessionType, ExploreOrganisationType, ExploreUserRegistry, ExploreRegistryConfirmation, ExploreApp, ExploreBusinessRegistry, ExploreOrganisationRegistry,
+    ExploreGetStarted,
+    ExploreUserCategory,
+    ExploreUserProfessionType,
+    ExploreOrganisationType,
+    ExploreUserRegistry,
+    ExploreRegistryConfirmation,
+    ExploreApp,
+    ExploreBusinessRegistry,
+    ExploreOrganisationRegistry,
 } from './src/pages/ExploreData';
-
+import PartnerDetailPage from './src/pages/Partners';
 
 store.dispatch(loadAirQloudSummaryData());
 
@@ -32,8 +40,7 @@ const App = () => {
     return (
         <Provider store={store}>
             <Router>
-                <Suspense
-                    fallback={<Loadspinner />}>
+                <Suspense fallback={<Loadspinner />}>
                     <Routes>
                         <Route path="/" element={<HomePage />} />
                         <Route path="/solutions/research" element={<ResearchPage />} />
@@ -54,17 +61,33 @@ const App = () => {
                         <Route path="/explore-data/download-apps" element={<ExploreApp />} />
                         <Route path="/explore-data/get-started" element={<ExploreGetStarted />} />
                         <Route path="/explore-data/get-started/user" element={<ExploreUserCategory />} />
-                        <Route path="/explore-data/get-started/user/individual" element={<ExploreUserProfessionType />} />
-                        <Route path="/explore-data/get-started/user/organisation" element={<ExploreOrganisationType />} />
+                        <Route
+                            path="/explore-data/get-started/user/individual"
+                            element={<ExploreUserProfessionType />}
+                        />
+                        <Route
+                            path="/explore-data/get-started/user/organisation"
+                            element={<ExploreOrganisationType />}
+                        />
                         <Route path="/explore-data/get-started/user/register" element={<ExploreUserRegistry />} />
-                        <Route path="/explore-data/get-started/user/register/business" element={<ExploreBusinessRegistry />} />
-                        <Route path="/explore-data/get-started/user/register/organisation" element={<ExploreOrganisationRegistry />} />
-                        <Route path="/explore-data/get-started/user/check-mail" element={<ExploreRegistryConfirmation />} />
+                        <Route
+                            path="/explore-data/get-started/user/register/business"
+                            element={<ExploreBusinessRegistry />}
+                        />
+                        <Route
+                            path="/explore-data/get-started/user/register/organisation"
+                            element={<ExploreOrganisationRegistry />}
+                        />
+                        <Route
+                            path="/explore-data/get-started/user/check-mail"
+                            element={<ExploreRegistryConfirmation />}
+                        />
+                        <Route path="/partners/:uniqueTitle" element={<PartnerDetailPage />} />
                     </Routes>
                 </Suspense>
             </Router>
         </Provider>
-    )
+    );
 };
 
 export default App;
