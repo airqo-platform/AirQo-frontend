@@ -42,12 +42,14 @@ import SEO from 'utils/seo';
 import { showGetInvolvedModal } from 'reduxStore/GetInvolved/operations';
 import { usePartnersData } from '../../reduxStore/Partners/selectors';
 import { loadPartnersData } from '../../reduxStore/Partners/operations';
+import { useNavigate } from 'react-router-dom';
 
 const AboutUsPage = () => {
     useInitScrollTop();
     const dispatch = useDispatch();
     const teamData = useTeamData();
     const partnersData = usePartnersData();
+    const navigate = useNavigate();
     const showModal = () => dispatch(showGetInvolvedModal(true));
 
     const [togglePartnersDisplay, setTogglePartnersDisplay] = useState(false);
@@ -64,9 +66,13 @@ const AboutUsPage = () => {
         .filter((e) => {
             return e;
         });
-    console.log('Partner Groups', partnerDataGroup);
 
     const lastGroupArray = partnerDataGroup.length;
+
+    const onLogoClick = (uniqueTitle) => (event) => {
+        event.preventDefault();
+        navigate(`/partners/${uniqueTitle}/`);
+    };
 
     useEffect(() => {
         if (isEmpty(teamData)) dispatch(loadTeamData());
@@ -253,21 +259,25 @@ const AboutUsPage = () => {
                                     partnerDataGroup.slice(0, 3).map((partnerGroup, key) => (
                                         <tr key={key}>
                                             {partnerGroup.map((partner) => (
-                                                <td key={partner.id}>
+                                                <td key={partner.id} onClick={onLogoClick(partner.unique_title)}>
                                                     <img src={partner.partner_logo} alt={partner.partner_name} />
                                                 </td>
                                             ))}
                                         </tr>
                                     ))
                                 ) : (
-                                    <span></span>
+                                    <span />
                                 )}
                                 {togglePartnersDisplay &&
                                     partnerDataGroup.slice(3, lastGroupArray).map((partnerGroup, key) => (
                                         <tr key={key}>
                                             {partnerGroup.map((partner) => (
                                                 <td key={partner.id}>
-                                                    <img src={partner.partner_logo} alt={partner.partner_name} />
+                                                    <img
+                                                        src={partner.partner_logo}
+                                                        alt={partner.partner_name}
+                                                        onClick={onLogoClick(partner.unique_title)}
+                                                    />
                                                 </td>
                                             ))}
                                         </tr>
