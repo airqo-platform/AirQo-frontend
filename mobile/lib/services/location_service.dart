@@ -9,7 +9,6 @@ import 'package:flutter/foundation.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:network_info_plus/network_info_plus.dart';
 
 import '../utils/exception.dart';
 import 'hive_service.dart';
@@ -80,9 +79,7 @@ class LocationService {
       var address = '';
 
       if (position == null) {
-        final info = NetworkInfo();
-        final wifiIP = await info.getWifiIP() ?? '';
-        final geoCoordinates = await AirqoApiClient().getLocation(wifiIP);
+        final geoCoordinates = await AirqoApiClient().getLocation();
         position = Position(
           longitude: geoCoordinates['longitude'],
           latitude: geoCoordinates['latitude'],

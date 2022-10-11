@@ -77,7 +77,6 @@ dependencies:
   equatable: ^2.0.3
   app_repository:
     path: packages/app_repository
-  network_info_plus: ^2.3.1
 
   # https://pub.dev/packages/http_retry
   # https://pub.dev/packages/retry

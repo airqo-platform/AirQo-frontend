@@ -51,17 +51,11 @@ class AirqoApiClient {
       () => 'JWT ${Config.airqoApiToken}',
     );
 
-  Future<Map<String, dynamic>> getLocation(String ipAddress) async {
+  Future<Map<String, dynamic>> getLocation() async {
     try {
-      headers.putIfAbsent(
-        'Content-Type',
-        () => 'application/json',
-      );
-
-      final response = await httpClient.post(
-        Uri.parse(AirQoUrls.geoCoordinates),
+      final response = await httpClient.get(
+        Uri.parse(AirQoUrls.ipGeoCoordinates),
         headers: headers,
-        body: jsonEncode({'ip_address': ipAddress}),
       );
 
       return json.decode(response.body);
