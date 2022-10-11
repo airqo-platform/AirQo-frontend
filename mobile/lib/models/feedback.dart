@@ -1,11 +1,11 @@
 import 'enum_constants.dart';
 
 class UserFeedback {
-  UserFeedback(
-    this.contactDetails,
-    this.message,
-    this.feedbackType,
-  );
+  UserFeedback({
+    required this.contactDetails,
+    required this.message,
+    required this.feedbackType,
+  });
   String contactDetails;
   String message;
   FeedbackType feedbackType;

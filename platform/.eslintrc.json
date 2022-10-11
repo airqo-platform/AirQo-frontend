@@ -8,8 +8,12 @@
   "settings": {
     "import/resolver": {
       "node": {
-        "paths": ["src"],
-        "extensions": [".js", ".jsx"]
+        "paths": ["."],
+        "extensions": [".js", ".jsx"],
+        "moduleDirectory": ["src", "node_modules"]
+      },
+      "jsconfig": {
+        "config": "jsconfig.json"
       }
     }
   },
@@ -36,6 +40,18 @@
     ],
     "import/prefer-default-export": "off",
     "react/prop-types": "off",
-    "react/jsx-props-no-spreading": "off"
+    "react/jsx-props-no-spreading": "off",
+    "react/function-component-definition": [
+      "error",
+      {
+        "namedComponents": [
+          "function-declaration",
+          "function-expression",
+          "arrow-function"
+        ],
+        "unnamedComponents": ["function-expression", "arrow-function"]
+      }
+    ],
+    "consistent-return": "off"
   }
 }
