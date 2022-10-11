@@ -71,6 +71,7 @@ class AirqoApiClient {
           : {} as Map<String, dynamic>;
       final response =
           await _performGetRequest(params, AirQoUrls.ipGeoCoordinates);
+
       return response['data'];
     } catch (exception, stackTrace) {
       await logException(

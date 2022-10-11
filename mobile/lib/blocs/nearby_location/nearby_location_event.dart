@@ -13,3 +13,13 @@ class SearchNearbyLocations extends NearbyLocationEvent {
   @override
   String toString() => 'Search nearby locations';
 }
+
+class CheckNearbyLocations extends NearbyLocationEvent {
+  const CheckNearbyLocations();
+
+  @override
+  List<Object> get props => ['reset'];
+
+  @override
+  String toString() => 'Check nearby locations';
+}

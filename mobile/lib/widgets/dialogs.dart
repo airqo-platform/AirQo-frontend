@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
 
+import '../blocs/nearby_location/nearby_location_bloc.dart';
+import '../blocs/nearby_location/nearby_location_event.dart';
 import '../models/enum_constants.dart';
 import '../screens/settings/settings_page.dart';
 import '../services/location_service.dart';
@@ -282,7 +284,9 @@ void pmInfoDialog(context, double pm2_5) {
 }
 
 Future<void> showLocationErrorSnackBar(
-    context, NearbyAirQualityError error) async {
+  context,
+  NearbyAirQualityError error,
+) async {
   final snackBar = SnackBar(
     duration: Duration(seconds: error.snackBarDuration),
     shape: RoundedRectangleBorder(
@@ -296,9 +300,10 @@ Future<void> showLocationErrorSnackBar(
       onPressed: () async {
         switch (error) {
           case NearbyAirQualityError.locationDenied:
+            await Geolocator.openAppSettings();
+            break;
           case NearbyAirQualityError.locationDisabled:
-            await Geolocator.openLocationSettings()
-                .then((_) => LocationService.allowLocationAccess());
+            await Geolocator.openLocationSettings();
             break;
           case NearbyAirQualityError.locationNotAllowed:
             await Navigator.push(

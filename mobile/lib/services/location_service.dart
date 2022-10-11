@@ -22,7 +22,7 @@ class LocationService {
     try {
       final landMarks = await placemarkFromCoordinates(latitude, longitude);
       String? address = '';
-      final landMark = landMarks.take(1).first;
+      final landMark = landMarks.first;
 
       address = landMark.name ?? landMark.thoroughfare;
       address = address ?? landMark.subLocality;

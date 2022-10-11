@@ -8,10 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../blocs/feedback/feedback_bloc.dart';
-import '../../blocs/nearby_location/nearby_location_bloc.dart';
-import '../../blocs/nearby_location/nearby_location_event.dart';
-
 import '../../services/app_service.dart';
 import '../../services/firebase_service.dart';
 import '../../services/local_storage.dart';
@@ -59,8 +55,8 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> initialize() async {
-    context.read<NearbyLocationBloc>().add(const SearchNearbyLocations());
     context.read<FeedbackBloc>().add(const ClearFeedback());
+    context.read<NearbyLocationBloc>().add(const CheckNearbyLocations());
 
     final isLoggedIn = CustomAuth.isLoggedIn();
 

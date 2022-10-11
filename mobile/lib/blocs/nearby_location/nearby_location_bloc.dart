@@ -13,6 +13,7 @@ class NearbyLocationBloc
   NearbyLocationBloc()
       : super(const NearbyLocationStateSuccess(airQualityReadings: [])) {
     on<SearchNearbyLocations>(_onSearch);
+    on<CheckNearbyLocations>(_onCheckNearbyLocations);
   }
 
   Future<void> _onSearch(
@@ -72,6 +73,42 @@ class NearbyLocationBloc
         const NearbyLocationStateError(
           error: NearbyAirQualityError.locationDenied,
         ),
+      );
+    }
+  }
+
+  Future<void> _onCheckNearbyLocations(
+    CheckNearbyLocations event,
+    Emitter<NearbyLocationState> emit,
+  ) async {
+    try {
+      final locationEnabled =
+          await PermissionService.checkPermission(AppPermission.location);
+      final profile = await Profile.getProfile();
+
+      if (locationEnabled && profile.preferences.location) {
+        final nearbyAirQualityReadings =
+            await LocationService.getNearbyAirQualityReadings(top: 8);
+
+        if (nearbyAirQualityReadings.isNotEmpty) {
+          await HiveService.updateNearbyAirQualityReadings(
+            nearbyAirQualityReadings,
+          );
+          emit(SearchingNearbyLocationsState());
+
+          return emit(
+            NearbyLocationStateSuccess(
+              airQualityReadings: nearbyAirQualityReadings,
+            ),
+          );
+        }
+      }
+
+      return;
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
       );
     }
   }
