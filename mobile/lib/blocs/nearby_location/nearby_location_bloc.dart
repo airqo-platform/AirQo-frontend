@@ -22,15 +22,6 @@ class NearbyLocationBloc
     try {
       emit(SearchingNearbyLocationsState());
 
-      final profile = await Profile.getProfile();
-      if (!profile.preferences.location) {
-        return emit(
-          const NearbyLocationStateError(
-            error: NearbyAirQualityError.locationNotAllowed,
-          ),
-        );
-      }
-
       final locationEnabled =
           await PermissionService.checkPermission(AppPermission.location);
 
@@ -38,6 +29,15 @@ class NearbyLocationBloc
         return emit(
           const NearbyLocationStateError(
             error: NearbyAirQualityError.locationDenied,
+          ),
+        );
+      }
+
+      final profile = await Profile.getProfile();
+      if (!profile.preferences.location) {
+        return emit(
+          const NearbyLocationStateError(
+            error: NearbyAirQualityError.locationNotAllowed,
           ),
         );
       }

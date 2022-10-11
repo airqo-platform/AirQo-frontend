@@ -52,13 +52,26 @@ class AirqoApiClient {
     );
 
   Future<Map<String, dynamic>> getLocation() async {
+    var ipAddress = '';
     try {
-      final response = await httpClient.get(
-        Uri.parse(AirQoUrls.ipGeoCoordinates),
-        headers: headers,
+      final ipResponse = await httpClient.get(
+        Uri.parse('https://jsonip.com/'),
       );
+      ipAddress = json.decode(ipResponse.body)['ip'];
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
 
-      return json.decode(response.body)['data'];
+    try {
+      var params = ipAddress.isNotEmpty
+          ? {'ip_address': ipAddress}
+          : {} as Map<String, dynamic>;
+      final response =
+          await _performGetRequest(params, AirQoUrls.ipGeoCoordinates);
+      return response['data'];
     } catch (exception, stackTrace) {
       await logException(
         exception,

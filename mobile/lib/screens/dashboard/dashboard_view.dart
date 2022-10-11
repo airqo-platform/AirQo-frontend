@@ -152,11 +152,10 @@ class _DashboardViewState extends State<DashboardView> {
                         height: 8,
                       ),
                       BlocConsumer<NearbyLocationBloc, NearbyLocationState>(
-                        listener: (context, state) {
+                        listener: (context, state) async {
                           if (state is NearbyLocationStateError) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              showSnackBar(context, state.error.message);
-                            });
+                            await showLocationErrorSnackBar(
+                                context, state.error);
                           }
                         },
                         builder: (context, state) {
@@ -303,9 +302,9 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   Future<void> _refresh() async {
-    context.read<NearbyLocationBloc>().add(const SearchNearbyLocations());
     context.read<DashboardBloc>().add(const InitializeDashboard());
     context.read<MapBloc>().add(const ShowAllSites());
-    await _appService.refreshDashboard(context);
+    context.read<NearbyLocationBloc>().add(const SearchNearbyLocations());
+    // await _appService.refreshDashboard(context);
   }
 }

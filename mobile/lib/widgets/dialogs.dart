@@ -3,8 +3,11 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:geolocator/geolocator.dart';
 
 import '../models/enum_constants.dart';
+import '../screens/settings/settings_page.dart';
+import '../services/location_service.dart';
 import '../themes/app_theme.dart';
 import '../themes/colors.dart';
 
@@ -276,6 +279,53 @@ void pmInfoDialog(context, double pm2_5) {
       );
     },
   );
+}
+
+Future<void> showLocationErrorSnackBar(
+    context, NearbyAirQualityError error) async {
+  final snackBar = SnackBar(
+    duration: Duration(seconds: error.snackBarDuration),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(10),
+    ),
+    elevation: 10,
+    behavior: SnackBarBehavior.floating,
+    action: SnackBarAction(
+      label: error.snackBarActionLabel,
+      textColor: CustomColors.appColorBlue,
+      onPressed: () async {
+        switch (error) {
+          case NearbyAirQualityError.locationDenied:
+          case NearbyAirQualityError.locationDisabled:
+            await Geolocator.openLocationSettings()
+                .then((_) => LocationService.allowLocationAccess());
+            break;
+          case NearbyAirQualityError.locationNotAllowed:
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) {
+                  return const SettingsPage();
+                },
+              ),
+            );
+            break;
+          case NearbyAirQualityError.noNearbyAirQualityReadings:
+            break;
+        }
+      },
+    ),
+    content: Text(
+      error.message,
+      softWrap: true,
+      textAlign: TextAlign.center,
+      style: const TextStyle(
+        color: Colors.white,
+      ),
+    ),
+    backgroundColor: CustomColors.snackBarBgColor,
+  );
+  ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
 
 Future<void> showSnackBar(
