@@ -20,8 +20,6 @@ const PartnerDetailPage = () => {
         if (isEmpty(partnerDetails)) dispatch(loadPartnersData());
     }, []);
 
-    console.log('Partner', partner);
-
     return (
         <PageMini>
             {!isEmpty(partner) &&
