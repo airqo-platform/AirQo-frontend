@@ -305,6 +305,6 @@ class _DashboardViewState extends State<DashboardView> {
     context.read<DashboardBloc>().add(const InitializeDashboard());
     context.read<MapBloc>().add(const ShowAllSites());
     context.read<NearbyLocationBloc>().add(const SearchNearbyLocations());
-    // await _appService.refreshDashboard(context);
+    await _appService.refreshDashboard(context);
   }
 }
