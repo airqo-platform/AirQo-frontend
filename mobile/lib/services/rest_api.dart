@@ -58,7 +58,7 @@ class AirqoApiClient {
         headers: headers,
       );
 
-      return json.decode(response.body);
+      return json.decode(response.body)['data'];
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -67,6 +67,25 @@ class AirqoApiClient {
     }
 
     return {};
+  }
+
+  Future<String> getCarrier(String phoneNumber) async {
+    try {
+      final response = await httpClient.post(
+        Uri.parse(AirQoUrls.mobileCarrier),
+        body: json.encode({'phone_number': phoneNumber}),
+        headers: headers,
+      );
+
+      return json.decode(response.body)['data']['carrier'];
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return '';
   }
 
   Future<bool> checkIfUserExists({
@@ -133,27 +152,6 @@ class AirqoApiClient {
     }
 
     return <Insights>[];
-  }
-
-  Future<String> getCarrier(String phoneNumber) async {
-    final url = '${AirQoUrls.carrierSearchApi}$phoneNumber';
-    final responseBody = await _performGetRequest(
-      {},
-      url,
-    );
-
-    try {
-      return responseBody != null
-          ? responseBody['data']['carrier']['name']
-          : '';
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-
-      return '';
-    }
   }
 
   Future<EmailAuthModel?> requestEmailVerificationCode(
