@@ -31,8 +31,10 @@ const DeviceDetails = ({ deviceData }) => {
 
   useEffect(() => {
     if (!isEmpty(deviceData)) {
-      decryptKey(deviceData.readKey, setReadKey);
-      decryptKey(deviceData.writeKey, setWriteKey);
+      if (!isEmpty(deviceData.readKey) && !isEmpty(deviceData.writeKey)) {
+        decryptKey(deviceData.readKey, setReadKey);
+        decryptKey(deviceData.writeKey, setWriteKey);
+      }
     }
   }, []);
 
