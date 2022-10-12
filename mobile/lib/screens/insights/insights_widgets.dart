@@ -167,141 +167,6 @@ class AnalyticsGraph extends StatelessWidget {
   }
 }
 
-class AnalyticsGraphV1 extends StatelessWidget {
-  const AnalyticsGraphV1({
-    super.key,
-    required this.pm2_5ChartData,
-    required this.pm10ChartData,
-    required this.pollutant,
-    required this.frequency,
-  });
-  final List<charts.Series<Insights, String>> pm2_5ChartData;
-  final List<charts.Series<Insights, String>> pm10ChartData;
-  final Pollutant pollutant;
-  final Frequency frequency;
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<InsightsBloc, InsightsState>(builder: (context, state) {
-      if (state.selectedInsight == null) {
-        return const ContainerLoadingAnimation(height: 290.0, radius: 8.0);
-      }
-
-      return LayoutBuilder(
-        builder: (BuildContext buildContext, BoxConstraints constraints) {
-          return SizedBox(
-            width: MediaQuery.of(buildContext).size.width - 50,
-            height: 150,
-            child: charts.BarChart(
-              pollutant == Pollutant.pm2_5 ? pm2_5ChartData : pm10ChartData,
-              animate: true,
-              defaultRenderer: charts.BarRendererConfig<String>(
-                strokeWidthPx: 20,
-                stackedBarPaddingPx: 0,
-                cornerStrategy: charts.ConstCornerStrategy(
-                  frequency == Frequency.daily ? 5 : 3,
-                ),
-              ),
-              defaultInteractions: true,
-              behaviors: [
-                charts.LinePointHighlighter(
-                  showHorizontalFollowLine:
-                      charts.LinePointHighlighterFollowLineType.none,
-                  showVerticalFollowLine:
-                      charts.LinePointHighlighterFollowLineType.nearest,
-                ),
-                charts.DomainHighlighter(),
-                charts.SelectNearest(
-                  eventTrigger: charts.SelectionTrigger.tapAndDrag,
-                ),
-              ],
-              selectionModels: [
-                charts.SelectionModelConfig(
-                  changedListener: (charts.SelectionModel model) {
-                    if (model.hasDatumSelection) {
-                      try {
-                        final value = model.selectedDatum[0].index;
-                        if (value != null) {
-                          context.read<InsightsBloc>().add(
-                                UpdateSelectedInsight(
-                                  model.selectedSeries[0].data[value],
-                                ),
-                              );
-                        }
-                      } catch (exception, stackTrace) {
-                        debugPrint(
-                          '${exception.toString()}\n${stackTrace.toString()}',
-                        );
-                      }
-                    }
-                  },
-                ),
-              ],
-              domainAxis: _yAxisScale(
-                frequency.staticTicks(),
-              ),
-              primaryMeasureAxis: _xAxisScale(),
-            ),
-          );
-        },
-      );
-    });
-  }
-
-  charts.NumericAxisSpec _xAxisScale() {
-    return charts.NumericAxisSpec(
-      tickProviderSpec: charts.StaticNumericTickProviderSpec(
-        <charts.TickSpec<double>>[
-          charts.TickSpec<double>(
-            0,
-            style: charts.TextStyleSpec(
-              color: charts.ColorUtil.fromDartColor(
-                CustomColors.greyColor,
-              ),
-            ),
-          ),
-          charts.TickSpec<double>(
-            125,
-            style: charts.TextStyleSpec(
-              color: charts.ColorUtil.fromDartColor(
-                CustomColors.greyColor,
-              ),
-            ),
-          ),
-          charts.TickSpec<double>(
-            250,
-            style: charts.TextStyleSpec(
-              color: charts.ColorUtil.fromDartColor(CustomColors.greyColor),
-            ),
-          ),
-          charts.TickSpec<double>(
-            375,
-            style: charts.TextStyleSpec(
-              color: charts.ColorUtil.fromDartColor(
-                CustomColors.greyColor,
-              ),
-            ),
-          ),
-          charts.TickSpec<double>(
-            500,
-            style: charts.TextStyleSpec(
-              color: charts.ColorUtil.fromDartColor(
-                CustomColors.greyColor,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  charts.OrdinalAxisSpec _yAxisScale(List<charts.TickSpec<String>> ticks) {
-    return charts.OrdinalAxisSpec(
-      tickProviderSpec: charts.StaticOrdinalTickProviderSpec(ticks),
-    );
-  }
-}
-
 class InsightsAvatar extends StatelessWidget {
   const InsightsAvatar({
     super.key,
@@ -406,12 +271,17 @@ class InsightsGraph extends StatelessWidget {
   final GlobalKey _infoToolTipKey = GlobalKey();
   final ItemScrollController _itemScrollController = ItemScrollController();
 
-  Future<void> _scrollToChart(
-    ItemScrollController controller,
-    int index,
-    List<List<charts.Series<Insights, String>>> data,
-    Duration? duration,
-  ) async {
+  Future<void> _scrollToChart({
+    required ItemScrollController controller,
+    required int index,
+    required List<List<charts.Series<Insights, String>>> data,
+    required Duration? duration,
+    required BuildContext context,
+    Insights? selectedInsight,
+  }) async {
+    selectedInsight ??= data[index][0].data.first;
+    context.read<InsightsBloc>().add(UpdateSelectedInsight(selectedInsight));
+
     if (controller.isAttached) {
       await controller.scrollTo(
         index: index,
@@ -520,7 +390,7 @@ class InsightsGraph extends StatelessWidget {
                       child: ScrollablePositionedList.builder(
                         scrollDirection: Axis.horizontal,
                         itemCount:
-                            state.dailyInsights[Pollutant.pm2_5]?.length ?? 0,
+                            state.dailyInsights[state.pollutant]?.length ?? 0,
                         itemBuilder: (context, index) {
                           return VisibilityDetector(
                             key: Key(
@@ -529,18 +399,18 @@ class InsightsGraph extends StatelessWidget {
                             onVisibilityChanged:
                                 (VisibilityInfo visibilityInfo) {
                               if ((visibilityInfo.visibleFraction > 0.3)) {
+                                if (state.activeChartIndex != index) {
+                                  _scrollToChart(
+                                    controller: _itemScrollController,
+                                    index: index,
+                                    data: state.dailyInsights[state.pollutant]!,
+                                    duration: null,
+                                    context: context,
+                                  );
+                                }
                                 context
                                     .read<InsightsBloc>()
                                     .add(UpdateActiveIndex(index));
-                              }
-
-                              if (state.activeChartIndex != index) {
-                                _scrollToChart(
-                                  _itemScrollController,
-                                  state.activeChartIndex,
-                                  state.dailyInsights[Pollutant.pm2_5]!,
-                                  null,
-                                );
                               }
                             },
                             child: const AnalyticsGraph(),
@@ -550,6 +420,26 @@ class InsightsGraph extends StatelessWidget {
                       ),
                     ),
                   ),
+                  BlocListener<InsightsBloc, InsightsState>(
+                    listenWhen: (listenerPreviousState, listenerState) {
+                      return listenerPreviousState.selectedInsight == null &&
+                          listenerState.hourlyInsights[state.pollutant] != null;
+                    },
+                    listener: (context, listenerState) {
+                      if (state.frequency == Frequency.hourly) {
+                        _scrollToChart(
+                          controller: _itemScrollController,
+                          index: listenerState.activeChartIndex,
+                          data: listenerState
+                              .hourlyInsights[listenerState.pollutant]!,
+                          duration: const Duration(microseconds: 100),
+                          context: context,
+                          selectedInsight: listenerState.selectedInsight,
+                        );
+                      }
+                    },
+                    child: Container(),
+                  ),
                   Visibility(
                     visible: state.frequency == Frequency.hourly,
                     child: SizedBox(
@@ -557,7 +447,7 @@ class InsightsGraph extends StatelessWidget {
                       child: ScrollablePositionedList.builder(
                         scrollDirection: Axis.horizontal,
                         itemCount:
-                            state.hourlyInsights[Pollutant.pm2_5]?.length ?? 0,
+                            state.hourlyInsights[state.pollutant]?.length ?? 0,
                         itemBuilder: (context, index) {
                           return VisibilityDetector(
                             key: Key(
@@ -566,15 +456,19 @@ class InsightsGraph extends StatelessWidget {
                             onVisibilityChanged:
                                 (VisibilityInfo visibilityInfo) {
                               if ((visibilityInfo.visibleFraction > 0.3)) {
+                                if (state.activeChartIndex != index) {
+                                  _scrollToChart(
+                                    controller: _itemScrollController,
+                                    index: index,
+                                    data:
+                                        state.hourlyInsights[state.pollutant]!,
+                                    duration: null,
+                                    context: context,
+                                  );
+                                }
                                 context
                                     .read<InsightsBloc>()
                                     .add(UpdateActiveIndex(index));
-                                _scrollToChart(
-                                  _itemScrollController,
-                                  index,
-                                  state.hourlyInsights[Pollutant.pm2_5]!,
-                                  null,
-                                );
                               }
                             },
                             child: const AnalyticsGraph(),

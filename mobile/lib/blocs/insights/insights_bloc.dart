@@ -254,11 +254,6 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
         await DBHelper().getInsights(state.siteId, Frequency.hourly);
 
     if (dbInsights.isNotEmpty) {
-      final hourlyCharts =
-          await _createInsightsCharts(dbInsights, Frequency.hourly);
-      final selectedInsight =
-          hourlyCharts[Pollutant.pm2_5]?.first.first.data.first;
-
       emit(InsightsLoading(
         hourlyInsights: state.hourlyInsights,
         siteId: state.siteId,
@@ -269,6 +264,30 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
         selectedInsight: state.selectedInsight,
         activeChartIndex: state.activeChartIndex,
       ));
+
+      final hourlyCharts =
+          await _createInsightsCharts(dbInsights, Frequency.hourly);
+      var selectedInsight =
+          hourlyCharts[Pollutant.pm2_5]?.first.first.data.first;
+      var activeChartIndex = state.activeChartIndex;
+
+      for (final chart in hourlyCharts[Pollutant.pm2_5]!) {
+        for (final chart_2 in chart.toList()) {
+          for (final chart_3 in chart_2.data) {
+            if (chart_3.time.isToday()) {
+              activeChartIndex = hourlyCharts[Pollutant.pm2_5]!.indexOf(chart);
+              selectedInsight = chart_3;
+              break;
+            }
+          }
+          if (activeChartIndex != state.activeChartIndex) {
+            break;
+          }
+        }
+        if (activeChartIndex != state.activeChartIndex) {
+          break;
+        }
+      }
 
       emit(InsightsState(
         hourlyInsights: hourlyCharts,
@@ -278,7 +297,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
         airQualityReading: state.airQualityReading,
         pollutant: state.pollutant,
         selectedInsight: selectedInsight,
-        activeChartIndex: state.activeChartIndex,
+        activeChartIndex: activeChartIndex,
       ));
     }
 
@@ -287,11 +306,6 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
       frequency: Frequency.hourly,
     );
     if (apiInsights.isNotEmpty) {
-      final hourlyCharts =
-          await _createInsightsCharts(apiInsights, Frequency.hourly);
-      final selectedInsight =
-          hourlyCharts[Pollutant.pm2_5]?.first.first.data.first;
-
       emit(InsightsLoading(
         hourlyInsights: state.hourlyInsights,
         siteId: state.siteId,
@@ -303,6 +317,30 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
         activeChartIndex: state.activeChartIndex,
       ));
 
+      final hourlyCharts =
+          await _createInsightsCharts(apiInsights, Frequency.hourly);
+      var selectedInsight =
+          hourlyCharts[Pollutant.pm2_5]?.first.first.data.first;
+      var activeChartIndex = state.activeChartIndex;
+
+      for (final chart in hourlyCharts[Pollutant.pm2_5]!) {
+        for (final chart_2 in chart.toList()) {
+          for (final chart_3 in chart_2.data) {
+            if (chart_3.time.isToday()) {
+              activeChartIndex = hourlyCharts[Pollutant.pm2_5]!.indexOf(chart);
+              selectedInsight = chart_3;
+              break;
+            }
+          }
+          if (activeChartIndex != state.activeChartIndex) {
+            break;
+          }
+        }
+        if (activeChartIndex != state.activeChartIndex) {
+          break;
+        }
+      }
+
       return emit(InsightsState(
         hourlyInsights: hourlyCharts,
         siteId: state.siteId,
@@ -311,7 +349,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
         airQualityReading: state.airQualityReading,
         pollutant: state.pollutant,
         selectedInsight: selectedInsight,
-        activeChartIndex: state.activeChartIndex,
+        activeChartIndex: activeChartIndex,
       ));
     }
   }
