@@ -76,8 +76,7 @@ jobs:
     if: needs.check.outputs.remove_platform_preview == 'true'
     runs-on: ubuntu-latest
     steps:
-      - name: Google Auth
-        id: auth
+      - name: Google login
         uses: google-github-actions/auth@v0
         with:
           credentials_json: "${{ secrets.GCP_SA_CREDENTIALS }}"
@@ -98,8 +97,7 @@ jobs:
     if: needs.check.outputs.remove_calibrate_app_preview == 'true'
     runs-on: ubuntu-latest
     steps:
-      - name: Google Auth
-        id: auth
+      - name: Google login
         uses: google-github-actions/auth@v0
         with:
           credentials_json: "${{ secrets.GCP_SA_CREDENTIALS }}"
@@ -120,8 +118,7 @@ jobs:
     if: needs.check.outputs.remove_next_platform == 'true'
     runs-on: ubuntu-latest
     steps:
-      - name: Google Auth
-        id: auth
+      - name: Google login
         uses: google-github-actions/auth@v0
         with:
           credentials_json: "${{ secrets.GCP_SA_CREDENTIALS }}"
@@ -142,8 +139,7 @@ jobs:
     if: needs.check.outputs.remove_docs == 'true'
     runs-on: ubuntu-latest
     steps:
-      - name: Google Auth
-        id: auth
+      - name: Google login
         uses: google-github-actions/auth@v0
         with:
           credentials_json: "${{ secrets.GCP_SA_CREDENTIALS }}"
