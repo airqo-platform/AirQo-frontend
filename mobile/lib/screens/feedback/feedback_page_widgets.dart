@@ -262,11 +262,9 @@ class FeedbackForm extends StatelessWidget {
                 cursorColor: CustomColors.appColorBlue,
                 keyboardType: TextInputType.text,
                 onChanged: (String feedback) {
-                  if (feedback != '') {
-                    context.read<FeedbackBloc>().add(
-                          SetFeedback(feedback: feedback),
-                        );
-                  }
+                  context.read<FeedbackBloc>().add(
+                        SetFeedback(feedback: feedback),
+                      );
                 },
                 onFieldSubmitted: (String feedback) {
                   if (feedback == '') {
@@ -591,6 +589,17 @@ class FeedbackChannelStep extends StatelessWidget {
                 enableSuggestions: true,
                 cursorWidth: 1,
                 autofocus: false,
+                onChanged: (String email) {
+                  if (email.isValidEmail()) {
+                    context.read<FeedbackBloc>().add(
+                          SetFeedbackContact(contact: email),
+                        );
+                  } else {
+                    context.read<FeedbackBloc>().add(
+                          const SetFeedbackContact(contact: ''),
+                        );
+                  }
+                },
                 cursorColor: CustomColors.appColorBlue,
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
