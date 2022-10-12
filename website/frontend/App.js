@@ -19,7 +19,7 @@ const CareerPage = React.lazy(() => import('src/pages/CareerPage'));
 const CareerDetailPage = React.lazy(() => import('src/pages/CareerDetailPage'));
 
 import { loadAirQloudSummaryData } from 'reduxStore/AirQlouds/operations';
-import { ContentUganda, ContentKenya } from './src/pages/OurSolutions/AfricanCitiesPage';
+import { ContentUganda, ContentKenya } from 'src/pages/OurSolutions/AfricanCitiesPage';
 import store from './store';
 import {
     ExploreGetStarted,
@@ -33,6 +33,8 @@ import {
     ExploreOrganisationRegistry,
 } from './src/pages/ExploreData';
 import PartnerDetailPage from './src/pages/Partners';
+import Error404 from 'src/pages/ErrorPages/Error404';
+
 
 store.dispatch(loadAirQloudSummaryData());
 
@@ -83,6 +85,7 @@ const App = () => {
                             element={<ExploreRegistryConfirmation />}
                         />
                         <Route path="/partners/:uniqueTitle" element={<PartnerDetailPage />} />
+                        <Route path="*" element={<Error404/>}/>
                     </Routes>
                 </Suspense>
             </Router>

@@ -180,43 +180,43 @@ class AirqoApiClient {
   }
 
   Future<bool> sendFeedback(UserFeedback feedback) async {
-    final body = jsonEncode(
-      {
-        'personalizations': [
-          {
-            'to': [
-              {
-                'email': Config.airqoSupportEmail,
-                'name': Config.airqoSupportUsername,
-              },
-            ],
-            'cc': [
-              {
-                'email': feedback.contactDetails,
-                'name': Config.defaultFeedbackUserName,
-              },
-            ],
-            'subject': feedback.feedbackType,
-          },
-        ],
-        'content': [
-          {
-            'type': 'text/plain',
-            'value': feedback.message,
-          },
-        ],
-        'from': {
-          'email': Config.airqoDataProductsEmail,
-          'name': Config.defaultFeedbackUserName,
-        },
-        'reply_to': {
-          'email': feedback.contactDetails,
-          'name': Config.defaultFeedbackUserName,
-        },
-      },
-    );
-
     try {
+      final body = jsonEncode(
+        {
+          'personalizations': [
+            {
+              'to': [
+                {
+                  'email': Config.airqoSupportEmail,
+                  'name': Config.airqoSupportUsername,
+                },
+              ],
+              'cc': [
+                {
+                  'email': feedback.contactDetails,
+                  'name': Config.defaultFeedbackUserName,
+                },
+              ],
+              'subject': feedback.feedbackType.toString(),
+            },
+          ],
+          'content': [
+            {
+              'type': 'text/plain',
+              'value': feedback.message,
+            },
+          ],
+          'from': {
+            'email': Config.airqoDataProductsEmail,
+            'name': Config.defaultFeedbackUserName,
+          },
+          'reply_to': {
+            'email': feedback.contactDetails,
+            'name': Config.defaultFeedbackUserName,
+          },
+        },
+      );
+
       Map<String, String> headers = HashMap()
         ..putIfAbsent('Content-Type', () => 'application/json')
         ..putIfAbsent(
