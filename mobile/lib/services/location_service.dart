@@ -44,7 +44,7 @@ class LocationService {
       return await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.best,
         forceAndroidLocationManager: true,
-        timeLimit: const Duration(seconds: 5),
+        timeLimit: const Duration(seconds: 10),
       );
     } on TimeoutException catch (exception, stackTrace) {
       debugPrint(exception.message);
