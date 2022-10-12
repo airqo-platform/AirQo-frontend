@@ -2,7 +2,9 @@ import 'package:app/models/models.dart';
 import 'package:app/screens/insights/insights_tab.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../blocs/insights/insights_bloc.dart';
 import '../../themes/colors.dart';
 import '../../utils/network.dart';
 import '../../widgets/buttons.dart';
@@ -21,7 +23,6 @@ class InsightsPage extends StatefulWidget {
 class _InsightsPageState extends State<InsightsPage>
     with AutomaticKeepAliveClientMixin, TickerProviderStateMixin {
   late TabController _tabController;
-  Frequency frequency = Frequency.hourly;
 
   @override
   bool get wantKeepAlive => true;
@@ -57,9 +58,19 @@ class _InsightsPageState extends State<InsightsPage>
                   labelPadding: const EdgeInsets.all(3.0),
                   onTap: (value) {
                     if (value == 0) {
-                      setState(() => frequency = Frequency.hourly);
+                      context
+                          .read<InsightsBloc>()
+                          .add(const LoadHourlyInsights());
+                      context
+                          .read<InsightsBloc>()
+                          .add(const SwitchTab(frequency: Frequency.hourly));
                     } else {
-                      setState(() => frequency = Frequency.daily);
+                      context
+                          .read<InsightsBloc>()
+                          .add(const LoadDailyInsights());
+                      context
+                          .read<InsightsBloc>()
+                          .add(const SwitchTab(frequency: Frequency.daily));
                     }
                   },
                   tabs: <Widget>[
@@ -81,15 +92,9 @@ class _InsightsPageState extends State<InsightsPage>
               child: TabBarView(
                 controller: _tabController,
                 physics: const NeverScrollableScrollPhysics(),
-                children: <Widget>[
-                  InsightsTab(
-                    widget.airQualityReading,
-                    Frequency.hourly,
-                  ),
-                  InsightsTab(
-                    widget.airQualityReading,
-                    Frequency.daily,
-                  ),
+                children: const <Widget>[
+                  InsightsTab(),
+                  InsightsTab(),
                 ],
               ),
             ),
@@ -112,6 +117,12 @@ class _InsightsPageState extends State<InsightsPage>
       length: 2,
       vsync: this,
     );
+    context.read<InsightsBloc>().add(InitializeInsightsPage(
+          siteId: widget.airQualityReading.referenceSite,
+          airQualityReading: widget.airQualityReading,
+        ));
+    context.read<InsightsBloc>().add(const LoadHourlyInsights());
+    context.read<InsightsBloc>().add(const LoadDailyInsights());
     checkNetworkConnection(
       context,
       notifyUser: true,
