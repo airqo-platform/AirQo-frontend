@@ -1,8 +1,10 @@
 import 'dart:io';
 
+import 'package:app/models/enum_constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 
+import '../models/insights.dart';
 import '../models/profile.dart';
 
 extension DoubleExtension on double {
@@ -14,6 +16,22 @@ extension DoubleExtension on double {
 extension IntExt on int {
   String toStringLength({int length = 1}) {
     return toString().length == length ? '0$this' : '$this';
+  }
+}
+
+extension InsightsExt on Insights {
+  String lastUpdated(Frequency frequency) {
+    if (frequency == Frequency.daily) {
+      return empty
+          ? 'Not available'
+          : time.isToday()
+              ? 'Updated Today'
+              : 'Updated ${DateFormat('EEEE, d MMM').format(time)}';
+    } else {
+      return empty
+          ? 'Not available'
+          : 'Updated ${DateFormat('hh:mm a').format(time)}';
+    }
   }
 }
 
