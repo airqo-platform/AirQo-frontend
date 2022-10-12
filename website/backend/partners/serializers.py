@@ -9,19 +9,19 @@ class PartnerDescriptionsSerializer(serializers.ModelSerializer):
 
 
 class PartnerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Partner
+        fields = '__all__'
+
     descriptions = PartnerDescriptionsSerializer(read_only=True, many=True)
     partner_image = serializers.SerializerMethodField()
     partner_logo = serializers.SerializerMethodField()
 
     @staticmethod
-    def get_logo(obj):
+    def get_partner_logo(obj):
         return obj.partner_logo.url
 
     @staticmethod
-    def get_image(obj):
+    def get_partner_image(obj):
         if obj.partner_image:
             return obj.partner_image.url
-
-    class Meta:
-        model = Partner
-        fields = '__all__'
