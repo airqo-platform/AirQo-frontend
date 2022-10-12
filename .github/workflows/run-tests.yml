@@ -48,12 +48,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Google login
+        uses: google-github-actions/auth@v0
+        with:
+          credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
+
+      - name: Setup Cloud SDK(gcloud)
+        uses: google-github-actions/setup-gcloud@v0
+
       - name: Create .env file
         run: |
-          cd platform/
-          echo "========== Creating app.yaml file =========="  
-          echo "NEXT_PUBLIC_ORIGINAL_PLATFORM=${{ secrets.NEW_PLATFORM_STAGE_ORIGINAL_PLATFORM }}" > .env
-          echo "INSTRUMENT_CODE=1" >> .env
+          gcloud secrets versions access latest --secret="sta-env-next-platform" > platform/.env
+          echo "INSTRUMENT_CODE=1" >> platform/.env
 
       - name: Cypress run
         uses: cypress-io/github-action@v4
