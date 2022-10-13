@@ -18,7 +18,7 @@ import {
   deployDeviceApi,
   getDeviceRecentFeedByChannelIdApi,
   recallDeviceApi,
-  updateDeviceDetails,
+  softUpdateDeviceDetails,
 } from "../../../apis/deviceRegistry";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import {
@@ -409,15 +409,15 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
     return false;
   };
 
-  const updateDeviceDeploymentStatus = async (deviceId, deploymentStatus) => {
-    const params = {
-      _id: deviceId,
-      status: deploymentStatus,
+  const updateDeviceDeploymentStatus = async (deviceId, deployStatus) => {
+    const updateData = {
+      status: deployStatus,
     };
 
-    await updateDeviceDetails(params)
+    await softUpdateDeviceDetails(deviceId, updateData)
       .then((responseData) => {
         dispatch(loadDevicesData());
+        dispatch(loadSitesData());
         dispatch(
           updateMainAlert({
             message: responseData.message,
@@ -467,15 +467,6 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
           deviceData._id,
           DEPLOYMENT_STATUSES.deployed
         );
-        dispatch(loadDevicesData());
-        dispatch(loadSitesData());
-        dispatch(
-          updateMainAlert({
-            message: responseData.message,
-            show: true,
-            severity: "success",
-          })
-        );
       })
       .catch((err) => {
         const errors =
@@ -500,15 +491,6 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
         updateDeviceDeploymentStatus(
           deviceData._id,
           DEPLOYMENT_STATUSES.recalled
-        );
-        dispatch(loadDevicesData());
-        dispatch(loadSitesData());
-        dispatch(
-          updateMainAlert({
-            message: responseData.message,
-            show: true,
-            severity: "success",
-          })
         );
       })
       .catch((err) => {
