@@ -6,8 +6,10 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../constants/config.dart';
+import '../../services/hive_service.dart';
 import '../../services/location_service.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
@@ -311,7 +313,7 @@ class RegionTile extends StatelessWidget {
     super.key,
     required this.region,
   });
-  final Region region;
+  final String region;
 
   @override
   Widget build(BuildContext context) {
@@ -322,7 +324,7 @@ class RegionTile extends StatelessWidget {
         context.read<MapBloc>().add(ShowRegionSites(region: region));
       },
       title: AutoSizeText(
-        region.toString(),
+        region,
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
         style: CustomTextStyle.headline8(context),
@@ -343,6 +345,37 @@ class RegionTile extends StatelessWidget {
   }
 }
 
+class CountryTile extends StatelessWidget {
+  const CountryTile({
+    super.key,
+    required this.country,
+  });
+  final String country;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: const EdgeInsets.only(left: 0.0),
+      leading: const RegionAvatar(),
+      onTap: () {
+        context.read<MapBloc>().add(ShowCountrySites(country: country));
+      },
+      title: AutoSizeText(
+        country,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: CustomTextStyle.headline8(context),
+      ),
+      trailing: SvgPicture.asset(
+        'assets/icon/more_arrow.svg',
+        semanticsLabel: 'more',
+        height: 6.99,
+        width: 4,
+      ),
+    );
+  }
+}
+
 class AllSites extends StatelessWidget {
   const AllSites({super.key});
 
@@ -351,26 +384,33 @@ class AllSites extends StatelessWidget {
     return MediaQuery.removePadding(
       removeTop: true,
       context: context,
-      child: ListView(
-        shrinkWrap: true,
-        physics: const BouncingScrollPhysics(),
-        children: const <Widget>[
-          SizedBox(
-            height: 5,
-          ),
-          RegionTile(
-            region: Region.central,
-          ),
-          RegionTile(
-            region: Region.western,
-          ),
-          RegionTile(
-            region: Region.eastern,
-          ),
-          RegionTile(
-            region: Region.northern,
-          ),
-        ],
+      child: ValueListenableBuilder<Box>(
+        valueListenable: Hive.box<AirQualityReading>(
+          HiveBox.airQualityReadings,
+        ).listenable(),
+        builder: (context, box, widget) {
+          final airQualityReadings =
+              box.values.cast<AirQualityReading>().toList();
+
+          if (airQualityReadings.isEmpty) {
+            return const SizedBox();
+          }
+
+          final countries =
+              airQualityReadings.map((e) => e.country).toSet().toList()..sort();
+
+          print(countries);
+
+          return ListView.builder(
+            shrinkWrap: true,
+            physics: const BouncingScrollPhysics(),
+            controller: ScrollController(),
+            itemBuilder: (context, index) => CountryTile(
+              country: countries[index],
+            ),
+            itemCount: countries.length,
+          );
+        },
       ),
     );
   }
@@ -384,7 +424,7 @@ class RegionSites extends StatelessWidget {
   });
 
   final List<AirQualityReading> airQualityReadings;
-  final Region region;
+  final String region;
 
   @override
   Widget build(BuildContext context) {

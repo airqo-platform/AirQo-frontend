@@ -17,20 +17,21 @@ class AirQualityReadingAdapter extends TypeAdapter<AirQualityReading> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return AirQualityReading(
-      referenceSite: fields[0] as String,
-      source: fields[5] as String,
-      latitude: fields[1] as double,
-      longitude: fields[2] as double,
-      country: fields[3] as String,
-      name: fields[4] as String,
-      location: fields[6] as String,
-      region: fields[7] as Region,
+      referenceSite: fields[0] == null ? '' : fields[0] as String,
+      source: fields[5] == null ? '' : fields[5] as String,
+      latitude: fields[1] == null ? 0.0 : fields[1] as double,
+      longitude: fields[2] == null ? 0.0 : fields[2] as double,
+      country: fields[3] == null ? '' : fields[3] as String,
+      name: fields[4] == null ? '' : fields[4] as String,
+      location: fields[6] == null ? '' : fields[6] as String,
+      region: fields[14] == null ? '' : fields[14] as String,
       dateTime: fields[8] as DateTime,
-      pm2_5: fields[9] as double,
-      pm10: fields[10] as double,
-      distanceToReferenceSite: fields[11] as double,
-      placeId: fields[12] as String,
-      airQuality: fields[13] as AirQuality,
+      pm2_5: fields[9] == null ? 0.0 : fields[9] as double,
+      pm10: fields[10] == null ? 0.0 : fields[10] as double,
+      distanceToReferenceSite: fields[11] == null ? 0.0 : fields[11] as double,
+      placeId: fields[12] == null ? '' : fields[12] as String,
+      airQuality:
+          fields[13] == null ? AirQuality.good : fields[13] as AirQuality,
     );
   }
 
@@ -52,8 +53,6 @@ class AirQualityReadingAdapter extends TypeAdapter<AirQualityReading> {
       ..write(obj.source)
       ..writeByte(6)
       ..write(obj.location)
-      ..writeByte(7)
-      ..write(obj.region)
       ..writeByte(8)
       ..write(obj.dateTime)
       ..writeByte(9)
@@ -65,7 +64,9 @@ class AirQualityReadingAdapter extends TypeAdapter<AirQualityReading> {
       ..writeByte(12)
       ..write(obj.placeId)
       ..writeByte(13)
-      ..write(obj.airQuality);
+      ..write(obj.airQuality)
+      ..writeByte(14)
+      ..write(obj.region);
   }
 
   @override
@@ -92,7 +93,7 @@ AirQualityReading _$AirQualityReadingFromJson(Map<String, dynamic> json) =>
       country: json['country'] as String? ?? '',
       name: json['name'] as String? ?? '',
       location: json['location'] as String? ?? '',
-      region: const RegionConverter().fromJson(json['region'] as String),
+      region: json['region'] as String? ?? '',
       dateTime: DateTime.parse(json['dateTime'] as String),
       pm2_5: (json['pm2_5'] as num?)?.toDouble() ?? 0.0,
       pm10: (json['pm10'] as num?)?.toDouble() ?? 0.0,
@@ -112,11 +113,11 @@ Map<String, dynamic> _$AirQualityReadingToJson(AirQualityReading instance) =>
       'name': instance.name,
       'source': instance.source,
       'location': instance.location,
-      'region': const RegionConverter().toJson(instance.region),
       'dateTime': instance.dateTime.toIso8601String(),
       'pm2_5': instance.pm2_5,
       'pm10': instance.pm10,
       'distanceToReferenceSite': instance.distanceToReferenceSite,
       'placeId': instance.placeId,
       'airQuality': const AirQualityConverter().toJson(instance.airQuality),
+      'region': instance.region,
     };

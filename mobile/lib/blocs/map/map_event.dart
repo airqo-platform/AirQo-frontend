@@ -7,10 +7,22 @@ abstract class MapEvent extends Equatable {
 class ShowRegionSites extends MapEvent {
   const ShowRegionSites({required this.region});
 
-  final Region region;
+  final String region;
 
   @override
   List<Object?> get props => ['show region sites'];
+
+  @override
+  String toString() => 'show region sites';
+}
+
+class ShowCountrySites extends MapEvent {
+  const ShowCountrySites({required this.country});
+
+  final String country;
+
+  @override
+  List<Object?> get props => ['show country sites'];
 
   @override
   String toString() => 'show region sites';

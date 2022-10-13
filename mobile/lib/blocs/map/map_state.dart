@@ -35,7 +35,7 @@ class RegionSitesState extends MapState {
   });
 
   final List<AirQualityReading> airQualityReadings;
-  final Region region;
+  final String region;
 
   @override
   List<Object?> get props => [];

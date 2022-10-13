@@ -5,10 +5,8 @@ import 'package:app/utils/extensions.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:hive/hive.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../services/hive_service.dart';
-import '../../utils/dashboard.dart';
 
 part 'dashboard_event.dart';
 part 'dashboard_state.dart';
@@ -43,16 +41,25 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   Future<List<AirQualityReading>> _getAirQualityReadings() async {
     final airQualityCards = <AirQualityReading>[];
 
-    final preferences = await SharedPreferences.getInstance();
-    final region = getNextDashboardRegion(preferences);
-    final regionAirQualityReadings =
+    final ugandaAirQualityReadings =
         Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
             .values
-            .where((element) => element.region == region)
+            .where((element) => element.country.toLowerCase().contains('ug'))
             .toList()
           ..shuffle();
 
-    for (final regionAirQualityReading in regionAirQualityReadings.take(8)) {
+    final otherAirQualityReadings =
+        Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+            .values
+            .where((element) => !element.country.toLowerCase().contains('ug'))
+            .toList()
+          ..shuffle();
+
+    final airQualityReadings = ugandaAirQualityReadings.take(2).toList()
+      ..addAll(otherAirQualityReadings.take(6).toList())
+      ..shuffle();
+
+    for (final regionAirQualityReading in airQualityReadings) {
       airQualityCards.add(
         AirQualityReading.duplicate(regionAirQualityReading),
       );

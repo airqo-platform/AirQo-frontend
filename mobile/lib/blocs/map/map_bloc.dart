@@ -16,6 +16,7 @@ part 'map_state.dart';
 class MapBloc extends Bloc<MapEvent, MapState> {
   MapBloc() : super(const AllSitesState(airQualityReadings: [])) {
     on<ShowRegionSites>(_onShowRegionSites);
+    on<ShowCountrySites>(_onShowCountrySites);
     on<ShowAllSites>(_onShowAllSites);
     on<ShowSite>(_showSite);
     on<SearchSite>(_searchSite);
@@ -50,6 +51,24 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     return emit(RegionSitesState(
       airQualityReadings: airQualityReadings,
       region: event.region,
+    ));
+  }
+
+  Future<void> _onShowCountrySites(
+    ShowCountrySites event,
+    Emitter<MapState> emit,
+  ) async {
+    final airQualityReadings = Hive.box<AirQualityReading>(
+      HiveBox.airQualityReadings,
+    )
+        .values
+        .where(
+            (airQualityReading) => airQualityReading.country == event.country)
+        .toList();
+
+    return emit(RegionSitesState(
+      airQualityReadings: airQualityReadings,
+      region: event.country,
     ));
   }
 

@@ -181,10 +181,14 @@ enum AirQuality {
   }
 
   factory AirQuality.fromString(String string) {
-    for (final airQuality in AirQuality.values) {
-      if (string.equalsIgnoreCase(airQuality.string)) {
-        return airQuality;
+    try {
+      for (final airQuality in AirQuality.values) {
+        if (string.equalsIgnoreCase(airQuality.string)) {
+          return airQuality;
+        }
       }
+    } catch (e) {
+      debugPrint(e.toString());
     }
 
     return AirQuality.good;
