@@ -1,20 +1,20 @@
 ###########################################################
-# Start deployment of next platform - production
+# Start deployment of docs - production
 ###########################################################
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: airqo-docs
+  name: airqo-prod-docs
   namespace: production
 spec:
   selector:
     matchLabels:
-      app: airqo-docs
+      app: airqo-prod-docs
   replicas: 2
   template:
     metadata:
       labels:
-        app: airqo-docs
+        app: airqo-prod-docs
     spec:
       affinity:
         nodeAffinity:
@@ -28,7 +28,7 @@ spec:
                       - general-purpose
       containers:
         - name: airqo-docs
-          image: us.gcr.io/airqo-250220/airqo-docs:latest
+          image: us.gcr.io/airqo-250220/airqo-prod-docs:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
@@ -45,11 +45,11 @@ spec:
 kind: Service
 apiVersion: v1
 metadata:
-  name: airqo-docs-svc
+  name: airqo-prod-docs-svc
   namespace: production
 spec:
   selector:
-    app: airqo-docs
+    app: airqo-prod-docs
   ports:
     - protocol: TCP
       port: 3000
@@ -61,12 +61,12 @@ spec:
 kind: HorizontalPodAutoscaler
 apiVersion: autoscaling/v2
 metadata:
-  name: airqo-docs-hpa
+  name: airqo-prod-docs-hpa
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: airqo-docs
+    name: airqo-prod-docs
   minReplicas: 1
   maxReplicas: 3
   metrics:

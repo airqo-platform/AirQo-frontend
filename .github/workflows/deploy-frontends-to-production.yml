@@ -9,6 +9,7 @@ on:
 
 jobs:
   image-tag:
+    if: github.event.pull_request.merged == true
     name: create image tag
     runs-on: ubuntu-latest
     outputs:
@@ -77,7 +78,7 @@ jobs:
             fi
 
             if [[ $file == docs/* ]]; then
-              echo "::set-output name=run_docs::false"
+              echo "::set-output name=run_docs::true"
             fi
 
           done < files.txt
@@ -92,47 +93,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Login to GCR
-        uses: docker/login-action@v1
-        with:
-          registry: ${{ secrets.REGISTRY_URL }}
-          username: _json_key
-          password: ${{ secrets.GCR_CONFIG }}
-
-      - name: Login to K8S
-        uses: azure/k8s-set-context@v1
-        with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
-
-      - name: NPM Setup and Build
-        uses: actions/setup-node@v2
-        with:
-          node-version: "12"
-      - run: |
-          cd netmanager/
-
-          export REACT_APP_BASE_URL=${{ secrets.REACT_APP_BASE_URL_PROD }}
-          export REACT_APP_CLOUDINARY_NAME=${{ secrets.REACT_APP_CLOUDINARY_NAME }}
-          export REACT_APP_CLOUDINARY_PRESET=${{ secrets.REACT_APP_CLOUDINARY_PRESET }}
-          export REACT_APP_MAPBOX_TOKEN=${{ secrets.REACT_APP_MAPBOX_TOKEN }}
-          export REACT_APP_JIRA_KEY=${{ secrets.REACT_APP_JIRA_KEY }}
-          export NODE_PATH=${{ secrets.NODE_PATH }}
-          export PORT=${{ secrets.NODE_PORT }}
-
-          npm install
-
-          CI=false npm run build
-
-      - name: Build and Push Docker Image
-        run: |
-          cd netmanager/
-          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:${{ needs.image-tag.outputs.build_id }} .
-          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:latest
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:latest
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:${{ needs.image-tag.outputs.build_id }}
-
-      - name: Login to GCP
+      - name: Google login
         uses: google-github-actions/auth@v0
         with:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
@@ -140,14 +101,44 @@ jobs:
       - name: Setup Cloud SDK
         uses: google-github-actions/setup-gcloud@v0
 
-      - name: Update the corresponding k8s configmap(s)
+      - name: Create .env file
+        run: gcloud secrets versions access latest --secret="prod-env-netmanager" > netmanager/.env
+
+      - name: NPM Setup and Build
+        uses: actions/setup-node@v2
+        with:
+          node-version: "12"
+      - run: |
+          cd netmanager/
+          npm install
+          CI=false npm run build
+
+      - name: Login to GCR
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ secrets.REGISTRY_URL }}
+          username: _json_key
+          password: ${{ secrets.GCR_CONFIG }}
+
+      - name: Build and Push Docker Image
         run: |
           cd netmanager/
-          gcloud secrets versions access latest --secret="prod-env-netmanager" > .env
-          kubectl create configmap --dry-run=client -o yaml --from-env-file=.env env-platform-production | kubectl replace -f - -n production
+          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:${{ needs.image-tag.outputs.build_id }} .
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:${{ needs.image-tag.outputs.build_id }}
+          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:latest
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:latest
+
+      - name: Login to K8S
+        uses: azure/k8s-set-context@v1
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
 
       - name: Deploy to K8S
         run: |
+          echo "=============== Update the corresponding configmap ==============="
+          kubectl create configmap --dry-run=client -o yaml --from-env-file=netmanager/.env env-platform-production | kubectl replace -f - -n production
+          echo "=============== Deploy the application ==============="
           kubectl apply -f k8s/netmanager/prod-airqo-platform-frontend.yaml
           kubectl set image deployment/airqo-platform-frontend airqo-platform=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:${{ needs.image-tag.outputs.build_id }} -n production
           kubectl annotate deployment/airqo-platform-frontend kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n production
@@ -172,8 +163,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      - name: Google Auth
-        id: auth
+      - name: Google login
         uses: google-github-actions/auth@v0
         with:
           credentials_json: "${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}"
@@ -208,14 +198,9 @@ jobs:
           echo "  GS_BUCKET_NAME: ${{ secrets.WEBSITE_PROD_GS_BUCKET_NAME }}" >> .env.yaml
           echo "  REACT_WEB_STATIC_HOST: ${{ secrets.WEBSITE_PROD_REACT_WEB_STATIC_HOST }}" >> .env.yaml
           echo "  SECRET_KEY: ${{ secrets.WEBSITE_PROD_SECRET_KEY }}" >> .env.yaml
-          echo "  REACT_NETMANAGER_BASE_URL: ${{ secrets.WEBSITE_PROD_REACT_NETMANAGER_BASE_URL }}" >> .env.yaml
-          echo "  REACT_APP_BASE_AIRQLOUDS_URL: ${{ secrets.WEBSITE_REACT_APP_BASE_AIRQLOUDS_URL }}" >> .env.yaml
-          echo "  REACT_APP_BASE_NEWSLETTER_URL: ${{ secrets.WEBSITE_REACT_APP_BASE_NEWSLETTER_URL }}" >> .env.yaml
           echo "  DJANGO_ALLOWED_HOSTS: ${{ secrets.WEBSITE_DJANGO_ALLOWED_HOSTS }}" >> .env.yaml
           echo "  DEBUG: False" >> .env.yaml
           echo "  GOOGLE_APPLICATION_CREDENTIALS: /app/google_application_credentials.json" >> .env.yaml
-          echo "  REACT_APP_WEBSITE_BASE_URL: ${{ secrets.WEBSITE_PROD_REACT_APP_WEBSITE_BASE_URL }}" >> .env.yaml
-          echo "  REACT_APP_AUTHORIZATION_TOKEN: ${{ secrets.WEBSITE_PROD_REACT_APP_AUTHORIZATION_TOKEN }}" >> .env.yaml
 
       - name: Build and Push Docker Image
         run: |
@@ -228,8 +213,8 @@ jobs:
           --build-arg REACT_APP_WEBSITE_BASE_URL=${{ secrets.WEBSITE_PROD_REACT_APP_WEBSITE_BASE_URL }} \
           --build-arg REACT_APP_AUTHORIZATION_TOKEN=${{ secrets.WEBSITE_PROD_REACT_APP_AUTHORIZATION_TOKEN }} \
           --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }}
-          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }}
+          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:latest
 
       - name: Deploy to App Engine
@@ -250,44 +235,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Login to GCR
-        uses: docker/login-action@v1
-        with:
-          registry: ${{ secrets.REGISTRY_URL }}
-          username: _json_key
-          password: ${{ secrets.GCR_CONFIG }}
-
-      - name: Login to K8S
-        uses: azure/k8s-set-context@v1
-        with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
-
-      - name: NPM Setup and Build
-        uses: actions/setup-node@v2
-        with:
-          node-version: "12"
-      - run: |
-          cd calibrate/
-
-          export REACT_APP_BASE_URL=${{ secrets.REACT_APP_BASE_URL_PROD }}
-          export REACT_APP_BASE_CALIBRATE_URL=${{ secrets.REACT_APP_BASE_CALIBRATE_URL }}
-          export NODE_PATH=${{ secrets.NODE_PATH }}
-          export PORT=${{ secrets.NODE_PORT }}
-
-          npm install
-
-          CI=false npm run build
-
-      - name: Build and Push Docker Image
-        run: |
-          cd calibrate/
-          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-calibrate-app:${{ needs.image-tag.outputs.build_id }} .
-          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-calibrate-app:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-calibrate-app:latest
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-calibrate-app:latest
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-calibrate-app:${{ needs.image-tag.outputs.build_id }}
-
-      - name: Login to GCP
+      - name: Google login
         uses: google-github-actions/auth@v0
         with:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
@@ -295,14 +243,44 @@ jobs:
       - name: Setup Cloud SDK
         uses: google-github-actions/setup-gcloud@v0
 
-      - name: Update the corresponding k8s configmap(s)
+      - name: Create .env file
+        run: gcloud secrets versions access latest --secret="prod-env-calibrate-app" > calibrate/.env
+
+      - name: NPM Setup and Build
+        uses: actions/setup-node@v2
+        with:
+          node-version: "12"
+      - run: |
+          cd calibrate/
+          npm install
+          CI=false npm run build
+
+      - name: Login to GCR
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ secrets.REGISTRY_URL }}
+          username: _json_key
+          password: ${{ secrets.GCR_CONFIG }}
+
+      - name: Build and Push Docker Image
         run: |
           cd calibrate/
-          gcloud secrets versions access latest --secret="prod-env-calibrate-app" > .env
-          kubectl create configmap --dry-run=client -o yaml --from-env-file=.env env-calibrate-prod | kubectl replace -f - -n production
+          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-calibrate-app:${{ needs.image-tag.outputs.build_id }} .
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-calibrate-app:${{ needs.image-tag.outputs.build_id }}
+          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-calibrate-app:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-calibrate-app:latest
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-calibrate-app:latest
+
+      - name: Login to K8S
+        uses: azure/k8s-set-context@v1
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
 
       - name: Deploy to K8S
         run: |
+          echo "=============== Update the corresponding configmap ==============="
+          kubectl create configmap --dry-run=client -o yaml --from-env-file=calibrate/.env env-calibrate-prod | kubectl replace -f - -n production
+          echo "=============== Deploy the application ==============="          
           kubectl apply -f k8s/calibrate/prod-airqo-calibrate-app.yaml
           kubectl set image deployment/airqo-calibrate-app prod-calibrate-app=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-calibrate-app:${{ needs.image-tag.outputs.build_id }} -n production
           kubectl annotate deployment/airqo-calibrate-app kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-calibrate-app:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n production
@@ -317,34 +295,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Login to GCR
-        uses: docker/login-action@v1
-        with:
-          registry: ${{ secrets.REGISTRY_URL }}
-          username: _json_key
-          password: ${{ secrets.GCR_CONFIG }}
-
-      - name: Login to K8S
-        uses: azure/k8s-set-context@v1
-        with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
-
-      - name: Create .env file
-        run: |
-          cd platform/
-          echo "========== Creating app.yaml file =========="  
-          echo "NEXT_PUBLIC_ORIGINAL_PLATFORM=${{ secrets.NEW_PLATFORM_PROD_ORIGINAL_PLATFORM }}" >> .env
-
-      - name: Build and Push Docker Image
-        run: |
-          cd platform/
-          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-next-platform:${{ needs.image-tag.outputs.build_id }} .
-          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-next-platform:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-next-platform:latest
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-next-platform:latest
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-next-platform:${{ needs.image-tag.outputs.build_id }}
-
-      - name: Login to GCP
+      - name: Google login
         uses: google-github-actions/auth@v0
         with:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
@@ -352,14 +303,35 @@ jobs:
       - name: Setup Cloud SDK
         uses: google-github-actions/setup-gcloud@v0
 
-      - name: Update the corresponding k8s configmap(s)
+      - name: Create .env file
+        run: gcloud secrets versions access latest --secret="prod-env-next-platform" > platform/.env
+
+      - name: Login to GCR
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ secrets.REGISTRY_URL }}
+          username: _json_key
+          password: ${{ secrets.GCR_CONFIG }}
+
+      - name: Build and Push Docker Image
         run: |
           cd platform/
-          gcloud secrets versions access latest --secret="prod-env-next-platform" > .env
-          kubectl create configmap --dry-run=client -o yaml --from-env-file=.env env-next-platform-production | kubectl replace -f - -n production
+          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-next-platform:${{ needs.image-tag.outputs.build_id }} .
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-next-platform:${{ needs.image-tag.outputs.build_id }}
+          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-next-platform:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-next-platform:latest
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-next-platform:latest
+
+      - name: Login to K8S
+        uses: azure/k8s-set-context@v1
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
 
       - name: Deploy to K8S
         run: |
+          echo "=============== Update the corresponding configmap ==============="
+          kubectl create configmap --dry-run=client -o yaml --from-env-file=platform/.env env-next-platform-production | kubectl replace -f - -n production
+          echo "=============== Deploy the application ==============="          
           kubectl apply -f k8s/platform/prod-airqo-next-platform.yaml
           kubectl set image deployment/airqo-next-platform airqo-next-platform=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-next-platform:${{ needs.image-tag.outputs.build_id }} -n production
           kubectl annotate deployment/airqo-next-platform kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-next-platform:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n production
@@ -381,22 +353,22 @@ jobs:
           username: _json_key
           password: ${{ secrets.GCR_CONFIG }}
 
+      - name: Build and Push Docker Image
+        run: |
+          cd docs/
+          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-prod-docs:${{ needs.image-tag.outputs.build_id }} .
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-prod-docs:${{ needs.image-tag.outputs.build_id }}
+          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-prod-docs:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-prod-docs:latest
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-prod-docs:latest
+
       - name: Login to K8S
         uses: azure/k8s-set-context@v1
         with:
           method: kubeconfig
           kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
 
-      - name: Build and Push Docker Image
-        run: |
-          cd docs/
-          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-prod-docs:${{ needs.image-tag.outputs.build_id }} .
-          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-prod-docs:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-prod-docs:latest
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-prod-docs:latest
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-prod-docs:${{ needs.image-tag.outputs.build_id }}
-
       - name: Deploy to K8S
         run: |
-          kubectl apply -f k8s/docs/prod-airqo-next-platform.yaml
-          kubectl set image deployment/airqo-prod-docs sta-docs=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-prod-docs:${{ needs.image-tag.outputs.build_id }} -n production
-          kubectl annotate deployment/aairqo-prod-docs kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-prod-docs:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n production
+          kubectl apply -f k8s/docs/prod-airqo-docs.yaml
+          kubectl set image deployment/airqo-prod-docs airqo-prod-docs=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-prod-docs:${{ needs.image-tag.outputs.build_id }} -n production
+          kubectl annotate deployment/airqo-prod-docs kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-prod-docs:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n production
