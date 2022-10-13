@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import PropTypes from "prop-types";
-import { Button, Grid, Paper, TextField } from "@material-ui/core";
+import {
+  Button,
+  CircularProgress,
+  Grid,
+  Paper,
+  TextField,
+} from "@material-ui/core";
 import Tooltip from "@material-ui/core/Tooltip";
 import CheckBoxIcon from "@material-ui/icons/CheckBox";
 import CancelIcon from "@material-ui/icons/Cancel";
@@ -18,7 +24,6 @@ import {
   deployDeviceApi,
   getDeviceRecentFeedByChannelIdApi,
   recallDeviceApi,
-  softUpdateDeviceDetails,
 } from "../../../apis/deviceRegistry";
 import { updateMainAlert } from "redux/MainAlert/operations";
 import {
@@ -326,6 +331,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
     filterSite(siteOptions, deviceData.site && deviceData.site._id)
   );
   const [deployLoading, setDeployLoading] = useState(false);
+  const [recallLoading, setrecallLoading] = useState(false);
   const [recallOpen, setRecallOpen] = useState(false);
   const [errors, setErrors] = useState({
     height: "",
@@ -409,41 +415,6 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
     return false;
   };
 
-  const updateDeviceDeploymentStatus = async (deviceId, deployStatus) => {
-    const updateData = {
-      status: deployStatus,
-    };
-
-    await softUpdateDeviceDetails(deviceId, updateData)
-      .then((responseData) => {
-        dispatch(loadDevicesData());
-        dispatch(loadSitesData());
-        dispatch(
-          updateMainAlert({
-            message: responseData.message,
-            show: true,
-            severity: "success",
-          })
-        );
-      })
-      .catch((err) => {
-        const newErrors =
-          (err.response && err.response.data && err.response.data.errors) || {};
-        setErrors(newErrors);
-        dispatch(
-          updateMainAlert({
-            message:
-              (err.response &&
-                err.response.data &&
-                err.response.data.message) ||
-              (err.response && err.response.message),
-            show: true,
-            severity: "error",
-          })
-        );
-      });
-  };
-
   const handleDeploySubmit = async () => {
     if (checkErrors()) {
       return;
@@ -463,9 +434,14 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
     setDeployLoading(true);
     await deployDeviceApi(deviceData.name, deployData)
       .then((responseData) => {
-        updateDeviceDeploymentStatus(
-          deviceData._id,
-          DEPLOYMENT_STATUSES.deployed
+        dispatch(loadDevicesData());
+        dispatch(loadSitesData());
+        dispatch(
+          updateMainAlert({
+            message: responseData.message,
+            show: true,
+            severity: "success",
+          })
         );
       })
       .catch((err) => {
@@ -485,12 +461,18 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
 
   const handleRecallSubmit = async () => {
     setRecallOpen(!recallOpen);
+    setrecallLoading(true);
 
     await recallDeviceApi(deviceData.name)
       .then((responseData) => {
-        updateDeviceDeploymentStatus(
-          deviceData._id,
-          DEPLOYMENT_STATUSES.recalled
+        dispatch(loadDevicesData());
+        dispatch(loadSitesData());
+        dispatch(
+          updateMainAlert({
+            message: responseData.message,
+            show: true,
+            severity: "success",
+          })
         );
       })
       .catch((err) => {
@@ -503,6 +485,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
           })
         );
       });
+    setDeployLoading(false);
   };
 
   const weightedBool = (primary, secondary) => {
@@ -576,7 +559,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                 onClick={() => setRecallOpen(!recallOpen)}
               >
                 {" "}
-                Recall Device
+                Recall Device {recallLoading && <CircularProgress />}
               </Button>
             </span>
           </Tooltip>
@@ -850,7 +833,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                   onClick={handleDeploySubmit}
                   style={{ marginLeft: "10px" }}
                 >
-                  Deploy
+                  Deploy {deployLoading && <CircularProgress />}
                 </Button>
               </span>
             </Tooltip>
