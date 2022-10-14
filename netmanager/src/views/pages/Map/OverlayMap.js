@@ -445,7 +445,7 @@ export const OverlayMap = ({
               feature.no2_raw_value) ||
             null;
           
-          const device = feature.device_name;
+          // const device = feature.device_name;
           const tenant = feature.tenant;
           const deviceCategory = feature.device_category;
           const siteName = feature.site_name;
@@ -498,6 +498,7 @@ export const OverlayMap = ({
                       </div>
                     </div>
                     <span>Last Refreshed: <b>${duration}</b> ago</span>
+                    <span> <b>${tenant} - ${deviceCategory}</b> </span>
                   </div>`
                 )
               )
