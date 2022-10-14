@@ -33,7 +33,7 @@ const CareerDetailPage = () => {
             { !loading && isEmpty(listing) && <div className="careers-detail--no-listing">Job listing not found or closed.</div>}
             {
                 !loading && !isEmpty(listing) && (
-                    <div className="CareersDetailPage">
+                    <div className="DetailPage">
                         <div className="content">
                             <header className="title">
                                 <span>{listing.title}</span>

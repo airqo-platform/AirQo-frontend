@@ -13,9 +13,6 @@ const AfricanCitiesPage = React.lazy(() => import('src/pages/OurSolutions/Africa
 const AboutUsPage = React.lazy(() => import('src/pages/AboutUsPage'));
 const ContactUsPage = React.lazy(() => import('src/pages/ContactUs/ContactUs'));
 const ContactForm = React.lazy(() => import('src/pages/ContactUs/ContactForm'));
-const GetInvolved = React.lazy(() => import('src/pages/GetInvolved'));
-const Register = React.lazy(() => import('src/pages/GetInvolved/Register'));
-const CheckMail = React.lazy(() => import('src/pages/GetInvolved/CheckMail'));
 const Feedback = React.lazy(() => import('src/pages/ContactUs/Feedback'));
 const ExploreData = React.lazy(() => import('src/pages/ExploreData'));
 const CareerPage = React.lazy(() => import('src/pages/CareerPage'));
@@ -25,8 +22,17 @@ import { loadAirQloudSummaryData } from 'reduxStore/AirQlouds/operations';
 import { ContentUganda, ContentKenya } from 'src/pages/OurSolutions/AfricanCitiesPage';
 import store from './store';
 import {
-    ExploreGetStarted, ExploreUserCategory, ExploreUserProfessionType, ExploreOrganisationType, ExploreUserRegistry, ExploreRegistryConfirmation, ExploreApp, ExploreBusinessRegistry, ExploreOrganisationRegistry,
-} from 'src/pages/ExploreData';
+    ExploreGetStarted,
+    ExploreUserCategory,
+    ExploreUserProfessionType,
+    ExploreOrganisationType,
+    ExploreUserRegistry,
+    ExploreRegistryConfirmation,
+    ExploreApp,
+    ExploreBusinessRegistry,
+    ExploreOrganisationRegistry,
+} from './src/pages/ExploreData';
+import PartnerDetailPage from './src/pages/Partners';
 import Error404 from 'src/pages/ErrorPages/Error404';
 
 
@@ -36,8 +42,7 @@ const App = () => {
     return (
         <Provider store={store}>
             <Router>
-                <Suspense
-                    fallback={<Loadspinner />}>
+                <Suspense fallback={<Loadspinner />}>
                     <Routes>
                         <Route path="/" element={<HomePage />} />
                         <Route path="/solutions/research" element={<ResearchPage />} />
@@ -54,25 +59,38 @@ const App = () => {
                         <Route path="/contact" element={<ContactUsPage />} />
                         <Route path="/contact/form" element={<ContactForm />} />
                         <Route path="/contact/sent" element={<Feedback />} />
-                        <Route path="/get-involved" element={<GetInvolved />} />
-                        <Route path="/get-involved/register" element={<Register />} />
-                        <Route path="/get-involved/check-mail" element={<CheckMail />} />
                         <Route path="/explore-data" element={<ExploreData />} />
                         <Route path="/explore-data/download-apps" element={<ExploreApp />} />
                         <Route path="/explore-data/get-started" element={<ExploreGetStarted />} />
                         <Route path="/explore-data/get-started/user" element={<ExploreUserCategory />} />
-                        <Route path="/explore-data/get-started/user/individual" element={<ExploreUserProfessionType />} />
-                        <Route path="/explore-data/get-started/user/organisation" element={<ExploreOrganisationType />} />
+                        <Route
+                            path="/explore-data/get-started/user/individual"
+                            element={<ExploreUserProfessionType />}
+                        />
+                        <Route
+                            path="/explore-data/get-started/user/organisation"
+                            element={<ExploreOrganisationType />}
+                        />
                         <Route path="/explore-data/get-started/user/register" element={<ExploreUserRegistry />} />
-                        <Route path="/explore-data/get-started/user/register/business" element={<ExploreBusinessRegistry />} />
-                        <Route path="/explore-data/get-started/user/register/organisation" element={<ExploreOrganisationRegistry />} />
-                        <Route path="/explore-data/get-started/user/check-mail" element={<ExploreRegistryConfirmation />} />
+                        <Route
+                            path="/explore-data/get-started/user/register/business"
+                            element={<ExploreBusinessRegistry />}
+                        />
+                        <Route
+                            path="/explore-data/get-started/user/register/organisation"
+                            element={<ExploreOrganisationRegistry />}
+                        />
+                        <Route
+                            path="/explore-data/get-started/user/check-mail"
+                            element={<ExploreRegistryConfirmation />}
+                        />
+                        <Route path="/partners/:uniqueTitle" element={<PartnerDetailPage />} />
                         <Route path="*" element={<Error404/>}/>
                     </Routes>
                 </Suspense>
             </Router>
         </Provider>
-    )
+    );
 };
 
 export default App;
