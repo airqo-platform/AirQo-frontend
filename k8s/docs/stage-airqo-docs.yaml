@@ -1,5 +1,5 @@
 ###########################################################
-# Start deployment of next platform - staging
+# Start deployment of docs - staging
 ###########################################################
 apiVersion: apps/v1
 kind: Deployment

@@ -42,3 +42,6 @@ export const NETMANAGER_URL = stripTrailingSlash(process.env.REACT_NETMANAGER_BA
 export const HIGHLIGHTS_URL = `${WEBSITE_BASE_URL}/highlights/`;
 
 export const TAGS_URL = `${WEBSITE_BASE_URL}/tags/`;
+
+// Partners url
+export const PARTNERS_URL = `${WEBSITE_BASE_URL}/partner/`;

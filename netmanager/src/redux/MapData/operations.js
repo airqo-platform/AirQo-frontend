@@ -21,7 +21,9 @@ export const loadPM25HeatMapData = () => async (dispatch) => {
   return await heatmapPredictApi()
     .then((responseData) => {
       const res = responseData.data.map((airqloud) => airqloud.values);
-      const heatMapValues = res[0].map((value) => value);
+      let values = [].concat(...res);
+      const heatMapValues = values.map((value) => value);
+
       const payload = transformDataToGeoJson(
         heatMapValues || [],
         {
