@@ -15,7 +15,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'constants/config.dart';
 import 'firebase_options.dart';
 
-void main() async { 
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
