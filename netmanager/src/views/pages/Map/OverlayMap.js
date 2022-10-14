@@ -7,9 +7,9 @@ import Filter from "../Dashboard/components/Map/Filter";
 import Divider from "@material-ui/core/Divider";
 import {
   loadPM25HeatMapData,
-  loadMapSensorsData,
+  loadAllPartnersMapSensorsData,
 } from "redux/MapData/operations";
-import { usePM25HeatMapData, useMapSensorsData } from "redux/MapData/selectors";
+import { usePM25HeatMapData, useAllPartnersMapSensorsData } from "redux/MapData/selectors";
 import SettingsIcon from "@material-ui/icons/Settings";
 import RichTooltip from "../../containers/RichToolTip";
 import { MenuItem } from "@material-ui/core";
@@ -525,14 +525,14 @@ export const OverlayMap = ({
 const MapContainer = () => {
   const dispatch = useDispatch();
   const heatMapData = usePM25HeatMapData();
-  const mapSensorsData = useMapSensorsData();
+  const mapSensorsData = useAllPartnersMapSensorsData();
 
   useEffect(() => {
     if (isEmpty(heatMapData.features)) {
       dispatch(loadPM25HeatMapData());
     }
     if (isEmpty(mapSensorsData)) {
-      dispatch(loadMapSensorsData());
+      dispatch(loadAllPartnersMapSensorsData());
     }
   }, []);
 

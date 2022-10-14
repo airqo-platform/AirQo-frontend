@@ -12,6 +12,6 @@ export const useEventsMapData = () => {
   return useSelector((state) => state.mapData.eventsData);
 };
 
-export const useMapSensorsData = () => {
+export const useAllPartnersMapSensorsData = () => {
   return useSelector((state) => state.mapData.sensorsData);
 };

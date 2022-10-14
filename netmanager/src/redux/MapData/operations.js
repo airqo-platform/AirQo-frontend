@@ -45,7 +45,7 @@ export const loadPM25HeatMapData = () => async (dispatch) => {
     });
 };
 
-export const loadMapSensorsData = () => async (dispatch) => {
+export const loadAllPartnersMapSensorsData = () => async (dispatch) => {
   return await getLatestAirQualityApi()
     .then((responseData) => {
       const payload = responseData.data;
