@@ -135,7 +135,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     Emitter<FeedbackState> emit,
   ) async {
     final profile = await Profile.getProfile();
-    
+
     return emit(
       FeedbackTypeState(
         feedbackType: FeedbackType.none,
