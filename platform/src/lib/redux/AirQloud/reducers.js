@@ -1,3 +1,5 @@
+import { createAction, createReducer } from '@reduxjs/toolkit';
+
 import { LOGOUT_USER_SUCCESS } from '../Join/types';
 import {
   LOAD_ALL_AIRQLOUDS_SUCCESS,
@@ -30,3 +32,24 @@ export default function (state = initialState, action) {
       return state;
   }
 }
+
+// actions
+const LOAD_ALL_AIRQLOUDS_SUCCESS = createAction('LOAD_ALL_AIRQLOUDS_SUCCESS');
+const LOAD_ALL_AIRQLOUDS_FAILURE = createAction('LOAD_ALL_AIRQLOUDS_FAILURE');
+const SET_CURRENT_AIRQLOUD_SUCCESS = createAction(
+  'SET_CURRENT_AIRQLOUD_SUCCESS',
+);
+const SET_CURRENT_AIRQLOUD_FAILURE = createAction(
+  'SET_CURRENT_AIRQLOUD_FAILURE',
+);
+
+const airQloudsReducer = createReducer(initialState, (builder) => {
+  builder
+    .addCase(LOAD_ALL_AIRQLOUDS_SUCCESS, (state, action) => {
+      state.airqlouds = action.payload;
+    })
+    .addCase(SET_CURRENT_AIRQLOUD_SUCCESS, (state, action) => {
+      state.currentAirQloud = action.payload;
+    })
+    .addCase(LOGOUT_USER_SUCCESS, (state, action) => state);
+});
