@@ -16,6 +16,7 @@
     "autoprefixer": "^10.4.12",
     "axios": "^1.1.2",
     "next": "^12.2.4",
+    "next-redux-wrapper": "^8.0.0",
     "postcss": "^8.4.16",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

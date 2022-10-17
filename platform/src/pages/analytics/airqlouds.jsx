@@ -1,20 +1,34 @@
 import Layout from '@/components/Layout';
-import { useDispatch } from 'react-redux';
-import { loadAirQloudsData } from '@/lib/redux/AirQloud/operations';
-import { _useAirqloudsData } from '@/lib/redux/AirQloud/selectors';
+import { useGetAllAirQloudsQuery } from '@/lib/redux/airQloudsApi';
+import { wrapper } from '@/lib/redux/store';
+import { getRunningOperationPromises } from '@/lib/redux/airQloudsApi';
 
-export async function getServerSideProps(context) {
-  const airqlouds = _useAirqloudsData();
-  const dispatch = useDispatch();
+export const getServerSideProps = wrapper.getServerSideProps(
+  (store) => async (context) => {
+    const name = context.params?.name;
 
-  if (isEmpty(airqlouds)) dispatch(loadAirQloudsData());
+    if (typeof name === 'string') {
+      store.dispatch(useGetAllAirQloudsQuery.initiate(name));
+    }
 
-  return {
-    props: { airqlouds },
-  };
-}
+    await Promise.all(getRunningOperationPromises());
 
-const AirQlouds = ({ airqlouds }) => {
+    return {
+      props: {},
+    };
+  },
+);
+
+const AirQlouds = () => {
+  const {
+    data: airqloudsResData,
+    isLoading,
+    isSuccess,
+    isError,
+    error,
+  } = useGetAllAirQloudsQuery();
+  const airqlouds = !isLoading && airqloudsResData.airqlouds;
+
   console.log(airqlouds);
   return (
     <Layout>
@@ -23,9 +37,13 @@ const AirQlouds = ({ airqlouds }) => {
           <h3>Analytics</h3> {'>'} <h3>AirQlouds</h3>
         </span>
         <div>
-          {/* <select name='airqlouds-dropdown' id='airqlouds-dropdown'>
-            {airqlouds.map((airqloud)=>(<option>{airqloud.long_name}</option>))}
-          </select> */}
+          {!isLoading && (
+            <select name='airqlouds-dropdown' id='airqlouds-dropdown'>
+              {airqlouds.map((airqloud) => (
+                <option>{airqloud.long_name}</option>
+              ))}
+            </select>
+          )}
         </div>
       </div>
     </Layout>
