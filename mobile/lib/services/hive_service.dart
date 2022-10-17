@@ -3,7 +3,6 @@ import 'dart:typed_data';
 
 import 'package:app/models/models.dart';
 import 'package:app/services/secure_storage.dart';
-import 'package:app_repository/app_repository.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'firebase_service.dart';
@@ -79,31 +78,18 @@ class HiveService {
 
   static Future<void> reloadAirQualityReadings() async {
     final airQualityReadings = await CloudStore.getAirQualityReadings();
+    if (airQualityReadings.isEmpty) {
+      return;
+    }
     final airQualityReadingsMap = <dynamic, AirQualityReading>{};
 
     for (final airQualityReading in airQualityReadings) {
       airQualityReadingsMap[airQualityReading.placeId] = airQualityReading;
     }
 
+    await Hive.box<AirQualityReading>(HiveBox.airQualityReadings).clear();
     await Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
         .putAll(airQualityReadingsMap);
-  }
-
-  static Future<void> updateAirQualityReadings(
-    List<SiteReading> siteReadings, {
-    bool reload = false,
-  }) async {
-    final airQualityReadings = <dynamic, AirQualityReading>{};
-
-    for (final siteReading in siteReadings) {
-      final airQualityReading = AirQualityReading.fromSiteReading(siteReading);
-      airQualityReadings[airQualityReading.placeId] = airQualityReading;
-    }
-    if (reload) {
-      await Hive.box<AirQualityReading>(HiveBox.airQualityReadings).clear();
-    }
-    await Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-        .putAll(airQualityReadings);
   }
 
   static Future<void> loadFavouritePlaces(

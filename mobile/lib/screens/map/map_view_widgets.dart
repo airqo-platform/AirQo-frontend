@@ -399,8 +399,6 @@ class AllSites extends StatelessWidget {
           final countries =
               airQualityReadings.map((e) => e.country).toSet().toList()..sort();
 
-          print(countries);
-
           return ListView.builder(
             shrinkWrap: true,
             physics: const BouncingScrollPhysics(),

@@ -5,6 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../constants/config.dart';
+import 'converters.dart';
 
 part 'air_quality_reading.g.dart';
 
@@ -43,17 +44,21 @@ class AirQualityReading extends HiveObject {
     final longitude = data.containsKey('longitude') ? data['longitude'] : 0.0;
     final pm2_5 = data.containsKey('pm2_5') ? data['pm2_5'] : 0.0;
     final pm10 = data.containsKey('pm10') ? data['pm10'] : 0.0;
-    final distanceToReferenceSite = data.containsKey('distanceToReferenceSite')
-        ? data['distanceToReferenceSite']
-        : 0.0;
+    final distanceToReferenceSite =
+        (data.containsKey('distanceToReferenceSite') &&
+                data['distanceToReferenceSite'] is double)
+            ? data['distanceToReferenceSite']
+            : 0.0;
     final country = data.containsKey('country') ? data['country'] : '';
     final name = data.containsKey('name') ? data['name'] : '';
     final placeId = data.containsKey('placeId') ? data['placeId'] : '';
     final airQuality = data.containsKey('airQuality') ? data['airQuality'] : '';
     final location = data.containsKey('location') ? data['location'] : '';
     final region = data.containsKey('region') ? data['region'] : '';
-    final dateTime =
-        data.containsKey('dateTime') ? data['dateTime'] : DateTime.now();
+    final dateTimeSinceEpoch =
+        ((data.containsKey('dateTime') && data['dateTime'] is Timestamp)
+            ? data['dateTime'].millisecondsSinceEpoch
+            : DateTime.now().millisecondsSinceEpoch);
 
     return AirQualityReading(
       referenceSite: referenceSite is String ? referenceSite : '',
@@ -64,14 +69,10 @@ class AirQualityReading extends HiveObject {
       name: name is String ? name : '',
       location: location is String ? location : '',
       region: region is String ? region : '',
-      dateTime: DateTime.fromMillisecondsSinceEpoch(
-        (dateTime is DateTime ? dateTime : DateTime.now())
-            .millisecondsSinceEpoch,
-      ),
+      dateTime: DateTime.fromMillisecondsSinceEpoch(dateTimeSinceEpoch),
       pm2_5: pm2_5 is double ? pm2_5 : 0.0,
       pm10: pm10 is double ? pm10 : 0.0,
-      distanceToReferenceSite:
-          distanceToReferenceSite is double ? distanceToReferenceSite : 0.0,
+      distanceToReferenceSite: distanceToReferenceSite,
       placeId: placeId is String ? placeId : '',
       airQuality: const AirQualityConverter()
           .fromJson(airQuality is String ? airQuality : ''),

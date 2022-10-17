@@ -307,7 +307,7 @@ class BackgroundService {
     );
     port.listen(
       (dynamic data) async {
-        await HiveService.updateAirQualityReadings(data);
+        // await HiveService.updateAirQualityReadings(data);
       },
     );
   }

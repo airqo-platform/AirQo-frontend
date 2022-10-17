@@ -3,7 +3,6 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:json_annotation/json_annotation.dart';
 
 import '../themes/colors.dart';
 
@@ -112,20 +111,6 @@ enum Region {
   String toString() => string;
 }
 
-class RegionConverter implements JsonConverter<Region, String> {
-  const RegionConverter();
-
-  @override
-  String toJson(Region region) {
-    return region.toString();
-  }
-
-  @override
-  Region fromJson(String jsonString) {
-    return Region.fromString(jsonString);
-  }
-}
-
 @HiveType(typeId: 150, adapterName: 'AirQualityAdapter')
 enum AirQuality {
   @HiveField(1)
@@ -198,20 +183,6 @@ enum AirQuality {
 
   @override
   String toString() => string;
-}
-
-class AirQualityConverter implements JsonConverter<AirQuality, String> {
-  const AirQualityConverter();
-
-  @override
-  String toJson(AirQuality airQuality) {
-    return airQuality.toString();
-  }
-
-  @override
-  AirQuality fromJson(String jsonString) {
-    return AirQuality.fromString(jsonString);
-  }
 }
 
 enum FeedbackType {
