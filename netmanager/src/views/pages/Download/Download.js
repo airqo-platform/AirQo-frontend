@@ -11,15 +11,15 @@ import {
   Divider,
   CircularProgress,
   Tabs,
-  Tab
+  Tab,
 } from "@material-ui/core";
-import Alert from '@material-ui/lab/Alert';
+import Alert from "@material-ui/lab/Alert";
 import Select from "react-select";
 import PropTypes from "prop-types";
 import clsx from "clsx";
 import TextField from "@material-ui/core/TextField";
 import { isEmpty } from "underscore";
-import Papa from 'papaparse';
+import Papa from "papaparse";
 import moment from "moment";
 import { useDashboardSitesData } from "redux/Dashboard/selectors";
 import { loadSites } from "redux/Dashboard/operations";
@@ -32,7 +32,6 @@ import { downloadUrbanBetterDataApi } from "../../apis/analytics";
 import { useMainAlertData } from "../../../redux/MainAlert/selectors";
 
 const { Parser } = require("json2csv");
-
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -105,29 +104,29 @@ const Download = (props) => {
   ];
 
   const listOfDeviceNumbers = [
-    {value: 16020, label: 16020},
-    {value: 19857, label: 19857},
-    {value: 16016, label: 16016},
-    {value: 19503, label: 19503},
-    {value: 16088, label: 16088},
-    {value: 18079, label: 18079},
-    {value: 18130, label: 18130},
-    {value: 20259, label: 20259},
-    {value: 18556, label: 18556},
-    {value: 18566, label: 18566},
-    {value: 18455, label: 18455},
-    {value: 18425, label: 18425},
-    {value: 18132, label: 18132},
-    {value: 18559, label: 18559},
-    {value: 18567, label: 18567},
-    {value: 18564, label: 18564},
-    {value: 20838, label: 20838},
-    {value: 18110, label: 18110}
+    { value: 16020, label: 16020 },
+    { value: 19857, label: 19857 },
+    { value: 16016, label: 16016 },
+    { value: 19503, label: 19503 },
+    { value: 16088, label: 16088 },
+    { value: 18079, label: 18079 },
+    { value: 18130, label: 18130 },
+    { value: 20259, label: 20259 },
+    { value: 18556, label: 18556 },
+    { value: 18566, label: 18566 },
+    { value: 18455, label: 18455 },
+    { value: 18425, label: 18425 },
+    { value: 18132, label: 18132 },
+    { value: 18559, label: 18559 },
+    { value: 18567, label: 18567 },
+    { value: 18564, label: 18564 },
+    { value: 20838, label: 20838 },
+    { value: 18110, label: 18110 },
   ];
 
   function TabPanel(props) {
     const { children, value, index, ...other } = props;
-  
+
     return (
       <div
         role="tabpanel"
@@ -136,11 +135,7 @@ const Download = (props) => {
         aria-labelledby={`data-export-tab-${index}`}
         {...other}
       >
-        {value === index && (
-          <div sx={{ p: 3 }}>
-            {children}
-          </div>
-        )}
+        {value === index && <div sx={{ p: 3 }}>{children}</div>}
       </div>
     );
   }
@@ -148,7 +143,7 @@ const Download = (props) => {
   function a11yProps(index) {
     return {
       id: `data-export-tab-${index}`,
-      'aria-controls': `data-export-tabpanel-${index}`,
+      "aria-controls": `data-export-tabpanel-${index}`,
     };
   }
 
@@ -165,7 +160,7 @@ const Download = (props) => {
   }, [sites]);
 
   const disableDownloadBtn = (tenant) => {
-    if(tenant === "airqo") {
+    if (tenant === "airqo") {
       return (
         !(
           startDate &&
@@ -175,10 +170,11 @@ const Download = (props) => {
           fileType &&
           fileType.value &&
           frequency &&
-          frequency.value
+          frequency.value &&
+          outputFormat
         ) || loading
       );
-    } else if(tenant === "urbanBetter") {
+    } else if (tenant === "urbanBetter") {
       return (
         !(
           startDate &&
@@ -189,7 +185,6 @@ const Download = (props) => {
         ) || loading
       );
     }
-    
   };
 
   let handleAirqoFormSubmit = async (e) => {
@@ -208,7 +203,12 @@ const Download = (props) => {
       outputFormat: outputFormat.value,
     };
 
-    await downloadDataApi(fileType.value, data, fileType.value === "csv" , outputFormat.value)
+    await downloadDataApi(
+      fileType.value,
+      data,
+      fileType.value === "csv",
+      outputFormat.value
+    )
       .then((response) => response.data)
       .then((resData) => {
         let filename = `airquality-${frequency.value}-data.${fileType.value}`;
@@ -263,6 +263,7 @@ const Download = (props) => {
     setFileType(null);
     setSelectedSites([]);
     setPollutants([]);
+    setOutputFormat(null);
   };
 
   const handleUrbanBetterFormSubmit = async (e) => {
@@ -273,34 +274,33 @@ const Download = (props) => {
     let data = {
       startDate: roundToStartOfDay(new Date(startDate).toISOString()),
       endDate: roundToEndOfDay(new Date(endDate).toISOString()),
-      device_numbers: getValues(deviceNumbers)
+      device_numbers: getValues(deviceNumbers),
     };
 
     await downloadUrbanBetterDataApi(data)
       .then((resData) => {
-
         let filename = `airquality-data.${fileType.value}`;
 
-        if(fileType.value === "csv"){
+        if (fileType.value === "csv") {
           const downloadUrl = window.URL.createObjectURL(new Blob([resData]));
           const link = document.createElement("a");
-          
+
           link.href = downloadUrl;
           link.setAttribute("download", filename);
-  
+
           document.body.appendChild(link);
           link.click();
           link.remove();
-        } else if(fileType.value === "json") {
+        } else if (fileType.value === "json") {
           Papa.parse(resData, {
             header: true,
-            complete: response => {
-              setParsedCsvData(response.data)
+            complete: (response) => {
+              setParsedCsvData(response.data);
             },
           });
-          
+
           let contentType = "application/json;charset=utf-8;";
-          
+
           var a = document.createElement("a");
           a.download = filename;
           a.href =
@@ -321,7 +321,6 @@ const Download = (props) => {
             })
           );
         }
-        
       })
       .catch((err) => {
         console.log(err);
@@ -338,7 +337,7 @@ const Download = (props) => {
     setEndDate(null);
     setFileType(null);
     setDeviceNumbers([]);
-  }
+  };
 
   return (
     <ErrorBoundary>
@@ -356,13 +355,14 @@ const Download = (props) => {
               />
 
               <Divider />
-              
-              <Tabs 
-              value={value}
-              onChange={handleChangeTabPanel}
-              textColor="primary"
-              indicatorColor="primary" 
-              centered>
+
+              <Tabs
+                value={value}
+                onChange={handleChangeTabPanel}
+                textColor="primary"
+                indicatorColor="primary"
+                centered
+              >
                 <Tab disableRipple label="AirQo data" {...a11yProps(0)} />
                 <Tab disableRipple label="UrbanBetter data" {...a11yProps(1)} />
               </Tabs>
@@ -555,7 +555,6 @@ const Download = (props) => {
                           required
                         />
                       </Grid>
-                    
 
                       <Grid item md={6} xs={12}>
                         <Select
