@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:app/blocs/blocs.dart';
 import 'package:app/screens/on_boarding/splash_screen.dart';
 import 'package:app/services/hive_service.dart';
 import 'package:app/services/native_api.dart';
@@ -14,10 +15,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-import 'blocs/feedback/feedback_bloc.dart';
-import 'blocs/map/map_bloc.dart';
-import 'blocs/nearby_location/nearby_location_bloc.dart';
-import 'blocs/search/search_bloc.dart';
 import 'constants/config.dart';
 import 'firebase_options.dart';
 import 'themes/app_theme.dart';
@@ -63,6 +60,9 @@ class AirQoApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        BlocProvider(
+          create: (BuildContext context) => DashboardBloc(),
+        ),
         BlocProvider(
           create: (BuildContext context) => SearchBloc(),
         ),
