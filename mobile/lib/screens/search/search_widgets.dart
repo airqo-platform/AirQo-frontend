@@ -572,6 +572,12 @@ class NearbyLocations extends StatelessWidget {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 showSnackBar(context, state.error.message);
               });
+              break;
+            case NearbyAirQualityError.locationDisabled:
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                showSnackBar(context, state.error.message);
+              });
+              break;
           }
         }
 

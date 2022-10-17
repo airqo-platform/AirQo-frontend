@@ -14,7 +14,6 @@ import '../blocs/nearby_location/nearby_location_bloc.dart';
 import '../blocs/nearby_location/nearby_location_event.dart';
 import '../services/hive_service.dart';
 import '../services/local_storage.dart';
-import '../services/native_api.dart';
 import '../themes/colors.dart';
 import '../utils/network.dart';
 import 'dashboard/dashboard_view.dart';
@@ -166,11 +165,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _initialize() async {
-    await PermissionService.checkPermission(
-      AppPermission.location,
-      request: true,
-    ).then((value) =>
-        context.read<NearbyLocationBloc>().add(const SearchNearbyLocations()));
+    context.read<NearbyLocationBloc>().add(const CheckNearbyLocations());
+    context.read<MapBloc>().add(const ShowAllSites());
 
     if (refresh) {
       await _appService.fetchData();
@@ -181,7 +177,6 @@ class _HomePageState extends State<HomePage> {
       );
     }
     await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.home);
-    context.read<MapBloc>().add(const ShowAllSites());
   }
 
   @override
@@ -219,6 +214,9 @@ class _HomePageState extends State<HomePage> {
 
   void _onItemTapped(int index) {
     if (index == 1) context.read<MapBloc>().add(const ShowAllSites());
+    if (index == 0) {
+      context.read<NearbyLocationBloc>().add(const CheckNearbyLocations());
+    }
     setState(() => _selectedIndex = index);
   }
 }

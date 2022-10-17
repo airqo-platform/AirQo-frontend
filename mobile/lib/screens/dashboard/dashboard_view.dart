@@ -130,66 +130,62 @@ class _DashboardViewState extends State<DashboardView> {
             const SizedBox(
               height: 24,
             ),
-            Text(
-              getDateTime(),
-              style: Theme.of(context).textTheme.caption?.copyWith(
-                    color: Colors.black.withOpacity(0.5),
-                  ),
-            ),
-            const SizedBox(
-              height: 4,
-            ),
-            Text(
-              'Today’s air quality',
-              style: CustomTextStyle.headline11(context),
-            ),
-            const SizedBox(
-              height: 5,
-            ),
             Expanded(
               child: AppRefreshIndicator(
                 sliverChildDelegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final items = [
-                      BlocConsumer<NearbyLocationBloc, NearbyLocationState>(
-                        listener: (context, state) {
+                      Text(
+                        getDateTime(),
+                        style: Theme.of(context).textTheme.caption?.copyWith(
+                              color: Colors.black.withOpacity(0.5),
+                            ),
+                      ),
+                      const SizedBox(
+                        height: 4,
+                      ),
+                      Text(
+                        'Today’s air quality',
+                        style: CustomTextStyle.headline11(context),
+                      ),
+                      const SizedBox(
+                        height: 8,
+                      ),
+                      BlocListener<NearbyLocationBloc, NearbyLocationState>(
+                        listener: (context, state) async {
                           if (state is NearbyLocationStateError) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              showSnackBar(context, state.error.message);
-                            });
+                            await showLocationErrorSnackBar(
+                              context,
+                              state.error,
+                            ).whenComplete(() => context
+                                .read<NearbyLocationBloc>()
+                                .add(const CheckNearbyLocations()));
                           }
                         },
-                        builder: (context, state) {
-                          if (state is NearbyLocationStateSuccess ||
-                              state is SearchingNearbyLocationsState) {
-                            return ValueListenableBuilder<Box>(
-                              valueListenable: Hive.box<AirQualityReading>(
-                                HiveBox.nearByAirQualityReadings,
-                              ).listenable(),
-                              builder: (context, box, widget) {
-                                final airQualityReadings =
-                                    filterNearestLocations(
-                                  box.values.cast<AirQualityReading>().toList(),
-                                );
+                        child: Container(),
+                      ),
+                      ValueListenableBuilder<Box>(
+                        valueListenable: Hive.box<AirQualityReading>(
+                          HiveBox.nearByAirQualityReadings,
+                        ).listenable(),
+                        builder: (context, box, widget) {
+                          final airQualityReadings = filterNearestLocations(
+                            box.values.cast<AirQualityReading>().toList(),
+                          );
 
-                                if (airQualityReadings.isNotEmpty) {
-                                  final sortedReadings =
-                                      sortAirQualityReadingsByDistance(
-                                    airQualityReadings,
-                                  ).take(1).toList();
+                          if (airQualityReadings.isNotEmpty) {
+                            final sortedReadings =
+                                sortAirQualityReadingsByDistance(
+                              airQualityReadings,
+                            ).take(1).toList();
 
-                                  return Padding(
-                                    padding: const EdgeInsets.only(top: 24),
-                                    child: AnalyticsCard(
-                                      sortedReadings.first,
-                                      false,
-                                      false,
-                                    ),
-                                  );
-                                }
-
-                                return const SizedBox();
-                              },
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 16),
+                              child: AnalyticsCard(
+                                sortedReadings.first,
+                                false,
+                                false,
+                              ),
                             );
                           }
 
@@ -209,21 +205,24 @@ class _DashboardViewState extends State<DashboardView> {
                             return const SizedBox();
                           }
 
-                          return DashboardKyaCard(
-                            kyaClickCallBack: _handleKyaOnClick,
-                            kya: incompleteKya[0],
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 16),
+                            child: DashboardKyaCard(
+                              kyaClickCallBack: _handleKyaOnClick,
+                              kya: incompleteKya[0],
+                            ),
                           );
                         },
+                      ),
+                      const SizedBox(
+                        height: 16,
                       ),
                       BlocBuilder<DashboardBloc, DashboardState>(
                         builder: (context, state) {
                           final airQualityReadings = state.airQualityReadings;
                           if (airQualityReadings.isEmpty) {
-                            return const Padding(
-                              padding: EdgeInsets.only(top: 16),
-                              child: Center(
-                                child: CircularProgressIndicator(),
-                              ),
+                            return const Center(
+                              child: CircularProgressIndicator(),
                             );
                           }
 
@@ -233,7 +232,8 @@ class _DashboardViewState extends State<DashboardView> {
                             itemCount: airQualityReadings.length,
                             itemBuilder: (BuildContext context, int index) {
                               return Padding(
-                                padding: const EdgeInsets.only(top: 16),
+                                padding:
+                                    EdgeInsets.only(top: index == 0 ? 0 : 16),
                                 child: AnalyticsCard(
                                   AirQualityReading.duplicate(
                                     airQualityReadings[index],
@@ -250,7 +250,7 @@ class _DashboardViewState extends State<DashboardView> {
 
                     return items[index];
                   },
-                  childCount: 3,
+                  childCount: 9,
                 ),
                 onRefresh: _refresh,
               ),
@@ -277,9 +277,10 @@ class _DashboardViewState extends State<DashboardView> {
   void _listenToStream() {
     _timeSubscription = _timeStream.listen((_) async {
       context.read<DashboardBloc>().add(const UpdateGreetings());
-      context.read<NearbyLocationBloc>().add(const SearchNearbyLocations());
+      context.read<NearbyLocationBloc>().add(const CheckNearbyLocations());
       await _appService.refreshDashboard(context);
     });
+    context.read<NearbyLocationBloc>().add(const SearchNearbyLocations());
   }
 
   Future<void> _handleKyaOnClick(Kya kya) async {
@@ -299,9 +300,9 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   Future<void> _refresh() async {
-    context.read<NearbyLocationBloc>().add(const SearchNearbyLocations());
     context.read<DashboardBloc>().add(const InitializeDashboard());
     context.read<MapBloc>().add(const ShowAllSites());
+    context.read<NearbyLocationBloc>().add(const SearchNearbyLocations());
     await _appService.refreshDashboard(context);
   }
 }

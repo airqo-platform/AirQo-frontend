@@ -46,17 +46,35 @@ enum AppPermission {
 
 enum NearbyAirQualityError {
   locationDenied(
-    'Grant location to the AirQo app in the your phone settings',
+    message: 'Grant location access in your phone settings',
+    snackBarActionLabel: 'Open Settings',
+    snackBarDuration: 5,
   ),
   locationDisabled(
-    'Turn on location to get air quality near you',
+    message: 'Turn on location to get air quality near you',
+    snackBarActionLabel: 'Open Settings',
+    snackBarDuration: 5,
   ),
-  locationNotAllowed('Enable location in the settings page'),
-  noNearbyAirQualityReadings('No nearby air quality readings');
+  locationNotAllowed(
+    message: 'Enable location in your settings.',
+    snackBarActionLabel: 'Open Settings',
+    snackBarDuration: 5,
+  ),
+  noNearbyAirQualityReadings(
+    message: 'Cannot get nearby air quality readings',
+    snackBarActionLabel: 'Close',
+    snackBarDuration: 2,
+  );
 
-  const NearbyAirQualityError(this.message);
+  const NearbyAirQualityError({
+    required this.message,
+    required this.snackBarActionLabel,
+    required this.snackBarDuration,
+  });
 
   final String message;
+  final String snackBarActionLabel;
+  final int snackBarDuration;
 
   @override
   String toString() => message;
