@@ -13,6 +13,8 @@ export const ALL_DEVICES_URI = `${BASE_DEVICE_REGISTRY_URL}/devices`;
 
 export const EDIT_DEVICE_URI = `${BASE_DEVICE_REGISTRY_URL}/devices`;
 
+export const SOFT_EDIT_DEVICE_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/soft`;
+
 export const DEVICES_IN_LOCATION_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/by/location?loc=`;
 
 export const DEPLOY_DEVICE_URI = `${BASE_DEVICE_REGISTRY_URL}/devices/activities/deploy`;
