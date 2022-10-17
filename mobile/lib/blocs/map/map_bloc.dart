@@ -7,7 +7,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../constants/config.dart';
 import '../../models/air_quality_reading.dart';
-import '../../models/enum_constants.dart';
 import '../../services/hive_service.dart';
 
 part 'map_event.dart';

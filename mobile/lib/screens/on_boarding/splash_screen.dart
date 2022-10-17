@@ -8,10 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../blocs/feedback/feedback_bloc.dart';
-import '../../blocs/nearby_location/nearby_location_bloc.dart';
-import '../../blocs/nearby_location/nearby_location_event.dart';
-
 import '../../services/app_service.dart';
 import '../../services/firebase_service.dart';
 import '../../services/local_storage.dart';
@@ -143,7 +139,6 @@ class SplashScreenState extends State<SplashScreen> {
     return AnimatedOpacity(
       opacity: _visible ? 1.0 : 0.0,
       duration: const Duration(milliseconds: 500),
-      // The green box must be a child of the AnimatedOpacity widget.
       child: Center(
         child: Stack(
           alignment: AlignmentDirectional.center,
