@@ -1,7 +1,7 @@
 import Layout from '@/components/Layout';
-import { useGetAllAirQloudsQuery } from '@/lib/redux/airQloudsApi';
-import { wrapper } from '@/lib/redux/store';
-import { getRunningOperationPromises } from '@/lib/redux/airQloudsApi';
+import { useGetAllAirQloudsQuery } from '@/lib/store/airQloudsApi';
+import { wrapper } from '@/lib/store';
+import { getRunningOperationPromises } from '@/lib/store/airQloudsApi';
 
 export const getServerSideProps = wrapper.getServerSideProps(
   (store) => async (context) => {
@@ -40,7 +40,7 @@ const AirQlouds = () => {
           {!isLoading && (
             <select name='airqlouds-dropdown' id='airqlouds-dropdown'>
               {airqlouds.map((airqloud) => (
-                <option>{airqloud.long_name}</option>
+                <option key={airqloud._id}>{airqloud.long_name}</option>
               ))}
             </select>
           )}
