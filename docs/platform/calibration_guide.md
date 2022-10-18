@@ -8,14 +8,14 @@
 ## The need for calibration
 
 ## The AirQo use case: ML-based approach
-Step 1: [Collocation](#step-1:-collocation)
-Step 2: [Developing a calibration model](#step-2:-developing-a-calibration-model)
+Step 1: [Collocation](#step-1:-collocation) <br/>
+Step 2: [Developing a calibration model](#step-2:-developing-a-calibration-model) <br/>
 Step 3: [Deploying the model to a data Pipeline](#step-3:-deploying-the-model-to-a-data-pipeline)
 
 ## AirQalibrate
-[Why use AirQalibrate?](#why-use-airQalibrate?)
-[The user interface (UI)](#the-user-interface-(UI))
-[How does it work?](#how-does-it-work?)
+[Why use AirQalibrate?](#why-use-airQalibrate?) <br/>
+[The user interface (UI)](#the-user-interface-(UI))<br/>
+[How does it work?](#how-does-it-work?)<br/>
 [Getting Started](#getting-started)
 
 ## Support services
