@@ -85,7 +85,7 @@ AirQalibrate is a low-cost sensor calibration tool developed by AirQo to facilit
 1. It can be used to improve the accuracy of data from your low-cost air quality monitors
 
 2. It reduces operational costs of monitoring; 
- a. The tool does not require access to a       reference grade monitor which is very costly. 
+ a. The tool does not require access to a reference grade monitor which is very costly. 
 
     b. Reduces costs of acquiring skilled labour to build your calibration models.
 
@@ -152,10 +152,3 @@ To open AirQualibrate, follow these steps:
 ## Support services
 
 If you need additional support, send us an email at [support@airqo.net](support@airqo.net)
-
-
-
-<!-- ## Example
-## Example2
-## Third Example
-## [Fourth Example](http://www.fourthexample.com)  -->
