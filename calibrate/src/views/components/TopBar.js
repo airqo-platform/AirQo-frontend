@@ -1,5 +1,6 @@
 import React from "react";
 import AppBar from "@mui/material/AppBar";
+import ArrowLongRightIcon from "../../icons/arrow_long_right";
 
 const styles = {
   display: "flex",
@@ -8,6 +9,12 @@ const styles = {
   background: "#3067e2",
   minHeight: "60px",
   color: "#ffffff",
+};
+
+const appBarWrapper = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
 };
 
 const logoContainer = {
@@ -30,16 +37,37 @@ const logoStyle = {
   marginRight: ".4em",
 };
 
+const docsLinkWrapper = {
+  display: "flex",
+  alignItems: "center",
+  color: "#ffffff",
+  marginRight: "5px",
+  padding: "5px",
+  cursor: "pointer",
+  textDecoration: "none",
+};
+
 const TopBar = () => {
   return (
     <AppBar style={styles}>
-      <div style={logoContainer}>
-        <img
-          alt="airqo.net"
-          style={logoStyle}
-          src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png"
-        />
-        <span style={{ fontSize: "20px" }}>AirQalibrate</span>
+      <div style={appBarWrapper}>
+        <div style={logoContainer}>
+          <img
+            alt="airqo.net"
+            style={logoStyle}
+            src="https://res.cloudinary.com/drgm88r3l/image/upload/v1602488051/airqo_org_logos/airqo_logo.png"
+          />
+          <span style={{ fontSize: "20px" }}>AirQalibrate</span>
+        </div>
+        <a
+          href="https://docs.google.com/document/d/1z65wAjDscZvA9i_oLyHaNm7xKjkaq_DFBd3vjapVzXA/edit?usp=sharing"
+          target="_blank"
+          rel="noreferrer"
+          style={docsLinkWrapper}
+        >
+          Read<b style={{ marginLeft: "4px" }}>Calibration guide</b>
+          <ArrowLongRightIcon />
+        </a>
       </div>
     </AppBar>
   );

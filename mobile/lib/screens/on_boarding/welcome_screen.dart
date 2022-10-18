@@ -1,9 +1,9 @@
+import 'package:app/models/models.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../models/enum_constants.dart';
 import '../../services/local_storage.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
