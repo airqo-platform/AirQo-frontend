@@ -60,7 +60,7 @@ const TopBar = () => {
           <span style={{ fontSize: "20px" }}>AirQalibrate</span>
         </div>
         <a
-          href="https://docs.google.com/document/d/1z65wAjDscZvA9i_oLyHaNm7xKjkaq_DFBd3vjapVzXA/edit?usp=sharing"
+          href={process.env.REACT_APP_CALIBRATION_GUIDE}
           target="_blank"
           rel="noreferrer"
           style={docsLinkWrapper}
