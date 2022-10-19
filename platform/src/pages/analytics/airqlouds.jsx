@@ -5,10 +5,10 @@ import {
 } from '@/lib/store/airQloudsApi';
 import { wrapper } from '@/lib/store';
 import ChevronRightIcon from '@/icons/chevron_right';
-import { useDispatch } from 'react-redux';
-import { setCurrentAirqloud } from '@/lib/store/currentAirqloudSlice';
 import { useState } from 'react';
 import { Tab } from '@headlessui/react';
+import Spinner from '@/icons/spinner';
+import { Dropdown } from 'flowbite-react';
 
 export const getServerSideProps = wrapper.getServerSideProps(
   (store) => async (context) => {
@@ -34,46 +34,68 @@ const AIRQLOUD_REGIONS = [
   'Western Region',
 ];
 
-const RegionTabs = () => {
-  const [active, setActive] = useState(false);
-  const toggleTab = () => setActive(!active);
+const AirQloudsDropdown = ({ airqlouds }) => {
+  const [selectedAirQloud, setSelectedAirQloud] = useState(airqlouds[0]);
+  const handleSetAirQloud = (value) => setSelectedAirQloud(value);
+
   return (
-    <Tab.Group>
-      <Tab.List>
-        {AIRQLOUD_REGIONS.map((region) => (
-          <Tab className='ui-active:border-b-2 ui-active:border-b-black pb-1 cursor-pointer mr-[26px]'>
-            {region}
-          </Tab>
-        ))}
-      </Tab.List>
-      {/* <Tab.Panels>
-        <Tab.Panel>Content 1</Tab.Panel>
-        <Tab.Panel>Content 2</Tab.Panel>
-        <Tab.Panel>Content 3</Tab.Panel>
-      </Tab.Panels> */}
-    </Tab.Group>
+    <>
+      <Dropdown label={selectedAirQloud.long_name} inline={true}>
+        <div className='max-h-40 h-full overflow-y-scroll'>
+          {airqlouds.map((airqloud) => (
+            <Dropdown.Item
+              key={airqloud._id}
+              onClick={() => handleSetAirQloud(airqloud)}
+            >
+              {airqloud.long_name}
+            </Dropdown.Item>
+          ))}
+        </div>
+      </Dropdown>
+    </>
+  );
+};
+
+const RegionTabs = () => {
+  return (
+    <div className='w-full'>
+      <Tab.Group>
+        <Tab.List>
+          {AIRQLOUD_REGIONS.map((region, index) => (
+            <Tab
+              key={index}
+              className='ui-selected:border-b-2 ui-selected:border-b-black ui-selected:opacity-100 font-medium text-sm pb-1 cursor-pointer mr-[26px] opacity-40 outline-none'
+            >
+              {region}
+            </Tab>
+          ))}
+          <hr className='w-full' />
+        </Tab.List>
+        {/* <Tab.Panels>
+          <Tab.Panel>Content 1</Tab.Panel>
+          <Tab.Panel>Content 2</Tab.Panel>
+          <Tab.Panel>Content 3</Tab.Panel>
+        </Tab.Panels> */}
+      </Tab.Group>
+    </div>
   );
 };
 
 const AirQlouds = () => {
-  const dispatch = useDispatch();
-
   const {
-    data: airqloudsResData,
+    data: airqlouds,
     isLoading,
     isSuccess,
     isError,
     error,
   } = useGetAllAirQloudsQuery();
-  const airqlouds = !isLoading && airqloudsResData.airqlouds;
+  const airqloudsData = !isLoading && airqlouds.airqlouds;
 
-  console.log(airqlouds);
-
-  const handleChange = (airqloud) => {
-    dispatch(setCurrentAirqloud(JSON.parse(airqloud)));
-  };
-
-  return (
+  return isLoading ? (
+    <div className='w-screen h-screen flex items-center justify-center'>
+      <Spinner />
+    </div>
+  ) : (
     <Layout>
       <div className='m-6'>
         <span className='flex items-center mb-[33px]'>
@@ -83,21 +105,8 @@ const AirQlouds = () => {
           <ChevronRightIcon strokeWidth={1.5} stroke='#E3E3E3' />
           <h3 className='text-xl font-medium text-black ml-3'>AirQlouds</h3>
         </span>
-        <div>
-          {!isLoading && (
-            <select
-              name='airqlouds-dropdown'
-              id='airqlouds-dropdown'
-              className='outline-none border-none bg-transparent text-base font-semibold text-black'
-              onChange={(e) => handleChange(e.target.value)}
-            >
-              {airqlouds.map((airqloud) => (
-                <option key={airqloud._id} value={JSON.stringify(airqloud)}>
-                  {airqloud.long_name}
-                </option>
-              ))}
-            </select>
-          )}
+        <div className='mb-5'>
+          <AirQloudsDropdown airqlouds={airqloudsData} />
         </div>
         <div className='flex'>
           <RegionTabs />

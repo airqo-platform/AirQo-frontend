@@ -3,6 +3,7 @@ const defaultTheme = require('tailwindcss/defaultTheme');
 
 module.exports = {
   content: [
+    'node_modules/flowbite-react/**/*.js',
     './src/pages/**/*.{js,jsx}',
     './src/common/components/**/*.{js,jsx}',
   ],
@@ -13,5 +14,8 @@ module.exports = {
       },
     },
   },
-  plugins: [require('@headlessui/tailwindcss')({ prefix: 'ui' })],
+  plugins: [
+    require('@headlessui/tailwindcss')({ prefix: 'ui' }),
+    require('flowbite/plugin'),
+  ],
 };

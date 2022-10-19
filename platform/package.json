@@ -17,6 +17,8 @@
     "@svgr/webpack": "^6.4.0",
     "autoprefixer": "^10.4.12",
     "axios": "^1.1.2",
+    "flowbite": "^1.5.3",
+    "flowbite-react": "^0.2.0",
     "next": "^12.2.4",
     "next-redux-wrapper": "^8.0.0",
     "postcss": "^8.4.16",

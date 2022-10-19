@@ -17,7 +17,7 @@ const TopBar = () => {
             id='search'
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className='w-full h-10 rounded-[4px] bg-[#0000000A] focus:outline-none text-black px-4'
+            className='w-full h-10 rounded-[4px] bg-[#0000000A] border-0 focus:outline-2 focus:border text-black px-4'
           />
         </form>
 
