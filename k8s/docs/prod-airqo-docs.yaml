@@ -27,7 +27,7 @@ spec:
                     values:
                       - general-purpose
       containers:
-        - name: airqo-docs
+        - name: airqo-prod-docs
           image: us.gcr.io/airqo-250220/airqo-prod-docs:latest
           imagePullPolicy: Always
           ports:
