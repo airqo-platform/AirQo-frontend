@@ -51,6 +51,57 @@ class AirqoApiClient {
       () => 'JWT ${Config.airqoApiToken}',
     );
 
+  Future<Map<String, dynamic>> getLocation() async {
+    var ipAddress = '';
+    try {
+      final ipResponse = await httpClient.get(
+        Uri.parse('https://jsonip.com/'),
+      );
+      ipAddress = json.decode(ipResponse.body)['ip'];
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    try {
+      var params = ipAddress.isNotEmpty
+          ? {'ip_address': ipAddress}
+          : {} as Map<String, dynamic>;
+      final response =
+          await _performGetRequest(params, AirQoUrls.ipGeoCoordinates);
+
+      return response['data'];
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return {};
+  }
+
+  Future<String> getCarrier(String phoneNumber) async {
+    try {
+      final response = await httpClient.post(
+        Uri.parse(AirQoUrls.mobileCarrier),
+        body: json.encode({'phone_number': phoneNumber}),
+        headers: headers,
+      );
+
+      return json.decode(response.body)['data']['carrier'];
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return '';
+  }
+
   Future<bool> checkIfUserExists({
     String? phoneNumber,
     String? emailAddress,
@@ -115,27 +166,6 @@ class AirqoApiClient {
     }
 
     return <Insights>[];
-  }
-
-  Future<String> getCarrier(String phoneNumber) async {
-    final url = '${AirQoUrls.carrierSearchApi}$phoneNumber';
-    final responseBody = await _performGetRequest(
-      {},
-      url,
-    );
-
-    try {
-      return responseBody != null
-          ? responseBody['data']['carrier']['name']
-          : '';
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-
-      return '';
-    }
   }
 
   Future<EmailAuthModel?> requestEmailVerificationCode(
@@ -258,9 +288,9 @@ class AirqoApiClient {
       };
 
       await _performPostRequest(
-        <String, dynamic>{},
-        AirQoUrls.welcomeMessage,
-        jsonEncode(body),
+        queryParams: <String, dynamic>{},
+        url: AirQoUrls.welcomeMessage,
+        body: jsonEncode(body),
       );
     } catch (exception, stackTrace) {
       await logException(
@@ -294,11 +324,11 @@ class AirqoApiClient {
     return null;
   }
 
-  Future<bool> _performPostRequest(
-    Map<String, dynamic> queryParams,
-    String url,
-    dynamic body,
-  ) async {
+  Future<bool> _performPostRequest({
+    required Map<String, dynamic> queryParams,
+    required String url,
+    required dynamic body,
+  }) async {
     try {
       url = addQueryParameters(
         queryParams,
