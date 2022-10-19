@@ -28,7 +28,7 @@ Find the API reference [here](../api/README.md#api-reference).
 **Changed**
 
 - Removed extra/unnecessary fields from events endpoint (s2_pm2_5 s2_pm10).
-- The returned pollutant values (PM2.5 and PM10) is now the averages of the two sensors for each pollutant.
+- The returned pollutant values (PM<small>2.5</small> and PM<small>10</small>) is now the averages of the two sensors for each pollutant.
 - Minimum frequency is now hourly , not raw values.
 - Removes empty objects, arrays, empty strings, NaN, null and undefined values from response.
 - Makes the query parameter recent=no as the default for the GET Events endpoint

@@ -1,6 +1,6 @@
 # AirQalibrate
 
-AirQalibrate is a low-cost sensor calibration tool developed by AirQo to facilitate low-cost Air quality monitoring in sub-Saharan Africa. The tool can be used to calibrate PM2.5 and PM10 concentrations from your low-cost air quality sensors using machine learning methods. This document introduces AirQalibrate and outlines the necessary requirements to utilise the tool for your low-cost air monitoring device.
+AirQalibrate is a low-cost sensor calibration tool developed by AirQo to facilitate low-cost Air quality monitoring in sub-Saharan Africa. The tool can be used to calibrate PM<small>2.5</small> and PM<small>10</small> concentrations from your low-cost air quality sensors using machine learning methods. This document introduces AirQalibrate and outlines the necessary requirements to utilise the tool for your low-cost air monitoring device.
 
 ## Why use AirQalibrate?
 
@@ -15,17 +15,17 @@ AirQalibrate is a low-cost sensor calibration tool developed by AirQo to facilit
 
 The UI of the calibration tool allows a user to upload CSV containing air quality data to be calibrated and if available collocated reference grade monitor data. The user is then required to specify the columns in the CSV containing the data required by the various fields as follows:
 
-- Browse: Upload CSV file containing timestamp, sensor1_pm2.5, sensor1_pm10, sensor2_pm2.5, sensor2_pm10, temperature, humidity and reference PM readings if available.
+- Browse: Upload CSV file containing timestamp, sensor1_PM<small>2.5</small>, sensor1_PM<small>10</small>, sensor2_PM<small>2.5</small>, sensor2_PM<small>10</small>, temperature, humidity and reference PM readings if available.
 
 - Datetime Column Name: Column with timestamps in uploaded CSV.
 
-- Sensor 1 PM2.5 Column Name: Column with sensor 1 PM2.5 data in uploaded CSV.
+- Sensor 1 PM<small>2.5</small> Column Name: Column with sensor 1 PM<small>2.5</small> data in uploaded CSV.
 
-- Sensor 2 PM2.5 Column Name: Column with sensor 2 PM2.5 data.
+- Sensor 2 PM<small>2.5</small> Column Name: Column with sensor 2 PM<small>2.5</small> data.
 
-- Sensor 1 PM10 Column Name: Column with sensor 1 PM10 data.
+- Sensor 1 PM<small>10</small> Column Name: Column with sensor 1 PM<small>10</small> data.
 
-- Sensor 2 PM10 Column Name: Column with sensor 2 PM10 data.
+- Sensor 2 PM<small>10</small> Column Name: Column with sensor 2 PM<small>10</small> data.
 
 - Temperature Column Name: Column with temperature readings.
 

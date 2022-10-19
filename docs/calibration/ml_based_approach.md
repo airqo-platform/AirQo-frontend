@@ -8,7 +8,7 @@ In order to build an ML-based field calibration method, you need collocation dat
 
 ### Important Considerations:
 
-- Choose an approved reference grade monitor that measures pollutants of interest at least once a day (PM2.5, PM10). Some reference monitors can be configured to measure more than one pollutant for example the Beta attenuation monitor can be configured to measure both PM2.5 and PM10 but not at the same time.
+- Choose an approved reference grade monitor that measures pollutants of interest at least once a day (PM<small>2.5</small>, PM<small>10</small>). Some reference monitors can be configured to measure more than one pollutant for example the Beta attenuation monitor can be configured to measure both PM<small>2.5</small> and PM<small>10</small> but not at the same time.
 
 - The collocation site should be representative of the areas where your low-cost sensors are normally deployed.
 
@@ -27,9 +27,9 @@ The performance of the ML models developed was tested on:
 
 The machine learning models are trained periodically in order to capture seasonal variations in ambient conditions.
 
-|            [BAM_PM2.5](../_media/) [BAM_PM10](../_media/)             |
-| :-------------------------------------------------------------------: |
-| <b>Figure 1: Improvement in data accuracy after field calibration</b> |
+| [BAM_PM<small>2.5</small>](../_media/) [BAM_PM<small>10</small>](../_media/) |
+| :--------------------------------------------------------------------------: |
+|    <b>Figure 1: Improvement in data accuracy after field calibration</b>     |
 
 ## Step 3: Deploying the model to a data Pipeline
 
