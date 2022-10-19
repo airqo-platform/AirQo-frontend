@@ -11,6 +11,8 @@
     "cypress:open": "cypress open"
   },
   "dependencies": {
+    "@headlessui/react": "^1.7.3",
+    "@headlessui/tailwindcss": "^0.1.1",
     "@reduxjs/toolkit": "^1.8.6",
     "@svgr/webpack": "^6.4.0",
     "autoprefixer": "^10.4.12",
