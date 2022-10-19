@@ -1,3 +1,4 @@
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app_repository/app_repository.dart';
@@ -7,11 +8,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../../blocs/nearby_location/nearby_location_bloc.dart';
-import '../../blocs/nearby_location/nearby_location_event.dart';
-import '../../blocs/nearby_location/nearby_location_state.dart';
-import '../../blocs/search/search_bloc.dart';
-import '../../blocs/search/search_event.dart';
 import '../../constants/config.dart';
 import '../../services/hive_service.dart';
 import '../../services/location_service.dart';
@@ -568,10 +564,20 @@ class NearbyLocations extends StatelessWidget {
 
         if (state is NearbyLocationStateError) {
           switch (state.error) {
-            case NearbyAirQualityError.locationDisabled:
+            case NearbyAirQualityError.locationDenied:
               return const RequestLocationAccess();
             case NearbyAirQualityError.noNearbyAirQualityReadings:
               return const AirQualityNotAvailable();
+            case NearbyAirQualityError.locationNotAllowed:
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                showSnackBar(context, state.error.message);
+              });
+              break;
+            case NearbyAirQualityError.locationDisabled:
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                showSnackBar(context, state.error.message);
+              });
+              break;
           }
         }
 

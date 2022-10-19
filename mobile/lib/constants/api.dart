@@ -1,8 +1,6 @@
 import 'config.dart';
 
 class AirQoUrls {
-  static String get carrierSearchApi => Config.carrierSearchApi;
-
   static String get checkUserExists => Config.airqoApiUserExistsUrl;
 
   static String get insights =>
@@ -24,4 +22,10 @@ class AirQoUrls {
 
   static String get welcomeMessage =>
       '${Config.airqoApiUrl}notifications/welcomeMessage';
+
+  static String get ipGeoCoordinates =>
+      '${Config.airqoApiUrl}meta-data/ip-geo-coordinates';
+
+  static String get mobileCarrier =>
+      '${Config.airqoApiUrl}meta-data/mobile-carrier';
 }
