@@ -1,3 +1,1 @@
-export const stripTrailingSlash = (url) => {
-  return url.replace(/\/$/, '');
-};
+export const stripTrailingSlash = (url) => url.replace(/\/$/, '');

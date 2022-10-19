@@ -39,55 +39,51 @@ const AirQloudsDropdown = ({ airqlouds }) => {
   const handleSetAirQloud = (value) => setSelectedAirQloud(value);
 
   return (
-    <>
-      <Dropdown label={selectedAirQloud.long_name} inline={true}>
-        <div className='max-h-40 h-full overflow-y-scroll'>
-          {airqlouds.map((airqloud) => (
-            <Dropdown.Item
-              key={airqloud._id}
-              onClick={() => handleSetAirQloud(airqloud)}
-            >
-              {airqloud.long_name}
-            </Dropdown.Item>
-          ))}
-        </div>
-      </Dropdown>
-    </>
+    <Dropdown label={selectedAirQloud.long_name} inline>
+      <div className='max-h-40 h-full overflow-y-scroll'>
+        {airqlouds.map((airqloud) => (
+          <Dropdown.Item
+            key={airqloud._id}
+            onClick={() => handleSetAirQloud(airqloud)}
+          >
+            {airqloud.long_name}
+          </Dropdown.Item>
+        ))}
+      </div>
+    </Dropdown>
   );
 };
 
-const RegionTabs = () => {
-  return (
-    <div className='w-full'>
-      <Tab.Group>
-        <Tab.List>
-          {AIRQLOUD_REGIONS.map((region, index) => (
-            <Tab
-              key={index}
-              className='ui-selected:border-b-2 ui-selected:border-b-black ui-selected:opacity-100 font-medium text-sm pb-1 cursor-pointer mr-[26px] opacity-40 outline-none'
-            >
-              {region}
-            </Tab>
-          ))}
-          <hr className='w-full' />
-        </Tab.List>
-        {/* <Tab.Panels>
-          <Tab.Panel>Content 1</Tab.Panel>
-          <Tab.Panel>Content 2</Tab.Panel>
-          <Tab.Panel>Content 3</Tab.Panel>
-        </Tab.Panels> */}
-      </Tab.Group>
-    </div>
-  );
-};
+const RegionTabs = () => (
+  <div className='w-full'>
+    <Tab.Group>
+      <Tab.List>
+        {AIRQLOUD_REGIONS.map((region) => (
+          <Tab
+            key={region}
+            className='ui-selected:border-b-2 ui-selected:border-b-black ui-selected:opacity-100 font-medium text-sm pb-1 cursor-pointer mr-[26px] opacity-40 outline-none'
+          >
+            {region}
+          </Tab>
+        ))}
+        <hr className='w-full' />
+      </Tab.List>
+      {/* <Tab.Panels>
+        <Tab.Panel>Content 1</Tab.Panel>
+        <Tab.Panel>Content 2</Tab.Panel>
+        <Tab.Panel>Content 3</Tab.Panel>
+      </Tab.Panels> */}
+    </Tab.Group>
+  </div>
+);
 
 const AirQlouds = () => {
   const {
     data: airqlouds,
     isLoading,
-    isSuccess,
-    isError,
-    error,
+    // isSuccess,
+    // isError,
+    // error,
   } = useGetAllAirQloudsQuery();
   const airqloudsData = !isLoading && airqlouds.airqlouds;
 

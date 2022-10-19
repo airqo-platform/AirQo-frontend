@@ -52,6 +52,10 @@
         "unnamedComponents": ["function-expression", "arrow-function"]
       }
     ],
-    "consistent-return": "off"
+    "consistent-return": "off",
+    "camelcase": "warn",
+    "no-underscore-dangle": "warn",
+    "prefer-destructuring": "warn",
+    "no-param-reassign": "warn"
   }
 }
