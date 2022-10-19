@@ -2,10 +2,6 @@ import 'dart:io';
 
 import 'package:app/app_config.dart';
 import 'package:app/main_common.dart';
-
-import 'package:app/blocs/blocs.dart';
-import 'package:app/screens/on_boarding/splash_screen.dart';
-
 import 'package:app/services/hive_service.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/services/notification_service.dart';
@@ -17,11 +13,12 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'constants/config.dart';
-import 'firebase_options.dart';
+import 'firebase_options_dev.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
+    name: 'airqo-dev',
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
@@ -34,9 +31,9 @@ void main() async {
   ]);
   HttpOverrides.global = AppHttpOverrides();
 
-  var configuredApp = const AppConfig(
-    appTitle: 'AirQo',
-    environment: Environment.prod,
+  var configuredApp = AppConfig(
+    appTitle: 'AirQo Dev',
+    environment: Environment.dev,
     child: AirQoApp(),
   );
 

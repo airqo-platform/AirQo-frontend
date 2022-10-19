@@ -13,6 +13,7 @@
 | File                                   | Directory      |
 |---------------------------------------|------------------|
 | [google-services.json]()        | `app` directory under android folder (`android/app/`) |
+| [google-services.json]()        | `app/src/airqodev` directory under android folder (`android/app/`)(For the staging environment) |
 | [firebase_app_id_file.json]()        | Android folder (`android/`) |
 | [key.properties]()                   | Android folder (`android/`) |
 | [local.properties]()      | Android folder (`android/`) |
@@ -59,10 +60,30 @@ keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -sto
 ```
 
 ## **Running the application**
-
+###   **To simply run the app, Use the following:**
 ```bash
 flutter run
 ```
+###   **To run the staging environment, Use the following:**
+#### **Staging in debug mode.**
+```bash
+flutter run --flavor airqodev -t lib/main_dev.dart
+```
+#### **Staging in release mode.**
+```bash
+flutter run --flavor airqodev -t lib/main_dev.dart --release
+```
+
+###   **To run the Production environment, You can use the following:**
+#### **Production in debug mode.**
+```bash
+flutter run --flavor airqo -t lib/main.dart
+```
+#### **Production in release mode.**
+```bash
+flutter run --flavor airqo -t lib/main.dart --release
+```
+  
 
 ## **Useful commands**
 

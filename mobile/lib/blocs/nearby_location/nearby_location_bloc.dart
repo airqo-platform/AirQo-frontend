@@ -13,6 +13,7 @@ class NearbyLocationBloc
   NearbyLocationBloc()
       : super(const NearbyLocationStateSuccess(airQualityReadings: [])) {
     on<SearchNearbyLocations>(_onSearch);
+    on<CheckNearbyLocations>(_onCheckNearbyLocations);
   }
 
   Future<void> _onSearch(
@@ -26,11 +27,18 @@ class NearbyLocationBloc
           await PermissionService.checkPermission(AppPermission.location);
 
       if (!locationEnabled) {
-        await HiveService.updateNearbyAirQualityReadings([]);
-
         return emit(
           const NearbyLocationStateError(
-            error: NearbyAirQualityError.locationDisabled,
+            error: NearbyAirQualityError.locationDenied,
+          ),
+        );
+      }
+
+      final profile = await Profile.getProfile();
+      if (!profile.preferences.location) {
+        return emit(
+          const NearbyLocationStateError(
+            error: NearbyAirQualityError.locationNotAllowed,
           ),
         );
       }
@@ -55,6 +63,48 @@ class NearbyLocationBloc
           airQualityReadings: nearbyAirQualityReadings,
         ),
       );
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+
+      return emit(
+        const NearbyLocationStateError(
+          error: NearbyAirQualityError.locationDenied,
+        ),
+      );
+    }
+  }
+
+  Future<void> _onCheckNearbyLocations(
+    CheckNearbyLocations event,
+    Emitter<NearbyLocationState> emit,
+  ) async {
+    try {
+      final locationEnabled =
+          await PermissionService.checkPermission(AppPermission.location);
+      final profile = await Profile.getProfile();
+
+      if (locationEnabled && profile.preferences.location) {
+        final nearbyAirQualityReadings =
+            await LocationService.getNearbyAirQualityReadings(top: 8);
+
+        if (nearbyAirQualityReadings.isNotEmpty) {
+          await HiveService.updateNearbyAirQualityReadings(
+            nearbyAirQualityReadings,
+          );
+          emit(SearchingNearbyLocationsState());
+
+          return emit(
+            NearbyLocationStateSuccess(
+              airQualityReadings: nearbyAirQualityReadings,
+            ),
+          );
+        }
+      }
+
+      return;
     } catch (exception, stackTrace) {
       await logException(
         exception,
