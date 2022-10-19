@@ -27,14 +27,14 @@ The performance of the ML models developed was tested on:
 
 The machine learning models are trained periodically in order to capture seasonal variations in ambient conditions.
 
-| [BAM_PM<small>2.5</small>](../_media/) [BAM_PM<small>10</small>](../_media/) |
-| :--------------------------------------------------------------------------: |
-|    <b>Figure 1: Improvement in data accuracy after field calibration</b>     |
+| ![BAM_PM2.5](../_media/ml_based_approach_bam_1.png) ![BAM_PM2.5](../_media/ml_based_approach_bam_2.png) |
+| :-----------------------------------------------------------------------------------------------------: |
+|                       <b>Improvement in data accuracy after field calibration</b>                       |
 
 ## Step 3: Deploying the model to a data Pipeline
 
 Data from all devices on the AirQo network is streamed in near real-time, cleaned and stored in the cloud. After every hour, the data for each device is averaged and calibrated before it is made available to external users through an API or data download feature on our [analytics platform](https://platform.airqo.net/dashboard). Calibrated data is also used to perform additional analysis and generate insights; results from this analysis are displayed through graphs and maps that can be accessed through the analytics platform, AirQo website or mobile application.
 
-|                      [image](../_media/)                       |
-| :------------------------------------------------------------: |
-| <b>Figure 2: A visual representation of the data pipeline.</b> |
+| ![Visual representation of the data pipeline](../_media/ml_based_approach_bam_3.png) |
+| :----------------------------------------------------------------------------------: |
+|                 <b>A visual representation of the data pipeline.</b>                 |

@@ -1,6 +1,6 @@
 # AirQalibrate
 
-AirQalibrate is a low-cost sensor calibration tool developed by AirQo to facilitate low-cost Air quality monitoring in sub-Saharan Africa. The tool can be used to calibrate PM<small>2.5</small> and PM<small>10</small> concentrations from your low-cost air quality sensors using machine learning methods. This document introduces AirQalibrate and outlines the necessary requirements to utilise the tool for your low-cost air monitoring device.
+[AirQalibrate](https://airqalibrate.airqo.net) is a low-cost sensor calibration tool developed by AirQo to facilitate low-cost Air quality monitoring in sub-Saharan Africa. The tool can be used to calibrate PM<small>2.5</small> and PM<small>10</small> concentrations from your low-cost air quality sensors using machine learning methods. This document introduces AirQalibrate and outlines the necessary requirements to utilise the tool for your low-cost air monitoring device.
 
 ## Why use AirQalibrate?
 
@@ -35,13 +35,13 @@ The UI of the calibration tool allows a user to upload CSV containing air qualit
 
 - Reference Data Pollutant Type: Select the pollutant measured by your reference monitor from the dropdown menu. This should be the same as the pollutant measured by your corresponding low-cost monitor.
 
-|                                          [image](../_media/)                                          |
-| :---------------------------------------------------------------------------------------------------: |
-| <b>Figure 3. AirQalibrate UI when the user selects No under the “Reference Monitor Data” section.</b> |
+|                    ![When the user selects No](../_media/airqalibrate_1.png)                    |
+| :---------------------------------------------------------------------------------------------: |
+| <b>AirQalibrate UI when the user selects **No** under the “Reference Monitor Data” section.</b> |
 
-|                                          [image](../_media/)                                           |
-| :----------------------------------------------------------------------------------------------------: |
-| <b>Figure 4. AirQalibrate UI when the user selects Yes under the “Reference Monitor Data” section.</b> |
+|                    ![When the user selects Yes](../_media/airqalibrate_2.png)                    |
+| :----------------------------------------------------------------------------------------------: |
+| <b>AirQalibrate UI when the user selects **Yes** under the “Reference Monitor Data” section.</b> |
 
 ## How does it work?
 
@@ -56,8 +56,7 @@ To open AirQualibrate, follow these steps:
 1. Login to the [analytics platform](https://platform.airqo.net/dashboard).
 2. From the top banner, open the AirQo Apps menu.
 3. From the Apps menu, click on calibrate App icon to open the calibrate UI
-
-[image](../_media/)
+   ![Calibrate App icon to open the calibrate U](../_media/airqalibrate_3.png)
 
 4. Upload a CSV containing your raw low-cost sensor’s data and assign each field on the UI a corresponding column in the CSV.
 
