@@ -111,6 +111,71 @@ class HourlyAnalyticsGraph extends StatelessWidget {
   }
 }
 
+class MiniHourlyAnalyticsGraph extends StatelessWidget {
+  const MiniHourlyAnalyticsGraph({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<DailyInsightsBloc, DailyInsightsState>(
+        builder: (context, state) {
+      if (state.miniInsights.isEmpty) {
+        return const SizedBox();
+      }
+
+      if (state.pollutant == Pollutant.pm2_5 &&
+          !state.miniInsights.keys.toList().contains(Pollutant.pm2_5)) {
+        return const SizedBox();
+      } else if (state.pollutant == Pollutant.pm10 &&
+          !state.miniInsights.keys.toList().contains(Pollutant.pm10)) {
+        return const SizedBox();
+      }
+
+      final data = state.pollutant == Pollutant.pm2_5
+          ? state.miniInsights[Pollutant.pm2_5]
+          : state.miniInsights[Pollutant.pm10];
+
+      return LayoutBuilder(
+        builder: (BuildContext buildContext, BoxConstraints constraints) {
+          return SizedBox(
+            width: MediaQuery.of(buildContext).size.width - 50,
+            height: 150,
+            child: charts.BarChart(
+              data!,
+              animate: true,
+              defaultRenderer: charts.BarRendererConfig<String>(
+                strokeWidthPx: 20,
+                stackedBarPaddingPx: 0,
+                cornerStrategy: const charts.ConstCornerStrategy(
+                  3,
+                ),
+              ),
+              defaultInteractions: true,
+              behaviors: [
+                charts.LinePointHighlighter(
+                  showHorizontalFollowLine:
+                      charts.LinePointHighlighterFollowLineType.none,
+                  showVerticalFollowLine:
+                      charts.LinePointHighlighterFollowLineType.nearest,
+                ),
+                charts.DomainHighlighter(),
+                charts.SelectNearest(
+                  eventTrigger: charts.SelectionTrigger.tapAndDrag,
+                ),
+              ],
+              domainAxis: chartsYAxisScale(
+                Frequency.hourly.staticTicks(),
+              ),
+              primaryMeasureAxis: chartsXAxisScale(),
+            ),
+          );
+        },
+      );
+    });
+  }
+}
+
 class DailyAnalyticsGraph extends StatelessWidget {
   const DailyAnalyticsGraph({
     super.key,
@@ -878,7 +943,7 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
                     },
                     child: Container(),
                   ),
-
+                  const MiniHourlyAnalyticsGraph(),
                   // miniChartsMap[selectedMiniChart] == null
                   //     ? const SizedBox()
                   //     : miniChartsMap[selectedMiniChart] as Widget,

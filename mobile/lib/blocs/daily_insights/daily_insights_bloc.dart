@@ -18,6 +18,7 @@ class DailyInsightsBloc extends Bloc<DailyInsightsEvent, DailyInsightsState> {
       : super(const DailyInsightsState(
           siteId: '',
           insights: {},
+          miniInsights: {},
           airQualityReading: null,
           chartIndex: 0,
           pollutant: Pollutant.pm2_5,
@@ -36,14 +37,16 @@ class DailyInsightsBloc extends Bloc<DailyInsightsEvent, DailyInsightsState> {
   ) async {
     await _onLoadingInsights(emit);
 
-    return emit(DailyInsightsState(
+    emit(DailyInsightsState(
       siteId: state.siteId,
       insights: state.insights,
+      miniInsights: state.miniInsights,
       airQualityReading: state.airQualityReading,
       chartIndex: state.chartIndex,
       pollutant: state.pollutant,
       selectedInsight: event.selectedInsight,
     ));
+    return _updateMiniInsightsCharts(emit);
   }
 
   Future<void> _onUpdateActiveIndex(
@@ -54,6 +57,7 @@ class DailyInsightsBloc extends Bloc<DailyInsightsEvent, DailyInsightsState> {
     return emit(DailyInsightsState(
       siteId: state.siteId,
       insights: state.insights,
+      miniInsights: state.miniInsights,
       airQualityReading: state.airQualityReading,
       chartIndex: event.index,
       pollutant: state.pollutant,
@@ -70,9 +74,59 @@ class DailyInsightsBloc extends Bloc<DailyInsightsEvent, DailyInsightsState> {
     return emit(DailyInsightsState(
       siteId: state.siteId,
       insights: state.insights,
+      miniInsights: state.miniInsights,
       airQualityReading: state.airQualityReading,
       chartIndex: state.chartIndex,
       pollutant: event.pollutant,
+      selectedInsight: state.selectedInsight,
+    ));
+  }
+
+  Future<void> _updateMiniInsightsCharts(
+    Emitter<DailyInsightsState> emit,
+  ) async {
+    final insightsData =
+        await DBHelper().getInsights(state.siteId, Frequency.hourly);
+
+    if (insightsData.isEmpty) {
+      return;
+    }
+
+    final hourlyInsights = insightsData.where(
+      (element) {
+        return element.time.day == state.selectedInsight?.time.day;
+      },
+    ).toList();
+    if (hourlyInsights.isEmpty) {
+      return;
+    }
+
+    final pm2_5ChartData = insightsChartData(
+      hourlyInsights,
+      Pollutant.pm2_5,
+      Frequency.hourly,
+    );
+    final pm10ChartData = insightsChartData(
+      hourlyInsights,
+      Pollutant.pm10,
+      Frequency.hourly,
+    );
+
+    if (pm2_5ChartData.isEmpty || pm10ChartData.isEmpty) {
+      return;
+    }
+
+    await _onLoadingInsights(emit);
+    return emit(DailyInsightsState(
+      siteId: state.siteId,
+      insights: state.insights,
+      miniInsights: {
+        Pollutant.pm2_5: pm2_5ChartData.first,
+        Pollutant.pm10: pm10ChartData.first
+      },
+      airQualityReading: state.airQualityReading,
+      chartIndex: state.chartIndex,
+      pollutant: state.pollutant,
       selectedInsight: state.selectedInsight,
     ));
   }
@@ -113,6 +167,7 @@ class DailyInsightsBloc extends Bloc<DailyInsightsEvent, DailyInsightsState> {
   ) async {
     emit(DailyInsightsLoading(
       siteId: state.siteId,
+      miniInsights: state.miniInsights,
       insights: state.insights,
       airQualityReading: state.airQualityReading,
       chartIndex: state.chartIndex,
@@ -129,6 +184,7 @@ class DailyInsightsBloc extends Bloc<DailyInsightsEvent, DailyInsightsState> {
     emit(DailyInsightsState(
       siteId: event.siteId ?? state.siteId,
       insights: state.insights,
+      miniInsights: state.miniInsights,
       airQualityReading: event.airQualityReading ?? state.airQualityReading,
       chartIndex: 0,
       pollutant: Pollutant.pm2_5,
@@ -166,6 +222,7 @@ class DailyInsightsBloc extends Bloc<DailyInsightsEvent, DailyInsightsState> {
       emit(DailyInsightsState(
         insights: charts,
         siteId: state.siteId,
+        miniInsights: state.miniInsights,
         airQualityReading: state.airQualityReading,
         pollutant: state.pollutant,
         selectedInsight: selectedInsight,
@@ -205,6 +262,7 @@ class DailyInsightsBloc extends Bloc<DailyInsightsEvent, DailyInsightsState> {
       emit(DailyInsightsState(
         insights: charts,
         siteId: state.siteId,
+        miniInsights: state.miniInsights,
         airQualityReading: state.airQualityReading,
         pollutant: state.pollutant,
         selectedInsight: selectedInsight,
@@ -220,6 +278,7 @@ class DailyInsightsBloc extends Bloc<DailyInsightsEvent, DailyInsightsState> {
     return emit(const DailyInsightsState(
       siteId: '',
       insights: {},
+      miniInsights: {},
       airQualityReading: null,
       chartIndex: 0,
       pollutant: Pollutant.pm2_5,

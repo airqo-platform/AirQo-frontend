@@ -4,6 +4,7 @@ class DailyInsightsState extends Equatable {
   const DailyInsightsState({
     required this.siteId,
     required this.insights,
+    required this.miniInsights,
     required this.airQualityReading,
     required this.pollutant,
     required this.selectedInsight,
@@ -12,6 +13,7 @@ class DailyInsightsState extends Equatable {
 
   final String siteId;
   final Map<Pollutant, List<List<charts.Series<Insights, String>>>> insights;
+  final Map<Pollutant, List<charts.Series<Insights, String>>> miniInsights;
   final int chartIndex;
   final Pollutant pollutant;
   final Insights? selectedInsight;
@@ -25,6 +27,7 @@ class DailyInsightsLoading extends DailyInsightsState {
   const DailyInsightsLoading({
     required super.siteId,
     required super.insights,
+    required super.miniInsights,
     required super.airQualityReading,
     required super.pollutant,
     required super.selectedInsight,
