@@ -5,11 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
 
-import '../blocs/nearby_location/nearby_location_bloc.dart';
-import '../blocs/nearby_location/nearby_location_event.dart';
 import '../models/enum_constants.dart';
 import '../screens/settings/settings_page.dart';
-import '../services/location_service.dart';
 import '../themes/app_theme.dart';
 import '../themes/colors.dart';
 
