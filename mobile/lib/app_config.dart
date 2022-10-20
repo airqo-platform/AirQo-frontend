@@ -1,15 +1,9 @@
 import 'package:flutter/material.dart';
 
-// 1
 enum Environment { dev, prod }
 
-// 2
 class AppConfig extends InheritedWidget {
-  // 3
-  final Environment environment;
-  final String appTitle;
 
-  // 4
   const AppConfig({
     Key? key,
     required Widget child,
@@ -19,6 +13,8 @@ class AppConfig extends InheritedWidget {
           key: key,
           child: child,
         );
+  final Environment environment;
+  final String appTitle;
 
   // 5
   static AppConfig of(BuildContext context) {

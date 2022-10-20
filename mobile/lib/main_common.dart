@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:app/app_config.dart';
+import 'package:app/blocs/blocs.dart';
 import 'package:app/screens/on_boarding/splash_screen.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
@@ -9,13 +10,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-import 'blocs/hourly_insights/hourly_insights_bloc.dart';
-import 'blocs/daily_insights/daily_insights_bloc.dart';
-import 'blocs/dashboard/dashboard_bloc.dart';
-import 'blocs/feedback/feedback_bloc.dart';
-import 'blocs/map/map_bloc.dart';
-import 'blocs/nearby_location/nearby_location_bloc.dart';
-import 'blocs/search/search_bloc.dart';
 import 'themes/app_theme.dart';
 
 class AirQoApp extends StatelessWidget {
@@ -47,6 +41,9 @@ class AirQoApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (BuildContext context) => MapBloc(),
+        ),
+        BlocProvider(
+          create: (BuildContext context) => DashboardBloc(),
         ),
       ],
       builder: (context, child) {
