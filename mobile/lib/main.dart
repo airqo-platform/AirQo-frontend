@@ -12,11 +12,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-import 'blocs/feedback/feedback_bloc.dart';
-import 'blocs/insights/insights_bloc.dart';
-import 'blocs/map/map_bloc.dart';
-import 'blocs/nearby_location/nearby_location_bloc.dart';
-import 'blocs/search/search_bloc.dart';
 import 'constants/config.dart';
 import 'firebase_options.dart';
 
