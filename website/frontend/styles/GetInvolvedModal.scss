@@ -8,7 +8,7 @@
 }
 
 .tab-active {
-    border: 5px solid #135DFF;
+    border: 1.8px solid #135DFF;
   }
 
 .tab-inactive {
@@ -65,6 +65,7 @@
   max-height: 900px;
   margin: auto;
   outline: none;
+  overflow-y: scroll;
 
   .banner {
     display: flex;

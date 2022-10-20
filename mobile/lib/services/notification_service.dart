@@ -26,27 +26,31 @@ class NotificationService {
   }
 
   static Future<void> listenToNotifications() async {
-    FirebaseMessaging.onBackgroundMessage(
-      NotificationService.notificationHandler,
-    );
-    // Temporarily disabling on notification listeners
-    // FirebaseMessaging.onMessage
-    // .listen(NotificationService.notificationHandler);
-    FirebaseMessaging.onMessageOpenedApp.listen(
-      (_) {
-        CloudAnalytics.logEvent(
-          AnalyticsEvent.notificationOpen,
-        );
-      },
-    );
-    FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) async {
-      final profile = await Profile.getProfile();
-      await profile.update();
-    }).onError(
-      (exception) {
-        logException(exception, null);
-      },
-    );
+    try {
+      FirebaseMessaging.onBackgroundMessage(
+        NotificationService.notificationHandler,
+      );
+      // Temporarily disabling on notification listeners
+      // FirebaseMessaging.onMessage
+      // .listen(NotificationService.notificationHandler);
+      FirebaseMessaging.onMessageOpenedApp.listen(
+        (_) {
+          CloudAnalytics.logEvent(
+            AnalyticsEvent.notificationOpen,
+          );
+        },
+      );
+      FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) async {
+        final profile = await Profile.getProfile();
+        await profile.update();
+      }).onError(
+        (exception) {
+          logException(exception, null);
+        },
+      );
+    } catch (exception, stackTrace) {
+      await logException(exception, stackTrace);
+    }
   }
 
   static Future<void> notificationHandler(RemoteMessage message) async {

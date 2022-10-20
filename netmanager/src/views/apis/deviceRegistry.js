@@ -18,6 +18,7 @@ import {
   DECRYPT,
   QRCODE,
   REFRESH_AIRQLOUD,
+  SOFT_EDIT_DEVICE_URI,
 } from "config/urls/deviceRegistry";
 import { DEVICE_MAINTENANCE_LOG_URI } from "config/urls/deviceMonitoring";
 import { DEVICE_RECENT_FEEDS } from "config/urls/dataManagement";
@@ -88,6 +89,12 @@ export const getDeviceRecentFeedByChannelIdApi = async (channelId) => {
 export const updateDeviceDetails = async (id, updateData) => {
   return await axios
     .put(EDIT_DEVICE_URI, updateData, { params: { id } })
+    .then((response) => response.data);
+};
+
+export const softUpdateDeviceDetails = async (deviceId, updateData) => {
+  return await axios
+    .put(SOFT_EDIT_DEVICE_URI, updateData, { params: { id: deviceId } })
     .then((response) => response.data);
 };
 
