@@ -1,9 +1,9 @@
+import 'package:app/blocs/blocs.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/utils/network.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../blocs/hourly_insights/hourly_insights_bloc.dart';
 import '../../models/enum_constants.dart';
 import '../../models/insights.dart';
 import '../../widgets/custom_shimmer.dart';
