@@ -10,6 +10,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
+import '../../blocs/insights/insights_bloc.dart';
 import '../../services/hive_service.dart';
 import '../../services/native_api.dart';
 import '../../themes/app_theme.dart';
@@ -1357,37 +1358,52 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: const BorderRadius.all(
-          Radius.circular(8.0),
+    return BlocBuilder<InsightsBloc, InsightsState>(builder: (context, state) {
+      final insights = state.frequency == Frequency.daily
+          ? state.dailyInsights
+          : state.hourlyInsights;
+
+      if (insights.isEmpty) {
+        return const ContainerLoadingAnimation(height: 70.0, radius: 8.0);
+      }
+
+      final airQualityReading = state.airQualityReading;
+
+      if (airQualityReading == null) {
+        return const SizedBox();
+      }
+
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: const BorderRadius.all(
+            Radius.circular(8.0),
+          ),
+          border: Border.all(color: Colors.transparent),
         ),
-        border: Border.all(color: Colors.transparent),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Expanded(
-            child: _shareLoading
-                ? const LoadingIcon(
-                    radius: 10,
-                  )
-                : InkWell(
-                    onTap: () async => _share(),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 21),
-                      child: IconTextButton(
-                        iconWidget: SvgPicture.asset(
-                          'assets/icon/share_icon.svg',
-                          color: CustomColors.greyColor,
-                          semanticsLabel: 'Share',
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Expanded(
+              child: _shareLoading
+                  ? const LoadingIcon(
+                      radius: 10,
+                    )
+                  : InkWell(
+                      onTap: () async => _share(),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 21),
+                        child: IconTextButton(
+                          iconWidget: SvgPicture.asset(
+                            'assets/icon/share_icon.svg',
+                            color: CustomColors.greyColor,
+                            semanticsLabel: 'Share',
+                          ),
+                          text: 'Share',
                         ),
-                        text: 'Share',
                       ),
                     ),
-                  ),
-          ),
+            ),
           Expanded(
             child: InkWell(
               onTap: () async {
@@ -1404,10 +1420,10 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
                 ),
               ),
             ),
-          ),
-        ],
-      ),
-    );
+          ],
+        ),
+      );
+    });
   }
 
   Future<void> _share() async {

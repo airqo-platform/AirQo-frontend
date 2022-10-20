@@ -4,6 +4,7 @@ import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../blocs/insights/insights_bloc.dart';
 import '../../themes/colors.dart';
 import '../../utils/network.dart';
 import '../../widgets/buttons.dart';
