@@ -9,6 +9,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
+import 'blocs/hourly_insights/hourly_insights_bloc.dart';
+import 'blocs/daily_insights/daily_insights_bloc.dart';
+import 'blocs/dashboard/dashboard_bloc.dart';
 import 'blocs/feedback/feedback_bloc.dart';
 import 'blocs/map/map_bloc.dart';
 import 'blocs/nearby_location/nearby_location_bloc.dart';
@@ -29,6 +32,15 @@ class AirQoApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (BuildContext context) => FeedbackBloc(),
+        ),
+        BlocProvider(
+          create: (BuildContext context) => DashboardBloc(),
+        ),
+        BlocProvider(
+          create: (BuildContext context) => DailyInsightsBloc(),
+        ),
+        BlocProvider(
+          create: (BuildContext context) => HourlyInsightsBloc(),
         ),
         BlocProvider(
           create: (BuildContext context) => NearbyLocationBloc(),

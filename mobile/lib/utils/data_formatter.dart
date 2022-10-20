@@ -21,6 +21,59 @@ charts.Color insightsChartBarColor(Insights series, Pollutant pollutant) {
   }
 }
 
+charts.OrdinalAxisSpec chartsYAxisScale(List<charts.TickSpec<String>> ticks) {
+  return charts.OrdinalAxisSpec(
+    tickProviderSpec: charts.StaticOrdinalTickProviderSpec(ticks),
+  );
+}
+
+charts.NumericAxisSpec chartsXAxisScale() {
+  return charts.NumericAxisSpec(
+    tickProviderSpec: charts.StaticNumericTickProviderSpec(
+      <charts.TickSpec<double>>[
+        charts.TickSpec<double>(
+          0,
+          style: charts.TextStyleSpec(
+            color: charts.ColorUtil.fromDartColor(
+              CustomColors.greyColor,
+            ),
+          ),
+        ),
+        charts.TickSpec<double>(
+          125,
+          style: charts.TextStyleSpec(
+            color: charts.ColorUtil.fromDartColor(
+              CustomColors.greyColor,
+            ),
+          ),
+        ),
+        charts.TickSpec<double>(
+          250,
+          style: charts.TextStyleSpec(
+            color: charts.ColorUtil.fromDartColor(CustomColors.greyColor),
+          ),
+        ),
+        charts.TickSpec<double>(
+          375,
+          style: charts.TextStyleSpec(
+            color: charts.ColorUtil.fromDartColor(
+              CustomColors.greyColor,
+            ),
+          ),
+        ),
+        charts.TickSpec<double>(
+          500,
+          style: charts.TextStyleSpec(
+            color: charts.ColorUtil.fromDartColor(
+              CustomColors.greyColor,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 List<List<charts.Series<Insights, String>>> insightsChartData(
   List<Insights> insights,
   Pollutant pollutant,

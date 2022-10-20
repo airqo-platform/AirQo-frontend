@@ -1,4 +1,4 @@
-import 'package:app/blocs/map/map_bloc.dart';
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 
 import 'package:app_repository/app_repository.dart';

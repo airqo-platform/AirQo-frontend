@@ -1,8 +1,10 @@
+import 'package:app/utils/extensions.dart';
 import 'package:app/utils/network.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../blocs/insights/insights_bloc.dart';
+import '../../models/insights.dart';
 import '../../widgets/custom_widgets.dart';
 import 'insights_widgets.dart';
 
@@ -52,7 +54,19 @@ class _InsightsTabState extends State<InsightsTab> {
               const SizedBox(
                 height: 32,
               ),
-              const HealthTipsSection(),
+              BlocBuilder<InsightsBloc, InsightsState>(
+                  builder: (context, state) {
+                if (state.hourlySelectedInsight != null) {
+                  final insight = state.hourlySelectedInsight as Insights;
+                  if (insight.time.isToday() || insight.time.isTomorrow()) {
+                    return InsightsHealthTips(
+                      pollutant: state.pollutant,
+                      insight: insight,
+                    );
+                  }
+                }
+                return const SizedBox();
+              }),
             ];
 
             return items[index];
@@ -65,7 +79,7 @@ class _InsightsTabState extends State<InsightsTab> {
   }
 
   Future<void> _refreshPage() async {
-    context.read<InsightsBloc>().add(const LoadDailyInsights());
+    context.read<InsightsBloc>().add(const LoadDailyInsightsV1());
     context.read<InsightsBloc>().add(const LoadHourlyInsights());
     await checkNetworkConnection(
       context,
