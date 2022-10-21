@@ -510,20 +510,22 @@ export const OverlayMap = ({
                     </div>
                     <div class="${"popup-aqi " + markerClass}"> 
                       <span>
-                        <div>${
-                          (showPollutant.pm2_5 &&
-                            feature.properties.pm2_5 &&
-                            "PM<sub>2.5<sub>") ||
-                          (showPollutant.pm10 &&
-                            feature.properties.pm10 &&
-                            "PM<sub>10<sub>")
-                        }</div>
-                        <small class="popup-measurement">µg/m<sup>3</sup></small>
+                      ${
+                        (showPollutant.pm2_5 &&
+                          feature.properties.pm2_5 &&
+                          "PM<sub>2.5<sub>") ||
+                        (showPollutant.pm10 &&
+                          feature.properties.pm10 &&
+                          "PM<sub>10<sub>")
+                      }
                       </span> </hr>  
                       <div class="pollutant-info">
+                        <div class="pollutant-info-row">
                         <div class="pollutant-number">${
                           (pollutantValue && pollutantValue.toFixed(2)) || "--"
-                        }</div> 
+                        }</div>
+                        <div class="popup-measurement">µg/m<sup>3</sup></div>
+                        </div> 
                         <div class="pollutant-desc">${desc}</div>
                       </div>
                     </div>
