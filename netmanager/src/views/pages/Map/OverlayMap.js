@@ -29,7 +29,8 @@ import BoundaryAlert from "../../ErrorBoundary/Alert";
 import CircularLoader from "../../components/Loader/CircularLoader";
 
 // eslint-disable-next-line import/no-webpack-loader-syntax
-mapboxgl.workerClass = require("worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker").default;
+mapboxgl.workerClass =
+  require("worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker").default;
 
 const markerDetailsPM2_5 = {
   0.0: ["marker-good", "Good"],
@@ -508,7 +509,14 @@ export const OverlayMap = ({
                       </span>
                     </div>
                     <div class="${"popup-aqi " + markerClass}"> 
-                      <span>AQI</span> </hr>  
+                      <span>${
+                        (showPollutant.pm2_5 &&
+                          feature.properties.pm2_5 &&
+                          "PM2.5") ||
+                        (showPollutant.pm10 &&
+                          feature.properties.pm10 &&
+                          "PM10")
+                      }</span> </hr>  
                       <div class="pollutant-info">
                         <div class="pollutant-number">${
                           (pollutantValue && pollutantValue.toFixed(2)) || "--"
