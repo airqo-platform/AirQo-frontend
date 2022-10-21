@@ -31,7 +31,7 @@ void main() async {
   ]);
   HttpOverrides.global = AppHttpOverrides();
 
-  var configuredApp = AppConfig(
+  var configuredApp = const AppConfig(
     appTitle: 'AirQo Dev',
     environment: Environment.dev,
     child: AirQoApp(),
