@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 import '../blocs/map/map_bloc.dart';
 import '../blocs/nearby_location/nearby_location_bloc.dart';
@@ -36,7 +37,9 @@ class _HomePageState extends State<HomePage> {
   late bool refresh;
 
   final List<Widget> _widgetOptions = <Widget>[
-    const DashboardView(),
+    ShowCaseWidget(
+      builder: Builder(builder: (context) => const DashboardView()),
+    ),
     const MapView(),
     const ProfileView(),
   ];

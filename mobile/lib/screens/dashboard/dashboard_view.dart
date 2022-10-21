@@ -10,6 +10,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 import '../../services/hive_service.dart';
 import '../../themes/app_theme.dart';
@@ -33,17 +34,35 @@ class _DashboardViewState extends State<DashboardView> {
   final AppService _appService = AppService();
   final GlobalKey _favToolTipKey = GlobalKey();
   final GlobalKey _kyaToolTipKey = GlobalKey();
+  final GlobalKey _profileKey = GlobalKey();
+  final GlobalKey _favoritesShowcaseKey = GlobalKey();
+  final GlobalKey _forYouShowcaseKey = GlobalKey();
+  final GlobalKey _kyaShowcaseKey = GlobalKey();
 
   final Stream _timeStream =
       Stream.periodic(const Duration(minutes: 5), (int count) {
     return count;
   });
   late StreamSubscription _timeSubscription;
+  void _startShowcase() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      ShowCaseWidget.of(context).startShowCase(
+          [_favoritesShowcaseKey, _forYouShowcaseKey, _kyaShowcaseKey]);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const DashboardTopBar(),
+      // floatingActionButton: Showcase(
+      //   key: _profileKey,
+      //   animationDuration: const Duration(milliseconds: 200),
+      //   description: 'This is a floating action button',
+      //   child: FloatingActionButton(
+      //     onPressed: _startShowcase,
+      //   ),
+      // ),
       body: Container(
         padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 24),
         color: CustomColors.appBodyColor,
@@ -75,21 +94,25 @@ class _DashboardViewState extends State<DashboardView> {
 
                     final widgets = favouritePlacesWidgets(favouritePlaces);
 
-                    return DashboardTopCard(
-                      toolTipType: ToolTipType.favouritePlaces,
-                      title: 'Favorites',
-                      widgetKey: _favToolTipKey,
-                      nextScreenClickHandler: () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) {
-                              return const FavouritePlaces();
-                            },
-                          ),
-                        );
-                      },
-                      children: widgets,
+                    return Showcase(
+                        key: _favoritesShowcaseKey,
+                        description: 'These are your favorite places',
+                        child: DashboardTopCard(
+                          toolTipType: ToolTipType.favouritePlaces,
+                          title: 'Favorites',
+                          widgetKey: _favToolTipKey,
+                          nextScreenClickHandler: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return const FavouritePlaces();
+                                },
+                              ),
+                            );
+                          },
+                          children: widgets,
+                        )
                     );
                   },
                 ),
@@ -107,21 +130,25 @@ class _DashboardViewState extends State<DashboardView> {
 
                     final widgets = completeKyaWidgets(completeKya);
 
-                    return DashboardTopCard(
-                      toolTipType: ToolTipType.forYou,
-                      title: 'For You',
-                      widgetKey: _kyaToolTipKey,
-                      nextScreenClickHandler: () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) {
-                              return const ForYouPage(analytics: false);
-                            },
-                          ),
-                        );
-                      },
-                      children: widgets,
+                    return Showcase(
+                        key: _forYouShowcaseKey,
+                        description: 'This is content made for you.',
+                        child: DashboardTopCard(
+                          toolTipType: ToolTipType.forYou,
+                          title: 'For You',
+                          widgetKey: _kyaToolTipKey,
+                          nextScreenClickHandler: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return const ForYouPage(analytics: false);
+                                },
+                              ),
+                            );
+                          },
+                          children: widgets,
+                        )
                     );
                   },
                 ),
@@ -207,9 +234,14 @@ class _DashboardViewState extends State<DashboardView> {
 
                           return Padding(
                             padding: const EdgeInsets.only(top: 16),
-                            child: DashboardKyaCard(
-                              kyaClickCallBack: _handleKyaOnClick,
-                              kya: incompleteKya[0],
+                            child: Showcase(
+                                key: _kyaShowcaseKey,
+                                description:
+                                    'This is your current set of lessons',
+                                child: DashboardKyaCard(
+                                  kyaClickCallBack: _handleKyaOnClick,
+                                  kya: incompleteKya[0],
+                                )
                             ),
                           );
                         },
@@ -272,6 +304,7 @@ class _DashboardViewState extends State<DashboardView> {
     super.initState();
     context.read<DashboardBloc>().add(const InitializeDashboard());
     _listenToStream();
+    // WidgetsBinding.instance.addPostFrameCallback((_) => _startShowcase());
   }
 
   void _listenToStream() {
