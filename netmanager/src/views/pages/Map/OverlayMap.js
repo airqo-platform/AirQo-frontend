@@ -28,8 +28,8 @@ import { ErrorEvent } from "mapbox-gl";
 import BoundaryAlert from "../../ErrorBoundary/Alert";
 import CircularLoader from "../../components/Loader/CircularLoader";
 
-// eslint-disable-next-line import/no-webpack-loader-syntax
 // prettier-ignore
+// eslint-disable-next-line import/no-webpack-loader-syntax
 mapboxgl.workerClass = require("worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker").default;
 
 const markerDetailsPM2_5 = {
