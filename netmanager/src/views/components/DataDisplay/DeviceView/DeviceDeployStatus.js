@@ -833,6 +833,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                   onClick={handleDeploySubmit}
                   style={{ marginLeft: "10px" }}
                 >
+                  {" "}
                   Deploy {deployLoading && <CircularProgress />}
                 </Button>
               </span>
