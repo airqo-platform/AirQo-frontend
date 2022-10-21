@@ -36,12 +36,7 @@
                 vm.route.file;
               let editHtml = "[📝 Edit On GitHub](" + url + ")\n";
 
-              return (
-                editHtml +
-                html +
-                "\n----\n" +
-                editHtml
-              );
+              return editHtml + html;
             });
           },
         ],
