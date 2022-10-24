@@ -213,54 +213,22 @@ class AirqoApiClient {
     try {
       final body = jsonEncode(
         {
-          'personalizations': [
-            {
-              'to': [
-                {
-                  'email': Config.airqoSupportEmail,
-                  'name': Config.airqoSupportUsername,
-                },
-              ],
-              'cc': [
-                {
-                  'email': feedback.contactDetails,
-                  'name': Config.defaultFeedbackUserName,
-                },
-              ],
-              'subject': feedback.feedbackType.toString(),
-            },
-          ],
-          'content': [
-            {
-              'type': 'text/plain',
-              'value': feedback.message,
-            },
-          ],
-          'from': {
-            'email': Config.airqoDataProductsEmail,
-            'name': Config.defaultFeedbackUserName,
-          },
-          'reply_to': {
-            'email': feedback.contactDetails,
-            'name': Config.defaultFeedbackUserName,
-          },
+          'email': feedback.contactDetails,
+          'subject': feedback.feedbackType.toString(),
+          'message': feedback.message
         },
       );
 
       Map<String, String> headers = HashMap()
-        ..putIfAbsent('Content-Type', () => 'application/json')
-        ..putIfAbsent(
-          'Authorization',
-          () => 'Bearer ${Config.emailFeedbackAPIKey}',
-        );
+        ..putIfAbsent('Content-Type', () => 'application/json');
 
       final response = await httpClient.post(
-        Uri.parse(Config.emailFeedbackUrl),
+        Uri.parse(AirQoUrls.feedback),
         headers: headers,
         body: body,
       );
 
-      if (response.statusCode == 200 || response.statusCode == 202) {
+      if (response.statusCode == 200 ) {
         return true;
       }
     } catch (exception, stackTrace) {
