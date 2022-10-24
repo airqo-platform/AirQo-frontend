@@ -416,9 +416,11 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
   };
 
   const handleDeploySubmit = async () => {
+    setDeployLoading(true);
     if (checkErrors()) {
       return;
     }
+
     const deployData = {
       mountType: installationType,
       height: height,
@@ -431,7 +433,6 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
       site_id: site.value,
     };
 
-    setDeployLoading(true);
     await deployDeviceApi(deviceData.name, deployData)
       .then((responseData) => {
         dispatch(loadDevicesData());
@@ -485,7 +486,7 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
           })
         );
       });
-    setDeployLoading(false);
+    setrecallLoading(false);
   };
 
   const weightedBool = (primary, secondary) => {
@@ -833,7 +834,6 @@ export default function DeviceDeployStatus({ deviceData, siteOptions }) {
                   onClick={handleDeploySubmit}
                   style={{ marginLeft: "10px" }}
                 >
-                  {" "}
                   Deploy {deployLoading && <CircularProgress />}
                 </Button>
               </span>
