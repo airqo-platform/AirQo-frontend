@@ -17,6 +17,8 @@ class AirQoUrls {
   static String get requestEmailVerification =>
       '${Config.airqoApiUrl}users/emailLogin';
 
+  static String get feedback => '${Config.airqoApiUrl}users/feedback';
+
   static String get searchSuggestions =>
       '${Config.placesSearchUrl}autocomplete/json';
 
