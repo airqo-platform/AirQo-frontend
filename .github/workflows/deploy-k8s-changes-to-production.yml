@@ -1,4 +1,4 @@
-name: deploy-k8s-manifest-updates-to-master
+name: deploy-k8s-manifest-updates-to-production
 
 on:
   pull_request:
