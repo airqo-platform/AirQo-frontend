@@ -28,6 +28,18 @@
         loadSidebar: true,
         subMaxLevel: 2,
         search: ["/", "api/*", "mobile_app/*", "platform/*"],
+        plugins: [
+          function (hook, vm) {
+            hook.beforeEach(function (html) {
+              let url =
+                "https://github.com/airqo-platform/AirQo-frontend/tree/staging/docs/" +
+                vm.route.file;
+              let editHtml = "[📝 Edit On GitHub](" + url + ")\n";
+
+              return editHtml + html;
+            });
+          },
+        ],
       };
     </script>
     <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
