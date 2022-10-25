@@ -17,6 +17,10 @@ This repo is made up of six (6) product sub directories:
 - [Netmanager](/netmanager/)
 - [Website](/website/)
 
+## .env.sample file
+
+You need to fill actual values to the environment variables while creating the respective `.env` file from `.env.sample` file
+
 ## Contributing
 
 We invite you to help us build this platform. Please look at our [contributing guide](/CONTRIBUTING.md) for details.
