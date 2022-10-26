@@ -28,6 +28,8 @@ const setAuthToken = (token) => {
   } else {
     // Delete auth header
     delete axios.defaults.headers.common["Authorization"];
+    localStorage.removeItem('mapStyle');
+    localStorage.removeItem('mapMode');
   }
 };
 export default setAuthToken;
