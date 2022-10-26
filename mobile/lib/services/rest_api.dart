@@ -215,7 +215,7 @@ class AirqoApiClient {
         {
           'email': feedback.contactDetails,
           'subject': feedback.feedbackType.toString(),
-          'message': feedback.message
+          'message': feedback.message,
         },
       );
 
