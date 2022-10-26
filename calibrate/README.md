@@ -10,15 +10,6 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 ## Prerequisites
 Use the [.env.sample](./.env.sample) to create a personal `.env` file. 
 
-- `.env` file
-```
-PORT=5000
-NODE_PATH=src/
-REACT_APP_BASE_URL=http://staging-platform.airqo.net/api/v1/
-REACT_APP_DOCS_BASE_URL=https://staging-docs.airqo.net/#/
-REACT_APP_BASE_CALIBRATE_URL=
-REACT_APP_AUTHORIZATION_TOKEN=ey123abc
-```
 Refer to the [documentation](https://staging-docs.airqo.net/#/../api/users?id=login) to learn how to obtain an authentication token.
 
 ## Installing product dependencies/packages
