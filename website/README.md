@@ -208,7 +208,7 @@ In the `.envrc` file add the following code
 In summary, this ensures a python virtual environment is created each time you cd into this directory.
 The `PATH` variable is updated with the `node_modules` path and `.env` loaded.
 
-Populate the `.env` file in the root of the folder with the values of the key given in `.env.sample` file as a template.
+Populate the `.env` file in the root of the folder with the values of the key given in [.env.sample](https://github.com/its-me-Harsh-Anand/AirQo-frontend/blob/staging/website/.env.sample) file as a template.
 
 Here is the [documentation link](https://staging-docs.airqo.net/#/../api/users?id=login) on how to get an authentication token for the `REACT_APP_AUTHORIZATION_TOKEN` variable.
 
