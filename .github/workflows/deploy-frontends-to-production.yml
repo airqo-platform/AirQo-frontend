@@ -38,8 +38,8 @@ jobs:
           sha=${GITHUB_SHA::8}
           timestamp=$(date +%s)
           datetime=$(date)
-          echo "::set-output name=build_id::prod-${sha}-${timestamp}"
-          echo "::set-output name=datetime::${datetime}"
+          echo "build_id=prod-${sha}-${timestamp}" >>$GITHUB_OUTPUT
+          echo "datetime=${datetime}" >>$GITHUB_OUTPUT
 
   ### deploy platform ###
   platform:
