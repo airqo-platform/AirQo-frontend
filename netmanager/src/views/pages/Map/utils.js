@@ -32,3 +32,11 @@ export const transformDataToGeoJson = (
     features,
   };
 };
+
+export const lightMapStyle = "mapbox://styles/mapbox/light-v10";
+
+export const darkMapStyle = "mapbox://styles/mapbox/dark-v10";
+
+export const streetMapStyle = "mapbox://styles/mapbox/streets-v11";
+
+export const satelliteMapStyle = "mapbox://styles/mapbox/satellite-v9";
