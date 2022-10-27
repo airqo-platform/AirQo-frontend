@@ -19,7 +19,7 @@ This repo is made up of six (6) product sub directories:
 
 ## .env.sample file
 
-You need to fill actual values to the environment variables while creating the respective `.env` file from [.env.sample](/README.md) file
+You need to fill actual values to the environment variables while creating the respective `.env` file from [.env.sample](./.env.sample) file
 
 ## Contributing
 
