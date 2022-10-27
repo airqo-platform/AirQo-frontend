@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 enum Environment { dev, prod }
 
 class AppConfig extends InheritedWidget {
-
   const AppConfig({
     Key? key,
     required Widget child,

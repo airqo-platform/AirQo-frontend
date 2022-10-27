@@ -407,7 +407,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
       },
     );
 
-    await CustomAuth.requestPhoneVerification(
+    await CustomAuth.requestPhoneAuthCode(
       '$_countryCode$_phoneNumber',
       context,
       verifyPhoneFn,
@@ -444,7 +444,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
       () => _isResending = true,
     );
 
-    await CustomAuth.requestPhoneVerification(
+    await CustomAuth.requestPhoneAuthCode(
       '$_countryCode$_phoneNumber',
       context,
       verifyPhoneFn,
@@ -552,12 +552,12 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
         );
       }
       if (exception.code == 'session-expired') {
-        await CustomAuth.requestPhoneVerification(
-          '$_countryCode$_phoneNumber',
-          context,
-          verifyPhoneFn,
-          autoVerifyPhoneFn,
-        );
+        // await CustomAuth.requestPhoneAuthCode(
+        //   '$_countryCode$_phoneNumber',
+        //   context,
+        //   verifyPhoneFn,
+        //   autoVerifyPhoneFn,
+        // );
         await showSnackBar(
           context,
           'Your verification '

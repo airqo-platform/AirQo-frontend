@@ -259,7 +259,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
       final success = await _appService.authenticateUser(
         authMethod: AuthMethod.none,
-        buildContext: context,
         authProcedure: AuthProcedure.deleteAccount,
       );
       if (success) {

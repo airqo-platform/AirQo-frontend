@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
 import 'package:app/utils/extensions.dart';
@@ -10,6 +11,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../utils/exception.dart';
@@ -529,7 +531,6 @@ class CustomAuth {
   static Future<bool> emailAuthentication(
     String emailAddress,
     String link,
-    BuildContext context,
   ) async {
     try {
       final userCredential = await FirebaseAuth.instance
@@ -538,26 +539,9 @@ class CustomAuth {
       return userCredential.user != null;
     } on FirebaseAuthException catch (exception, stackTrace) {
       if (exception.code == 'invalid-email') {
-        await showSnackBar(
-          context,
-          'Invalid Email. Try again',
-        );
       } else if (exception.code == 'expired-action-code') {
-        await showSnackBar(
-          context,
-          'Your verification has timed out. Try again later',
-        );
       } else if (exception.code == 'user-disabled') {
-        await showSnackBar(
-          context,
-          'Account has been disabled. PLease contact support',
-        );
-      } else {
-        await showSnackBar(
-          context,
-          Config.appErrorMessage,
-        );
-      }
+      } else {}
       debugPrint('$exception\n$stackTrace');
       if (!['invalid-email', 'expired-action-code'].contains(exception.code)) {
         await logException(
@@ -598,56 +582,10 @@ class CustomAuth {
   }
 
   static Future<bool> phoneNumberAuthentication(
-    AuthCredential authCredential,
-    BuildContext context,
-  ) async {
-    try {
-      final userCredential =
-          await FirebaseAuth.instance.signInWithCredential(authCredential);
-
-      return userCredential.user != null;
-    } on FirebaseAuthException catch (exception, stackTrace) {
-      if (exception.code == 'invalid-verification-code') {
-        await showSnackBar(
-          context,
-          'Invalid Code',
-        );
-      } else if (exception.code == 'session-expired') {
-        await showSnackBar(
-          context,
-          'Your verification has timed out. Try again later',
-        );
-      } else if (exception.code == 'account-exists-with-different-credential') {
-        await showSnackBar(
-          context,
-          'Phone number is already linked to an email.',
-        );
-      } else if (exception.code == 'user-disabled') {
-        await showSnackBar(
-          context,
-          'Account has been disabled. PLease contact support',
-        );
-      } else {
-        await showSnackBar(
-          context,
-          Config.appErrorMessage,
-        );
-      }
-
-      debugPrint('$exception\n$stackTrace');
-      if (![
-        'invalid-verification-code',
-        'invalid-verification-code',
-        'account-exists-with-different-credential',
-      ].contains(exception.code)) {
-        await logException(
-          exception,
-          stackTrace,
-        );
-      }
-
-      return false;
-    }
+      AuthCredential authCredential) async {
+    final userCredential =
+        await FirebaseAuth.instance.signInWithCredential(authCredential);
+    return userCredential.user != null;
   }
 
   static Future<bool> reAuthenticateWithEmailAddress(
@@ -718,48 +656,76 @@ class CustomAuth {
     return false;
   }
 
-  static Future<bool> requestPhoneVerification(
-    phoneNumber,
-    context,
-    callBackFn,
-    autoVerificationFn,
-  ) async {
-    final hasConnection = await checkNetworkConnection(
-      context,
-      notifyUser: true,
-    );
-    if (!hasConnection) {
-      return false;
-    }
-
+  static Future<bool> reSendPhoneAuthCode({
+    required String phoneNumber,
+    required BuildContext buildContext
+  }) async {
     try {
       await FirebaseAuth.instance.verifyPhoneNumber(
         phoneNumber: phoneNumber,
         verificationCompleted: (PhoneAuthCredential credential) {
-          autoVerificationFn(credential);
+          emit(VerifyPhoneNumberEvent(credential: credential, context: null));
+          buildContext.read<AuthenticationBloc>().add(VerifyPhoneNumberEvent(credential: credential));
         },
         verificationFailed: (FirebaseAuthException exception) async {
           if (exception.code == 'invalid-phone-number') {
-            await showSnackBar(
-              context,
-              'Invalid phone number.',
-            );
           } else {
-            await showSnackBar(
-              context,
-              'Cannot process your request.'
-              ' Try again later',
-            );
             debugPrint(exception.toString());
           }
         },
         codeSent: (String verificationId, int? resendToken) async {
-          callBackFn(verificationId);
+          buildContext.read<AuthenticationBloc>().add(RequestInputAuthCodeEvent(verificationId: verificationId));
         },
         codeAutoRetrievalTimeout: (String verificationId) async {
           // TODO Implement auto code retrieval timeout
         },
         timeout: const Duration(minutes: 2),
+      );
+
+      return true;
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+
+      return false;
+    }
+  }
+
+  static Future<bool> sendPhoneAuthCode(
+    phoneNumber,
+    BuildContext buildContext,
+  ) async {
+    try {
+      await FirebaseAuth.instance.verifyPhoneNumber(
+        phoneNumber: phoneNumber,
+        verificationCompleted: (PhoneAuthCredential credential) {
+          buildContext
+              .read<PhoneAuthBloc>()
+              .add(UpdateAuthCredential(credential));
+          buildContext
+              .read<AuthCodeBloc>()
+              .add(AuthenticatePhoneNumber(credential: credential));
+        },
+        verificationFailed: (FirebaseAuthException exception) async {
+          if (exception.code == 'invalid-phone-number') {
+            buildContext.read<PhoneAuthBloc>().add(const InvalidPhoneNumber());
+          } else {
+            debugPrint(exception.toString());
+          }
+        },
+        codeSent: (String verificationId, int? resendToken) async {
+          buildContext
+              .read<PhoneAuthBloc>()
+              .add(UpdateVerificationId(verificationId));
+        },
+        codeAutoRetrievalTimeout: (String verificationId) async {
+          buildContext
+              .read<PhoneAuthBloc>()
+              .add(UpdateVerificationId(verificationId));
+        },
+        timeout: const Duration(seconds: 30),
       );
 
       return true;

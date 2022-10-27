@@ -8,7 +8,6 @@ import 'package:app/services/rest_api.dart';
 import 'package:app/services/secure_storage.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/utils/network.dart';
-import 'package:app/widgets/dialogs.dart';
 import 'package:app_repository/app_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -30,19 +29,10 @@ class AppService {
   Future<bool> authenticateUser({
     required AuthMethod authMethod,
     required AuthProcedure authProcedure,
-    required BuildContext buildContext,
     String? emailAddress,
     String? emailAuthLink,
     AuthCredential? authCredential,
   }) async {
-    final hasConnection = await checkNetworkConnection(
-      buildContext,
-      notifyUser: true,
-    );
-    if (!hasConnection) {
-      return false;
-    }
-
     bool authSuccessful;
 
     switch (authProcedure) {
@@ -52,14 +42,12 @@ class AppService {
           case AuthMethod.phone:
             authSuccessful = await CustomAuth.phoneNumberAuthentication(
               authCredential!,
-              buildContext,
             );
             break;
           case AuthMethod.email:
             authSuccessful = await CustomAuth.emailAuthentication(
               emailAddress!,
               emailAuthLink!,
-              buildContext,
             );
             break;
           case AuthMethod.none:
@@ -90,11 +78,6 @@ class AppService {
     }
 
     if (authSuccessful) {
-      await checkNetworkConnection(
-        buildContext,
-        notifyUser: true,
-      );
-
       switch (authProcedure) {
         case AuthProcedure.login:
           await _postLoginActions();
@@ -114,11 +97,8 @@ class AppService {
     return authSuccessful;
   }
 
-  Future<bool> doesUserExist({
-    String? phoneNumber,
-    String? emailAddress,
-    required BuildContext buildContext,
-  }) async {
+  Future<bool> doesUserExist(
+      {String? phoneNumber, String? emailAddress}) async {
     try {
       if (emailAddress != null) {
         final methods = await FirebaseAuth.instance
@@ -133,10 +113,7 @@ class AppService {
       );
     } catch (exception, stackTrace) {
       debugPrint('$exception \n $stackTrace');
-      await Future.wait([
-        logException(exception, stackTrace),
-        showSnackBar(buildContext, 'Failed to perform action. Try again later'),
-      ]);
+      await logException(exception, stackTrace);
 
       return true;
     }

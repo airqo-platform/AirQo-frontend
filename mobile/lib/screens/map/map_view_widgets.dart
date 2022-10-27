@@ -1,6 +1,5 @@
 import 'package:app/blocs/map/map_bloc.dart';
 import 'package:app/models/models.dart';
-
 import 'package:app_repository/app_repository.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';

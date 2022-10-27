@@ -40,9 +40,119 @@ enum AnalyticsEvent {
   }
 }
 
+enum AuthenticationCode {
+  noInternetConnection(
+    code: 'Turn on location to get air quality near you',
+    message: 'Grant location access in your phone settings',
+    snackBarDuration: 5,
+  ),
+  accountInvalid(
+    code: 'Turn on location to get air quality near you',
+    message: 'Grant location access in your phone settings',
+    snackBarDuration: 5,
+  ),
+  invalidAuthCode(
+    code: 'Turn on location to get air quality near you',
+    message: 'Grant location access in your phone settings',
+    snackBarDuration: 5,
+  ),
+  authSessionTimeout(
+    code: 'Turn on location to get air quality near you',
+    message: 'Session time out. Sending annother verification code',
+    snackBarDuration: 5,
+  ),
+  none(
+    code: 'Turn on location to get air quality near you',
+    message: '',
+    snackBarDuration: 0,
+  ),
+  authFailure(
+    code: 'Turn on location to get air quality near you',
+    message: 'Authentication failed. Try again later',
+    snackBarDuration: 5,
+  ),
+  phoneNumberTaken(
+    code: 'Turn on location to get air quality near you',
+    message: 'Grant location access in your phone settings',
+    snackBarDuration: 5,
+  ),
+  emailTaken(
+    code: 'Turn on location to get air quality near you',
+    message: 'Turn on location to get air quality near you',
+    snackBarDuration: 5,
+  );
+
+  const AuthenticationCode({
+    required this.code,
+    required this.message,
+    required this.snackBarDuration,
+  });
+  final String code;
+  final String message;
+  final int snackBarDuration;
+}
+
 enum AppPermission {
   notification,
   location,
+}
+
+enum AuthStatus {
+  initial,
+  editing,
+  processing,
+  error,
+  success,
+}
+
+enum AuthenticationError {
+  noInternetConnection(
+    message: 'Check your internet connection',
+    snackBarDuration: 5,
+  ),
+  accountInvalid(
+    message: 'Invalid Account',
+    snackBarDuration: 5,
+  ),
+  invalidAuthCode(
+    message: 'Invalid code',
+    snackBarDuration: 5,
+  ),
+  authSessionTimeout(
+    message: 'Session time out. Sending annother verification code',
+    snackBarDuration: 5,
+  ),
+  none(
+    message: '',
+    snackBarDuration: 0,
+  ),
+  authFailure(
+    message: 'Authentication failed. Try again later',
+    snackBarDuration: 5,
+  ),
+  phoneNumberTaken(
+    message: 'Phone number taken',
+    snackBarDuration: 5,
+  ),
+  invalidPhoneNumber(
+    message: 'Invalid phone number',
+    snackBarDuration: 5,
+  ),
+  emailTaken(
+    message: 'Email Taken',
+    snackBarDuration: 5,
+  );
+
+  const AuthenticationError({
+    required this.message,
+    required this.snackBarDuration,
+  });
+
+  final String message;
+  final int snackBarDuration;
+
+  @override
+  String toString() => message;
 }
 
 enum NearbyAirQualityError {
@@ -192,18 +302,29 @@ enum AuthMethod {
   phone(
     updateMessage:
         'You shall not be able to sign in with your previous phone number after changing it',
+    codeVerificationText: 'Enter the 6 digits code sent to your number',
+    editEntryText: 'Change Phone Number',
   ),
   email(
     updateMessage:
         'You shall not be able to sign in with your previous email address after changing it',
+    codeVerificationText: '',
+    editEntryText: 'Enter the 6 digits code sent to your number',
   ),
   none(
     updateMessage: 'You do not have an account. Consider creating one',
+    codeVerificationText: '',
+    editEntryText: 'Enter the 6 digits code sent to your number',
   );
 
-  const AuthMethod({required this.updateMessage});
+  const AuthMethod(
+      {required this.updateMessage,
+      required this.codeVerificationText,
+      required this.editEntryText});
 
   final String updateMessage;
+  final String codeVerificationText;
+  final String editEntryText;
 
   String optionsText(AuthProcedure procedure) {
     switch (this) {
@@ -216,9 +337,7 @@ enum AuthMethod {
             ? 'Login with your email or mobile number'
             : 'Sign up with your email or mobile number';
       default:
-        throw UnimplementedError(
-          '$name does’nt have options text implementation',
-        );
+        return '';
     }
   }
 

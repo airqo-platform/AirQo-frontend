@@ -449,14 +449,12 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
             emailAddress: _emailAddress,
             authMethod: AuthMethod.email,
             authProcedure: AuthProcedure.signup,
-            buildContext: context,
           )
         : await _appService.authenticateUser(
             emailAuthLink: _emailVerificationLink,
             emailAddress: _emailAddress,
             authMethod: AuthMethod.email,
             authProcedure: AuthProcedure.login,
-            buildContext: context,
           );
 
     Navigator.pop(loadingContext);
@@ -571,7 +569,6 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     if (widget.authProcedure == AuthProcedure.signup) {
       final emailExists = await _appService.doesUserExist(
         emailAddress: _emailAddress,
-        buildContext: context,
       );
 
       if (emailExists) {
