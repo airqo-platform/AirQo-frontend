@@ -208,26 +208,9 @@ In the `.envrc` file add the following code
 In summary, this ensures a python virtual environment is created each time you cd into this directory.
 The `PATH` variable is updated with the `node_modules` path and `.env` loaded.
 
-Populate the `.env` file with the following keys and their respective values.
+Populate the `.env` file in the root of the folder with the values of the key given in [.env.sample](./.env.sample) file as a template.
 
-    DEBUG
-    DATABASE_URI
-    SECRET
-    SECRET_KEY
-    CLOUDINARY_NAME
-    CLOUDINARY_KEY
-    CLOUDINARY_SECRET
-    REACT_WEB_STATIC_HOST
-    DJANGO_ALLOWED_HOSTS
-    GS_BUCKET_NAME
-    REACT_NETMANAGER_BASE_URL
-    REACT_APP_BASE_AIRQLOUDS_URL
-    REACT_APP_BASE_NEWSLETTER_URL
-    GOOGLE_APPLICATION_CREDENTIALS
-    REACT_APP_WEBSITE_BASE_URL
-    SECURE_SSL_REDIRECT
-    HTTP_X_FORWARDED_PROTO
-    REACT_APP_AUTHORIZATION_TOKEN
+Here is the [documentation link](https://staging-docs.airqo.net/#/../api/users?id=login) on how to get an authentication token for the `REACT_APP_AUTHORIZATION_TOKEN` variable.
 
 **Note**: Remove `DATABASE_URI` variable if you are using docker
 

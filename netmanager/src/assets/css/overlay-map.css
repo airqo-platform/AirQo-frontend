@@ -119,6 +119,10 @@
   color: #4b4747;
 }
 
+.popup-aqi span sub{
+  font-size: 11px;
+}
+
 .popup-aqi .pollutant-info {
   display: flex;
   flex-flow: column nowrap;
@@ -260,4 +264,61 @@
 
 .pollutant-selector:hover {
   transform: scale(1.1);
+}
+
+/* MAP STYLE */
+.map-style{
+  font-family: "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande",
+      "Lucida Sans", Arial, sans-serif;
+  width: auto;
+  background-color: rgb(252, 241, 241);
+  margin: 0;
+  margin-right: 45px;
+  margin-top: 18px;
+  padding: 0 0 6px 3px;
+  border-radius: 4px;
+}
+.map-style h4{
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  margin: 0;
+  padding: 6px 4px;
+  color: #0078ff;
+}
+.map-style h4 span{
+  font-size: 14px;
+  line-height: 15px;
+  text-align: left;
+  padding-left: 5px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.map-style .map-style-cards{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.map-style .map-style-cards div{
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  height:40px;
+  text-transform: capitalize;
+  font-size: 14px;
+  margin: 0 4px;
+  padding:4px 8px;
+  font-weight: 500;
+  width: 130px;
+  box-shadow: 0 1px 1px 0px #ccc;
+  text-align: left;
+}
+.map-style .map-style-cards div svg{
+  height: 16px;
+}
+.map-style .map-style-cards div:hover{
+  height: 44px;
+  font-size: 15px;
+  color: #0078ff;
+  background-color: rgb(248, 239, 239);
 }
