@@ -305,13 +305,13 @@ enum FeedbackChannel {
 enum AuthMethod {
   phone(
     updateMessage:
-        'You shall not be able to sign in with your previous phone number after changing it',
+        'You will not be able to sign in with your previous phone number after changing it',
     codeVerificationText: 'Enter the 6 digits code sent to your number',
     editEntryText: 'Change Phone Number',
   ),
   email(
     updateMessage:
-        'You shall not be able to sign in with your previous email address after changing it',
+        'You will not be able to sign in with your previous email address after changing it',
     codeVerificationText: '',
     editEntryText: 'Enter the 6 digits code sent to your number',
   ),
