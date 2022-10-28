@@ -15,6 +15,7 @@ import '../../widgets/custom_shimmer.dart';
 import '../../widgets/custom_widgets.dart';
 import '../../widgets/text_fields.dart';
 import '../home_page.dart';
+import '../on_boarding/on_boarding_widgets.dart';
 import '../on_boarding/profile_setup_screen.dart';
 
 class AuthVerificationWidget extends StatefulWidget {
@@ -32,29 +33,30 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
   void initState() {
     super.initState();
     _loadingContext = context;
+    _startCodeSentCountDown();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: const OnBoardingTopBar(backgroundColor: Colors.white),
       body: WillPopScope(
         onWillPop: onWillPop,
-        child: CustomSafeArea(
-          widget: Container(
-            color: Colors.white,
-            child: BlocConsumer<AuthCodeBloc, AuthCodeState>(
-              listener: (context, state) {},
-              buildWhen: (previous, current) {
-                return current.authStatus != AuthStatus.error ||
-                    current.authStatus != AuthStatus.success ||
-                    current.authStatus != AuthStatus.processing;
-              },
-              builder: (context, state) {
-                final authOption = state.authMethod == AuthMethod.email
-                    ? state.emailAddress
-                    : state.phoneNumber;
-                return Center(
-                    child: Padding(
+        child: AppSafeArea(
+          backgroundColor: Colors.white,
+          widget: BlocConsumer<AuthCodeBloc, AuthCodeState>(
+            listener: (context, state) {},
+            buildWhen: (previous, current) {
+              return current.authStatus != AuthStatus.error ||
+                  current.authStatus != AuthStatus.success ||
+                  current.authStatus != AuthStatus.processing;
+            },
+            builder: (context, state) {
+              final authOption = state.authMethod == AuthMethod.email
+                  ? state.emailAddress
+                  : state.phoneNumber;
+              return Center(
+                child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -154,13 +156,15 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 36),
                         child: OptField(
-                          codeSent: true,
-                          position: 0,
-                          callbackFn: (String value, int position) {
+                          callbackFn: (String value) {
                             context.read<AuthCodeBloc>().add(UpdateAuthCode(
                                   value: value,
-                                  position: position,
                                 ));
+                            if (value.length >= 6) {
+                              context
+                                  .read<AuthCodeBloc>()
+                                  .add(const VerifySmsCode());
+                            }
                           },
                         ),
                       ),
@@ -184,7 +188,8 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                           onTap: () async {
                             context
                                 .read<AuthCodeBloc>()
-                                .add(const ResendAuthCode());
+                                .add(ResendAuthCode(context: context));
+                            _startCodeSentCountDown();
                           },
                           child: Text(
                             'Resend code',
@@ -229,6 +234,9 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                       ),
                       GestureDetector(
                         onTap: () {
+                          context
+                              .read<AuthCodeBloc>()
+                              .add(const InitializeAuthCodeState());
                           Navigator.pop(context);
                         },
                         child: Text(
@@ -242,9 +250,11 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                       const Spacer(),
                       GestureDetector(
                         onTap: () async {
-                          context
-                              .read<AuthCodeBloc>()
-                              .add(const AuthenticatePhoneNumber());
+                          if (state.inputAuthCode.length >= 6) {
+                            context
+                                .read<AuthCodeBloc>()
+                                .add(const VerifySmsCode());
+                          }
                         },
                         child: NextButton(
                             buttonColor: state.inputAuthCode.length >= 6
@@ -253,12 +263,28 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                       ),
                     ],
                   ),
-                ));
-              },
-            ),
+                ),
+              );
+            },
           ),
         ),
       ),
+    );
+  }
+
+  void _startCodeSentCountDown() {
+    context.read<AuthCodeBloc>().add(const UpdateCountDown(5));
+
+    Timer.periodic(
+      const Duration(milliseconds: 1200),
+      (Timer timer) {
+        final newCount = context.read<AuthCodeBloc>().state.codeCountDown - 1;
+        context.read<AuthCodeBloc>().add(UpdateCountDown(newCount));
+
+        if (newCount == 0) {
+          setState(() => timer.cancel());
+        }
+      },
     );
   }
 

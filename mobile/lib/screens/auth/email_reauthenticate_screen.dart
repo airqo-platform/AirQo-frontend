@@ -33,7 +33,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomSafeArea(
+      body: AppSafeArea(
         widget: Container(
           color: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -67,8 +67,6 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 36),
                   child: OptField(
-                    codeSent: true,
-                    position: 0,
                     callbackFn: setCode,
                   ),
                 ),
@@ -190,8 +188,8 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
     );
   }
 
-  void setCode(String value, int position) {
-    setState(() => _emailVerificationCode[position] = value);
+  void setCode(String value) {
+    setState(() => _emailVerificationCode[0] = value);
     final code = _emailVerificationCode.join('');
     if (code.length == 6) {
       setState(() => _nextBtnColor = CustomColors.appColorBlue);

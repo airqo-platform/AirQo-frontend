@@ -11,42 +11,48 @@ class GuestUserEvent extends AuthCodeEvent {
 }
 
 class InitializeAuthCodeState extends AuthCodeEvent {
-  const InitializeAuthCodeState(
-      {this.phoneNumber,
-      this.verificationId,
-      this.credential,
-      this.authProcedure});
+  const InitializeAuthCodeState({this.phoneNumber, this.authProcedure});
 
   final String? phoneNumber;
-  final String? verificationId;
-  final PhoneAuthCredential? credential;
   final AuthProcedure? authProcedure;
 
   @override
-  List<Object?> get props => [phoneNumber, verificationId, credential];
+  List<Object?> get props => [phoneNumber, authProcedure];
 }
 
 class UpdateAuthCode extends AuthCodeEvent {
   const UpdateAuthCode({
     required this.value,
-    required this.position,
   });
   final String value;
-  final int position;
   @override
-  List<Object?> get props => [value, position];
+  List<Object?> get props => [value];
 }
 
-class AuthenticatePhoneNumber extends AuthCodeEvent {
-  const AuthenticatePhoneNumber({this.credential});
+class UpdateVerificationId extends AuthCodeEvent {
+  const UpdateVerificationId(this.verificationId);
+  final String verificationId;
+  @override
+  List<Object?> get props => [verificationId];
+}
+
+class VerifySmsCode extends AuthCodeEvent {
+  const VerifySmsCode({this.credential});
   final PhoneAuthCredential? credential;
   @override
   List<Object?> get props => [];
 }
 
+class UpdateCountDown extends AuthCodeEvent {
+  const UpdateCountDown(this.countDown);
+  final int countDown;
+  @override
+  List<Object?> get props => [];
+}
+
 class ResendAuthCode extends AuthCodeEvent {
-  const ResendAuthCode({this.credential});
-  final PhoneAuthCredential? credential;
+  const ResendAuthCode({required this.context});
+  final BuildContext context;
   @override
   List<Object?> get props => [];
 }

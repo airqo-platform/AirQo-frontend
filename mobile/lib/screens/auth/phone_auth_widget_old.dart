@@ -60,7 +60,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
     return Scaffold(
       body: WillPopScope(
         onWillPop: onWillPop,
-        child: CustomSafeArea(
+        child: AppSafeArea(
           widget: Container(
             color: Colors.white,
             child: Center(
@@ -706,7 +706,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
       }
     }
 
-    final success = await CustomAuth.requestPhoneVerification(
+    final success = await CustomAuth.sendPhoneAuthCode(
       phoneNumber,
       context,
       verifyPhoneFn,
@@ -743,7 +743,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
 
     loadingScreen(_loadingContext);
 
-    final success = await CustomAuth.requestPhoneVerification(
+    final success = await CustomAuth.sendPhoneAuthCode(
       '$_countryCode$_phoneNumber',
       context,
       verifyPhoneFn,

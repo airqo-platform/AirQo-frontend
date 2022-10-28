@@ -55,7 +55,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomSafeArea(
+      body: AppSafeArea(
         widget: Container(
           color: Colors.white,
           padding: const EdgeInsets.only(left: 24, right: 24),
@@ -89,8 +89,6 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
               Padding(
                 padding: const EdgeInsets.only(left: 36, right: 36),
                 child: OptField(
-                  codeSent: _codeSent,
-                  position: 0,
                   callbackFn: setCode,
                 ),
               ),
@@ -154,10 +152,10 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
     _requestVerification();
   }
 
-  void setCode(String value, int position) {
+  void setCode(String value) {
     setState(
       () {
-        _phoneVerificationCode[position] = value;
+        _phoneVerificationCode[0] = value;
       },
     );
     final code = _phoneVerificationCode.join('');
@@ -220,12 +218,12 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
       },
     );
 
-    await CustomAuth.requestPhoneAuthCode(
-      widget.userDetails.phoneNumber,
-      context,
-      verifyPhoneFn,
-      autoVerifyPhoneFn,
-    );
+    // await CustomAuth.requestPhoneAuthCode(
+    //   widget.userDetails.phoneNumber,
+    //   context,
+    //   verifyPhoneFn,
+    //   autoVerifyPhoneFn,
+    // );
 
     if (!mounted) {
       return;
@@ -259,30 +257,30 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
 
     setState(() => _isResending = true);
 
-    await CustomAuth.requestPhoneAuthCode(
-      widget.userDetails.phoneNumber,
-      context,
-      verifyPhoneFn,
-      autoVerifyPhoneFn,
-    )
-        .then(
-          (value) => {
-            setState(
-              () {
-                _isResending = false;
-              },
-            ),
-          },
-        )
-        .whenComplete(
-          () => {
-            setState(
-              () {
-                _isResending = false;
-              },
-            ),
-          },
-        );
+    // await CustomAuth.requestPhoneAuthCode(
+    //   widget.userDetails.phoneNumber,
+    //   context,
+    //   verifyPhoneFn,
+    //   autoVerifyPhoneFn,
+    // )
+    //     .then(
+    //       (value) => {
+    //         setState(
+    //           () {
+    //             _isResending = false;
+    //           },
+    //         ),
+    //       },
+    //     )
+    //     .whenComplete(
+    //       () => {
+    //         setState(
+    //           () {
+    //             _isResending = false;
+    //           },
+    //         ),
+    //       },
+    //     );
   }
 
   Future<void> _verifySentCode() async {

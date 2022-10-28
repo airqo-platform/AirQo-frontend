@@ -61,7 +61,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomSafeArea(
+      body: AppSafeArea(
         widget: Container(
           color: Colors.white,
           padding: const EdgeInsets.only(left: 24, right: 24),
@@ -129,8 +129,6 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
                 child: Padding(
                   padding: const EdgeInsets.only(left: 36, right: 36),
                   child: OptField(
-                    codeSent: _codeSent,
-                    position: 0,
                     callbackFn: setCode,
                   ),
                 ),
@@ -407,12 +405,12 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
       },
     );
 
-    await CustomAuth.requestPhoneAuthCode(
-      '$_countryCode$_phoneNumber',
-      context,
-      verifyPhoneFn,
-      autoVerifyPhoneFn,
-    );
+    // await CustomAuth.requestPhoneAuthCode(
+    //   '$_countryCode$_phoneNumber',
+    //   context,
+    //   verifyPhoneFn,
+    //   autoVerifyPhoneFn,
+    // );
 
     Future.delayed(
       const Duration(seconds: 5),
@@ -444,27 +442,28 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
       () => _isResending = true,
     );
 
-    await CustomAuth.requestPhoneAuthCode(
-      '$_countryCode$_phoneNumber',
-      context,
-      verifyPhoneFn,
-      autoVerifyPhoneFn,
-    )
-        .then(
-          (value) => {
-            setState(() => _isResending = false),
-          },
-        )
-        .whenComplete(
-          () => {
-            setState(
-              () => _isResending = false,
-            ),
-          },
-        );
+    // await CustomAuth.requestPhoneAuthCode(
+    //   '$_countryCode$_phoneNumber',
+    //   context,
+    //   verifyPhoneFn,
+    //   autoVerifyPhoneFn,
+    // )
+    //     .then(
+    //       (value) => {
+    //         setState(() => _isResending = false),
+    //       },
+    //     )
+    //     .whenComplete(
+    //       () => {
+    //         setState(
+    //           () => _isResending = false,
+    //         ),
+    //       },
+    //     );
   }
 
-  void setCode(String value, int position) {
+  void setCode(String value) {
+    int position = 0;
     setState(() => _phoneVerificationCode[position] = value);
     final code = _phoneVerificationCode.join('');
     if (code.length == 6) {

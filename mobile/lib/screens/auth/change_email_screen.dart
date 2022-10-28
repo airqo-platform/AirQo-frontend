@@ -39,7 +39,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomSafeArea(
+      body: AppSafeArea(
         widget: Container(
           color: Colors.white,
           padding: const EdgeInsets.only(left: 24, right: 24),
@@ -107,8 +107,6 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
                 child: Padding(
                   padding: const EdgeInsets.only(left: 36, right: 36),
                   child: OptField(
-                    codeSent: _requestCode,
-                    position: 0,
                     callbackFn: setCode,
                   ),
                 ),
@@ -249,7 +247,8 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
     _initialize();
   }
 
-  void setCode(String value, int position) {
+  void setCode(String value) {
+    int position = 0;
     setState(() => _emailVerificationCode[position] = value);
     final code = _emailVerificationCode.join('');
     if (code.length == 6) {

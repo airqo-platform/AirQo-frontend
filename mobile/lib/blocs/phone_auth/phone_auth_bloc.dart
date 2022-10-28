@@ -22,25 +22,16 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
     on<UpdatePhoneNumber>(_onUpdatePhoneNumber);
     on<InitializePhoneAuth>(_onInitializePhoneAuth);
     on<ClearPhoneNumberEvent>(_onClearPhoneNumberEvent);
-    on<UpdateVerificationId>(_onUpdateVerificationId);
-    on<UpdateAuthCredential>(_onUpdateAuthCredential);
+    on<UpdateStatus>(_onUpdateStatus);
+
     on<InvalidPhoneNumber>(_onInvalidPhoneNumber);
   }
 
-  Future<void> _onUpdateAuthCredential(
-    UpdateAuthCredential event,
+  Future<void> _onUpdateStatus(
+    UpdateStatus event,
     Emitter<PhoneAuthState> emit,
   ) async {
-    return emit(state.copyWith(
-        credential: event.authCredential, authStatus: AuthStatus.success));
-  }
-
-  Future<void> _onUpdateVerificationId(
-    UpdateVerificationId event,
-    Emitter<PhoneAuthState> emit,
-  ) async {
-    return emit(state.copyWith(
-        verificationId: event.verificationId, authStatus: AuthStatus.success));
+    return emit(state.copyWith(authStatus: event.authStatus));
   }
 
   Future<void> _onInvalidPhoneNumber(

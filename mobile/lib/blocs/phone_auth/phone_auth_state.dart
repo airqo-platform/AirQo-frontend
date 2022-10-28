@@ -4,11 +4,7 @@ class PhoneAuthState extends Equatable {
   const PhoneAuthState._({
     this.phoneNumber = '',
     this.countryCode = '',
-    this.verificationId = '',
-    this.credential = null,
     this.authProcedure = AuthProcedure.login,
-    this.validAuthCode = '',
-    this.inputAuthCode = const [],
     this.error = AuthenticationError.none,
     this.authStatus = AuthStatus.initial,
     this.isValidPhoneNumber = false,
@@ -17,11 +13,7 @@ class PhoneAuthState extends Equatable {
   const PhoneAuthState({
     this.phoneNumber = '',
     this.countryCode = '',
-    this.verificationId = '',
-    this.credential = null,
     this.authProcedure = AuthProcedure.login,
-    this.validAuthCode = '',
-    this.inputAuthCode = const [],
     this.error = AuthenticationError.none,
     this.authStatus = AuthStatus.initial,
     this.isValidPhoneNumber = false,
@@ -37,9 +29,6 @@ class PhoneAuthState extends Equatable {
           phoneNumber: phoneNumber ?? '',
           authProcedure: authProcedure,
         );
-
-  const PhoneAuthState.authCodeEditing(List<String> inputAuthCode)
-      : this._(inputAuthCode: inputAuthCode, authStatus: AuthStatus.editing);
 
   const PhoneAuthState.verificationRequest()
       : this._(authStatus: AuthStatus.processing);
@@ -67,11 +56,7 @@ class PhoneAuthState extends Equatable {
     return PhoneAuthState(
       phoneNumber: phoneNumber ?? this.phoneNumber,
       countryCode: countryCode ?? this.countryCode,
-      verificationId: verificationId ?? this.verificationId,
-      credential: credential ?? this.credential,
       authProcedure: authProcedure ?? this.authProcedure,
-      validAuthCode: validAuthCode ?? this.validAuthCode,
-      inputAuthCode: inputAuthCode ?? this.inputAuthCode,
       error: error ?? this.error,
       authStatus: authStatus ?? this.authStatus,
       isValidPhoneNumber: isValidPhoneNumber ?? this.isValidPhoneNumber,
@@ -80,11 +65,7 @@ class PhoneAuthState extends Equatable {
 
   final String phoneNumber;
   final String countryCode;
-  final String verificationId;
-  final PhoneAuthCredential? credential;
   final AuthProcedure authProcedure;
-  final String validAuthCode;
-  final List<String> inputAuthCode;
   final AuthenticationError error;
   final AuthStatus authStatus;
   final bool isValidPhoneNumber;
@@ -93,10 +74,6 @@ class PhoneAuthState extends Equatable {
   List<Object?> get props => [
         phoneNumber,
         countryCode,
-        verificationId,
-        credential,
-        validAuthCode,
-        inputAuthCode,
         error,
         authProcedure,
         authStatus,

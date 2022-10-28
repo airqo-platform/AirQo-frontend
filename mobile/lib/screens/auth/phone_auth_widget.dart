@@ -14,6 +14,7 @@ import '../../widgets/buttons.dart';
 import '../../widgets/custom_shimmer.dart';
 import '../../widgets/custom_widgets.dart';
 import '../../widgets/text_fields.dart';
+import '../on_boarding/on_boarding_widgets.dart';
 import 'auth_verification.dart';
 import 'auth_widgets.dart';
 import 'email_auth_widget.dart';
@@ -48,227 +49,225 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: const OnBoardingTopBar(backgroundColor: Colors.white),
       body: WillPopScope(
         onWillPop: onWillPop,
-        child: CustomSafeArea(
-          widget: Container(
-            color: Colors.white,
-            child: BlocConsumer<PhoneAuthBloc, PhoneAuthState>(
-              listener: (context, state) {},
-              buildWhen: (previous, current) {
-                return current.authStatus != AuthStatus.error &&
-                    current.authStatus != AuthStatus.success &&
-                    current.authStatus != AuthStatus.processing;
-              },
-              builder: (context, state) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        MultiBlocListener(
-                          listeners: [
-                            BlocListener<PhoneAuthBloc, PhoneAuthState>(
-                              listener: (context, state) {
-                                loadingScreen(_loadingContext);
-                              },
-                              listenWhen: (previous, current) {
-                                return current.authStatus ==
-                                    AuthStatus.processing;
-                              },
-                            ),
-                            BlocListener<PhoneAuthBloc, PhoneAuthState>(
-                              listener: (context, state) {
-                                Navigator.pop(_loadingContext);
-                              },
-                              listenWhen: (previous, current) {
-                                return previous.authStatus ==
-                                    AuthStatus.processing;
-                              },
-                            ),
-                            BlocListener<PhoneAuthBloc, PhoneAuthState>(
-                              listener: (context, state) {
-                                showSnackBar(context, state.error.message);
-                              },
-                              listenWhen: (previous, current) {
-                                return current.authStatus == AuthStatus.error &&
-                                    current.error != AuthenticationError.none;
-                              },
-                            ),
-                            BlocListener<PhoneAuthBloc, PhoneAuthState>(
-                              listener: (context, state) {
-                                context
-                                    .read<AuthCodeBloc>()
-                                    .add(InitializeAuthCodeState(
-                                      phoneNumber:
-                                          '${state.countryCode} ${state.phoneNumber}',
-                                      verificationId: state.verificationId,
-                                      credential: state.credential,
-                                      authProcedure: state.authProcedure,
-                                    ));
+        child: AppSafeArea(
+          backgroundColor: Colors.white,
+          widget: BlocConsumer<PhoneAuthBloc, PhoneAuthState>(
+            listener: (context, state) {},
+            buildWhen: (previous, current) {
+              return current.authStatus != AuthStatus.error &&
+                  current.authStatus != AuthStatus.success &&
+                  current.authStatus != AuthStatus.processing;
+            },
+            builder: (context, state) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      MultiBlocListener(
+                        listeners: [
+                          BlocListener<PhoneAuthBloc, PhoneAuthState>(
+                            listener: (context, state) {
+                              loadingScreen(_loadingContext);
+                            },
+                            listenWhen: (previous, current) {
+                              return current.authStatus ==
+                                  AuthStatus.processing;
+                            },
+                          ),
+                          BlocListener<PhoneAuthBloc, PhoneAuthState>(
+                            listener: (context, state) {
+                              Navigator.pop(_loadingContext);
+                            },
+                            listenWhen: (previous, current) {
+                              return previous.authStatus ==
+                                  AuthStatus.processing;
+                            },
+                          ),
+                          BlocListener<PhoneAuthBloc, PhoneAuthState>(
+                            listener: (context, state) {
+                              showSnackBar(context, state.error.message);
+                            },
+                            listenWhen: (previous, current) {
+                              return current.authStatus == AuthStatus.error &&
+                                  current.error != AuthenticationError.none;
+                            },
+                          ),
+                          BlocListener<PhoneAuthBloc, PhoneAuthState>(
+                            listener: (context, state) {
+                              context
+                                  .read<AuthCodeBloc>()
+                                  .add(InitializeAuthCodeState(
+                                    phoneNumber:
+                                        '${state.countryCode} ${state.phoneNumber}',
+                                    authProcedure: state.authProcedure,
+                                  ));
 
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) {
-                                    return const AuthVerificationWidget();
-                                  }),
-                                );
-                              },
-                              listenWhen: (previous, current) {
-                                return current.authStatus == AuthStatus.success;
-                              },
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) {
+                                  return const AuthVerificationWidget();
+                                }),
+                              );
+                            },
+                            listenWhen: (previous, current) {
+                              return current.authStatus == AuthStatus.success;
+                            },
+                          ),
+                        ],
+                        child: Container(),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: AutoSizeText(
+                          AuthMethod.phone.optionsText(state.authProcedure),
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: CustomTextStyle.headline7(context),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 8,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: AutoSizeText(
+                          'We’ll send you a verification code',
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyText2
+                              ?.copyWith(
+                                color:
+                                    CustomColors.appColorBlack.withOpacity(0.6),
+                              ),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 32,
+                      ),
+                      SizedBox(
+                        height: 48,
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 64,
+                              child: CountryCodePickerField(
+                                valueChange: (code) {
+                                  context.read<PhoneAuthBloc>().add(
+                                      UpdateCountryCode(
+                                          code ?? state.countryCode));
+                                },
+                                placeholder: state.countryCode,
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 16,
+                            ),
+                            const Expanded(
+                              child: PhoneInputField(),
                             ),
                           ],
-                          child: Container(),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: AutoSizeText(
-                            AuthMethod.phone.optionsText(state.authProcedure),
-                            textAlign: TextAlign.center,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: CustomTextStyle.headline7(context),
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 8,
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: AutoSizeText(
-                            'We’ll send you a verification code',
-                            textAlign: TextAlign.center,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style:
-                                Theme.of(context).textTheme.bodyText2?.copyWith(
-                                      color: CustomColors.appColorBlack
-                                          .withOpacity(0.6),
-                                    ),
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 32,
-                        ),
-                        SizedBox(
-                          height: 48,
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: 64,
-                                child: CountryCodePickerField(
-                                  valueChange: (code) {
-                                    context.read<PhoneAuthBloc>().add(
-                                        UpdateCountryCode(
-                                            code ?? state.countryCode));
-                                  },
-                                  placeholder: state.countryCode,
-                                ),
-                              ),
-                              const SizedBox(
-                                width: 16,
-                              ),
-                              const Expanded(
-                                child: PhoneInputField(),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 32,
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            setState(
-                              () {
-                                Navigator.pushAndRemoveUntil(
-                                  context,
-                                  PageRouteBuilder(
-                                    pageBuilder: (context, animation,
-                                            secondaryAnimation) =>
-                                        state.authProcedure ==
-                                                AuthProcedure.login
-                                            ? const EmailLoginWidget()
-                                            : const EmailSignUpWidget(),
-                                    transitionsBuilder: (
-                                      context,
-                                      animation,
-                                      secondaryAnimation,
-                                      child,
-                                    ) {
-                                      return FadeTransition(
-                                        opacity: animation.drive(
-                                          Tween<double>(
-                                            begin: 0,
-                                            end: 1,
-                                          ),
+                      ),
+                      const SizedBox(
+                        height: 32,
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          setState(
+                            () {
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                PageRouteBuilder(
+                                  pageBuilder: (context, animation,
+                                          secondaryAnimation) =>
+                                      state.authProcedure == AuthProcedure.login
+                                          ? const EmailLoginWidget()
+                                          : const EmailSignUpWidget(),
+                                  transitionsBuilder: (
+                                    context,
+                                    animation,
+                                    secondaryAnimation,
+                                    child,
+                                  ) {
+                                    return FadeTransition(
+                                      opacity: animation.drive(
+                                        Tween<double>(
+                                          begin: 0,
+                                          end: 1,
                                         ),
-                                        child: child,
-                                      );
-                                    },
-                                  ),
-                                  (r) => false,
+                                      ),
+                                      child: child,
+                                    );
+                                  },
+                                ),
+                                (r) => false,
+                              );
+                            },
+                          );
+                        },
+                        child: SignUpButton(
+                          text: AuthMethod.phone
+                              .optionsButtonText(state.authProcedure),
+                        ),
+                      ),
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: () async {
+                          if (state.isValidPhoneNumber) {
+                            await showDialog<ConfirmationAction>(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (BuildContext context) {
+                                return AuthMethodDialog(
+                                  credentials:
+                                      '${state.countryCode} ${state.phoneNumber}',
+                                  authMethod: AuthMethod.phone,
                                 );
                               },
-                            );
-                          },
-                          child: SignUpButton(
-                            text: AuthMethod.phone
-                                .optionsButtonText(state.authProcedure),
-                          ),
+                            ).then((action) => {
+                                  if (action != null ||
+                                      action == ConfirmationAction.ok)
+                                    {
+                                      context.read<PhoneAuthBloc>().add(
+                                          InitiatePhoneNumberVerification(
+                                              context: context))
+                                    }
+                                });
+                          }
+                        },
+                        child: NextButton(
+                          buttonColor: state.isValidPhoneNumber
+                              ? CustomColors.appColorBlue
+                              : CustomColors.appColorDisabled,
                         ),
-                        const Spacer(),
-                        GestureDetector(
-                          onTap: () async {
-                            if (state.isValidPhoneNumber) {
-                              await showDialog<ConfirmationAction>(
-                                context: context,
-                                barrierDismissible: false,
-                                builder: (BuildContext context) {
-                                  return AuthMethodDialog(
-                                    credentials:
-                                        '${state.countryCode} ${state.phoneNumber}',
-                                    authMethod: AuthMethod.phone,
-                                  );
-                                },
-                              ).then((action) => {
-                                    if (action != null ||
-                                        action == ConfirmationAction.ok)
-                                      {
-                                        context.read<PhoneAuthBloc>().add(
-                                            InitiatePhoneNumberVerification(
-                                                context: context))
-                                      }
-                                  });
-                            }
-                          },
-                          child: NextButton(
-                            buttonColor: state.isValidPhoneNumber
-                                ? CustomColors.appColorBlue
-                                : CustomColors.appColorDisabled,
-                          ),
+                      ),
+                      Visibility(
+                        visible: state.authStatus != AuthStatus.editing,
+                        child: const SizedBox(
+                          height: 16,
                         ),
-                        Visibility(
-                          visible: state.authStatus != AuthStatus.editing,
-                          child: const SizedBox(
-                            height: 16,
-                          ),
-                        ),
-                        Visibility(
-                          visible: state.authStatus != AuthStatus.editing,
-                          child: state.authProcedure == AuthProcedure.login
-                              ? const LoginOptions()
-                              : const SignUpOptions(),
-                        ),
-                      ],
-                    ),
+                      ),
+                      Visibility(
+                        visible: state.authStatus != AuthStatus.editing,
+                        child: state.authProcedure == AuthProcedure.login
+                            ? const LoginOptions()
+                            : const SignUpOptions(),
+                      ),
+                    ],
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            },
           ),
         ),
       ),

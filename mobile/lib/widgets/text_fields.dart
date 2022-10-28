@@ -81,22 +81,17 @@ class CountryCodePickerField extends StatelessWidget {
 class OptField extends StatelessWidget {
   const OptField({
     super.key,
-    required this.codeSent,
     required this.callbackFn,
-    required this.position,
   });
-  final bool codeSent;
-  final Function(String value, int position) callbackFn;
-  final int position;
+  final bool codeSent = true;
+  final Function(String value) callbackFn;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: 64,
       child: TextFormField(
-        onChanged: (value) {
-          callbackFn(value, position);
-        },
+        onChanged: callbackFn,
         showCursor: codeSent,
         textAlign: TextAlign.center,
         maxLength: 6,

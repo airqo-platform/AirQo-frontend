@@ -656,42 +656,6 @@ class CustomAuth {
     return false;
   }
 
-  static Future<bool> reSendPhoneAuthCode({
-    required String phoneNumber,
-    required BuildContext buildContext
-  }) async {
-    try {
-      await FirebaseAuth.instance.verifyPhoneNumber(
-        phoneNumber: phoneNumber,
-        verificationCompleted: (PhoneAuthCredential credential) {
-          emit(VerifyPhoneNumberEvent(credential: credential, context: null));
-          buildContext.read<AuthenticationBloc>().add(VerifyPhoneNumberEvent(credential: credential));
-        },
-        verificationFailed: (FirebaseAuthException exception) async {
-          if (exception.code == 'invalid-phone-number') {
-          } else {
-            debugPrint(exception.toString());
-          }
-        },
-        codeSent: (String verificationId, int? resendToken) async {
-          buildContext.read<AuthenticationBloc>().add(RequestInputAuthCodeEvent(verificationId: verificationId));
-        },
-        codeAutoRetrievalTimeout: (String verificationId) async {
-          // TODO Implement auto code retrieval timeout
-        },
-        timeout: const Duration(minutes: 2),
-      );
-
-      return true;
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-
-      return false;
-    }
-  }
 
   static Future<bool> sendPhoneAuthCode(
     phoneNumber,
@@ -703,10 +667,10 @@ class CustomAuth {
         verificationCompleted: (PhoneAuthCredential credential) {
           buildContext
               .read<PhoneAuthBloc>()
-              .add(UpdateAuthCredential(credential));
+              .add(const UpdateStatus(AuthStatus.success));
           buildContext
               .read<AuthCodeBloc>()
-              .add(AuthenticatePhoneNumber(credential: credential));
+              .add(VerifySmsCode(credential: credential));
         },
         verificationFailed: (FirebaseAuthException exception) async {
           if (exception.code == 'invalid-phone-number') {
@@ -717,13 +681,19 @@ class CustomAuth {
         },
         codeSent: (String verificationId, int? resendToken) async {
           buildContext
-              .read<PhoneAuthBloc>()
+              .read<AuthCodeBloc>()
               .add(UpdateVerificationId(verificationId));
+          buildContext
+              .read<PhoneAuthBloc>()
+              .add(const UpdateStatus(AuthStatus.success));
         },
         codeAutoRetrievalTimeout: (String verificationId) async {
           buildContext
-              .read<PhoneAuthBloc>()
+              .read<AuthCodeBloc>()
               .add(UpdateVerificationId(verificationId));
+          buildContext
+              .read<PhoneAuthBloc>()
+              .add(const UpdateStatus(AuthStatus.success));
         },
         timeout: const Duration(seconds: 30),
       );

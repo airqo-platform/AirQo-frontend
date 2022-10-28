@@ -29,7 +29,7 @@ class WelcomeScreenState extends State<WelcomeScreen> {
       appBar: const OnBoardingTopBar(),
       body: WillPopScope(
         onWillPop: onWillPop,
-        child: CustomSafeArea(
+        child: AppSafeArea(
           backgroundColor: CustomColors.appBodyColor,
           widget: Padding(
             padding: const EdgeInsets.only(left: 24, right: 24.0),

@@ -42,20 +42,18 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
       body: WillPopScope(
         onWillPop: onWillPop,
         child: Container(
-          padding: const EdgeInsets.only(left: 24, right: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const SizedBox(
                 height: 56,
               ),
-              Center(
-                child: Text(
-                  'Great!\nPlease enter your name?',
-                  textAlign: TextAlign.center,
-                  style: CustomTextStyle.headline7(context),
-                ),
+              Text(
+                'Great!\nPlease enter your name?',
+                textAlign: TextAlign.center,
+                style: CustomTextStyle.headline7(context),
               ),
               const SizedBox(
                 height: 32,
@@ -133,14 +131,12 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       (r) => false,
                     );
                   },
-                  child: Center(
-                    child: Text(
-                      'No, thanks',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.caption?.copyWith(
-                            color: CustomColors.appColorBlue,
-                          ),
-                    ),
+                  child: Text(
+                    'No, thanks',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.caption?.copyWith(
+                          color: CustomColors.appColorBlue,
+                        ),
                   ),
                 ),
               ),

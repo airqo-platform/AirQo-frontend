@@ -28,18 +28,11 @@ class InitiatePhoneNumberVerification extends PhoneAuthEvent {
   List<Object?> get props => [];
 }
 
-class UpdateVerificationId extends PhoneAuthEvent {
-  const UpdateVerificationId(this.verificationId);
-  final String verificationId;
+class UpdateStatus extends PhoneAuthEvent {
+  const UpdateStatus(this.authStatus);
+  final AuthStatus authStatus;
   @override
-  List<Object?> get props => [verificationId];
-}
-
-class UpdateAuthCredential extends PhoneAuthEvent {
-  const UpdateAuthCredential(this.authCredential);
-  final PhoneAuthCredential authCredential;
-  @override
-  List<Object?> get props => [authCredential];
+  List<Object?> get props => [authStatus];
 }
 
 class UpdateCountryCode extends PhoneAuthEvent {

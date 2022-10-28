@@ -55,7 +55,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     return Scaffold(
       body: WillPopScope(
         onWillPop: onWillPop,
-        child: CustomSafeArea(
+        child: AppSafeArea(
           widget: Container(
             color: Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -274,8 +274,6 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
       Padding(
         padding: const EdgeInsets.only(left: 36, right: 36),
         child: OptField(
-          codeSent: _codeSent,
-          position: 0,
           callbackFn: setCode,
         ),
       ),
@@ -390,10 +388,10 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     return Future.value(false);
   }
 
-  void setCode(String value, int position) {
+  void setCode(String value) {
     setState(
       () {
-        _emailVerificationCode[position] = value;
+        _emailVerificationCode[0] = value;
       },
     );
     final code = _emailVerificationCode.join('');
