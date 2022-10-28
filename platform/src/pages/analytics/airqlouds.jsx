@@ -70,6 +70,7 @@ const CountryAirQloudsDropdown = ({ airqlouds }) => {
                 >
                   {({ active }) => (
                     <button
+                      type='button'
                       className={`${
                         active ? 'bg-[#145DFF] text-white' : 'text-gray-900'
                       } group flex w-full items-center rounded-md px-2 py-2 text-base font-semibold`}
@@ -119,7 +120,6 @@ const AirQlouds = () => {
     // error,
   } = useGetCountryAirQloudsQuery();
   const countryAirqloudsData = !isLoading && airqlouds.airqlouds;
-  console.log(countryAirqloudsData);
 
   return isLoading ? (
     <div className='w-screen h-screen flex items-center justify-center'>
