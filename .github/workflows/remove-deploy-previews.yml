@@ -69,9 +69,9 @@ jobs:
 
           done < files.txt
 
-  ### remove platform deploy preview ###
-  remove-platform-preview:
-    name: remove-platform-preview
+  ### remove netmanager deploy preview ###
+  remove-netmanager-preview:
+    name: remove-netmanager-preview
     needs: [check, branch-name]
     if: needs.check.outputs.remove_platform_preview == 'true'
     runs-on: ubuntu-latest
@@ -86,7 +86,7 @@ jobs:
 
       - name: Delete PR deploy preview
         run: |-
-          gcloud run services delete ${{ needs.branch-name.outputs.lowercase }}-platform-preview \
+          gcloud run services delete ${{ needs.branch-name.outputs.lowercase }}-netmanager-preview \
             --region=${{ secrets.REGION }} \
             --quiet
 
