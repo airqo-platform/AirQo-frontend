@@ -27,7 +27,19 @@ import mapboxgl from "mapbox-gl";
 import { ErrorEvent } from "mapbox-gl";
 import BoundaryAlert from "../../ErrorBoundary/Alert";
 import CircularLoader from "../../components/Loader/CircularLoader";
+import {
+  darkMapStyle,
+  lightMapStyle,
+  satelliteMapStyle,
+  streetMapStyle,
+} from "./utils";
+import MapIcon from '@material-ui/icons/Map';
+import LightModeIcon from '@material-ui/icons/Highlight';
+import SatelliteIcon from '@material-ui/icons/Satellite';
+import DarkModeIcon from '@material-ui/icons/NightsStay';
+import StreetModeIcon from '@material-ui/icons/Traffic';
 
+// prettier-ignore
 // eslint-disable-next-line import/no-webpack-loader-syntax
 mapboxgl.workerClass = require("worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker").default;
 
@@ -192,6 +204,68 @@ const PollutantSelector = ({ className, onChange, showHeatMap }) => {
   );
 };
 
+const MapStyleSelector = () => {
+  const styleSet = [
+    {
+      name: 'light',
+      icon: <LightModeIcon />,
+      mapStyle: lightMapStyle
+    },
+    {
+      name: 'dark',
+      icon: <DarkModeIcon />,
+      mapStyle: darkMapStyle
+    },
+    {
+      name: 'street',
+      icon: <StreetModeIcon />,
+      mapStyle: streetMapStyle
+    },
+    {
+      name: 'satellite',
+      icon: <SatelliteIcon />,
+      mapStyle: satelliteMapStyle
+    }
+  ];
+
+  const [mapMode, setMapMode] = useState("");
+
+  useEffect(() => {
+    if (localStorage.mapMode) {
+      setMapMode(localStorage.mapMode);
+    } else {
+      setMapMode("light");
+    }
+  },[]);
+
+  return (
+    <>
+      <div className="map-style">
+        <h4>
+          <MapIcon/>
+           <span>Change Map Mode</span>
+        </h4>
+        <div className="map-style-cards">
+          {
+            styleSet.map((style)=>{
+              return(
+                <div onClick={()=>{
+                  localStorage.mapStyle = style.mapStyle;
+                  localStorage.mapMode = style.name;
+                  window.location.reload();
+                }}>
+                  <span>{style.icon}</span>
+                  <span>{style.name} map</span>
+                </div>
+              )
+            })
+          }
+        </div>
+      </div>
+    </>
+  );
+};
+
 const MapSettings = ({
   showSensors,
   showHeatmap,
@@ -206,7 +280,7 @@ const MapSettings = ({
       content={
         <div>
           <MenuItem onClick={() => onSensorChange(!showSensors)}>
-            <Checkbox checked={showSensors} color="default" /> Sensors
+            <Checkbox checked={showSensors} color="default" /> Monitors
           </MenuItem>
           <MenuItem onClick={() => onHeatmapChange(!showHeatmap)}>
             <Checkbox checked={showHeatmap} color="default" /> Heatmap
@@ -269,6 +343,7 @@ const CustomMapControl = ({
         onChange={onPollutantChange}
         showHeatMap={showHeatmap}
       />
+      <MapStyleSelector/>
     </MapControllerPosition>
   );
 };
@@ -299,10 +374,10 @@ export const OverlayMap = ({
   useEffect(() => {
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
-      style: "mapbox://styles/mapbox/dark-v10",
+      style: localStorage.mapStyle ? localStorage.mapStyle : lightMapStyle,
       center,
       zoom,
-      maxZoom: 20,
+      maxZoom: 20
     });
     map.on("load", () => {
       map.addSource("heatmap-data", {
@@ -508,11 +583,23 @@ export const OverlayMap = ({
                       </span>
                     </div>
                     <div class="${"popup-aqi " + markerClass}"> 
-                      <span>AQI</span> </hr>  
+                      <span>
+                      ${
+                        (showPollutant.pm2_5 &&
+                          feature.properties.pm2_5 &&
+                          "PM<sub>2.5<sub>") ||
+                        (showPollutant.pm10 &&
+                          feature.properties.pm10 &&
+                          "PM<sub>10<sub>")
+                      }
+                      </span> </hr>  
                       <div class="pollutant-info">
+                        <div class="pollutant-info-row">
                         <div class="pollutant-number">${
                           (pollutantValue && pollutantValue.toFixed(2)) || "--"
-                        }</div> 
+                        }</div>
+                        <div class="popup-measurement">µg/m<sup>3</sup></div>
+                        </div> 
                         <div class="pollutant-desc">${desc}</div>
                       </div>
                     </div>
@@ -557,7 +644,7 @@ const MapContainer = () => {
   return (
     <div>
       <ErrorBoundary>
-        {heatMapData.features.length > 0 ? (
+        {heatMapData ? (
           <OverlayMap
             center={[22.5600613, 0.8341424]}
             zoom={2}
