@@ -138,6 +138,10 @@ enum AuthenticationError {
     message: 'Invalid phone number',
     snackBarDuration: 5,
   ),
+  invalidEmailAddress(
+    message: 'Invalid email address',
+    snackBarDuration: 5,
+  ),
   emailTaken(
     message: 'Email Taken',
     snackBarDuration: 5,

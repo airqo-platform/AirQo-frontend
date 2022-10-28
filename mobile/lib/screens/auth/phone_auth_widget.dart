@@ -260,8 +260,8 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                       Visibility(
                         visible: state.authStatus != AuthStatus.editing,
                         child: state.authProcedure == AuthProcedure.login
-                            ? const LoginOptions()
-                            : const SignUpOptions(),
+                            ? const LoginOptions(authMethod: AuthMethod.phone)
+                            : const SignUpOptions(authMethod: AuthMethod.phone),
                       ),
                     ],
                   ),

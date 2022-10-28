@@ -7,7 +7,6 @@ class AuthCodeState extends Equatable {
     this.verificationId = '',
     this.credential = null,
     this.authProcedure = AuthProcedure.login,
-    this.validSmsCode = '',
     this.inputAuthCode = '',
     this.error = AuthenticationError.none,
     this.authStatus = AuthStatus.initial,
@@ -21,7 +20,6 @@ class AuthCodeState extends Equatable {
     this.verificationId = '',
     this.credential = null,
     this.authProcedure = AuthProcedure.login,
-    this.validSmsCode = '',
     this.inputAuthCode = '',
     this.error = AuthenticationError.none,
     this.authStatus = AuthStatus.initial,
@@ -51,7 +49,6 @@ class AuthCodeState extends Equatable {
         verificationId: verificationId ?? this.verificationId,
         credential: credential ?? this.credential,
         authProcedure: authProcedure ?? this.authProcedure,
-        validSmsCode: validAuthCode ?? this.validSmsCode,
         inputAuthCode: inputAuthCode ?? this.inputAuthCode,
         error: error ?? this.error,
         authStatus: authStatus ?? this.authStatus,
@@ -65,7 +62,6 @@ class AuthCodeState extends Equatable {
   final PhoneAuthCredential? credential;
   final AuthProcedure authProcedure;
   final AuthMethod authMethod;
-  final String validSmsCode;
   final String inputAuthCode;
   final AuthenticationError error;
   final AuthStatus authStatus;
@@ -76,7 +72,6 @@ class AuthCodeState extends Equatable {
         phoneNumber,
         verificationId,
         credential,
-        validSmsCode,
         inputAuthCode,
         error,
         authProcedure,

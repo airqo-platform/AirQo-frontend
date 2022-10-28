@@ -37,6 +37,9 @@ class AirQoApp extends StatelessWidget {
           create: (BuildContext context) => PhoneAuthBloc(),
         ),
         BlocProvider(
+          create: (BuildContext context) => EmailAuthBloc(),
+        ),
+        BlocProvider(
           create: (BuildContext context) => MapBloc(),
         ),
         BlocProvider(

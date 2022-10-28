@@ -11,9 +11,11 @@ class GuestUserEvent extends AuthCodeEvent {
 }
 
 class InitializeAuthCodeState extends AuthCodeEvent {
-  const InitializeAuthCodeState({this.phoneNumber, this.authProcedure});
+  const InitializeAuthCodeState(
+      {this.phoneNumber, this.authProcedure, this.emailAddress});
 
   final String? phoneNumber;
+  final String? emailAddress;
   final AuthProcedure? authProcedure;
 
   @override
@@ -34,6 +36,15 @@ class UpdateVerificationId extends AuthCodeEvent {
   final String verificationId;
   @override
   List<Object?> get props => [verificationId];
+}
+
+class UpdateEmailCredentials extends AuthCodeEvent {
+  const UpdateEmailCredentials(
+      {required this.emailVerificationLink, required this.emailToken});
+  final String emailVerificationLink;
+  final int emailToken;
+  @override
+  List<Object?> get props => [emailToken, emailVerificationLink];
 }
 
 class VerifySmsCode extends AuthCodeEvent {

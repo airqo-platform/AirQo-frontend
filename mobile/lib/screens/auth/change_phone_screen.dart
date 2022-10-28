@@ -463,8 +463,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
   }
 
   void setCode(String value) {
-    int position = 0;
-    setState(() => _phoneVerificationCode[position] = value);
+    setState(() => _phoneVerificationCode[0] = value);
     final code = _phoneVerificationCode.join('');
     if (code.length == 6) {
       setState(() => _nextBtnColor = CustomColors.appColorBlue);

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
+import 'package:app/services/rest_api.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/dialogs.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -532,26 +533,10 @@ class CustomAuth {
     String emailAddress,
     String link,
   ) async {
-    try {
-      final userCredential = await FirebaseAuth.instance
-          .signInWithEmailLink(emailLink: link, email: emailAddress);
+    final userCredential = await FirebaseAuth.instance
+        .signInWithEmailLink(emailLink: link, email: emailAddress);
 
-      return userCredential.user != null;
-    } on FirebaseAuthException catch (exception, stackTrace) {
-      if (exception.code == 'invalid-email') {
-      } else if (exception.code == 'expired-action-code') {
-      } else if (exception.code == 'user-disabled') {
-      } else {}
-      debugPrint('$exception\n$stackTrace');
-      if (!['invalid-email', 'expired-action-code'].contains(exception.code)) {
-        await logException(
-          exception,
-          stackTrace,
-        );
-      }
-
-      return false;
-    }
+    return userCredential.user != null;
   }
 
   static User? getUser() {
@@ -656,8 +641,7 @@ class CustomAuth {
     return false;
   }
 
-
-  static Future<bool> sendPhoneAuthCode(
+  static Future<void> sendPhoneAuthCode(
     phoneNumber,
     BuildContext buildContext,
   ) async {
@@ -697,15 +681,48 @@ class CustomAuth {
         },
         timeout: const Duration(seconds: 30),
       );
-
-      return true;
     } catch (exception, stackTrace) {
       await logException(
         exception,
         stackTrace,
       );
+    }
+  }
 
-      return false;
+  static Future<void> sendEmailAuthCode(
+    emailAddress,
+    BuildContext buildContext,
+  ) async {
+    try {
+      await AirqoApiClient()
+          .requestEmailVerificationCode(emailAddress, false)
+          .then((emailSignupResponse) => {
+                if (emailSignupResponse == null)
+                  {
+                    buildContext.read<EmailAuthBloc>().add(
+                        const EmailValidationFailed(
+                            AuthenticationError.authFailure))
+                  }
+                else
+                  {
+                    buildContext
+                        .read<EmailAuthBloc>()
+                        .add(const EmailValidationPassed()),
+                    buildContext.read<AuthCodeBloc>().add(
+                        UpdateEmailCredentials(
+                            emailVerificationLink:
+                                emailSignupResponse.loginLink,
+                            emailToken: emailSignupResponse.token))
+                  }
+              });
+    } catch (exception, stackTrace) {
+      buildContext
+          .read<EmailAuthBloc>()
+          .add(const EmailValidationFailed(AuthenticationError.authFailure));
+      await logException(
+        exception,
+        stackTrace,
+      );
     }
   }
 

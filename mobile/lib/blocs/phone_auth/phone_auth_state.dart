@@ -44,11 +44,7 @@ class PhoneAuthState extends Equatable {
   PhoneAuthState copyWith({
     String? phoneNumber,
     String? countryCode,
-    String? verificationId,
-    PhoneAuthCredential? credential,
     AuthProcedure? authProcedure,
-    String? validAuthCode,
-    List<String>? inputAuthCode,
     AuthenticationError? error,
     AuthStatus? authStatus,
     bool? isValidPhoneNumber,

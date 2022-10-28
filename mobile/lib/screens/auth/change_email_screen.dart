@@ -248,8 +248,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
   }
 
   void setCode(String value) {
-    int position = 0;
-    setState(() => _emailVerificationCode[position] = value);
+    setState(() => _emailVerificationCode[0] = value);
     final code = _emailVerificationCode.join('');
     if (code.length == 6) {
       setState(() => _nextBtnColor = CustomColors.appColorBlue);

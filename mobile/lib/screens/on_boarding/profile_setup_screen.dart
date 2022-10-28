@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import '../../services/local_storage.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
+import '../../widgets/custom_widgets.dart';
 import 'notifications_setup_screen.dart';
 import 'on_boarding_widgets.dart';
 
@@ -38,115 +39,109 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const OnBoardingTopBar(),
-      backgroundColor: CustomColors.appBodyColor,
       body: WillPopScope(
         onWillPop: onWillPop,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const SizedBox(
-                height: 56,
-              ),
-              Text(
-                'Great!\nPlease enter your name?',
-                textAlign: TextAlign.center,
-                style: CustomTextStyle.headline7(context),
-              ),
-              const SizedBox(
-                height: 32,
-              ),
-              SizedBox(
-                height: 48,
-                child: Row(
-                  children: <Widget>[
-                    TitleDropDown(
-                      showTileOptionsCallBack: _showTileOptionsCallBack,
-                      title: _title,
-                    ),
-                    const SizedBox(
-                      width: 16,
-                    ),
-                    Form(
-                      key: _formKey,
-                      child: Flexible(
-                        child: ProfileSetupNameInputField(
-                          showTileOptionsCallBack: _showTileOptionsCallBack,
-                          nameChangeCallBack: _nameChangeCallBack,
-                          controller: _controller,
+        child: AppSafeArea(
+          widget: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Great!\nPlease enter your name?',
+                  textAlign: TextAlign.center,
+                  style: CustomTextStyle.headline7(context),
+                ),
+                const SizedBox(
+                  height: 32,
+                ),
+                SizedBox(
+                  height: 48,
+                  child: Row(
+                    children: <Widget>[
+                      TitleDropDown(
+                        showTileOptionsCallBack: _showTileOptionsCallBack,
+                        title: _title,
+                      ),
+                      const SizedBox(
+                        width: 16,
+                      ),
+                      Form(
+                        key: _formKey,
+                        child: Flexible(
+                          child: ProfileSetupNameInputField(
+                            showTileOptionsCallBack: _showTileOptionsCallBack,
+                            nameChangeCallBack: _nameChangeCallBack,
+                            controller: _controller,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(
-                height: 8,
-              ),
-              Visibility(
-                visible: _showDropDown,
-                child: Container(
-                  padding: const EdgeInsets.only(left: 10, right: 10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xffF4F4F4),
-                    borderRadius: BorderRadius.circular(8),
+                    ],
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 12,
-                      horizontal: 12,
-                    ),
-                    child: Column(
+                ),
+                const SizedBox(
+                  height: 8,
+                ),
+                Visibility(
+                    visible: _showDropDown,
+                    child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.max,
-                      children: _getTitleOptions(),
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xffF4F4F4),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.max,
+                              children: _getTitleOptions(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () async {
+                    await _saveName();
+                  },
+                  child: NextButton(
+                    buttonColor: nextBtnColor,
+                  ),
+                ),
+                SizedBox(
+                  height: _showOptions ? 16 : 12,
+                ),
+                Visibility(
+                  visible: _showOptions,
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) {
+                          return const NotificationsSetupScreen();
+                        }),
+                        (r) => false,
+                      );
+                    },
+                    child: Text(
+                      'No, thanks',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.caption?.copyWith(
+                            color: CustomColors.appColorBlue,
+                          ),
                     ),
                   ),
                 ),
-              ),
-              const Spacer(),
-              GestureDetector(
-                onTap: () async {
-                  await _saveName();
-                },
-                child: NextButton(
-                  buttonColor: nextBtnColor,
-                ),
-              ),
-              SizedBox(
-                height: _showOptions ? 16 : 12,
-              ),
-              Visibility(
-                visible: _showOptions,
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (context) {
-                        return const NotificationsSetupScreen();
-                      }),
-                      (r) => false,
-                    );
-                  },
-                  child: Text(
-                    'No, thanks',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.caption?.copyWith(
-                          color: CustomColors.appColorBlue,
-                        ),
-                  ),
-                ),
-              ),
-              Visibility(
-                visible: _showOptions,
-                child: const SizedBox(
-                  height: 40,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

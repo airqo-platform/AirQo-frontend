@@ -30,9 +30,8 @@ class WelcomeScreenState extends State<WelcomeScreen> {
       body: WillPopScope(
         onWillPop: onWillPop,
         child: AppSafeArea(
-          backgroundColor: CustomColors.appBodyColor,
           widget: Padding(
-            padding: const EdgeInsets.only(left: 24, right: 24.0),
+            padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

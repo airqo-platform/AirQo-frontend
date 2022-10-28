@@ -1,4 +1,5 @@
 import 'package:app/blocs/blocs.dart';
+import 'package:app/models/enum_constants.dart';
 import 'package:app/screens/auth/phone_auth_widget.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -8,6 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../themes/colors.dart';
 import '../../widgets/text_fields.dart';
+import 'email_auth_widget.dart';
 
 class PhoneInputField extends StatefulWidget {
   const PhoneInputField({super.key});
@@ -45,7 +47,6 @@ class _PhoneInputFieldState extends State<PhoneInputField> {
             ),
             PhoneNumberInputFormatter(),
           ],
-          // initialValue: state.phoneNumber,
           onEditingComplete: () async {
             FocusScope.of(context).requestFocus(
               FocusNode(),
@@ -114,6 +115,100 @@ class _PhoneInputFieldState extends State<PhoneInputField> {
                 context
                     .read<PhoneAuthBloc>()
                     .add(const ClearPhoneNumberEvent());
+              },
+              child: const TextInputCloseButton(),
+            ),
+            errorStyle: const TextStyle(
+              fontSize: 0,
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class EmailInputField extends StatefulWidget {
+  const EmailInputField({Key? key}) : super(key: key);
+
+  @override
+  State<EmailInputField> createState() => _EmailInputFieldState();
+}
+
+class _EmailInputFieldState extends State<EmailInputField> {
+  late TextEditingController _emailInputController;
+  @override
+  void dispose() {
+    _emailInputController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _emailInputController = TextEditingController();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<EmailAuthBloc, EmailAuthState>(
+      buildWhen: (previous, current) {
+        return true;
+      },
+      builder: (context, state) {
+        return TextFormField(
+          controller: _emailInputController,
+          onTap: () {
+            context
+                .read<EmailAuthBloc>()
+                .add(UpdateEmailAddress(state.emailAddress));
+          },
+          onChanged: (value) {
+            context.read<EmailAuthBloc>().add(UpdateEmailAddress(value));
+          },
+          onEditingComplete: () async {
+            context
+                .read<EmailAuthBloc>()
+                .add(ValidateEmailAddress(context: context));
+          },
+          style: Theme.of(context).textTheme.bodyText1,
+          enableSuggestions: true,
+          cursorWidth: 1,
+          autofocus: false,
+          cursorColor: CustomColors.appColorBlue,
+          keyboardType: TextInputType.emailAddress,
+          decoration: InputDecoration(
+            contentPadding: const EdgeInsets.fromLTRB(16, 12, 0, 12),
+            focusedBorder: OutlineInputBorder(
+              borderSide:
+                  BorderSide(color: CustomColors.appColorBlue, width: 1.0),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderSide:
+                  BorderSide(color: CustomColors.appColorBlue, width: 1.0),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            border: OutlineInputBorder(
+              borderSide:
+                  BorderSide(color: CustomColors.appColorBlue, width: 1.0),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            hintText: 'Enter your email',
+            hintStyle: Theme.of(context).textTheme.bodyText1?.copyWith(
+                  color: CustomColors.appColorBlack.withOpacity(0.32),
+                ),
+            prefixStyle: Theme.of(context).textTheme.bodyText1?.copyWith(
+                  color: CustomColors.appColorBlack.withOpacity(0.32),
+                ),
+            suffixIcon: GestureDetector(
+              onTap: () {
+                _emailInputController.text = '';
+                FocusScope.of(context).requestFocus(
+                  FocusNode(),
+                );
+
+                context.read<EmailAuthBloc>().add(const ClearEmailAddress());
               },
               child: const TextInputCloseButton(),
             ),
@@ -209,9 +304,9 @@ class SignUpButton extends StatelessWidget {
 }
 
 class SignUpOptions extends StatelessWidget {
-  const SignUpOptions({
-    super.key,
-  });
+  const SignUpOptions({super.key, required this.authMethod});
+
+  final AuthMethod authMethod;
 
   @override
   Widget build(BuildContext context) {
@@ -224,8 +319,15 @@ class SignUpOptions extends StatelessWidget {
             Navigator.pushAndRemoveUntil(
               context,
               PageRouteBuilder(
-                pageBuilder: (context, animation, secondaryAnimation) =>
-                    const PhoneLoginWidget(),
+                pageBuilder: (context, animation, secondaryAnimation) {
+                  switch (authMethod) {
+                    case AuthMethod.none:
+                    case AuthMethod.phone:
+                      return const PhoneLoginWidget();
+                    case AuthMethod.email:
+                      return const EmailLoginWidget();
+                  }
+                },
                 transitionsBuilder:
                     (context, animation, secondaryAnimation, child) {
                   return FadeTransition(
@@ -294,9 +396,9 @@ class CancelOption extends StatelessWidget {
 }
 
 class LoginOptions extends StatelessWidget {
-  const LoginOptions({
-    super.key,
-  });
+  const LoginOptions({super.key, required this.authMethod});
+
+  final AuthMethod authMethod;
 
   @override
   Widget build(BuildContext context) {
@@ -311,8 +413,15 @@ class LoginOptions extends StatelessWidget {
             Navigator.pushAndRemoveUntil(
               context,
               PageRouteBuilder(
-                pageBuilder: (context, animation, secondaryAnimation) =>
-                    const PhoneSignUpWidget(),
+                pageBuilder: (context, animation, secondaryAnimation) {
+                  switch (authMethod) {
+                    case AuthMethod.none:
+                    case AuthMethod.phone:
+                      return const PhoneSignUpWidget();
+                    case AuthMethod.email:
+                      return const EmailSignUpWidget();
+                  }
+                },
                 transitionsBuilder:
                     (context, animation, secondaryAnimation, child) {
                   return FadeTransition(

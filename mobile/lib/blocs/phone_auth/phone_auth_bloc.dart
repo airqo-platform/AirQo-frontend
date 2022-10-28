@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:app/services/app_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 
 import '../../models/enum_constants.dart';
@@ -16,7 +15,7 @@ part 'phone_auth_state.dart';
 class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
   PhoneAuthBloc()
       : super(
-            const PhoneAuthState.initial(authProcedure: AuthProcedure.login)) {
+            const PhoneAuthState.initial(authProcedure: AuthProcedure.signup)) {
     on<InitiatePhoneNumberVerification>(_onInitiatePhoneNumberVerification);
     on<UpdateCountryCode>(_onUpdateCountryCode);
     on<UpdatePhoneNumber>(_onUpdatePhoneNumber);
