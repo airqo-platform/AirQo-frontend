@@ -43,28 +43,28 @@ jobs:
           echo "========== check paths of modified files =========="
           git diff --name-only HEAD^ HEAD > files.txt
 
-          echo "::set-output name=remove_platform_preview::false"  
-          echo "::set-output name=remove_calibrate_app_preview::false"
-          echo "::set-output name=remove_next_platform::false"  
-          echo "::set-output name=remove_docs::false"   
+          echo "remove_platform_preview=false" >>$GITHUB_OUTPUT
+          echo "remove_calibrate_app_preview=false" >>$GITHUB_OUTPUT
+          echo "remove_next_platform=false" >>$GITHUB_OUTPUT
+          echo "remove_docs=false" >>$GITHUB_OUTPUT
 
           while IFS= read -r file
           do
             echo $file
             if [[ $file == netmanager/* ]]; then
-              echo "::set-output name=remove_platform_preview::true"
+              echo "remove_platform_preview=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == calibrate/* ]]; then
-              echo "::set-output name=remove_calibrate_app_preview::true"  
+              echo "remove_calibrate_app_preview=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == platform/* ]]; then
-              echo "::set-output name=remove_next_platform::true"
+              echo "remove_next_platform=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == docs/* ]]; then
-              echo "::set-output name=remove_docs::true"
+              echo "remove_docs=true" >>$GITHUB_OUTPUT
             fi
 
           done < files.txt
