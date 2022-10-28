@@ -1,21 +1,21 @@
 import Layout from '@/components/Layout';
 import {
-  useGetAllAirQloudsQuery,
+  useGetCountryAirQloudsQuery,
   getRunningOperationPromises,
 } from '@/lib/store/airQloudsApi';
 import { wrapper } from '@/lib/store';
 import ChevronRightIcon from '@/icons/chevron_right';
-import { useState } from 'react';
-import { Tab } from '@headlessui/react';
+import ArrowDropDownIcon from '@/icons/arrow_drop_down.svg';
+import { Fragment, useState } from 'react';
+import { Menu, Tab, Transition } from '@headlessui/react';
 import Spinner from '@/icons/spinner';
-import { Dropdown } from 'flowbite-react';
 
 export const getServerSideProps = wrapper.getServerSideProps(
   (store) => async (context) => {
     const name = context.params?.name;
 
     if (typeof name === 'string') {
-      store.dispatch(useGetAllAirQloudsQuery.initiate(name));
+      store.dispatch(useGetCountryAirQloudsQuery.initiate(name));
     }
 
     await Promise.all(getRunningOperationPromises());
@@ -34,23 +34,56 @@ const AIRQLOUD_REGIONS = [
   'Western Region',
 ];
 
-const AirQloudsDropdown = ({ airqlouds }) => {
-  const [selectedAirQloud, setSelectedAirQloud] = useState(airqlouds[0]);
-  const handleSetAirQloud = (value) => setSelectedAirQloud(value);
+const CountryAirQloudsDropdown = ({ airqlouds }) => {
+  const [selectedCountryAirQloud, setSelectedCountryAirQloud] = useState(
+    airqlouds[0],
+  );
+  const handleSetCountryAirQloud = (value) => setSelectedCountryAirQloud(value);
 
   return (
-    <Dropdown label={selectedAirQloud.long_name} inline>
-      <div className='max-h-40 h-full overflow-y-scroll'>
-        {airqlouds.map((airqloud) => (
-          <Dropdown.Item
-            key={airqloud._id}
-            onClick={() => handleSetAirQloud(airqloud)}
-          >
-            {airqloud.long_name}
-          </Dropdown.Item>
-        ))}
-      </div>
-    </Dropdown>
+    <div className='max-h-44 w-44 h-full font-semibold'>
+      <Menu as='div' className='relative inline-block text-left'>
+        <div>
+          <Menu.Button className='inline-flex w-full justify-center rounded-md bg-transparent pr-4 py-2 text-sm font-medium text-black hover:bg-opacity-30 focus:outline-none'>
+            {selectedCountryAirQloud.long_name}
+            <ArrowDropDownIcon
+              className='mt-2 ml-2 text-violet-200 hover:text-violet-100'
+              aria-hidden='true'
+            />
+          </Menu.Button>
+        </div>
+        <Transition
+          as={Fragment}
+          enter='transition ease-out duration-100'
+          enterFrom='transform opacity-0 scale-95'
+          enterTo='transform opacity-100 scale-100'
+          leave='transition ease-in duration-75'
+          leaveFrom='transform opacity-100 scale-100'
+          leaveTo='transform opacity-0 scale-95'
+        >
+          <Menu.Items className='absolute z-50 left-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white opacity-100 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none'>
+            <div className='px-1 py-1 '>
+              {airqlouds.map((airqloud) => (
+                <Menu.Item
+                  key={airqloud._id}
+                  onClick={() => handleSetCountryAirQloud(airqloud)}
+                >
+                  {({ active }) => (
+                    <button
+                      className={`${
+                        active ? 'bg-[#145DFF] text-white' : 'text-gray-900'
+                      } group flex w-full items-center rounded-md px-2 py-2 text-base font-semibold`}
+                    >
+                      {airqloud.long_name}
+                    </button>
+                  )}
+                </Menu.Item>
+              ))}
+            </div>
+          </Menu.Items>
+        </Transition>
+      </Menu>
+    </div>
   );
 };
 
@@ -84,8 +117,9 @@ const AirQlouds = () => {
     // isSuccess,
     // isError,
     // error,
-  } = useGetAllAirQloudsQuery();
-  const airqloudsData = !isLoading && airqlouds.airqlouds;
+  } = useGetCountryAirQloudsQuery();
+  const countryAirqloudsData = !isLoading && airqlouds.airqlouds;
+  console.log(countryAirqloudsData);
 
   return isLoading ? (
     <div className='w-screen h-screen flex items-center justify-center'>
@@ -102,7 +136,7 @@ const AirQlouds = () => {
           <h3 className='text-xl font-medium text-black ml-3'>AirQlouds</h3>
         </span>
         <div className='mb-5'>
-          <AirQloudsDropdown airqlouds={airqloudsData} />
+          <CountryAirQloudsDropdown airqlouds={countryAirqloudsData} />
         </div>
         <div className='flex'>
           <RegionTabs />

@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { AIRQLOUDS } from '@/core/urls/deviceRegistry';
+import { AIRQLOUDS } from '@/core/urls/airqlouds';
 import { HYDRATE } from 'next-redux-wrapper';
 import { NEXT_PUBLIC_AUTHORISATION } from '../envConstants';
 
@@ -23,10 +23,14 @@ export const airqloudsApi = createApi({
     getAllAirQlouds: builder.query({
       query: () => '',
     }),
+    getCountryAirQlouds: builder.query({
+      query: () => '?tenant=airqo&admin_level=country',
+    }),
   }),
 });
 
 export const {
   useGetAllAirQloudsQuery,
+  useGetCountryAirQloudsQuery,
   util: { getRunningOperationPromises },
 } = airqloudsApi;
