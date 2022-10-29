@@ -1,19 +1,145 @@
+import 'dart:async';
+
 import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/firebase_service.dart';
+import 'package:app/services/rest_api.dart';
 import 'package:app/utils/distance.dart';
-import 'package:app/utils/extensions.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
+import 'package:flutter/foundation.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:location/location.dart' as locate_api;
 
+import '../utils/exception.dart';
 import 'hive_service.dart';
 import 'native_api.dart';
 
 class LocationService {
+  static Future<String> getAddress({
+    required double latitude,
+    required double longitude,
+  }) async {
+    try {
+      final landMarks = await placemarkFromCoordinates(latitude, longitude);
+      String? address = '';
+      final landMark = landMarks.first;
+
+      address = landMark.name ?? landMark.thoroughfare;
+      address = address ?? landMark.subLocality;
+      address = address ?? landMark.locality;
+
+      return address ?? '';
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return '';
+  }
+
+  static Future<Position?> getCurrentPosition() async {
+    try {
+      return await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.best,
+        forceAndroidLocationManager: true,
+        timeLimit: const Duration(seconds: 10),
+      );
+    } on TimeoutException catch (exception, stackTrace) {
+      debugPrint(exception.message);
+      debugPrintStack(stackTrace: stackTrace);
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+
+      try {
+        return await Geolocator.getLastKnownPosition(
+          forceAndroidLocationManager: true,
+        );
+      } catch (exception, stackTrace) {
+        await logException(
+          exception,
+          stackTrace,
+        );
+      }
+    }
+
+    return null;
+  }
+
+  static Future<List<AirQualityReading>> getNearbyAirQualityReadings({
+    int top = 5,
+    Position? position,
+  }) async {
+    try {
+      position ??= await getCurrentPosition();
+      var address = '';
+
+      if (position == null) {
+        final geoCoordinates = await AirqoApiClient().getLocation();
+        position = Position(
+          longitude: geoCoordinates['longitude'],
+          latitude: geoCoordinates['latitude'],
+          timestamp: DateTime.now(),
+          accuracy: 0.0,
+          altitude: 0.0,
+          heading: 0.0,
+          speed: 0.0,
+          speedAccuracy: 0.0,
+        );
+      } else {
+        address = await getAddress(
+          latitude: position.latitude,
+          longitude: position.longitude,
+        );
+      }
+
+      final airQualityReadings =
+          Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+              .values
+              .toList();
+
+      if (airQualityReadings.isEmpty) {
+        return [];
+      }
+
+      final nearestAirQualityReadings = <AirQualityReading>[];
+
+      for (final airQualityReading in airQualityReadings) {
+        final distanceInMeters = metersToKmDouble(
+          Geolocator.distanceBetween(
+            airQualityReading.latitude,
+            airQualityReading.longitude,
+            position.latitude,
+            position.longitude,
+          ),
+        );
+        nearestAirQualityReadings.add(
+          AirQualityReading.duplicate(airQualityReading).copyWith(
+            distanceToReferenceSite: distanceInMeters,
+          ),
+        );
+      }
+
+      final sortedReadings =
+          sortAirQualityReadingsByDistance(nearestAirQualityReadings)
+              .take(top)
+              .toList();
+      if (address.isNotEmpty) {
+        sortedReadings[0] = sortedReadings[0].copyWith(name: address);
+      }
+
+      return sortedReadings;
+    } catch (exception, stackTrace) {
+      debugPrint('$exception\n$stackTrace');
+
+      return [];
+    }
+  }
+
   static Future<bool> allowLocationAccess() async {
     final enabled = await PermissionService.checkPermission(
       AppPermission.location,
@@ -33,257 +159,53 @@ class LocationService {
     return enabled;
   }
 
-  static Future<List<String>> getAddresses(double lat, double lng) async {
-    final placeMarks = await placemarkFromCoordinates(lat, lng);
-    final addresses = <String>[];
-    for (final place in placeMarks) {
-      // print('subThoroughfare : ${place.subThoroughfare}');
-      // print('thoroughfare ${place.thoroughfare}');
-      // print('name ${place.name}');
-      // print('locality ${place.locality}');
-      // print('subLocality ${place.subLocality}');
-      // print('subAdministrativeArea ${place.subAdministrativeArea}');
-      // print('administrativeArea ${place.administrativeArea}');
-      // print('street ${place.street}');
-
-      var name = place.name ?? place.thoroughfare;
-      name = name ?? place.subLocality;
-      name = name ?? place.locality;
-      name = name ?? '';
-      if (name != '') {
-        addresses.add(name);
-      }
-    }
-
-    return addresses;
+  static Future<void> revokePermission() async {
+    final profile = await Profile.getProfile();
+    await profile.update(enableLocation: false);
   }
 
-  static Future<void> listenToLocation() async {
-    final hasPermission =
-        await PermissionService.checkPermission(AppPermission.location);
-    if (hasPermission) {
-      final location = locate_api.Location();
-      await location.changeSettings(accuracy: locate_api.LocationAccuracy.high);
-      await location.enableBackgroundMode(enable: true);
-      location.onLocationChanged.listen(
-        (locate_api.LocationData locationData) async {
-          final latitude = locationData.latitude;
-          final longitude = locationData.longitude;
+  static Future<void> listenToLocationUpdates() async {
+    late LocationSettings locationSettings;
 
-          if (latitude != null && longitude != null) {
-            final airQualityReading =
-                await getNearestSiteAirQualityReading(latitude, longitude);
-            final addresses = await getAddresses(latitude, longitude);
-            if (airQualityReading != null) {
-              final analytics = Analytics.init()
-                ..site = airQualityReading.referenceSite
-                ..location = airQualityReading.location
-                ..latitude = latitude
-                ..longitude = longitude
-                ..name = addresses.first;
-              await analytics.add();
-            }
-          }
-
-          debugPrint('${locationData.longitude} : '
-              '${locationData.longitude} : ${locationData.time}');
-        },
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      locationSettings = AndroidSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 100,
+        forceLocationManager: true,
+        intervalDuration: const Duration(seconds: 10),
+      );
+    } else if (defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.macOS) {
+      locationSettings = AppleSettings(
+        accuracy: LocationAccuracy.high,
+        activityType: ActivityType.fitness,
+        distanceFilter: 100,
+        pauseLocationUpdatesAutomatically: true,
+        showBackgroundLocationIndicator: false,
+      );
+    } else {
+      locationSettings = const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 100,
       );
     }
-  }
 
-  static Future<locate_api.LocationData?> getLocation() async {
-    bool serviceEnabled;
-    locate_api.PermissionStatus permissionGranted;
-    final location = locate_api.Location();
-    await location.changeSettings(
-      accuracy: locate_api.LocationAccuracy.balanced,
-    );
-
-    serviceEnabled = await location.serviceEnabled();
-    if (!serviceEnabled) {
-      serviceEnabled = await location.requestService();
-      if (!serviceEnabled) {
-        return null;
-      }
-    }
-
-    permissionGranted = await location.hasPermission();
-    if (permissionGranted == locate_api.PermissionStatus.denied) {
-      permissionGranted = await location.requestPermission();
-      if (permissionGranted != locate_api.PermissionStatus.granted) {
-        return null;
-      }
-    }
-
-    final locationData = await location.getLocation();
-    await updateAnalytics(
-      locationData,
-    );
-
-    return locationData;
-  }
-
-  static Future<void> updateAnalytics(
-    locate_api.LocationData? locationData,
-  ) async {
-    if (locationData == null) {
-      return;
-    }
-
-    final latitude = locationData.latitude;
-    final longitude = locationData.longitude;
-
-    if (latitude != null && longitude != null) {
-      final site = await getNearestSiteAirQualityReading(latitude, longitude);
-      final addresses = await getAddresses(latitude, longitude);
-      if (site != null) {
-        final analytics = Analytics.init()
-          ..site = site.referenceSite
-          ..location = site.location
-          ..latitude = latitude
-          ..longitude = longitude
-          ..name = addresses.first;
-        await analytics.add();
-      }
-    }
-  }
-
-  static Future<Position> getLocationUsingGeoLocator() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return Future.error('Location services are disabled.');
-    }
-
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        throw Exception('Please enable'
-            ' permission to access your location');
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      throw Exception('Location permissions are permanently denied, '
-          'please enable permission to access your location');
-    }
-
-    return await Geolocator.getCurrentPosition();
-  }
-
-  static Future<List<AirQualityReading>> getNearbyAirQualityReadings({
-    int top = 5,
-  }) async {
-    try {
-      final location = await getLocation();
-
-      if (location == null ||
-          location.longitude == null ||
-          location.latitude == null) {
-        return [];
-      }
-
-      final addresses = await getAddresses(
-        location.latitude!,
-        location.longitude!,
-      );
-      final airQualityReadings =
-          Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-              .values
-              .toList();
-
-      if (airQualityReadings.isEmpty) {
-        return [];
-      }
-
-      final nearestAirQualityReadings = <AirQualityReading>[];
-
-      for (final airQualityReading in airQualityReadings) {
-        final distanceInMeters = metersToKmDouble(
-          Geolocator.distanceBetween(
-            airQualityReading.latitude,
-            airQualityReading.longitude,
-            location.latitude!,
-            location.longitude!,
-          ),
-        );
-        nearestAirQualityReadings.add(
-          AirQualityReading.duplicate(airQualityReading).copyWith(
-            distanceToReferenceSite: distanceInMeters,
-          ),
-        );
-      }
-
-      final sortedReadings =
-          sortAirQualityReadingsByDistance(nearestAirQualityReadings)
-              .take(top)
-              .toList();
-      sortedReadings[0] = sortedReadings[0].copyWith(name: addresses[0]);
-
-      return sortedReadings;
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-
-      return [];
-    }
-  }
-
-  static Future<List<AirQualityReading>> getNearbyLocationReadings() async {
-    try {
-      final location = await getLocation();
-      if (location == null ||
-          location.longitude == null ||
-          location.latitude == null) {
-        return [];
-      }
-
-      final addresses = await getAddresses(
-        location.latitude!,
-        location.longitude!,
-      );
-      final airQualityReadings =
-          Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-              .values
-              .toList();
-
-      final nearestAirQualityReadings = <AirQualityReading>[];
-
-      for (final airQualityReading in airQualityReadings) {
-        final distanceInMeters = metersToKmDouble(
-          Geolocator.distanceBetween(
-            airQualityReading.latitude,
-            airQualityReading.longitude,
-            location.latitude!,
-            location.longitude!,
-          ),
-        );
-        if (distanceInMeters < (Config.maxSearchRadius.toDouble() * 2)) {
-          nearestAirQualityReadings.add(airQualityReading.copyWith(
-            distanceToReferenceSite: distanceInMeters,
-          ));
+    Geolocator.getPositionStream(locationSettings: locationSettings).listen(
+      (Position? position) async {
+        if (position != null) {
+          final nearbyAirQualityReadings =
+              await LocationService.getNearbyAirQualityReadings(
+            position: position,
+          );
+          await HiveService.updateNearbyAirQualityReadings(
+            nearbyAirQualityReadings,
+          );
         }
-      }
-
-      if (nearestAirQualityReadings.isEmpty) {
-        return [];
-      }
-
-      final sortedReadings =
-          sortAirQualityReadingsByDistance(nearestAirQualityReadings)
-              .take(2)
-              .toList();
-      sortedReadings[0] = sortedReadings[0].copyWith(name: addresses[0]);
-
-      return airQualityReadings;
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
-
-      return [];
-    }
+      },
+      onError: (error) {
+        debugPrint('error listening to locations : $error');
+      },
+    );
   }
 
   static Future<AirQualityReading?> getNearestSiteAirQualityReading(
@@ -339,67 +261,5 @@ class LocationService {
     }
 
     return sortAirQualityReadingsByDistance(nearestSites);
-  }
-
-  static Future<void> revokePermission() async {
-    final profile = await Profile.getProfile();
-    await profile.update(enableLocation: false);
-  }
-
-  static Future<List<AirQualityReading>> searchNearestSites(
-    double latitude,
-    double longitude,
-    String term,
-  ) async {
-    final nearestSites = <AirQualityReading>[];
-    double distanceInMeters;
-
-    final latestAirQualityReadings =
-        Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
-
-    for (final airQualityReading in latestAirQualityReadings) {
-      distanceInMeters = metersToKmDouble(
-        Geolocator.distanceBetween(
-          airQualityReading.latitude,
-          airQualityReading.longitude,
-          latitude,
-          longitude,
-        ),
-      );
-      if (airQualityReading.name.inStatement(term)) {
-        nearestSites.add(airQualityReading.copyWith(
-          distanceToReferenceSite: distanceInMeters,
-        ));
-      } else {
-        if (distanceInMeters < Config.maxSearchRadius.toDouble()) {
-          nearestSites.add(airQualityReading.copyWith(
-            distanceToReferenceSite: distanceInMeters,
-          ));
-        }
-      }
-    }
-
-    return nearestSites;
-  }
-
-  static List<AirQualityReading> textSearchNearestSites(String term) {
-    final nearestReadings = <AirQualityReading>[];
-    final airQualityReadings =
-        Hive.box<AirQualityReading>(HiveBox.airQualityReadings).values.toList();
-
-    for (final airQualityReading in airQualityReadings) {
-      if (airQualityReading.name
-              .trim()
-              .toLowerCase()
-              .contains(term.trim().toLowerCase()) ||
-          airQualityReading.location
-              .trim()
-              .toLowerCase()
-              .contains(term.trim().toLowerCase())) {
-        nearestReadings.add(airQualityReading);
-      }
-    }
-
-    return nearestReadings;
   }
 }

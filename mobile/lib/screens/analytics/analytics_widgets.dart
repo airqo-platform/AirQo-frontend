@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:app/blocs/map/map_bloc.dart';
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/insights/insights_page.dart';
 import 'package:app/utils/date.dart';
@@ -672,7 +672,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> {
                                           width: 4.0,
                                         ),
                                         Visibility(
-                                          visible: false,
+                                          visible: widget.isRefreshing,
                                           child: SvgPicture.asset(
                                             'assets/icon/loader.svg',
                                             semanticsLabel: 'loader',

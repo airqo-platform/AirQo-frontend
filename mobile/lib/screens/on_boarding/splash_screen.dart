@@ -1,4 +1,5 @@
 import 'package:animations/animations.dart';
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/on_boarding/profile_setup_screen.dart';
 import 'package:app/screens/on_boarding/setup_complete_screeen.dart';
@@ -7,11 +8,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../blocs/nearby_location/nearby_location_bloc.dart';
-import '../../blocs/nearby_location/nearby_location_event.dart';
 import '../../services/app_service.dart';
 import '../../services/firebase_service.dart';
 import '../../services/local_storage.dart';
+import '../../services/location_service.dart';
 import '../auth/phone_auth_widget.dart';
 import '../home_page.dart';
 import 'location_setup_screen.dart';
@@ -55,7 +55,8 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> initialize() async {
-    context.read<NearbyLocationBloc>().add(const SearchNearbyLocations());
+    context.read<FeedbackBloc>().add(const ClearFeedback());
+    context.read<NearbyLocationBloc>().add(const CheckNearbyLocations());
 
     final isLoggedIn = CustomAuth.isLoggedIn();
 
@@ -99,6 +100,8 @@ class SplashScreenState extends State<SplashScreen> {
     );
 
     await _appService.fetchData(context);
+
+    await LocationService.listenToLocationUpdates();
   }
 
   @override

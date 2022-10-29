@@ -24,6 +24,7 @@ jobs:
       run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }} # calibrate
       run_next_platform: ${{ steps.check_files.outputs.run_next_platform }} # next platform
       run_docs: ${{ steps.check_files.outputs.run_docs }} # docs
+      run_website: ${{ steps.check_files.outputs.run_website }} # website
 
     runs-on: ubuntu-latest
     steps:
@@ -41,28 +42,33 @@ jobs:
           echo "========== check paths of modified files =========="
           git diff --name-only HEAD^ HEAD > files.txt
 
-          echo "::set-output name=run_platform::false"
-          echo "::set-output name=run_calibrate_app::false"
-          echo "::set-output name=run_next_platform::false"
-          echo "::set-output name=run_docs::false"    
+          echo "run_platform=false" >>$GITHUB_OUTPUT
+          echo "run_calibrate_app=false" >>$GITHUB_OUTPUT
+          echo "run_next_platform=false" >>$GITHUB_OUTPUT
+          echo "run_docs=false" >>$GITHUB_OUTPUT    
+          echo "run_website=false" >>$GITHUB_OUTPUT    
 
           while IFS= read -r file
           do
             echo $file
             if [[ $file == netmanager/* ]]; then
-              echo "::set-output name=run_platform::true"
+              echo "run_platform=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == calibrate/* ]]; then
-              echo "::set-output name=run_calibrate_app::true"
+              echo "run_calibrate_app=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == platform/* ]]; then
-              echo "::set-output name=run_next_platform::true"
+              echo "run_next_platform=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == docs/* ]]; then
-              echo "::set-output name=run_docs::true"
+              echo "run_docs=true" >>$GITHUB_OUTPUT
+            fi
+
+            if [[ $file == website/* ]]; then
+              echo "run_website=true" >>$GITHUB_OUTPUT
             fi
 
           done < files.txt
@@ -82,41 +88,32 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Google Auth
-        id: auth
+      - name: Google login
         uses: google-github-actions/auth@v0
         with:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
 
-      - name: Setup Cloud SDK
+      - name: Setup Cloud SDK(gcloud)
         uses: google-github-actions/setup-gcloud@v0
 
-      - name: Login to GCR
-        id: docker-auth
-        uses: docker/login-action@v1
-        with:
-          registry: ${{ secrets.REGISTRY_URL }}
-          username: _json_key
-          password: ${{ secrets.GCP_SA_CREDENTIALS }}
+      - name: Create .env file
+        run: gcloud secrets versions access latest --secret="sta-env-netmanager" > netmanager/.env
 
-      - name: NPM Setup and Build
+      - name: npm Install and Build
         uses: actions/setup-node@v2
         with:
           node-version: "12"
       - run: |
           cd netmanager/
-
-          export REACT_APP_BASE_URL=${{ secrets.REACT_APP_BASE_URL_STAGE }}
-          export REACT_APP_CLOUDINARY_NAME=${{ secrets.REACT_APP_CLOUDINARY_NAME }}
-          export REACT_APP_CLOUDINARY_PRESET=${{ secrets.REACT_APP_CLOUDINARY_PRESET }}
-          export REACT_APP_MAPBOX_TOKEN=${{ secrets.REACT_APP_MAPBOX_TOKEN }}
-          export REACT_APP_JIRA_KEY=${{ secrets.REACT_APP_JIRA_KEY }}
-          export NODE_PATH=${{ secrets.NODE_PATH }}
-          export PORT=${{ secrets.NODE_PORT }}
-
           npm install
-
           CI=false npm run build
+
+      - name: Login to GCR
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ secrets.REGISTRY_URL }}
+          username: _json_key
+          password: ${{ secrets.GCP_SA_CREDENTIALS }}
 
       - name: Build and Push Image
         run: |
@@ -146,7 +143,7 @@ jobs:
             --format='value(status.url)' \
             --platform managed \
             --region ${{ secrets.REGION }})
-          echo "::set-output name=url::${service_url}"
+          echo "url=${service_url}" >>$GITHUB_OUTPUT
 
   netmanager-pr-comment:
     name: netmanager-preview-link-comment
@@ -179,42 +176,36 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Google Auth
-        id: auth
+      - name: Google login
         uses: google-github-actions/auth@v0
         with:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
 
-      - name: Setup Cloud SDK
+      - name: Setup Cloud SDK(gcloud)
         uses: google-github-actions/setup-gcloud@v0
 
+      - name: Create .env file
+        run: gcloud secrets versions access latest --secret="sta-env-calibrate-app" > calibrate/.env
+
+      - name: npm Install and Build
+        uses: actions/setup-node@v2
+        with:
+          node-version: "12"
+      - run: |
+          cd calibrate/
+          npm install
+          CI=false npm run build
+
       - name: Login to GCR
-        id: docker-auth
         uses: docker/login-action@v1
         with:
           registry: ${{ secrets.REGISTRY_URL }}
           username: _json_key
           password: ${{ secrets.GCP_SA_CREDENTIALS }}
 
-      - name: NPM Setup and Build
-        uses: actions/setup-node@v2
-        with:
-          node-version: "12"
-      - run: |
-          cd calibrate/
-
-          export REACT_APP_BASE_URL=${{ secrets.REACT_APP_BASE_URL_STAGE }}
-          export REACT_APP_BASE_CALIBRATE_URL=${{ secrets.REACT_APP_BASE_CALIBRATE_URL }}
-          export NODE_PATH=${{ secrets.NODE_PATH }}
-          export PORT=${{ secrets.NODE_PORT }}
-
-          npm install
-
-          CI=false npm run build
-
       - name: Build and Push Image
         run: |
-          cd website/
+          cd calibrate/
           docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:${{ github.sha }} .
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews:${{ github.sha }}
 
@@ -240,7 +231,7 @@ jobs:
             --format='value(status.url)' \
             --platform managed \
             --region ${{ secrets.REGION }})
-          echo "::set-output name=url::${service_url}"
+          echo "url=${service_url}" >>$GITHUB_OUTPUT
 
   calibrate-app-pr-comment:
     name: calibrate-app-preview-link-comment
@@ -273,28 +264,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Google Auth
-        id: auth
+      - name: Google login
         uses: google-github-actions/auth@v0
         with:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
 
-      - name: Setup Cloud SDK
+      - name: Setup Cloud SDK(gcloud)
         uses: google-github-actions/setup-gcloud@v0
 
+      - name: Create .env file
+        run: gcloud secrets versions access latest --secret="sta-env-next-platform" > platform/.env
+
       - name: Login to GCR
-        id: docker-auth
         uses: docker/login-action@v1
         with:
           registry: ${{ secrets.REGISTRY_URL }}
           username: _json_key
           password: ${{ secrets.GCP_SA_CREDENTIALS }}
-
-      - name: Create .env file
-        run: |
-          cd platform/
-          echo "========== Creating app.yaml file =========="  
-          echo "NEXT_PUBLIC_ORIGINAL_PLATFORM=${{ secrets.NEW_PLATFORM_STAGE_ORIGINAL_PLATFORM }}" >> .env
 
       - name: Build and Push Image
         run: |
@@ -322,7 +308,7 @@ jobs:
             --format='value(status.url)' \
             --platform managed \
             --region ${{ secrets.REGION }})
-          echo "::set-output name=url::${service_url}"
+          echo "url=${service_url}" >>$GITHUB_OUTPUT
 
   next-platform-pr-comment:
     name: next-platform-preview-link-comment
@@ -355,17 +341,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Google Auth
-        id: auth
+      - name: Google login
         uses: google-github-actions/auth@v0
         with:
           credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
 
-      - name: Setup Cloud SDK
+      - name: Setup Cloud SDK(gcloud)
         uses: google-github-actions/setup-gcloud@v0
 
       - name: Login to GCR
-        id: docker-auth
         uses: docker/login-action@v1
         with:
           registry: ${{ secrets.REGISTRY_URL }}
@@ -398,7 +382,7 @@ jobs:
             --format='value(status.url)' \
             --platform managed \
             --region ${{ secrets.REGION }})
-          echo "::set-output name=url::${service_url}"
+          echo "url=${service_url}" >>$GITHUB_OUTPUT
 
   docs-pr-comment:
     name: docs-preview-link-comment
@@ -414,4 +398,97 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: 'New Docs changes available for preview [here](${{ needs.docs.outputs.url }})'
+            })
+
+  ### deploy website preview ###
+  website:
+    name: build-push-website-deploy-preview
+    needs: [check]
+    if: needs.check.outputs.run_website == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Login to GCR
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ secrets.REGISTRY_URL }}
+          username: _json_key
+          password: ${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}
+
+      - name: Google login
+        uses: google-github-actions/auth@v0
+        with:
+          credentials_json: "${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}"
+
+      - name: Setup Cloud SDK(gcloud)
+        uses: "google-github-actions/setup-gcloud@v0"
+
+      - name: Create google_application_credentials.json file
+        id: create-google-application-credentials-file
+        uses: jsdaniell/create-json@1.1.2
+        with:
+          name: "google_application_credentials.json"
+          json: ${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}
+          dir: "website/"
+
+      - name: Create app.yaml and .env.yaml files
+        run: |
+          cd website/
+          echo "========== Creating app.yaml file =========="          
+          echo "runtime: python" > app.yaml
+          echo "env: flex" >> app.yaml
+          echo "service: website-pr-previews" >> app.yaml
+          echo "includes:" >> app.yaml
+          echo "  - .env.yaml" >> app.yaml
+          echo "========== Creating .env.yaml file =========="  
+          echo "env_variables:" > .env.yaml
+          echo "  SECRET: ${{ secrets.WEBSITE_SECRET }}" >> .env.yaml
+          echo "  CLOUDINARY_KEY: ${{ secrets.WEBSITE_CLOUDINARY_KEY }}" >> .env.yaml
+          echo "  CLOUDINARY_NAME: ${{ secrets.WEBSITE_CLOUDINARY_NAME }}" >> .env.yaml
+          echo "  CLOUDINARY_SECRET: ${{ secrets.WEBSITE_CLOUDINARY_SECRET }}" >> .env.yaml
+          echo "  DATABASE_URI: ${{ secrets.WEBSITE_DEV_DATABASE_URI }}" >> .env.yaml
+          echo "  GS_BUCKET_NAME: ${{ secrets.WEBSITE_DEV_GS_BUCKET_NAME }}" >> .env.yaml
+          echo "  REACT_WEB_STATIC_HOST: ${{ secrets.WEBSITE_DEV_REACT_WEB_STATIC_HOST }}" >> .env.yaml
+          echo "  SECRET_KEY: ${{ secrets.WEBSITE_STAGE_SECRET_KEY }}" >> .env.yaml
+          echo "  DJANGO_ALLOWED_HOSTS: ${{ secrets.WEBSITE_DJANGO_ALLOWED_HOSTS }}" >> .env.yaml
+          echo "  DEBUG: False" >> .env.yaml
+          echo "  GOOGLE_APPLICATION_CREDENTIALS: /app/google_application_credentials.json" >> .env.yaml
+
+      - name: Build and Push Docker Image
+        run: |
+          cd website/
+          docker build . \
+          --build-arg REACT_WEB_STATIC_HOST=${{ secrets.WEBSITE_DEV_REACT_WEB_STATIC_HOST }} \
+          --build-arg REACT_NETMANAGER_BASE_URL=${{ secrets.WEBSITE_STAGE_REACT_NETMANAGER_BASE_URL }} \
+          --build-arg REACT_APP_BASE_AIRQLOUDS_URL=${{ secrets.WEBSITE_REACT_APP_BASE_AIRQLOUDS_URL }} \
+          --build-arg REACT_APP_BASE_NEWSLETTER_URL=${{ secrets.WEBSITE_REACT_APP_BASE_NEWSLETTER_URL }} \
+          --build-arg REACT_APP_WEBSITE_BASE_URL=${{ secrets.WEBSITE_DEV_REACT_APP_WEBSITE_BASE_URL }} \
+          --build-arg REACT_APP_AUTHORIZATION_TOKEN=${{ secrets.WEBSITE_STAGE_REACT_APP_AUTHORIZATION_TOKEN }} \
+          --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }}
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }}
+
+      - name: Deploy to App Engine
+        run: |-
+          cd website/
+          gcloud app deploy  \
+            --image-url=${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }} \
+            --project=${{ secrets.FRONTEND_PROJECT_ID }} \
+            --quiet
+
+  website-pr-comment:
+    name: website-preview-link-comment
+    if: needs.check.outputs.run_website == 'true'
+    needs: [website]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'New Website changes available for preview [here](https://website-pr-previews-dot-airqo-frontend.appspot.com)'
             })

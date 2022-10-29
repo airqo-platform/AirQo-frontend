@@ -7,81 +7,79 @@ import { loadHighlightsData, loadTagsData } from '../../../reduxStore/Highlights
 import ImageLoader from '../LoadSpinner/ImageLoader';
 
 const HighlightsSection = () => {
-    const dispatch = useDispatch();
-    const highlightsData = useHighlightsData();
+  const dispatch = useDispatch();
+  const highlightsData = useHighlightsData();
 
-    useEffect(() => {
-        dispatch(loadTagsData());
-        dispatch(loadHighlightsData());
-    }, [highlightsData.length]);
+  useEffect(() => {
+    dispatch(loadTagsData());
+    dispatch(loadHighlightsData());
+  }, [highlightsData.length]);
 
-    const firstPost = highlightsData.length;
-    const lastPost = highlightsData.length <= 3 ? 0 : highlightsData.length - 3;
-    const highlights = highlightsData.slice(lastPost, firstPost);
+  const highlights = highlightsData.slice(0, 3);
 
-    const [startNumber, setStartNumber] = useState(1);
-    const totalPosts = highlights.length;
+  const [startNumber, setStartNumber] = useState(1);
+  const totalPosts = highlights.length;
 
-    const paginateRight = (postNumber) => {
-        postNumber < totalPosts ? setStartNumber(postNumber + 1) : setStartNumber(postNumber);
-    };
-    const paginateLeft = (postNumber) => {
-        postNumber > 1 && postNumber <= totalPosts ? setStartNumber(postNumber - 1) : setStartNumber(postNumber);
-    };
+  const paginateRight = (postNumber) => {
+    postNumber < totalPosts ? setStartNumber(postNumber + 1) : setStartNumber(postNumber);
+  };
+  const paginateLeft = (postNumber) => {
+    postNumber > 1 && postNumber <= totalPosts
+      ? setStartNumber(postNumber - 1)
+      : setStartNumber(postNumber);
+  };
 
-    const onRightClick = () => {
-        paginateRight(startNumber);
-        const slider = document.getElementById('content');
-        const width = slider.clientWidth;
-        startNumber == 1
-            ? (slider.style.transform = `translateX(${-0.96 * width}px)`)
-            : (slider.style.transform = `translateX(${-1.84 * width}px)`);
-    };
+  const onRightClick = () => {
+    paginateRight(startNumber);
+    const slider = document.getElementById('content');
+    const width = slider.clientWidth;
+    startNumber == 1
+      ? (slider.style.transform = `translateX(${-0.96 * width}px)`)
+      : (slider.style.transform = `translateX(${-1.84 * width}px)`);
+  };
 
-    const onLeftClick = () => {
-        paginateLeft(startNumber);
-        const slider = document.getElementById('content');
-        startNumber > 2
-            ? (slider.style.transform = `translateX(${-1018}px)`)
-            : (slider.style.transform = `translateX(${0}px)`);
-    };
+  const onLeftClick = () => {
+    paginateLeft(startNumber);
+    const slider = document.getElementById('content');
+    startNumber > 2
+      ? (slider.style.transform = `translateX(${-1018}px)`)
+      : (slider.style.transform = `translateX(${0}px)`);
+  };
 
-    return (
+  return (
+    <>
+      {highlightsData.length > 0 ? (
         <div className="highlights-section">
-            <div className="highlights-container">
-                <div className="content" id="content">
-                    {highlightsData.length > 0 ? (
-                        highlights
-                            .map((highlight) => (
-                                <Post
-                                    key={highlight.id}
-                                    postImg={highlight.image}
-                                    Tags={highlight.tags}
-                                    title={highlight.title}
-                                    article_title={highlight.link_title}
-                                    article_link={highlight.link}
-                                />
-                            ))
-                    ) : (
-                        <div className="_blank">
-                            <ImageLoader />
-                            <span>Checking for latest Highlights at AirQo</span>
-                        </div>
-                    )}
-                </div>
-                {highlightsData.length > 0 && (
-                    <div className="pagination">
-                        <Pagination
-                            totalPosts={totalPosts}
-                            number={startNumber}
-                            rightTransition={onRightClick}
-                            leftTransition={onLeftClick}
-                        />
-                    </div>
-                )}
+          <div className="highlights-container">
+            <div className="content" id="content">
+              {highlights.map((highlight) => (
+                <Post
+                  key={highlight.id}
+                  postImg={highlight.image}
+                  Tags={highlight.tags}
+                  title={highlight.title}
+                  article_title={highlight.link_title}
+                  article_link={highlight.link}
+                />
+              ))}
             </div>
+            {highlightsData.length > 0 && (
+              <div className="pagination">
+                <Pagination
+                  totalPosts={totalPosts}
+                  number={startNumber}
+                  rightTransition={onRightClick}
+                  leftTransition={onLeftClick}
+                />
+              </div>
+            )}
+          </div>
         </div>
-    );
+      ) : (
+        <span/>
+      )}
+    </>
+  );
 };
 
 export default HighlightsSection;

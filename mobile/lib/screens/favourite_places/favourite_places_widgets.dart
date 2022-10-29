@@ -1,9 +1,9 @@
+import 'package:app/models/models.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../models/air_quality_reading.dart';
 import '../../services/hive_service.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';

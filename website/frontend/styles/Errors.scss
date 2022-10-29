@@ -1,0 +1,65 @@
+@import "lib/colors";
+@import "lib/variables";
+
+.ErrorPage{
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    svg{
+        margin: 0 auto;
+    }
+    .status{
+        font-size: 40px;
+        line-height: 56px;
+        text-align: center;
+        font-weight: 400;
+        max-width: 600px;
+        margin: 0 auto;
+        b{
+            color: $aq-blue-9;
+            margin-right: 10px;
+        }
+    }
+    .statement{
+        display: none;
+    }
+    .button{
+        background-color: $aq-blue-9;
+        color: #fff;
+        padding: 12px 32px;
+        margin-top: 30px;
+    }
+    .error-code{
+        font-size: 15px;
+        font-weight: 500;
+        color:#0000004D;
+        margin-top: 10px;
+
+    }
+}
+@media(max-width: $mainBreakPoint){
+    .ErrorPage{
+        overflow-x: hidden;
+        overflow-y: visible;
+        .status{
+            max-width: 385px;
+            line-height: 42px;
+            font-size: 36px;
+        }
+        .statement{
+            display: flex;
+            flex-direction: column;
+            max-width: 380px;
+            text-align: center;
+            font-weight: 400;
+            font-size: 18px;
+            color: $aq-black-1;
+            line-height: 28px;
+            margin-top: 30px;
+            margin-right: auto;
+            margin-left: auto;
+        }
+    }
+}

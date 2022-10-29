@@ -1,3 +1,3 @@
-# AirQo API docs
+# AirQo Documentation
 
-With this API reference, you can explore and interact with all the endpoints of the AirQo API.
+With this reference, you can explore and interact with all publicly availed AirQo resources.

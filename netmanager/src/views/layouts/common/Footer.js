@@ -10,6 +10,8 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+let currentYear = new Date().getFullYear();
+
 const Footer = (props) => {
   const { className, ...rest } = props;
 
@@ -22,7 +24,7 @@ const Footer = (props) => {
         <Link component="a" href="https://airqo.net" target="_blank">
           AirQo
         </Link>
-        . 2020
+        . {currentYear}
       </Typography>
       <Typography variant="caption">Air Quality Initiative</Typography>
     </footer>

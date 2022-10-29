@@ -1,6 +1,16 @@
 {
   "compilerOptions": {
-    "baseUrl": "src"
+    "baseUrl": ".",
+    "jsx": "preserve",
+    "paths": {
+      "@/core/*": ["src/core/*"],
+      "@/lib/*": ["src/lib/*"],
+      "@/styles/*": ["src/common/styles/*"],
+      "@/icons/*": ["public/icons/*"],
+      "@/components/*": ["src/common/components/*"],
+      "@/pages/*": ["src/pages/*"]
+    }
   },
-  "include": ["src"]
+  "exclude": ["node_modules", ".next"],
+  "include": ["./node_modules/cypress", "cypress/**/*.js"]
 }

@@ -20,8 +20,6 @@ jobs:
           string: ${{ github.head_ref || github.ref_name }}
 
   check:
-    # this job will only run if the PR has been merged
-    if: github.event.pull_request.merged == true
     name: check for available deploy previews
     outputs:
       remove_platform_preview: ${{ steps.check_files.outputs.remove_platform_preview }} # remove platform preview
@@ -45,41 +43,40 @@ jobs:
           echo "========== check paths of modified files =========="
           git diff --name-only HEAD^ HEAD > files.txt
 
-          echo "::set-output name=remove_platform_preview::false"  
-          echo "::set-output name=remove_calibrate_app_preview::false"
-          echo "::set-output name=remove_next_platform::false"  
-          echo "::set-output name=remove_docs::false"   
+          echo "remove_platform_preview=false" >>$GITHUB_OUTPUT
+          echo "remove_calibrate_app_preview=false" >>$GITHUB_OUTPUT
+          echo "remove_next_platform=false" >>$GITHUB_OUTPUT
+          echo "remove_docs=false" >>$GITHUB_OUTPUT
 
           while IFS= read -r file
           do
             echo $file
             if [[ $file == netmanager/* ]]; then
-              echo "::set-output name=remove_platform_preview::true"
+              echo "remove_platform_preview=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == calibrate/* ]]; then
-              echo "::set-output name=remove_calibrate_app_preview::true"  
+              echo "remove_calibrate_app_preview=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == platform/* ]]; then
-              echo "::set-output name=remove_next_platform::true"
+              echo "remove_next_platform=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == docs/* ]]; then
-              echo "::set-output name=remove_docs::true"
+              echo "remove_docs=true" >>$GITHUB_OUTPUT
             fi
 
           done < files.txt
 
-  ### remove platform deploy preview ###
-  remove-platform-preview:
-    name: remove-platform-preview
+  ### remove netmanager deploy preview ###
+  remove-netmanager-preview:
+    name: remove-netmanager-preview
     needs: [check, branch-name]
     if: needs.check.outputs.remove_platform_preview == 'true'
     runs-on: ubuntu-latest
     steps:
-      - name: Google Auth
-        id: auth
+      - name: Google login
         uses: google-github-actions/auth@v0
         with:
           credentials_json: "${{ secrets.GCP_SA_CREDENTIALS }}"
@@ -89,7 +86,7 @@ jobs:
 
       - name: Delete PR deploy preview
         run: |-
-          gcloud run services delete ${{ needs.branch-name.outputs.lowercase }}-platform-preview \
+          gcloud run services delete ${{ needs.branch-name.outputs.lowercase }}-netmanager-preview \
             --region=${{ secrets.REGION }} \
             --quiet
 
@@ -100,8 +97,7 @@ jobs:
     if: needs.check.outputs.remove_calibrate_app_preview == 'true'
     runs-on: ubuntu-latest
     steps:
-      - name: Google Auth
-        id: auth
+      - name: Google login
         uses: google-github-actions/auth@v0
         with:
           credentials_json: "${{ secrets.GCP_SA_CREDENTIALS }}"
@@ -122,8 +118,7 @@ jobs:
     if: needs.check.outputs.remove_next_platform == 'true'
     runs-on: ubuntu-latest
     steps:
-      - name: Google Auth
-        id: auth
+      - name: Google login
         uses: google-github-actions/auth@v0
         with:
           credentials_json: "${{ secrets.GCP_SA_CREDENTIALS }}"
@@ -144,8 +139,7 @@ jobs:
     if: needs.check.outputs.remove_docs == 'true'
     runs-on: ubuntu-latest
     steps:
-      - name: Google Auth
-        id: auth
+      - name: Google login
         uses: google-github-actions/auth@v0
         with:
           credentials_json: "${{ secrets.GCP_SA_CREDENTIALS }}"
