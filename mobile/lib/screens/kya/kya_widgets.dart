@@ -245,7 +245,7 @@ class KyaLessonCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.5,
+      height: MediaQuery.of(context).size.height * 0.6,
       width: MediaQuery.of(context).size.width * 0.9,
       decoration: ShapeDecoration(
         color: Colors.white,
@@ -254,9 +254,10 @@ class KyaLessonCard extends StatelessWidget {
         ),
         shadows: <BoxShadow>[
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 4,
           ),
+
         ],
       ),
       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -265,11 +266,11 @@ class KyaLessonCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Padding(
-            padding: const EdgeInsets.only(left: 8.0, right: 8.0, top: 8.0),
+            padding: const EdgeInsets.only(left: 0, right: 0, top: 8.0),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: CachedNetworkImage(
-                fit: BoxFit.contain,
+                fit: BoxFit.fitWidth,
                 placeholder: (context, url) => const SizedBox(
                   child: ContainerLoadingAnimation(
                     height: 180,
@@ -284,12 +285,13 @@ class KyaLessonCard extends StatelessWidget {
               ),
             ),
           ),
+          // const Spacer(),
           Padding(
             padding: const EdgeInsets.only(left: 36, right: 36, top: 12.0),
             child: AutoSizeText(
               kyaLesson.title,
               maxLines: 2,
-              minFontSize: 20,
+              minFontSize: 22,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
               style: CustomTextStyle.headline9(context),
@@ -302,7 +304,7 @@ class KyaLessonCard extends StatelessWidget {
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
-              minFontSize: 16,
+              minFontSize: 17,
               style: Theme.of(context).textTheme.subtitle1?.copyWith(
                     color: CustomColors.appColorBlack.withOpacity(0.5),
                   ),
