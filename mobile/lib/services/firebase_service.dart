@@ -654,7 +654,7 @@ class CustomAuth {
               .add(const UpdateStatus(AuthStatus.success));
           buildContext
               .read<AuthCodeBloc>()
-              .add(VerifySmsCode(credential: credential));
+              .add(VerifyAuthCode(credential: credential));
         },
         verificationFailed: (FirebaseAuthException exception) async {
           if (exception.code == 'invalid-phone-number') {

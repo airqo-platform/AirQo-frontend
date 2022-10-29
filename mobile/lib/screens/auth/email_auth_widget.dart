@@ -105,6 +105,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                                   .add(InitializeAuthCodeState(
                                     emailAddress: state.emailAddress,
                                     authProcedure: state.authProcedure,
+                                    authMethod: AuthMethod.email,
                                   ));
 
                               Navigator.push(

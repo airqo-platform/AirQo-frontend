@@ -163,7 +163,7 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                             if (value.length >= 6) {
                               context
                                   .read<AuthCodeBloc>()
-                                  .add(const VerifySmsCode());
+                                  .add(const VerifyAuthCode());
                             }
                           },
                         ),
@@ -174,7 +174,7 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                       Visibility(
                         visible: state.codeCountDown > 0,
                         child: Text(
-                          'The code should arrive with in ${state.codeCountDown} sec(s)',
+                          'The code should arrive with in ${state.codeCountDown} sec',
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.caption?.copyWith(
                                 color:
@@ -236,7 +236,7 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                         onTap: () {
                           context
                               .read<AuthCodeBloc>()
-                              .add(const InitializeAuthCodeState());
+                              .add(const ClearAuthCodeState());
                           Navigator.pop(context);
                         },
                         child: Text(
@@ -253,7 +253,7 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                           if (state.inputAuthCode.length >= 6) {
                             context
                                 .read<AuthCodeBloc>()
-                                .add(const VerifySmsCode());
+                                .add(const VerifyAuthCode());
                           }
                         },
                         child: NextButton(
@@ -278,11 +278,12 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
     Timer.periodic(
       const Duration(milliseconds: 1200),
       (Timer timer) {
-        final newCount = context.read<AuthCodeBloc>().state.codeCountDown - 1;
-        context.read<AuthCodeBloc>().add(UpdateCountDown(newCount));
-
-        if (newCount == 0) {
-          setState(() => timer.cancel());
+        if (mounted) {
+          final newCount = context.read<AuthCodeBloc>().state.codeCountDown - 1;
+          context.read<AuthCodeBloc>().add(UpdateCountDown(newCount));
+          if (newCount == 0) {
+            setState(() => timer.cancel());
+          }
         }
       },
     );

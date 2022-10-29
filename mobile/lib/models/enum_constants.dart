@@ -313,7 +313,7 @@ enum AuthMethod {
     updateMessage:
         'You will not be able to sign in with your previous email address after changing it',
     codeVerificationText: '',
-    editEntryText: 'Enter the 6 digits code sent to your number',
+    editEntryText: 'Enter the 6 digits code sent to your email',
   ),
   none(
     updateMessage: 'You do not have an account. Consider creating one',

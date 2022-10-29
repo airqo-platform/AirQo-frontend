@@ -106,6 +106,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                                     phoneNumber:
                                         '${state.countryCode} ${state.phoneNumber}',
                                     authProcedure: state.authProcedure,
+                                    authMethod: AuthMethod.phone,
                                   ));
 
                               Navigator.push(

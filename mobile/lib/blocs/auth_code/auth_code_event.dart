@@ -11,15 +11,26 @@ class GuestUserEvent extends AuthCodeEvent {
 }
 
 class InitializeAuthCodeState extends AuthCodeEvent {
-  const InitializeAuthCodeState(
-      {this.phoneNumber, this.authProcedure, this.emailAddress});
+  const InitializeAuthCodeState({
+    required this.authMethod,
+    required this.authProcedure,
+    this.phoneNumber,
+    this.emailAddress,
+  });
 
   final String? phoneNumber;
   final String? emailAddress;
-  final AuthProcedure? authProcedure;
+  final AuthProcedure authProcedure;
+  final AuthMethod authMethod;
 
   @override
-  List<Object?> get props => [phoneNumber, authProcedure];
+  List<Object?> get props => [phoneNumber, authProcedure, emailAddress];
+}
+
+class ClearAuthCodeState extends AuthCodeEvent {
+  const ClearAuthCodeState();
+  @override
+  List<Object?> get props => [];
 }
 
 class UpdateAuthCode extends AuthCodeEvent {
@@ -39,16 +50,18 @@ class UpdateVerificationId extends AuthCodeEvent {
 }
 
 class UpdateEmailCredentials extends AuthCodeEvent {
-  const UpdateEmailCredentials(
-      {required this.emailVerificationLink, required this.emailToken});
+  const UpdateEmailCredentials({
+    required this.emailVerificationLink,
+    required this.emailToken,
+  });
   final String emailVerificationLink;
   final int emailToken;
   @override
   List<Object?> get props => [emailToken, emailVerificationLink];
 }
 
-class VerifySmsCode extends AuthCodeEvent {
-  const VerifySmsCode({this.credential});
+class VerifyAuthCode extends AuthCodeEvent {
+  const VerifyAuthCode({this.credential});
   final PhoneAuthCredential? credential;
   @override
   List<Object?> get props => [];

@@ -17,9 +17,11 @@ part 'auth_code_state.dart';
 class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
   AuthCodeBloc() : super(const AuthCodeState.initial()) {
     on<UpdateAuthCode>(_onUpdateAuthCode);
-    on<VerifySmsCode>(_onVerifySmsCode);
+    on<VerifyAuthCode>(_onVerifySmsCode);
     on<ResendAuthCode>(_onResendAuthCode);
     on<InitializeAuthCodeState>(_onInitializeAuthCodeState);
+    on<ClearAuthCodeState>(_onClearAuthCodeState);
+
     on<GuestUserEvent>(_onGuestUserEvent);
     on<UpdateCountDown>(_updateCountDown);
     on<UpdateVerificationId>(_onUpdateVerificationId);
@@ -42,6 +44,13 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
   ) async {
     emit(state.copyWith(authStatus: AuthStatus.processing));
 
+    if (state.inputAuthCode != state.validAuthCode) {
+      return emit(state.copyWith(
+        error: AuthenticationError.invalidAuthCode,
+        authStatus: AuthStatus.error,
+      ));
+    }
+
     try {
       final authenticationSuccessful = await AppService().authenticateUser(
         authProcedure: state.authProcedure,
@@ -51,7 +60,8 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
       );
 
       if (authenticationSuccessful) {
-        return emit(state.copyWith(authStatus: AuthStatus.success));
+        return emit(const AuthCodeState.initial()
+            .copyWith(authStatus: AuthStatus.success));
       } else {
         return emit(state.copyWith(
           error: AuthenticationError.authFailure,
@@ -120,7 +130,7 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
         verificationId: state.verificationId,
         smsCode: state.inputAuthCode,
       );
-      final authCredential = state.credential ?? phoneCredential;
+      final authCredential = state.phoneAuthCredential ?? phoneCredential;
 
       final authenticationSuccessful = await AppService().authenticateUser(
         authProcedure: state.authProcedure,
@@ -189,7 +199,15 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
       phoneNumber: event.phoneNumber,
       authProcedure: event.authProcedure,
       emailAddress: event.emailAddress,
+      authMethod: event.authMethod,
     ));
+  }
+
+  Future<void> _onClearAuthCodeState(
+    ClearAuthCodeState event,
+    Emitter<AuthCodeState> emit,
+  ) async {
+    emit(const AuthCodeState.initial());
   }
 
   Future<void> _onGuestUserEvent(
@@ -215,10 +233,10 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
   }
 
   Future<void> _onVerifySmsCode(
-    VerifySmsCode event,
+    VerifyAuthCode event,
     Emitter<AuthCodeState> emit,
   ) async {
-    emit(state.copyWith(credential: event.credential));
+    emit(state.copyWith(phoneAuthCredential: event.credential));
     switch (state.authMethod) {
       case AuthMethod.phone:
         await _verifyPhoneSmsCode(emit);
