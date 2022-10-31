@@ -20,9 +20,9 @@ import '../insights/insights_page.dart';
 
 class SearchResultsWidget extends StatefulWidget {
   const SearchResultsWidget({
-    Key? key,
+    super.key,
     required this.searchResultItems,
-  }) : super(key: key);
+  });
   final List<SearchResultItem> searchResultItems;
 
   @override
@@ -322,9 +322,7 @@ class SearchInputField extends StatelessWidget {
 }
 
 class NoNearbyLocations extends StatelessWidget {
-  const NoNearbyLocations({
-    super.key,
-  });
+  const NoNearbyLocations({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -651,7 +649,7 @@ class SearchError extends StatelessWidget {
 }
 
 class AirQualityNotAvailable extends StatelessWidget {
-  const AirQualityNotAvailable({Key? key}) : super(key: key);
+  const AirQualityNotAvailable({super.key});
 
   @override
   Widget build(BuildContext context) {

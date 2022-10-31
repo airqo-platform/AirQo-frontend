@@ -19,9 +19,7 @@ import 'notifications_setup_screen.dart';
 import 'on_boarding_widgets.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({
-    super.key,
-  });
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => SplashScreenState();

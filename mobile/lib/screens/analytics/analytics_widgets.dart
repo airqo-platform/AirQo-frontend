@@ -76,9 +76,7 @@ class AnalyticsAvatar extends StatelessWidget {
 }
 
 class MapAnalyticsMoreInsights extends StatelessWidget {
-  const MapAnalyticsMoreInsights({
-    super.key,
-  });
+  const MapAnalyticsMoreInsights({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -932,9 +930,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
 }
 
 class EmptyAnalytics extends StatelessWidget {
-  const EmptyAnalytics({
-    super.key,
-  });
+  const EmptyAnalytics({super.key});
 
   @override
   Widget build(BuildContext context) {

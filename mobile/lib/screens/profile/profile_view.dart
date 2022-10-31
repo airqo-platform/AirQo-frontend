@@ -17,9 +17,7 @@ import '../auth/phone_auth_widget.dart';
 import '../notification/notification_page.dart';
 
 class ProfileView extends StatefulWidget {
-  const ProfileView({
-    super.key,
-  });
+  const ProfileView({super.key});
 
   @override
   State<ProfileView> createState() => _ProfileViewState();

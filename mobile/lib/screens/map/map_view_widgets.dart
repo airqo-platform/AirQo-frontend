@@ -18,9 +18,7 @@ import '../analytics/analytics_widgets.dart';
 import '../insights/insights_page.dart';
 
 class DraggingHandle extends StatelessWidget {
-  const DraggingHandle({
-    super.key,
-  });
+  const DraggingHandle({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -36,9 +34,7 @@ class DraggingHandle extends StatelessWidget {
 }
 
 class RegionAvatar extends StatelessWidget {
-  const RegionAvatar({
-    super.key,
-  });
+  const RegionAvatar({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -25,7 +25,7 @@ import '../../widgets/recommendation.dart';
 import '../../widgets/tooltip.dart';
 
 class InsightsLoadingWidget extends StatelessWidget {
-  const InsightsLoadingWidget({Key? key}) : super(key: key);
+  const InsightsLoadingWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -59,14 +59,26 @@ class InsightsLoadingWidget extends StatelessWidget {
 }
 
 class InsightsFailedWidget extends StatelessWidget {
-  const InsightsFailedWidget({Key? key}) : super(key: key);
+  const InsightsFailedWidget({super.key, required this.frequency});
+  final Frequency frequency;
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: OutlinedButton(
         onPressed: () {
-          context.read<HourlyInsightsBloc>().add(const LoadInsights());
+          switch (frequency) {
+            case Frequency.daily:
+              context
+                  .read<DailyInsightsBloc>()
+                  .add(LoadInsights(frequency: frequency));
+              break;
+            case Frequency.hourly:
+              context
+                  .read<HourlyInsightsBloc>()
+                  .add(LoadInsights(frequency: frequency));
+              break;
+          }
         },
         style: OutlinedButton.styleFrom(
           shape: const CircleBorder(),
@@ -82,29 +94,17 @@ class InsightsFailedWidget extends StatelessWidget {
 }
 
 class HourlyAnalyticsGraph extends StatelessWidget {
-  const HourlyAnalyticsGraph({
-    super.key,
-  });
+  const HourlyAnalyticsGraph({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<HourlyInsightsBloc, HourlyInsightsState>(
+    return BlocBuilder<HourlyInsightsBloc, InsightsState>(
         builder: (context, state) {
-      if (state.insights.isEmpty) {
+      if (!state.insightsCharts.keys.toList().contains(state.pollutant)) {
         return const ContainerLoadingAnimation(height: 290.0, radius: 8.0);
       }
 
-      if (state.pollutant == Pollutant.pm2_5 &&
-          !state.insights.keys.toList().contains(Pollutant.pm2_5)) {
-        return const ContainerLoadingAnimation(height: 290.0, radius: 8.0);
-      } else if (state.pollutant == Pollutant.pm10 &&
-          !state.insights.keys.toList().contains(Pollutant.pm10)) {
-        return const ContainerLoadingAnimation(height: 290.0, radius: 8.0);
-      }
-
-      final data = state.pollutant == Pollutant.pm2_5
-          ? state.insights[Pollutant.pm2_5]![state.chartIndex]
-          : state.insights[Pollutant.pm10]![state.chartIndex];
+      final data = state.insightsCharts[state.pollutant]![state.chartIndex];
 
       return LayoutBuilder(
         builder: (BuildContext buildContext, BoxConstraints constraints) {
@@ -137,21 +137,19 @@ class HourlyAnalyticsGraph extends StatelessWidget {
               selectionModels: [
                 charts.SelectionModelConfig(
                   changedListener: (charts.SelectionModel model) {
-                    if (model.hasDatumSelection) {
-                      try {
-                        final value = model.selectedDatum[0].index;
-                        if (value != null) {
-                          context.read<HourlyInsightsBloc>().add(
-                                UpdateSelectedInsight(
-                                  model.selectedSeries[0].data[value],
-                                ),
-                              );
-                        }
-                      } catch (exception, stackTrace) {
-                        debugPrint(
-                          '${exception.toString()}\n${stackTrace.toString()}',
-                        );
+                    try {
+                      final value = model.selectedDatum[0].index;
+                      if (value != null) {
+                        context.read<HourlyInsightsBloc>().add(
+                              UpdateSelectedInsight(
+                                model.selectedSeries[0].data[value],
+                              ),
+                            );
                       }
+                    } catch (exception, stackTrace) {
+                      debugPrint(
+                        '${exception.toString()}\n${stackTrace.toString()}',
+                      );
                     }
                   },
                 ),
@@ -169,29 +167,17 @@ class HourlyAnalyticsGraph extends StatelessWidget {
 }
 
 class MiniHourlyAnalyticsGraph extends StatelessWidget {
-  const MiniHourlyAnalyticsGraph({
-    super.key,
-  });
+  const MiniHourlyAnalyticsGraph({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<DailyInsightsBloc, DailyInsightsState>(
+    return BlocBuilder<DailyInsightsBloc, InsightsState>(
         builder: (context, state) {
-      if (state.miniInsights.isEmpty) {
+      if (!state.miniInsightsCharts.keys.toList().contains(state.pollutant)) {
         return const SizedBox();
       }
 
-      if (state.pollutant == Pollutant.pm2_5 &&
-          !state.miniInsights.keys.toList().contains(Pollutant.pm2_5)) {
-        return const SizedBox();
-      } else if (state.pollutant == Pollutant.pm10 &&
-          !state.miniInsights.keys.toList().contains(Pollutant.pm10)) {
-        return const SizedBox();
-      }
-
-      final data = state.pollutant == Pollutant.pm2_5
-          ? state.miniInsights[Pollutant.pm2_5]
-          : state.miniInsights[Pollutant.pm10];
+      final data = state.miniInsightsCharts[state.pollutant];
 
       return LayoutBuilder(
         builder: (BuildContext buildContext, BoxConstraints constraints) {
@@ -234,29 +220,17 @@ class MiniHourlyAnalyticsGraph extends StatelessWidget {
 }
 
 class DailyAnalyticsGraph extends StatelessWidget {
-  const DailyAnalyticsGraph({
-    super.key,
-  });
+  const DailyAnalyticsGraph({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<DailyInsightsBloc, DailyInsightsState>(
+    return BlocBuilder<DailyInsightsBloc, InsightsState>(
         builder: (context, state) {
-      if (state.insights.isEmpty) {
+      if (!state.insightsCharts.keys.toList().contains(state.pollutant)) {
         return const ContainerLoadingAnimation(height: 290.0, radius: 8.0);
       }
 
-      if (state.pollutant == Pollutant.pm2_5 &&
-          !state.insights.keys.toList().contains(Pollutant.pm2_5)) {
-        return const ContainerLoadingAnimation(height: 290.0, radius: 8.0);
-      } else if (state.pollutant == Pollutant.pm10 &&
-          !state.insights.keys.toList().contains(Pollutant.pm10)) {
-        return const ContainerLoadingAnimation(height: 290.0, radius: 8.0);
-      }
-
-      final data = state.pollutant == Pollutant.pm2_5
-          ? state.insights[Pollutant.pm2_5]![state.chartIndex]
-          : state.insights[Pollutant.pm10]![state.chartIndex];
+      final data = state.insightsCharts[state.pollutant]![state.chartIndex];
 
       return LayoutBuilder(
         builder: (BuildContext buildContext, BoxConstraints constraints) {
@@ -289,21 +263,19 @@ class DailyAnalyticsGraph extends StatelessWidget {
               selectionModels: [
                 charts.SelectionModelConfig(
                   changedListener: (charts.SelectionModel model) {
-                    if (model.hasDatumSelection) {
-                      try {
-                        final value = model.selectedDatum[0].index;
-                        if (value != null) {
-                          context.read<DailyInsightsBloc>().add(
-                                UpdateDailyInsightsSelectedInsight(
-                                  model.selectedSeries[0].data[value],
-                                ),
-                              );
-                        }
-                      } catch (exception, stackTrace) {
-                        debugPrint(
-                          '${exception.toString()}\n${stackTrace.toString()}',
-                        );
+                    try {
+                      final value = model.selectedDatum[0].index;
+                      if (value != null) {
+                        context.read<DailyInsightsBloc>().add(
+                              UpdateSelectedInsight(
+                                model.selectedSeries[0].data[value],
+                              ),
+                            );
                       }
+                    } catch (exception, stackTrace) {
+                      debugPrint(
+                        '${exception.toString()}\n${stackTrace.toString()}',
+                      );
                     }
                   },
                 ),
@@ -323,61 +295,22 @@ class DailyAnalyticsGraph extends StatelessWidget {
 class InsightsAvatar extends StatelessWidget {
   const InsightsAvatar({
     super.key,
-    required this.measurement,
+    required this.insights,
     required this.size,
     required this.pollutant,
   });
-  final Insights measurement;
+  final Insights insights;
   final double size;
   final Pollutant pollutant;
 
   @override
   Widget build(BuildContext context) {
-    final containerColor = measurement.empty
-        ? CustomColors.greyColor
-        : pollutant == Pollutant.pm2_5
-            ? Pollutant.pm2_5.color(measurement.chartValue(pollutant))
-            : Pollutant.pm10.color(
-                measurement.chartValue(pollutant),
-              );
-
-    final pollutantColor = measurement.empty
-        ? CustomColors.darkGreyColor
-        : pollutant == Pollutant.pm2_5
-            ? Pollutant.pm2_5
-                .textColor(value: measurement.chartValue(pollutant))
-            : Pollutant.pm10.textColor(
-                value: measurement.chartValue(pollutant),
-              );
-
-    final valueColor = measurement.empty
-        ? CustomColors.darkGreyColor
-        : pollutant == Pollutant.pm2_5
-            ? Pollutant.pm2_5
-                .textColor(value: measurement.chartValue(pollutant))
-            : Pollutant.pm10.textColor(
-                value: measurement.chartValue(pollutant),
-              );
-
-    final value = measurement.empty
-        ? '--'
-        : measurement.chartValue(pollutant).toStringAsFixed(0);
-
-    final unitColor = measurement.empty
-        ? CustomColors.darkGreyColor
-        : pollutant == Pollutant.pm2_5
-            ? Pollutant.pm2_5
-                .textColor(value: measurement.chartValue(pollutant))
-            : Pollutant.pm10.textColor(
-                value: measurement.chartValue(pollutant),
-              );
-
     return Container(
       height: size,
       width: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: containerColor,
+        color: insights.chartAvatarContainerColor(pollutant),
         border: Border.all(color: Colors.transparent),
       ),
       child: Column(
@@ -389,17 +322,17 @@ class InsightsAvatar extends StatelessWidget {
             semanticsLabel: 'Pm2.5',
             height: 6,
             width: 32.45,
-            color: pollutantColor,
+            color: insights.chartAvatarValueColor(pollutant),
           ),
           AutoSizeText(
-            value,
+            insights.chartAvatarValue(pollutant),
             maxLines: 1,
             style: CustomTextStyle.insightsAvatar(
               context: context,
               pollutant: pollutant,
-              value: measurement.chartValue(pollutant),
+              value: insights.chartValue(pollutant),
             )?.copyWith(
-              color: valueColor,
+              color: insights.chartAvatarValueColor(pollutant),
               fontSize: 32,
             ),
           ),
@@ -408,7 +341,7 @@ class InsightsAvatar extends StatelessWidget {
             semanticsLabel: 'Unit',
             height: 6,
             width: 32,
-            color: unitColor,
+            color: insights.chartAvatarValueColor(pollutant),
           ),
           const Spacer(),
         ],
@@ -418,7 +351,7 @@ class InsightsAvatar extends StatelessWidget {
 }
 
 class HourlyInsightsGraph extends StatefulWidget {
-  const HourlyInsightsGraph({Key? key}) : super(key: key);
+  const HourlyInsightsGraph({super.key});
 
   @override
   State<HourlyInsightsGraph> createState() => _HourlyInsightsGraphState();
@@ -438,7 +371,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
     final data = context
         .read<HourlyInsightsBloc>()
         .state
-        .insights[context.read<HourlyInsightsBloc>().state.pollutant];
+        .insightsCharts[context.read<HourlyInsightsBloc>().state.pollutant];
 
     setState(() => isScrolling = true);
     final selectedInsight = data![chartIndex][0].data.first;
@@ -483,7 +416,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<HourlyInsightsBloc, HourlyInsightsState>(
+    return BlocBuilder<HourlyInsightsBloc, InsightsState>(
         builder: (context, state) {
       return Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -549,7 +482,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                           );
                         },
                         child: InsightsAvatar(
-                          measurement: state.selectedInsight!,
+                          insights: state.selectedInsight!,
                           size: 64,
                           pollutant: state.pollutant,
                         ),
@@ -560,7 +493,8 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                     height: 160,
                     child: ScrollablePositionedList.builder(
                       scrollDirection: Axis.horizontal,
-                      itemCount: state.insights[state.pollutant]?.length ?? 0,
+                      itemCount:
+                          state.insightsCharts[state.pollutant]?.length ?? 0,
                       itemBuilder: (context, index) {
                         return VisibilityDetector(
                           key: Key(
@@ -581,7 +515,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                       itemScrollController: _itemScrollController,
                     ),
                   ),
-                  BlocListener<HourlyInsightsBloc, HourlyInsightsState>(
+                  BlocListener<HourlyInsightsBloc, InsightsState>(
                     listenWhen: (listenerPreviousState, listenerState) {
                       return listenerPreviousState.chartIndex !=
                           listenerState.chartIndex;
@@ -817,7 +751,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
 }
 
 class DailyInsightsGraph extends StatefulWidget {
-  const DailyInsightsGraph({Key? key}) : super(key: key);
+  const DailyInsightsGraph({super.key});
 
   @override
   State<DailyInsightsGraph> createState() => _DailyInsightsGraphState();
@@ -835,7 +769,7 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
     final data = context
         .read<DailyInsightsBloc>()
         .state
-        .insights[context.read<DailyInsightsBloc>().state.pollutant];
+        .insightsCharts[context.read<DailyInsightsBloc>().state.pollutant];
 
     setState(() => isScrolling = true);
     final selectedInsight = data![chartIndex][0].data.first;
@@ -852,7 +786,7 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
         setState(() => isScrolling = false);
         context
             .read<DailyInsightsBloc>()
-            .add(UpdateDailyInsightsSelectedInsight(selectedInsight));
+            .add(UpdateSelectedInsight(selectedInsight));
       });
     } else {
       Future.delayed(
@@ -871,7 +805,7 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
             setState(() => isScrolling = false);
             context
                 .read<DailyInsightsBloc>()
-                .add(UpdateDailyInsightsSelectedInsight(selectedInsight));
+                .add(UpdateSelectedInsight(selectedInsight));
           });
         },
       );
@@ -880,7 +814,7 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<DailyInsightsBloc, DailyInsightsState>(
+    return BlocBuilder<DailyInsightsBloc, InsightsState>(
         builder: (context, state) {
       if (state.selectedInsight == null) {
         return const ContainerLoadingAnimation(height: 290.0, radius: 8.0);
@@ -953,7 +887,7 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
                           );
                         },
                         child: InsightsAvatar(
-                          measurement: state.selectedInsight!,
+                          insights: state.selectedInsight!,
                           size: 64,
                           pollutant: state.pollutant,
                         ),
@@ -964,7 +898,8 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
                     height: 160,
                     child: ScrollablePositionedList.builder(
                       scrollDirection: Axis.horizontal,
-                      itemCount: state.insights[state.pollutant]?.length ?? 0,
+                      itemCount:
+                          state.insightsCharts[state.pollutant]?.length ?? 0,
                       itemBuilder: (context, index) {
                         return VisibilityDetector(
                           key: Key(
@@ -976,7 +911,7 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
                                 state.chartIndex != index) {
                               context
                                   .read<DailyInsightsBloc>()
-                                  .add(UpdateDailyInsightsActiveIndex(index));
+                                  .add(UpdateInsightsActiveIndex(index));
                             }
                           },
                           child: const DailyAnalyticsGraph(),
@@ -985,7 +920,7 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
                       itemScrollController: _itemScrollController,
                     ),
                   ),
-                  BlocListener<DailyInsightsBloc, DailyInsightsState>(
+                  BlocListener<DailyInsightsBloc, InsightsState>(
                     listenWhen: (listenerPreviousState, listenerState) {
                       return listenerPreviousState.chartIndex !=
                           listenerState.chartIndex;
@@ -1281,15 +1216,17 @@ class InsightsToggleBar extends StatelessWidget {
             ),
           ),
           onSelected: (pollutant) {
-            if (frequency == Frequency.daily) {
-              context
-                  .read<DailyInsightsBloc>()
-                  .add(SwitchDailyInsightsPollutant(pollutant: pollutant));
-            }
-            if (frequency == Frequency.hourly) {
-              context
-                  .read<HourlyInsightsBloc>()
-                  .add(SwitchInsightsPollutant(pollutant));
+            switch (frequency) {
+              case Frequency.daily:
+                context
+                    .read<DailyInsightsBloc>()
+                    .add(SwitchInsightsPollutant(pollutant));
+                break;
+              case Frequency.hourly:
+                context
+                    .read<HourlyInsightsBloc>()
+                    .add(SwitchInsightsPollutant(pollutant));
+                break;
             }
           },
           child: Container(

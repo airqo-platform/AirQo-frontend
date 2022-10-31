@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../themes/colors.dart';
-import '../../utils/network.dart';
 import '../../widgets/buttons.dart';
 import 'daily_insights_tab.dart';
 import 'hourly_insights_tab.dart';
@@ -61,11 +60,13 @@ class _InsightsPageState extends State<InsightsPage>
                         context.read<HourlyInsightsBloc>().add(LoadInsights(
                               siteId: widget.airQualityReading.referenceSite,
                               airQualityReading: widget.airQualityReading,
+                              frequency: Frequency.hourly,
                             ));
                       } else {
-                        context.read<DailyInsightsBloc>().add(LoadDailyInsights(
+                        context.read<DailyInsightsBloc>().add(LoadInsights(
                               siteId: widget.airQualityReading.referenceSite,
                               airQualityReading: widget.airQualityReading,
+                              frequency: Frequency.daily,
                             ));
                       }
                     },
@@ -118,22 +119,20 @@ class _InsightsPageState extends State<InsightsPage>
     context.read<HourlyInsightsBloc>().add(LoadInsights(
           siteId: widget.airQualityReading.referenceSite,
           airQualityReading: widget.airQualityReading,
+          frequency: Frequency.hourly,
         ));
 
-    context.read<DailyInsightsBloc>().add(LoadDailyInsights(
+    context.read<DailyInsightsBloc>().add(LoadInsights(
           siteId: widget.airQualityReading.referenceSite,
           airQualityReading: widget.airQualityReading,
+          frequency: Frequency.daily,
         ));
-
-    checkNetworkConnection(
-      context,
-      notifyUser: true,
-    );
   }
 
   Future<bool> onWillPop() {
     context.read<HourlyInsightsBloc>().add(const ClearInsightsTab());
-    context.read<DailyInsightsBloc>().add(const ClearDailyInsightsTab());
+    context.read<DailyInsightsBloc>().add(const ClearInsightsTab());
+
     return Future.value(true);
   }
 }

@@ -12,9 +12,7 @@ import '../auth/phone_auth_widget.dart';
 import 'on_boarding_widgets.dart';
 
 class WelcomeScreen extends StatefulWidget {
-  const WelcomeScreen({
-    super.key,
-  });
+  const WelcomeScreen({super.key});
 
   @override
   WelcomeScreenState createState() => WelcomeScreenState();

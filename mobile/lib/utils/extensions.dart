@@ -2,10 +2,12 @@ import 'dart:io';
 
 import 'package:app/models/enum_constants.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../models/insights.dart';
 import '../models/profile.dart';
+import '../themes/colors.dart';
 
 extension DoubleExtension on double {
   bool isWithin(double start, double end) {
@@ -32,6 +34,31 @@ extension InsightsExt on Insights {
           ? 'Not available'
           : 'Updated ${DateFormat('hh:mm a').format(time)}';
     }
+  }
+
+  Color chartAvatarContainerColor(Pollutant pollutant) {
+    if (empty) {
+      return CustomColors.greyColor;
+    }
+
+    return pollutant.color(chartValue(pollutant));
+  }
+
+  String chartAvatarValue(Pollutant pollutant) {
+    if (empty) {
+      return '--';
+    }
+
+    return chartValue(pollutant).toStringAsFixed(0);
+    ;
+  }
+
+  Color chartAvatarValueColor(Pollutant pollutant) {
+    if (empty) {
+      return CustomColors.darkGreyColor;
+    }
+
+    return pollutant.textColor(value: chartValue(pollutant));
   }
 }
 

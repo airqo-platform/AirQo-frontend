@@ -13,9 +13,7 @@ import '../../widgets/custom_widgets.dart';
 import 'auth_widgets.dart';
 
 class ChangeEmailScreen extends StatefulWidget {
-  const ChangeEmailScreen({
-    super.key,
-  });
+  const ChangeEmailScreen({super.key});
 
   @override
   ChangeEmailScreenState createState() => ChangeEmailScreenState();

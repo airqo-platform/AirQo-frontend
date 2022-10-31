@@ -15,9 +15,7 @@ import '../../widgets/buttons.dart';
 import '../home_page.dart';
 
 class FeedbackBackButton extends StatelessWidget {
-  const FeedbackBackButton({
-    super.key,
-  });
+  const FeedbackBackButton({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -98,9 +96,7 @@ class FeedbackNextButton extends StatelessWidget {
 }
 
 class FeedbackProgressBar extends StatelessWidget {
-  const FeedbackProgressBar({
-    super.key,
-  });
+  const FeedbackProgressBar({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -453,7 +449,7 @@ class FeedbackNavigationButtons extends StatelessWidget {
 }
 
 class FeedbackTypeStep extends StatelessWidget {
-  const FeedbackTypeStep({Key? key}) : super(key: key);
+  const FeedbackTypeStep({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -527,7 +523,7 @@ class FeedbackTypeStep extends StatelessWidget {
 }
 
 class FeedbackChannelStep extends StatelessWidget {
-  const FeedbackChannelStep({Key? key}) : super(key: key);
+  const FeedbackChannelStep({super.key});
 
   @override
   Widget build(BuildContext context) {

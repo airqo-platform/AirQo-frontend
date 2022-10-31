@@ -7,9 +7,7 @@ import '../../services/rest_api.dart';
 import '../../themes/colors.dart';
 
 class SetUpCompleteScreen extends StatefulWidget {
-  const SetUpCompleteScreen({
-    super.key,
-  });
+  const SetUpCompleteScreen({super.key});
 
   @override
   SetUpCompleteScreenState createState() => SetUpCompleteScreenState();

@@ -11,9 +11,7 @@ import '../analytics/analytics_widgets.dart';
 import 'favourite_places_widgets.dart';
 
 class FavouritePlaces extends StatefulWidget {
-  const FavouritePlaces({
-    super.key,
-  });
+  const FavouritePlaces({super.key});
 
   @override
   State<FavouritePlaces> createState() => _FavouritePlacesState();

@@ -248,9 +248,7 @@ class NotificationCard extends StatelessWidget {
 }
 
 class EmptyNotifications extends StatelessWidget {
-  const EmptyNotifications({
-    super.key,
-  });
+  const EmptyNotifications({super.key});
 
   @override
   Widget build(BuildContext context) {

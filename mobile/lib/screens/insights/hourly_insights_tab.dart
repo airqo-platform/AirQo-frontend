@@ -8,7 +8,7 @@ import '../../widgets/custom_widgets.dart';
 import 'insights_widgets.dart';
 
 class HourlyInsightsTab extends StatelessWidget {
-  HourlyInsightsTab({Key? key}) : super(key: key);
+  HourlyInsightsTab({super.key});
 
   final GlobalKey _globalKey = GlobalKey();
 
@@ -16,7 +16,7 @@ class HourlyInsightsTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomSafeArea(
       verticalPadding: 10,
-      widget: BlocConsumer<HourlyInsightsBloc, HourlyInsightsState>(
+      widget: BlocConsumer<HourlyInsightsBloc, InsightsState>(
         listenWhen: (previous, current) {
           return current.insightsStatus == InsightsStatus.error &&
               current.errorMessage != '';
@@ -29,7 +29,7 @@ class HourlyInsightsTab extends StatelessWidget {
             case InsightsStatus.loading:
               return const InsightsLoadingWidget();
             case InsightsStatus.failed:
-              return const InsightsFailedWidget();
+              return InsightsFailedWidget(frequency: state.frequency);
             case InsightsStatus.loaded:
             case InsightsStatus.error:
             case InsightsStatus.refreshing:
@@ -47,8 +47,8 @@ class HourlyInsightsTab extends StatelessWidget {
                       physics: const NeverScrollableScrollPhysics(),
                       children: [
                         InsightsToggleBar(
-                          frequency: Frequency.hourly,
-                          isEmpty: state.insights.isEmpty,
+                          frequency: state.frequency,
+                          isEmpty: state.insightsCharts.isEmpty,
                           pollutant: state.pollutant,
                         ),
                         const SizedBox(
@@ -81,9 +81,7 @@ class HourlyInsightsTab extends StatelessWidget {
               },
               childCount: 2,
             ),
-            onRefresh: () async {
-              await _refreshPage(context);
-            },
+            onRefresh: () => _refreshPage(context),
           );
         },
       ),
@@ -91,6 +89,6 @@ class HourlyInsightsTab extends StatelessWidget {
   }
 
   Future<void> _refreshPage(BuildContext context) async {
-    context.read<HourlyInsightsBloc>().add(const RefreshInsights());
+    context.read<HourlyInsightsBloc>().add(const RefreshInsightsCharts());
   }
 }

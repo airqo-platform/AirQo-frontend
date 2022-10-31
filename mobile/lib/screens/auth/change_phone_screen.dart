@@ -12,9 +12,7 @@ import '../../widgets/custom_widgets.dart';
 import 'auth_widgets.dart';
 
 class ChangePhoneScreen extends StatefulWidget {
-  const ChangePhoneScreen({
-    super.key,
-  });
+  const ChangePhoneScreen({super.key});
 
   @override
   ChangePhoneScreenState createState() => ChangePhoneScreenState();

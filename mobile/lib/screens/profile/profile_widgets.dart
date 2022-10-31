@@ -22,9 +22,7 @@ import '../for_you_page.dart';
 import '../settings/settings_page.dart';
 
 class LogoutButton extends StatelessWidget {
-  const LogoutButton({
-    super.key,
-  });
+  const LogoutButton({super.key});
 
   @override
   Widget build(BuildContext context) {

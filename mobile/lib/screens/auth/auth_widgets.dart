@@ -11,9 +11,7 @@ import 'package:flutter/material.dart';
 import '../../themes/colors.dart';
 
 class ProceedAsGuest extends StatelessWidget {
-  const ProceedAsGuest({
-    super.key,
-  });
+  const ProceedAsGuest({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -117,9 +115,7 @@ class SignUpButton extends StatelessWidget {
 }
 
 class SignUpOptions extends StatelessWidget {
-  const SignUpOptions({
-    super.key,
-  });
+  const SignUpOptions({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -178,9 +174,7 @@ class SignUpOptions extends StatelessWidget {
 }
 
 class CancelOption extends StatelessWidget {
-  const CancelOption({
-    super.key,
-  });
+  const CancelOption({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -202,9 +196,7 @@ class CancelOption extends StatelessWidget {
 }
 
 class LoginOptions extends StatelessWidget {
-  const LoginOptions({
-    super.key,
-  });
+  const LoginOptions({super.key});
 
   @override
   Widget build(BuildContext context) {

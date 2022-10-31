@@ -14,9 +14,7 @@ import 'notifications_setup_screen.dart';
 import 'on_boarding_widgets.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
-  const ProfileSetupScreen({
-    super.key,
-  });
+  const ProfileSetupScreen({super.key});
 
   @override
   ProfileSetupScreenState createState() => ProfileSetupScreenState();

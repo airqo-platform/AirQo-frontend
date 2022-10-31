@@ -10,9 +10,7 @@ import '../../widgets/custom_widgets.dart';
 import 'kya_widgets.dart';
 
 class KnowYourAirView extends StatefulWidget {
-  const KnowYourAirView({
-    super.key,
-  });
+  const KnowYourAirView({super.key});
 
   @override
   State<KnowYourAirView> createState() => _KnowYourAirViewState();

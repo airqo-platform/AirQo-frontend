@@ -1,5 +1,4 @@
-import 'package:app/models/models.dart';
-import 'package:equatable/equatable.dart';
+part of 'insights_bloc.dart';
 
 abstract class InsightsEvent extends Equatable {
   const InsightsEvent();
@@ -9,16 +8,18 @@ class LoadInsights extends InsightsEvent {
   const LoadInsights({
     this.siteId,
     this.airQualityReading,
+    required this.frequency,
   });
   final String? siteId;
   final AirQualityReading? airQualityReading;
+  final Frequency frequency;
 
   @override
-  List<Object?> get props => [siteId, airQualityReading];
+  List<Object?> get props => [siteId, airQualityReading, frequency];
 }
 
-class RefreshInsights extends InsightsEvent {
-  const RefreshInsights();
+class RefreshInsightsCharts extends InsightsEvent {
+  const RefreshInsightsCharts();
 
   @override
   List<Object?> get props => [];
