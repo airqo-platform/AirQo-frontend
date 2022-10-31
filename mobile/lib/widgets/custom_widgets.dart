@@ -261,7 +261,7 @@ class HeartIcon extends StatelessWidget {
   });
 
   final bool showAnimation;
-  final AirQualityReading airQualityReading;
+  final AirQualityReading? airQualityReading;
 
   @override
   Widget build(BuildContext context) {
@@ -285,8 +285,11 @@ class HeartIcon extends StatelessWidget {
       builder: (context, box, widget) {
         final placesIds = box.keys.toList();
 
+        final placeId =
+            airQualityReading == null ? '' : airQualityReading?.placeId;
+
         return SvgPicture.asset(
-          placesIds.contains(airQualityReading.placeId)
+          placesIds.contains(placeId)
               ? 'assets/icon/heart.svg'
               : 'assets/icon/heart_dislike.svg',
           semanticsLabel: 'Favorite',

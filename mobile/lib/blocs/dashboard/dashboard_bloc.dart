@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:app/models/models.dart';
 import 'package:app/utils/extensions.dart';
-import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

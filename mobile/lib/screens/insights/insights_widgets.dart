@@ -24,6 +24,63 @@ import '../../widgets/dialogs.dart';
 import '../../widgets/recommendation.dart';
 import '../../widgets/tooltip.dart';
 
+class InsightsLoadingWidget extends StatelessWidget {
+  const InsightsLoadingWidget({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          children: const [
+            TextLoadingAnimation(
+              height: 18,
+              width: 70,
+            ),
+            Spacer(),
+            SizedContainerLoadingAnimation(
+              height: 32,
+              width: 32,
+              radius: 8.0,
+            ),
+          ],
+        ),
+        const SizedBox(
+          height: 12,
+        ),
+        const ContainerLoadingAnimation(height: 290.0, radius: 8.0),
+        const SizedBox(
+          height: 16,
+        ),
+        const ContainerLoadingAnimation(height: 100.0, radius: 8.0),
+      ],
+    );
+  }
+}
+
+class InsightsFailedWidget extends StatelessWidget {
+  const InsightsFailedWidget({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: OutlinedButton(
+        onPressed: () {
+          context.read<HourlyInsightsBloc>().add(const LoadInsights());
+        },
+        style: OutlinedButton.styleFrom(
+          shape: const CircleBorder(),
+          padding: const EdgeInsets.all(24),
+        ),
+        child: Text(
+          'Refresh',
+          style: TextStyle(color: CustomColors.appColorBlue),
+        ),
+      ),
+    );
+  }
+}
+
 class HourlyAnalyticsGraph extends StatelessWidget {
   const HourlyAnalyticsGraph({
     super.key,
@@ -85,7 +142,7 @@ class HourlyAnalyticsGraph extends StatelessWidget {
                         final value = model.selectedDatum[0].index;
                         if (value != null) {
                           context.read<HourlyInsightsBloc>().add(
-                                UpdateHourlyInsightsSelectedInsight(
+                                UpdateSelectedInsight(
                                   model.selectedSeries[0].data[value],
                                 ),
                               );
@@ -398,7 +455,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
         setState(() => isScrolling = false);
         context
             .read<HourlyInsightsBloc>()
-            .add(UpdateHourlyInsightsSelectedInsight(selectedInsight));
+            .add(UpdateSelectedInsight(selectedInsight));
       });
     } else {
       Future.delayed(
@@ -417,7 +474,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
             setState(() => isScrolling = false);
             context
                 .read<HourlyInsightsBloc>()
-                .add(UpdateHourlyInsightsSelectedInsight(selectedInsight));
+                .add(UpdateSelectedInsight(selectedInsight));
           });
         },
       );
@@ -428,12 +485,8 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
   Widget build(BuildContext context) {
     return BlocBuilder<HourlyInsightsBloc, HourlyInsightsState>(
         builder: (context, state) {
-      if (state.selectedInsight == null) {
-        return const ContainerLoadingAnimation(height: 290.0, radius: 8.0);
-      }
-
       return Container(
-        padding: const EdgeInsets.only(top: 12, bottom: 12),
+        padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: const BorderRadius.all(
@@ -444,10 +497,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 0,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 children: [
                   Row(
@@ -522,7 +572,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                                 state.chartIndex != index) {
                               context
                                   .read<HourlyInsightsBloc>()
-                                  .add(UpdateHourlyInsightsActiveIndex(index));
+                                  .add(UpdateInsightsActiveIndex(index));
                             }
                           },
                           child: const HourlyAnalyticsGraph(),
@@ -574,11 +624,15 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                       const SizedBox(
                         width: 8.0,
                       ),
-                      SvgPicture.asset(
-                        'assets/icon/loader.svg',
-                        semanticsLabel: 'loader',
-                        height: 8,
-                        width: 8,
+                      Visibility(
+                        visible:
+                            state.insightsStatus == InsightsStatus.refreshing,
+                        child: SvgPicture.asset(
+                          'assets/icon/loader.svg',
+                          semanticsLabel: 'loader',
+                          height: 8,
+                          width: 8,
+                        ),
                       ),
                     ],
                   ),
@@ -1129,10 +1183,12 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
 }
 
 class InsightsHealthTips extends StatefulWidget {
-  const InsightsHealthTips(
-      {Key? key, required this.insight, required this.pollutant})
-      : super(key: key);
-  final Insights insight;
+  const InsightsHealthTips({
+    super.key,
+    required this.insight,
+    required this.pollutant,
+  });
+  final Insights? insight;
   final Pollutant pollutant;
 
   @override
@@ -1141,12 +1197,20 @@ class InsightsHealthTips extends StatefulWidget {
 
 class _InsightsHealthTipsState extends State<InsightsHealthTips> {
   List<Recommendation> recommendations = [];
+  String title = '';
 
   @override
   void initState() {
     super.initState();
-    recommendations =
-        getHealthRecommendations(widget.insight.pm2_5, widget.pollutant);
+    if (widget.insight != null) {
+      recommendations = getHealthRecommendations(
+        widget.insight!.pm2_5,
+        widget.pollutant,
+      );
+      title = widget.insight!.time.isToday()
+          ? 'Today’s health tips'
+          : 'Tomorrow’s health tips';
+    }
   }
 
   @override
@@ -1156,11 +1220,9 @@ class _InsightsHealthTipsState extends State<InsightsHealthTips> {
       shrinkWrap: true,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
-            widget.insight.time.isToday()
-                ? 'Today’s health tips'
-                : 'Tomorrow’s health tips',
+            title,
             textAlign: TextAlign.left,
             style: CustomTextStyle.headline7(context),
           ),
@@ -1169,7 +1231,7 @@ class _InsightsHealthTipsState extends State<InsightsHealthTips> {
           height: 16,
         ),
         SizedBox(
-          height: recommendations.isEmpty ? 0 : 128,
+          height: 128,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemBuilder: (context, index) {
@@ -1190,12 +1252,12 @@ class _InsightsHealthTipsState extends State<InsightsHealthTips> {
 }
 
 class InsightsToggleBar extends StatelessWidget {
-  const InsightsToggleBar(
-      {Key? key,
-      required this.frequency,
-      required this.isEmpty,
-      required this.pollutant})
-      : super(key: key);
+  const InsightsToggleBar({
+    Key? key,
+    required this.frequency,
+    required this.isEmpty,
+    required this.pollutant,
+  }) : super(key: key);
   final bool isEmpty;
   final Frequency frequency;
   final Pollutant pollutant;
@@ -1204,93 +1266,72 @@ class InsightsToggleBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Visibility(
-          visible: isEmpty,
-          child: const TextLoadingAnimation(
-            height: 18,
-            width: 70,
-          ),
-        ),
-        Visibility(
-          visible: !isEmpty,
-          child: Text(
-            'AIR QUALITY',
-            style: Theme.of(context).textTheme.caption?.copyWith(
-                  color: CustomColors.appColorBlack.withOpacity(0.3),
-                ),
-          ),
+        Text(
+          'AIR QUALITY',
+          style: Theme.of(context).textTheme.caption?.copyWith(
+                color: CustomColors.appColorBlack.withOpacity(0.3),
+              ),
         ),
         const Spacer(),
-        Visibility(
-          visible: isEmpty,
-          child: const SizedContainerLoadingAnimation(
-            height: 32,
-            width: 32,
-            radius: 8.0,
+        PopupMenuButton(
+          padding: EdgeInsets.zero,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(4.0),
+            ),
           ),
-        ),
-        Visibility(
-          visible: !isEmpty,
-          child: PopupMenuButton(
-            padding: EdgeInsets.zero,
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(
-                Radius.circular(4.0),
+          onSelected: (pollutant) {
+            if (frequency == Frequency.daily) {
+              context
+                  .read<DailyInsightsBloc>()
+                  .add(SwitchDailyInsightsPollutant(pollutant: pollutant));
+            }
+            if (frequency == Frequency.hourly) {
+              context
+                  .read<HourlyInsightsBloc>()
+                  .add(SwitchInsightsPollutant(pollutant));
+            }
+          },
+          child: Container(
+            height: 35,
+            width: 35,
+            padding: const EdgeInsets.all(6.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: const BorderRadius.all(
+                Radius.circular(8.0),
+              ),
+              border: Border.all(
+                color: Colors.transparent,
               ),
             ),
-            onSelected: (value) {
-              if (frequency == Frequency.daily) {
-                context
-                    .read<DailyInsightsBloc>()
-                    .add(SwitchDailyInsightsPollutant(pollutant: value));
-              }
-              if (frequency == Frequency.hourly) {
-                context
-                    .read<HourlyInsightsBloc>()
-                    .add(SwitchHourlyInsightsPollutant(pollutant: value));
-              }
-            },
-            child: Container(
-              height: 35,
-              width: 35,
-              padding: const EdgeInsets.all(6.0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: const BorderRadius.all(
-                  Radius.circular(8.0),
-                ),
-                border: Border.all(
-                  color: Colors.transparent,
-                ),
-              ),
-              child: SvgPicture.asset(
-                'assets/icon/toggle_icon.svg',
-                semanticsLabel: 'Toggle',
-                height: 16,
-                width: 20,
+            child: SvgPicture.asset(
+              'assets/icon/toggle_icon.svg',
+              semanticsLabel: 'Toggle',
+              height: 16,
+              width: 20,
+            ),
+          ),
+          itemBuilder: (BuildContext context) => <PopupMenuEntry>[
+            PopupMenuItem(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              value: Pollutant.pm2_5,
+              child: ListOption(
+                pollutantName: '2.5',
+                pollutant: Pollutant.pm2_5,
+                varyingPollutant: pollutant,
               ),
             ),
-            itemBuilder: (BuildContext context) => <PopupMenuEntry>[
-              PopupMenuItem(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                value: Pollutant.pm2_5,
-                child: ListOption(
-                  pollutantName: '2.5',
-                  pollutant: Pollutant.pm2_5,
-                  varyingPollutant: pollutant,
-                ),
+            PopupMenuItem(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              value: Pollutant.pm10,
+              child: ListOption(
+                pollutantName: '10',
+                pollutant: Pollutant.pm10,
+                varyingPollutant: pollutant,
               ),
-              PopupMenuItem(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                value: Pollutant.pm10,
-                child: ListOption(
-                  pollutantName: '10',
-                  pollutant: Pollutant.pm10,
-                  varyingPollutant: pollutant,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ],
     );
@@ -1305,7 +1346,7 @@ class InsightsActionBar extends StatefulWidget {
   });
 
   final GlobalKey shareKey;
-  final AirQualityReading airQualityReading;
+  final AirQualityReading? airQualityReading;
 
   @override
   State<InsightsActionBar> createState() => _InsightsActionBarState();
@@ -1314,6 +1355,7 @@ class InsightsActionBar extends StatefulWidget {
 class _InsightsActionBarState extends State<InsightsActionBar> {
   bool _showHeartAnimation = false;
   bool _shareLoading = false;
+  late AirQualityReading airQualityReading;
 
   @override
   Widget build(BuildContext context) {
@@ -1381,7 +1423,10 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
     }
   }
 
-  void _updateFavPlace(AirQualityReading airQualityReading) async {
+  void _updateFavPlace(AirQualityReading? airQualityReading) async {
+    if (airQualityReading == null) {
+      return;
+    }
     if (!Hive.box<FavouritePlace>(HiveBox.favouritePlaces)
         .keys
         .contains(airQualityReading.placeId)) {

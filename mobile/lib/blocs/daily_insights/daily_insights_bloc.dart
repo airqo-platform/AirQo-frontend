@@ -1,7 +1,7 @@
 import 'package:app/utils/extensions.dart';
-import 'package:bloc/bloc.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../models/air_quality_reading.dart';
 import '../../models/enum_constants.dart';

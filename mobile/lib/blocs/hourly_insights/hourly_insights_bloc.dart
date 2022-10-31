@@ -1,97 +1,56 @@
 import 'dart:async';
 
+import 'package:app/models/models.dart';
 import 'package:app/utils/extensions.dart';
-import 'package:bloc/bloc.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../models/air_quality_reading.dart';
-import '../../models/enum_constants.dart';
-import '../../models/insights.dart';
+import '../../constants/config.dart';
 import '../../services/app_service.dart';
 import '../../services/local_storage.dart';
 import '../../utils/data_formatter.dart';
+import '../../utils/network.dart';
+import '../commons.dart';
 
-part 'hourly_insights_event.dart';
 part 'hourly_insights_state.dart';
 
-class HourlyInsightsBloc
-    extends Bloc<HourlyInsightsEvent, HourlyInsightsState> {
-  HourlyInsightsBloc()
-      : super(const HourlyInsightsState(
-          siteId: '',
-          insights: {},
-          airQualityReading: null,
-          chartIndex: 0,
-          pollutant: Pollutant.pm2_5,
-          selectedInsight: null,
-        )) {
-    on<LoadHourlyInsights>(_onLoadHourlyInsights);
-    on<ClearHourlyInsightsTab>(_onClearInsights);
-    on<SwitchHourlyInsightsPollutant>(_onSwitchPollutant);
-    on<UpdateHourlyInsightsActiveIndex>(_onUpdateActiveIndex);
-    on<UpdateHourlyInsightsSelectedInsight>(_onUpdateSelectedInsight);
+class HourlyInsightsBloc extends Bloc<InsightsEvent, HourlyInsightsState> {
+  HourlyInsightsBloc() : super(const HourlyInsightsState.initial()) {
+    on<LoadInsights>(_onLoadHourlyInsights);
+    on<ClearInsightsTab>(_onClearInsights);
+    on<SwitchInsightsPollutant>(_onSwitchPollutant);
+    on<UpdateInsightsActiveIndex>(_onUpdateActiveIndex);
+    on<UpdateSelectedInsight>(_onUpdateSelectedInsight);
+    on<RefreshInsights>(_onRefreshInsights);
   }
 
-  Future<void> _loadingInsights(
+  Future<void> _onRefreshInsights(
+    RefreshInsights event,
     Emitter<HourlyInsightsState> emit,
   ) async {
-    emit(HourlyInsightsLoading(
-      siteId: state.siteId,
-      insights: state.insights,
-      airQualityReading: state.airQualityReading,
-      chartIndex: state.chartIndex,
-      pollutant: state.pollutant,
-      selectedInsight: state.selectedInsight,
-    ));
+    return _refreshCharts(emit);
   }
 
   Future<void> _onUpdateSelectedInsight(
-    UpdateHourlyInsightsSelectedInsight event,
+    UpdateSelectedInsight event,
     Emitter<HourlyInsightsState> emit,
   ) async {
-    await _loadingInsights(emit);
-
-    return emit(HourlyInsightsState(
-      siteId: state.siteId,
-      insights: state.insights,
-      airQualityReading: state.airQualityReading,
-      chartIndex: state.chartIndex,
-      pollutant: state.pollutant,
-      selectedInsight: event.selectedInsight,
-    ));
+    return emit(state.copyWith(selectedInsight: event.selectedInsight));
   }
 
   Future<void> _onUpdateActiveIndex(
-    UpdateHourlyInsightsActiveIndex event,
+    UpdateInsightsActiveIndex event,
     Emitter<HourlyInsightsState> emit,
   ) async {
-    await _loadingInsights(emit);
-
-    return emit(HourlyInsightsState(
-      siteId: state.siteId,
-      insights: state.insights,
-      airQualityReading: state.airQualityReading,
-      chartIndex: event.index,
-      pollutant: state.pollutant,
-      selectedInsight: state.selectedInsight,
-    ));
+    return emit(state.copyWith(chartIndex: event.index));
   }
 
   Future<void> _onSwitchPollutant(
-    SwitchHourlyInsightsPollutant event,
+    SwitchInsightsPollutant event,
     Emitter<HourlyInsightsState> emit,
   ) async {
-    await _loadingInsights(emit);
-
-    return emit(HourlyInsightsState(
-      siteId: state.siteId,
-      insights: state.insights,
-      airQualityReading: state.airQualityReading,
-      chartIndex: state.chartIndex,
-      pollutant: event.pollutant,
-      selectedInsight: state.selectedInsight,
-    ));
+    return emit(state.copyWith(pollutant: event.pollutant));
   }
 
   Future<Map<Pollutant, List<List<charts.Series<Insights, String>>>>>
@@ -126,56 +85,16 @@ class HourlyInsightsBloc
     return {Pollutant.pm2_5: pm2_5ChartData, Pollutant.pm10: pm10ChartData};
   }
 
-  Future<void> _onLoadHourlyInsights(
-    LoadHourlyInsights event,
+  Future<void> _refreshCharts(
     Emitter<HourlyInsightsState> emit,
   ) async {
-    await _loadingInsights(emit);
-
-    emit(HourlyInsightsState(
-      siteId: event.siteId ?? state.siteId,
-      insights: state.insights,
-      airQualityReading: event.airQualityReading ?? state.airQualityReading,
-      chartIndex: 0,
-      pollutant: Pollutant.pm2_5,
-      selectedInsight: state.selectedInsight,
-    ));
-
-    final dbInsights =
-        await DBHelper().getInsights(state.siteId, Frequency.hourly);
-
-    if (dbInsights.isNotEmpty) {
-      await _loadingInsights(emit);
-
-      final charts = await _createInsightsCharts(dbInsights);
-      var selectedInsight = charts[Pollutant.pm2_5]?.first.first.data.first;
-      var chartIndex = state.chartIndex;
-
-      for (final chart in charts[Pollutant.pm2_5]!) {
-        for (final chart_2 in chart.toList()) {
-          for (final chart_3 in chart_2.data) {
-            if (chart_3.time.isToday()) {
-              chartIndex = charts[Pollutant.pm2_5]!.indexOf(chart);
-              selectedInsight = chart_3;
-              break;
-            }
-          }
-          if (chartIndex != state.chartIndex) {
-            break;
-          }
-        }
-        if (chartIndex != state.chartIndex) {
-          break;
-        }
-      }
-
-      emit(HourlyInsightsState(
-        insights: charts,
-        siteId: state.siteId,
-        airQualityReading: state.airQualityReading,
-        pollutant: state.pollutant,
-        selectedInsight: selectedInsight,
-        chartIndex: chartIndex,
+    final hasConnection = await hasNetworkConnection();
+    if (!hasConnection) {
+      return emit(state.copyWith(
+        errorMessage: Config.connectionErrorMessage,
+        insightsStatus: state.insights.isEmpty
+            ? InsightsStatus.failed
+            : InsightsStatus.error,
       ));
     }
 
@@ -183,23 +102,27 @@ class HourlyInsightsBloc
       [state.siteId],
       frequency: Frequency.hourly,
     );
-    if (apiInsights.isNotEmpty) {
-      await _loadingInsights(emit);
 
-      final charts = await _createInsightsCharts(apiInsights);
-      var selectedInsight = charts[state.pollutant]?.first.first.data.first;
-      var chartIndex = state.chartIndex;
+    if (apiInsights.isEmpty) {
+      return emit(state.copyWith(
+        insightsStatus: state.insights.isEmpty
+            ? InsightsStatus.failed
+            : state.insightsStatus,
+      ));
+    }
 
-      for (final chart in charts[state.pollutant]!) {
-        for (final chart_2 in chart.toList()) {
-          for (final chart_3 in chart_2.data) {
-            if (chart_3.time.isToday()) {
-              chartIndex = charts[state.pollutant]!.indexOf(chart);
-              selectedInsight = chart_3;
-              break;
-            }
-          }
-          if (chartIndex != state.chartIndex) {
+    emit(state.copyWith(insightsStatus: InsightsStatus.refreshing));
+
+    final charts = await _createInsightsCharts(apiInsights);
+    var selectedInsight = charts[state.pollutant]?.first.first.data.first;
+    var chartIndex = state.chartIndex;
+
+    for (final chart in charts[state.pollutant]!) {
+      for (final chart_2 in chart.toList()) {
+        for (final chart_3 in chart_2.data) {
+          if (chart_3.time.isToday()) {
+            chartIndex = charts[state.pollutant]!.indexOf(chart);
+            selectedInsight = chart_3;
             break;
           }
         }
@@ -207,29 +130,72 @@ class HourlyInsightsBloc
           break;
         }
       }
-
-      emit(HourlyInsightsState(
-        insights: charts,
-        siteId: state.siteId,
-        airQualityReading: state.airQualityReading,
-        pollutant: state.pollutant,
-        selectedInsight: selectedInsight,
-        chartIndex: chartIndex,
-      ));
+      if (chartIndex != state.chartIndex) {
+        break;
+      }
     }
+
+    return emit(state.copyWith(
+      insights: charts,
+      selectedInsight: selectedInsight,
+      chartIndex: chartIndex,
+      insightsStatus: InsightsStatus.loaded,
+    ));
+  }
+
+  Future<void> _onLoadHourlyInsights(
+    LoadInsights event,
+    Emitter<HourlyInsightsState> emit,
+  ) async {
+    emit(const HourlyInsightsState.initial().copyWith(
+      airQualityReading: event.airQualityReading ?? state.airQualityReading,
+      siteId: event.siteId ?? state.siteId,
+      insightsStatus: InsightsStatus.loading,
+    ));
+
+    final dbInsights =
+        await DBHelper().getInsights(state.siteId, Frequency.hourly);
+
+    if (dbInsights.isEmpty) {
+      return _refreshCharts(emit);
+    }
+
+    final charts = await _createInsightsCharts(dbInsights);
+    var selectedInsight = charts[Pollutant.pm2_5]?.first.first.data.first;
+    var chartIndex = state.chartIndex;
+
+    for (final chart in charts[Pollutant.pm2_5]!) {
+      for (final chart_2 in chart.toList()) {
+        for (final chart_3 in chart_2.data) {
+          if (chart_3.time.isToday()) {
+            chartIndex = charts[Pollutant.pm2_5]!.indexOf(chart);
+            selectedInsight = chart_3;
+            break;
+          }
+        }
+        if (chartIndex != state.chartIndex) {
+          break;
+        }
+      }
+      if (chartIndex != state.chartIndex) {
+        break;
+      }
+    }
+
+    emit(state.copyWith(
+      insights: charts,
+      selectedInsight: selectedInsight,
+      chartIndex: chartIndex,
+      insightsStatus: InsightsStatus.loaded,
+    ));
+
+    return _refreshCharts(emit);
   }
 
   Future<void> _onClearInsights(
-    ClearHourlyInsightsTab event,
+    ClearInsightsTab event,
     Emitter<HourlyInsightsState> emit,
   ) async {
-    return emit(const HourlyInsightsState(
-      siteId: '',
-      insights: {},
-      airQualityReading: null,
-      chartIndex: 0,
-      pollutant: Pollutant.pm2_5,
-      selectedInsight: null,
-    ));
+    return emit(const HourlyInsightsState.initial());
   }
 }

@@ -58,9 +58,7 @@ class _InsightsPageState extends State<InsightsPage>
                     onTap: (value) {
                       setState(() => _tabController.index = value);
                       if (value == 0) {
-                        context
-                            .read<HourlyInsightsBloc>()
-                            .add(LoadHourlyInsights(
+                        context.read<HourlyInsightsBloc>().add(LoadInsights(
                               siteId: widget.airQualityReading.referenceSite,
                               airQualityReading: widget.airQualityReading,
                             ));
@@ -117,7 +115,7 @@ class _InsightsPageState extends State<InsightsPage>
       vsync: this,
     );
 
-    context.read<HourlyInsightsBloc>().add(LoadHourlyInsights(
+    context.read<HourlyInsightsBloc>().add(LoadInsights(
           siteId: widget.airQualityReading.referenceSite,
           airQualityReading: widget.airQualityReading,
         ));
@@ -134,7 +132,7 @@ class _InsightsPageState extends State<InsightsPage>
   }
 
   Future<bool> onWillPop() {
-    context.read<HourlyInsightsBloc>().add(const ClearHourlyInsightsTab());
+    context.read<HourlyInsightsBloc>().add(const ClearInsightsTab());
     context.read<DailyInsightsBloc>().add(const ClearDailyInsightsTab());
     return Future.value(true);
   }
