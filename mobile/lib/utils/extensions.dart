@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:app/models/enum_constants.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -23,16 +22,19 @@ extension IntExt on int {
 
 extension InsightsExt on Insights {
   String lastUpdated(Frequency frequency) {
-    if (frequency == Frequency.daily) {
-      return empty
-          ? 'Not available'
-          : time.isToday()
-              ? 'Updated Today'
-              : 'Updated ${DateFormat('EEEE, d MMM').format(time)}';
-    } else {
-      return empty
-          ? 'Not available'
-          : 'Updated ${DateFormat('hh:mm a').format(time)}';
+    if (empty) {
+      return 'Not available';
+    }
+
+    if (time.isToday()) {
+      return 'Updated Today';
+    }
+
+    switch (frequency) {
+      case Frequency.daily:
+        return 'Updated ${DateFormat('EEEE, d MMM').format(time)}';
+      case Frequency.hourly:
+        return 'Updated ${DateFormat('hh:mm a').format(time)}';
     }
   }
 
@@ -50,7 +52,6 @@ extension InsightsExt on Insights {
     }
 
     return chartValue(pollutant).toStringAsFixed(0);
-    ;
   }
 
   Color chartAvatarValueColor(Pollutant pollutant) {
