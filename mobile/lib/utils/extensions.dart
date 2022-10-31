@@ -23,16 +23,19 @@ extension IntExt on int {
 
 extension InsightsExt on Insights {
   String lastUpdated(Frequency frequency) {
-    if (frequency == Frequency.daily) {
-      return empty
-          ? 'Not available'
-          : time.isToday()
-              ? 'Updated Today'
-              : 'Updated ${DateFormat('EEEE, d MMM').format(time)}';
-    } else {
-      return empty
-          ? 'Not available'
-          : 'Updated ${DateFormat('hh:mm a').format(time)}';
+    if (empty) {
+      return 'Not available';
+    }
+
+    if (time.isToday()) {
+      return 'Updated Today';
+    }
+
+    switch (frequency) {
+      case Frequency.daily:
+        return 'Updated ${DateFormat('EEEE, d MMM').format(time)}';
+      case Frequency.hourly:
+        return 'Updated ${DateFormat('hh:mm a').format(time)}';
     }
   }
 

@@ -30,6 +30,7 @@ class _InsightsPageState extends State<InsightsPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+
     return Scaffold(
       appBar: const AppTopBar('More Insights'),
       body: WillPopScope(

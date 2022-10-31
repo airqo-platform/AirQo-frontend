@@ -99,70 +99,71 @@ class HourlyAnalyticsGraph extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<HourlyInsightsBloc, InsightsState>(
-        builder: (context, state) {
-      if (!state.insightsCharts.keys.toList().contains(state.pollutant)) {
-        return const ContainerLoadingAnimation(height: 290.0, radius: 8.0);
-      }
+      builder: (context, state) {
+        if (!state.insightsCharts.keys.toList().contains(state.pollutant)) {
+          return const ContainerLoadingAnimation(height: 290.0, radius: 8.0);
+        }
 
-      final data = state.insightsCharts[state.pollutant]![state.chartIndex];
+        final data = state.insightsCharts[state.pollutant]![state.chartIndex];
 
-      return LayoutBuilder(
-        builder: (BuildContext buildContext, BoxConstraints constraints) {
-          return SizedBox(
-            width: MediaQuery.of(buildContext).size.width - 50,
-            height: 150,
-            child: charts.BarChart(
-              data,
-              animate: true,
-              defaultRenderer: charts.BarRendererConfig<String>(
-                strokeWidthPx: 20,
-                stackedBarPaddingPx: 0,
-                cornerStrategy: const charts.ConstCornerStrategy(
-                  3,
+        return LayoutBuilder(
+          builder: (BuildContext buildContext, BoxConstraints constraints) {
+            return SizedBox(
+              width: MediaQuery.of(buildContext).size.width - 50,
+              height: 150,
+              child: charts.BarChart(
+                data,
+                animate: true,
+                defaultRenderer: charts.BarRendererConfig<String>(
+                  strokeWidthPx: 20,
+                  stackedBarPaddingPx: 0,
+                  cornerStrategy: const charts.ConstCornerStrategy(
+                    3,
+                  ),
                 ),
-              ),
-              defaultInteractions: true,
-              behaviors: [
-                charts.LinePointHighlighter(
-                  showHorizontalFollowLine:
-                      charts.LinePointHighlighterFollowLineType.none,
-                  showVerticalFollowLine:
-                      charts.LinePointHighlighterFollowLineType.nearest,
-                ),
-                charts.DomainHighlighter(),
-                charts.SelectNearest(
-                  eventTrigger: charts.SelectionTrigger.tapAndDrag,
-                ),
-              ],
-              selectionModels: [
-                charts.SelectionModelConfig(
-                  changedListener: (charts.SelectionModel model) {
-                    try {
-                      final value = model.selectedDatum[0].index;
-                      if (value != null) {
-                        context.read<HourlyInsightsBloc>().add(
-                              UpdateSelectedInsight(
-                                model.selectedSeries[0].data[value],
-                              ),
-                            );
+                defaultInteractions: true,
+                behaviors: [
+                  charts.LinePointHighlighter(
+                    showHorizontalFollowLine:
+                        charts.LinePointHighlighterFollowLineType.none,
+                    showVerticalFollowLine:
+                        charts.LinePointHighlighterFollowLineType.nearest,
+                  ),
+                  charts.DomainHighlighter(),
+                  charts.SelectNearest(
+                    eventTrigger: charts.SelectionTrigger.tapAndDrag,
+                  ),
+                ],
+                selectionModels: [
+                  charts.SelectionModelConfig(
+                    changedListener: (charts.SelectionModel model) {
+                      try {
+                        final value = model.selectedDatum[0].index;
+                        if (value != null) {
+                          context.read<HourlyInsightsBloc>().add(
+                                UpdateSelectedInsight(
+                                  model.selectedSeries[0].data[value],
+                                ),
+                              );
+                        }
+                      } catch (exception, stackTrace) {
+                        debugPrint(
+                          '${exception.toString()}\n${stackTrace.toString()}',
+                        );
                       }
-                    } catch (exception, stackTrace) {
-                      debugPrint(
-                        '${exception.toString()}\n${stackTrace.toString()}',
-                      );
-                    }
-                  },
+                    },
+                  ),
+                ],
+                domainAxis: chartsYAxisScale(
+                  Frequency.hourly.staticTicks(),
                 ),
-              ],
-              domainAxis: chartsYAxisScale(
-                Frequency.hourly.staticTicks(),
+                primaryMeasureAxis: chartsXAxisScale(),
               ),
-              primaryMeasureAxis: chartsXAxisScale(),
-            ),
-          );
-        },
-      );
-    });
+            );
+          },
+        );
+      },
+    );
   }
 }
 
@@ -172,50 +173,51 @@ class MiniHourlyAnalyticsGraph extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<DailyInsightsBloc, InsightsState>(
-        builder: (context, state) {
-      if (!state.miniInsightsCharts.keys.toList().contains(state.pollutant)) {
-        return const SizedBox();
-      }
+      builder: (context, state) {
+        if (!state.miniInsightsCharts.keys.toList().contains(state.pollutant)) {
+          return const SizedBox();
+        }
 
-      final data = state.miniInsightsCharts[state.pollutant];
+        final data = state.miniInsightsCharts[state.pollutant];
 
-      return LayoutBuilder(
-        builder: (BuildContext buildContext, BoxConstraints constraints) {
-          return SizedBox(
-            width: MediaQuery.of(buildContext).size.width - 50,
-            height: 150,
-            child: charts.BarChart(
-              data!,
-              animate: true,
-              defaultRenderer: charts.BarRendererConfig<String>(
-                strokeWidthPx: 20,
-                stackedBarPaddingPx: 0,
-                cornerStrategy: const charts.ConstCornerStrategy(
-                  3,
+        return LayoutBuilder(
+          builder: (BuildContext buildContext, BoxConstraints constraints) {
+            return SizedBox(
+              width: MediaQuery.of(buildContext).size.width - 50,
+              height: 150,
+              child: charts.BarChart(
+                data!,
+                animate: true,
+                defaultRenderer: charts.BarRendererConfig<String>(
+                  strokeWidthPx: 20,
+                  stackedBarPaddingPx: 0,
+                  cornerStrategy: const charts.ConstCornerStrategy(
+                    3,
+                  ),
                 ),
+                defaultInteractions: true,
+                behaviors: [
+                  charts.LinePointHighlighter(
+                    showHorizontalFollowLine:
+                        charts.LinePointHighlighterFollowLineType.none,
+                    showVerticalFollowLine:
+                        charts.LinePointHighlighterFollowLineType.nearest,
+                  ),
+                  charts.DomainHighlighter(),
+                  charts.SelectNearest(
+                    eventTrigger: charts.SelectionTrigger.tapAndDrag,
+                  ),
+                ],
+                domainAxis: chartsYAxisScale(
+                  Frequency.hourly.staticTicks(),
+                ),
+                primaryMeasureAxis: chartsXAxisScale(),
               ),
-              defaultInteractions: true,
-              behaviors: [
-                charts.LinePointHighlighter(
-                  showHorizontalFollowLine:
-                      charts.LinePointHighlighterFollowLineType.none,
-                  showVerticalFollowLine:
-                      charts.LinePointHighlighterFollowLineType.nearest,
-                ),
-                charts.DomainHighlighter(),
-                charts.SelectNearest(
-                  eventTrigger: charts.SelectionTrigger.tapAndDrag,
-                ),
-              ],
-              domainAxis: chartsYAxisScale(
-                Frequency.hourly.staticTicks(),
-              ),
-              primaryMeasureAxis: chartsXAxisScale(),
-            ),
-          );
-        },
-      );
-    });
+            );
+          },
+        );
+      },
+    );
   }
 }
 
@@ -225,70 +227,71 @@ class DailyAnalyticsGraph extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<DailyInsightsBloc, InsightsState>(
-        builder: (context, state) {
-      if (!state.insightsCharts.keys.toList().contains(state.pollutant)) {
-        return const ContainerLoadingAnimation(height: 290.0, radius: 8.0);
-      }
+      builder: (context, state) {
+        if (!state.insightsCharts.keys.toList().contains(state.pollutant)) {
+          return const ContainerLoadingAnimation(height: 290.0, radius: 8.0);
+        }
 
-      final data = state.insightsCharts[state.pollutant]![state.chartIndex];
+        final data = state.insightsCharts[state.pollutant]![state.chartIndex];
 
-      return LayoutBuilder(
-        builder: (BuildContext buildContext, BoxConstraints constraints) {
-          return SizedBox(
-            width: MediaQuery.of(buildContext).size.width - 50,
-            height: 150,
-            child: charts.BarChart(
-              data,
-              animate: true,
-              defaultRenderer: charts.BarRendererConfig<String>(
-                strokeWidthPx: 20,
-                stackedBarPaddingPx: 0,
-                cornerStrategy: const charts.ConstCornerStrategy(
-                  5,
+        return LayoutBuilder(
+          builder: (BuildContext buildContext, BoxConstraints constraints) {
+            return SizedBox(
+              width: MediaQuery.of(buildContext).size.width - 50,
+              height: 150,
+              child: charts.BarChart(
+                data,
+                animate: true,
+                defaultRenderer: charts.BarRendererConfig<String>(
+                  strokeWidthPx: 20,
+                  stackedBarPaddingPx: 0,
+                  cornerStrategy: const charts.ConstCornerStrategy(
+                    5,
+                  ),
                 ),
-              ),
-              defaultInteractions: true,
-              behaviors: [
-                charts.LinePointHighlighter(
-                  showHorizontalFollowLine:
-                      charts.LinePointHighlighterFollowLineType.none,
-                  showVerticalFollowLine:
-                      charts.LinePointHighlighterFollowLineType.nearest,
-                ),
-                charts.DomainHighlighter(),
-                charts.SelectNearest(
-                  eventTrigger: charts.SelectionTrigger.tapAndDrag,
-                ),
-              ],
-              selectionModels: [
-                charts.SelectionModelConfig(
-                  changedListener: (charts.SelectionModel model) {
-                    try {
-                      final value = model.selectedDatum[0].index;
-                      if (value != null) {
-                        context.read<DailyInsightsBloc>().add(
-                              UpdateSelectedInsight(
-                                model.selectedSeries[0].data[value],
-                              ),
-                            );
+                defaultInteractions: true,
+                behaviors: [
+                  charts.LinePointHighlighter(
+                    showHorizontalFollowLine:
+                        charts.LinePointHighlighterFollowLineType.none,
+                    showVerticalFollowLine:
+                        charts.LinePointHighlighterFollowLineType.nearest,
+                  ),
+                  charts.DomainHighlighter(),
+                  charts.SelectNearest(
+                    eventTrigger: charts.SelectionTrigger.tapAndDrag,
+                  ),
+                ],
+                selectionModels: [
+                  charts.SelectionModelConfig(
+                    changedListener: (charts.SelectionModel model) {
+                      try {
+                        final value = model.selectedDatum[0].index;
+                        if (value != null) {
+                          context.read<DailyInsightsBloc>().add(
+                                UpdateSelectedInsight(
+                                  model.selectedSeries[0].data[value],
+                                ),
+                              );
+                        }
+                      } catch (exception, stackTrace) {
+                        debugPrint(
+                          '${exception.toString()}\n${stackTrace.toString()}',
+                        );
                       }
-                    } catch (exception, stackTrace) {
-                      debugPrint(
-                        '${exception.toString()}\n${stackTrace.toString()}',
-                      );
-                    }
-                  },
+                    },
+                  ),
+                ],
+                domainAxis: chartsYAxisScale(
+                  Frequency.daily.staticTicks(),
                 ),
-              ],
-              domainAxis: chartsYAxisScale(
-                Frequency.daily.staticTicks(),
+                primaryMeasureAxis: chartsXAxisScale(),
               ),
-              primaryMeasureAxis: chartsXAxisScale(),
-            ),
-          );
-        },
-      );
-    });
+            );
+          },
+        );
+      },
+    );
   }
 }
 
@@ -417,336 +420,340 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<HourlyInsightsBloc, InsightsState>(
-        builder: (context, state) {
-      return Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: const BorderRadius.all(
-            Radius.circular(8.0),
+      builder: (context, state) {
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: const BorderRadius.all(
+              Radius.circular(8.0),
+            ),
+            border: Border.all(color: Colors.transparent),
           ),
-          border: Border.all(color: Colors.transparent),
-        ),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            AutoSizeText(
-                              insightsChartTitleDateTimeToString(
-                                state.selectedInsight?.time ?? DateTime.now(),
-                                Frequency.hourly,
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              AutoSizeText(
+                                insightsChartTitleDateTimeToString(
+                                  state.selectedInsight?.time ?? DateTime.now(),
+                                  Frequency.hourly,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: CustomTextStyle.bodyText4(context)
+                                    ?.copyWith(
+                                  color: CustomColors.appColorBlack
+                                      .withOpacity(0.3),
+                                ),
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style:
-                                  CustomTextStyle.bodyText4(context)?.copyWith(
-                                color:
-                                    CustomColors.appColorBlack.withOpacity(0.3),
+                              AutoSizeText(
+                                state.airQualityReading?.name ?? '',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: CustomTextStyle.headline8(context)
+                                    ?.copyWith(
+                                  color: CustomColors.appColorBlack,
+                                ),
                               ),
-                            ),
-                            AutoSizeText(
-                              state.airQualityReading?.name ?? '',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style:
-                                  CustomTextStyle.headline8(context)?.copyWith(
-                                color: CustomColors.appColorBlack,
+                              AutoSizeText(
+                                state.airQualityReading?.location ?? '',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .caption
+                                    ?.copyWith(
+                                      color: CustomColors.appColorBlack
+                                          .withOpacity(0.3),
+                                    ),
                               ),
-                            ),
-                            AutoSizeText(
-                              state.airQualityReading?.location ?? '',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style:
-                                  Theme.of(context).textTheme.caption?.copyWith(
-                                        color: CustomColors.appColorBlack
-                                            .withOpacity(0.3),
-                                      ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      GestureDetector(
-                        onTap: () {
-                          ToolTip(context, ToolTipType.info).show(
-                            widgetKey: _infoToolTipKey,
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: () {
+                            ToolTip(context, ToolTipType.info).show(
+                              widgetKey: _infoToolTipKey,
+                            );
+                          },
+                          child: InsightsAvatar(
+                            insights: state.selectedInsight!,
+                            size: 64,
+                            pollutant: state.pollutant,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                      height: 160,
+                      child: ScrollablePositionedList.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount:
+                            state.insightsCharts[state.pollutant]?.length ?? 0,
+                        itemBuilder: (context, index) {
+                          return VisibilityDetector(
+                            key: Key(
+                              index.toString(),
+                            ),
+                            onVisibilityChanged:
+                                (VisibilityInfo visibilityInfo) {
+                              if (!isScrolling &&
+                                  visibilityInfo.visibleFraction > 0.3 &&
+                                  state.chartIndex != index) {
+                                context
+                                    .read<HourlyInsightsBloc>()
+                                    .add(UpdateInsightsActiveIndex(index));
+                              }
+                            },
+                            child: const HourlyAnalyticsGraph(),
                           );
                         },
-                        child: InsightsAvatar(
-                          insights: state.selectedInsight!,
-                          size: 64,
-                          pollutant: state.pollutant,
-                        ),
+                        itemScrollController: _itemScrollController,
                       ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: 160,
-                    child: ScrollablePositionedList.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount:
-                          state.insightsCharts[state.pollutant]?.length ?? 0,
-                      itemBuilder: (context, index) {
-                        return VisibilityDetector(
-                          key: Key(
-                            index.toString(),
-                          ),
-                          onVisibilityChanged: (VisibilityInfo visibilityInfo) {
-                            if (!isScrolling &&
-                                visibilityInfo.visibleFraction > 0.3 &&
-                                state.chartIndex != index) {
-                              context
-                                  .read<HourlyInsightsBloc>()
-                                  .add(UpdateInsightsActiveIndex(index));
-                            }
-                          },
-                          child: const HourlyAnalyticsGraph(),
+                    ),
+                    BlocListener<HourlyInsightsBloc, InsightsState>(
+                      listenWhen: (listenerPreviousState, listenerState) {
+                        return listenerPreviousState.chartIndex !=
+                            listenerState.chartIndex;
+                      },
+                      listener: (context, listenerState) {
+                        _scrollToChart(
+                          duration: const Duration(microseconds: 100),
                         );
                       },
-                      itemScrollController: _itemScrollController,
+                      child: Container(),
                     ),
-                  ),
-                  BlocListener<HourlyInsightsBloc, InsightsState>(
-                    listenWhen: (listenerPreviousState, listenerState) {
-                      return listenerPreviousState.chartIndex !=
-                          listenerState.chartIndex;
-                    },
-                    listener: (context, listenerState) {
-                      _scrollToChart(
-                        duration: const Duration(microseconds: 100),
-                      );
-                    },
-                    child: Container(),
-                  ),
-                  Visibility(
-                    visible: state.selectedInsight
-                            ?.lastUpdated(Frequency.hourly)
-                            .isNotEmpty ??
-                        true,
-                    child: const SizedBox(
-                      height: 13.0,
+                    Visibility(
+                      visible: state.selectedInsight
+                              ?.lastUpdated(Frequency.hourly)
+                              .isNotEmpty ??
+                          true,
+                      child: const SizedBox(
+                        height: 13.0,
+                      ),
                     ),
-                  ),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        constraints: BoxConstraints(
-                          maxWidth: MediaQuery.of(context).size.width / 2,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context).size.width / 2,
+                          ),
+                          child: Text(
+                            state.selectedInsight
+                                    ?.lastUpdated(Frequency.hourly) ??
+                                '',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 8,
+                              color: Colors.black.withOpacity(0.3),
+                            ),
+                          ),
                         ),
-                        child: Text(
-                          state.selectedInsight
-                                  ?.lastUpdated(Frequency.hourly) ??
-                              '',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 8,
-                            color: Colors.black.withOpacity(0.3),
+                        const SizedBox(
+                          width: 8.0,
+                        ),
+                        Visibility(
+                          visible:
+                              state.insightsStatus == InsightsStatus.refreshing,
+                          child: SvgPicture.asset(
+                            'assets/icon/loader.svg',
+                            semanticsLabel: 'loader',
+                            height: 8,
+                            width: 8,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(
+                height: 8.0,
+              ),
+
+              const Divider(
+                color: Color(0xffC4C4C4),
+              ),
+
+              const SizedBox(
+                height: 8.0,
+              ),
+              // footer
+              Container(
+                width: MediaQuery.of(context).size.width,
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        ToolTip(context, ToolTipType.info).show(
+                          widgetKey: _infoToolTipKey,
+                        );
+                      },
+                      child: Visibility(
+                        visible: !state.selectedInsight!.empty,
+                        child: Container(
+                          padding:
+                              const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
+                          constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context).size.width / 2,
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(40.0),
+                            ),
+                            color: state.pollutant == Pollutant.pm2_5
+                                ? Pollutant.pm2_5
+                                    .color(
+                                      state.selectedInsight!
+                                          .chartValue(state.pollutant),
+                                    )
+                                    .withOpacity(0.4)
+                                : Pollutant.pm10
+                                    .color(
+                                      state.selectedInsight!
+                                          .chartValue(state.pollutant),
+                                    )
+                                    .withOpacity(0.4),
+                            border: Border.all(color: Colors.transparent),
+                          ),
+                          child: AutoSizeText(
+                            state.pollutant == Pollutant.pm2_5
+                                ? Pollutant.pm2_5
+                                    .stringValue(
+                                      state.selectedInsight!
+                                          .chartValue(state.pollutant),
+                                    )
+                                    .trimEllipsis()
+                                : Pollutant.pm10
+                                    .stringValue(
+                                      state.selectedInsight!
+                                          .chartValue(state.pollutant),
+                                    )
+                                    .trimEllipsis(),
+                            maxLines: 1,
+                            maxFontSize: 14,
+                            textAlign: TextAlign.start,
+                            overflow: TextOverflow.ellipsis,
+                            style: CustomTextStyle.button2(context)?.copyWith(
+                              color: state.pollutant == Pollutant.pm2_5
+                                  ? Pollutant.pm2_5.textColor(
+                                      value: state.selectedInsight!
+                                          .chartValue(state.pollutant),
+                                      graph: true,
+                                    )
+                                  : Pollutant.pm10.textColor(
+                                      value: state.selectedInsight!
+                                          .chartValue(state.pollutant),
+                                      graph: true,
+                                    ),
+                            ),
                           ),
                         ),
                       ),
-                      const SizedBox(
-                        width: 8.0,
-                      ),
-                      Visibility(
-                        visible:
-                            state.insightsStatus == InsightsStatus.refreshing,
-                        child: SvgPicture.asset(
-                          'assets/icon/loader.svg',
-                          semanticsLabel: 'loader',
-                          height: 8,
-                          width: 8,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(
-              height: 8.0,
-            ),
-
-            const Divider(
-              color: Color(0xffC4C4C4),
-            ),
-
-            const SizedBox(
-              height: 8.0,
-            ),
-            // footer
-            Container(
-              width: MediaQuery.of(context).size.width,
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      ToolTip(context, ToolTipType.info).show(
-                        widgetKey: _infoToolTipKey,
-                      );
-                    },
-                    child: Visibility(
-                      visible: !state.selectedInsight!.empty,
+                    ),
+                    Visibility(
+                      visible: state.selectedInsight!.empty,
                       child: Container(
-                        padding:
-                            const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
-                        constraints: BoxConstraints(
-                          maxWidth: MediaQuery.of(context).size.width / 2,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10.0,
+                          vertical: 2.0,
                         ),
                         decoration: BoxDecoration(
                           borderRadius: const BorderRadius.all(
                             Radius.circular(40.0),
                           ),
-                          color: state.pollutant == Pollutant.pm2_5
-                              ? Pollutant.pm2_5
-                                  .color(
-                                    state.selectedInsight!
-                                        .chartValue(state.pollutant),
-                                  )
-                                  .withOpacity(0.4)
-                              : Pollutant.pm10
-                                  .color(
-                                    state.selectedInsight!
-                                        .chartValue(state.pollutant),
-                                  )
-                                  .withOpacity(0.4),
+                          color: CustomColors.greyColor.withOpacity(0.4),
                           border: Border.all(color: Colors.transparent),
                         ),
-                        child: AutoSizeText(
-                          state.pollutant == Pollutant.pm2_5
-                              ? Pollutant.pm2_5
-                                  .stringValue(
-                                    state.selectedInsight!
-                                        .chartValue(state.pollutant),
-                                  )
-                                  .trimEllipsis()
-                              : Pollutant.pm10
-                                  .stringValue(
-                                    state.selectedInsight!
-                                        .chartValue(state.pollutant),
-                                  )
-                                  .trimEllipsis(),
+                        child: Text(
+                          'Not Available',
                           maxLines: 1,
-                          maxFontSize: 14,
-                          textAlign: TextAlign.start,
+                          textAlign: TextAlign.center,
                           overflow: TextOverflow.ellipsis,
-                          style: CustomTextStyle.button2(context)?.copyWith(
-                            color: state.pollutant == Pollutant.pm2_5
-                                ? Pollutant.pm2_5.textColor(
-                                    value: state.selectedInsight!
-                                        .chartValue(state.pollutant),
-                                    graph: true,
-                                  )
-                                : Pollutant.pm10.textColor(
-                                    value: state.selectedInsight!
-                                        .chartValue(state.pollutant),
-                                    graph: true,
-                                  ),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: CustomColors.darkGreyColor,
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  Visibility(
-                    visible: state.selectedInsight!.empty,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0,
-                        vertical: 2.0,
-                      ),
-                      decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(40.0),
-                        ),
-                        color: CustomColors.greyColor.withOpacity(0.4),
-                        border: Border.all(color: Colors.transparent),
-                      ),
-                      child: Text(
-                        'Not Available',
-                        maxLines: 1,
-                        textAlign: TextAlign.center,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: CustomColors.darkGreyColor,
-                        ),
-                      ),
+                    const SizedBox(
+                      width: 8,
                     ),
-                  ),
-                  const SizedBox(
-                    width: 8,
-                  ),
-                  Visibility(
-                    visible: !state.selectedInsight!.empty,
-                    child: GestureDetector(
-                      onTap: () {
-                        pmInfoDialog(
-                          context,
-                          state.selectedInsight!.chartValue(state.pollutant),
-                        );
-                      },
-                      child: SvgPicture.asset(
-                        'assets/icon/info_icon.svg',
-                        semanticsLabel: 'Pm2.5',
-                        height: 20,
-                        width: 20,
-                        key: _infoToolTipKey,
-                      ),
-                    ),
-                  ),
-                  const Spacer(),
-                  Row(
-                    children: [
-                      Container(
-                        height: 10,
-                        width: 10,
-                        key: _forecastToolTipKey,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: state.selectedInsight!.forecast
-                              ? CustomColors.appColorBlue
-                              : CustomColors.appColorBlue.withOpacity(0.24),
-                          border: Border.all(color: Colors.transparent),
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 8.0,
-                      ),
-                      GestureDetector(
+                    Visibility(
+                      visible: !state.selectedInsight!.empty,
+                      child: GestureDetector(
                         onTap: () {
-                          ToolTip(context, ToolTipType.forecast).show(
-                            widgetKey: _forecastToolTipKey,
+                          pmInfoDialog(
+                            context,
+                            state.selectedInsight!.chartValue(state.pollutant),
                           );
                         },
-                        child: Text(
-                          'Forecast',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: CustomColors.appColorBlue,
-                          ),
+                        child: SvgPicture.asset(
+                          'assets/icon/info_icon.svg',
+                          semanticsLabel: 'Pm2.5',
+                          height: 20,
+                          width: 20,
+                          key: _infoToolTipKey,
                         ),
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                    const Spacer(),
+                    Row(
+                      children: [
+                        Container(
+                          height: 10,
+                          width: 10,
+                          key: _forecastToolTipKey,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: state.selectedInsight!.forecast
+                                ? CustomColors.appColorBlue
+                                : CustomColors.appColorBlue.withOpacity(0.24),
+                            border: Border.all(color: Colors.transparent),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 8.0,
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            ToolTip(context, ToolTipType.forecast).show(
+                              widgetKey: _forecastToolTipKey,
+                            );
+                          },
+                          child: Text(
+                            'Forecast',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: CustomColors.appColorBlue,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
-      );
-    });
+            ],
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -815,305 +822,310 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<DailyInsightsBloc, InsightsState>(
-        builder: (context, state) {
-      if (state.selectedInsight == null) {
-        return const ContainerLoadingAnimation(height: 290.0, radius: 8.0);
-      }
+      builder: (context, state) {
+        if (state.selectedInsight == null) {
+          return const ContainerLoadingAnimation(height: 290.0, radius: 8.0);
+        }
 
-      return Container(
-        padding: const EdgeInsets.only(top: 12, bottom: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: const BorderRadius.all(
-            Radius.circular(8.0),
+        return Container(
+          padding: const EdgeInsets.only(top: 12, bottom: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: const BorderRadius.all(
+              Radius.circular(8.0),
+            ),
+            border: Border.all(color: Colors.transparent),
           ),
-          border: Border.all(color: Colors.transparent),
-        ),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 0,
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            AutoSizeText(
-                              insightsChartTitleDateTimeToString(
-                                state.selectedInsight?.time ?? DateTime.now(),
-                                Frequency.daily,
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 0,
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              AutoSizeText(
+                                insightsChartTitleDateTimeToString(
+                                  state.selectedInsight?.time ?? DateTime.now(),
+                                  Frequency.daily,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: CustomTextStyle.bodyText4(context)
+                                    ?.copyWith(
+                                  color: CustomColors.appColorBlack
+                                      .withOpacity(0.3),
+                                ),
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style:
-                                  CustomTextStyle.bodyText4(context)?.copyWith(
-                                color:
-                                    CustomColors.appColorBlack.withOpacity(0.3),
+                              AutoSizeText(
+                                state.airQualityReading?.name ?? '',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: CustomTextStyle.headline8(context)
+                                    ?.copyWith(
+                                  color: CustomColors.appColorBlack,
+                                ),
                               ),
-                            ),
-                            AutoSizeText(
-                              state.airQualityReading?.name ?? '',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style:
-                                  CustomTextStyle.headline8(context)?.copyWith(
-                                color: CustomColors.appColorBlack,
+                              AutoSizeText(
+                                state.airQualityReading?.location ?? '',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .caption
+                                    ?.copyWith(
+                                      color: CustomColors.appColorBlack
+                                          .withOpacity(0.3),
+                                    ),
                               ),
-                            ),
-                            AutoSizeText(
-                              state.airQualityReading?.location ?? '',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style:
-                                  Theme.of(context).textTheme.caption?.copyWith(
-                                        color: CustomColors.appColorBlack
-                                            .withOpacity(0.3),
-                                      ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      GestureDetector(
-                        onTap: () {
-                          ToolTip(context, ToolTipType.info).show(
-                            widgetKey: _infoToolTipKey,
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: () {
+                            ToolTip(context, ToolTipType.info).show(
+                              widgetKey: _infoToolTipKey,
+                            );
+                          },
+                          child: InsightsAvatar(
+                            insights: state.selectedInsight!,
+                            size: 64,
+                            pollutant: state.pollutant,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                      height: 160,
+                      child: ScrollablePositionedList.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount:
+                            state.insightsCharts[state.pollutant]?.length ?? 0,
+                        itemBuilder: (context, index) {
+                          return VisibilityDetector(
+                            key: Key(
+                              index.toString(),
+                            ),
+                            onVisibilityChanged:
+                                (VisibilityInfo visibilityInfo) {
+                              if (!isScrolling &&
+                                  visibilityInfo.visibleFraction > 0.3 &&
+                                  state.chartIndex != index) {
+                                context
+                                    .read<DailyInsightsBloc>()
+                                    .add(UpdateInsightsActiveIndex(index));
+                              }
+                            },
+                            child: const DailyAnalyticsGraph(),
                           );
                         },
-                        child: InsightsAvatar(
-                          insights: state.selectedInsight!,
-                          size: 64,
-                          pollutant: state.pollutant,
-                        ),
+                        itemScrollController: _itemScrollController,
                       ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: 160,
-                    child: ScrollablePositionedList.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount:
-                          state.insightsCharts[state.pollutant]?.length ?? 0,
-                      itemBuilder: (context, index) {
-                        return VisibilityDetector(
-                          key: Key(
-                            index.toString(),
-                          ),
-                          onVisibilityChanged: (VisibilityInfo visibilityInfo) {
-                            if (!isScrolling &&
-                                visibilityInfo.visibleFraction > 0.3 &&
-                                state.chartIndex != index) {
-                              context
-                                  .read<DailyInsightsBloc>()
-                                  .add(UpdateInsightsActiveIndex(index));
-                            }
-                          },
-                          child: const DailyAnalyticsGraph(),
+                    ),
+                    BlocListener<DailyInsightsBloc, InsightsState>(
+                      listenWhen: (listenerPreviousState, listenerState) {
+                        return listenerPreviousState.chartIndex !=
+                            listenerState.chartIndex;
+                      },
+                      listener: (context, listenerState) {
+                        _scrollToChart(
+                          duration: const Duration(microseconds: 100),
                         );
                       },
-                      itemScrollController: _itemScrollController,
+                      child: Container(),
                     ),
-                  ),
-                  BlocListener<DailyInsightsBloc, InsightsState>(
-                    listenWhen: (listenerPreviousState, listenerState) {
-                      return listenerPreviousState.chartIndex !=
-                          listenerState.chartIndex;
-                    },
-                    listener: (context, listenerState) {
-                      _scrollToChart(
-                        duration: const Duration(microseconds: 100),
-                      );
-                    },
-                    child: Container(),
-                  ),
-                  const MiniHourlyAnalyticsGraph(),
-                  Visibility(
-                    visible: state.selectedInsight
-                            ?.lastUpdated(Frequency.daily)
-                            .isNotEmpty ??
-                        true,
-                    child: const SizedBox(
-                      height: 13.0,
+                    const MiniHourlyAnalyticsGraph(),
+                    Visibility(
+                      visible: state.selectedInsight
+                              ?.lastUpdated(Frequency.daily)
+                              .isNotEmpty ??
+                          true,
+                      child: const SizedBox(
+                        height: 13.0,
+                      ),
                     ),
-                  ),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        constraints: BoxConstraints(
-                          maxWidth: MediaQuery.of(context).size.width / 2,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context).size.width / 2,
+                          ),
+                          child: Text(
+                            state.selectedInsight
+                                    ?.lastUpdated(Frequency.daily) ??
+                                '',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 8,
+                              color: Colors.black.withOpacity(0.3),
+                            ),
+                          ),
                         ),
-                        child: Text(
-                          state.selectedInsight?.lastUpdated(Frequency.daily) ??
-                              '',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 8,
-                            color: Colors.black.withOpacity(0.3),
+                        const SizedBox(
+                          width: 8.0,
+                        ),
+                        SvgPicture.asset(
+                          'assets/icon/loader.svg',
+                          semanticsLabel: 'loader',
+                          height: 8,
+                          width: 8,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(
+                height: 8.0,
+              ),
+
+              const Divider(
+                color: Color(0xffC4C4C4),
+              ),
+
+              const SizedBox(
+                height: 8.0,
+              ),
+              // footer
+              Container(
+                width: MediaQuery.of(context).size.width,
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        ToolTip(context, ToolTipType.info).show(
+                          widgetKey: _infoToolTipKey,
+                        );
+                      },
+                      child: Visibility(
+                        visible: !state.selectedInsight!.empty,
+                        child: Container(
+                          padding:
+                              const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
+                          constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context).size.width / 2,
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(40.0),
+                            ),
+                            color: state.pollutant == Pollutant.pm2_5
+                                ? Pollutant.pm2_5
+                                    .color(
+                                      state.selectedInsight!
+                                          .chartValue(state.pollutant),
+                                    )
+                                    .withOpacity(0.4)
+                                : Pollutant.pm10
+                                    .color(
+                                      state.selectedInsight!
+                                          .chartValue(state.pollutant),
+                                    )
+                                    .withOpacity(0.4),
+                            border: Border.all(color: Colors.transparent),
+                          ),
+                          child: AutoSizeText(
+                            state.pollutant == Pollutant.pm2_5
+                                ? Pollutant.pm2_5
+                                    .stringValue(
+                                      state.selectedInsight!
+                                          .chartValue(state.pollutant),
+                                    )
+                                    .trimEllipsis()
+                                : Pollutant.pm10
+                                    .stringValue(
+                                      state.selectedInsight!
+                                          .chartValue(state.pollutant),
+                                    )
+                                    .trimEllipsis(),
+                            maxLines: 1,
+                            maxFontSize: 14,
+                            textAlign: TextAlign.start,
+                            overflow: TextOverflow.ellipsis,
+                            style: CustomTextStyle.button2(context)?.copyWith(
+                              color: state.pollutant == Pollutant.pm2_5
+                                  ? Pollutant.pm2_5.textColor(
+                                      value: state.selectedInsight!
+                                          .chartValue(state.pollutant),
+                                      graph: true,
+                                    )
+                                  : Pollutant.pm10.textColor(
+                                      value: state.selectedInsight!
+                                          .chartValue(state.pollutant),
+                                      graph: true,
+                                    ),
+                            ),
                           ),
                         ),
                       ),
-                      const SizedBox(
-                        width: 8.0,
-                      ),
-                      SvgPicture.asset(
-                        'assets/icon/loader.svg',
-                        semanticsLabel: 'loader',
-                        height: 8,
-                        width: 8,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(
-              height: 8.0,
-            ),
-
-            const Divider(
-              color: Color(0xffC4C4C4),
-            ),
-
-            const SizedBox(
-              height: 8.0,
-            ),
-            // footer
-            Container(
-              width: MediaQuery.of(context).size.width,
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      ToolTip(context, ToolTipType.info).show(
-                        widgetKey: _infoToolTipKey,
-                      );
-                    },
-                    child: Visibility(
-                      visible: !state.selectedInsight!.empty,
+                    ),
+                    Visibility(
+                      visible: state.selectedInsight!.empty,
                       child: Container(
-                        padding:
-                            const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
-                        constraints: BoxConstraints(
-                          maxWidth: MediaQuery.of(context).size.width / 2,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10.0,
+                          vertical: 2.0,
                         ),
                         decoration: BoxDecoration(
                           borderRadius: const BorderRadius.all(
                             Radius.circular(40.0),
                           ),
-                          color: state.pollutant == Pollutant.pm2_5
-                              ? Pollutant.pm2_5
-                                  .color(
-                                    state.selectedInsight!
-                                        .chartValue(state.pollutant),
-                                  )
-                                  .withOpacity(0.4)
-                              : Pollutant.pm10
-                                  .color(
-                                    state.selectedInsight!
-                                        .chartValue(state.pollutant),
-                                  )
-                                  .withOpacity(0.4),
+                          color: CustomColors.greyColor.withOpacity(0.4),
                           border: Border.all(color: Colors.transparent),
                         ),
-                        child: AutoSizeText(
-                          state.pollutant == Pollutant.pm2_5
-                              ? Pollutant.pm2_5
-                                  .stringValue(
-                                    state.selectedInsight!
-                                        .chartValue(state.pollutant),
-                                  )
-                                  .trimEllipsis()
-                              : Pollutant.pm10
-                                  .stringValue(
-                                    state.selectedInsight!
-                                        .chartValue(state.pollutant),
-                                  )
-                                  .trimEllipsis(),
+                        child: Text(
+                          'Not Available',
                           maxLines: 1,
-                          maxFontSize: 14,
-                          textAlign: TextAlign.start,
+                          textAlign: TextAlign.center,
                           overflow: TextOverflow.ellipsis,
-                          style: CustomTextStyle.button2(context)?.copyWith(
-                            color: state.pollutant == Pollutant.pm2_5
-                                ? Pollutant.pm2_5.textColor(
-                                    value: state.selectedInsight!
-                                        .chartValue(state.pollutant),
-                                    graph: true,
-                                  )
-                                : Pollutant.pm10.textColor(
-                                    value: state.selectedInsight!
-                                        .chartValue(state.pollutant),
-                                    graph: true,
-                                  ),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: CustomColors.darkGreyColor,
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  Visibility(
-                    visible: state.selectedInsight!.empty,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0,
-                        vertical: 2.0,
-                      ),
-                      decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(40.0),
-                        ),
-                        color: CustomColors.greyColor.withOpacity(0.4),
-                        border: Border.all(color: Colors.transparent),
-                      ),
-                      child: Text(
-                        'Not Available',
-                        maxLines: 1,
-                        textAlign: TextAlign.center,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: CustomColors.darkGreyColor,
+                    const SizedBox(
+                      width: 8,
+                    ),
+                    Visibility(
+                      visible: !state.selectedInsight!.empty,
+                      child: GestureDetector(
+                        onTap: () {
+                          pmInfoDialog(
+                            context,
+                            state.selectedInsight!.chartValue(state.pollutant),
+                          );
+                        },
+                        child: SvgPicture.asset(
+                          'assets/icon/info_icon.svg',
+                          semanticsLabel: 'Pm2.5',
+                          height: 20,
+                          width: 20,
+                          key: _infoToolTipKey,
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(
-                    width: 8,
-                  ),
-                  Visibility(
-                    visible: !state.selectedInsight!.empty,
-                    child: GestureDetector(
-                      onTap: () {
-                        pmInfoDialog(
-                          context,
-                          state.selectedInsight!.chartValue(state.pollutant),
-                        );
-                      },
-                      child: SvgPicture.asset(
-                        'assets/icon/info_icon.svg',
-                        semanticsLabel: 'Pm2.5',
-                        height: 20,
-                        width: 20,
-                        key: _infoToolTipKey,
-                      ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
-      );
-    });
+            ],
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -1297,14 +1309,16 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
   @override
   Widget build(BuildContext context) {
     return Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: const BorderRadius.all(
-            Radius.circular(8.0),
-          ),
-          border: Border.all(color: Colors.transparent),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.all(
+          Radius.circular(8.0),
         ),
-        child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+        border: Border.all(color: Colors.transparent),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
           Expanded(
             child: _shareLoading
                 ? const LoadingIcon(
@@ -1342,7 +1356,9 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
               ),
             ),
           ),
-        ]));
+        ],
+      ),
+    );
   }
 
   Future<void> _share() async {

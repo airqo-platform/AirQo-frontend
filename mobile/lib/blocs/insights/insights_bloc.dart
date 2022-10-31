@@ -226,6 +226,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     }
 
     await _updateCharts(emit, dbInsights);
+
     return _refreshCharts(emit);
   }
 

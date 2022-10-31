@@ -228,7 +228,7 @@ class AirqoApiClient {
         body: body,
       );
 
-      if (response.statusCode == 200 ) {
+      if (response.statusCode == 200) {
         return true;
       }
     } catch (exception, stackTrace) {
