@@ -20,7 +20,7 @@ class AirQoApiClient {
 
   AirQoApiClient({required this.airqoApiToken, required this.baseUrl})
       : _headers = {
-          'Authorization': 'JWT $airqoApiToken' ,
+          'Authorization': 'JWT $airqoApiToken',
         };
   final _httpClient = SentryHttpClient(
     client: http.Client(),
