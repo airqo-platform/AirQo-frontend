@@ -1,14 +1,19 @@
 import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
-import 'package:app/services/app_service.dart';
+import 'package:app/services/services.dart';
+import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/custom_widgets.dart';
+import 'package:app/widgets/dialogs.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../../services/hive_service.dart';
+import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
-import '../analytics/analytics_widgets.dart';
-import 'favourite_places_widgets.dart';
+import '../analytics/analytics_view.dart';
+import '../search/search_page.dart';
+
+part 'favourite_places_widgets.dart';
 
 class FavouritePlaces extends StatefulWidget {
   const FavouritePlaces({super.key});

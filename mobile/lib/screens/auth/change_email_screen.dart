@@ -1,4 +1,5 @@
 import 'package:app/models/enum_constants.dart';
+import 'package:app/services/services.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/dialogs.dart';
@@ -6,8 +7,6 @@ import 'package:app/widgets/text_fields.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../../services/firebase_service.dart';
-import '../../services/rest_api.dart';
 import '../../themes/colors.dart';
 import '../../widgets/custom_widgets.dart';
 import 'auth_widgets.dart';

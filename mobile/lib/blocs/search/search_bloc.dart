@@ -1,4 +1,5 @@
 import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
 import 'package:app_repository/app_repository.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -6,7 +7,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:stream_transform/stream_transform.dart';
 
 import '../../constants/config.dart';
-import '../../services/hive_service.dart';
 
 part 'search_event.dart';
 part 'search_state.dart';

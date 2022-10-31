@@ -1,11 +1,4 @@
-import 'package:app/blocs/blocs.dart';
-import 'package:app/models/enum_constants.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../widgets/custom_widgets.dart';
-import '../../widgets/dialogs.dart';
-import 'insights_widgets.dart';
+part of 'insights_page.dart';
 
 class DailyInsightsTab extends StatelessWidget {
   DailyInsightsTab({super.key});

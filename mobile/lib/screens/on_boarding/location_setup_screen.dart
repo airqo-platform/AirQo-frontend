@@ -1,12 +1,11 @@
 import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/screens/on_boarding/setup_complete_screeen.dart';
+import 'package:app/services/services.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/dialogs.dart';
 import 'package:flutter/material.dart';
 
-import '../../services/local_storage.dart';
-import '../../services/location_service.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
 import '../../widgets/custom_shimmer.dart';

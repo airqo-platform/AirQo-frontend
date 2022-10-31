@@ -1,7 +1,7 @@
 import 'package:app/models/models.dart';
 import 'package:app/screens/profile/profile_edit_page.dart';
 import 'package:app/screens/profile/profile_widgets.dart';
-import 'package:app/services/app_service.dart';
+import 'package:app/services/services.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/dialogs.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -9,8 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/adapters.dart';
 
-import '../../services/firebase_service.dart';
-import '../../services/hive_service.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
 import '../auth/phone_auth_widget.dart';

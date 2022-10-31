@@ -2,23 +2,30 @@ import 'dart:async';
 
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
-import 'package:app/screens/analytics/analytics_widgets.dart';
-import 'package:app/services/app_service.dart';
+import 'package:app/services/services.dart';
 import 'package:app/utils/date.dart';
 import 'package:app/widgets/dialogs.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../../services/hive_service.dart';
 import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
+import '../../utils/exception.dart';
+import '../../widgets/custom_shimmer.dart';
 import '../../widgets/custom_widgets.dart';
+import '../analytics/analytics_view.dart';
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
 import '../kya/kya_title_page.dart';
-import 'dashboard_widgets.dart';
+import '../kya/kya_widgets.dart';
+import '../search/search_page.dart';
+
+part 'dashboard_widgets.dart';
 
 class DashboardView extends StatefulWidget {
   const DashboardView({super.key});

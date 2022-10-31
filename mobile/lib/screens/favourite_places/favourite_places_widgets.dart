@@ -1,14 +1,4 @@
-import 'package:app/models/models.dart';
-import 'package:app/widgets/custom_shimmer.dart';
-import 'package:app/widgets/dialogs.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-
-import '../../services/hive_service.dart';
-import '../../themes/app_theme.dart';
-import '../../themes/colors.dart';
-import '../../widgets/custom_widgets.dart';
-import '../search/search_page.dart';
+part of 'favourite_places_page.dart';
 
 class EmptyFavouritePlaces extends StatelessWidget {
   const EmptyFavouritePlaces({super.key});

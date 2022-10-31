@@ -1,26 +1,27 @@
 import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
-import 'package:app/screens/settings/settings_page_widgets.dart';
 import 'package:app/screens/web_view_page.dart';
 import 'package:app/services/app_service.dart';
+import 'package:app/services/services.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/widgets/dialogs.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
-import '../../services/firebase_service.dart';
-import '../../services/hive_service.dart';
-import '../../services/location_service.dart';
-import '../../services/native_api.dart';
-import '../../services/notification_service.dart';
+import '../../themes/app_theme.dart';
 import '../../themes/colors.dart';
 import '../auth/email_reauthenticate_screen.dart';
 import '../auth/phone_auth_widget.dart';
 import '../auth/phone_reauthenticate_screen.dart';
 import '../feedback/feedback_page.dart';
-import 'about_page.dart';
+
+part 'about_page.dart';
+part 'settings_page_widgets.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});

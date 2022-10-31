@@ -4,14 +4,11 @@ import 'package:app/models/models.dart';
 import 'package:app/screens/on_boarding/profile_setup_screen.dart';
 import 'package:app/screens/on_boarding/setup_complete_screeen.dart';
 import 'package:app/screens/on_boarding/welcome_screen.dart';
+import 'package:app/services/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../services/app_service.dart';
-import '../../services/firebase_service.dart';
-import '../../services/local_storage.dart';
-import '../../services/location_service.dart';
 import '../auth/phone_auth_widget.dart';
 import '../home_page.dart';
 import 'location_setup_screen.dart';

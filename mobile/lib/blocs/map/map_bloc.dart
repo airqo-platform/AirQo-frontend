@@ -1,14 +1,13 @@
 import 'dart:async';
 
+import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
 import 'package:app_repository/app_repository.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../constants/config.dart';
-import '../../models/air_quality_reading.dart';
-import '../../models/enum_constants.dart';
-import '../../services/hive_service.dart';
 
 part 'map_event.dart';
 part 'map_state.dart';

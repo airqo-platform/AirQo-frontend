@@ -2,7 +2,7 @@ import 'package:animations/animations.dart';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/profile/profile_view.dart';
-import 'package:app/services/app_service.dart';
+import 'package:app/services/services.dart';
 import 'package:app/widgets/dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,8 +10,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 
-import '../services/hive_service.dart';
-import '../services/local_storage.dart';
 import '../themes/colors.dart';
 import '../utils/network.dart';
 import 'dashboard/dashboard_view.dart';

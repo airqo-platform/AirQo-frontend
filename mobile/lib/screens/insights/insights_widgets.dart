@@ -1,28 +1,4 @@
-import 'package:app/blocs/blocs.dart';
-import 'package:app/models/models.dart';
-import 'package:app/utils/extensions.dart';
-import 'package:auto_size_text/auto_size_text.dart';
-import 'package:charts_flutter/flutter.dart' as charts;
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import 'package:visibility_detector/visibility_detector.dart';
-
-import '../../services/hive_service.dart';
-import '../../services/native_api.dart';
-import '../../themes/app_theme.dart';
-import '../../themes/colors.dart';
-import '../../utils/data_formatter.dart';
-import '../../utils/date.dart';
-import '../../utils/pm.dart';
-import '../../widgets/buttons.dart';
-import '../../widgets/custom_shimmer.dart';
-import '../../widgets/custom_widgets.dart';
-import '../../widgets/dialogs.dart';
-import '../../widgets/recommendation.dart';
-import '../../widgets/tooltip.dart';
+part of 'insights_page.dart';
 
 class InsightsLoadingWidget extends StatelessWidget {
   const InsightsLoadingWidget({super.key});

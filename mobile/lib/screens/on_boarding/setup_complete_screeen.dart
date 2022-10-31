@@ -1,9 +1,8 @@
 import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
+import 'package:app/services/services.dart';
 import 'package:flutter/material.dart';
 
-import '../../services/local_storage.dart';
-import '../../services/rest_api.dart';
 import '../../themes/colors.dart';
 
 class SetUpCompleteScreen extends StatefulWidget {

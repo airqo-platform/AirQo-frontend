@@ -1,21 +1,4 @@
-import 'dart:async';
-
-import 'package:app/blocs/blocs.dart';
-import 'package:app/models/models.dart';
-import 'package:app/screens/insights/insights_page.dart';
-import 'package:app/utils/date.dart';
-import 'package:app/widgets/dialogs.dart';
-import 'package:app/widgets/tooltip.dart';
-import 'package:auto_size_text/auto_size_text.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-
-import '../../services/hive_service.dart';
-import '../../themes/app_theme.dart';
-import '../../themes/colors.dart';
-import '../../widgets/custom_widgets.dart';
+part of 'analytics_view.dart';
 
 class AnalyticsAvatar extends StatelessWidget {
   const AnalyticsAvatar({
