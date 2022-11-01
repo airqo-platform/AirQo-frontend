@@ -1,11 +1,9 @@
 import 'dart:io';
 
-import 'package:app/models/enum_constants.dart';
+import 'package:app/models/models.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../models/insights.dart';
-import '../models/profile.dart';
 import '../themes/colors.dart';
 
 extension DoubleExtension on double {
@@ -20,7 +18,13 @@ extension IntExt on int {
   }
 }
 
-extension InsightsExt on Insights {
+extension GraphInsightDataExt on GraphInsightData {
+  double chartValue(Pollutant pollutant) {
+    return pollutant == Pollutant.pm2_5
+        ? double.parse(pm2_5.toStringAsFixed(2))
+        : double.parse(pm10.toStringAsFixed(2));
+  }
+
   String lastUpdated(Frequency frequency) {
     if (empty) {
       return 'Not available';

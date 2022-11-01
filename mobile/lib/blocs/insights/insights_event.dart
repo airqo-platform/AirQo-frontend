@@ -50,7 +50,7 @@ class SetScrolling extends InsightsEvent {
 
 class UpdateSelectedInsight extends InsightsEvent {
   const UpdateSelectedInsight(this.selectedInsight);
-  final Insights selectedInsight;
+  final GraphInsightData selectedInsight;
 
   @override
   List<Object?> get props => [selectedInsight];

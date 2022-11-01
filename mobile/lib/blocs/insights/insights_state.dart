@@ -34,11 +34,13 @@ class InsightsState extends Equatable {
 
   InsightsState copyWith({
     String? siteId,
-    Map<Pollutant, List<List<charts.Series<Insights, String>>>>? insightsCharts,
-    Map<Pollutant, List<charts.Series<Insights, String>>>? miniInsightsCharts,
+    Map<Pollutant, List<List<charts.Series<GraphInsightData, String>>>>?
+        insightsCharts,
+    Map<Pollutant, List<charts.Series<GraphInsightData, String>>>?
+        miniInsightsCharts,
     int? chartIndex,
     Pollutant? pollutant,
-    Insights? selectedInsight,
+    GraphInsightData? selectedInsight,
     AirQualityReading? airQualityReading,
     InsightsStatus? insightsStatus,
     String? errorMessage,
@@ -61,13 +63,13 @@ class InsightsState extends Equatable {
   }
 
   final String siteId;
-  final Map<Pollutant, List<List<charts.Series<Insights, String>>>>
+  final Map<Pollutant, List<List<charts.Series<GraphInsightData, String>>>>
       insightsCharts;
-  final Map<Pollutant, List<charts.Series<Insights, String>>>
+  final Map<Pollutant, List<charts.Series<GraphInsightData, String>>>
       miniInsightsCharts;
   final int chartIndex;
   final Pollutant pollutant;
-  final Insights? selectedInsight;
+  final GraphInsightData? selectedInsight;
   final AirQualityReading? airQualityReading;
   final InsightsStatus insightsStatus;
   final String errorMessage;

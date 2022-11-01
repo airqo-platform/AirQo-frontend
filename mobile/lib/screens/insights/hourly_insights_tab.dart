@@ -8,11 +8,11 @@ class HourlyInsightsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomSafeArea(
-      verticalPadding: 10,
       backgroundColor: CustomColors.appBodyColor,
       widget: BlocConsumer<HourlyInsightsBloc, InsightsState>(
         listenWhen: (previous, current) {
-          return current.insightsStatus == InsightsStatus.error &&
+          return (current.insightsStatus == InsightsStatus.error ||
+                  current.insightsStatus == InsightsStatus.failed) &&
               current.errorMessage != '';
         },
         listener: (context, state) {

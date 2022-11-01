@@ -11,6 +11,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
+import '../models/json_parsers.dart';
 import '../utils/exception.dart';
 
 String addQueryParameters(Map<String, dynamic> queryParams, String url) {
@@ -139,7 +140,7 @@ class AirqoApiClient {
     return json.decode(response.body)['status'];
   }
 
-  Future<List<Insights>> fetchSitesInsights(String siteIds) async {
+  Future<List<GraphInsightData>> fetchGraphInsights(String siteIds) async {
     try {
       final utcNow = DateTime.now().toUtc();
       final startDateTime = utcNow.getFirstDateOfCalendarMonth().toApiString();
@@ -157,7 +158,19 @@ class AirqoApiClient {
         AirQoUrls.insights,
       );
 
-      return body != null ? Insights.parseInsights(body['data']) : <Insights>[];
+      if (body == null) {
+        return <GraphInsightData>[];
+      }
+
+      final data = <GraphInsightData>[];
+
+      for (final e in body['data']) {
+        final json = e;
+        json['frequency'] = fromString(e['frequency']);
+        data.add(GraphInsightData.fromJson(json));
+      }
+
+      return data;
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -165,7 +178,7 @@ class AirqoApiClient {
       );
     }
 
-    return <Insights>[];
+    return <GraphInsightData>[];
   }
 
   Future<EmailAuthModel?> requestEmailVerificationCode(

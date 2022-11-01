@@ -398,7 +398,7 @@ class CustomSafeArea extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: backgroundColor ?? Colors.white,
-      padding: EdgeInsets.symmetric(vertical: verticalPadding ?? 15),
+      padding: EdgeInsets.symmetric(vertical: verticalPadding ?? 0),
       child: SafeArea(
         child: widget,
       ),

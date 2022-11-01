@@ -281,7 +281,7 @@ class InsightsAvatar extends StatelessWidget {
     required this.size,
     required this.pollutant,
   });
-  final Insights insights;
+  final GraphInsightData insights;
   final double size;
   final Pollutant pollutant;
 
@@ -1124,7 +1124,7 @@ class InsightsHealthTips extends StatefulWidget {
     required this.insight,
     required this.pollutant,
   });
-  final Insights? insight;
+  final GraphInsightData? insight;
   final Pollutant pollutant;
 
   @override

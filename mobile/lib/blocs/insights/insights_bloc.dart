@@ -69,7 +69,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     Emitter<InsightsState> emit,
   ) async {
     final insightsData =
-        await DBHelper().getInsights(state.siteId, Frequency.hourly);
+        await AirQoDatabase().getInsights(state.siteId, Frequency.hourly);
 
     if (insightsData.isEmpty) {
       return;
@@ -105,9 +105,9 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     ));
   }
 
-  Future<Map<Pollutant, List<List<charts.Series<Insights, String>>>>>
+  Future<Map<Pollutant, List<List<charts.Series<GraphInsightData, String>>>>>
       _createCharts(
-    List<Insights> insightsData,
+    List<GraphInsightData> insightsData,
   ) async {
     final firstDay = state.frequency == Frequency.hourly
         ? DateTime.now().getDateOfFirstDayOfWeek().getDateOfFirstHourOfDay()
@@ -163,7 +163,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
           : InsightsStatus.refreshing,
     ));
 
-    final apiInsights = await AppService().fetchInsights(
+    final apiInsights = await AppService().fetchGraphInsights(
       [state.siteId],
       frequency: state.frequency,
     );
@@ -181,7 +181,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
 
   Future<void> _updateCharts(
     Emitter<InsightsState> emit,
-    List<Insights> insights,
+    List<GraphInsightData> insights,
   ) async {
     final charts = await _createCharts(insights);
 
@@ -236,20 +236,24 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     LoadInsights event,
     Emitter<InsightsState> emit,
   ) async {
+    final siteId = event.siteId ?? state.siteId;
     emit(InsightsState.initial(frequency: event.frequency).copyWith(
       airQualityReading: event.airQualityReading ?? state.airQualityReading,
-      siteId: event.siteId ?? state.siteId,
+      siteId: siteId,
       insightsStatus: InsightsStatus.loading,
     ));
 
-    // final dbInsights =
-    //     await DBHelper().getInsights(state.siteId, state.frequency);
-    //
-    // if (dbInsights.isNotEmpty) {
-    //   await _updateCharts(emit, dbInsights);
-    // }
+    final dbInsights = await AirQoDatabase().getInsights(
+      siteId,
+      state.frequency,
+    );
+
+    if (dbInsights.isNotEmpty) {
+      await _updateCharts(emit, dbInsights);
+    }
 
     return _refreshCharts(emit);
+
   }
 
   Future<void> _onClearInsights(

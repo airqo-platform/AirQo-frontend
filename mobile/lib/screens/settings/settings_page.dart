@@ -1,7 +1,6 @@
 import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/web_view_page.dart';
-import 'package:app/services/app_service.dart';
 import 'package:app/services/services.dart';
 import 'package:app/widgets/custom_shimmer.dart';
 import 'package:app/widgets/custom_widgets.dart';

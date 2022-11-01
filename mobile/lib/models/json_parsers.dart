@@ -1,3 +1,5 @@
+import 'package:app/models/enum_constants.dart';
+
 String notificationIconFromJson(dynamic json) {
   switch ('$json'.toLowerCase()) {
     case 'location_icon':
@@ -26,6 +28,13 @@ String boolToJson(bool boolValue) {
 
 String frequencyFromJson(String frequency) {
   return frequency.toLowerCase();
+}
+
+Frequency fromString(String string) {
+  if (string.toLowerCase() == Frequency.daily.string) {
+    return Frequency.daily;
+  }
+  return Frequency.hourly;
 }
 
 // TODO utilise these methods

@@ -167,10 +167,7 @@ class AppService {
       for (final favPlace in favPlaces) {
         placeIds.add(favPlace.referenceSite);
       }
-      await fetchInsights(
-        placeIds,
-        reloadDatabase: true,
-      );
+      await fetchGraphInsights(placeIds);
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -179,38 +176,34 @@ class AppService {
     }
   }
 
-  Future<List<Insights>> fetchInsights(
+  Future<List<GraphInsightData>> fetchGraphInsights(
     List<String> siteIds, {
     Frequency? frequency,
-    bool reloadDatabase = false,
   }) async {
-    final insights = <Insights>[];
+    final insights = <GraphInsightData>[];
     final futures = <Future>[];
 
     for (var i = 0; i < siteIds.length; i = i + 2) {
       final site1 = siteIds[i];
       try {
         final site2 = siteIds[i + 1];
-        futures.add(AirqoApiClient().fetchSitesInsights('$site1,$site2'));
+        futures.add(AirqoApiClient().fetchGraphInsights('$site1,$site2'));
       } catch (e) {
-        futures.add(AirqoApiClient().fetchSitesInsights(site1));
+        futures.add(AirqoApiClient().fetchGraphInsights(site1));
       }
     }
 
     final sitesInsights = await Future.wait(futures);
+
     for (final result in sitesInsights) {
       insights.addAll(result);
     }
 
-    await DBHelper().insertInsights(
-      insights,
-      siteIds,
-      reloadDatabase: reloadDatabase,
-    );
+    await AirQoDatabase().insertInsights(insights);
 
     if (frequency != null) {
       return insights
-          .where((element) => element.frequency == frequency.toString())
+          .where((element) => element.frequency == frequency)
           .toList();
     }
 
