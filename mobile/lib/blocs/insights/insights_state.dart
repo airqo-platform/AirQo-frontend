@@ -12,6 +12,7 @@ class InsightsState extends Equatable {
     this.errorMessage = '',
     this.frequency = Frequency.hourly,
     this.miniInsightsCharts = const {},
+    this.scrollingGraphs = false,
   });
 
   const InsightsState.initial({required Frequency frequency})
@@ -28,6 +29,7 @@ class InsightsState extends Equatable {
     required this.insightsStatus,
     required this.errorMessage,
     required this.frequency,
+    required this.scrollingGraphs,
   });
 
   InsightsState copyWith({
@@ -41,6 +43,7 @@ class InsightsState extends Equatable {
     InsightsStatus? insightsStatus,
     String? errorMessage,
     Frequency? frequency,
+    bool? scrollingGraphs,
   }) {
     return InsightsState(
       siteId: siteId ?? this.siteId,
@@ -53,6 +56,7 @@ class InsightsState extends Equatable {
       insightsStatus: insightsStatus ?? this.insightsStatus,
       errorMessage: errorMessage ?? this.errorMessage,
       frequency: frequency ?? this.frequency,
+      scrollingGraphs: scrollingGraphs ?? this.scrollingGraphs,
     );
   }
 
@@ -68,6 +72,7 @@ class InsightsState extends Equatable {
   final InsightsStatus insightsStatus;
   final String errorMessage;
   final Frequency frequency;
+  final bool scrollingGraphs;
 
   @override
   List<Object?> get props => [
@@ -81,5 +86,6 @@ class InsightsState extends Equatable {
         errorMessage,
         frequency,
         miniInsightsCharts,
+        scrollingGraphs,
       ];
 }

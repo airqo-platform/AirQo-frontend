@@ -5,31 +5,34 @@ class InsightsLoadingWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          children: const [
-            TextLoadingAnimation(
-              height: 18,
-              width: 70,
-            ),
-            Spacer(),
-            SizedContainerLoadingAnimation(
-              height: 32,
-              width: 32,
-              radius: 8.0,
-            ),
-          ],
-        ),
-        const SizedBox(
-          height: 12,
-        ),
-        const ContainerLoadingAnimation(height: 290.0, radius: 8.0),
-        const SizedBox(
-          height: 16,
-        ),
-        const ContainerLoadingAnimation(height: 100.0, radius: 8.0),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        children: [
+          Row(
+            children: const [
+              TextLoadingAnimation(
+                height: 18,
+                width: 70,
+              ),
+              Spacer(),
+              SizedContainerLoadingAnimation(
+                height: 32,
+                width: 32,
+                radius: 8.0,
+              ),
+            ],
+          ),
+          const SizedBox(
+            height: 12,
+          ),
+          const ContainerLoadingAnimation(height: 290.0, radius: 8.0),
+          const SizedBox(
+            height: 16,
+          ),
+          const ContainerLoadingAnimation(height: 50.0, radius: 8.0),
+        ],
+      ),
     );
   }
 }
@@ -339,58 +342,69 @@ class HourlyInsightsGraph extends StatefulWidget {
 class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
   final GlobalKey _infoToolTipKey = GlobalKey();
   final GlobalKey _forecastToolTipKey = GlobalKey();
+  bool scrollToToday = true;
 
   final ItemScrollController _itemScrollController = ItemScrollController();
-  bool isScrolling = false;
 
-  Future<void> _scrollToChart({
-    required Duration? duration,
-  }) async {
+  void _jumpToChart() {
+    context.read<HourlyInsightsBloc>().add(const SetScrolling(true));
+
     final chartIndex = context.read<HourlyInsightsBloc>().state.chartIndex;
-    final data = context
-        .read<HourlyInsightsBloc>()
-        .state
+
+    _itemScrollController.jumpTo(
+      index: chartIndex,
+    );
+    setState(() => scrollToToday = false);
+    context.read<HourlyInsightsBloc>().add(const SetScrolling(false));
+  }
+
+  Future<void> _scrollToChart({Duration? duration}) async {
+    final state = context.read<HourlyInsightsBloc>().state;
+
+    final data = state
         .insightsCharts[context.read<HourlyInsightsBloc>().state.pollutant];
 
-    setState(() => isScrolling = true);
-    final selectedInsight = data![chartIndex][0].data.first;
-    duration ??= const Duration(seconds: 1);
+    if (data == null) {
+      return;
+    }
+
+    context.read<HourlyInsightsBloc>().add(const SetScrolling(true));
+
+    final selectedInsight = data[state.chartIndex][0].data.first;
+    context
+        .read<HourlyInsightsBloc>()
+        .add(UpdateSelectedInsight(selectedInsight));
+
+    duration ??= const Duration(milliseconds: 500);
+
+    if (!_itemScrollController.isAttached) {
+      await _scrollToChart(duration: duration);
+      return;
+    }
 
     if (_itemScrollController.isAttached) {
       await _itemScrollController
           .scrollTo(
-        index: chartIndex,
+        index: state.chartIndex,
         duration: duration,
-        curve: Curves.easeInOutCubic,
+        curve: Curves.easeInToLinear,
       )
           .whenComplete(() {
-        setState(() => isScrolling = false);
-        context
-            .read<HourlyInsightsBloc>()
-            .add(UpdateSelectedInsight(selectedInsight));
+        context.read<HourlyInsightsBloc>().add(const SetScrolling(false));
       });
     } else {
-      Future.delayed(
-        const Duration(milliseconds: 100),
-        () {
-          if (!_itemScrollController.isAttached) {
-            return;
-          }
-          _itemScrollController
-              .scrollTo(
-            index: chartIndex,
-            duration: duration ??= const Duration(seconds: 1),
-            curve: Curves.easeInOutCubic,
-          )
-              .whenComplete(() {
-            setState(() => isScrolling = false);
-            context
-                .read<HourlyInsightsBloc>()
-                .add(UpdateSelectedInsight(selectedInsight));
-          });
-        },
-      );
+      Future.delayed(const Duration(milliseconds: 100), () {
+        _scrollToChart(duration: const Duration(milliseconds: 1));
+      });
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _jumpToChart();
+    });
   }
 
   @override
@@ -408,6 +422,15 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
           ),
           child: Column(
             children: [
+              MultiBlocListener(listeners: [
+                BlocListener<HourlyInsightsBloc, InsightsState>(
+                    listenWhen: (previous, current) {
+                  return previous.chartIndex != current.chartIndex;
+                }, listener: (context, listenerState) {
+                  _scrollToChart();
+                }),
+              ], child: Container()),
+
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
@@ -473,6 +496,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                     SizedBox(
                       height: 160,
                       child: ScrollablePositionedList.builder(
+                        physics: const BouncingScrollPhysics(),
                         scrollDirection: Axis.horizontal,
                         itemCount:
                             state.insightsCharts[state.pollutant]?.length ?? 0,
@@ -483,9 +507,10 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                             ),
                             onVisibilityChanged:
                                 (VisibilityInfo visibilityInfo) {
-                              if (!isScrolling &&
+                              if (!state.scrollingGraphs &&
                                   visibilityInfo.visibleFraction > 0.3 &&
-                                  state.chartIndex != index) {
+                                  state.chartIndex != index &&
+                                  !scrollToToday) {
                                 context
                                     .read<HourlyInsightsBloc>()
                                     .add(UpdateInsightsActiveIndex(index));
@@ -496,18 +521,6 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                         },
                         itemScrollController: _itemScrollController,
                       ),
-                    ),
-                    BlocListener<HourlyInsightsBloc, InsightsState>(
-                      listenWhen: (listenerPreviousState, listenerState) {
-                        return listenerPreviousState.chartIndex !=
-                            listenerState.chartIndex;
-                      },
-                      listener: (context, listenerState) {
-                        _scrollToChart(
-                          duration: const Duration(microseconds: 100),
-                        );
-                      },
-                      child: Container(),
                     ),
                     Visibility(
                       visible: state.selectedInsight

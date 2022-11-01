@@ -23,6 +23,14 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     on<UpdateInsightsActiveIndex>(_onUpdateActiveIndex);
     on<UpdateSelectedInsight>(_onUpdateSelectedInsight);
     on<RefreshInsightsCharts>(_onRefreshInsights);
+    on<SetScrolling>(_onSetScrolling);
+  }
+
+  Future<void> _onSetScrolling(
+    SetScrolling event,
+    Emitter<InsightsState> emit,
+  ) async {
+    return emit(state.copyWith(scrollingGraphs: event.scrolling));
   }
 
   Future<void> _onRefreshInsights(
@@ -36,14 +44,18 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     UpdateSelectedInsight event,
     Emitter<InsightsState> emit,
   ) async {
-    return emit(state.copyWith(selectedInsight: event.selectedInsight));
+    return emit(state.copyWith(
+      selectedInsight: event.selectedInsight,
+    ));
   }
 
   Future<void> _onUpdateActiveIndex(
     UpdateInsightsActiveIndex event,
     Emitter<InsightsState> emit,
   ) async {
-    return emit(state.copyWith(chartIndex: event.index));
+    return emit(state.copyWith(
+      chartIndex: event.index,
+    ));
   }
 
   Future<void> _onSwitchPollutant(
@@ -172,6 +184,19 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     List<Insights> insights,
   ) async {
     final charts = await _createCharts(insights);
+
+    if (state.selectedInsight != null) {
+      emit(state.copyWith(
+        insightsCharts: charts,
+        insightsStatus: InsightsStatus.loaded,
+      ));
+
+      if (state.frequency == Frequency.hourly) {
+        await _updateMiniCharts(emit);
+      }
+      return;
+    }
+
     var selectedInsight = charts[state.pollutant]?.first.first.data.first;
     var chartIndex = state.chartIndex;
 
@@ -217,14 +242,12 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
       insightsStatus: InsightsStatus.loading,
     ));
 
-    final dbInsights =
-        await DBHelper().getInsights(state.siteId, state.frequency);
-
-    if (dbInsights.isEmpty) {
-      return _refreshCharts(emit);
-    }
-
-    await _updateCharts(emit, dbInsights);
+    // final dbInsights =
+    //     await DBHelper().getInsights(state.siteId, state.frequency);
+    //
+    // if (dbInsights.isNotEmpty) {
+    //   await _updateCharts(emit, dbInsights);
+    // }
 
     return _refreshCharts(emit);
   }

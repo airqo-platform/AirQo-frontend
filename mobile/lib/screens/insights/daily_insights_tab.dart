@@ -9,6 +9,7 @@ class DailyInsightsTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomSafeArea(
       verticalPadding: 10,
+      backgroundColor: CustomColors.appBodyColor,
       widget: BlocConsumer<DailyInsightsBloc, InsightsState>(
         listenWhen: (previous, current) {
           return current.insightsStatus == InsightsStatus.error &&

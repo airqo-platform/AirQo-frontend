@@ -41,6 +41,13 @@ class UpdateInsightsActiveIndex extends InsightsEvent {
   List<Object?> get props => [index];
 }
 
+class SetScrolling extends InsightsEvent {
+  const SetScrolling(this.scrolling);
+  final bool scrolling;
+  @override
+  List<Object?> get props => [scrolling];
+}
+
 class UpdateSelectedInsight extends InsightsEvent {
   const UpdateSelectedInsight(this.selectedInsight);
   final Insights selectedInsight;
