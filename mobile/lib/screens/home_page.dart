@@ -91,7 +91,7 @@ class _HomePageState extends State<HomePage> {
           builder: Builder(
             builder: (context) {
               myContext = context;
-              
+
               return BottomNavigationBar(
                 selectedIconTheme: Theme.of(context)
                     .iconTheme
@@ -141,7 +141,8 @@ class _HomePageState extends State<HomePage> {
                         ),
                         ValueListenableBuilder<Box>(
                           valueListenable: Hive.box<AppNotification>(
-                                  HiveBox.appNotifications)
+                            HiveBox.appNotifications,
+                          )
                               .listenable(),
                           builder: (context, box, widget) {
                             final unreadNotifications = box.values
@@ -253,7 +254,8 @@ class _HomePageState extends State<HomePage> {
         _homeShowcaseKey,
         _mapShowcaseKey,
         _profileShowcaseKey,
-      ]);
+        ],
+      );
     });
   }
 }
