@@ -13,6 +13,7 @@ import 'package:app_repository/app_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants/config.dart';
 import '../utils/exception.dart';
@@ -360,9 +361,27 @@ class AppService {
         _loadKya(),
         _updateFavouritePlacesReferenceSites(),
       ]);
+      await _setshowcase();
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
+  }
+
+  Future<void> _setshowcase() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool('showcase') == null) {
+      await prefs.setBool('showcase', true);
+    }
+  }
+
+  Future<void> showcaseStop() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('showcase', false);
+  }
+
+  Future<void> clearshowcase() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('showcase');
   }
 
   Future<void> _postSignUpActions() async {
@@ -376,6 +395,8 @@ class AppService {
         _logPlatformType(),
         _logGender(),
       ]);
+      await clearshowcase();
+      await _setshowcase();
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }

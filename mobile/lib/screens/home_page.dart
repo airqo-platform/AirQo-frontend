@@ -2,6 +2,7 @@ import 'package:animations/animations.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/profile/profile_view.dart';
 import 'package:app/services/app_service.dart';
+import 'package:app/widgets/custom_widgets.dart';
 import 'package:app/widgets/dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -35,9 +36,14 @@ class _HomePageState extends State<HomePage> {
   DateTime? _exitTime;
   int _selectedIndex = 0;
   late bool refresh;
+  static final GlobalKey _homeShowcaseKey = GlobalKey();
+  static final GlobalKey _mapShowcaseKey = GlobalKey();
+  static final GlobalKey _profileShowcaseKey = GlobalKey();
+  static BuildContext? myContext;
 
   final List<Widget> _widgetOptions = <Widget>[
     ShowCaseWidget(
+      onFinish: _startShowcase,
       builder: Builder(builder: (context) => const DashboardView()),
     ),
     const MapView(),
@@ -82,86 +88,103 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
         ),
-        child: BottomNavigationBar(
-          selectedIconTheme: Theme.of(context)
-              .iconTheme
-              .copyWith(color: CustomColors.appColorBlue, opacity: 0.3),
-          unselectedIconTheme: Theme.of(context)
-              .iconTheme
-              .copyWith(color: CustomColors.appColorBlack, opacity: 0.3),
-          items: <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
-              icon: SvgPicture.asset(
-                'assets/icon/home_icon.svg',
-                semanticsLabel: 'Home',
-                color: _selectedIndex == 0
-                    ? CustomColors.appColorBlue
-                    : CustomColors.appColorBlack.withOpacity(0.3),
-              ),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: SvgPicture.asset(
-                'assets/icon/location.svg',
-                color: _selectedIndex == 1
-                    ? CustomColors.appColorBlue
-                    : CustomColors.appColorBlack.withOpacity(0.3),
-                semanticsLabel: 'AirQo Map',
-              ),
-              label: 'AirQo Map',
-            ),
-            BottomNavigationBarItem(
-              icon: Stack(
-                children: [
-                  SvgPicture.asset(
-                    'assets/icon/profile.svg',
-                    color: _selectedIndex == 2
-                        ? CustomColors.appColorBlue
-                        : CustomColors.appColorBlack.withOpacity(0.3),
-                    semanticsLabel: 'Profile',
+        child: ShowCaseWidget(
+          onFinish: _appService.showcaseStop,
+          builder: Builder(
+            builder: (context) {
+              myContext = context;
+              return BottomNavigationBar(
+                selectedIconTheme: Theme.of(context)
+                    .iconTheme
+                    .copyWith(color: CustomColors.appColorBlue, opacity: 0.3),
+                unselectedIconTheme: Theme.of(context)
+                    .iconTheme
+                    .copyWith(color: CustomColors.appColorBlack, opacity: 0.3),
+                items: <BottomNavigationBarItem>[
+                  BottomNavigationBarItem(
+                    icon: Showcase(
+                      key: _homeShowcaseKey,
+                      description: 'Home',
+                      child: CustomBottomNavBarItem(
+                        selectedIndex: _selectedIndex,
+                        svg: 'assets/icon/home_icon.svg',
+                        label: 'Home',
+                        index: 0,
+                      ),
+                    ),
+                    label: '',
                   ),
-                  ValueListenableBuilder<Box>(
-                    valueListenable:
-                        Hive.box<AppNotification>(HiveBox.appNotifications)
-                            .listenable(),
-                    builder: (context, box, widget) {
-                      final unreadNotifications = box.values
-                          .toList()
-                          .cast<AppNotification>()
-                          .where((element) => !element.read)
-                          .toList();
-
-                      return Positioned(
-                        right: 0.0,
-                        child: Container(
-                          height: 4,
-                          width: 4,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: unreadNotifications.isEmpty
-                                ? Colors.transparent
-                                : CustomColors.aqiRed,
+                  BottomNavigationBarItem(
+                      icon: Showcase(
+                        key: _mapShowcaseKey,
+                        description: 'This is the AirQo map',
+                        child: CustomBottomNavBarItem(
+                          svg: 'assets/icon/location.svg',
+                          selectedIndex: _selectedIndex,
+                          label: 'AirQo Map',
+                          index: 1,
+                        ),
+                      ),
+                      label: ''),
+                  BottomNavigationBarItem(
+                    icon: Stack(
+                      children: [
+                        Showcase(
+                          key: _profileShowcaseKey,
+                          description: 'Access your Profile details here',
+                          child: CustomBottomNavBarItem(
+                            svg: 'assets/icon/profile.svg',
+                            selectedIndex: _selectedIndex,
+                            label: 'Profile',
+                            index: 2,
                           ),
                         ),
-                      );
-                    },
+                        ValueListenableBuilder<Box>(
+                          valueListenable: Hive.box<AppNotification>(
+                                  HiveBox.appNotifications)
+                              .listenable(),
+                          builder: (context, box, widget) {
+                            final unreadNotifications = box.values
+                                .toList()
+                                .cast<AppNotification>()
+                                .where((element) => !element.read)
+                                .toList();
+
+                            return Positioned(
+                              right: 0.0,
+                              child: Container(
+                                height: 4,
+                                width: 4,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: unreadNotifications.isEmpty
+                                      ? Colors.transparent
+                                      : CustomColors.aqiRed,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                    label: '',
                   ),
                 ],
-              ),
-              label: 'Profile',
-            ),
-          ],
-          currentIndex: _selectedIndex,
-          selectedItemColor: CustomColors.appColorBlue,
-          unselectedItemColor: CustomColors.appColorBlack.withOpacity(0.3),
-          elevation: 0.0,
-          backgroundColor: CustomColors.appBodyColor,
-          onTap: _onItemTapped,
-          showSelectedLabels: true,
-          showUnselectedLabels: true,
-          type: BottomNavigationBarType.fixed,
-          selectedFontSize: 10,
-          unselectedFontSize: 10,
+                currentIndex: _selectedIndex,
+                selectedItemColor: CustomColors.appColorBlue,
+                unselectedItemColor:
+                    CustomColors.appColorBlack.withOpacity(0.3),
+                elevation: 0.0,
+                backgroundColor: CustomColors.appBodyColor,
+                onTap: _onItemTapped,
+                showSelectedLabels: true,
+                showUnselectedLabels: true,
+                type: BottomNavigationBarType.fixed,
+                selectedFontSize: 10,
+                unselectedFontSize: 10,
+              );
+            },
+          ),
         ),
       ),
     );
@@ -221,5 +244,12 @@ class _HomePageState extends State<HomePage> {
       context.read<NearbyLocationBloc>().add(const CheckNearbyLocations());
     }
     setState(() => _selectedIndex = index);
+  }
+
+  static void _startShowcase() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      ShowCaseWidget.of(myContext!).startShowCase(
+          [_homeShowcaseKey, _mapShowcaseKey, _profileShowcaseKey]);
+    });
   }
 }
