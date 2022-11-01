@@ -1,4 +1,5 @@
 import 'package:animations/animations.dart';
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/profile/profile_view.dart';
 import 'package:app/services/app_service.dart';
@@ -11,9 +12,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:showcaseview/showcaseview.dart';
 
-import '../blocs/map/map_bloc.dart';
-import '../blocs/nearby_location/nearby_location_bloc.dart';
-import '../blocs/nearby_location/nearby_location_event.dart';
 import '../services/hive_service.dart';
 import '../services/local_storage.dart';
 import '../themes/colors.dart';

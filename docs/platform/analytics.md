@@ -65,7 +65,7 @@ Choose according to the time period;
 3. Finally, choose monthly for longer-term air quality views
    ![customisable_charts_5](../_media/analytics_customisable_charts_5.png)
 
-Finally, choose the pollutant either PM2.5 or PM10.
+Finally, choose the pollutant either PM<small>2.5</small> or PM<small>10</small>.
 ![customisable_charts_6](../_media/analytics_customisable_charts_6.png)
 
 Once done, click the add chart button and you will be able to view your data.

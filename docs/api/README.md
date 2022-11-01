@@ -27,4 +27,4 @@ On expiry, a user can get for a new token by loggin in using their account crede
 
 ---
 
-For support, please reach out to support@airqo.net to report bugs. We will also appreciate any feedback you would like to share with us!
+For support, please reach out to [support@airqo.net](mailto:support@airqo.net) to report bugs. We will also appreciate any feedback you would like to share with us!

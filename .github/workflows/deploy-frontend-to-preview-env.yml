@@ -42,33 +42,33 @@ jobs:
           echo "========== check paths of modified files =========="
           git diff --name-only HEAD^ HEAD > files.txt
 
-          echo "::set-output name=run_platform::false"
-          echo "::set-output name=run_calibrate_app::false"
-          echo "::set-output name=run_next_platform::false"
-          echo "::set-output name=run_docs::false"    
-          echo "::set-output name=run_website::false"    
+          echo "run_platform=false" >>$GITHUB_OUTPUT
+          echo "run_calibrate_app=false" >>$GITHUB_OUTPUT
+          echo "run_next_platform=false" >>$GITHUB_OUTPUT
+          echo "run_docs=false" >>$GITHUB_OUTPUT    
+          echo "run_website=false" >>$GITHUB_OUTPUT    
 
           while IFS= read -r file
           do
             echo $file
             if [[ $file == netmanager/* ]]; then
-              echo "::set-output name=run_platform::true"
+              echo "run_platform=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == calibrate/* ]]; then
-              echo "::set-output name=run_calibrate_app::true"
+              echo "run_calibrate_app=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == platform/* ]]; then
-              echo "::set-output name=run_next_platform::true"
+              echo "run_next_platform=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == docs/* ]]; then
-              echo "::set-output name=run_docs::true"
+              echo "run_docs=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == website/* ]]; then
-              echo "::set-output name=run_website::true"
+              echo "run_website=true" >>$GITHUB_OUTPUT
             fi
 
           done < files.txt
@@ -143,7 +143,7 @@ jobs:
             --format='value(status.url)' \
             --platform managed \
             --region ${{ secrets.REGION }})
-          echo "::set-output name=url::${service_url}"
+          echo "url=${service_url}" >>$GITHUB_OUTPUT
 
   netmanager-pr-comment:
     name: netmanager-preview-link-comment
@@ -231,7 +231,7 @@ jobs:
             --format='value(status.url)' \
             --platform managed \
             --region ${{ secrets.REGION }})
-          echo "::set-output name=url::${service_url}"
+          echo "url=${service_url}" >>$GITHUB_OUTPUT
 
   calibrate-app-pr-comment:
     name: calibrate-app-preview-link-comment
@@ -308,7 +308,7 @@ jobs:
             --format='value(status.url)' \
             --platform managed \
             --region ${{ secrets.REGION }})
-          echo "::set-output name=url::${service_url}"
+          echo "url=${service_url}" >>$GITHUB_OUTPUT
 
   next-platform-pr-comment:
     name: next-platform-preview-link-comment
@@ -382,7 +382,7 @@ jobs:
             --format='value(status.url)' \
             --platform managed \
             --region ${{ secrets.REGION }})
-          echo "::set-output name=url::${service_url}"
+          echo "url=${service_url}" >>$GITHUB_OUTPUT
 
   docs-pr-comment:
     name: docs-preview-link-comment

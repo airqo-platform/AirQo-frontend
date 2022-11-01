@@ -1,3 +1,4 @@
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/enum_constants.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:app/widgets/custom_shimmer.dart';
@@ -5,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../blocs/feedback/feedback_bloc.dart';
 import '../../constants/config.dart';
 import '../../models/feedback.dart';
 import '../../services/rest_api.dart';
