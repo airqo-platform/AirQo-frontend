@@ -91,6 +91,7 @@ class _HomePageState extends State<HomePage> {
           builder: Builder(
             builder: (context) {
               myContext = context;
+              
               return BottomNavigationBar(
                 selectedIconTheme: Theme.of(context)
                     .iconTheme
@@ -123,7 +124,8 @@ class _HomePageState extends State<HomePage> {
                           index: 1,
                         ),
                       ),
-                      label: ''),
+                    label: '',
+                  ),
                   BottomNavigationBarItem(
                     icon: Stack(
                       children: [
@@ -247,7 +249,11 @@ class _HomePageState extends State<HomePage> {
   static void _startShowcase() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       ShowCaseWidget.of(myContext!).startShowCase(
-          [_homeShowcaseKey, _mapShowcaseKey, _profileShowcaseKey]);
+          [
+        _homeShowcaseKey,
+        _mapShowcaseKey,
+        _profileShowcaseKey,
+      ]);
     });
   }
 }

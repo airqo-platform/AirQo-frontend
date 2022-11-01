@@ -409,7 +409,8 @@ class CustomBottomNavBarItem extends StatelessWidget {
       required this.svg,
       required this.selectedIndex,
       required this.label,
-      required this.index});
+    required this.index,
+  });
   final String svg;
   final int selectedIndex;
   final String label;

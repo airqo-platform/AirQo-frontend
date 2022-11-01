@@ -280,7 +280,8 @@ class _DashboardViewState extends State<DashboardView> {
                                         ),
                                         state.loading,
                                         false,
-                                      )),
+                                    ),
+                                  ),
                                 );
                               } else {
                                 return Padding(
