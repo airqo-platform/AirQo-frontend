@@ -100,6 +100,7 @@ LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dbFolder = await getApplicationDocumentsDirectory();
     final file = File(p.join(dbFolder.path, 'airqo_app_db.sqlite'));
+
     return NativeDatabase(file);
   });
 }

@@ -34,6 +34,7 @@ Frequency fromString(String string) {
   if (string.toLowerCase() == Frequency.daily.string) {
     return Frequency.daily;
   }
+
   return Frequency.hourly;
 }
 

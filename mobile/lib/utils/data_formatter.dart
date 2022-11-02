@@ -7,7 +7,9 @@ import 'package:uuid/uuid.dart';
 import '../themes/colors.dart';
 
 charts.Color insightsChartBarColor(
-    GraphInsightData series, Pollutant pollutant) {
+  GraphInsightData series,
+  Pollutant pollutant,
+) {
   if (series.empty) {
     return charts.ColorUtil.fromDartColor(
       CustomColors.greyColor,

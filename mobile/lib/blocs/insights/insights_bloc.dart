@@ -192,6 +192,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
       if (state.frequency == Frequency.hourly) {
         await _updateMiniCharts(emit);
       }
+
       return;
     }
 
