@@ -1,4 +1,5 @@
 import 'package:app/models/models.dart';
+import 'package:app/themes/theme.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -7,8 +8,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import '../../services/native_api.dart';
-import '../../themes/app_theme.dart';
-import '../../themes/colors.dart';
 import '../../widgets/custom_shimmer.dart';
 import 'kya_final_page.dart';
 import 'kya_widgets.dart';

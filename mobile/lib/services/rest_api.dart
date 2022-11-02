@@ -5,14 +5,11 @@ import 'dart:convert';
 import 'package:app/constants/api.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
-import 'package:app/utils/extensions.dart';
+import 'package:app/utils/utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-
-import '../models/json_parsers.dart';
-import '../utils/exception.dart';
 
 String addQueryParameters(Map<String, dynamic> queryParams, String url) {
   if (queryParams.isNotEmpty) {

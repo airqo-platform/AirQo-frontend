@@ -7,8 +7,8 @@ import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/firebase_service.dart';
 import 'package:app/services/local_storage.dart';
-import 'package:app/utils/pm.dart';
-import 'package:app/widgets/dialogs.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:app_repository/app_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -24,7 +24,6 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:workmanager/workmanager.dart' as workmanager;
 
-import '../utils/exception.dart';
 import 'hive_service.dart';
 
 class SystemProperties {

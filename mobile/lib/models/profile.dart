@@ -1,13 +1,10 @@
-import 'package:app/utils/extensions.dart';
+import 'package:app/services/services.dart';
+import 'package:app/utils/utils.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
 
-import '../services/firebase_service.dart';
-import '../services/hive_service.dart';
-import '../services/native_api.dart';
-import '../utils/network.dart';
 import 'enum_constants.dart';
 
 part 'profile.g.dart';

@@ -1,9 +1,9 @@
 import 'dart:io';
 
+import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 
 import '../constants/config.dart';
-import '../widgets/dialogs.dart';
 
 Future<bool> hasNetworkConnection() async {
   try {

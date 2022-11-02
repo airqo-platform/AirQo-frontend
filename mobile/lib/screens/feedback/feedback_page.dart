@@ -1,19 +1,15 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/enum_constants.dart';
 import 'package:app/services/services.dart';
-import 'package:app/utils/extensions.dart';
-import 'package:app/widgets/custom_shimmer.dart';
-import 'package:app/widgets/custom_widgets.dart';
-import 'package:app/widgets/dialogs.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../constants/config.dart';
 import '../../models/feedback.dart';
-import '../../themes/app_theme.dart';
-import '../../themes/colors.dart';
-import '../../widgets/buttons.dart';
 import '../home_page.dart';
 
 part 'feedback_page_widgets.dart';

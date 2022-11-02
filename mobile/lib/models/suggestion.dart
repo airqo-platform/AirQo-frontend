@@ -1,4 +1,4 @@
-import 'package:app/utils/extensions.dart';
+import 'package:app/utils/utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:json_annotation/json_annotation.dart';
 

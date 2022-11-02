@@ -1,6 +1,5 @@
+import 'package:app/utils/utils.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
-import '../utils/exception.dart';
 
 class SecureStorage {
   factory SecureStorage() {

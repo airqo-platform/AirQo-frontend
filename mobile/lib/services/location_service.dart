@@ -4,13 +4,12 @@ import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/firebase_service.dart';
 import 'package:app/services/rest_api.dart';
-import 'package:app/utils/distance.dart';
+import 'package:app/utils/utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../utils/exception.dart';
 import 'hive_service.dart';
 import 'native_api.dart';
 

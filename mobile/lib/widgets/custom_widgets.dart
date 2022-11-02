@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:app/constants/config.dart';
+import 'package:app/themes/theme.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
@@ -14,8 +15,6 @@ import '../models/enum_constants.dart';
 import '../models/favourite_place.dart';
 import '../services/hive_service.dart';
 import '../services/native_api.dart';
-import '../themes/app_theme.dart';
-import '../themes/colors.dart';
 import 'buttons.dart';
 import 'custom_shimmer.dart';
 

@@ -1,10 +1,9 @@
 import 'package:app/models/models.dart';
+import 'package:app/themes/theme.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
-
-import '../themes/colors.dart';
 
 charts.Color insightsChartBarColor(
   GraphInsightData series,

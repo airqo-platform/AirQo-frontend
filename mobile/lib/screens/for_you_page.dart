@@ -1,8 +1,7 @@
-import 'package:app/widgets/custom_widgets.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 
-import '../themes/colors.dart';
-import '../widgets/buttons.dart';
 import 'analytics/analytics_view.dart';
 import 'kya/know_your_air_view.dart';
 

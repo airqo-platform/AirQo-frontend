@@ -1,8 +1,7 @@
+import 'package:app/themes/theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
-
-import '../themes/colors.dart';
 
 class MiniLoadingIndicator extends StatelessWidget {
   const MiniLoadingIndicator({

@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
-import 'package:app/utils/extensions.dart';
-import 'package:app/widgets/dialogs.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,8 +12,6 @@ import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/cupertino.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../utils/exception.dart';
-import '../utils/network.dart';
 import 'hive_service.dart';
 
 class CloudAnalytics {

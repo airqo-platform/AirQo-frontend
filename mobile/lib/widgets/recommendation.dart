@@ -1,9 +1,7 @@
-import 'package:app/utils/pm.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-
-import '../themes/app_theme.dart';
-import '../themes/colors.dart';
 
 class RecommendationContainer extends StatelessWidget {
   const RecommendationContainer(this.recommendation, {super.key});

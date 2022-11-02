@@ -6,16 +6,14 @@ import 'package:app/services/hive_service.dart';
 import 'package:app/services/local_storage.dart';
 import 'package:app/services/rest_api.dart';
 import 'package:app/services/secure_storage.dart';
-import 'package:app/utils/extensions.dart';
-import 'package:app/utils/network.dart';
-import 'package:app/widgets/dialogs.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:app_repository/app_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../constants/config.dart';
-import '../utils/exception.dart';
 import 'location_service.dart';
 
 class AppService {

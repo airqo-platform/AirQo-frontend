@@ -1,6 +1,6 @@
 import 'package:app/models/place_details.dart';
 import 'package:app/services/firebase_service.dart';
-import 'package:app/utils/exception.dart';
+import 'package:app/utils/utils.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:uuid/uuid.dart';

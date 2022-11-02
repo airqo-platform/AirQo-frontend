@@ -1,6 +1,7 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/native_api.dart';
+import 'package:app/themes/theme.dart';
 import 'package:app_repository/app_repository.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
@@ -11,8 +12,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../../constants/config.dart';
 import '../../services/hive_service.dart';
 import '../../services/location_service.dart';
-import '../../themes/app_theme.dart';
-import '../../themes/colors.dart';
 import '../../widgets/custom_shimmer.dart';
 import '../../widgets/custom_widgets.dart';
 import '../../widgets/dialogs.dart';

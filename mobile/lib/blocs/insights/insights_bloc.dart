@@ -2,14 +2,12 @@ import 'dart:async';
 
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
-import 'package:app/utils/extensions.dart';
+import 'package:app/utils/utils.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../constants/config.dart';
-import '../../utils/data_formatter.dart';
-import '../../utils/network.dart';
 
 part 'insights_event.dart';
 part 'insights_state.dart';

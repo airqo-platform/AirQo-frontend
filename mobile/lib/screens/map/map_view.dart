@@ -5,6 +5,9 @@ import 'dart:math';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:app_repository/app_repository.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
@@ -13,12 +16,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../constants/config.dart';
-import '../../themes/app_theme.dart';
-import '../../themes/colors.dart';
-import '../../utils/pm.dart';
-import '../../widgets/custom_shimmer.dart';
-import '../../widgets/custom_widgets.dart';
-import '../../widgets/dialogs.dart';
 import '../analytics/analytics_view.dart';
 import '../insights/insights_page.dart';
 

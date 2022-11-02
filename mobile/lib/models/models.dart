@@ -5,6 +5,7 @@ export 'email_auth_model.dart';
 export 'enum_constants.dart';
 export 'favourite_place.dart';
 export 'feedback.dart';
+export 'json_parsers.dart';
 export 'kya.dart';
 export 'notification.dart';
 export 'place_details.dart';

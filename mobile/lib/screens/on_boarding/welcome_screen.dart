@@ -1,12 +1,11 @@
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
 import 'package:app/widgets/buttons.dart';
 import 'package:app/widgets/dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../themes/app_theme.dart';
-import '../../themes/colors.dart';
 import '../../widgets/custom_widgets.dart';
 import '../auth/phone_auth_widget.dart';
 import 'on_boarding_widgets.dart';
