@@ -14,3 +14,4 @@ secret
 .env.yaml
 .stage-env.yaml
 .prod-env.yaml
+.idea/
