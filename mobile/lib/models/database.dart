@@ -58,6 +58,30 @@ class AirQoDatabase extends _$AirQoDatabase {
     return [];
   }
 
+  Future<List<GraphInsightData>> getDailyMiniHourlyInsights(
+    String siteId,
+    int day,
+  ) async {
+    try {
+      final data = await (select(graphInsight)
+            ..where((x) {
+              return x.siteId.equals(siteId) & x.time.day.equals(day);
+            }))
+          .get();
+
+      return data
+          .where((element) => element.frequency == Frequency.hourly)
+          .toList();
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return [];
+  }
+
   Future<void> insertInsights(List<GraphInsightData> insights) async {
     try {
       await batch((batch) {

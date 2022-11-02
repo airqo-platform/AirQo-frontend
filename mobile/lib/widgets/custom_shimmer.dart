@@ -4,6 +4,32 @@ import 'package:shimmer/shimmer.dart';
 
 import '../themes/colors.dart';
 
+class MiniLoadingIndicator extends StatelessWidget {
+  const MiniLoadingIndicator({
+    super.key,
+    required this.loading,
+  });
+  final bool loading;
+
+  @override
+  Widget build(BuildContext context) {
+    return loading
+        ? SizedBox(
+            height: 8,
+            width: 8,
+            child: SizedBox(
+              height: 8,
+              width: 8,
+              child: CircularProgressIndicator(
+                strokeWidth: 1,
+                color: CustomColors.appColorBlue,
+              ),
+            ),
+          )
+        : Container();
+  }
+}
+
 class CircularLoadingAnimation extends StatelessWidget {
   const CircularLoadingAnimation({
     super.key,

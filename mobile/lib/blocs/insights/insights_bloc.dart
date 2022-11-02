@@ -44,9 +44,13 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     UpdateSelectedInsight event,
     Emitter<InsightsState> emit,
   ) async {
-    return emit(state.copyWith(
-      selectedInsight: event.selectedInsight,
-    ));
+    emit(state.copyWith(selectedInsight: event.selectedInsight));
+
+    if (state.frequency == Frequency.daily) {
+      return _updateMiniCharts(emit);
+    }
+
+    return;
   }
 
   Future<void> _onUpdateActiveIndex(
@@ -65,32 +69,26 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     return emit(state.copyWith(pollutant: event.pollutant));
   }
 
-  Future<void> _updateMiniCharts(
-    Emitter<InsightsState> emit,
-  ) async {
-    final insightsData =
-        await AirQoDatabase().getInsights(state.siteId, Frequency.hourly);
-
-    if (insightsData.isEmpty) {
+  Future<void> _updateMiniCharts(Emitter<InsightsState> emit) async {
+    final day = state.selectedInsight?.time.day;
+    if (day == null) {
       return;
     }
 
-    final hourlyInsights = insightsData.where((element) {
-      return element.time.day == state.selectedInsight?.time.day;
-    }).toList();
+    final hourlyInsights =
+        await AirQoDatabase().getDailyMiniHourlyInsights(state.siteId, day);
+
     if (hourlyInsights.isEmpty) {
       return;
     }
 
-    final pm2_5ChartData = insightsChartData(
+    final pm2_5ChartData = miniInsightsChartData(
       hourlyInsights,
       Pollutant.pm2_5,
-      Frequency.hourly,
     );
-    final pm10ChartData = insightsChartData(
+    final pm10ChartData = miniInsightsChartData(
       hourlyInsights,
       Pollutant.pm10,
-      Frequency.hourly,
     );
 
     if (pm2_5ChartData.isEmpty || pm10ChartData.isEmpty) {
@@ -99,8 +97,8 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
 
     return emit(state.copyWith(
       miniInsightsCharts: {
-        Pollutant.pm2_5: pm2_5ChartData.first,
-        Pollutant.pm10: pm10ChartData.first,
+        Pollutant.pm2_5: pm2_5ChartData,
+        Pollutant.pm10: pm10ChartData,
       },
     ));
   }
@@ -225,7 +223,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
       insightsStatus: InsightsStatus.loaded,
     ));
 
-    if (state.frequency == Frequency.hourly) {
+    if (state.frequency == Frequency.daily) {
       await _updateMiniCharts(emit);
     }
 
@@ -253,7 +251,6 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
     }
 
     return _refreshCharts(emit);
-
   }
 
   Future<void> _onClearInsights(

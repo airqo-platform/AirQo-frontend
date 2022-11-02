@@ -5,34 +5,74 @@ class InsightsLoadingWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        children: [
-          Row(
-            children: const [
-              TextLoadingAnimation(
-                height: 18,
-                width: 70,
+    return ListView(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: const [
+                  SizedContainerLoadingAnimation(
+                    height: 32,
+                    width: 70,
+                    radius: 8.0,
+                  ),
+                  Spacer(),
+                  SizedContainerLoadingAnimation(
+                    height: 32,
+                    width: 32,
+                    radius: 8.0,
+                  ),
+                ],
               ),
-              Spacer(),
-              SizedContainerLoadingAnimation(
-                height: 32,
-                width: 32,
+              const SizedBox(
+                height: 12,
+              ),
+              const ContainerLoadingAnimation(height: 290.0, radius: 8.0),
+              const SizedBox(
+                height: 16,
+              ),
+              const ContainerLoadingAnimation(
+                height: 60,
                 radius: 8.0,
+              ),
+              const SizedBox(
+                height: 32,
+              ),
+              const SizedContainerLoadingAnimation(
+                height: 32,
+                width: 216,
+                radius: 8.0,
+              ),
+              const SizedBox(
+                height: 16,
               ),
             ],
           ),
-          const SizedBox(
-            height: 12,
+        ),
+        SizedBox(
+          height: 128,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: EdgeInsets.only(
+                  left: index == 0 ? 12.0 : 6.0,
+                  right: index == (4 - 1) ? 12.0 : 6.0,
+                ),
+                child: const SizedContainerLoadingAnimation(
+                  width: 304,
+                  height: 128,
+                  radius: 8.0,
+                ),
+              );
+            },
+            itemCount: 4,
           ),
-          const ContainerLoadingAnimation(height: 290.0, radius: 8.0),
-          const SizedBox(
-            height: 16,
-          ),
-          const ContainerLoadingAnimation(height: 50.0, radius: 8.0),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -444,7 +484,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                               AutoSizeText(
                                 insightsChartTitleDateTimeToString(
                                   state.selectedInsight?.time ?? DateTime.now(),
-                                  Frequency.hourly,
+                                  state.frequency,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -524,7 +564,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                     ),
                     Visibility(
                       visible: state.selectedInsight
-                              ?.lastUpdated(Frequency.hourly)
+                              ?.lastUpdated(state.frequency)
                               .isNotEmpty ??
                           true,
                       child: const SizedBox(
@@ -540,7 +580,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                           ),
                           child: Text(
                             state.selectedInsight
-                                    ?.lastUpdated(Frequency.hourly) ??
+                                    ?.lastUpdated(state.frequency) ??
                                 '',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -553,15 +593,9 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
                         const SizedBox(
                           width: 8.0,
                         ),
-                        Visibility(
-                          visible:
+                        MiniLoadingIndicator(
+                          loading:
                               state.insightsStatus == InsightsStatus.refreshing,
-                          child: SvgPicture.asset(
-                            'assets/icon/loader.svg',
-                            semanticsLabel: 'loader',
-                            height: 8,
-                            width: 8,
-                          ),
                         ),
                       ],
                     ),
@@ -755,69 +789,78 @@ class DailyInsightsGraph extends StatefulWidget {
 
 class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
   final GlobalKey _infoToolTipKey = GlobalKey();
+  final GlobalKey _forecastToolTipKey = GlobalKey();
+  bool scrollToToday = true;
+
   final ItemScrollController _itemScrollController = ItemScrollController();
-  bool isScrolling = false;
 
-  Future<void> _scrollToChart({
-    required Duration? duration,
-  }) async {
+  void _jumpToChart() {
+    context.read<DailyInsightsBloc>().add(const SetScrolling(true));
+
     final chartIndex = context.read<DailyInsightsBloc>().state.chartIndex;
-    final data = context
-        .read<DailyInsightsBloc>()
-        .state
-        .insightsCharts[context.read<DailyInsightsBloc>().state.pollutant];
 
-    setState(() => isScrolling = true);
-    final selectedInsight = data![chartIndex][0].data.first;
-    duration ??= const Duration(seconds: 1);
+    _itemScrollController.jumpTo(
+      index: chartIndex,
+    );
+    setState(() => scrollToToday = false);
+    context.read<DailyInsightsBloc>().add(const SetScrolling(false));
+  }
+
+  Future<void> _scrollToChart({Duration? duration}) async {
+    final state = context.read<DailyInsightsBloc>().state;
+
+    final data =
+        state.insightsCharts[context.read<DailyInsightsBloc>().state.pollutant];
+
+    if (data == null) {
+      return;
+    }
+
+    context.read<DailyInsightsBloc>().add(const SetScrolling(true));
+
+    final selectedInsight = data[state.chartIndex][0].data.first;
+    context
+        .read<DailyInsightsBloc>()
+        .add(UpdateSelectedInsight(selectedInsight));
+
+    duration ??= const Duration(milliseconds: 500);
+
+    if (!_itemScrollController.isAttached) {
+      await _scrollToChart(duration: duration);
+      return;
+    }
 
     if (_itemScrollController.isAttached) {
       await _itemScrollController
           .scrollTo(
-        index: chartIndex,
+        index: state.chartIndex,
         duration: duration,
-        curve: Curves.easeInOutCubic,
+        curve: Curves.easeInToLinear,
       )
           .whenComplete(() {
-        setState(() => isScrolling = false);
-        context
-            .read<DailyInsightsBloc>()
-            .add(UpdateSelectedInsight(selectedInsight));
+        context.read<DailyInsightsBloc>().add(const SetScrolling(false));
       });
     } else {
-      Future.delayed(
-        const Duration(milliseconds: 100),
-        () {
-          if (!_itemScrollController.isAttached) {
-            return;
-          }
-          _itemScrollController
-              .scrollTo(
-            index: chartIndex,
-            duration: duration ??= const Duration(seconds: 1),
-            curve: Curves.easeInOutCubic,
-          )
-              .whenComplete(() {
-            setState(() => isScrolling = false);
-            context
-                .read<DailyInsightsBloc>()
-                .add(UpdateSelectedInsight(selectedInsight));
-          });
-        },
-      );
+      Future.delayed(const Duration(milliseconds: 100), () {
+        _scrollToChart(duration: const Duration(milliseconds: 1));
+      });
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _jumpToChart();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<DailyInsightsBloc, InsightsState>(
       builder: (context, state) {
-        if (state.selectedInsight == null) {
-          return const ContainerLoadingAnimation(height: 290.0, radius: 8.0);
-        }
-
         return Container(
-          padding: const EdgeInsets.only(top: 12, bottom: 12),
+          padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: const BorderRadius.all(
@@ -827,11 +870,17 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
           ),
           child: Column(
             children: [
+              MultiBlocListener(listeners: [
+                BlocListener<DailyInsightsBloc, InsightsState>(
+                    listenWhen: (previous, current) {
+                  return previous.chartIndex != current.chartIndex;
+                }, listener: (context, listenerState) {
+                  _scrollToChart();
+                }),
+              ], child: Container()),
+
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 0,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
                   children: [
                     Row(
@@ -843,7 +892,7 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
                               AutoSizeText(
                                 insightsChartTitleDateTimeToString(
                                   state.selectedInsight?.time ?? DateTime.now(),
-                                  Frequency.daily,
+                                  state.frequency,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -895,6 +944,7 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
                     SizedBox(
                       height: 160,
                       child: ScrollablePositionedList.builder(
+                        physics: const BouncingScrollPhysics(),
                         scrollDirection: Axis.horizontal,
                         itemCount:
                             state.insightsCharts[state.pollutant]?.length ?? 0,
@@ -905,9 +955,10 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
                             ),
                             onVisibilityChanged:
                                 (VisibilityInfo visibilityInfo) {
-                              if (!isScrolling &&
+                              if (!state.scrollingGraphs &&
                                   visibilityInfo.visibleFraction > 0.3 &&
-                                  state.chartIndex != index) {
+                                  state.chartIndex != index &&
+                                  !scrollToToday) {
                                 context
                                     .read<DailyInsightsBloc>()
                                     .add(UpdateInsightsActiveIndex(index));
@@ -919,22 +970,10 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
                         itemScrollController: _itemScrollController,
                       ),
                     ),
-                    BlocListener<DailyInsightsBloc, InsightsState>(
-                      listenWhen: (listenerPreviousState, listenerState) {
-                        return listenerPreviousState.chartIndex !=
-                            listenerState.chartIndex;
-                      },
-                      listener: (context, listenerState) {
-                        _scrollToChart(
-                          duration: const Duration(microseconds: 100),
-                        );
-                      },
-                      child: Container(),
-                    ),
                     const MiniHourlyAnalyticsGraph(),
                     Visibility(
                       visible: state.selectedInsight
-                              ?.lastUpdated(Frequency.daily)
+                              ?.lastUpdated(state.frequency)
                               .isNotEmpty ??
                           true,
                       child: const SizedBox(
@@ -950,7 +989,7 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
                           ),
                           child: Text(
                             state.selectedInsight
-                                    ?.lastUpdated(Frequency.daily) ??
+                                    ?.lastUpdated(state.frequency) ??
                                 '',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -963,11 +1002,9 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
                         const SizedBox(
                           width: 8.0,
                         ),
-                        SvgPicture.asset(
-                          'assets/icon/loader.svg',
-                          semanticsLabel: 'loader',
-                          height: 8,
-                          width: 8,
+                        MiniLoadingIndicator(
+                          loading:
+                              state.insightsStatus == InsightsStatus.refreshing,
                         ),
                       ],
                     ),
@@ -1107,6 +1144,40 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
                         ),
                       ),
                     ),
+                    const Spacer(),
+                    Row(
+                      children: [
+                        Container(
+                          height: 10,
+                          width: 10,
+                          key: _forecastToolTipKey,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: state.selectedInsight!.forecast
+                                ? CustomColors.appColorBlue
+                                : CustomColors.appColorBlue.withOpacity(0.24),
+                            border: Border.all(color: Colors.transparent),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 8.0,
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            ToolTip(context, ToolTipType.forecast).show(
+                              widgetKey: _forecastToolTipKey,
+                            );
+                          },
+                          child: Text(
+                            'Forecast',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: CustomColors.appColorBlue,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -1117,6 +1188,371 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
     );
   }
 }
+
+// class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
+//   final GlobalKey _infoToolTipKey = GlobalKey();
+//   final ItemScrollController _itemScrollController = ItemScrollController();
+//   bool isScrolling = false;
+//
+//   Future<void> _scrollToChart({
+//     required Duration? duration,
+//   }) async {
+//     final chartIndex = context.read<DailyInsightsBloc>().state.chartIndex;
+//     final data = context
+//         .read<DailyInsightsBloc>()
+//         .state
+//         .insightsCharts[context.read<DailyInsightsBloc>().state.pollutant];
+//
+//     setState(() => isScrolling = true);
+//     final selectedInsight = data![chartIndex][0].data.first;
+//     duration ??= const Duration(seconds: 1);
+//
+//     if (_itemScrollController.isAttached) {
+//       await _itemScrollController
+//           .scrollTo(
+//         index: chartIndex,
+//         duration: duration,
+//         curve: Curves.easeInOutCubic,
+//       )
+//           .whenComplete(() {
+//         setState(() => isScrolling = false);
+//         context
+//             .read<DailyInsightsBloc>()
+//             .add(UpdateSelectedInsight(selectedInsight));
+//       });
+//     } else {
+//       Future.delayed(
+//         const Duration(milliseconds: 100),
+//         () {
+//           if (!_itemScrollController.isAttached) {
+//             return;
+//           }
+//           _itemScrollController
+//               .scrollTo(
+//             index: chartIndex,
+//             duration: duration ??= const Duration(seconds: 1),
+//             curve: Curves.easeInOutCubic,
+//           )
+//               .whenComplete(() {
+//             setState(() => isScrolling = false);
+//             context
+//                 .read<DailyInsightsBloc>()
+//                 .add(UpdateSelectedInsight(selectedInsight));
+//           });
+//         },
+//       );
+//     }
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return BlocBuilder<DailyInsightsBloc, InsightsState>(
+//       builder: (context, state) {
+//         if (state.selectedInsight == null) {
+//           return const ContainerLoadingAnimation(height: 290.0, radius: 8.0);
+//         }
+//
+//         return Container(
+//           padding: const EdgeInsets.only(top: 12, bottom: 12),
+//           decoration: BoxDecoration(
+//             color: Colors.white,
+//             borderRadius: const BorderRadius.all(
+//               Radius.circular(8.0),
+//             ),
+//             border: Border.all(color: Colors.transparent),
+//           ),
+//           child: Column(
+//             children: [
+//               Container(
+//                 padding: const EdgeInsets.symmetric(
+//                   horizontal: 16,
+//                   vertical: 0,
+//                 ),
+//                 child: Column(
+//                   children: [
+//                     Row(
+//                       children: [
+//                         Expanded(
+//                           child: Column(
+//                             crossAxisAlignment: CrossAxisAlignment.start,
+//                             children: [
+//                               AutoSizeText(
+//                                 insightsChartTitleDateTimeToString(
+//                                   state.selectedInsight?.time ?? DateTime.now(),
+//                                   Frequency.daily,
+//                                 ),
+//                                 maxLines: 1,
+//                                 overflow: TextOverflow.ellipsis,
+//                                 style: CustomTextStyle.bodyText4(context)
+//                                     ?.copyWith(
+//                                   color: CustomColors.appColorBlack
+//                                       .withOpacity(0.3),
+//                                 ),
+//                               ),
+//                               AutoSizeText(
+//                                 state.airQualityReading?.name ?? '',
+//                                 maxLines: 1,
+//                                 overflow: TextOverflow.ellipsis,
+//                                 style: CustomTextStyle.headline8(context)
+//                                     ?.copyWith(
+//                                   color: CustomColors.appColorBlack,
+//                                 ),
+//                               ),
+//                               AutoSizeText(
+//                                 state.airQualityReading?.location ?? '',
+//                                 maxLines: 1,
+//                                 overflow: TextOverflow.ellipsis,
+//                                 style: Theme.of(context)
+//                                     .textTheme
+//                                     .caption
+//                                     ?.copyWith(
+//                                       color: CustomColors.appColorBlack
+//                                           .withOpacity(0.3),
+//                                     ),
+//                               ),
+//                             ],
+//                           ),
+//                         ),
+//                         const SizedBox(width: 8),
+//                         GestureDetector(
+//                           onTap: () {
+//                             ToolTip(context, ToolTipType.info).show(
+//                               widgetKey: _infoToolTipKey,
+//                             );
+//                           },
+//                           child: InsightsAvatar(
+//                             insights: state.selectedInsight!,
+//                             size: 64,
+//                             pollutant: state.pollutant,
+//                           ),
+//                         ),
+//                       ],
+//                     ),
+//                     SizedBox(
+//                       height: 160,
+//                       child: ScrollablePositionedList.builder(
+//                         scrollDirection: Axis.horizontal,
+//                         itemCount:
+//                             state.insightsCharts[state.pollutant]?.length ?? 0,
+//                         itemBuilder: (context, index) {
+//                           return VisibilityDetector(
+//                             key: Key(
+//                               index.toString(),
+//                             ),
+//                             onVisibilityChanged:
+//                                 (VisibilityInfo visibilityInfo) {
+//                               if (!isScrolling &&
+//                                   visibilityInfo.visibleFraction > 0.3 &&
+//                                   state.chartIndex != index) {
+//                                 context
+//                                     .read<DailyInsightsBloc>()
+//                                     .add(UpdateInsightsActiveIndex(index));
+//                               }
+//                             },
+//                             child: const DailyAnalyticsGraph(),
+//                           );
+//                         },
+//                         itemScrollController: _itemScrollController,
+//                       ),
+//                     ),
+//                     BlocListener<DailyInsightsBloc, InsightsState>(
+//                       listenWhen: (listenerPreviousState, listenerState) {
+//                         return listenerPreviousState.chartIndex !=
+//                             listenerState.chartIndex;
+//                       },
+//                       listener: (context, listenerState) {
+//                         _scrollToChart(
+//                           duration: const Duration(microseconds: 100),
+//                         );
+//                       },
+//                       child: Container(),
+//                     ),
+//                     const MiniHourlyAnalyticsGraph(),
+//                     Visibility(
+//                       visible: state.selectedInsight
+//                               ?.lastUpdated(Frequency.daily)
+//                               .isNotEmpty ??
+//                           true,
+//                       child: const SizedBox(
+//                         height: 13.0,
+//                       ),
+//                     ),
+//                     Row(
+//                       crossAxisAlignment: CrossAxisAlignment.start,
+//                       children: [
+//                         Container(
+//                           constraints: BoxConstraints(
+//                             maxWidth: MediaQuery.of(context).size.width / 2,
+//                           ),
+//                           child: Text(
+//                             state.selectedInsight
+//                                     ?.lastUpdated(Frequency.daily) ??
+//                                 '',
+//                             maxLines: 1,
+//                             overflow: TextOverflow.ellipsis,
+//                             style: TextStyle(
+//                               fontSize: 8,
+//                               color: Colors.black.withOpacity(0.3),
+//                             ),
+//                           ),
+//                         ),
+//                         const SizedBox(
+//                           width: 8.0,
+//                         ),
+//                         SvgPicture.asset(
+//                           'assets/icon/loader.svg',
+//                           semanticsLabel: 'loader',
+//                           height: 8,
+//                           width: 8,
+//                         ),
+//                       ],
+//                     ),
+//                   ],
+//                 ),
+//               ),
+//
+//               const SizedBox(
+//                 height: 8.0,
+//               ),
+//
+//               const Divider(
+//                 color: Color(0xffC4C4C4),
+//               ),
+//
+//               const SizedBox(
+//                 height: 8.0,
+//               ),
+//               // footer
+//               Container(
+//                 width: MediaQuery.of(context).size.width,
+//                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+//                 child: Row(
+//                   children: [
+//                     GestureDetector(
+//                       onTap: () {
+//                         ToolTip(context, ToolTipType.info).show(
+//                           widgetKey: _infoToolTipKey,
+//                         );
+//                       },
+//                       child: Visibility(
+//                         visible: !state.selectedInsight!.empty,
+//                         child: Container(
+//                           padding:
+//                               const EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 2.0),
+//                           constraints: BoxConstraints(
+//                             maxWidth: MediaQuery.of(context).size.width / 2,
+//                           ),
+//                           decoration: BoxDecoration(
+//                             borderRadius: const BorderRadius.all(
+//                               Radius.circular(40.0),
+//                             ),
+//                             color: state.pollutant == Pollutant.pm2_5
+//                                 ? Pollutant.pm2_5
+//                                     .color(
+//                                       state.selectedInsight!
+//                                           .chartValue(state.pollutant),
+//                                     )
+//                                     .withOpacity(0.4)
+//                                 : Pollutant.pm10
+//                                     .color(
+//                                       state.selectedInsight!
+//                                           .chartValue(state.pollutant),
+//                                     )
+//                                     .withOpacity(0.4),
+//                             border: Border.all(color: Colors.transparent),
+//                           ),
+//                           child: AutoSizeText(
+//                             state.pollutant == Pollutant.pm2_5
+//                                 ? Pollutant.pm2_5
+//                                     .stringValue(
+//                                       state.selectedInsight!
+//                                           .chartValue(state.pollutant),
+//                                     )
+//                                     .trimEllipsis()
+//                                 : Pollutant.pm10
+//                                     .stringValue(
+//                                       state.selectedInsight!
+//                                           .chartValue(state.pollutant),
+//                                     )
+//                                     .trimEllipsis(),
+//                             maxLines: 1,
+//                             maxFontSize: 14,
+//                             textAlign: TextAlign.start,
+//                             overflow: TextOverflow.ellipsis,
+//                             style: CustomTextStyle.button2(context)?.copyWith(
+//                               color: state.pollutant == Pollutant.pm2_5
+//                                   ? Pollutant.pm2_5.textColor(
+//                                       value: state.selectedInsight!
+//                                           .chartValue(state.pollutant),
+//                                       graph: true,
+//                                     )
+//                                   : Pollutant.pm10.textColor(
+//                                       value: state.selectedInsight!
+//                                           .chartValue(state.pollutant),
+//                                       graph: true,
+//                                     ),
+//                             ),
+//                           ),
+//                         ),
+//                       ),
+//                     ),
+//                     Visibility(
+//                       visible: state.selectedInsight!.empty,
+//                       child: Container(
+//                         padding: const EdgeInsets.symmetric(
+//                           horizontal: 10.0,
+//                           vertical: 2.0,
+//                         ),
+//                         decoration: BoxDecoration(
+//                           borderRadius: const BorderRadius.all(
+//                             Radius.circular(40.0),
+//                           ),
+//                           color: CustomColors.greyColor.withOpacity(0.4),
+//                           border: Border.all(color: Colors.transparent),
+//                         ),
+//                         child: Text(
+//                           'Not Available',
+//                           maxLines: 1,
+//                           textAlign: TextAlign.center,
+//                           overflow: TextOverflow.ellipsis,
+//                           style: TextStyle(
+//                             fontSize: 14,
+//                             color: CustomColors.darkGreyColor,
+//                           ),
+//                         ),
+//                       ),
+//                     ),
+//                     const SizedBox(
+//                       width: 8,
+//                     ),
+//                     Visibility(
+//                       visible: !state.selectedInsight!.empty,
+//                       child: GestureDetector(
+//                         onTap: () {
+//                           pmInfoDialog(
+//                             context,
+//                             state.selectedInsight!.chartValue(state.pollutant),
+//                           );
+//                         },
+//                         child: SvgPicture.asset(
+//                           'assets/icon/info_icon.svg',
+//                           semanticsLabel: 'Pm2.5',
+//                           height: 20,
+//                           width: 20,
+//                           key: _infoToolTipKey,
+//                         ),
+//                       ),
+//                     ),
+//                   ],
+//                 ),
+//               ),
+//             ],
+//           ),
+//         );
+//       },
+//     );
+//   }
+// }
 
 class InsightsHealthTips extends StatefulWidget {
   const InsightsHealthTips({

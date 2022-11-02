@@ -196,7 +196,7 @@ class CustomColors {
 
   static Color get appColorDisabled => appColorBlue.withOpacity(0.5);
 
-  static Color get appLoadingColor => const Color(0xffEBEAEF);
+  static Color get appLoadingColor => const Color(0xff145DFF).withOpacity(0.2);
 
   static Color get appPicColor => const Color(0xffFF79C1);
 

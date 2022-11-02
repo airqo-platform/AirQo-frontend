@@ -12,7 +12,7 @@ class DailyInsightsTab extends StatelessWidget {
       widget: BlocConsumer<DailyInsightsBloc, InsightsState>(
         listenWhen: (previous, current) {
           return (current.insightsStatus == InsightsStatus.error ||
-              current.insightsStatus == InsightsStatus.failed) &&
+                  current.insightsStatus == InsightsStatus.failed) &&
               current.errorMessage != '';
         },
         listener: (context, state) {

@@ -114,9 +114,11 @@ List<List<charts.Series<GraphInsightData, String>>> insightsChartData(
           .where((element) => element.time.day == earliestDate.day)
           .toList();
 
-      if (filteredDates.length != 24) {
+      if (filteredDates.length < 24) {
         filteredDates = fillMissingData(filteredDates, frequency);
       }
+
+      filteredDates.take(24);
 
       insightsGraphs.add([
         charts.Series<GraphInsightData, String>(
@@ -157,11 +159,13 @@ List<List<charts.Series<GraphInsightData, String>>> insightsChartData(
         earliestDate = earliestDate.add(const Duration(days: 1));
       }
 
-      filteredDates.addAll(
-        data.where((element) => dateRanges.contains(element.time)).toList(),
-      );
+      filteredDates
+        ..addAll(
+          data.where((element) => dateRanges.contains(element.time)).toList(),
+        )
+        ..take(7);
 
-      if (filteredDates.length != 7) {
+      if (filteredDates.length < 7) {
         filteredDates = fillMissingData(filteredDates, frequency);
       }
 
@@ -182,6 +186,37 @@ List<List<charts.Series<GraphInsightData, String>>> insightsChartData(
   }
 
   return insightsGraphs;
+}
+
+List<charts.Series<GraphInsightData, String>> miniInsightsChartData(
+  List<GraphInsightData> insights,
+  Pollutant pollutant,
+) {
+  var data = <GraphInsightData>[...insights];
+
+  if (data.length < 24) {
+    data = fillMissingData(data, Frequency.hourly);
+  }
+
+  data.take(24);
+
+  return <charts.Series<GraphInsightData, String>>[
+    charts.Series<GraphInsightData, String>(
+      id: '${const Uuid().v4()}-${data.first.time.day}',
+      colorFn: (GraphInsightData series, _) =>
+          insightsChartBarColor(series, pollutant),
+      domainFn: (GraphInsightData data, _) {
+        final hour = data.time.hour;
+
+        return hour.toString().length == 1 ? '0$hour' : '$hour';
+      },
+      measureFn: (GraphInsightData data, _) => data.chartValue(pollutant),
+      data: formatData(
+        data,
+        Frequency.hourly,
+      ),
+    ),
+  ];
 }
 
 List<GraphInsightData> fillMissingData(
