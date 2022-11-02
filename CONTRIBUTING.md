@@ -9,6 +9,7 @@ In this guide you will get an overview of the contribution workflow from opening
 To get an overview of each product, read the respective product READMEs:
 
 - [Analytics Platform](/platform/README.md)
+- [Calibrate](/calibrate/README.md)
 - [Docs](/docs/README.md)
 - [Mobile app](/mobile/README.md)
 - [Netmanager](/netmanager/README.md)

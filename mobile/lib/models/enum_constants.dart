@@ -46,8 +46,39 @@ enum AppPermission {
 }
 
 enum NearbyAirQualityError {
-  locationDisabled,
-  noNearbyAirQualityReadings,
+  locationDenied(
+    message: 'Grant location access in your phone settings',
+    snackBarActionLabel: 'Open Settings',
+    snackBarDuration: 5,
+  ),
+  locationDisabled(
+    message: 'Turn on location to get air quality near you',
+    snackBarActionLabel: 'Open Settings',
+    snackBarDuration: 5,
+  ),
+  locationNotAllowed(
+    message: 'Enable location in your settings.',
+    snackBarActionLabel: 'Open Settings',
+    snackBarDuration: 5,
+  ),
+  noNearbyAirQualityReadings(
+    message: 'Cannot get nearby air quality readings',
+    snackBarActionLabel: 'Close',
+    snackBarDuration: 2,
+  );
+
+  const NearbyAirQualityError({
+    required this.message,
+    required this.snackBarActionLabel,
+    required this.snackBarDuration,
+  });
+
+  final String message;
+  final String snackBarActionLabel;
+  final int snackBarDuration;
+
+  @override
+  String toString() => message;
 }
 
 @HiveType(typeId: 110, adapterName: 'AppNotificationTypeAdapter')
