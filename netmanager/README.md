@@ -8,6 +8,7 @@ npm is our package manager of choice here. Check out setup instructions [here](h
 **Note: This project is currently using node version 14.**
 
 To run the app, enter the project directory <br/>
+
 **a) Add the `.env` file**
 
 You need to fill actual values to the environment variables while creating the respective `.env` file from [.env.sample](./.env.sample) file
