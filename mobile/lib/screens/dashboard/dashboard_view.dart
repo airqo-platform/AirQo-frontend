@@ -267,8 +267,8 @@ class _DashboardViewState extends State<DashboardView> {
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: airQualityReadings.length,
                             itemBuilder: (BuildContext context, int index) {
-                              if (index == 0) {
-                                return Padding(
+                              return (index == 0)
+                                  ? Padding(
                                   padding: const EdgeInsets.only(top: 0),
                                   child: Showcase(
                                       key: _analyticsShowcaseKey,
@@ -282,9 +282,8 @@ class _DashboardViewState extends State<DashboardView> {
                                         false,
                                     ),
                                   ),
-                                );
-                              } else {
-                                return Padding(
+                                    )
+                                  : Padding(
                                   padding: const EdgeInsets.only(top: 16),
                                   child: AnalyticsCard(
                                     AirQualityReading.duplicate(
@@ -293,8 +292,7 @@ class _DashboardViewState extends State<DashboardView> {
                                     state.loading,
                                     false,
                                   ),
-                                );
-                              }
+                                    );
                             },
                           );
                         },
