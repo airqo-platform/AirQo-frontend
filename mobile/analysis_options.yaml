@@ -73,7 +73,6 @@ dart_code_metrics:
     - prefer-correct-test-file-name
     - prefer-conditional-expressions
     - prefer-commenting-analyzer-ignores
-    - prefer-async-await
     - no-equal-then-else
     - no-empty-block
     - no-boolean-literal-compare
@@ -88,8 +87,9 @@ dart_code_metrics:
     - always-remove-listener
     - avoid-border-all
     - avoid-returning-widgets
-    - avoid-shrink-wrap-in-lists
     - avoid-unnecessary-setstate
+#    - avoid-shrink-wrap-in-lists
+#    - prefer-async-await
 #    - avoid-passing-async-when-sync-expected
 #    - avoid-non-null-assertion
 #    - no-equal-arguments

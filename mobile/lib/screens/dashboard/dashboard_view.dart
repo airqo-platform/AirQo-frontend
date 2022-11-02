@@ -228,6 +228,7 @@ class _DashboardViewState extends State<DashboardView> {
                               child: CircularProgressIndicator(),
                             );
                           }
+
                           return ListView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
