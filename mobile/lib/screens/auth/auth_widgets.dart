@@ -70,7 +70,7 @@ class ProceedAsGuest extends StatelessWidget {
       ]);
     } else {
       Navigator.pop(buildContext);
-      await showSnackBar(
+      showSnackBar(
         buildContext,
         'Failed to proceed as guest. Try again later',
       );

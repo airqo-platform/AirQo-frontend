@@ -1,20 +1,32 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:app/models/models.dart';
-import 'package:app/screens/profile/profile_edit_page.dart';
-import 'package:app/screens/profile/profile_widgets.dart';
-import 'package:app/services/app_service.dart';
-import 'package:app/widgets/custom_shimmer.dart';
-import 'package:app/widgets/dialogs.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/adapters.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:image_picker/image_picker.dart';
 
-import '../../services/firebase_service.dart';
-import '../../services/hive_service.dart';
-import '../../themes/app_theme.dart';
-import '../../themes/colors.dart';
+import '../auth/change_email_screen.dart';
+import '../auth/change_phone_screen.dart';
+import '../auth/email_reauthenticate_screen.dart';
 import '../auth/phone_auth_widget.dart';
+import '../auth/phone_reauthenticate_screen.dart';
+import '../favourite_places/favourite_places_page.dart';
+import '../for_you_page.dart';
+import '../home_page.dart';
 import '../notification/notification_page.dart';
+import '../settings/settings_page.dart';
+
+part 'profile_edit_page.dart';
+part 'profile_widgets.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({

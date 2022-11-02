@@ -1,19 +1,4 @@
-import 'package:app/models/models.dart';
-import 'package:auto_size_text/auto_size_text.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-
-import '../../services/hive_service.dart';
-import '../../services/native_api.dart';
-import '../../themes/app_theme.dart';
-import '../../themes/colors.dart';
-import '../../utils/exception.dart';
-import '../../widgets/custom_shimmer.dart';
-import '../kya/kya_widgets.dart';
-import '../search/search_page.dart';
+part of 'dashboard_view.dart';
 
 class DashboardTopCard extends StatelessWidget {
   const DashboardTopCard({
@@ -104,9 +89,11 @@ class DashboardFavPlaceAvatar extends StatelessWidget {
         width: 32.0,
         padding: const EdgeInsets.all(2.0),
         decoration: BoxDecoration(
-          border: Border.all(
-            color: CustomColors.appBodyColor,
-            width: 2,
+          border: Border.fromBorderSide(
+            BorderSide(
+              color: CustomColors.appBodyColor,
+              width: 2,
+            ),
           ),
           color: Pollutant.pm2_5.color(
             airQualityReading.pm2_5,
@@ -159,9 +146,11 @@ class FavouritePlaceDashboardAvatar extends StatelessWidget {
             width: 32.0,
             padding: const EdgeInsets.all(2.0),
             decoration: BoxDecoration(
-              border: Border.all(
-                color: CustomColors.appBodyColor,
-                width: 2,
+              border: Border.fromBorderSide(
+                BorderSide(
+                  color: CustomColors.appBodyColor,
+                  width: 2,
+                ),
               ),
               color: Pollutant.pm2_5.color(
                 airQualityReading.pm2_5,
@@ -204,9 +193,11 @@ class KyaDashboardAvatar extends StatelessWidget {
         width: 32.0,
         padding: const EdgeInsets.all(2.0),
         decoration: BoxDecoration(
-          border: Border.all(
-            color: CustomColors.appBodyColor,
-            width: 2,
+          border: Border.fromBorderSide(
+            BorderSide(
+              color: CustomColors.appBodyColor,
+              width: 2,
+            ),
           ),
           color: CustomColors.greyColor,
           shape: BoxShape.circle,
@@ -244,9 +235,11 @@ class DashboardEmptyAvatar extends StatelessWidget {
         width: 32.0,
         padding: const EdgeInsets.all(2.0),
         decoration: BoxDecoration(
-          border: Border.all(
-            color: CustomColors.appBodyColor,
-            width: 2,
+          border: Border.fromBorderSide(
+            BorderSide(
+              color: CustomColors.appBodyColor,
+              width: 2,
+            ),
           ),
           color: CustomColors.greyColor,
           shape: BoxShape.circle,
@@ -431,12 +424,12 @@ List<Widget> completeKyaWidgets(List<Kya> completeKya) {
         break;
       case 1:
         widgets.add(
-          KyaDashboardAvatar(rightPadding: 0, kya: completeKya[0]),
+          KyaDashboardAvatar(rightPadding: 0, kya: completeKya.first),
         );
         break;
       case 2:
         widgets
-          ..add(KyaDashboardAvatar(rightPadding: 0, kya: completeKya[0]))
+          ..add(KyaDashboardAvatar(rightPadding: 0, kya: completeKya.first))
           ..add(
             KyaDashboardAvatar(rightPadding: 7, kya: completeKya[1]),
           );
@@ -444,7 +437,7 @@ List<Widget> completeKyaWidgets(List<Kya> completeKya) {
       default:
         if (completeKya.length >= 3) {
           widgets
-            ..add(KyaDashboardAvatar(rightPadding: 0, kya: completeKya[0]))
+            ..add(KyaDashboardAvatar(rightPadding: 0, kya: completeKya.first))
             ..add(KyaDashboardAvatar(rightPadding: 7, kya: completeKya[1]))
             ..add(
               KyaDashboardAvatar(rightPadding: 14, kya: completeKya[2]),
@@ -475,7 +468,7 @@ List<Widget> favouritePlacesWidgets(List<FavouritePlace> favouritePlaces) {
         widgets.add(
           FavouritePlaceDashboardAvatar(
             rightPadding: 0,
-            favouritePlace: favouritePlaces[0],
+            favouritePlace: favouritePlaces.first,
           ),
         );
         break;
@@ -483,7 +476,7 @@ List<Widget> favouritePlacesWidgets(List<FavouritePlace> favouritePlaces) {
         widgets
           ..add(FavouritePlaceDashboardAvatar(
             rightPadding: 0,
-            favouritePlace: favouritePlaces[0],
+            favouritePlace: favouritePlaces.first,
           ))
           ..add(
             FavouritePlaceDashboardAvatar(
@@ -497,7 +490,7 @@ List<Widget> favouritePlacesWidgets(List<FavouritePlace> favouritePlaces) {
           widgets
             ..add(FavouritePlaceDashboardAvatar(
               rightPadding: 0,
-              favouritePlace: favouritePlaces[0],
+              favouritePlace: favouritePlaces.first,
             ))
             ..add(FavouritePlaceDashboardAvatar(
               rightPadding: 7,

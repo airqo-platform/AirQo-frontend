@@ -1,9 +1,10 @@
 include: package:lints/recommended.yaml
-#  - package:lints/recommended.yaml
+#include: package:flutter_lints/flutter.yaml
 
 analyzer:
   exclude:
     - lib/firebase_options.dart
+    - lib/firebase_options_dev.dart
     - [build/**]
   language:
     strict-casts: true
@@ -14,22 +15,33 @@ analyzer:
 #   - https://dart-lang.github.io/linter/lints/options/options.html
 
 dart_code_metrics:
-  exclude:
+  metrics-exclude:
+    - test/**
     - lib/firebase_options.dart
+    - lib/firebase_options_dev.dart
+    - [build/**]
   anti-patterns:
     - long-method
     - long-parameter-list
   metrics:
     cyclomatic-complexity: 20
     maximum-nesting-level: 5
-    number-of-parameters: 10
+    number-of-parameters: 4
     source-lines-of-code: 400
     lines-of-code: 100
     halstead-volume: 150
     number-of-methods: 10
     weight-of-class: 0.33
-  metrics-exclude:
-    - test/**
+    maintainability-index: 50
+    technical-debt:
+      threshold: 1
+      todo-cost: 161
+      ignore-cost: 320
+      ignore-for-file-cost: 396
+      as-dynamic-cost: 322
+      deprecated-annotations-cost: 37
+      file-nullsafety-migration-cost: 41
+      unit-type: "USD"
   rules:
     - newline-before-return
     - no-boolean-literal-compare
@@ -40,25 +52,18 @@ dart_code_metrics:
     - avoid-global-state
     - prefer-last
     - prefer-first
-    - avoid-returning-widgets
     - no-equal-then-else
     - avoid-banned-imports
     - avoid-cascade-after-if-null
     - avoid-collection-methods-with-unrelated-types
     - avoid-duplicate-exports
-    - avoid-dynamic
     - avoid-global-state
-    - avoid-late-keyword
     - avoid-missing-enum-constant-in-map
     - avoid-nested-conditional-expressions
-    - avoid-non-ascii-symbols
-    - avoid-non-null-assertion
-    - avoid-passing-async-when-sync-expected
     - avoid-throw-in-catch-block
     - avoid-top-level-members-in-tests
     - tag-name
     - prefer-trailing-comma
-    - prefer-moving-to-variable
     - prefer-last
     - prefer-iterable-of
     - prefer-immediate-return
@@ -66,17 +71,13 @@ dart_code_metrics:
     - prefer-enums-by-name
     - prefer-correct-type-name
     - prefer-correct-test-file-name
-    - prefer-correct-identifier-length
     - prefer-conditional-expressions
     - prefer-commenting-analyzer-ignores
     - prefer-async-await
     - no-equal-then-else
-    - no-equal-arguments
     - no-empty-block
     - no-boolean-literal-compare
     - missing-test-assertion
-    - member-ordering
-    - format-comment
     - double-literal-format
     - binary-expression-operand-order
     - ban-name
@@ -89,15 +90,25 @@ dart_code_metrics:
     - avoid-returning-widgets
     - avoid-shrink-wrap-in-lists
     - avoid-unnecessary-setstate
-    - avoid-wrapping-in-padding
-    - check-for-equals-in-render-object-setters
-    - consistent-update-render-object
-    - prefer-const-border-radius
-    - prefer-correct-edge-insets-constructor
-    - prefer-extracting-callbacks
-    - prefer-single-widget-per-file
-    - prefer-intl-name
-    - provide-correct-intl-args
-    - no-magic-number
+#    - avoid-passing-async-when-sync-expected
+#    - avoid-non-null-assertion
+#    - no-equal-arguments
+#    - avoid-non-ascii-symbols
+#    - prefer-correct-identifier-length
+#    - member-ordering
+#    - format-comment
+#    - avoid-wrapping-in-padding
+#    - check-for-equals-in-render-object-setters
+#    - consistent-update-render-object
+#    - prefer-const-border-radius
+#    - prefer-correct-edge-insets-constructor
+#    - prefer-extracting-callbacks
+#    - prefer-single-widget-per-file
+#    - prefer-intl-name
+#    - provide-correct-intl-args
+#    - no-magic-number
 #    - prefer-match-file-name
 #    - avoid-ignoring-return-values
+#    - avoid-dynamic
+#    - avoid-late-keyword
+#    - prefer-moving-to-variable

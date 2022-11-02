@@ -556,7 +556,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
             _nextBtnColor = CustomColors.appColorBlue;
           },
         );
-        await showSnackBar(
+        showSnackBar(
           context,
           'Login failed.',
         );
@@ -585,7 +585,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
             _nextBtnColor = CustomColors.appColorBlue;
           },
         );
-        await showSnackBar(
+        showSnackBar(
           context,
           'Signup failed.',
         );
@@ -677,7 +677,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
           },
         );
         Navigator.pop(_loadingContext);
-        await showSnackBar(
+        showSnackBar(
           context,
           'You already have an '
           'account with this phone number',
@@ -808,7 +808,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
     final code = _phoneVerificationCode.join('');
 
     if (code.length != 6) {
-      await showSnackBar(
+      showSnackBar(
         context,
         'Enter all the 6 digits',
       );

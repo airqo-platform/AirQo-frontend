@@ -174,7 +174,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
     );
 
     if (emailVerificationResponse == null) {
-      await showSnackBar(
+      showSnackBar(
         context,
         'Email verification failed',
       );
@@ -204,7 +204,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
     final code = _emailVerificationCode.join('');
 
     if (code.length != 6) {
-      await showSnackBar(context, 'Enter all the 6 digits');
+      showSnackBar(context, 'Enter all the 6 digits');
 
       return;
     }
@@ -221,7 +221,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
     );
 
     if (code != _emailToken.toString()) {
-      await showSnackBar(
+      showSnackBar(
         context,
         'Invalid Code',
       );
@@ -237,7 +237,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
     final user = CustomAuth.getUser();
 
     if (user == null) {
-      await showSnackBar(
+      showSnackBar(
         context,
         'Failed to update email address',
       );
@@ -248,7 +248,6 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
     final success = await CustomAuth.reAuthenticateWithEmailAddress(
       widget.userDetails.emailAddress,
       _emailVerificationLink,
-      context,
     );
     if (success) {
       Navigator.pop(context, true);
@@ -259,7 +258,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
           _isVerifying = false;
         },
       );
-      await showSnackBar(
+      showSnackBar(
         context,
         'Failed to verify email address.'
         ' Try again later',
@@ -290,7 +289,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
     }
 
     if (emailVerificationResponse == null) {
-      await showSnackBar(
+      showSnackBar(
         context,
         'email verification failed',
       );

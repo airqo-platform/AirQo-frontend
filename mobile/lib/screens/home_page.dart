@@ -115,7 +115,7 @@ class _HomePageState extends State<HomePage> {
                         : CustomColors.appColorBlack.withOpacity(0.3),
                     semanticsLabel: 'Profile',
                   ),
-                  ValueListenableBuilder<Box>(
+                  ValueListenableBuilder<Box<AppNotification>>(
                     valueListenable:
                         Hive.box<AppNotification>(HiveBox.appNotifications)
                             .listenable(),

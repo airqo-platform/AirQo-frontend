@@ -364,7 +364,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
 
     if (_user!.email!.trim().toLowerCase() ==
         _emailAddress.trim().toLowerCase()) {
-      await showSnackBar(
+      showSnackBar(
         context,
         'Enter a different email address',
       );
@@ -383,7 +383,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
         .requestEmailVerificationCode(_emailAddress, false);
 
     if (emailVerificationResponse == null) {
-      await showSnackBar(
+      showSnackBar(
         context,
         'email verification failed',
       );
@@ -421,7 +421,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
         .requestEmailVerificationCode(_emailAddress, false);
 
     if (emailVerificationResponse == null) {
-      await showSnackBar(
+      showSnackBar(
         context,
         'Email verification failed',
       );
@@ -440,7 +440,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
     final code = _emailVerificationCode.join('');
 
     if (code.length != 6) {
-      await showSnackBar(
+      showSnackBar(
         context,
         'Enter all the 6 digits',
       );
@@ -460,7 +460,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
     );
 
     if (code != _emailToken.toString()) {
-      await showSnackBar(
+      showSnackBar(
         context,
         'Invalid Code',
       );
@@ -476,7 +476,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
     final user = CustomAuth.getUser();
 
     if (user == null) {
-      await showSnackBar(
+      showSnackBar(
         context,
         'Failed to update email address',
       );
@@ -499,7 +499,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
           _isVerifying = false;
         },
       );
-      await showSnackBar(
+      showSnackBar(
         context,
         'Failed to update email address',
       );

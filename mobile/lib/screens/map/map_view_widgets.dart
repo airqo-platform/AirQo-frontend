@@ -1,21 +1,4 @@
-import 'package:app/blocs/map/map_bloc.dart';
-import 'package:app/models/models.dart';
-
-import 'package:app_repository/app_repository.dart';
-import 'package:auto_size_text/auto_size_text.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
-
-import '../../constants/config.dart';
-import '../../services/location_service.dart';
-import '../../themes/app_theme.dart';
-import '../../themes/colors.dart';
-import '../../widgets/custom_shimmer.dart';
-import '../../widgets/custom_widgets.dart';
-import '../../widgets/dialogs.dart';
-import '../analytics/analytics_widgets.dart';
-import '../insights/insights_page.dart';
+part of 'map_view.dart';
 
 class DraggingHandle extends StatelessWidget {
   const DraggingHandle({
@@ -184,7 +167,7 @@ class SearchTile extends StatelessWidget {
 
       // TODO: Substitute with widget
       if (nearestSite == null) {
-        await showSnackBar(
+        showSnackBar(
           context,
           'Oops!!.. We don’t have air quality readings for'
           ' ${searchResult.name}',
@@ -211,7 +194,7 @@ class SearchTile extends StatelessWidget {
         ),
       );
     } else {
-      await showSnackBar(
+      showSnackBar(
         context,
         'Try again later',
       );

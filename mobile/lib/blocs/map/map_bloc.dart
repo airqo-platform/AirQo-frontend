@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:app_repository/app_repository.dart';
-import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../constants/config.dart';
@@ -27,7 +27,7 @@ class MapBloc extends Bloc<MapEvent, MapState> {
   late final SearchRepository searchRepository;
 
   Future<void> _onShowAllSites(
-    ShowAllSites event,
+    ShowAllSites _,
     Emitter<MapState> emit,
   ) async {
     final airQualityReadings =
@@ -61,7 +61,7 @@ class MapBloc extends Bloc<MapEvent, MapState> {
   }
 
   Future<void> _searchSite(
-    SearchSite event,
+    SearchSite _,
     Emitter<MapState> emit,
   ) async {
     final airQualityReadings =
@@ -71,7 +71,7 @@ class MapBloc extends Bloc<MapEvent, MapState> {
   }
 
   void _onMapSearchReset(
-    MapSearchReset event,
+    MapSearchReset _,
     Emitter<MapState> emit,
   ) {
     var nearestAirQualityReadings =
@@ -127,14 +127,10 @@ class MapBloc extends Bloc<MapEvent, MapState> {
               .values
               .toList();
 
-      final airQualitySearch = <AirQualityReading>[];
-
-      for (final airQualityReading in airQualityReadings) {
-        if (airQualityReading.name.contains(searchTerm) ||
-            airQualityReading.location.contains(searchTerm)) {
-          airQualitySearch.add(airQualityReading);
-        }
-      }
+      final airQualitySearch = airQualityReadings.where((airQualityReading) {
+        return airQualityReading.name.contains(searchTerm) ||
+            airQualityReading.location.contains(searchTerm);
+      }).toList();
 
       return emit(
         SearchSitesState(airQualityReadings: airQualitySearch),

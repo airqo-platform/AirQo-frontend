@@ -1,6 +1,6 @@
 import 'package:app/models/models.dart';
 import 'package:app_repository/app_repository.dart';
-import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:stream_transform/stream_transform.dart';
 
@@ -30,7 +30,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   late final SearchRepository searchRepository;
 
   void _onResetSearch(
-    ResetSearch event,
+    ResetSearch _,
     Emitter<SearchState> emit,
   ) {
     final nearestAirQualityReadings =

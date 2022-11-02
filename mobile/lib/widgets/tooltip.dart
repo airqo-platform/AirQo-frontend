@@ -1,12 +1,10 @@
 import 'dart:core';
 import 'dart:ui';
 
+import 'package:app/models/models.dart';
+import 'package:app/themes/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-
-import '../models/enum_constants.dart';
-import '../themes/app_theme.dart';
-import '../themes/colors.dart';
 
 class ToolTip {
   ToolTip(

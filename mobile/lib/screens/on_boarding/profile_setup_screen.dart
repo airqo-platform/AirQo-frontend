@@ -1,15 +1,12 @@
 import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
-import 'package:app/utils/exception.dart';
-import 'package:app/widgets/buttons.dart';
-import 'package:app/widgets/custom_shimmer.dart';
-import 'package:app/widgets/dialogs.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
-import '../../services/local_storage.dart';
-import '../../themes/app_theme.dart';
-import '../../themes/colors.dart';
 import 'notifications_setup_screen.dart';
 import 'on_boarding_widgets.dart';
 
@@ -277,7 +274,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
           nextBtnColor = CustomColors.appColorBlue;
         },
       );
-      await showSnackBar(
+      showSnackBar(
         context,
         'Failed to update profile. Try again later',
       );

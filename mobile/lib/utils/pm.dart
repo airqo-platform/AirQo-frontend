@@ -1,10 +1,5 @@
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-
-import '../models/enum_constants.dart';
-import '../themes/colors.dart';
 import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +7,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 List<Recommendation> getHealthRecommendations(
   double pm2_5,
-  Pollutant pollutant,
+  Pollutant _,
 ) {
   // TODO add recommendations for pm10
   final recommendations = <Recommendation>[];

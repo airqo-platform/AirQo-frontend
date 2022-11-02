@@ -1,8 +1,7 @@
+import 'package:app/themes/theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
-
-import '../themes/colors.dart';
 
 class CircularLoadingAnimation extends StatelessWidget {
   const CircularLoadingAnimation({
@@ -205,7 +204,9 @@ class AnalyticsCardLoading extends StatelessWidget {
             16.0,
           ),
         ),
-        border: Border.all(color: Colors.transparent),
+        border: Border.fromBorderSide(
+          BorderSide(color: Colors.transparent),
+        ),
       ),
       child: Column(
         children: [

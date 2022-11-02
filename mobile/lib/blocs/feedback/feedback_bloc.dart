@@ -1,5 +1,5 @@
-import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../models/enum_constants.dart';
 import '../../models/profile.dart';
@@ -56,7 +56,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
   }
 
   void _onGoToTypeStep(
-    GoToTypeStep event,
+    GoToTypeStep _,
     Emitter<FeedbackState> emit,
   ) {
     emit(
@@ -81,7 +81,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
   }
 
   void _onGoToChannelStep(
-    GoToChannelStep event,
+    GoToChannelStep _,
     Emitter<FeedbackState> emit,
   ) {
     emit(
@@ -106,7 +106,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
   }
 
   void _onGoToFormStep(
-    GoToFormStep event,
+    GoToFormStep _,
     Emitter<FeedbackState> emit,
   ) {
     emit(
@@ -131,7 +131,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
   }
 
   Future<void> _onClearFeedback(
-    ClearFeedback event,
+    ClearFeedback _,
     Emitter<FeedbackState> emit,
   ) async {
     final profile = await Profile.getProfile();

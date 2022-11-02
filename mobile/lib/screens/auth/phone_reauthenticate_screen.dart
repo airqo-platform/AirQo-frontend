@@ -44,7 +44,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
           _isVerifying = false;
         },
       );
-      await showSnackBar(
+      showSnackBar(
         context,
         'Failed to verify phone number.'
         ' Try again later',
@@ -297,7 +297,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
     final code = _phoneVerificationCode.join('');
 
     if (code.length != 6) {
-      await showSnackBar(
+      showSnackBar(
         context,
         'Enter all the 6 digits',
       );
@@ -332,7 +332,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
             _isVerifying = false;
           },
         );
-        await showSnackBar(
+        showSnackBar(
           context,
           'Failed to verify phone number.'
           ' Try again later',
@@ -341,7 +341,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
     } on FirebaseAuthException catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
       if (exception.code == 'invalid-verification-code') {
-        await showSnackBar(
+        showSnackBar(
           context,
           'Invalid Code',
         );
@@ -359,7 +359,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
           verifyPhoneFn,
           autoVerifyPhoneFn,
         );
-        await showSnackBar(
+        showSnackBar(
           context,
           'Your verification '
           'has timed out. we have sent your'
@@ -373,7 +373,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
         );
       }
     } catch (exception, stackTrace) {
-      await showSnackBar(
+      showSnackBar(
         context,
         'Try again later',
       );

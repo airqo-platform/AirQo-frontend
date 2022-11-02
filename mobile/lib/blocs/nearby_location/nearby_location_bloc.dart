@@ -1,5 +1,5 @@
 import 'package:app/models/models.dart';
-import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../services/hive_service.dart';
 import '../../services/location_service.dart';
@@ -17,7 +17,7 @@ class NearbyLocationBloc
   }
 
   Future<void> _onSearch(
-    SearchNearbyLocations event,
+    SearchNearbyLocations _,
     Emitter<NearbyLocationState> emit,
   ) async {
     try {
@@ -78,7 +78,7 @@ class NearbyLocationBloc
   }
 
   Future<void> _onCheckNearbyLocations(
-    CheckNearbyLocations event,
+    CheckNearbyLocations _,
     Emitter<NearbyLocationState> emit,
   ) async {
     try {
@@ -86,22 +86,24 @@ class NearbyLocationBloc
           await PermissionService.checkPermission(AppPermission.location);
       final profile = await Profile.getProfile();
 
-      if (locationEnabled && profile.preferences.location) {
-        final nearbyAirQualityReadings =
-            await LocationService.getNearbyAirQualityReadings(top: 8);
+      if (!locationEnabled || !profile.preferences.location) {
+        return;
+      }
 
-        if (nearbyAirQualityReadings.isNotEmpty) {
-          await HiveService.updateNearbyAirQualityReadings(
-            nearbyAirQualityReadings,
-          );
-          emit(SearchingNearbyLocationsState());
+      final nearbyAirQualityReadings =
+          await LocationService.getNearbyAirQualityReadings(top: 8);
 
-          return emit(
-            NearbyLocationStateSuccess(
-              airQualityReadings: nearbyAirQualityReadings,
-            ),
-          );
-        }
+      if (nearbyAirQualityReadings.isNotEmpty) {
+        await HiveService.updateNearbyAirQualityReadings(
+          nearbyAirQualityReadings,
+        );
+        emit(SearchingNearbyLocationsState());
+
+        return emit(
+          NearbyLocationStateSuccess(
+            airQualityReadings: nearbyAirQualityReadings,
+          ),
+        );
       }
 
       return;
