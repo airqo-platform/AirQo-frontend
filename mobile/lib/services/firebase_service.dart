@@ -717,8 +717,8 @@ class CustomAuth {
   }
 
   static Future<bool> requestPhoneVerification(
-    phoneNumber,
-    context,
+    String phoneNumber,
+      BuildContext context,
     callBackFn,
     autoVerificationFn,
   ) async {

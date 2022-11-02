@@ -5,11 +5,6 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-class UserException implements Exception {
-  UserException(this.message);
-  String message;
-}
-
 Future<void> logException(
   exception,
   StackTrace? stackTrace, {
@@ -18,7 +13,6 @@ Future<void> logException(
   final unHandledSentryExceptions = [
     SocketException,
     TimeoutException,
-    UserException,
   ];
   debugPrint('$exception\n$stackTrace');
   if (kReleaseMode &&

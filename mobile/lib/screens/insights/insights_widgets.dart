@@ -157,11 +157,11 @@ class HourlyAnalyticsGraph extends StatelessWidget {
                   charts.SelectionModelConfig(
                     changedListener: (charts.SelectionModel model) {
                       try {
-                        final value = model.selectedDatum[0].index;
+                        final value = model.selectedDatum.first.index;
                         if (value != null) {
                           context.read<HourlyInsightsBloc>().add(
                                 UpdateSelectedInsight(
-                                  model.selectedSeries[0].data[value],
+                                  model.selectedSeries.first.data[value] as GraphInsightData,
                                 ),
                               );
                         }
@@ -289,7 +289,7 @@ class DailyAnalyticsGraph extends StatelessWidget {
                         if (value != null) {
                           context.read<DailyInsightsBloc>().add(
                                 UpdateSelectedInsight(
-                                  model.selectedSeries[0].data[value],
+                                  model.selectedSeries[0].data[value] as GraphInsightData,
                                 ),
                               );
                         }
@@ -1304,12 +1304,12 @@ class InsightsToggleBar extends StatelessWidget {
               case Frequency.daily:
                 context
                     .read<DailyInsightsBloc>()
-                    .add(SwitchInsightsPollutant(pollutant));
+                    .add(SwitchInsightsPollutant(pollutant as Pollutant));
                 break;
               case Frequency.hourly:
                 context
                     .read<HourlyInsightsBloc>()
-                    .add(SwitchInsightsPollutant(pollutant));
+                    .add(SwitchInsightsPollutant(pollutant as Pollutant));
                 break;
             }
           },

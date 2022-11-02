@@ -9,7 +9,7 @@ import 'package:geolocator/geolocator.dart';
 
 import '../screens/settings/settings_page.dart';
 
-void pmInfoDialog(context, double pm2_5) {
+void pmInfoDialog(BuildContext context, double pm2_5) {
   showGeneralDialog(
     barrierColor: Colors.transparent,
     context: context,
@@ -280,7 +280,7 @@ void pmInfoDialog(context, double pm2_5) {
 }
 
 Future<void> showLocationErrorSnackBar(
-  context,
+  BuildContext context,
   NearbyAirQualityError error,
 ) async {
   final snackBar = SnackBar(
@@ -330,7 +330,7 @@ Future<void> showLocationErrorSnackBar(
 }
 
 Future<void> showSnackBar(
-  context,
+    BuildContext context,
   String message, {
   int durationInSeconds = 2,
 }) async {

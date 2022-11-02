@@ -6,7 +6,6 @@ import 'package:app/constants/api.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
 import 'package:app/utils/utils.dart';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -55,7 +54,7 @@ class AirqoApiClient {
       final ipResponse = await httpClient.get(
         Uri.parse('https://jsonip.com/'),
       );
-      ipAddress = json.decode(ipResponse.body)['ip'];
+      ipAddress = json.decode(ipResponse.body)['ip'] as String;
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -70,7 +69,7 @@ class AirqoApiClient {
       final response =
           await _performGetRequest(params, AirQoUrls.ipGeoCoordinates);
 
-      return response['data'];
+      return response['data'] as Map<String, dynamic>;
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -89,7 +88,7 @@ class AirqoApiClient {
         headers: headers,
       );
 
-      return json.decode(response.body)['data']['carrier'];
+      return json.decode(response.body)['data']['carrier'] as String;
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -134,7 +133,7 @@ class AirqoApiClient {
       throw Exception('Failed to perform action. Try again later');
     }
 
-    return json.decode(response.body)['status'];
+    return json.decode(response.body)['status'] as bool;
   }
 
   Future<List<GraphInsightData>> fetchGraphInsights(String siteIds) async {
@@ -161,9 +160,9 @@ class AirqoApiClient {
 
       final data = <GraphInsightData>[];
 
-      for (final e in body['data']) {
+      for (final e in body['data'] as List<Map<String, dynamic>>) {
         final json = e;
-        json['frequency'] = fromString(e['frequency']);
+        json['frequency'] = fromString(e['frequency'] as String);
         data.add(GraphInsightData.fromJson(json));
       }
 
@@ -203,12 +202,8 @@ class AirqoApiClient {
         body: jsonEncode(body),
       );
 
-      return compute(
-        EmailAuthModel.parseEmailAuthModel,
-        json.decode(
-          response.body,
-        ),
-      );
+      return EmailAuthModel.parseEmailAuthModel(json.decode(response.body) as Map<String, dynamic>);
+
     } catch (exception, stackTrace) {
       await logException(
         exception,

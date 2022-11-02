@@ -97,7 +97,7 @@ class _DashboardViewState extends State<DashboardView> {
                 const SizedBox(
                   width: 16,
                 ),
-                ValueListenableBuilder<Box>(
+                ValueListenableBuilder<Box<Kya>>(
                   valueListenable: Hive.box<Kya>(HiveBox.kya).listenable(),
                   builder: (context, box, widget) {
                     final completeKya = box.values
@@ -193,7 +193,7 @@ class _DashboardViewState extends State<DashboardView> {
                           return const SizedBox();
                         },
                       ),
-                      ValueListenableBuilder<Box>(
+                      ValueListenableBuilder<Box<Kya>>(
                         valueListenable:
                             Hive.box<Kya>(HiveBox.kya).listenable(),
                         builder: (context, box, widget) {

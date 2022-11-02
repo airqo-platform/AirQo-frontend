@@ -24,7 +24,7 @@ class AppRefreshIndicator extends StatelessWidget {
     this.onRefresh,
     required this.sliverChildDelegate,
   });
-  final Future Function()? onRefresh;
+  final Future<void> Function()? onRefresh;
   final SliverChildDelegate sliverChildDelegate;
 
   @override

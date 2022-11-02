@@ -33,7 +33,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const AppTopBar('Settings'),
-      body: ValueListenableBuilder<Box>(
+      body: ValueListenableBuilder<Box<Profile>>(
         valueListenable: Hive.box<Profile>(HiveBox.profile)
             .listenable(keys: [HiveBox.profile]),
         builder: (context, box, widget) {

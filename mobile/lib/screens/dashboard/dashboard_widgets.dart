@@ -128,7 +128,7 @@ class FavouritePlaceDashboardAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Positioned(
       right: rightPadding,
-      child: ValueListenableBuilder<Box>(
+      child: ValueListenableBuilder<Box<AirQualityReading>>(
         valueListenable: Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
             .listenable(keys: [favouritePlace.referenceSite]),
         builder: (context, box, widget) {

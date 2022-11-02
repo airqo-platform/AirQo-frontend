@@ -59,13 +59,13 @@ class SharedPreferencesHelper {
     try {
       final sharedPreferences = await SharedPreferences.getInstance();
       if (type == 'bool') {
-        await sharedPreferences.setBool(key, value);
+        await sharedPreferences.setBool(key, value as bool);
       } else if (type == 'double') {
-        await sharedPreferences.setDouble(key, value);
+        await sharedPreferences.setDouble(key, value as double);
       } else if (type == 'int') {
-        await sharedPreferences.setInt(key, value);
+        await sharedPreferences.setInt(key, value as int);
       } else {
-        await sharedPreferences.setString(key, value);
+        await sharedPreferences.setString(key, value as String);
       }
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');

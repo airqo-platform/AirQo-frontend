@@ -179,7 +179,7 @@ class AppService {
     Frequency? frequency,
   }) async {
     final insights = <GraphInsightData>[];
-    final futures = <Future>[];
+    final futures = <Future<List<GraphInsightData>>>[];
 
     for (var i = 0; i < siteIds.length; i = i + 2) {
       final site1 = siteIds[i];
@@ -298,7 +298,7 @@ class AppService {
     }
   }
 
-  Future<bool> logOut(buildContext) async {
+  Future<bool> logOut(BuildContext buildContext) async {
     final hasConnection = await checkNetworkConnection(
       buildContext,
       notifyUser: true,

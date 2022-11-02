@@ -172,7 +172,7 @@ class _KyaTitlePageState extends State<KyaTitlePage> {
 
   @override
   void didChangeDependencies() {
-    final futures = <Future>[];
+    final futures = <Future<void>>[];
     for (final lesson in widget.kya.lessons) {
       futures.add(
         precacheImage(

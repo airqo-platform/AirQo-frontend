@@ -359,7 +359,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
     ];
   }
 
-  void phoneValueChange(text) {
+  void phoneValueChange(String text) {
     if (text.toString().isEmpty) {
       setState(
         () {
@@ -521,7 +521,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
     }
   }
 
-  void verifyPhoneFn(verificationId) {
+  void verifyPhoneFn(String verificationId) {
     setState(
       () {
         _verifyCode = true;

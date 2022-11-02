@@ -111,7 +111,7 @@ class ShareService {
       final imgFile = File("$directory/${imageName ?? 'airqo_analytics'}.png");
       await imgFile.writeAsBytes(pngBytes);
 
-      final result = await Share.shareFilesWithResult([imgFile.path]);
+      final result = await Share.shareXFiles([XFile('imgFile.path')]);
 
       if (result.status == ShareResultStatus.success) {
         await updateUserShares();
@@ -127,7 +127,7 @@ class ShareService {
     return true;
   }
 
-  static Future<void> shareFailed(exception, stackTrace, context) async {
+  static Future<void> shareFailed(exception, StackTrace stackTrace, BuildContext context) async {
     await Future.wait([
       logException(
         exception,
@@ -306,7 +306,7 @@ class BackgroundService {
     );
     port.listen(
       (dynamic data) async {
-        await HiveService.updateAirQualityReadings(data);
+        await HiveService.updateAirQualityReadings(data as List<SiteReading>);
       },
     );
   }

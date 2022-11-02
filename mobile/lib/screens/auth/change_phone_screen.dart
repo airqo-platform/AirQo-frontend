@@ -364,7 +364,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
     );
   }
 
-  void phoneValueChange(text) {
+  void phoneValueChange(String text) {
     if (text.toString().isEmpty) {
       setState(() => _nextBtnColor = CustomColors.appColorDisabled);
     } else {
@@ -472,7 +472,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
     }
   }
 
-  void verifyPhoneFn(verificationId) {
+  void verifyPhoneFn(String verificationId) {
     setState(
       () {
         _verifyCode = true;

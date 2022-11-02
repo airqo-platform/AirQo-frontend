@@ -26,7 +26,7 @@ class _NotificationPageState extends State<NotificationPage> {
       appBar: const AppTopBar('Notifications'),
       body: Container(
         color: CustomColors.appBodyColor,
-        child: ValueListenableBuilder<Box>(
+        child: ValueListenableBuilder<Box<AppNotification>>(
           valueListenable:
               Hive.box<AppNotification>(HiveBox.appNotifications).listenable(),
           builder: (context, box, widget) {

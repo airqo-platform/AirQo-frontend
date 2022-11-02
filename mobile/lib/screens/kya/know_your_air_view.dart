@@ -23,7 +23,7 @@ class _KnowYourAirViewState extends State<KnowYourAirView> {
   Widget build(BuildContext context) {
     return Container(
       color: CustomColors.appBodyColor,
-      child: ValueListenableBuilder<Box>(
+      child: ValueListenableBuilder<Box<Kya>>(
         valueListenable: Hive.box<Kya>(HiveBox.kya).listenable(),
         builder: (context, box, widget) {
           if (box.isEmpty) {
