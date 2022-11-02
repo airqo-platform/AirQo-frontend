@@ -130,23 +130,23 @@ class _DashboardViewState extends State<DashboardView> {
                     final widgets = completeKyaWidgets(completeKya);
 
                     return Showcase(
-                        key: _forYouShowcaseKey,
+                      key: _forYouShowcaseKey,
                       description: 'This is content speacilized for you.',
-                        child: DashboardTopCard(
-                          toolTipType: ToolTipType.forYou,
-                          title: 'For You',
-                          widgetKey: _kyaToolTipKey,
-                          nextScreenClickHandler: () async {
-                            await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) {
-                                  return const ForYouPage(analytics: false);
-                                },
-                              ),
-                            );
-                          },
-                          children: widgets,
+                      child: DashboardTopCard(
+                        toolTipType: ToolTipType.forYou,
+                        title: 'For You',
+                        widgetKey: _kyaToolTipKey,
+                        nextScreenClickHandler: () async {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) {
+                                return const ForYouPage(analytics: false);
+                              },
+                            ),
+                          );
+                        },
+                        children: widgets,
                       ),
                     );
                   },
@@ -267,23 +267,24 @@ class _DashboardViewState extends State<DashboardView> {
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: airQualityReadings.length,
                             itemBuilder: (BuildContext context, int index) {
-                              return (index == 0)
-                                  ? Padding(
+                              if (index == 0) {
+                                return Padding(
                                   padding: const EdgeInsets.only(top: 0),
                                   child: Showcase(
-                                      key: _analyticsShowcaseKey,
-                                      description:
-                                          'This shows airquality of other different locations across your country.',
-                                      child: AnalyticsCard(
-                                        AirQualityReading.duplicate(
-                                          airQualityReadings[index],
-                                        ),
-                                        state.loading,
-                                        false,
+                                    key: _analyticsShowcaseKey,
+                                    description:
+                                        'This shows airquality of other different locations across your country.',
+                                    child: AnalyticsCard(
+                                      AirQualityReading.duplicate(
+                                        airQualityReadings[index],
+                                      ),
+                                      state.loading,
+                                      false,
                                     ),
                                   ),
-                                    )
-                                  : Padding(
+                                );
+                              } else {
+                                return Padding(
                                   padding: const EdgeInsets.only(top: 16),
                                   child: AnalyticsCard(
                                     AirQualityReading.duplicate(
@@ -292,7 +293,8 @@ class _DashboardViewState extends State<DashboardView> {
                                     state.loading,
                                     false,
                                   ),
-                                    );
+                                );
+                              }
                             },
                           );
                         },
