@@ -32,7 +32,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<Box>(
+    return ValueListenableBuilder<Box<Profile>>(
       valueListenable: Hive.box<Profile>(HiveBox.profile).listenable(
         keys: [HiveBox.profile],
       ),

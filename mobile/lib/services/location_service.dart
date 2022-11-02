@@ -81,8 +81,8 @@ class LocationService {
       if (position == null) {
         final geoCoordinates = await AirqoApiClient().getLocation();
         position = Position(
-          longitude: geoCoordinates['longitude'],
-          latitude: geoCoordinates['latitude'],
+          longitude: geoCoordinates['longitude'] as double,
+          latitude: geoCoordinates['latitude'] as double,
           timestamp: DateTime.now(),
           accuracy: 0.0,
           altitude: 0.0,

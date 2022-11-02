@@ -7,6 +7,7 @@ import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
 import 'package:app/utils/extensions.dart';
 import 'package:flutter/foundation.dart';
+import 'package:app/utils/utils.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -57,7 +58,7 @@ class AirqoApiClient {
       final ipResponse = await httpClient.get(
         Uri.parse('https://jsonip.com/'),
       );
-      ipAddress = json.decode(ipResponse.body)['ip'];
+      ipAddress = json.decode(ipResponse.body)['ip'] as String;
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -72,7 +73,7 @@ class AirqoApiClient {
       final response =
           await _performGetRequest(params, AirQoUrls.ipGeoCoordinates);
 
-      return response['data'];
+      return response['data'] as Map<String, dynamic>;
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -91,7 +92,7 @@ class AirqoApiClient {
         headers: headers,
       );
 
-      return json.decode(response.body)['data']['carrier'];
+      return json.decode(response.body)['data']['carrier'] as String;
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -136,7 +137,7 @@ class AirqoApiClient {
       throw Exception('Failed to perform action. Try again later');
     }
 
-    return json.decode(response.body)['status'];
+    return json.decode(response.body)['status'] as bool;
   }
 
   Future<List<Insights>> fetchSitesInsights(String siteIds) async {
@@ -193,12 +194,8 @@ class AirqoApiClient {
         body: jsonEncode(body),
       );
 
-      return compute(
-        EmailAuthModel.parseEmailAuthModel,
-        json.decode(
-          response.body,
-        ),
-      );
+      return EmailAuthModel.parseEmailAuthModel(
+          json.decode(response.body) as Map<String, dynamic>);
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -228,7 +225,7 @@ class AirqoApiClient {
         body: body,
       );
 
-      if (response.statusCode == 200 ) {
+      if (response.statusCode == 200) {
         return true;
       }
     } catch (exception, stackTrace) {

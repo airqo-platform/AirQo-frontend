@@ -234,7 +234,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     ];
   }
 
-  void emailValueChange(text) {
+  void emailValueChange(String text) {
     setState(
       () {
         _nextBtnColor = text.toString().isEmpty ||

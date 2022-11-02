@@ -307,7 +307,7 @@ class AppService {
     }
   }
 
-  Future<bool> logOut(buildContext) async {
+  Future<bool> logOut(BuildContext buildContext) async {
     final hasConnection = await checkNetworkConnection(
       buildContext,
       notifyUser: true,

@@ -582,7 +582,7 @@ class NearbyLocations extends StatelessWidget {
         }
 
         if (state is NearbyLocationStateSuccess) {
-          return ValueListenableBuilder<Box>(
+          return ValueListenableBuilder<Box<AirQualityReading>>(
             valueListenable:
                 Hive.box<AirQualityReading>(HiveBox.nearByAirQualityReadings)
                     .listenable(),

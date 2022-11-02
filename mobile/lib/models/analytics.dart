@@ -82,7 +82,7 @@ class Analytics extends HiveObject {
     }
   }
 
-  static Analytics? parseAnalytics(dynamic jsonBody) {
+  static Analytics? parseAnalytics(Map<String, dynamic> jsonBody) {
     try {
       return Analytics.fromJson(jsonBody);
     } catch (exception, stackTrace) {

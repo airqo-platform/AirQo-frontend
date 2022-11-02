@@ -329,7 +329,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
     );
   }
 
-  void _emailValueChange(text) {
+  void _emailValueChange(String text) {
     if (text.toString().isEmpty || !_emailInputController.text.isValidEmail()) {
       setState(() => _nextBtnColor = CustomColors.appColorDisabled);
     } else {

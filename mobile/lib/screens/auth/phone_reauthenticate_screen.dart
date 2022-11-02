@@ -176,7 +176,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
     }
   }
 
-  void verifyPhoneFn(verificationId) {
+  void verifyPhoneFn(String verificationId) {
     setState(
       () {
         _verificationId = verificationId;

@@ -28,7 +28,7 @@ class ProfileView extends StatefulWidget {
 class _ProfileViewState extends State<ProfileView> {
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<Box>(
+    return ValueListenableBuilder<Box<Profile>>(
       valueListenable: Hive.box<Profile>(HiveBox.profile)
           .listenable(keys: [HiveBox.profile]),
       builder: (context, box, widget) {
@@ -127,7 +127,7 @@ class _ProfileViewState extends State<ProfileView> {
                             Radius.circular(8.0),
                           ),
                         ),
-                        child: ValueListenableBuilder<Box>(
+                        child: ValueListenableBuilder<Box<AppNotification>>(
                           valueListenable: Hive.box<AppNotification>(
                             HiveBox.appNotifications,
                           ).listenable(),

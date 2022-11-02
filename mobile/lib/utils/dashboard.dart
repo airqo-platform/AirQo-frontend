@@ -3,6 +3,7 @@ import 'package:app/models/enum_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Region getRegionConstant(String value) {
+
   if (value.toLowerCase().contains('central')) {
     return Region.central;
   } else if (value.toLowerCase().contains('northern')) {

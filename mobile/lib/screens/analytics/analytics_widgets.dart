@@ -771,7 +771,7 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
           ),
         );
       },
-      child: ValueListenableBuilder<Box>(
+      child: ValueListenableBuilder<Box<AirQualityReading>>(
         valueListenable: Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
             .listenable(keys: [airQualityReading.placeId]),
         builder: (context, box, widget) {
