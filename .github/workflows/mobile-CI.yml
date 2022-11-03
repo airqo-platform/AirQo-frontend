@@ -9,7 +9,7 @@ on:
       closed
 
 jobs:
-  build:
+  build-android:
     name: android build
     runs-on: ubuntu-latest
     env:
@@ -43,7 +43,7 @@ jobs:
         with:
           artifacts: "build/app/outputs/bundle/release/app.aab"
           token: ${{ secrets.GITHUB_TOKEN }}
-  build:
+  build-ios:
     name: ios build
     runs-on: macos-latest
     steps:
