@@ -1,8 +1,7 @@
 # values for platform frontend.
 env:
   deployment_name: airqo-stage-platform-frontend
-  service_name: airqo-stage-platform-ui-svc
-  labels: sta-platform-ui
+  labels: airqo-platform
   secret: env-platform-staging
 
 replicaCount: 2
@@ -21,15 +20,29 @@ service:
   nodePort: 31104
   targetPort: 80
   port: 80
+  name: airqo-stage-platform-ui-svc
 
 ingress:
   enabled: false
 
 nodeSelector: {}
-resources: {}
-affinity: {}
 torelations: {}
 
+resources:
+  requests:
+    # Average usage was 0.00001 vCPU and 50Mi over the last 30 days
+    cpu: 5m
+    memory: 20Mi
+  limits:
+    cpu: 50m
+    memory: 80Mi
 
-## Application level settings  
+horizontalPodAutoscaler:
+  name: airqo-stage-platform-frontend-hpa
+  minReplicas: 1
+  maxReplicas: 3
+  resource: memory
+  target: 80
+
+## Application level settings
 appMode: staging

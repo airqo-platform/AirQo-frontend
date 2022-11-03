@@ -1,7 +1,6 @@
 # values for platform frontend.
 env:
   deployment_name: airqo-dev-platform-frontend
-  service_name: airqo-dev-platform-ui-svc
   labels: dev-platform-ui
   secret: env-platform-development
 
@@ -21,15 +20,29 @@ service:
   nodePort: 32104
   targetPort: 80
   port: 80
+  name: airqo-dev-platform-ui-svc
 
 ingress:
   enabled: false
 
 nodeSelector: {}
-resources: {}
-affinity: {}
 torelations: {}
 
+resources:
+  requests:
+    # Average usage was 0.00001 vCPU and 50Mi over the last 30 days
+    cpu: 5m
+    memory: 20Mi
+  limits:
+    cpu: 50m
+    memory: 80Mi
 
-## Application level settings  
+horizontalPodAutoscaler:
+  name: airqo-dev-platform-frontend-hpa
+  minReplicas: 1
+  maxReplicas: 2
+  resource: memory
+  target: 90
+
+## Application level settings
 appMode: development
