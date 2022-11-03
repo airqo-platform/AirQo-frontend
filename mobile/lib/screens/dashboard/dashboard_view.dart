@@ -83,73 +83,77 @@ class _DashboardViewState extends State<DashboardView> {
             ),
             Row(
               children: [
-                ValueListenableBuilder<Box>(
-                  valueListenable:
-                      Hive.box<FavouritePlace>(HiveBox.favouritePlaces)
-                          .listenable(),
-                  builder: (context, box, widget) {
-                    final favouritePlaces =
-                        box.values.cast<FavouritePlace>().take(3).toList();
+                Expanded(
+                  child: ValueListenableBuilder<Box>(
+                    valueListenable:
+                        Hive.box<FavouritePlace>(HiveBox.favouritePlaces)
+                            .listenable(),
+                    builder: (context, box, widget) {
+                      final favouritePlaces =
+                          box.values.cast<FavouritePlace>().take(3).toList();
 
-                    final widgets = favouritePlacesWidgets(favouritePlaces);
+                      final widgets = favouritePlacesWidgets(favouritePlaces);
 
-                    return Showcase(
-                      key: _favoritesShowcaseKey,
-                      description: 'These are your favorite places',
-                      child: DashboardTopCard(
-                        toolTipType: ToolTipType.favouritePlaces,
-                        title: 'Favorites',
-                        widgetKey: _favToolTipKey,
-                        nextScreenClickHandler: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) {
-                                return const FavouritePlaces();
-                              },
-                            ),
-                          );
-                        },
-                        children: widgets,
-                      ),
-                    );
-                  },
+                      return Showcase(
+                        key: _favoritesShowcaseKey,
+                        description: 'These are your favorite places',
+                        child: DashboardTopCard(
+                          toolTipType: ToolTipType.favouritePlaces,
+                          title: 'Favorites',
+                          widgetKey: _favToolTipKey,
+                          nextScreenClickHandler: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return const FavouritePlaces();
+                                },
+                              ),
+                            );
+                          },
+                          children: widgets,
+                        ),
+                      );
+                    },
+                  ),
                 ),
                 const SizedBox(
                   width: 16,
                 ),
-                ValueListenableBuilder<Box>(
-                  valueListenable: Hive.box<Kya>(HiveBox.kya).listenable(),
-                  builder: (context, box, widget) {
-                    final completeKya = box.values
-                        .cast<Kya>()
-                        .where((element) => element.progress == -1)
-                        .take(3)
-                        .toList();
+                Expanded(
+                  child: ValueListenableBuilder<Box>(
+                    valueListenable: Hive.box<Kya>(HiveBox.kya).listenable(),
+                    builder: (context, box, widget) {
+                      final completeKya = box.values
+                          .cast<Kya>()
+                          .where((element) => element.progress == -1)
+                          .take(3)
+                          .toList();
 
-                    final widgets = completeKyaWidgets(completeKya);
+                      final widgets = completeKyaWidgets(completeKya);
 
-                    return Showcase(
-                      key: _forYouShowcaseKey,
-                      description: 'This is content speacilized for you.',
-                      child: DashboardTopCard(
-                        toolTipType: ToolTipType.forYou,
-                        title: 'For You',
-                        widgetKey: _kyaToolTipKey,
-                        nextScreenClickHandler: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) {
-                                return const ForYouPage(analytics: false);
-                              },
-                            ),
-                          );
-                        },
-                        children: widgets,
-                      ),
-                    );
-                  },
+                      return Showcase(
+                        key: _forYouShowcaseKey,
+                        description: 'This is content speacilized for you.',
+                        child: DashboardTopCard(
+                          toolTipType: ToolTipType.forYou,
+                          title: 'For You',
+                          widgetKey: _kyaToolTipKey,
+                          nextScreenClickHandler: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return const ForYouPage(analytics: false);
+                                },
+                              ),
+                            );
+                          },
+                          children: widgets,
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ],
             ),

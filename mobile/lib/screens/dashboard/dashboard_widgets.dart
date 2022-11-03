@@ -45,41 +45,39 @@ class DashboardTopCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
+    return GestureDetector(
+      onTap: nextScreenClickHandler,
       key: widgetKey,
-      child: GestureDetector(
-        onTap: nextScreenClickHandler,
-        child: Container(
-          height: 56,
-          padding: const EdgeInsets.all(12.0),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.all(
-              Radius.circular(8.0),
+      child: Container(
+        height: 56,
+        padding: const EdgeInsets.all(12.0),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.all(
+            Radius.circular(8.0),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(
+              height: 32,
+              width: getWidth(children.length),
+              child: Stack(
+                children: children,
+              ),
             ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SizedBox(
-                height: 32,
-                width: getWidth(children.length),
-                child: Stack(
-                  children: children,
-                ),
+            const SizedBox(
+              width: 8,
+            ),
+            Text(
+              title,
+              style: CustomTextStyle.bodyText4(context)?.copyWith(
+                color: CustomColors.appColorBlue,
               ),
-              const SizedBox(
-                width: 8,
-              ),
-              Text(
-                title,
-                style: CustomTextStyle.bodyText4(context)?.copyWith(
-                  color: CustomColors.appColorBlue,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

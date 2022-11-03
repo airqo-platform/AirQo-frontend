@@ -114,16 +114,16 @@ class _HomePageState extends State<HomePage> {
                     label: '',
                   ),
                   BottomNavigationBarItem(
-                      icon: Showcase(
-                        key: _mapShowcaseKey,
-                        description: 'This is the AirQo map',
-                        child: CustomBottomNavBarItem(
-                          svg: 'assets/icon/location.svg',
-                          selectedIndex: _selectedIndex,
-                          label: 'AirQo Map',
-                          index: 1,
-                        ),
+                    icon: Showcase(
+                      key: _mapShowcaseKey,
+                      description: 'This is the AirQo map',
+                      child: CustomBottomNavBarItem(
+                        svg: 'assets/icon/location.svg',
+                        selectedIndex: _selectedIndex,
+                        label: 'AirQo Map',
+                        index: 1,
                       ),
+                    ),
                     label: '',
                   ),
                   BottomNavigationBarItem(
@@ -142,8 +142,7 @@ class _HomePageState extends State<HomePage> {
                         ValueListenableBuilder<Box>(
                           valueListenable: Hive.box<AppNotification>(
                             HiveBox.appNotifications,
-                          )
-                              .listenable(),
+                          ).listenable(),
                           builder: (context, box, widget) {
                             final unreadNotifications = box.values
                                 .toList()
@@ -250,10 +249,10 @@ class _HomePageState extends State<HomePage> {
   static void _startShowcase() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       ShowCaseWidget.of(myContext!).startShowCase(
-          [
-        _homeShowcaseKey,
-        _mapShowcaseKey,
-        _profileShowcaseKey,
+        [
+          _homeShowcaseKey,
+          _mapShowcaseKey,
+          _profileShowcaseKey,
         ],
       );
     });
