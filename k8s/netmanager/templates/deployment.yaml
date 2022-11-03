@@ -3,7 +3,6 @@ kind: Deployment
 metadata:
   name: {{ .Values.env.deployment_name }}
   namespace: {{ .Values.appMode }}
-  labels: {{ .Values.env.labels }}
 spec:
   replicas: {{ .Values.replicaCount }}
   strategy:
@@ -14,18 +13,32 @@ spec:
   minReadySeconds: 5
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ .Values.env.labels }}
-      app.kubernetes.io/instance: {{ .Release.Name }}
+      app: {{ .Values.env.labels }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ .Values.env.labels }}
-        app.kubernetes.io/instance: {{ .Release.Name }}
+        app: {{ .Values.env.labels }}
     spec:
-
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 10
+              preference:
+                matchExpressions:
+                  - key: node-type
+                    operator: In
+                    values:
+                      - general-purpose
+            - weight: 1
+              preference:
+                matchExpressions:
+                  - key: node-type
+                    operator: In
+                    values:
+                      - high-memory
       containers:
         - name: {{ .Values.env.labels }}
-          securityContext:
+          securityContext: 
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -44,15 +57,16 @@ spec:
             - configMapRef:
                 name: {{ .Values.env.secret }}
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            requests:
+              cpu: {{ .Values.resources.requests.cpu }}
+              memory: {{ .Values.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.resources.limits.cpu }}
+              memory: {{ .Values.resources.limits.memory }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-    {{- with .Values.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-    {{- end }}
     {{- with .Values.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
