@@ -131,16 +131,13 @@ jobs:
       - name: Update k8s manifest file
         uses: fjogeleit/yaml-update-action@main
         with:
-          valueFile: "k8s/netmanager/stage-airqo-platform-frontend.yaml"
-          propertyPath: "spec.template.spec.containers[0].image"
-          value: ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }}
+          valueFile: "k8s/netmanager/values-stage.yaml"
+          propertyPath: "image.tag"
+          value: ${{ needs.image-tag.outputs.build_id }}
           updateFile: true
           branch: deployment/argocd
-          targetBranch: staging
-          message: "Update Image Version to ${{ needs.image-tag.outputs.build_id }}"
-          title: "Netmanager Image version update"
-          labels: "devops, yaml-updates, chore, k8s, ready for merge, ready for review"
-          description: "This PR updates the staging netmanager image to ${{ needs.image-tag.outputs.build_id }}"
+          message: "Update netmanger staging image tag to ${{ needs.image-tag.outputs.build_id }}"
+          createPR: false
 
       - name: Login to K8S
         uses: azure/k8s-set-context@v1
@@ -148,9 +145,8 @@ jobs:
           method: kubeconfig
           kubeconfig: ${{ secrets.K8S_CONFIG_STAGE }}
 
-      - name: Deploy to K8S
+      - name: Update the corresponding configmap
         run: |
-          echo "=============== Update the corresponding configmap ==============="
           kubectl create configmap --dry-run=client -o yaml --from-env-file=netmanager/.env env-platform-staging | kubectl replace -f - -n staging
 
   ### deploy website ###

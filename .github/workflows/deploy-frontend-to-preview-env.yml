@@ -136,6 +136,20 @@ jobs:
             --command="/bin/sh","-c","cat /etc/env/.env >> /etc/environment; nginx -g 'daemon off;'" \
             --allow-unauthenticated
 
+      - name: Update k8s manifest file
+        uses: fjogeleit/yaml-update-action@main
+        with:
+          valueFile: "k8s/netmanager/values-dev.yaml"
+          updateFile: true
+          branch: deployment/argocd
+          message: "Update netmanager dev image for PR:${{ needs.branch-name.outputs.lowercase }}"
+          createPR: false
+          changes: |
+            {
+              "image.repository": "${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/netmanager-pr-previews",
+              "image.tag": "${{ github.sha }}"
+            }
+
       - name: Get preview service url
         id: preview-url
         run: |
