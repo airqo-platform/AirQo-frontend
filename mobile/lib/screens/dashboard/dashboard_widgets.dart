@@ -1,4 +1,17 @@
-part of 'dashboard_view.dart';
+import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+
+import '../kya/kya_widgets.dart';
+import '../search/search_page.dart';
 
 class DashboardTopCard extends StatelessWidget {
   const DashboardTopCard({

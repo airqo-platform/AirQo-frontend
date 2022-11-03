@@ -62,13 +62,13 @@ class AirqoApiClient {
     }
 
     try {
-      var params = ipAddress.isNotEmpty
+      final params = ipAddress.isNotEmpty
           ? {'ip_address': ipAddress}
-          : {} as Map<String, dynamic>;
+          : <String, dynamic>{};
       final response =
           await _performGetRequest(params, AirQoUrls.ipGeoCoordinates);
 
-      return response['data'] as Map<String, dynamic>;
+      return response['data'];
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -190,7 +190,7 @@ class AirqoApiClient {
       );
 
       return EmailAuthModel.parseEmailAuthModel(
-        json.decode(response.body) as Map<String, dynamic>,
+        json.decode(response.body),
       );
     } catch (exception, stackTrace) {
       await logException(

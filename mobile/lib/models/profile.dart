@@ -202,7 +202,7 @@ class Profile extends HiveObject {
   }
 
   static Profile parseUserDetails(dynamic jsonBody) {
-    return Profile.fromJson(jsonBody as Map<String, dynamic>);
+    return Profile.fromJson(jsonBody);
   }
 }
 

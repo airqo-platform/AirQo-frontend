@@ -63,7 +63,7 @@ class AirQoApiClient {
       );
 
       return responseBody != null
-          ? parseMeasurements(responseBody as Map<String, dynamic>)
+          ? parseMeasurements(responseBody)
           : <Measurement>[];
     } catch (exception, _) {
       // TODO create utils package
