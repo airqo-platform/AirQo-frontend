@@ -128,6 +128,20 @@ jobs:
           docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:latest
 
+      - name: Update k8s manifest file
+        uses: fjogeleit/yaml-update-action@main
+        with:
+          valueFile: "k8s/netmanager/stage-airqo-platform-frontend.yaml"
+          propertyPath: "spec.template.spec.containers[0].image"
+          value: ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }}
+          updateFile: true
+          branch: deployment/argocd
+          targetBranch: staging
+          message: "Update Image Version to ${{ needs.image-tag.outputs.build_id }}"
+          title: "Netmanager Image version update"
+          labels: "devops, yaml-updates, chore, k8s, ready for merge, ready for review"
+          description: "This PR updates the staging netmanager image to ${{ needs.image-tag.outputs.build_id }}"
+
       - name: Login to K8S
         uses: azure/k8s-set-context@v1
         with:
@@ -138,10 +152,6 @@ jobs:
         run: |
           echo "=============== Update the corresponding configmap ==============="
           kubectl create configmap --dry-run=client -o yaml --from-env-file=netmanager/.env env-platform-staging | kubectl replace -f - -n staging
-          echo "=============== Deploy the application ==============="
-          kubectl apply -f k8s/netmanager/stage-airqo-platform-frontend.yaml
-          kubectl set image deployment/airqo-stage-platform-frontend sta-platform-ui=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} -n staging
-          kubectl annotate deployment/airqo-stage-platform-frontend kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n staging
 
   ### deploy website ###
   website:
@@ -267,6 +277,20 @@ jobs:
           docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:latest
 
+      - name: Update k8s manifest file
+        uses: fjogeleit/yaml-update-action@main
+        with:
+          valueFile: "k8s/calibrate/stage-airqo-calibrate-app.yaml"
+          propertyPath: "spec.template.spec.containers[0].image"
+          value: ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }}
+          updateFile: true
+          branch: deployment/argocd
+          targetBranch: staging
+          message: "Update Image Version to ${{ needs.image-tag.outputs.build_id }}"
+          title: "Calibrate Image version update"
+          labels: "devops, yaml-updates, chore, k8s, ready for merge, ready for review"
+          description: "This PR updates the staging calibrate image to ${{ needs.image-tag.outputs.build_id }}"
+
       - name: Login to K8S
         uses: azure/k8s-set-context@v1
         with:
@@ -277,10 +301,6 @@ jobs:
         run: |
           echo "=============== Update the corresponding configmap ==============="
           kubectl create configmap --dry-run=client -o yaml --from-env-file=calibrate/.env env-calibrate-staging | kubectl replace -f - -n staging
-          echo "=============== Deploy the application ==============="
-          kubectl apply -f k8s/calibrate/stage-airqo-calibrate-app.yaml
-          kubectl set image deployment/airqo-stage-calibrate-app sta-calibrate-app=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }} -n staging
-          kubectl annotate deployment/airqo-stage-calibrate-app kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n staging
 
   ### deploy next platform ###
   next-platform:
@@ -318,6 +338,20 @@ jobs:
           docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-next-platform:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-next-platform:latest
 
+      - name: Update k8s manifest file
+        uses: fjogeleit/yaml-update-action@main
+        with:
+          valueFile: "k8s/platform/stage-airqo-next-platform.yaml"
+          propertyPath: "spec.template.spec.containers[0].image"
+          value: ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }}
+          updateFile: true
+          branch: deployment/argocd
+          targetBranch: staging
+          message: "Update Image Version to ${{ needs.image-tag.outputs.build_id }}"
+          title: "Next Platform Image version update"
+          labels: "devops, yaml-updates, chore, k8s, ready for merge, ready for review"
+          description: "This PR updates the staging next platform image to ${{ needs.image-tag.outputs.build_id }}"
+
       - name: Login to K8S
         uses: azure/k8s-set-context@v1
         with:
@@ -328,10 +362,6 @@ jobs:
         run: |
           echo "=============== Update the corresponding configmap ==============="
           kubectl create configmap --dry-run=client -o yaml --from-env-file=platform/.env env-next-platform-staging | kubectl replace -f - -n staging
-          echo "=============== Deploy the application ==============="          
-          kubectl apply -f k8s/platform/stage-airqo-next-platform.yaml
-          kubectl set image deployment/airqo-stage-next-platform sta-next-platform=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }} -n staging
-          kubectl annotate deployment/airqo-stage-next-platform kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n staging
 
   ### deploy docs ###
   docs:
@@ -358,14 +388,22 @@ jobs:
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-docs:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }}
 
+      - name: Update k8s manifest file
+        uses: fjogeleit/yaml-update-action@main
+        with:
+          valueFile: "k8s/docs/stage-airqo-docs.yaml"
+          propertyPath: "spec.template.spec.containers[0].image"
+          value: ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }}
+          updateFile: true
+          branch: deployment/argocd
+          targetBranch: staging
+          message: "Update Image Version to ${{ needs.image-tag.outputs.build_id }}"
+          title: "Docs Image version update"
+          labels: "devops, yaml-updates, chore, k8s, ready for merge, ready for review"
+          description: "This PR updates the staging docs image to ${{ needs.image-tag.outputs.build_id }}"
+
       - name: Login to K8S
         uses: azure/k8s-set-context@v1
         with:
           method: kubeconfig
           kubeconfig: ${{ secrets.K8S_CONFIG_STAGE }}
-
-      - name: Deploy to K8S
-        run: |
-          kubectl apply -f k8s/docs/stage-airqo-docs.yaml
-          kubectl set image deployment/airqo-stage-docs sta-docs=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }} -n staging
-          kubectl annotate deployment/airqo-stage-docs kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n staging
