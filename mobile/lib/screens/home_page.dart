@@ -87,7 +87,7 @@ class _HomePageState extends State<HomePage> {
               ),
         ),
         child: ShowCaseWidget(
-          onFinish: _appService.showcaseStop,
+          onFinish: _appService.stopshowcase,
           builder: Builder(
             builder: (context) {
               myContext = context;
