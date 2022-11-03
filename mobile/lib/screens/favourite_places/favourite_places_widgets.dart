@@ -1,4 +1,11 @@
-part of 'favourite_places_page.dart';
+import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/widgets/widgets.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+
+import '../search/search_page.dart';
 
 class EmptyFavouritePlaces extends StatelessWidget {
   const EmptyFavouritePlaces({

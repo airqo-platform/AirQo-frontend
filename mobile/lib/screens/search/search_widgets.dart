@@ -1,4 +1,17 @@
-part of 'search_page.dart';
+import 'package:app/blocs/blocs.dart';
+import 'package:app/constants/constants.dart';
+import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/widgets/widgets.dart';
+import 'package:app_repository/app_repository.dart';
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+
+import '../insights/insights_page.dart';
 
 class SearchResultsWidget extends StatefulWidget {
   const SearchResultsWidget({

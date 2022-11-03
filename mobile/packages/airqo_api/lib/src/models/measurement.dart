@@ -27,12 +27,12 @@ class Measurement {
   final Site site;
 }
 
-List<Measurement> parseMeasurements(Map<String, dynamic> jsonBody) {
+List<Measurement> parseMeasurements(dynamic jsonBody) {
   final measurements = <Measurement>[];
 
   final jsonArray = jsonBody['measurements'];
   final offSet = DateTime.now().timeZoneOffset.inHours;
-  for (final jsonElement in jsonArray as List<Map<String, dynamic>>) {
+  for (final jsonElement in jsonArray) {
     try {
       final measurement = Measurement.fromJson(jsonElement);
       measurement.dateTime = measurement.dateTime.add(Duration(hours: offSet));

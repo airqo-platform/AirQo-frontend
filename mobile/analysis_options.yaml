@@ -59,7 +59,6 @@ dart_code_metrics:
     - avoid-duplicate-exports
     - avoid-global-state
     - avoid-missing-enum-constant-in-map
-    - avoid-nested-conditional-expressions
     - avoid-throw-in-catch-block
     - avoid-top-level-members-in-tests
     - tag-name
@@ -85,9 +84,10 @@ dart_code_metrics:
     - avoid-unnecessary-type-casts
     - avoid-unnecessary-type-assertions
     - always-remove-listener
-    - avoid-border-all
-    - avoid-returning-widgets
     - avoid-unnecessary-setstate
+#    - avoid-nested-conditional-expressions
+#    - avoid-border-all
+#    - avoid-returning-widgets
 #    - avoid-shrink-wrap-in-lists
 #    - prefer-async-await
 #    - avoid-passing-async-when-sync-expected

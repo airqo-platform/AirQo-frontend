@@ -1,10 +1,8 @@
 import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
+import 'package:app/utils/utils.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../services/hive_service.dart';
-import '../../services/location_service.dart';
-import '../../services/native_api.dart';
-import '../../utils/exception.dart';
 import 'nearby_location_event.dart';
 import 'nearby_location_state.dart';
 

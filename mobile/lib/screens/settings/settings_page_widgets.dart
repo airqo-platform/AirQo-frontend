@@ -1,4 +1,6 @@
-part of 'settings_page.dart';
+import 'package:app/themes/theme.dart';
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter/material.dart';
 
 class DeleteAccountButton extends StatelessWidget {
   const DeleteAccountButton({

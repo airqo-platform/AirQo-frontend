@@ -48,7 +48,7 @@ class SearchApiClient {
       );
 
       if (responseBody != null && responseBody['status'] == 'OK') {
-        return Prediction.parsePredictions(responseBody as Map<String, dynamic>);
+        return Prediction.parsePredictions(responseBody);
       }
     } catch (exception, stackTrace) {
       // TODO: add utility functions
@@ -80,7 +80,7 @@ class SearchApiClient {
         httpClient: _httpClient,
       );
 
-      final place = Place.fromJson(responseBody['result'] as Map<String, dynamic>);
+      final place = Place.fromJson(responseBody['result']);
 
       return place;
     } catch (exception, stackTrace) {

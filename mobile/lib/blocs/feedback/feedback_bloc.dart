@@ -1,8 +1,6 @@
+import 'package:app/models/models.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../models/enum_constants.dart';
-import '../../models/profile.dart';
 
 part 'feedback_event.dart';
 part 'feedback_state.dart';

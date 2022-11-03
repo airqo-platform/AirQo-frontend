@@ -1,14 +1,11 @@
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
-import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-part 'notification_widgets.dart';
+import 'notification_widgets.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
