@@ -65,7 +65,7 @@ class AirQoApiClient {
       return responseBody != null
           ? parseMeasurements(responseBody)
           : <Measurement>[];
-    } catch (exception, stackTrace) {
+    } catch (exception, _) {
       // TODO create utils package
       // await logException(
       //   exception,

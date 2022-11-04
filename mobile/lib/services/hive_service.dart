@@ -2,11 +2,11 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:app/models/models.dart';
-import 'package:app/services/secure_storage.dart';
 import 'package:app_repository/app_repository.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'firebase_service.dart';
+import 'secure_storage.dart';
 
 class HiveService {
   static Future<void> initialize() async {

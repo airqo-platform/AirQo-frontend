@@ -1,13 +1,10 @@
 import 'dart:async';
 
-import 'package:app/utils/extensions.dart';
-import 'package:app/utils/network.dart';
-import 'package:app/widgets/dialogs.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-
-import '../themes/colors.dart';
-import '../widgets/custom_widgets.dart';
 
 class WebViewScreen extends StatefulWidget {
   const WebViewScreen({
@@ -130,7 +127,7 @@ class NavigationControls extends StatelessWidget {
                 if (await controller.canGoBack()) {
                   await controller.goBack();
                 } else {
-                  await showSnackBar(
+                  showSnackBar(
                     context,
                     'No back history item',
                   );
@@ -148,7 +145,7 @@ class NavigationControls extends StatelessWidget {
                 if (await controller.canGoForward()) {
                   await controller.goForward();
                 } else {
-                  await showSnackBar(
+                  showSnackBar(
                     context,
                     'No forward history item',
                   );

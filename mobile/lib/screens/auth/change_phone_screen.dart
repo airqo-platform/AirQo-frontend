@@ -1,14 +1,11 @@
-import 'package:app/models/enum_constants.dart';
-import 'package:app/services/firebase_service.dart';
-import 'package:app/utils/network.dart';
-import 'package:app/widgets/buttons.dart';
-import 'package:app/widgets/dialogs.dart';
-import 'package:app/widgets/text_fields.dart';
+import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../../themes/colors.dart';
-import '../../widgets/custom_widgets.dart';
 import 'auth_widgets.dart';
 
 class ChangePhoneScreen extends StatefulWidget {
@@ -54,7 +51,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
           _isVerifying = false;
         },
       );
-      await showSnackBar(context, 'Failed to update email address');
+      showSnackBar(context, 'Failed to update email address');
     }
   }
 
@@ -366,7 +363,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
     );
   }
 
-  void phoneValueChange(text) {
+  void phoneValueChange(String text) {
     if (text.toString().isEmpty) {
       setState(() => _nextBtnColor = CustomColors.appColorDisabled);
     } else {
@@ -391,7 +388,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
 
     if (_user!.phoneNumber!.trim().toLowerCase() ==
         '$_countryCode$_phoneNumber'.trim().toLowerCase()) {
-      await showSnackBar(
+      showSnackBar(
         context,
         'Enter a different phone number',
       );
@@ -474,7 +471,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
     }
   }
 
-  void verifyPhoneFn(verificationId) {
+  void verifyPhoneFn(String verificationId) {
     setState(
       () {
         _verifyCode = true;
@@ -502,7 +499,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
     final code = _phoneVerificationCode.join('');
 
     if (code.length != 6) {
-      await showSnackBar(context, 'Enter all the 6 digits');
+      showSnackBar(context, 'Enter all the 6 digits');
 
       return;
     }
@@ -538,12 +535,12 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
             _isVerifying = false;
           },
         );
-        await showSnackBar(context, 'Failed to update phone number');
+        showSnackBar(context, 'Failed to update phone number');
       }
     } on FirebaseAuthException catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
       if (exception.code == 'invalid-verification-code') {
-        await showSnackBar(context, 'Invalid Code');
+        showSnackBar(context, 'Invalid Code');
         setState(
           () {
             _nextBtnColor = CustomColors.appColorBlue;
@@ -558,7 +555,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
           verifyPhoneFn,
           autoVerifyPhoneFn,
         );
-        await showSnackBar(
+        showSnackBar(
           context,
           'Your verification '
           'has timed out. we have sent your'
@@ -572,7 +569,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
         );
       }
     } catch (exception, stackTrace) {
-      await showSnackBar(
+      showSnackBar(
         context,
         'Try again later',
       );

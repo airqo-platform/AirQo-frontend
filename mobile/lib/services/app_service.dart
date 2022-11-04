@@ -1,22 +1,20 @@
 import 'dart:io';
 
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
-import 'package:app/services/firebase_service.dart';
-import 'package:app/services/hive_service.dart';
-import 'package:app/services/local_storage.dart';
-import 'package:app/services/rest_api.dart';
-import 'package:app/services/secure_storage.dart';
-import 'package:app/utils/extensions.dart';
-import 'package:app/utils/network.dart';
-import 'package:app/widgets/dialogs.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:app_repository/app_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../constants/config.dart';
-import '../utils/exception.dart';
+import 'firebase_service.dart';
+import 'hive_service.dart';
+import 'local_storage.dart';
 import 'location_service.dart';
+import 'rest_api.dart';
+import 'secure_storage.dart';
 
 class AppService {
   factory AppService() {
@@ -133,10 +131,8 @@ class AppService {
       );
     } catch (exception, stackTrace) {
       debugPrint('$exception \n $stackTrace');
-      await Future.wait([
-        logException(exception, stackTrace),
-        showSnackBar(buildContext, 'Failed to perform action. Try again later'),
-      ]);
+      await logException(exception, stackTrace);
+      showSnackBar(buildContext, 'Failed to perform action. Try again later');
 
       return true;
     }
@@ -185,7 +181,7 @@ class AppService {
     bool reloadDatabase = false,
   }) async {
     final insights = <Insights>[];
-    final futures = <Future>[];
+    final futures = <Future<List<Insights>>>[];
 
     for (var i = 0; i < siteIds.length; i = i + 2) {
       final site1 = siteIds[i];
@@ -307,7 +303,7 @@ class AppService {
     }
   }
 
-  Future<bool> logOut(buildContext) async {
+  Future<bool> logOut(BuildContext buildContext) async {
     final hasConnection = await checkNetworkConnection(
       buildContext,
       notifyUser: true,

@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:app/app_config.dart';
 import 'package:app/main_common.dart';
+import 'package:app/models/models.dart';
 import 'package:app/services/hive_service.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/services/notification_service.dart';
@@ -31,7 +31,7 @@ void main() async {
   ]);
   HttpOverrides.global = AppHttpOverrides();
 
-  var configuredApp = const AppConfig(
+  const configuredApp = AppConfig(
     appTitle: 'AirQo Dev',
     environment: Environment.dev,
     child: AirQoApp(),

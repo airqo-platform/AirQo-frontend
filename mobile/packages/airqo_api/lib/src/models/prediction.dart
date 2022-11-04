@@ -32,11 +32,11 @@ class Prediction {
   @JsonKey(name: 'structured_formatting')
   final SuggestionDetails suggestionDetails;
 
-  static List<Prediction> parsePredictions(dynamic jsonBody) {
+  static List<Prediction> parsePredictions(Map<String, dynamic> jsonBody) {
     final suggestions = <Prediction>[];
 
     final jsonArray = jsonBody['predictions'];
-    for (final jsonElement in jsonArray) {
+    for (final jsonElement in jsonArray as List<Map<String, dynamic>>) {
       try {
         final measurement = Prediction.fromJson(jsonElement);
         suggestions.add(measurement);
