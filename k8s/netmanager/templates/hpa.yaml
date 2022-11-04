@@ -2,6 +2,7 @@ kind: HorizontalPodAutoscaler
 apiVersion: autoscaling/v2
 metadata:
   name: {{ .Values.horizontalPodAutoscaler.name }}
+  namespace: {{ .Values.appMode }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
