@@ -1,4 +1,11 @@
-part of 'insights_page.dart';
+import 'package:app/blocs/blocs.dart';
+import 'package:app/models/models.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/widgets/widgets.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'insights_widgets.dart';
 
 class HourlyInsightsTab extends StatelessWidget {
   HourlyInsightsTab({super.key});

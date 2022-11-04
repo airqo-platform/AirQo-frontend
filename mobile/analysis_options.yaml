@@ -21,8 +21,7 @@ dart_code_metrics:
     - lib/firebase_options_dev.dart
     - [build/**]
   anti-patterns:
-    - long-method:
-        severity: warning
+    - long-method
     - long-parameter-list
   metrics:
     cyclomatic-complexity: 20

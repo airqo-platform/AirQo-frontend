@@ -1,3 +1,4 @@
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
@@ -6,23 +7,14 @@ import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
-class AnalyticsGraph extends StatelessWidget {
-  const AnalyticsGraph({
-    super.key,
-    required this.pm2_5ChartData,
-    required this.pm10ChartData,
-    required this.pollutant,
-    required this.frequency,
-    required this.onBarSelection,
-  });
-  final List<charts.Series<Insights, String>> pm2_5ChartData;
-  final List<charts.Series<Insights, String>> pm10ChartData;
-  final Pollutant pollutant;
-  final Frequency frequency;
-  final Function(Insights) onBarSelection;
+class InsightsLoadingWidget extends StatelessWidget {
+  const InsightsLoadingWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -355,10 +347,8 @@ class InsightsAvatar extends StatelessWidget {
       width: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: containerColor,
-        border: Border.fromBorderSide(
-          BorderSide(color: Colors.transparent),
-        ),
+        color: insights.chartAvatarContainerColor(pollutant),
+        border: Border.all(color: Colors.transparent),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -1410,9 +1400,7 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
         borderRadius: const BorderRadius.all(
           Radius.circular(8.0),
         ),
-        border: Border.fromBorderSide(
-          BorderSide(color: Colors.transparent),
-        ),
+        border: Border.all(color: Colors.transparent),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,

@@ -3,6 +3,26 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
+class MiniLoadingIndicator extends StatelessWidget {
+  const MiniLoadingIndicator({
+    super.key,
+    required this.loading,
+  });
+  final bool loading;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 8,
+      width: 8,
+      child: CircularProgressIndicator(
+        strokeWidth: 1,
+        color: loading ? CustomColors.appColorBlue : Colors.transparent,
+      ),
+    );
+  }
+}
+
 class CircularLoadingAnimation extends StatelessWidget {
   const CircularLoadingAnimation({
     super.key,

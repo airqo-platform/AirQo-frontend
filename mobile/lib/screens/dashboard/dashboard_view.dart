@@ -8,20 +8,14 @@ import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
 import '../kya/kya_title_page.dart';
-import '../kya/kya_widgets.dart';
-import '../search/search_page.dart';
-
-part 'dashboard_widgets.dart';
+import 'dashboard_widgets.dart';
 
 class DashboardView extends StatefulWidget {
   const DashboardView({super.key});

@@ -32,7 +32,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
   }
 
   Future<void> _onRefreshInsights(
-    RefreshInsightsCharts event,
+    RefreshInsightsCharts _,
     Emitter<InsightsState> emit,
   ) async {
     return _refreshCharts(emit);
@@ -253,7 +253,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
   }
 
   Future<void> _onClearInsights(
-    ClearInsightsTab event,
+    ClearInsightsTab _,
     Emitter<InsightsState> emit,
   ) async {
     return emit(InsightsState.initial(frequency: state.frequency));
