@@ -242,7 +242,7 @@ jobs:
           value: ${{ needs.image-tag.outputs.build_id }}
           updateFile: true
           branch: deployment/argocd
-          message: "Update netmanger staging image tag to ${{ needs.image-tag.outputs.build_id }}"
+          message: "Update calibrate app production image tag to ${{ needs.image-tag.outputs.build_id }}"
 
       - name: Login to K8S
         uses: azure/k8s-set-context@v1
@@ -305,9 +305,9 @@ jobs:
           kubectl set image deployment/airqo-next-platform airqo-next-platform=gcr.io/airqo-250220/airqo-next-platform:${{ needs.image-tag.outputs.build_id }} -n production
           kubectl annotate deployment/airqo-next-platform kubernetes.io/change-cause="Image updated to gcr.io/airqo-250220/airqo-next-platform:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n production
 
-  ### deploy docs ###
+  ### build docs image ###
   docs:
-    name: build-push-deploy-docs
+    name: build-push-docs-image
     needs: [image-tag]
     if: inputs.docs == true
     runs-on: ubuntu-latest
@@ -322,7 +322,7 @@ jobs:
           username: _json_key
           password: ${{ secrets.GCR_CONFIG }}
 
-      - name: Build and Push Docker Image
+      - name: Build and Push to GCR Registry
         run: |
           cd docs/
           docker build --tag gcr.io/airqo-250220/airqo-prod-docs:${{ needs.image-tag.outputs.build_id }} .
@@ -330,14 +330,12 @@ jobs:
           docker tag gcr.io/airqo-250220/airqo-prod-docs:${{ needs.image-tag.outputs.build_id }} gcr.io/airqo-250220/airqo-prod-docs:latest
           docker push gcr.io/airqo-250220/airqo-prod-docs:latest
 
-      - name: Login to K8S
-        uses: azure/k8s-set-context@v1
+      - name: Update corresponding helm values file
+        uses: fjogeleit/yaml-update-action@main
         with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
-
-      - name: Deploy to K8S
-        run: |
-          kubectl apply -f k8s/docs/prod-airqo-docs.yaml
-          kubectl set image deployment/airqo-prod-docs airqo-prod-docs=gcr.io/airqo-250220/airqo-prod-docs:${{ needs.image-tag.outputs.build_id }} -n production
-          kubectl annotate deployment/airqo-prod-docs kubernetes.io/change-cause="Image updated to gcr.io/airqo-250220/airqo-prod-docs:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n production
+          valueFile: "k8s/docs/values-prod.yaml"
+          propertyPath: "image.tag"
+          value: ${{ needs.image-tag.outputs.build_id }}
+          updateFile: true
+          branch: deployment/argocd
+          message: "Update docs production image tag to ${{ needs.image-tag.outputs.build_id }}"
