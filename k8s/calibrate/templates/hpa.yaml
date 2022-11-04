@@ -2,6 +2,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: {{ .Values.service.targetPort }}
+  namespace: {{ .Values.calibrate.namespace }}
   labels:
     {{- include "calibrate-app.labels" . | nindent 4 }}
 spec:
