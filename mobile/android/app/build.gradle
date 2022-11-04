@@ -98,17 +98,32 @@ android {
 // Add start
     signingConfigs {
         release {
-            keyAlias releaseKeystoreProperties['keyAlias']
-            keyPassword releaseKeystoreProperties['keyPassword']
-            storeFile releaseKeystoreProperties['storeFile'] ? file(releaseKeystoreProperties['storeFile']) : null
-            storePassword releaseKeystoreProperties['storePassword']
+            def tmpFilePath = System.getProperty("user.home") + "/work/_temp/keystore/"
+            def allFilesFromDir = new File(tmpFilePath).listFiles()
+
+            if (allFilesFromDir != null) {
+                def keystoreFile = allFilesFromDir.first()
+                keystoreFile.renameTo("keystore/your_keystore.jks")
+            }
+
+            storeFile = file("keystore/upload-keystore.jks")
+            storePassword System.getenv("SIGNING_STORE_PASSWORD")
+            keyAlias System.getenv("SIGNING_KEY_ALIAS")
+            keyPassword System.getenv("SIGNING_KEY_PASSWORD")
         }
+        // release {
+        //     keyAlias releaseKeystoreProperties['keyAlias']
+        //     keyPassword releaseKeystoreProperties['keyPassword']
+        //     storeFile releaseKeystoreProperties['storeFile'] ? file(releaseKeystoreProperties['storeFile']) : null
+        //     storePassword releaseKeystoreProperties['storePassword']
+        // }
         debug {
             keyAlias debugKeystoreProperties['keyAlias']
             keyPassword debugKeystoreProperties['keyPassword']
             storeFile debugKeystoreProperties['storeFile'] ? file(debugKeystoreProperties['storeFile']) : null
             storePassword debugKeystoreProperties['storePassword']
         }
+        
     }
     buildTypes {
         release {

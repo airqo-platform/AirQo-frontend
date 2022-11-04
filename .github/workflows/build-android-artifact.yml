@@ -1,0 +1,71 @@
+name: build-android-artifacts
+
+on:
+  push:
+    branches: [ "staging" ]
+  pull_request:
+    branches: [ "staging" ]
+    types:
+      closed
+
+jobs:
+  
+  build:
+    name: android build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: get flutter version
+        uses: actions/checkout@v3
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.0.5'
+          channel: 'stable'
+        run: flutter --version
+
+      - name: Google login
+        uses: google-github-actions/auth@v0
+        with:
+          credentials_json: ${{secrets.GCP_MOBILE_CREDENTIALS}}
+      
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v0
+
+      - name: Save mobile .env file
+        run: gcloud secrets versions access latest --secret="prod-env-mobile-app" > mobile/.env.prod
+
+      - name: Retrieve keystore details
+        run: gcloud secrets version access latest --secret="" > mobile/android/key.properties
+      
+      - name: Get firebase details
+        run:  
+
+      - name: 
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: '11'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.0.5'
+      - run: flutter pub get
+      # - run: flutter build apk
+      - run: flutter build appbundle --obfuscate --split-debug-info=${PWD}/obfuscate
+      - name: Push APK to Releases
+        uses: actions/checkout@v2
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "build/app/outputs/bundle/release/app.aab"
+          token: ${{ secrets.GITHUB_TOKEN }}
+  # build-ios:
+  #   name: ios build
+  #   runs-on: macos-latest
+  #   steps:
+  #   - uses: actions/checkout@v3
+  #   - uses: subosito/flutter-action@v2
+  #     with:
+  #       channel: 'stable'
+  #       architecture: x64
+  #   - run: flutter pub get
+  #   - run: flutter build ios --release --no-codesign
