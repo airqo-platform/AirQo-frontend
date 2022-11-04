@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:app/themes/theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -100,15 +102,27 @@ class LoadingIcon extends StatelessWidget {
 }
 
 void loadingScreen(BuildContext context) async {
-  await showDialog(
-    barrierColor: Colors.transparent,
-    context: context,
-    barrierDismissible: false,
-    builder: (ctx) => CupertinoActivityIndicator(
-      radius: 20,
-      color: CustomColors.appColorBlue,
-    ),
-  );
+  if (Platform.isAndroid) {
+    await showDialog(
+      barrierColor: Colors.transparent,
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => CircularProgressIndicator(
+        strokeWidth: 10,
+        color: CustomColors.appColorBlue,
+      ),
+    );
+  } else {
+    await showDialog(
+      barrierColor: Colors.transparent,
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => CupertinoActivityIndicator(
+        radius: 20,
+        color: CustomColors.appColorBlue,
+      ),
+    );
+  }
 }
 
 class LoadingWidget extends StatelessWidget {
