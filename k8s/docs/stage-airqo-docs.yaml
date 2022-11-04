@@ -28,7 +28,7 @@ spec:
                       - general-purpose
       containers:
         - name: sta-docs
-          image: us.gcr.io/airqo-250220/airqo-stage-docs:latest
+          image: gcr.io/airqo-250220/airqo-stage-docs:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3000

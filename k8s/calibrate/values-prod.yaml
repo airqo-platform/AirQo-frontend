@@ -10,7 +10,7 @@ calibrate:
 replicaCount: 2
 
 image:
-  repository: us.gcr.io/airqo-250220/airqo-calibrate-app
+  repository: gcr.io/airqo-250220/airqo-calibrate-app
   pullPolicy: Always
   tag: latest
 

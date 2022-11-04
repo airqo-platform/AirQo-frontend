@@ -10,7 +10,7 @@ calibrate:
 replicaCount: 1
 
 image:
-  repository: us.gcr.io/airqo-250220/airqo-stage-calibrate-app
+  repository: gcr.io/airqo-250220/airqo-stage-calibrate-app
   pullPolicy: Always
   tag: latest
 

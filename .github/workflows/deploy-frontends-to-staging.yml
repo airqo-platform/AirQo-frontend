@@ -123,10 +123,10 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           cd netmanager/
-          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} .
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }}
-          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:latest
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:latest
+          docker build --tag gcr.io/airqo-250220/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} .
+          docker push gcr.io/airqo-250220/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }}
+          docker tag gcr.io/airqo-250220/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} gcr.io/airqo-250220/airqo-stage-platform-frontend:latest
+          docker push gcr.io/airqo-250220/airqo-stage-platform-frontend:latest
 
       - name: Update corresponding helm values file
         uses: fjogeleit/yaml-update-action@main
@@ -215,16 +215,16 @@ jobs:
           --build-arg REACT_APP_BASE_NEWSLETTER_URL=${{ secrets.WEBSITE_REACT_APP_BASE_NEWSLETTER_URL }} \
           --build-arg REACT_APP_WEBSITE_BASE_URL=${{ secrets.WEBSITE_STAGE_REACT_APP_WEBSITE_BASE_URL }} \
           --build-arg REACT_APP_AUTHORIZATION_TOKEN=${{ secrets.WEBSITE_STAGE_REACT_APP_AUTHORIZATION_TOKEN }} \
-          --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }}
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }}
-          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest
+          --tag gcr.io/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }}
+          docker push gcr.io/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }}
+          docker tag gcr.io/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }} gcr.io/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest
+          docker push gcr.io/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest
 
       - name: Deploy to App Engine
         run: |-
           cd website/
           gcloud app deploy  \
-            --image-url=${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest \
+            --image-url=gcr.io/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest \
             --project=${{ secrets.FRONTEND_PROJECT_ID }} \
             --quiet
 
@@ -268,10 +268,10 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           cd calibrate/
-          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }} .
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }}
-          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:latest
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:latest
+          docker build --tag gcr.io/airqo-250220/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }} .
+          docker push gcr.io/airqo-250220/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }}
+          docker tag gcr.io/airqo-250220/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }} gcr.io/airqo-250220/airqo-stage-calibrate-app:latest
+          docker push gcr.io/airqo-250220/airqo-stage-calibrate-app:latest
 
       - name: Update corresponding helm values file
         uses: fjogeleit/yaml-update-action@main
@@ -324,17 +324,17 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           cd platform/
-          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }} .
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }}
-          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-next-platform:latest
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-next-platform:latest
+          docker build --tag gcr.io/airqo-250220/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }} .
+          docker push gcr.io/airqo-250220/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }}
+          docker tag gcr.io/airqo-250220/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }} gcr.io/airqo-250220/airqo-stage-next-platform:latest
+          docker push gcr.io/airqo-250220/airqo-stage-next-platform:latest
 
       - name: Update corresponding helm values file
         uses: fjogeleit/yaml-update-action@main
         with:
           valueFile: "k8s/platform/stage-airqo-next-platform.yaml"
           propertyPath: "spec.template.spec.containers[0].image"
-          value: ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }}
+          value: gcr.io/airqo-250220/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }}
           updateFile: true
           branch: deployment/argocd
           targetBranch: staging
@@ -374,17 +374,17 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           cd docs/
-          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }} .
-          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-docs:latest
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-docs:latest
-          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }}
+          docker build --tag gcr.io/airqo-250220/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }} .
+          docker tag gcr.io/airqo-250220/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }} gcr.io/airqo-250220/airqo-stage-docs:latest
+          docker push gcr.io/airqo-250220/airqo-stage-docs:latest
+          docker push gcr.io/airqo-250220/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }}
 
       - name: Update corresponding helm values file
         uses: fjogeleit/yaml-update-action@main
         with:
           valueFile: "k8s/docs/stage-airqo-docs.yaml"
           propertyPath: "spec.template.spec.containers[0].image"
-          value: ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }}
+          value: gcr.io/airqo-250220/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }}
           updateFile: true
           branch: deployment/argocd
           targetBranch: staging

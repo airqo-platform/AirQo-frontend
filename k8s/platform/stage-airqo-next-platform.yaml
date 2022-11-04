@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: sta-next-platform
-          image: us.gcr.io/airqo-250220/airqo-stage-next-platform:latest
+          image: gcr.io/airqo-250220/airqo-stage-next-platform:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
@@ -63,9 +63,9 @@ spec:
   minReplicas: 1
   maxReplicas: 3
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 80
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80

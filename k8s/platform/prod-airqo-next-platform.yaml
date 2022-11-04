@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: airqo-next-platform
-          image: us.gcr.io/airqo-250220/airqo-next-platform:latest
+          image: gcr.io/airqo-250220/airqo-next-platform:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
@@ -63,9 +63,9 @@ spec:
   minReplicas: 1
   maxReplicas: 4
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
