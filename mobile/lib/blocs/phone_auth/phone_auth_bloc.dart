@@ -1,13 +1,12 @@
 import 'dart:async';
 
-import 'package:app/services/app_service.dart';
-import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
 
-import '../../models/enum_constants.dart';
-import '../../services/firebase_service.dart';
-import '../../utils/network.dart';
+import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
+import 'package:app/utils/utils.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'phone_auth_event.dart';
 part 'phone_auth_state.dart';
@@ -43,7 +42,7 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
   }
 
   Future<void> _onClearPhoneNumberEvent(
-    ClearPhoneNumberEvent event,
+    ClearPhoneNumberEvent _,
     Emitter<PhoneAuthState> emit,
   ) async {
     return emit(

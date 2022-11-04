@@ -354,7 +354,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
         //   verifyPhoneFn,
         //   autoVerifyPhoneFn,
         // );
-        await showSnackBar(
+        showSnackBar(
           context,
           'Your verification '
           'has timed out. we have sent your'

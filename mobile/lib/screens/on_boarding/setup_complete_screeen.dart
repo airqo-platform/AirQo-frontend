@@ -2,7 +2,10 @@ import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
+
+import 'on_boarding_widgets.dart';
 
 class SetUpCompleteScreen extends StatefulWidget {
   const SetUpCompleteScreen({super.key});

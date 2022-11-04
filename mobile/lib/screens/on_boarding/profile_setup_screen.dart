@@ -38,106 +38,104 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
       body: WillPopScope(
         onWillPop: onWillPop,
         child: AppSafeArea(
-          widget: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Great!\nPlease enter your name?',
-                  textAlign: TextAlign.center,
-                  style: CustomTextStyle.headline7(context),
+          horizontalPadding: 24,
+          widget: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Great!\nPlease enter your name?',
+                textAlign: TextAlign.center,
+                style: CustomTextStyle.headline7(context),
+              ),
+              const SizedBox(
+                height: 32,
+              ),
+              SizedBox(
+                height: 48,
+                child: Row(
+                  children: <Widget>[
+                    TitleDropDown(
+                      showTileOptionsCallBack: _showTileOptionsCallBack,
+                      title: _title,
+                    ),
+                    const SizedBox(
+                      width: 16,
+                    ),
+                    Form(
+                      key: _formKey,
+                      child: Flexible(
+                        child: ProfileSetupNameInputField(
+                          showTileOptionsCallBack: _showTileOptionsCallBack,
+                          nameChangeCallBack: _nameChangeCallBack,
+                          controller: _controller,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(
-                  height: 32,
-                ),
-                SizedBox(
-                  height: 48,
+              ),
+              const SizedBox(
+                height: 8,
+              ),
+              Visibility(
+                  visible: _showDropDown,
                   child: Row(
-                    children: <Widget>[
-                      TitleDropDown(
-                        showTileOptionsCallBack: _showTileOptionsCallBack,
-                        title: _title,
-                      ),
-                      const SizedBox(
-                        width: 16,
-                      ),
-                      Form(
-                        key: _formKey,
-                        child: Flexible(
-                          child: ProfileSetupNameInputField(
-                            showTileOptionsCallBack: _showTileOptionsCallBack,
-                            nameChangeCallBack: _nameChangeCallBack,
-                            controller: _controller,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xffF4F4F4),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.max,
+                            children: _getTitleOptions(),
                           ),
                         ),
                       ),
                     ],
-                  ),
+                  )),
+              const Spacer(),
+              GestureDetector(
+                onTap: () async {
+                  await _saveName();
+                },
+                child: NextButton(
+                  buttonColor: nextBtnColor,
                 ),
-                const SizedBox(
-                  height: 8,
-                ),
-                Visibility(
-                    visible: _showDropDown,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          decoration: BoxDecoration(
-                            color: const Color(0xffF4F4F4),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.max,
-                              children: _getTitleOptions(),
-                            ),
-                          ),
-                        ),
-                      ],
-                    )),
-                const Spacer(),
-                GestureDetector(
-                  onTap: () async {
-                    await _saveName();
+              ),
+              SizedBox(
+                height: _showOptions ? 16 : 12,
+              ),
+              Visibility(
+                visible: _showOptions,
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (context) {
+                        return const NotificationsSetupScreen();
+                      }),
+                      (r) => false,
+                    );
                   },
-                  child: NextButton(
-                    buttonColor: nextBtnColor,
+                  child: Text(
+                    'No, thanks',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.caption?.copyWith(
+                          color: CustomColors.appColorBlue,
+                        ),
                   ),
                 ),
-                SizedBox(
-                  height: _showOptions ? 16 : 12,
-                ),
-                Visibility(
-                  visible: _showOptions,
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(builder: (context) {
-                          return const NotificationsSetupScreen();
-                        }),
-                        (r) => false,
-                      );
-                    },
-                    child: Text(
-                      'No, thanks',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.caption?.copyWith(
-                            color: CustomColors.appColorBlue,
-                          ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

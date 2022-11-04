@@ -1,15 +1,12 @@
 import 'dart:async';
 
-import 'package:bloc/bloc.dart';
+import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
+import 'package:app/utils/utils.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
-import '../../models/enum_constants.dart';
-import '../../services/app_service.dart';
-import '../../services/firebase_service.dart';
-import '../../utils/exception.dart';
-import '../../utils/network.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'auth_code_event.dart';
 part 'auth_code_state.dart';
@@ -21,7 +18,6 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
     on<ResendAuthCode>(_onResendAuthCode);
     on<InitializeAuthCodeState>(_onInitializeAuthCodeState);
     on<ClearAuthCodeState>(_onClearAuthCodeState);
-
     on<GuestUserEvent>(_onGuestUserEvent);
     on<UpdateCountDown>(_updateCountDown);
     on<UpdateVerificationId>(_onUpdateVerificationId);

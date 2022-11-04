@@ -1,15 +1,12 @@
 import 'dart:async';
 
-import 'package:app/utils/extensions.dart';
-import 'package:bloc/bloc.dart';
+import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
-
-import '../../models/enum_constants.dart';
-import '../../services/app_service.dart';
-import '../../services/firebase_service.dart';
-import '../../utils/network.dart';
-import '../../widgets/dialogs.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'email_auth_event.dart';
 part 'email_auth_state.dart';
@@ -47,7 +44,7 @@ class EmailAuthBloc extends Bloc<EmailAuthEvent, EmailAuthState> {
   }
 
   Future<void> _onClearEmailAddress(
-    ClearEmailAddress event,
+    ClearEmailAddress _,
     Emitter<EmailAuthState> emit,
   ) async {
     return emit(state.copyWith(
@@ -67,7 +64,7 @@ class EmailAuthBloc extends Bloc<EmailAuthEvent, EmailAuthState> {
   }
 
   Future<void> _onEmailValidationPassed(
-    EmailValidationPassed event,
+    EmailValidationPassed _,
     Emitter<EmailAuthState> emit,
   ) async {
     return emit(state.copyWith(

@@ -3,7 +3,6 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/on_boarding/profile_setup_screen.dart';
 import 'package:app/screens/on_boarding/setup_complete_screeen.dart';
-import 'package:app/screens/on_boarding/welcome_screen.dart';
 import 'package:app/services/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,6 +10,7 @@ import 'package:flutter_svg/svg.dart';
 
 import '../auth/phone_auth_widget.dart';
 import '../home_page.dart';
+import 'introduction_screen.dart';
 import 'location_setup_screen.dart';
 import 'notifications_setup_screen.dart';
 import 'on_boarding_widgets.dart';
@@ -71,7 +71,7 @@ class SplashScreenState extends State<SplashScreen> {
           context,
           MaterialPageRoute(builder: (context) {
             if (!isLoggedIn) {
-              return const WelcomeScreen();
+              return const IntroductionScreen();
             } else {
               switch (nextPage) {
                 case OnBoardingPage.signup:
@@ -87,7 +87,7 @@ class SplashScreenState extends State<SplashScreen> {
                 case OnBoardingPage.home:
                   return const HomePage(refresh: false);
                 default:
-                  return const WelcomeScreen();
+                  return const IntroductionScreen();
               }
             }
           }),
