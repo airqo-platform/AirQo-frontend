@@ -42,7 +42,6 @@ spec:
               name: sta-calibrate
           resources:
             requests:
-              # Average usage was 0.0001 vCPU and 20Mi over the last 30 days
               cpu: 5m
               memory: 20Mi
             limits:

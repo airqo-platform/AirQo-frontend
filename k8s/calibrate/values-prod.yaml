@@ -3,14 +3,14 @@
 # Declare variables to be passed into your templates.
 
 calibrate:
-  deployment_name: airqo-stage-calibrate-app
-  labels: sta-calibrate-app
-  namespace: staging
+  deployment_name: airqo-calibrate-app
+  labels: airqo-calibrate-app
+  namespace: production
 
-replicaCount: 1
+replicaCount: 2
 
 image:
-  repository: us.gcr.io/airqo-250220/airqo-stage-calibrate-app
+  repository: us.gcr.io/airqo-250220/airqo-calibrate-app
   pullPolicy: Always
   tag: latest
 
@@ -37,28 +37,28 @@ ingress:
   enabled: false
 
 service:
-  name: airqo-stage-calibrate-app-svc
+  name: airqo-calibrate-app-svc
   type: NodePort
   protocol: TCP
   port: 80
   targetPort: 80
-  nodePort: 31106
+  nodePort: 30106
 
 resources:
   limits:
     cpu: 50m
-    memory: 80Mi
+    memory: 100Mi
   requests:
-    # Average usage was 0.0001 vCPU and 20Mi over the last 30 days
+    # Average usage was 0.0001 vCPU and 25Mi over the last 30 days
     cpu: 5m
-    memory: 20Mi
+    memory: 25Mi
 
 autoscaling:
-  name: airqo-stage-calibrate-app-hpa
+  name: airqo-calibrate-app-hpa
   minReplicas: 1
-  maxReplicas: 2
-  # targetCPUUtilizationPercentage: 80
-  targetMemoryUtilizationPercentage: 80
+  maxReplicas: 3
+  # targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 70
 
 nodeSelector: {}
 
