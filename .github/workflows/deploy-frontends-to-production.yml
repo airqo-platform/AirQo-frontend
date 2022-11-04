@@ -86,7 +86,7 @@ jobs:
           docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:latest
 
-      - name: Update k8s manifest file
+      - name: Update corresponding helm values file
         uses: fjogeleit/yaml-update-action@main
         with:
           valueFile: "k8s/netmanager/values-prod.yaml"
@@ -234,20 +234,25 @@ jobs:
           docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-calibrate-app:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-calibrate-app:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-calibrate-app:latest
 
+      - name: Update corresponding helm values file
+        uses: fjogeleit/yaml-update-action@main
+        with:
+          valueFile: "k8s/calibrate/values-prod.yaml"
+          propertyPath: "image.tag"
+          value: ${{ needs.image-tag.outputs.build_id }}
+          updateFile: true
+          branch: deployment/argocd
+          message: "Update netmanger staging image tag to ${{ needs.image-tag.outputs.build_id }}"
+
       - name: Login to K8S
         uses: azure/k8s-set-context@v1
         with:
           method: kubeconfig
           kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
 
-      - name: Deploy to K8S
+      - name: Update the corresponding configmap
         run: |
-          echo "=============== Update the corresponding configmap ==============="
           kubectl create configmap --dry-run=client -o yaml --from-env-file=calibrate/.env env-calibrate-prod | kubectl replace -f - -n production
-          echo "=============== Deploy the application ==============="          
-          kubectl apply -f k8s/calibrate/prod-airqo-calibrate-app.yaml
-          kubectl set image deployment/airqo-calibrate-app prod-calibrate-app=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-calibrate-app:${{ needs.image-tag.outputs.build_id }} -n production
-          kubectl annotate deployment/airqo-calibrate-app kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-calibrate-app:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n production
 
   ### deploy next platform ###
   next-platform:

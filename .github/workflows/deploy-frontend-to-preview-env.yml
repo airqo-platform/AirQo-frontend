@@ -136,13 +136,13 @@ jobs:
             --command="/bin/sh","-c","cat /etc/env/.env >> /etc/environment; nginx -g 'daemon off;'" \
             --allow-unauthenticated
 
-      - name: Update k8s manifest file
+      - name: Update corresponding helm values file
         uses: fjogeleit/yaml-update-action@main
         with:
           valueFile: "k8s/netmanager/values-dev.yaml"
           updateFile: true
           branch: deployment/argocd
-          message: "Update netmanager dev image for PR:${{ needs.branch-name.outputs.lowercase }}"
+          message: "Update (dev)netmanager image for PR:${{ needs.branch-name.outputs.lowercase }}"
           createPR: false
           changes: |
             {
@@ -237,6 +237,20 @@ jobs:
             --update-secrets=/etc/env/.env=sta-env-calibrate-app:latest \
             --command="/bin/sh","-c","cat /etc/env/.env >> /etc/environment; nginx -g 'daemon off;'" \
             --allow-unauthenticated
+
+      - name: Update corresponding helm values file
+        uses: fjogeleit/yaml-update-action@main
+        with:
+          valueFile: "k8s/calibrate/values-dev.yaml"
+          updateFile: true
+          branch: deployment/argocd
+          message: "Update (dev)calibrate app image for PR:${{ needs.branch-name.outputs.lowercase }}"
+          createPR: false
+          changes: |
+            {
+              "image.repository": "${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/pr-previews/calibrate-app-pr-previews",
+              "image.tag": "${{ github.sha }}"
+            }
 
       - name: Get preview service url
         id: preview-url

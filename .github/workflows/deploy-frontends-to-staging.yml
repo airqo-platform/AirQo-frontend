@@ -128,7 +128,7 @@ jobs:
           docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-platform-frontend:latest
 
-      - name: Update k8s manifest file
+      - name: Update corresponding helm values file
         uses: fjogeleit/yaml-update-action@main
         with:
           valueFile: "k8s/netmanager/values-stage.yaml"
@@ -273,19 +273,15 @@ jobs:
           docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:latest
 
-      - name: Update k8s manifest file
+      - name: Update corresponding helm values file
         uses: fjogeleit/yaml-update-action@main
         with:
-          valueFile: "k8s/calibrate/stage-airqo-calibrate-app.yaml"
-          propertyPath: "spec.template.spec.containers[0].image"
-          value: ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-calibrate-app:${{ needs.image-tag.outputs.build_id }}
+          valueFile: "k8s/calibrate/values-stage.yaml"
+          propertyPath: "image.tag"
+          value: ${{ needs.image-tag.outputs.build_id }}
           updateFile: true
           branch: deployment/argocd
-          targetBranch: staging
-          message: "Update Image Version to ${{ needs.image-tag.outputs.build_id }}"
-          title: "Calibrate Image version update"
-          labels: "devops, yaml-updates, chore, k8s, ready for merge, ready for review"
-          description: "This PR updates the staging calibrate image to ${{ needs.image-tag.outputs.build_id }}"
+          message: "Update netmanger staging image tag to ${{ needs.image-tag.outputs.build_id }}"
 
       - name: Login to K8S
         uses: azure/k8s-set-context@v1
@@ -293,9 +289,8 @@ jobs:
           method: kubeconfig
           kubeconfig: ${{ secrets.K8S_CONFIG_STAGE }}
 
-      - name: Deploy to K8S
+      - name: Update the corresponding configmap
         run: |
-          echo "=============== Update the corresponding configmap ==============="
           kubectl create configmap --dry-run=client -o yaml --from-env-file=calibrate/.env env-calibrate-staging | kubectl replace -f - -n staging
 
   ### deploy next platform ###
@@ -334,7 +329,7 @@ jobs:
           docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-next-platform:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-next-platform:latest
 
-      - name: Update k8s manifest file
+      - name: Update corresponding helm values file
         uses: fjogeleit/yaml-update-action@main
         with:
           valueFile: "k8s/platform/stage-airqo-next-platform.yaml"
@@ -384,7 +379,7 @@ jobs:
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-docs:latest
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }}
 
-      - name: Update k8s manifest file
+      - name: Update corresponding helm values file
         uses: fjogeleit/yaml-update-action@main
         with:
           valueFile: "k8s/docs/stage-airqo-docs.yaml"
