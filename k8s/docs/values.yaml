@@ -54,9 +54,9 @@ resources:
   #   memory: 128Mi
 
 autoscaling:
-  enabled: false
+  name: airqo-stage-docs-hpa
   minReplicas: 1
-  maxReplicas: 100
+  maxReplicas: 2
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
