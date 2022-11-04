@@ -553,7 +553,7 @@ class ChangePhoneScreenState extends State<ChangePhoneScreen> {
         //   verifyPhoneFn,
         //   autoVerifyPhoneFn,
         // );
-        await showSnackBar(
+        showSnackBar(
           context,
           'Your verification '
           'has timed out. we have sent your'
