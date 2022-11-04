@@ -1,4 +1,17 @@
-part of 'profile_view.dart';
+import 'dart:async';
+
+import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
+import 'package:flutter/material.dart';
+import 'package:hive_flutter/adapters.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:image_picker/image_picker.dart';
+
+import '../home_page.dart';
+import 'profile_widgets.dart';
 
 class ProfileEditPage extends StatefulWidget {
   const ProfileEditPage({super.key});

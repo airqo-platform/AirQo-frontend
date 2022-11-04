@@ -127,7 +127,7 @@ class NavigationControls extends StatelessWidget {
                 if (await controller.canGoBack()) {
                   await controller.goBack();
                 } else {
-                  await showSnackBar(
+                  showSnackBar(
                     context,
                     'No back history item',
                   );
@@ -145,7 +145,7 @@ class NavigationControls extends StatelessWidget {
                 if (await controller.canGoForward()) {
                   await controller.goForward();
                 } else {
-                  await showSnackBar(
+                  showSnackBar(
                     context,
                     'No forward history item',
                   );

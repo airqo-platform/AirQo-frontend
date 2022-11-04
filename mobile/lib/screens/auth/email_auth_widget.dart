@@ -3,19 +3,13 @@ import 'dart:async';
 import 'package:app/models/models.dart';
 import 'package:app/screens/auth/phone_auth_widget.dart';
 import 'package:app/screens/home_page.dart';
-import 'package:app/services/app_service.dart';
+import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
-import 'package:app/utils/extensions.dart';
-import 'package:app/utils/network.dart';
-import 'package:app/widgets/buttons.dart';
-import 'package:app/widgets/dialogs.dart';
-import 'package:app/widgets/text_fields.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
-import '../../services/rest_api.dart';
-import '../../widgets/custom_shimmer.dart';
-import '../../widgets/custom_widgets.dart';
 import '../on_boarding/profile_setup_screen.dart';
 import 'auth_widgets.dart';
 
@@ -423,7 +417,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     final code = _emailVerificationCode.join('');
 
     if (code.length != 6) {
-      await showSnackBar(
+      showSnackBar(
         context,
         'Enter all the 6 digits',
       );
@@ -434,7 +428,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     setState(() => _nextBtnColor = CustomColors.appColorDisabled);
 
     if (code != _emailToken.toString()) {
-      await showSnackBar(context, 'Invalid Code');
+      showSnackBar(context, 'Invalid Code');
       setState(() => _nextBtnColor = CustomColors.appColorBlue);
 
       return;
@@ -485,7 +479,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
           _codeSent = true;
         },
       );
-      await showSnackBar(
+      showSnackBar(
         context,
         'Authentication failed',
       );
@@ -580,7 +574,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
           },
         );
         Navigator.pop(loadingContext);
-        await showSnackBar(
+        showSnackBar(
           context,
           'You already have an '
           'account with this email address',
@@ -613,7 +607,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     Navigator.pop(loadingContext);
 
     if (emailSignupResponse == null) {
-      await showSnackBar(
+      showSnackBar(
         context,
         'email signup verification failed',
       );
@@ -651,7 +645,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
     Navigator.pop(loadingContext);
 
     if (emailSignupResponse == null) {
-      await showSnackBar(
+      showSnackBar(
         context,
         'Email signup verification failed',
       );

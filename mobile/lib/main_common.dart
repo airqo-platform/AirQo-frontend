@@ -1,10 +1,9 @@
 import 'dart:io';
 
-import 'package:app/app_config.dart';
 import 'package:app/blocs/blocs.dart';
+import 'package:app/constants/constants.dart';
 import 'package:app/screens/on_boarding/splash_screen.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
@@ -17,7 +16,7 @@ class AirQoApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var config = AppConfig.of(context);
+    final config = AppConfig.of(context);
 
     return MultiProvider(
       providers: [
@@ -45,7 +44,6 @@ class AirQoApp extends StatelessWidget {
       ],
       builder: (context, child) {
         return MaterialApp(
-          debugShowCheckedModeBanner: kReleaseMode ? false : true,
           navigatorObservers: [
             FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
             SentryNavigatorObserver(),

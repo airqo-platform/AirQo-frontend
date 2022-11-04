@@ -1,7 +1,28 @@
-part of 'insights_page.dart';
+import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
-class InsightsLoadingWidget extends StatelessWidget {
-  const InsightsLoadingWidget({super.key});
+class AnalyticsGraph extends StatelessWidget {
+  const AnalyticsGraph({
+    super.key,
+    required this.pm2_5ChartData,
+    required this.pm10ChartData,
+    required this.pollutant,
+    required this.frequency,
+    required this.onBarSelection,
+  });
+  final List<charts.Series<Insights, String>> pm2_5ChartData;
+  final List<charts.Series<Insights, String>> pm10ChartData;
+  final Pollutant pollutant;
+  final Frequency frequency;
+  final Function(Insights) onBarSelection;
 
   @override
   Widget build(BuildContext context) {
@@ -161,7 +182,8 @@ class HourlyAnalyticsGraph extends StatelessWidget {
                         if (value != null) {
                           context.read<HourlyInsightsBloc>().add(
                                 UpdateSelectedInsight(
-                                  model.selectedSeries.first.data[value] as GraphInsightData,
+                                  model.selectedSeries.first.data[value]
+                                      as GraphInsightData,
                                 ),
                               );
                         }
@@ -289,7 +311,8 @@ class DailyAnalyticsGraph extends StatelessWidget {
                         if (value != null) {
                           context.read<DailyInsightsBloc>().add(
                                 UpdateSelectedInsight(
-                                  model.selectedSeries[0].data[value] as GraphInsightData,
+                                  model.selectedSeries[0].data[value]
+                                      as GraphInsightData,
                                 ),
                               );
                         }
@@ -332,8 +355,10 @@ class InsightsAvatar extends StatelessWidget {
       width: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: insights.chartAvatarContainerColor(pollutant),
-        border: Border.all(color: Colors.transparent),
+        color: containerColor,
+        border: Border.fromBorderSide(
+          BorderSide(color: Colors.transparent),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -350,7 +375,6 @@ class InsightsAvatar extends StatelessWidget {
             insights.chartAvatarValue(pollutant),
             maxLines: 1,
             style: CustomTextStyle.insightsAvatar(
-              context: context,
               pollutant: pollutant,
               value: insights.chartValue(pollutant),
             )?.copyWith(
@@ -1386,7 +1410,9 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
         borderRadius: const BorderRadius.all(
           Radius.circular(8.0),
         ),
-        border: Border.all(color: Colors.transparent),
+        border: Border.fromBorderSide(
+          BorderSide(color: Colors.transparent),
+        ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,

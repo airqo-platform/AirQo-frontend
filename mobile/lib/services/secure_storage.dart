@@ -18,7 +18,7 @@ class SecureStorage {
     await _secureStorage.deleteAll();
   }
 
-  Future<String?> getValue(String key) async {
+  Future<String?> getValue(String key) {
     return _secureStorage.read(key: key);
   }
 

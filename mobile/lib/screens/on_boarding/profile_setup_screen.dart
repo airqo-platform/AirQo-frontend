@@ -272,7 +272,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
           nextBtnColor = CustomColors.appColorBlue;
         },
       );
-      await showSnackBar(
+      showSnackBar(
         context,
         'Failed to update profile. Try again later',
       );

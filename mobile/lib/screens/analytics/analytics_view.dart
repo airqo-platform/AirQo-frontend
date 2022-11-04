@@ -1,20 +1,16 @@
 import 'dart:async';
 
-import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
-import 'package:app/screens/insights/insights_page.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
-import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-part 'analytics_widgets.dart';
+import 'analytics_widgets.dart';
 
 class AnalyticsView extends StatefulWidget {
   const AnalyticsView({super.key});
@@ -30,7 +26,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
 
     return Container(
       color: appColors.appBodyColor,
-      child: ValueListenableBuilder<Box>(
+      child: ValueListenableBuilder<Box<Analytics>>(
         valueListenable: Hive.box<Analytics>(HiveBox.analytics).listenable(),
         builder: (context, box, widget) {
           if (box.isNotEmpty) {
@@ -65,7 +61,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
             );
           }
 
-          return ValueListenableBuilder<Box>(
+          return ValueListenableBuilder<Box<AirQualityReading>>(
             valueListenable:
                 Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
                     .listenable(),

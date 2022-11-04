@@ -1,8 +1,7 @@
 import 'dart:async';
 
 import 'package:app/models/models.dart';
-import 'package:app/services/services.dart';
-import 'package:app/utils/utils.dart';
+import 'package:app/utils/extensions.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive/hive.dart';
@@ -24,7 +23,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   }
 
   Future<void> _onUpdateGreetings(
-    UpdateGreetings event,
+    UpdateGreetings _,
     Emitter<DashboardState> emit,
   ) async {
     emit(DashboardLoading(
@@ -60,7 +59,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   }
 
   Future<void> _onInitializeDashboard(
-    InitializeDashboard event,
+    InitializeDashboard _,
     Emitter<DashboardState> emit,
   ) async {
     emit(DashboardLoading(

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
+import 'package:app/screens/analytics/analytics_widgets.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
@@ -14,7 +15,6 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../analytics/analytics_view.dart';
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
 import '../kya/kya_title_page.dart';
@@ -35,11 +35,11 @@ class _DashboardViewState extends State<DashboardView> {
   final GlobalKey _favToolTipKey = GlobalKey();
   final GlobalKey _kyaToolTipKey = GlobalKey();
 
-  final Stream _timeStream =
+  final Stream<int> _timeStream =
       Stream.periodic(const Duration(minutes: 5), (int count) {
     return count;
   });
-  late StreamSubscription _timeSubscription;
+  late StreamSubscription<int> _timeSubscription;
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +66,7 @@ class _DashboardViewState extends State<DashboardView> {
             ),
             Row(
               children: [
-                ValueListenableBuilder<Box>(
+                ValueListenableBuilder<Box<FavouritePlace>>(
                   valueListenable:
                       Hive.box<FavouritePlace>(HiveBox.favouritePlaces)
                           .listenable(),
@@ -165,7 +165,7 @@ class _DashboardViewState extends State<DashboardView> {
                         },
                         child: Container(),
                       ),
-                      ValueListenableBuilder<Box>(
+                      ValueListenableBuilder<Box<AirQualityReading>>(
                         valueListenable: Hive.box<AirQualityReading>(
                           HiveBox.nearByAirQualityReadings,
                         ).listenable(),
@@ -210,7 +210,7 @@ class _DashboardViewState extends State<DashboardView> {
                             padding: const EdgeInsets.only(top: 16),
                             child: DashboardKyaCard(
                               kyaClickCallBack: _handleKyaOnClick,
-                              kya: incompleteKya[0],
+                              kya: incompleteKya.first,
                             ),
                           );
                         },

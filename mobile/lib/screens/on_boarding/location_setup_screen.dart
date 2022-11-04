@@ -3,11 +3,9 @@ import 'package:app/screens/home_page.dart';
 import 'package:app/screens/on_boarding/setup_complete_screeen.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
-import 'package:app/widgets/buttons.dart';
-import 'package:app/widgets/dialogs.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 
-import '../../widgets/custom_shimmer.dart';
 import 'on_boarding_widgets.dart';
 
 class LocationSetupScreen extends StatefulWidget {

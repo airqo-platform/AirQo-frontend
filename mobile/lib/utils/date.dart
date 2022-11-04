@@ -1,8 +1,8 @@
 import 'package:app/models/models.dart';
-import 'package:app/utils/extensions.dart';
 import 'package:intl/intl.dart';
 
 import 'exception.dart';
+import 'extensions.dart';
 
 String dateToShareString(DateTime dateTime) {
   try {

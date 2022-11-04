@@ -1,4 +1,15 @@
-part of 'feedback_page.dart';
+import 'package:app/blocs/blocs.dart';
+import 'package:app/constants/constants.dart';
+import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
+
+import '../home_page.dart';
 
 class FeedbackBackButton extends StatelessWidget {
   const FeedbackBackButton({super.key});
@@ -184,13 +195,17 @@ class FeedbackCard extends StatelessWidget {
               color: active ? CustomColors.appColorBlue : Colors.white,
               shape: BoxShape.circle,
               border: active
-                  ? Border.all(
-                      color: CustomColors.appColorBlue,
-                      width: 0,
+                  ? Border.fromBorderSide(
+                      BorderSide(
+                        color: CustomColors.appColorBlue,
+                        width: 0,
+                      ),
                     )
-                  : Border.all(
-                      color: CustomColors.greyColor,
-                      width: 3,
+                  : Border.fromBorderSide(
+                      BorderSide(
+                        color: CustomColors.greyColor,
+                        width: 3,
+                      ),
                     ),
             ),
           ),
@@ -232,7 +247,9 @@ class FeedbackForm extends StatelessWidget {
               borderRadius: const BorderRadius.all(
                 Radius.circular(8.0),
               ),
-              border: Border.all(color: Colors.white),
+              border: Border.fromBorderSide(
+                BorderSide(color: Colors.white),
+              ),
             ),
             child: Center(
               child: TextFormField(
@@ -551,7 +568,9 @@ class FeedbackChannelStep extends StatelessWidget {
                 borderRadius: const BorderRadius.all(
                   Radius.circular(8.0),
                 ),
-                border: Border.all(color: Colors.white),
+                border: Border.fromBorderSide(
+                  BorderSide(color: Colors.white),
+                ),
               ),
               child: TextFormField(
                 initialValue: state.contact,

@@ -2,20 +2,15 @@ import 'dart:async';
 
 import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
-import 'package:app/services/app_service.dart';
+import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
-import 'package:app/widgets/buttons.dart';
-import 'package:app/widgets/dialogs.dart';
-import 'package:app/widgets/text_fields.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../services/firebase_service.dart';
-import '../../utils/network.dart';
-import '../../widgets/custom_shimmer.dart';
-import '../../widgets/custom_widgets.dart';
 import '../on_boarding/profile_setup_screen.dart';
 import 'auth_widgets.dart';
 import 'email_auth_widget.dart';
@@ -555,7 +550,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
             _nextBtnColor = CustomColors.appColorBlue;
           },
         );
-        await showSnackBar(
+        showSnackBar(
           context,
           'Login failed.',
         );
@@ -584,7 +579,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
             _nextBtnColor = CustomColors.appColorBlue;
           },
         );
-        await showSnackBar(
+        showSnackBar(
           context,
           'Signup failed.',
         );
@@ -676,7 +671,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
           },
         );
         Navigator.pop(_loadingContext);
-        await showSnackBar(
+        showSnackBar(
           context,
           'You already have an '
           'account with this phone number',
@@ -807,7 +802,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
     final code = _phoneVerificationCode.join('');
 
     if (code.length != 6) {
-      await showSnackBar(
+      showSnackBar(
         context,
         'Enter all the 6 digits',
       );

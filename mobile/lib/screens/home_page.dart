@@ -5,7 +5,7 @@ import 'package:app/screens/profile/profile_view.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
-import 'package:app/widgets/widgets.dart';
+import 'package:app/widgets/dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -113,7 +113,7 @@ class _HomePageState extends State<HomePage> {
                         : CustomColors.appColorBlack.withOpacity(0.3),
                     semanticsLabel: 'Profile',
                   ),
-                  ValueListenableBuilder<Box>(
+                  ValueListenableBuilder<Box<AppNotification>>(
                     valueListenable:
                         Hive.box<AppNotification>(HiveBox.appNotifications)
                             .listenable(),

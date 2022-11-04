@@ -44,7 +44,7 @@ class SplashScreenState extends State<SplashScreen> {
             child: child,
           );
         },
-        child: _renderWidget(),
+        child: _widgetId == 0 ? LogoWidget() : TaglineWidget(visible: _visible),
       ),
     );
   }
@@ -105,28 +105,24 @@ class SplashScreenState extends State<SplashScreen> {
     initialize();
   }
 
-  Widget logoWidget() {
-    return Container(
-      color: Colors.white,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SvgPicture.asset(
-              'assets/icon/splash_image.svg',
-              semanticsLabel: 'Share',
-              // height: 118,
-              // width: 81,
-            ),
-          ],
-        ),
-      ),
+  void _updateWidget() {
+    setState(
+      () {
+        _visible = true;
+        _widgetId = _widgetId == 0 ? 1 : 0;
+      },
     );
   }
+}
 
-  Widget taglineWidget() {
+class TaglineWidget extends StatelessWidget {
+  const TaglineWidget({super.key, required this.visible});
+  final bool visible;
+
+  @override
+  Widget build(BuildContext context) {
     return AnimatedOpacity(
-      opacity: _visible ? 1.0 : 0.0,
+      opacity: visible ? 1.0 : 0.0,
       duration: const Duration(milliseconds: 500),
       // The green box must be a child of the AnimatedOpacity widget.
       child: Center(
@@ -153,17 +149,28 @@ class SplashScreenState extends State<SplashScreen> {
       ),
     );
   }
+}
 
-  Widget _renderWidget() {
-    return _widgetId == 0 ? logoWidget() : taglineWidget();
-  }
+class LogoWidget extends StatelessWidget {
+  const LogoWidget({super.key});
 
-  void _updateWidget() {
-    setState(
-      () {
-        _visible = true;
-        _widgetId = _widgetId == 0 ? 1 : 0;
-      },
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.white,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SvgPicture.asset(
+              'assets/icon/splash_image.svg',
+              semanticsLabel: 'Share',
+              // height: 118,
+              // width: 81,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

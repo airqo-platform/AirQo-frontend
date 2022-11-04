@@ -1,14 +1,11 @@
 import 'package:app/models/models.dart';
 import 'package:app/screens/auth/phone_auth_widget.dart';
 import 'package:app/screens/home_page.dart';
-import 'package:app/services/app_service.dart';
-import 'package:app/services/firebase_service.dart';
-import 'package:app/widgets/custom_shimmer.dart';
-import 'package:app/widgets/dialogs.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-
-import '../../themes/colors.dart';
 
 class ProceedAsGuest extends StatelessWidget {
   const ProceedAsGuest({super.key});
@@ -68,7 +65,7 @@ class ProceedAsGuest extends StatelessWidget {
       ]);
     } else {
       Navigator.pop(buildContext);
-      await showSnackBar(
+      showSnackBar(
         buildContext,
         'Failed to proceed as guest. Try again later',
       );

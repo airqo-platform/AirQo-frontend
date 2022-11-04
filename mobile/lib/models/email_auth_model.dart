@@ -29,7 +29,7 @@ class EmailAuthModel {
 
   Map<String, dynamic> toJson() => _$EmailAuthModelToJson(this);
 
-  static EmailAuthModel? parseEmailAuthModel(Map<String, dynamic>  jsonBody) {
+  static EmailAuthModel? parseEmailAuthModel(jsonBody) {
     try {
       return EmailAuthModel.fromJson(jsonBody);
     } catch (exception, stackTrace) {

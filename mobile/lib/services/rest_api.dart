@@ -2,8 +2,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 
-import 'package:app/constants/api.dart';
-import 'package:app/constants/config.dart';
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/utils/utils.dart';
 import 'package:http/http.dart' as http;
@@ -15,7 +14,7 @@ String addQueryParameters(Map<String, dynamic> queryParams, String url) {
     url = '$url?';
     queryParams.forEach(
       (key, value) {
-        url = queryParams.keys.elementAt(0).compareTo(key) == 0
+        url = queryParams.keys.first.compareTo(key) == 0
             ? '$url$key=$value'
             : '$url&$key=$value';
       },
@@ -63,9 +62,9 @@ class AirqoApiClient {
     }
 
     try {
-      var params = ipAddress.isNotEmpty
+      final params = ipAddress.isNotEmpty
           ? {'ip_address': ipAddress}
-          : {} as Map<String, dynamic>;
+          : <String, dynamic>{};
       final response =
           await _performGetRequest(params, AirQoUrls.ipGeoCoordinates);
 
@@ -202,8 +201,9 @@ class AirqoApiClient {
         body: jsonEncode(body),
       );
 
-      return EmailAuthModel.parseEmailAuthModel(json.decode(response.body) as Map<String, dynamic>);
-
+      return EmailAuthModel.parseEmailAuthModel(
+        json.decode(response.body),
+      );
     } catch (exception, stackTrace) {
       await logException(
         exception,

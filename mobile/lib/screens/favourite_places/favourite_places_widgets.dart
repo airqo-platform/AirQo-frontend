@@ -1,4 +1,11 @@
-part of 'favourite_places_page.dart';
+import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/widgets/widgets.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+
+import '../search/search_page.dart';
 
 class EmptyFavouritePlaces extends StatelessWidget {
   const EmptyFavouritePlaces({super.key});
@@ -81,7 +88,9 @@ class EmptyFavouritePlace extends StatelessWidget {
             borderRadius: const BorderRadius.all(
               Radius.circular(8.0),
             ),
-            border: Border.all(color: Colors.transparent),
+            border: Border.fromBorderSide(
+              BorderSide(color: Colors.transparent),
+            ),
           ),
           child: Column(
             children: [
@@ -152,8 +161,8 @@ class EmptyFavouritePlace extends StatelessWidget {
                         borderRadius: const BorderRadius.all(
                           Radius.circular(3.0),
                         ),
-                        border: Border.all(
-                          color: Colors.transparent,
+                        border: Border.fromBorderSide(
+                          BorderSide(color: Colors.transparent),
                         ),
                       ),
                       child: const Icon(
@@ -179,7 +188,9 @@ class EmptyFavouritePlace extends StatelessWidget {
                         borderRadius: const BorderRadius.all(
                           Radius.circular(3.0),
                         ),
-                        border: Border.all(color: Colors.transparent),
+                        border: Border.fromBorderSide(
+                          BorderSide(color: Colors.transparent),
+                        ),
                       ),
                       child: SvgPicture.asset(
                         'assets/icon/more_arrow.svg',
@@ -205,7 +216,7 @@ class EmptyFavouritePlace extends StatelessWidget {
     await HiveService.updateFavouritePlaces(airQualityReading);
   }
 
-  void _navigateToInsights(BuildContext context) async {
-    await showSnackBar(context, 'No air quality for this place');
+  void _navigateToInsights(BuildContext context) {
+    showSnackBar(context, 'No air quality for this place');
   }
 }

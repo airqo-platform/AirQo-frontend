@@ -4,7 +4,6 @@ import 'package:app/screens/web_view_page.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -15,9 +14,8 @@ import '../auth/email_reauthenticate_screen.dart';
 import '../auth/phone_auth_widget.dart';
 import '../auth/phone_reauthenticate_screen.dart';
 import '../feedback/feedback_page.dart';
-
-part 'about_page.dart';
-part 'settings_page_widgets.dart';
+import 'about_page.dart';
+import 'settings_page_widgets.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -215,7 +213,7 @@ class _SettingsPageState extends State<SettingsPage> {
     final dialogContext = context;
 
     if (user == null) {
-      await showSnackBar(
+      showSnackBar(
         context,
         Config.appErrorMessage,
       );
@@ -234,7 +232,7 @@ class _SettingsPageState extends State<SettingsPage> {
             return EmailReAuthenticateScreen(profile);
           },
         ),
-      );
+      ) as bool;
     } else if (user.phoneNumber != null) {
       profile.phoneNumber = user.phoneNumber!;
       authResponse = await Navigator.push(
@@ -244,7 +242,7 @@ class _SettingsPageState extends State<SettingsPage> {
             return PhoneReAuthenticateScreen(profile);
           },
         ),
-      );
+      ) as bool;
     } else {
       authResponse = false;
     }
@@ -267,13 +265,13 @@ class _SettingsPageState extends State<SettingsPage> {
           (r) => false,
         );
       } else {
-        await showSnackBar(
+        showSnackBar(
           context,
           'Error occurred. Try again later',
         );
       }
     } else {
-      await showSnackBar(
+      showSnackBar(
         context,
         'Authentication failed '
         'Try again later',

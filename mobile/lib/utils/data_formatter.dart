@@ -5,10 +5,7 @@ import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
-charts.Color insightsChartBarColor(
-  GraphInsightData series,
-  Pollutant pollutant,
-) {
+charts.Color insightsChartBarColor(Insights series, Pollutant pollutant) {
   if (series.empty) {
     return charts.ColorUtil.fromDartColor(
       CustomColors.greyColor,

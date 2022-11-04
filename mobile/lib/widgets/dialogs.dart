@@ -329,11 +329,11 @@ Future<void> showLocationErrorSnackBar(
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
 
-Future<void> showSnackBar(
-    BuildContext context,
+void showSnackBar(
+  BuildContext context,
   String message, {
   int durationInSeconds = 2,
-}) async {
+}) {
   final snackBar = SnackBar(
     duration: Duration(seconds: durationInSeconds),
     shape: RoundedRectangleBorder(

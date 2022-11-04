@@ -1,10 +1,10 @@
 import 'package:app/blocs/blocs.dart';
-import 'package:app/screens/search/search_widgets.dart';
+import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../themes/colors.dart';
+import 'search_widgets.dart';
 
 class SearchPage extends StatelessWidget {
   const SearchPage({super.key});
