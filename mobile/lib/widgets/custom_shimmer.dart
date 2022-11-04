@@ -14,13 +14,24 @@ class MiniLoadingIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!loading) {
+      return Container();
+    }
+
+    final loadingWidget = Platform.isAndroid
+        ? CircularProgressIndicator(
+            strokeWidth: 1,
+            color: CustomColors.appColorBlue,
+          )
+        : CupertinoActivityIndicator(
+            radius: 7,
+            color: CustomColors.appColorBlue,
+          );
+
     return SizedBox(
       height: 8,
       width: 8,
-      child: CircularProgressIndicator(
-        strokeWidth: 1,
-        color: loading ? CustomColors.appColorBlue : Colors.transparent,
-      ),
+      child: loadingWidget,
     );
   }
 }

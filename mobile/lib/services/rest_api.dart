@@ -159,7 +159,7 @@ class AirqoApiClient {
 
       final data = <GraphInsightData>[];
 
-      for (final e in body['data'] as List<Map<String, dynamic>>) {
+      for (final e in body['data']) {
         final json = e;
         json['frequency'] = fromString(e['frequency'] as String);
         data.add(GraphInsightData.fromJson(json));
