@@ -1,7 +1,10 @@
 import 'dart:io';
 
-import 'package:app/constants/config.dart';
-import 'package:app/utils/extensions.dart';
+import 'package:app/constants/constants.dart';
+import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -9,13 +12,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:lottie/lottie.dart';
 
-import '../models/air_quality_reading.dart';
-import '../models/enum_constants.dart';
-import '../models/favourite_place.dart';
-import '../services/hive_service.dart';
-import '../services/native_api.dart';
-import '../themes/app_theme.dart';
-import '../themes/colors.dart';
 import 'buttons.dart';
 import 'custom_shimmer.dart';
 
@@ -25,7 +21,7 @@ class AppRefreshIndicator extends StatelessWidget {
     this.onRefresh,
     required this.sliverChildDelegate,
   });
-  final Future Function()? onRefresh;
+  final Future<void> Function()? onRefresh;
   final SliverChildDelegate sliverChildDelegate;
 
   @override
@@ -142,7 +138,9 @@ class AqiStringContainer extends StatelessWidget {
               airQualityReading.pm2_5,
             )
             .withOpacity(0.4),
-        border: Border.all(color: Colors.transparent),
+        border: Border.fromBorderSide(
+          BorderSide(color: Colors.transparent),
+        ),
       ),
       child: AutoSizeText(
         Pollutant.pm2_5
@@ -211,8 +209,8 @@ class MiniAnalyticsAvatar extends StatelessWidget {
         color: Pollutant.pm2_5.color(
           airQualityReading.pm2_5,
         ),
-        border: Border.all(
-          color: Colors.transparent,
+        border: Border.fromBorderSide(
+          BorderSide(color: Colors.transparent),
         ),
       ),
       child: Column(
@@ -232,7 +230,6 @@ class MiniAnalyticsAvatar extends StatelessWidget {
             airQualityReading.pm2_5.toStringAsFixed(0),
             maxLines: 1,
             style: CustomTextStyle.insightsAvatar(
-              context: context,
               pollutant: Pollutant.pm2_5,
               value: airQualityReading.pm2_5,
             )?.copyWith(fontSize: 20),
@@ -279,7 +276,7 @@ class HeartIcon extends StatelessWidget {
       );
     }
 
-    return ValueListenableBuilder<Box>(
+    return ValueListenableBuilder<Box<FavouritePlace>>(
       valueListenable:
           Hive.box<FavouritePlace>(HiveBox.favouritePlaces).listenable(),
       builder: (context, box, widget) {

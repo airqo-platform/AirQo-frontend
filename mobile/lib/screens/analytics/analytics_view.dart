@@ -1,12 +1,13 @@
+import 'dart:async';
+
 import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../../services/app_service.dart';
-import '../../services/hive_service.dart';
-import '../../themes/colors.dart';
-import '../../widgets/custom_widgets.dart';
 import 'analytics_widgets.dart';
 
 class AnalyticsView extends StatefulWidget {
@@ -23,7 +24,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
 
     return Container(
       color: appColors.appBodyColor,
-      child: ValueListenableBuilder<Box>(
+      child: ValueListenableBuilder<Box<Analytics>>(
         valueListenable: Hive.box<Analytics>(HiveBox.analytics).listenable(),
         builder: (context, box, widget) {
           if (box.isNotEmpty) {
@@ -58,7 +59,7 @@ class _AnalyticsViewState extends State<AnalyticsView> {
             );
           }
 
-          return ValueListenableBuilder<Box>(
+          return ValueListenableBuilder<Box<AirQualityReading>>(
             valueListenable:
                 Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
                     .listenable(),

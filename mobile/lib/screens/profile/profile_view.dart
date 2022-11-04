@@ -1,20 +1,19 @@
+import 'dart:async';
+
 import 'package:app/models/models.dart';
-import 'package:app/screens/profile/profile_edit_page.dart';
-import 'package:app/screens/profile/profile_widgets.dart';
-import 'package:app/services/app_service.dart';
-import 'package:app/widgets/custom_shimmer.dart';
-import 'package:app/widgets/dialogs.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/adapters.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
-import '../../services/firebase_service.dart';
-import '../../services/hive_service.dart';
-import '../../themes/app_theme.dart';
-import '../../themes/colors.dart';
 import '../auth/phone_auth_widget.dart';
 import '../notification/notification_page.dart';
+import 'profile_edit_page.dart';
+import 'profile_widgets.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({
@@ -28,7 +27,7 @@ class ProfileView extends StatefulWidget {
 class _ProfileViewState extends State<ProfileView> {
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<Box>(
+    return ValueListenableBuilder<Box<Profile>>(
       valueListenable: Hive.box<Profile>(HiveBox.profile)
           .listenable(keys: [HiveBox.profile]),
       builder: (context, box, widget) {
@@ -127,7 +126,7 @@ class _ProfileViewState extends State<ProfileView> {
                             Radius.circular(8.0),
                           ),
                         ),
-                        child: ValueListenableBuilder<Box>(
+                        child: ValueListenableBuilder<Box<AppNotification>>(
                           valueListenable: Hive.box<AppNotification>(
                             HiveBox.appNotifications,
                           ).listenable(),

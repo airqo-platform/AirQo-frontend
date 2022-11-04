@@ -1,12 +1,11 @@
 import 'package:app/models/models.dart';
-import 'package:app/screens/notification/notification_widgets.dart';
-import 'package:app/services/app_service.dart';
-import 'package:app/widgets/custom_widgets.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../../services/hive_service.dart';
-import '../../themes/colors.dart';
+import 'notification_widgets.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
@@ -22,7 +21,7 @@ class _NotificationPageState extends State<NotificationPage> {
       appBar: const AppTopBar('Notifications'),
       body: Container(
         color: CustomColors.appBodyColor,
-        child: ValueListenableBuilder<Box>(
+        child: ValueListenableBuilder<Box<AppNotification>>(
           valueListenable:
               Hive.box<AppNotification>(HiveBox.appNotifications).listenable(),
           builder: (context, box, widget) {

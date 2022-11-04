@@ -1,26 +1,14 @@
 import 'dart:io';
 
+import 'package:app/models/models.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class Config {
   static String get airqoApiToken => dotenv.env['AIRQO_API_TOKEN'] ?? '';
 
   static String get airqoApiUrl => dotenv.env['AIRQO_API_URL'] ?? '';
-
-  static String get airqoSupportEmail => 'support@airqo.net';
-
-  static String get airqoSupportUsername => 'AirQo Support';
-
-  static String get airqoDataProductsEmail =>
-      dotenv.env['AIRQO_DATA_PRODUCTS_EMAIL'] ?? '';
-
-  static String get defaultFeedbackUserName => 'AirQo App User';
-
-  static String get emailFeedbackUrl => dotenv.env['EMAIL_FEEDBACK_URL'] ?? '';
-
-  static String get emailFeedbackAPIKey =>
-      dotenv.env['EMAIL_FEEDBACK_API_KEY'] ?? '';
 
   static String get airqoApiUserExistsUrl =>
       dotenv.env['AIRQO_API_USER_EXISTS_URL'] ?? '';
@@ -107,4 +95,25 @@ class Config {
   static double refreshIndicatorPadding(int index) {
     return index == 0 ? 16.0 : 0.0;
   }
+}
+
+class AppConfig extends InheritedWidget {
+  const AppConfig({
+    Key? key,
+    required Widget child,
+    required this.environment,
+    required this.appTitle,
+  }) : super(
+          key: key,
+          child: child,
+        );
+  final Environment environment;
+  final String appTitle;
+
+  static AppConfig of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<AppConfig>()!;
+  }
+
+  @override
+  bool updateShouldNotify(covariant InheritedWidget oldWidget) => false;
 }

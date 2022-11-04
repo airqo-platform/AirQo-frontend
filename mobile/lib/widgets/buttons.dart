@@ -1,8 +1,6 @@
-import 'package:app/themes/colors.dart';
+import 'package:app/themes/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-
-import '../themes/app_theme.dart';
 
 class NextButton extends StatelessWidget {
   const NextButton({

@@ -1,13 +1,8 @@
-import 'package:app/models/profile.dart';
-import 'package:app/widgets/buttons.dart';
-import 'package:app/widgets/dialogs.dart';
-import 'package:app/widgets/text_fields.dart';
+import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
-
-import '../../services/firebase_service.dart';
-import '../../services/rest_api.dart';
-import '../../themes/colors.dart';
-import '../../widgets/custom_widgets.dart';
 
 class EmailReAuthenticateScreen extends StatefulWidget {
   const EmailReAuthenticateScreen(
@@ -172,7 +167,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
     );
 
     if (emailVerificationResponse == null) {
-      await showSnackBar(
+      showSnackBar(
         context,
         'Email verification failed',
       );
@@ -202,7 +197,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
     final code = _emailVerificationCode.join('');
 
     if (code.length != 6) {
-      await showSnackBar(context, 'Enter all the 6 digits');
+      showSnackBar(context, 'Enter all the 6 digits');
 
       return;
     }
@@ -219,7 +214,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
     );
 
     if (code != _emailToken.toString()) {
-      await showSnackBar(
+      showSnackBar(
         context,
         'Invalid Code',
       );
@@ -235,7 +230,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
     final user = CustomAuth.getUser();
 
     if (user == null) {
-      await showSnackBar(
+      showSnackBar(
         context,
         'Failed to update email address',
       );
@@ -246,7 +241,6 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
     final success = await CustomAuth.reAuthenticateWithEmailAddress(
       widget.userDetails.emailAddress,
       _emailVerificationLink,
-      context,
     );
     if (success) {
       Navigator.pop(context, true);
@@ -257,7 +251,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
           _isVerifying = false;
         },
       );
-      await showSnackBar(
+      showSnackBar(
         context,
         'Failed to verify email address.'
         ' Try again later',
@@ -288,7 +282,7 @@ class EmailReAuthenticateScreenState extends State<EmailReAuthenticateScreen> {
     }
 
     if (emailVerificationResponse == null) {
-      await showSnackBar(
+      showSnackBar(
         context,
         'email verification failed',
       );

@@ -1,5 +1,5 @@
 import 'package:app/constants/config.dart';
-import 'package:app/models/enum_constants.dart';
+import 'package:app/models/models.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Region getRegionConstant(String value) {

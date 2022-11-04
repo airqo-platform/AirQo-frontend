@@ -4,19 +4,15 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/auth/phone_auth_widget.dart';
 import 'package:app/screens/home_page.dart';
-import 'package:app/utils/extensions.dart';
-import 'package:app/widgets/buttons.dart';
-import 'package:app/widgets/dialogs.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../themes/app_theme.dart';
-import '../../themes/colors.dart';
-import '../../widgets/custom_shimmer.dart';
-import '../../widgets/custom_widgets.dart';
-import '../on_boarding/on_boarding_widgets.dart';
-import 'auth_verification.dart';
+import '../on_boarding/profile_setup_screen.dart';
 import 'auth_widgets.dart';
 
 class EmailAuthWidget extends StatefulWidget {

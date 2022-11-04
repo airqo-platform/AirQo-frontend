@@ -3,12 +3,10 @@ import 'dart:isolate';
 import 'dart:ui' as ui;
 import 'dart:ui';
 
-import 'package:app/constants/config.dart';
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
-import 'package:app/services/firebase_service.dart';
-import 'package:app/services/local_storage.dart';
-import 'package:app/utils/pm.dart';
-import 'package:app/widgets/dialogs.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:app_repository/app_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -24,8 +22,9 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:workmanager/workmanager.dart' as workmanager;
 
-import '../utils/exception.dart';
+import 'firebase_service.dart';
 import 'hive_service.dart';
+import 'local_storage.dart';
 
 class SystemProperties {
   static Future<void> setDefault() async {
@@ -112,7 +111,7 @@ class ShareService {
       final imgFile = File("$directory/${imageName ?? 'airqo_analytics'}.png");
       await imgFile.writeAsBytes(pngBytes);
 
-      final result = await Share.shareFilesWithResult([imgFile.path]);
+      final result = await Share.shareXFiles([XFile(imgFile.path)]);
 
       if (result.status == ShareResultStatus.success) {
         await updateUserShares();
@@ -128,17 +127,19 @@ class ShareService {
     return true;
   }
 
-  static Future<void> shareFailed(exception, stackTrace, context) async {
-    await Future.wait([
-      logException(
-        exception,
-        stackTrace,
-      ),
-      showSnackBar(
-        context,
-        Config.shareFailedMessage,
-      ),
-    ]);
+  static Future<void> shareFailed(
+    exception,
+    StackTrace stackTrace,
+    BuildContext context,
+  ) async {
+    await logException(
+      exception,
+      stackTrace,
+    );
+    showSnackBar(
+      context,
+      Config.shareFailedMessage,
+    );
   }
 
   static void shareMeasurementText(AirQualityReading airQualityReading) {
@@ -307,7 +308,7 @@ class BackgroundService {
     );
     port.listen(
       (dynamic data) async {
-        await HiveService.updateAirQualityReadings(data);
+        await HiveService.updateAirQualityReadings(data as List<SiteReading>);
       },
     );
   }
@@ -321,7 +322,7 @@ class CacheService {
     );
   }
 
-  static Future<void> cacheKyaImages(Kya kya) async {
+  static void cacheKyaImages(Kya _) {
     // TODO : implement caching
     // await Future.wait([
     //   cache_manager.DefaultCacheManager()

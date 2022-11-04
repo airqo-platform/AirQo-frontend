@@ -1,9 +1,8 @@
 import 'dart:io';
 
+import 'package:app/models/models.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
-
-import '../models/profile.dart';
 
 extension DoubleExtension on double {
   bool isWithin(double start, double end) {

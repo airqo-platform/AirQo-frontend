@@ -1,17 +1,13 @@
 import 'dart:io';
 
 import 'package:app/models/models.dart';
-import 'package:app/screens/profile/profile_edit_page.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../themes/app_theme.dart';
-import '../../themes/colors.dart';
-import '../../widgets/buttons.dart';
-import '../../widgets/custom_shimmer.dart';
-import '../../widgets/dialogs.dart';
 import '../auth/change_email_screen.dart';
 import '../auth/change_phone_screen.dart';
 import '../auth/email_reauthenticate_screen.dart';
@@ -20,6 +16,7 @@ import '../auth/phone_reauthenticate_screen.dart';
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
 import '../settings/settings_page.dart';
+import 'profile_edit_page.dart';
 
 class LogoutButton extends StatelessWidget {
   const LogoutButton({
@@ -679,7 +676,7 @@ class EditCredentialsField extends StatelessWidget {
               : PhoneReAuthenticateScreen(profile);
         },
       ),
-    );
+    ) as bool;
     if (!authResponse) {
       return;
     }

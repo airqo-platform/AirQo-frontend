@@ -9,6 +9,8 @@ import '../themes/colors.dart';
 
 part 'enum_constants.g.dart';
 
+enum Environment { dev, prod }
+
 enum AnalyticsEvent {
   browserAsAppGuest('browser_as_guest'),
   createUserProfile('created_profile'),
@@ -423,56 +425,46 @@ enum Frequency {
   List<charts.TickSpec<String>> staticTicks() {
     switch (this) {
       case Frequency.daily:
-        final dailyTicks = <charts.TickSpec<String>>[];
-        for (final day in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']) {
-          dailyTicks.add(
-            charts.TickSpec(
-              day,
-              label: day,
-              style: charts.TextStyleSpec(
-                color: charts.ColorUtil.fromDartColor(
-                  CustomColors.greyColor,
+        return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+            .map(
+              (day) => charts.TickSpec(
+                day,
+                label: day,
+                style: charts.TextStyleSpec(
+                  color: charts.ColorUtil.fromDartColor(CustomColors.greyColor),
                 ),
               ),
-            ),
-          );
-        }
-
-        return dailyTicks;
+            )
+            .toList();
 
       case Frequency.hourly:
-        final hourlyTicks = <charts.TickSpec<String>>[];
         final labels = <int>[0, 6, 12, 18];
         final hours = List<int>.generate(24, (index) => index + 1)
           ..removeWhere(labels.contains);
 
-        for (final hour in labels) {
-          hourlyTicks.add(
-            charts.TickSpec(
-              hour.toStringLength(),
-              label: hour.toStringLength(),
-              style: charts.TextStyleSpec(
-                color: charts.ColorUtil.fromDartColor(
-                  CustomColors.greyColor,
+        final List<charts.TickSpec<String>> hourlyTicks = labels
+            .map(
+              (hour) => charts.TickSpec(
+                hour.toStringLength(),
+                label: hour.toStringLength(),
+                style: charts.TextStyleSpec(
+                  color: charts.ColorUtil.fromDartColor(CustomColors.greyColor),
                 ),
               ),
-            ),
-          );
-        }
+            )
+            .toList();
 
-        for (final hour in hours) {
-          hourlyTicks.add(
-            charts.TickSpec(
-              hour.toStringLength(),
-              label: hour.toStringLength(),
-              style: charts.TextStyleSpec(
-                color: charts.ColorUtil.fromDartColor(
-                  Colors.transparent,
+        hourlyTicks.addAll(hours
+            .map(
+              (hour) => charts.TickSpec(
+                hour.toStringLength(),
+                label: hour.toStringLength(),
+                style: charts.TextStyleSpec(
+                  color: charts.ColorUtil.fromDartColor(Colors.transparent),
                 ),
               ),
-            ),
-          );
-        }
+            )
+            .toList());
 
         return hourlyTicks;
     }
@@ -548,15 +540,15 @@ enum Pollutant {
       case Pollutant.pm10:
         if (value <= 50.99) {
           return AirQuality.good;
-        } else if (value.isWithin(51.00, 100.99)) {
+        } else if (value.isWithin(51, 100.99)) {
           return AirQuality.moderate;
-        } else if (value.isWithin(101.00, 250.99)) {
+        } else if (value.isWithin(101, 250.99)) {
           return AirQuality.ufsgs;
-        } else if (value.isWithin(251.00, 350.99)) {
+        } else if (value.isWithin(251, 350.99)) {
           return AirQuality.unhealthy;
-        } else if (value.isWithin(351.00, 430.99)) {
+        } else if (value.isWithin(351, 430.99)) {
           return AirQuality.veryUnhealthy;
-        } else if (value >= 431.00) {
+        } else if (value >= 431) {
           return AirQuality.hazardous;
         } else {
           return AirQuality.good;

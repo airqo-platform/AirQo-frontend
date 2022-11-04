@@ -1,11 +1,9 @@
 import 'dart:io';
 
-import 'package:app/blocs/blocs.dart';
-import 'package:app/constants/config.dart';
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
-import 'package:app/services/rest_api.dart';
-import 'package:app/utils/extensions.dart';
-import 'package:app/widgets/dialogs.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -15,8 +13,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../utils/exception.dart';
-import '../utils/network.dart';
 import 'hive_service.dart';
 
 class CloudAnalytics {
@@ -576,7 +572,6 @@ class CustomAuth {
   static Future<bool> reAuthenticateWithEmailAddress(
     String emailAddress,
     String link,
-    BuildContext context,
   ) async {
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
@@ -618,13 +613,13 @@ class CustomAuth {
       return userCredentials.user != null;
     } on FirebaseAuthException catch (exception) {
       if (exception.code == 'invalid-verification-code') {
-        await showSnackBar(
+        showSnackBar(
           context,
           'Invalid Code',
         );
       }
       if (exception.code == 'session-expired') {
-        await showSnackBar(
+        showSnackBar(
           context,
           'Your verification '
           'has timed out. we have sent your'
@@ -782,7 +777,7 @@ class CustomAuth {
           break;
       }
 
-      await showSnackBar(
+      showSnackBar(
         context,
         error,
       );

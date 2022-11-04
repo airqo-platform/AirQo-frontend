@@ -28,11 +28,31 @@
         loadSidebar: true,
         subMaxLevel: 2,
         search: ["/", "api/*", "mobile_app/*", "platform/*"],
+        plugins: [
+          function (hook, vm) {
+            hook.beforeEach(function (html) {
+              let url =
+                "https://github.com/airqo-platform/AirQo-frontend/tree/staging/docs/" +
+                vm.route.file;
+              let editHtml = "[📝 Edit On GitHub](" + url + ")\n";
+
+              return editHtml + html;
+            });
+          },
+        ],
+        scrollToTop: {
+          auto: true,
+          text: "Top",
+          right: 15,
+          bottom: 15,
+          offset: 500,
+        },
       };
     </script>
     <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
     <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
     <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
     <script src="//cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
+    <script src="//unpkg.com/docsify-scroll-to-top/dist/docsify-scroll-to-top.min.js"></script>
   </body>
 </html>

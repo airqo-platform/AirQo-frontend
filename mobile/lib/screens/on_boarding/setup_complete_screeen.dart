@@ -1,11 +1,8 @@
 import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
-import 'package:app/widgets/custom_widgets.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
 import 'package:flutter/material.dart';
-
-import '../../services/local_storage.dart';
-import '../../themes/colors.dart';
-import 'on_boarding_widgets.dart';
 
 class SetUpCompleteScreen extends StatefulWidget {
   const SetUpCompleteScreen({super.key});

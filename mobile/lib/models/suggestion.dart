@@ -33,10 +33,10 @@ class Suggestion {
 
   static String dropTableStmt() => 'DROP TABLE IF EXISTS ${dbName()}';
 
-  static List<Suggestion> parseSuggestions(dynamic jsonBody) {
+  static List<Suggestion> parseSuggestions(Map<String, dynamic> jsonBody) {
     final suggestions = <Suggestion>[];
 
-    final jsonArray = jsonBody['predictions'];
+    final jsonArray = jsonBody['predictions'] as List<Map<String, dynamic>>;
     for (final jsonElement in jsonArray) {
       try {
         final measurement = Suggestion.fromJson(jsonElement);
