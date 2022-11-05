@@ -45,18 +45,24 @@ class HiveService {
   }
 
   static Future<Uint8List> getEncryptionKey() async {
-    final secureStorage = SecureStorage();
-    var encodedKey = await secureStorage.getValue(HiveBox.encryptionKey);
-    if (encodedKey == null) {
-      final secureKey = Hive.generateSecureKey();
-      await secureStorage.setValue(
-        key: HiveBox.encryptionKey,
-        value: base64UrlEncode(secureKey),
-      );
-    }
-    encodedKey = await secureStorage.getValue(HiveBox.encryptionKey);
+    try {
+      final secureStorage = SecureStorage();
+      var encodedKey = await secureStorage.getValue(HiveBox.encryptionKey);
+      if (encodedKey == null) {
+        final secureKey = Hive.generateSecureKey();
+        await secureStorage.setValue(
+          key: HiveBox.encryptionKey,
+          value: base64UrlEncode(secureKey),
+        );
+      }
+      encodedKey = await secureStorage.getValue(HiveBox.encryptionKey);
 
-    return base64Url.decode(encodedKey!);
+      return base64Url.decode(encodedKey!);
+    } catch (e) {
+      final secureKey = base64UrlEncode(Hive.generateSecureKey());
+
+      return base64Url.decode(secureKey);
+    }
   }
 
   static Future<void> clearUserData() async {
