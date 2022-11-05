@@ -106,6 +106,7 @@ flutter build appbundle --obfuscate --split-debug-info=${PWD}/obfuscate
 flutter build ipa --obfuscate --split-debug-info=${PWD}/obfuscate
 flutter build appbundle [--analyze-size]
 flutter build ipa [--analyze-size]
+sudo gem install ffi
 ```
 
 ## **Security Guidelines**

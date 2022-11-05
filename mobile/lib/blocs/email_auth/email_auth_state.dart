@@ -5,59 +5,59 @@ class EmailAuthState extends Equatable {
     this.emailAddress = '',
     this.authProcedure = AuthProcedure.login,
     this.error = AuthenticationError.none,
-    this.authStatus = AuthStatus.initial,
+    this.blocStatus = BlocStatus.initial,
   });
 
   const EmailAuthState({
     this.emailAddress = '',
     this.authProcedure = AuthProcedure.login,
     this.error = AuthenticationError.none,
-    this.authStatus = AuthStatus.initial,
+    this.blocStatus = BlocStatus.initial,
   });
 
   const EmailAuthState.initial(
       {String? emailAddress, required AuthProcedure authProcedure})
       : this._(
-          authStatus: AuthStatus.initial,
+          blocStatus: BlocStatus.initial,
           emailAddress: emailAddress ?? '',
           authProcedure: authProcedure,
         );
 
   const EmailAuthState.verificationRequest()
-      : this._(authStatus: AuthStatus.processing);
+      : this._(blocStatus: BlocStatus.processing);
 
-  const EmailAuthState.verifying() : this._(authStatus: AuthStatus.processing);
+  const EmailAuthState.verifying() : this._(blocStatus: BlocStatus.processing);
 
   const EmailAuthState.error(AuthenticationError error)
-      : this._(error: error, authStatus: AuthStatus.error);
+      : this._(error: error, blocStatus: BlocStatus.error);
 
   const EmailAuthState.verificationSuccessful()
-      : this._(authStatus: AuthStatus.success);
+      : this._(blocStatus: BlocStatus.success);
 
   EmailAuthState copyWith({
     String? emailAddress,
     AuthProcedure? authProcedure,
     AuthenticationError? error,
-    AuthStatus? authStatus,
+    BlocStatus? blocStatus,
   }) {
     return EmailAuthState(
       emailAddress: emailAddress ?? this.emailAddress,
       authProcedure: authProcedure ?? this.authProcedure,
       error: error ?? this.error,
-      authStatus: authStatus ?? this.authStatus,
+      blocStatus: blocStatus ?? this.blocStatus,
     );
   }
 
   final String emailAddress;
   final AuthProcedure authProcedure;
   final AuthenticationError error;
-  final AuthStatus authStatus;
+  final BlocStatus blocStatus;
 
   @override
   List<Object?> get props => [
         emailAddress,
         error,
         authProcedure,
-        authStatus,
+        blocStatus,
       ];
 }

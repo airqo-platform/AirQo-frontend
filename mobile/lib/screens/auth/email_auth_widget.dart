@@ -4,7 +4,6 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/auth/phone_auth_widget.dart';
 import 'package:app/screens/home_page.dart';
-import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
@@ -13,7 +12,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../on_boarding/on_boarding_widgets.dart';
-import '../on_boarding/profile_setup_screen.dart';
 import 'auth_verification.dart';
 import 'auth_widgets.dart';
 
@@ -55,9 +53,9 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
           widget: BlocConsumer<EmailAuthBloc, EmailAuthState>(
             listener: (context, state) {},
             buildWhen: (previous, current) {
-              return current.authStatus != AuthStatus.error &&
-                  current.authStatus != AuthStatus.success &&
-                  current.authStatus != AuthStatus.processing;
+              return current.blocStatus != BlocStatus.error &&
+                  current.blocStatus != BlocStatus.success &&
+                  current.blocStatus != BlocStatus.processing;
             },
             builder: (context, state) {
               return Center(
@@ -74,8 +72,8 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                               loadingScreen(_loadingContext);
                             },
                             listenWhen: (previous, current) {
-                              return current.authStatus ==
-                                  AuthStatus.processing;
+                              return current.blocStatus ==
+                                  BlocStatus.processing;
                             },
                           ),
                           BlocListener<EmailAuthBloc, EmailAuthState>(
@@ -83,8 +81,8 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                               Navigator.pop(_loadingContext);
                             },
                             listenWhen: (previous, current) {
-                              return previous.authStatus ==
-                                  AuthStatus.processing;
+                              return previous.blocStatus ==
+                                  BlocStatus.processing;
                             },
                           ),
                           BlocListener<EmailAuthBloc, EmailAuthState>(
@@ -92,7 +90,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                               showSnackBar(context, state.error.message);
                             },
                             listenWhen: (previous, current) {
-                              return current.authStatus == AuthStatus.error &&
+                              return current.blocStatus == BlocStatus.error &&
                                   current.error != AuthenticationError.none;
                             },
                           ),
@@ -114,7 +112,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                               );
                             },
                             listenWhen: (previous, current) {
-                              return current.authStatus == AuthStatus.success;
+                              return current.blocStatus == BlocStatus.success;
                             },
                           ),
                         ],
@@ -214,13 +212,13 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                         ),
                       ),
                       Visibility(
-                        visible: state.authStatus != AuthStatus.editing,
+                        visible: state.blocStatus != BlocStatus.editing,
                         child: const SizedBox(
                           height: 16,
                         ),
                       ),
                       Visibility(
-                        visible: state.authStatus != AuthStatus.editing,
+                        visible: state.blocStatus != BlocStatus.editing,
                         child: state.authProcedure == AuthProcedure.login
                             ? const LoginOptions(authMethod: AuthMethod.email)
                             : const SignUpOptions(authMethod: AuthMethod.email),

@@ -30,7 +30,7 @@ class InitiatePhoneNumberVerification extends PhoneAuthEvent {
 
 class UpdateStatus extends PhoneAuthEvent {
   const UpdateStatus(this.authStatus);
-  final AuthStatus authStatus;
+  final BlocStatus authStatus;
   @override
   List<Object?> get props => [authStatus];
 }

@@ -47,14 +47,25 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
           widget: BlocConsumer<AuthCodeBloc, AuthCodeState>(
             listener: (context, state) {},
             buildWhen: (previous, current) {
-              return current.authStatus != AuthStatus.error ||
-                  current.authStatus != AuthStatus.success ||
-                  current.authStatus != AuthStatus.processing;
+              return current.authStatus != BlocStatus.error ||
+                  current.authStatus != BlocStatus.success ||
+                  current.authStatus != BlocStatus.processing;
             },
             builder: (context, state) {
               final authOption = state.authMethod == AuthMethod.email
                   ? state.emailAddress
                   : state.phoneNumber;
+              String cancelText = 'Cancel';
+              switch (state.authProcedure) {
+                case AuthProcedure.login:
+                case AuthProcedure.signup:
+                  cancelText = state.authMethod.editEntryText;
+                  break;
+                case AuthProcedure.anonymousLogin:
+                case AuthProcedure.deleteAccount:
+                case AuthProcedure.logout:
+                  break;
+              }
               return Center(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -70,7 +81,7 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                             },
                             listenWhen: (previous, current) {
                               return current.authStatus ==
-                                  AuthStatus.processing;
+                                  BlocStatus.processing;
                             },
                           ),
                           BlocListener<AuthCodeBloc, AuthCodeState>(
@@ -79,7 +90,7 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                             },
                             listenWhen: (previous, current) {
                               return previous.authStatus ==
-                                  AuthStatus.processing;
+                                  BlocStatus.processing;
                             },
                           ),
                           BlocListener<AuthCodeBloc, AuthCodeState>(
@@ -87,7 +98,7 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                               showSnackBar(context, state.error.message);
                             },
                             listenWhen: (previous, current) {
-                              return current.authStatus == AuthStatus.error &&
+                              return current.authStatus == BlocStatus.error &&
                                   current.error != AuthenticationError.none;
                             },
                           ),
@@ -118,7 +129,7 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                               ), (r) => false);
                             },
                             listenWhen: (previous, current) {
-                              return current.authStatus == AuthStatus.success;
+                              return current.authStatus == BlocStatus.success;
                             },
                           ),
                         ],
@@ -237,10 +248,11 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                           context
                               .read<AuthCodeBloc>()
                               .add(const ClearAuthCodeState());
+                          FocusManager.instance.primaryFocus?.unfocus();
                           Navigator.pop(context);
                         },
                         child: Text(
-                          state.authMethod.editEntryText,
+                          cancelText,
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.caption?.copyWith(
                                 color: CustomColors.appColorBlue,

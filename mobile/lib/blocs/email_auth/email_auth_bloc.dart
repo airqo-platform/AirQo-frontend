@@ -39,7 +39,7 @@ class EmailAuthBloc extends Bloc<EmailAuthEvent, EmailAuthState> {
   ) async {
     return emit(state.copyWith(
       emailAddress: event.emailAddress,
-      authStatus: AuthStatus.editing,
+      blocStatus: BlocStatus.editing,
     ));
   }
 
@@ -49,7 +49,7 @@ class EmailAuthBloc extends Bloc<EmailAuthEvent, EmailAuthState> {
   ) async {
     return emit(state.copyWith(
       emailAddress: '',
-      authStatus: AuthStatus.initial,
+      blocStatus: BlocStatus.initial,
     ));
   }
 
@@ -58,7 +58,7 @@ class EmailAuthBloc extends Bloc<EmailAuthEvent, EmailAuthState> {
     Emitter<EmailAuthState> emit,
   ) async {
     return emit(state.copyWith(
-      authStatus: AuthStatus.error,
+      blocStatus: BlocStatus.error,
       error: event.authenticationError,
     ));
   }
@@ -68,7 +68,7 @@ class EmailAuthBloc extends Bloc<EmailAuthEvent, EmailAuthState> {
     Emitter<EmailAuthState> emit,
   ) async {
     return emit(state.copyWith(
-      authStatus: AuthStatus.success,
+      blocStatus: BlocStatus.success,
       error: AuthenticationError.none,
     ));
   }
@@ -79,7 +79,7 @@ class EmailAuthBloc extends Bloc<EmailAuthEvent, EmailAuthState> {
   ) async {
     if (!state.emailAddress.isValidEmail()) {
       return emit(state.copyWith(
-        authStatus: AuthStatus.error,
+        blocStatus: BlocStatus.error,
         error: AuthenticationError.invalidEmailAddress,
       ));
     }
@@ -97,28 +97,37 @@ class EmailAuthBloc extends Bloc<EmailAuthEvent, EmailAuthState> {
 
     if (confirmation == null || confirmation == ConfirmationAction.cancel) {
       return emit(state.copyWith(
-        authStatus: AuthStatus.initial,
+        blocStatus: BlocStatus.initial,
         error: AuthenticationError.none,
       ));
     }
 
-    emit(state.copyWith(authStatus: AuthStatus.processing));
+    emit(state.copyWith(blocStatus: BlocStatus.processing));
 
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return emit(state.copyWith(
-        authStatus: AuthStatus.error,
+        blocStatus: BlocStatus.error,
         error: AuthenticationError.noInternetConnection,
       ));
     }
 
     final appService = AppService();
 
+    /*
+          TODO: update status in case error occurs
+    *       buildContext
+          .read<EmailAuthBloc>()
+          .add(const EmailValidationFailed(AuthenticationError.authFailure));
+    *
+    * */
+
     switch (state.authProcedure) {
       case AuthProcedure.login:
         await CustomAuth.sendEmailAuthCode(
-          state.emailAddress,
-          event.context,
+          emailAddress: state.emailAddress,
+          buildContext: event.context,
+          authProcedure: state.authProcedure,
         );
         break;
       case AuthProcedure.signup:
@@ -130,15 +139,16 @@ class EmailAuthBloc extends Bloc<EmailAuthEvent, EmailAuthState> {
                   if (exists)
                     {
                       emit(state.copyWith(
-                        authStatus: AuthStatus.error,
+                        blocStatus: BlocStatus.error,
                         error: AuthenticationError.emailTaken,
                       ))
                     }
                   else
                     {
                       CustomAuth.sendEmailAuthCode(
-                        state.emailAddress,
-                        event.context,
+                        emailAddress: state.emailAddress,
+                        buildContext: event.context,
+                        authProcedure: state.authProcedure,
                       ),
                     }
                 });

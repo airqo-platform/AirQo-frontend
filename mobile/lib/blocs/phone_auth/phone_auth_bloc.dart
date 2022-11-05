@@ -37,7 +37,7 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
     Emitter<PhoneAuthState> emit,
   ) async {
     return emit(state.copyWith(
-        authStatus: AuthStatus.error,
+        authStatus: BlocStatus.error,
         error: AuthenticationError.invalidPhoneNumber));
   }
 
@@ -46,7 +46,7 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
     Emitter<PhoneAuthState> emit,
   ) async {
     return emit(
-        state.copyWith(phoneNumber: '', authStatus: AuthStatus.initial));
+        state.copyWith(phoneNumber: '', authStatus: BlocStatus.initial));
   }
 
   Future<void> _onUpdateCountryCode(
@@ -74,24 +74,24 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
       return emit(state.copyWith(
           phoneNumber: event.phoneNumber,
           isValidPhoneNumber: true,
-          authStatus: AuthStatus.editing));
+          authStatus: BlocStatus.editing));
     }
     return emit(state.copyWith(
         phoneNumber: event.phoneNumber,
         isValidPhoneNumber: false,
-        authStatus: AuthStatus.editing));
+        authStatus: BlocStatus.editing));
   }
 
   Future<void> _onInitiatePhoneNumberVerification(
     InitiatePhoneNumberVerification event,
     Emitter<PhoneAuthState> emit,
   ) async {
-    emit(state.copyWith(authStatus: AuthStatus.processing));
+    emit(state.copyWith(authStatus: BlocStatus.processing));
 
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return emit(state.copyWith(
-        authStatus: AuthStatus.error,
+        authStatus: BlocStatus.error,
         error: AuthenticationError.noInternetConnection,
       ));
     }
@@ -102,7 +102,11 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
 
     switch (state.authProcedure) {
       case AuthProcedure.login:
-        await CustomAuth.sendPhoneAuthCode(phoneNumber, event.context);
+        await CustomAuth.sendPhoneAuthCode(
+          phoneNumber: phoneNumber,
+          buildContext: event.context,
+          authProcedure: state.authProcedure,
+        );
         break;
       case AuthProcedure.signup:
         await appService
@@ -113,13 +117,17 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
                   if (exists)
                     {
                       emit(state.copyWith(
-                        authStatus: AuthStatus.error,
+                        authStatus: BlocStatus.error,
                         error: AuthenticationError.phoneNumberTaken,
                       ))
                     }
                   else
                     {
-                      CustomAuth.sendPhoneAuthCode(phoneNumber, event.context),
+                      CustomAuth.sendPhoneAuthCode(
+                        phoneNumber: phoneNumber,
+                        buildContext: event.context,
+                        authProcedure: state.authProcedure,
+                      ),
                     }
                 });
         break;

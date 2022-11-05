@@ -3,16 +3,13 @@ import 'dart:async';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
-import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
-import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../on_boarding/on_boarding_widgets.dart';
-import '../on_boarding/profile_setup_screen.dart';
 import 'auth_verification.dart';
 import 'auth_widgets.dart';
 import 'email_auth_widget.dart';
@@ -55,9 +52,9 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
           widget: BlocConsumer<PhoneAuthBloc, PhoneAuthState>(
             listener: (context, state) {},
             buildWhen: (previous, current) {
-              return current.authStatus != AuthStatus.error &&
-                  current.authStatus != AuthStatus.success &&
-                  current.authStatus != AuthStatus.processing;
+              return current.authStatus != BlocStatus.error &&
+                  current.authStatus != BlocStatus.success &&
+                  current.authStatus != BlocStatus.processing;
             },
             builder: (context, state) {
               return Center(
@@ -75,7 +72,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                             },
                             listenWhen: (previous, current) {
                               return current.authStatus ==
-                                  AuthStatus.processing;
+                                  BlocStatus.processing;
                             },
                           ),
                           BlocListener<PhoneAuthBloc, PhoneAuthState>(
@@ -84,7 +81,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                             },
                             listenWhen: (previous, current) {
                               return previous.authStatus ==
-                                  AuthStatus.processing;
+                                  BlocStatus.processing;
                             },
                           ),
                           BlocListener<PhoneAuthBloc, PhoneAuthState>(
@@ -92,7 +89,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                               showSnackBar(context, state.error.message);
                             },
                             listenWhen: (previous, current) {
-                              return current.authStatus == AuthStatus.error &&
+                              return current.authStatus == BlocStatus.error &&
                                   current.error != AuthenticationError.none;
                             },
                           ),
@@ -115,7 +112,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                               );
                             },
                             listenWhen: (previous, current) {
-                              return current.authStatus == AuthStatus.success;
+                              return current.authStatus == BlocStatus.success;
                             },
                           ),
                         ],
@@ -251,13 +248,13 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                         ),
                       ),
                       Visibility(
-                        visible: state.authStatus != AuthStatus.editing,
+                        visible: state.authStatus != BlocStatus.editing,
                         child: const SizedBox(
                           height: 16,
                         ),
                       ),
                       Visibility(
-                        visible: state.authStatus != AuthStatus.editing,
+                        visible: state.authStatus != BlocStatus.editing,
                         child: state.authProcedure == AuthProcedure.login
                             ? const LoginOptions(authMethod: AuthMethod.phone)
                             : const SignUpOptions(authMethod: AuthMethod.phone),

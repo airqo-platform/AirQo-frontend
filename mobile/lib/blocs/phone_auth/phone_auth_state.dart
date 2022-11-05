@@ -6,7 +6,7 @@ class PhoneAuthState extends Equatable {
     this.countryCode = '',
     this.authProcedure = AuthProcedure.login,
     this.error = AuthenticationError.none,
-    this.authStatus = AuthStatus.initial,
+    this.authStatus = BlocStatus.initial,
     this.isValidPhoneNumber = false,
   });
 
@@ -15,7 +15,7 @@ class PhoneAuthState extends Equatable {
     this.countryCode = '',
     this.authProcedure = AuthProcedure.login,
     this.error = AuthenticationError.none,
-    this.authStatus = AuthStatus.initial,
+    this.authStatus = BlocStatus.initial,
     this.isValidPhoneNumber = false,
   });
 
@@ -24,29 +24,29 @@ class PhoneAuthState extends Equatable {
       String? countryCode,
       required AuthProcedure authProcedure})
       : this._(
-          authStatus: AuthStatus.initial,
+          authStatus: BlocStatus.initial,
           countryCode: countryCode ?? '+256',
           phoneNumber: phoneNumber ?? '',
           authProcedure: authProcedure,
         );
 
   const PhoneAuthState.verificationRequest()
-      : this._(authStatus: AuthStatus.processing);
+      : this._(authStatus: BlocStatus.processing);
 
-  const PhoneAuthState.verifying() : this._(authStatus: AuthStatus.processing);
+  const PhoneAuthState.verifying() : this._(authStatus: BlocStatus.processing);
 
   const PhoneAuthState.error(AuthenticationError error)
-      : this._(error: error, authStatus: AuthStatus.error);
+      : this._(error: error, authStatus: BlocStatus.error);
 
   const PhoneAuthState.verificationSuccessful()
-      : this._(authStatus: AuthStatus.success);
+      : this._(authStatus: BlocStatus.success);
 
   PhoneAuthState copyWith({
     String? phoneNumber,
     String? countryCode,
     AuthProcedure? authProcedure,
     AuthenticationError? error,
-    AuthStatus? authStatus,
+    BlocStatus? authStatus,
     bool? isValidPhoneNumber,
   }) {
     return PhoneAuthState(
@@ -63,7 +63,7 @@ class PhoneAuthState extends Equatable {
   final String countryCode;
   final AuthProcedure authProcedure;
   final AuthenticationError error;
-  final AuthStatus authStatus;
+  final BlocStatus authStatus;
   final bool isValidPhoneNumber;
 
   @override

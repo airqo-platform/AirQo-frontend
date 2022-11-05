@@ -4,7 +4,6 @@ import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class WelcomeScreen extends StatelessWidget {

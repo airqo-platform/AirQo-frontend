@@ -15,18 +15,17 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import 'hive_service.dart';
-
 class CloudAnalytics {
-  static Future<void> logEvent(AnalyticsEvent analyticsEvent) async {
+  static Future<bool> logEvent(AnalyticsEvent analyticsEvent) async {
     await FirebaseAnalytics.instance.logEvent(
       name: analyticsEvent.snakeCase(),
     );
+    return true;
   }
 }
 
 class CloudStore {
-  static Future<void> deleteAccount() async {
+  static Future<bool> deleteAccount() async {
     try {
       final id = CustomAuth.getUser()?.uid;
       await Future.wait([
@@ -57,6 +56,8 @@ class CloudStore {
         stackTrace,
       );
     }
+
+    return true;
   }
 
   static Future<List<Kya>> _getReferenceKya() async {
@@ -218,6 +219,10 @@ class CloudStore {
   }
 
   static Future<Profile> getProfile() async {
+    if (!CustomAuth.isLoggedIn()) {
+      return Profile.getProfile();
+    }
+
     try {
       final uuid = CustomAuth.getUserId();
 
@@ -226,8 +231,8 @@ class CloudStore {
           .doc(uuid)
           .get();
 
-      return Profile.parseUserDetails(
-        userJson.data(),
+      return Profile.fromJson(
+        userJson.data()!,
       );
     } on FirebaseException catch (exception) {
       if (exception.code == 'not-found') {
@@ -278,11 +283,11 @@ class CloudStore {
     }
   }
 
-  static Future<void> updateFavouritePlaces() async {
+  static Future<bool> updateFavouritePlaces() async {
     final hasConnection = await hasNetworkConnection();
     final userId = CustomAuth.getUserId();
     if (!hasConnection || userId.trim().isEmpty) {
-      return;
+      return true;
     }
 
     final batch = FirebaseFirestore.instance.batch();
@@ -325,7 +330,9 @@ class CloudStore {
       }
     }
 
-    return batch.commit();
+    batch.commit();
+
+    return true;
   }
 
   static Future<void> updateCloudProfile() async {
@@ -363,36 +370,39 @@ class CloudStore {
     }
   }
 
-  static Future<void> updateCloudAnalytics() async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser != null) {
-      try {
-        final analytics = Hive.box<Analytics>(HiveBox.analytics)
-            .values
-            .toList()
-            .cast<Analytics>();
-        final profile = await Profile.getProfile();
-        for (final x in analytics) {
-          try {
-            await FirebaseFirestore.instance
-                .collection(Config.usersAnalyticsCollection)
-                .doc(profile.userId)
-                .collection(profile.userId)
-                .doc(x.site)
-                .set(
-                  x.toJson(),
-                );
-          } catch (exception) {
-            debugPrint(exception.toString());
-          }
-        }
-      } catch (exception, stackTrace) {
-        await logException(
-          exception,
-          stackTrace,
-        );
-      }
+  static Future<bool> updateCloudAnalytics() async {
+    final currentUser = CustomAuth.getUser();
+    if (currentUser == null) {
+      return true;
     }
+    try {
+      final analytics = Hive.box<Analytics>(HiveBox.analytics)
+          .values
+          .toList()
+          .cast<Analytics>();
+      final profile = await Profile.getProfile();
+      for (final x in analytics) {
+        try {
+          await FirebaseFirestore.instance
+              .collection(Config.usersAnalyticsCollection)
+              .doc(profile.userId)
+              .collection(profile.userId)
+              .doc(x.site)
+              .set(
+                x.toJson(),
+              );
+        } catch (exception) {
+          debugPrint(exception.toString());
+        }
+      }
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return true;
   }
 
   static Future<void> updateCloudNotification(
@@ -516,24 +526,22 @@ class CustomAuth {
     return profile;
   }
 
-  static Future<void> deleteAccount() async {
-    try {
-      await getUser()?.delete();
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
+  static Future<bool> deleteAccount() async {
+    final profile = await Profile.getProfile();
+    await getUser()?.delete().then((_) => profile.deleteAccount());
+    return true;
   }
 
-  static Future<bool> emailAuthentication(
-    String emailAddress,
-    String link,
+  static Future<bool> firebaseSignIn(
+    AuthCredential? authCredential,
   ) async {
-    final userCredential = await FirebaseAuth.instance
-        .signInWithEmailLink(emailLink: link, email: emailAddress);
-
+    UserCredential userCredential;
+    if (authCredential == null) {
+      userCredential = await FirebaseAuth.instance.signInAnonymously();
+    } else {
+      userCredential =
+          await FirebaseAuth.instance.signInWithCredential(authCredential);
+    }
     return userCredential.user != null;
   }
 
@@ -550,10 +558,14 @@ class CustomAuth {
   }
 
   static bool isLoggedIn() {
-    return getUser() != null;
+    final user = getUser();
+    if (user == null) {
+      return false;
+    }
+    return !user.isAnonymous;
   }
 
-  static Future<void> logOut() async {
+  static Future<bool> logOut() async {
     try {
       await FirebaseAuth.instance.signOut();
     } catch (exception, stackTrace) {
@@ -562,156 +574,185 @@ class CustomAuth {
         stackTrace,
       );
     }
+    return true;
   }
 
-  static Future<bool> phoneNumberAuthentication(
-      AuthCredential authCredential) async {
-    final userCredential =
-        await FirebaseAuth.instance.signInWithCredential(authCredential);
+  static Future<bool> reAuthenticate(AuthCredential authCredential) async {
+    final userCredential = await FirebaseAuth.instance.currentUser!
+        .reauthenticateWithCredential(authCredential);
     return userCredential.user != null;
   }
 
-  static Future<bool> reAuthenticateWithEmailAddress(
-    String emailAddress,
-    String link,
-  ) async {
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return false;
+  static AuthenticationError getErrorFromFirebaseCode(String code) {
+    switch (code) {
+      case 'invalid-email':
+        return AuthenticationError.invalidEmailAddress;
+      case 'email-already-in-use':
+        return AuthenticationError.emailTaken;
+      case 'credential-already-in-use':
+      case 'account-exists-with-different-credential':
+        return AuthenticationError.accountTaken;
+      case 'invalid-verification-code':
+        return AuthenticationError.invalidAuthCode;
+      case 'invalid-phone-number':
+        return AuthenticationError.invalidPhoneNumber;
+      case 'session-expired':
+      case 'expired-action-code':
+        return AuthenticationError.authSessionTimeout;
+      case 'user-disabled':
+      case 'user-mismatch':
+      case 'user-not-found':
+        return AuthenticationError.accountInvalid;
+      case 'requires-recent-login':
+        return AuthenticationError.logInRequired;
+      case 'invalid-verification-id':
+      case 'invalid-credential':
+      default:
+        return AuthenticationError.authFailure;
     }
-
-    try {
-      final userCredential = await FirebaseAuth.instance.signInWithEmailLink(
-        emailLink: link,
-        email: emailAddress,
-      );
-
-      return userCredential.user != null;
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-
-    return false;
   }
 
-  static Future<bool> reAuthenticateWithPhoneNumber(
-    AuthCredential authCredential,
-    BuildContext context,
-  ) async {
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return false;
-    }
+  // TODO: add error handling to callers
+  static Future<void> sendPhoneAuthCode({
+    required String phoneNumber,
+    required BuildContext buildContext,
+    required AuthProcedure authProcedure,
+  }) async {
+    await FirebaseAuth.instance.verifyPhoneNumber(
+      phoneNumber: phoneNumber,
+      verificationCompleted: (PhoneAuthCredential credential) {
+        switch (authProcedure) {
+          case AuthProcedure.login:
+          case AuthProcedure.signup:
+            buildContext
+                .read<PhoneAuthBloc>()
+                .add(const UpdateStatus(BlocStatus.success));
+            break;
+          case AuthProcedure.deleteAccount:
+            buildContext
+                .read<SettingsBloc>()
+                .add(const AccountPreDeletionPassed());
+            break;
+          case AuthProcedure.anonymousLogin:
+          case AuthProcedure.logout:
+            // TODO: Handle this case.
+            break;
+        }
 
+        buildContext
+            .read<AuthCodeBloc>()
+            .add(VerifyAuthCode(credential: credential));
+      },
+      verificationFailed: (FirebaseAuthException exception) async {
+        throw exception;
+      },
+      codeSent: (String verificationId, int? resendToken) async {
+        buildContext
+            .read<AuthCodeBloc>()
+            .add(UpdateVerificationId(verificationId));
+
+        switch (authProcedure) {
+          case AuthProcedure.login:
+          case AuthProcedure.signup:
+            buildContext
+                .read<PhoneAuthBloc>()
+                .add(const UpdateStatus(BlocStatus.success));
+            break;
+          case AuthProcedure.deleteAccount:
+            buildContext
+                .read<SettingsBloc>()
+                .add(const AccountPreDeletionPassed());
+            break;
+          case AuthProcedure.anonymousLogin:
+          case AuthProcedure.logout:
+            // TODO: Handle this case.
+            break;
+        }
+      },
+      codeAutoRetrievalTimeout: (String verificationId) async {
+        buildContext
+            .read<AuthCodeBloc>()
+            .add(UpdateVerificationId(verificationId));
+
+        switch (authProcedure) {
+          case AuthProcedure.login:
+          case AuthProcedure.signup:
+            buildContext
+                .read<PhoneAuthBloc>()
+                .add(const UpdateStatus(BlocStatus.success));
+            break;
+          case AuthProcedure.deleteAccount:
+            buildContext
+                .read<SettingsBloc>()
+                .add(const AccountPreDeletionPassed());
+            break;
+          case AuthProcedure.anonymousLogin:
+          case AuthProcedure.logout:
+            // TODO: Handle this case.
+            break;
+        }
+      },
+      timeout: const Duration(seconds: 30),
+    );
+  }
+
+  // TODO: add error handling to callers
+  static Future<void> sendEmailAuthCode({
+    required String emailAddress,
+    required BuildContext buildContext,
+    required AuthProcedure authProcedure,
+  }) async {
     try {
-      final userCredentials = await FirebaseAuth.instance.currentUser!
-          .reauthenticateWithCredential(authCredential);
+      final emailSignupResponse = await AirqoApiClient()
+          .requestEmailVerificationCode(emailAddress, false);
 
-      // final userCredential =
-      //     await _firebaseAuth.signInWithCredential(authCredential);
-      return userCredentials.user != null;
-    } on FirebaseAuthException catch (exception) {
-      if (exception.code == 'invalid-verification-code') {
-        showSnackBar(
-          context,
-          'Invalid Code',
-        );
+      if (emailSignupResponse == null) {
+        switch (authProcedure) {
+          case AuthProcedure.login:
+          case AuthProcedure.signup:
+            buildContext.read<EmailAuthBloc>().add(
+                const EmailValidationFailed(AuthenticationError.authFailure));
+            break;
+          case AuthProcedure.deleteAccount:
+            buildContext.read<SettingsBloc>().add(
+                const AccountPreDeletionFailed(
+                    AuthenticationError.authFailure));
+            break;
+          case AuthProcedure.anonymousLogin:
+            // TODO: Handle this case.
+            break;
+
+          case AuthProcedure.logout:
+            // TODO: Handle this case.
+            break;
+        }
+      } else {
+        buildContext.read<AuthCodeBloc>().add(UpdateEmailCredentials(
+              emailVerificationLink: emailSignupResponse.loginLink,
+              emailToken: emailSignupResponse.token,
+            ));
+
+        switch (authProcedure) {
+          case AuthProcedure.login:
+          case AuthProcedure.signup:
+            buildContext
+                .read<EmailAuthBloc>()
+                .add(const EmailValidationPassed());
+            break;
+          case AuthProcedure.deleteAccount:
+            buildContext
+                .read<SettingsBloc>()
+                .add(const AccountPreDeletionPassed());
+            break;
+          case AuthProcedure.anonymousLogin:
+            // TODO: Handle this case.
+            break;
+
+          case AuthProcedure.logout:
+            // TODO: Handle this case.
+            break;
+        }
       }
-      if (exception.code == 'session-expired') {
-        showSnackBar(
-          context,
-          'Your verification '
-          'has timed out. we have sent your'
-          ' another verification code',
-        );
-      }
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-
-    return false;
-  }
-
-  static Future<void> sendPhoneAuthCode(
-    String phoneNumber,
-    BuildContext buildContext,
-  ) async {
-    try {
-      await FirebaseAuth.instance.verifyPhoneNumber(
-        phoneNumber: phoneNumber,
-        verificationCompleted: (PhoneAuthCredential credential) {
-          buildContext
-              .read<PhoneAuthBloc>()
-              .add(const UpdateStatus(AuthStatus.success));
-          buildContext
-              .read<AuthCodeBloc>()
-              .add(VerifyAuthCode(credential: credential));
-        },
-        verificationFailed: (FirebaseAuthException exception) async {
-          if (exception.code == 'invalid-phone-number') {
-            buildContext.read<PhoneAuthBloc>().add(const InvalidPhoneNumber());
-          } else {
-            debugPrint(exception.toString());
-          }
-        },
-        codeSent: (String verificationId, int? resendToken) async {
-          buildContext
-              .read<AuthCodeBloc>()
-              .add(UpdateVerificationId(verificationId));
-          buildContext
-              .read<PhoneAuthBloc>()
-              .add(const UpdateStatus(AuthStatus.success));
-        },
-        codeAutoRetrievalTimeout: (String verificationId) async {
-          buildContext
-              .read<AuthCodeBloc>()
-              .add(UpdateVerificationId(verificationId));
-          buildContext
-              .read<PhoneAuthBloc>()
-              .add(const UpdateStatus(AuthStatus.success));
-        },
-        timeout: const Duration(seconds: 30),
-      );
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-  }
-
-  static Future<void> sendEmailAuthCode(
-    String emailAddress,
-    BuildContext buildContext,
-  ) async {
-    try {
-      await AirqoApiClient()
-          .requestEmailVerificationCode(emailAddress, false)
-          .then((emailSignupResponse) => {
-                if (emailSignupResponse == null)
-                  {
-                    buildContext.read<EmailAuthBloc>().add(
-                        const EmailValidationFailed(
-                            AuthenticationError.authFailure))
-                  }
-                else
-                  {
-                    buildContext
-                        .read<EmailAuthBloc>()
-                        .add(const EmailValidationPassed()),
-                    buildContext.read<AuthCodeBloc>().add(
-                        UpdateEmailCredentials(
-                            emailVerificationLink:
-                                emailSignupResponse.loginLink,
-                            emailToken: emailSignupResponse.token))
-                  }
-              });
     } catch (exception, stackTrace) {
       buildContext
           .read<EmailAuthBloc>()

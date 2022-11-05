@@ -2,7 +2,6 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/models/enum_constants.dart';
 import 'package:app/screens/auth/phone_auth_widget.dart';
 import 'package:app/screens/home_page.dart';
-import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';

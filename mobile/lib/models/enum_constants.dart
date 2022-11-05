@@ -99,12 +99,13 @@ enum AppPermission {
   location,
 }
 
-enum AuthStatus {
+enum BlocStatus {
   initial,
   editing,
   processing,
   error,
   success,
+  accountPreDeletionSuccess,
 }
 
 enum AuthenticationError {
@@ -132,6 +133,10 @@ enum AuthenticationError {
     message: 'Authentication failed. Try again later',
     snackBarDuration: 5,
   ),
+  logInRequired(
+    message: 'Log in required.',
+    snackBarDuration: 5,
+  ),
   phoneNumberTaken(
     message: 'Phone number taken',
     snackBarDuration: 5,
@@ -141,6 +146,10 @@ enum AuthenticationError {
     snackBarDuration: 5,
   ),
   invalidEmailAddress(
+    message: 'Invalid email address',
+    snackBarDuration: 5,
+  ),
+  accountTaken(
     message: 'Invalid email address',
     snackBarDuration: 5,
   ),

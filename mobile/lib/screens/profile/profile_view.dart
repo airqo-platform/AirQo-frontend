@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
@@ -206,6 +207,11 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   Future<void> _logOut() async {
+    bool hasConnection =
+        await checkNetworkConnection(context, notifyUser: true);
+    if (!hasConnection) {
+      return;
+    }
     final action = await showDialog<ConfirmationAction>(
       context: context,
       barrierDismissible: false,
@@ -220,9 +226,18 @@ class _ProfileViewState extends State<ProfileView> {
       return;
     }
 
+    hasConnection = await checkNetworkConnection(context, notifyUser: true);
+    if (!hasConnection) {
+      return;
+    }
+
     final loadingContext = context;
     loadingScreen(loadingContext);
-    final successful = await AppService().logOut(context);
+
+    final successful = await AppService().authenticateUser(
+      authMethod: AuthMethod.none,
+      authProcedure: AuthProcedure.logout,
+    );
     if (successful) {
       Navigator.pop(loadingContext);
       await Navigator.pushAndRemoveUntil(
