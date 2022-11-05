@@ -308,7 +308,7 @@ packages:
       name: dart_code_metrics
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "5.0.0"
+    version: "5.0.1"
   dart_style:
     dependency: transitive
     description:
@@ -428,6 +428,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.3.4"
+  firebase_dynamic_links:
+    dependency: "direct main"
+    description:
+      name: firebase_dynamic_links
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "5.0.3"
+  firebase_dynamic_links_platform_interface:
+    dependency: transitive
+    description:
+      name: firebase_dynamic_links_platform_interface
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.2.3+19"
   firebase_in_app_messaging:
     dependency: "direct main"
     description:

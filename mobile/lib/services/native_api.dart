@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:ui' as ui;
 import 'dart:ui';
 
 import 'package:app/constants/constants.dart';
@@ -8,15 +7,15 @@ import 'package:app/models/models.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:app_repository/app_repository.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart'
     as cache_manager;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:in_app_review/in_app_review.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -98,31 +97,32 @@ class ShareService {
     required GlobalKey globalKey,
     String? imageName,
   }) async {
-    try {
-      final boundary =
-          globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-      final image = await boundary.toImage(
-        pixelRatio: 10.0,
-      );
-      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-      final pngBytes = byteData!.buffer.asUint8List();
-
-      final directory = (await getApplicationDocumentsDirectory()).path;
-      final imgFile = File("$directory/${imageName ?? 'airqo_analytics'}.png");
-      await imgFile.writeAsBytes(pngBytes);
-
-      final result = await Share.shareXFiles([XFile(imgFile.path)]);
-
-      if (result.status == ShareResultStatus.success) {
-        await updateUserShares();
-      }
-    } catch (exception, stackTrace) {
-      await shareFailed(
-        exception,
-        stackTrace,
-        buildContext,
-      );
-    }
+    await shareInsights();
+    // try {
+    //   final boundary =
+    //       globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+    //   final image = await boundary.toImage(
+    //     pixelRatio: 10.0,
+    //   );
+    //   final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    //   final pngBytes = byteData!.buffer.asUint8List();
+    //
+    //   final directory = (await getApplicationDocumentsDirectory()).path;
+    //   final imgFile = File("$directory/${imageName ?? 'airqo_analytics'}.png");
+    //   await imgFile.writeAsBytes(pngBytes);
+    //
+    //   final result = await Share.shareFilesWithResult([imgFile.path]);
+    //
+    //   if (result.status == ShareResultStatus.success) {
+    //     await updateUserShares();
+    //   }
+    // } catch (exception, stackTrace) {
+    //   await shareFailed(
+    //     exception,
+    //     stackTrace,
+    //     buildContext,
+    //   );
+    // }
 
     return true;
   }
@@ -140,6 +140,44 @@ class ShareService {
       context,
       Config.shareFailedMessage,
     );
+  }
+
+  static Future<void> shareInsights() async {
+
+    final packageInfo = await PackageInfo.fromPlatform();
+    const uriPrefix = 'https://airqo.page.link';
+
+    final dynamicLinkParams = DynamicLinkParameters(
+      link: Uri.parse('https://airqo.net/explore-data/download-apps'),
+      uriPrefix: uriPrefix,
+      androidParameters: AndroidParameters(
+        packageName: packageInfo.packageName,
+        minimumVersion: 30,
+        fallbackUrl: Uri.parse('https://play.google.com/store/apps/details?id=com.airqo.app'),
+      ),
+      iosParameters: IOSParameters(
+        bundleId: packageInfo.packageName,
+        fallbackUrl: Uri.parse('https://itunes.apple.com/ug/app/airqo-monitoring-air-quality/id1337573091'),
+        appStoreId: '1337573091',
+        minimumVersion: packageInfo.version,
+      ),
+      googleAnalyticsParameters: const GoogleAnalyticsParameters(
+        source: 'twitter',
+        medium: 'social',
+        campaign: 'example-promo',
+        content: '',
+        term: '',
+      ),
+      socialMetaTagParameters: SocialMetaTagParameters(
+        title: 'Example of a Dynamic Link',
+        description: 'This link works whether app is installed or not!',
+        imageUrl: Uri.parse('https://firebasestorage.googleapis.com/v0/b/airqo-250220.appspot.com/o/FIAMImages%2Fairqo_logo.png?alt=media&token=ce6e59cd-512a-4ea4-8886-ff13bf18c571'),
+      ),
+    );
+
+    final dynamicLink = await FirebaseDynamicLinks.instance.buildShortLink(dynamicLinkParams);
+    print(dynamicLink.shortUrl);
+
   }
 
   static void shareMeasurementText(AirQualityReading airQualityReading) {
