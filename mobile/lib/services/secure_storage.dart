@@ -55,20 +55,20 @@ class SecureStorage {
         stackTrace,
       );
     }
-  }
 
-  Future<void> updateUserDetailsField(String key, String value) async {
-    try {
-      await _secureStorage.write(
-        key: key,
-        value: value,
-        aOptions: _getAndroidOptions(),
-      );
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
+    Future<void> updateUserDetailsField(String key, String value) async {
+      try {
+        await _secureStorage.write(
+          key: key,
+          value: value,
+          aOptions: _getAndroidOptions(),
+        );
+      } catch (exception, stackTrace) {
+        await logException(
+          exception,
+          stackTrace,
+        );
+      }
     }
   }
 }
