@@ -181,16 +181,16 @@ jobs:
           --build-arg REACT_APP_BASE_NEWSLETTER_URL=${{ secrets.WEBSITE_REACT_APP_BASE_NEWSLETTER_URL }} \
           --build-arg REACT_APP_WEBSITE_BASE_URL=${{ secrets.WEBSITE_PROD_REACT_APP_WEBSITE_BASE_URL }} \
           --build-arg REACT_APP_AUTHORIZATION_TOKEN=${{ secrets.WEBSITE_PROD_REACT_APP_AUTHORIZATION_TOKEN }} \
-          --tag gcr.io/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }}
-          docker push gcr.io/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }}
-          docker tag gcr.io/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }} gcr.io/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:latest
-          docker push gcr.io/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:latest
+          --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }}
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }}
+          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:latest
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:latest
 
       - name: Deploy to App Engine
         run: |-
           cd website/
           gcloud app deploy  \
-            --image-url=gcr.io/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:latest \
+            --image-url=${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:latest \
             --project=${{ secrets.FRONTEND_PROJECT_ID }} \
             --quiet
 
@@ -327,7 +327,7 @@ jobs:
 
   ### deploy docs ###
   docs:
-    name: build-push-docs-image
+    name: build-push-deploy-docs
     needs: [image-tag]
     if: inputs.docs == true
     runs-on: ubuntu-latest
@@ -342,7 +342,7 @@ jobs:
           username: _json_key
           password: ${{ secrets.GCR_CONFIG }}
 
-      - name: Build and Push to GCR Registry
+      - name: Build and Push Docker Image
         run: |
           cd docs/
           docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-prod-docs:${{ needs.image-tag.outputs.build_id }} .

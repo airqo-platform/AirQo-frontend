@@ -522,14 +522,14 @@ jobs:
           --build-arg REACT_APP_BASE_NEWSLETTER_URL=${{ secrets.WEBSITE_REACT_APP_BASE_NEWSLETTER_URL }} \
           --build-arg REACT_APP_WEBSITE_BASE_URL=${{ secrets.WEBSITE_DEV_REACT_APP_WEBSITE_BASE_URL }} \
           --build-arg REACT_APP_AUTHORIZATION_TOKEN=${{ secrets.WEBSITE_STAGE_REACT_APP_AUTHORIZATION_TOKEN }} \
-          --tag gcr.io/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }}
-          docker push gcr.io/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }}
+          --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }}
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }}
 
       - name: Deploy to App Engine
         run: |-
           cd website/
           gcloud app deploy  \
-            --image-url=gcr.io/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }} \
+            --image-url=${{ secrets.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }} \
             --project=${{ secrets.FRONTEND_PROJECT_ID }} \
             --quiet
 
