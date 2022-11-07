@@ -54,6 +54,7 @@ resources:
   #   memory: 128Mi
 
 autoscaling:
+  name: airqo-stage-next-platform-hpa
   enabled: false
   minReplicas: 1
   maxReplicas: 100
