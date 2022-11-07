@@ -39,6 +39,7 @@ class SecureStorage {
         stackTrace,
       );
     }
+
     return null;
   }
 

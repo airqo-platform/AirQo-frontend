@@ -36,15 +36,17 @@ class HiveService {
         Hive.openBox<AirQualityReading>(HiveBox.nearByAirQualityReadings),
         Hive.openBox<Profile>(
           HiveBox.profile,
-          encryptionCipher: HiveAesCipher(
-            encryptionKey,
-          ),
+          encryptionCipher: encryptionKey == null
+              ? null
+              : HiveAesCipher(
+                  encryptionKey,
+                ),
         ),
       ],
     );
   }
 
-  static Future<Uint8List> getEncryptionKey() async {
+  static Future<Uint8List?>? getEncryptionKey() async {
     try {
       final secureStorage = SecureStorage();
       var encodedKey = await secureStorage.getValue(HiveBox.encryptionKey);
@@ -58,10 +60,8 @@ class HiveService {
       encodedKey = await secureStorage.getValue(HiveBox.encryptionKey);
 
       return base64Url.decode(encodedKey!);
-    } catch (e) {
-      final secureKey = base64UrlEncode(Hive.generateSecureKey());
-
-      return base64Url.decode(secureKey);
+    } catch (_, __) {
+      return null;
     }
   }
 
