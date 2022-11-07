@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: gcr.io/airqo-250220/airqo-stage-next-platform
+  repository: gcr.io/airqo-250220/airqo-next-platform
   pullPolicy: Always
   tag: latest
 
@@ -29,12 +29,12 @@ securityContext:
   # runAsUser: 1000
 
 service:
-  name: airqo-stage-next-platform-svc
+  name: airqo-next-platform-svc
   type: NodePort
   port: 3000
   protocol: TCP
   targetPort: 3000
-  nodePort: 31107
+  nodePort: 30103
 
 ingress:
   enabled: false
@@ -48,12 +48,11 @@ resources:
     memory: 250Mi
 
 autoscaling:
-  name: airqo-stage-next-platform-hpa
-  enabled: false
+  name: airqo-next-platform-hpa
   minReplicas: 1
-  maxReplicas: 3
-  targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
+  maxReplicas: 4
+  targetCPUUtilizationPercentage: 70
+  # targetMemoryUtilizationPercentage: 70
 
 nodeSelector: {}
 
@@ -78,7 +77,7 @@ affinity:
                 - high-memory
 
 platform:
-  deployment_name: airqo-stage-next-platform
-  labels: sta-next-platform
-  namespace: staging
-  configmap: env-next-platform-staging
+  deployment_name: airqo-next-platform
+  labels: airqo-next-platform
+  namespace: production
+  configmap: env-next-platform-production

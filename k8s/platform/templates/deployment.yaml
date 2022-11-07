@@ -32,7 +32,7 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - name: {{ .Values.platform.labels }}
+            - name: next-platform
               containerPort: {{ .Values.service.targetPort }}
               protocol: {{ .Values.service.protocol }}
           # livenessProbe:
