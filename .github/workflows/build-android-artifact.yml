@@ -34,13 +34,13 @@ jobs:
       - name: Save mobile .env file
         run: gcloud secrets versions access latest --secret="prod-env-mobile-app" > mobile/.env.prod
 
-      - name: Retrieve keystore details
-        run: gcloud secrets version access latest --secret="" > mobile/android/key.properties
+      # - name: Retrieve keystore details
+        # run: gcloud secrets version access latest --secret="" > mobile/android/key.properties
       
-      - name: Get firebase details
-        run:  
+      # - name: Get firebase details
+        # run:  
 
-      - name: 
+      - name: build-app
       - uses: actions/checkout@v3
       - uses: actions/setup-java@v2
         with:
