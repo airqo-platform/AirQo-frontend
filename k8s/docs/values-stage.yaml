@@ -29,7 +29,6 @@ securityContext:
   # runAsUser: 1000
 
 service:
-  name: airqo-stage-docs-svc
   type: NodePort
   port: 3000
   protocol: TCP
@@ -48,7 +47,6 @@ resources:
     memory: 20Mi
 
 autoscaling:
-  name: airqo-stage-docs-hpa
   minReplicas: 1
   maxReplicas: 2
   targetCPUUtilizationPercentage: 80
@@ -69,7 +67,7 @@ affinity:
               values:
                 - general-purpose
 
-docs:
-  deployment_name: airqo-stage-docs
-  labels: sta-docs
+app:
+  name: airqo-stage-docs
+  label: sta-docs
   namespace: staging

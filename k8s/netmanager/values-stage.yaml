@@ -1,8 +1,6 @@
-# values for platform frontend.
-env:
-  deployment_name: airqo-stage-platform-frontend
-  labels: airqo-platform
-  secret: env-platform-staging
+# Default values for platform.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
 
 replicaCount: 2
 
@@ -17,10 +15,9 @@ fullnameOverride: ""
 
 service:
   type: NodePort
-  nodePort: 31104
+  nodePort: 31101
   targetPort: 80
   port: 80
-  name: airqo-stage-platform-ui-svc
 
 ingress:
   enabled: false
@@ -37,12 +34,32 @@ resources:
     cpu: 50m
     memory: 80Mi
 
-horizontalPodAutoscaler:
-  name: airqo-stage-platform-frontend-hpa
+autoscaling:
   minReplicas: 1
   maxReplicas: 3
-  resource: memory
-  target: 80
+  # targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
 
-## Application level settings
-appMode: staging
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 10
+        preference:
+          matchExpressions:
+            - key: node-type
+              operator: In
+              values:
+                - general-purpose
+      - weight: 1
+        preference:
+          matchExpressions:
+            - key: node-type
+              operator: In
+              values:
+                - high-memory
+
+app:
+  name: airqo-stage-platform-frontend
+  label: airqo-platform
+  namespace: staging
+  configmap: env-platform-staging

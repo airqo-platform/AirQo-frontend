@@ -29,7 +29,6 @@ securityContext:
   # runAsUser: 1000
 
 service:
-  name: airqo-next-platform-svc
   type: NodePort
   port: 3000
   protocol: TCP
@@ -48,7 +47,6 @@ resources:
     memory: 250Mi
 
 autoscaling:
-  name: airqo-next-platform-hpa
   minReplicas: 1
   maxReplicas: 4
   targetCPUUtilizationPercentage: 70
@@ -76,8 +74,8 @@ affinity:
               values:
                 - high-memory
 
-platform:
-  deployment_name: airqo-next-platform
-  labels: airqo-next-platform
+app:
+  name: airqo-next-platform
+  label: airqo-next-platform
   namespace: production
   configmap: env-next-platform-production

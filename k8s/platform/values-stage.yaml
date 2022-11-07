@@ -29,7 +29,6 @@ securityContext:
   # runAsUser: 1000
 
 service:
-  name: airqo-stage-next-platform-svc
   type: NodePort
   port: 3000
   protocol: TCP
@@ -48,7 +47,6 @@ resources:
     memory: 250Mi
 
 autoscaling:
-  name: airqo-stage-next-platform-hpa
   minReplicas: 1
   maxReplicas: 3
   targetCPUUtilizationPercentage: 80
@@ -76,8 +74,8 @@ affinity:
               values:
                 - high-memory
 
-platform:
-  deployment_name: airqo-stage-next-platform
-  labels: sta-next-platform
+app:
+  name: airqo-stage-next-platform
+  label: sta-next-platform
   namespace: staging
   configmap: env-next-platform-staging

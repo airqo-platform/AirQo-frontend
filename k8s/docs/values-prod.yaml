@@ -29,7 +29,6 @@ securityContext:
   # runAsUser: 1000
 
 service:
-  name: airqo-prod-docs-svc
   type: NodePort
   port: 3000
   protocol: TCP
@@ -48,7 +47,6 @@ resources:
     memory: 20Mi
 
 autoscaling:
-  name: airqo-prod-docs-hpa
   minReplicas: 1
   maxReplicas: 3
   targetCPUUtilizationPercentage: 70
@@ -69,7 +67,7 @@ affinity:
               values:
                 - general-purpose
 
-docs:
-  deployment_name: airqo-prod-docs
-  labels: airqo-prod-docs
+app:
+  name: airqo-prod-docs
+  label: airqo-prod-docs
   namespace: production

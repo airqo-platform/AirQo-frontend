@@ -29,7 +29,6 @@ securityContext:
   # runAsUser: 1000
 
 service:
-  name: airqo-dev-next-platform-svc
   type: NodePort
   port: 3000
   protocol: TCP
@@ -48,7 +47,6 @@ resources:
     memory: 250Mi
 
 autoscaling:
-  name: airqo-dev-next-platform-hpa
   minReplicas: 1
   maxReplicas: 2
   targetCPUUtilizationPercentage: 90
@@ -76,8 +74,8 @@ affinity:
               values:
                 - high-memory
 
-platform:
-  deployment_name: airqo-dev-next-platform
-  labels: dev-next-platform
+app:
+  name: airqo-dev-next-platform
+  label: dev-next-platform
   namespace: development
   configmap: env-next-platform-development

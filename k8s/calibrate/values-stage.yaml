@@ -2,12 +2,6 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-calibrate:
-  deployment_name: airqo-stage-calibrate-app
-  labels: sta-calibrate-app
-  namespace: staging
-  configmap: env-calibrate-staging
-
 replicaCount: 1
 
 image:
@@ -38,7 +32,6 @@ ingress:
   enabled: false
 
 service:
-  name: airqo-stage-calibrate-app-svc
   type: NodePort
   protocol: TCP
   port: 80
@@ -55,7 +48,6 @@ resources:
     memory: 20Mi
 
 autoscaling:
-  name: airqo-stage-calibrate-app-hpa
   minReplicas: 1
   maxReplicas: 2
   # targetCPUUtilizationPercentage: 80
@@ -82,3 +74,9 @@ affinity:
               operator: In
               values:
                 - high-memory
+
+app:
+  name: airqo-stage-calibrate-app
+  label: sta-calibrate-app
+  namespace: staging
+  configmap: env-calibrate-staging
