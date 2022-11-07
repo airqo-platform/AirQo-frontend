@@ -1,11 +1,10 @@
 import 'package:app/models/models.dart';
-import 'package:app/screens/insights/insights_tab.dart';
-import 'package:app/widgets/custom_widgets.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 
-import '../../themes/colors.dart';
-import '../../utils/network.dart';
-import '../../widgets/buttons.dart';
+import 'insights_tab.dart';
 
 class InsightsPage extends StatefulWidget {
   const InsightsPage(

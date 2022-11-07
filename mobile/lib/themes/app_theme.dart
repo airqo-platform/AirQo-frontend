@@ -600,7 +600,6 @@ class CustomTextStyle {
   }
 
   static TextStyle? insightsAvatar({
-    required BuildContext context,
     required Pollutant pollutant,
     required double value,
   }) {

@@ -1,6 +1,5 @@
+import 'package:app/utils/utils.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
-import '../utils/exception.dart';
 
 class SecureStorage {
   factory SecureStorage() {
@@ -19,7 +18,7 @@ class SecureStorage {
     await _secureStorage.deleteAll();
   }
 
-  Future<String?> getValue(String key) async {
+  Future<String?> getValue(String key) {
     return _secureStorage.read(key: key);
   }
 

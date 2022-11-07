@@ -4,6 +4,9 @@ import 'package:app/models/models.dart';
 import 'package:app/screens/profile/profile_view.dart';
 import 'package:app/services/app_service.dart';
 import 'package:app/widgets/custom_widgets.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
 import 'package:app/widgets/dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,10 +15,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:showcaseview/showcaseview.dart';
 
-import '../services/hive_service.dart';
-import '../services/local_storage.dart';
-import '../themes/colors.dart';
-import '../utils/network.dart';
 import 'dashboard/dashboard_view.dart';
 import 'map/map_view.dart';
 
@@ -114,16 +113,16 @@ class _HomePageState extends State<HomePage> {
                     label: '',
                   ),
                   BottomNavigationBarItem(
-                      icon: Showcase(
-                        key: _mapShowcaseKey,
-                        description: 'This is the AirQo map',
-                        child: CustomBottomNavBarItem(
-                          svg: 'assets/icon/location.svg',
-                          selectedIndex: _selectedIndex,
-                          label: 'AirQo Map',
-                          index: 1,
-                        ),
+                    icon: Showcase(
+                      key: _mapShowcaseKey,
+                      description: 'This is the AirQo map',
+                      child: CustomBottomNavBarItem(
+                        svg: 'assets/icon/location.svg',
+                        selectedIndex: _selectedIndex,
+                        label: 'AirQo Map',
+                        index: 1,
                       ),
+                    ),
                     label: '',
                   ),
                   BottomNavigationBarItem(
@@ -142,8 +141,7 @@ class _HomePageState extends State<HomePage> {
                         ValueListenableBuilder<Box>(
                           valueListenable: Hive.box<AppNotification>(
                             HiveBox.appNotifications,
-                          )
-                              .listenable(),
+                          ).listenable(),
                           builder: (context, box, widget) {
                             final unreadNotifications = box.values
                                 .toList()
@@ -250,10 +248,10 @@ class _HomePageState extends State<HomePage> {
   static void _startShowcase() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       ShowCaseWidget.of(myContext!).startShowCase(
-          [
-        _homeShowcaseKey,
-        _mapShowcaseKey,
-        _profileShowcaseKey,
+        [
+          _homeShowcaseKey,
+          _mapShowcaseKey,
+          _profileShowcaseKey,
         ],
       );
     });

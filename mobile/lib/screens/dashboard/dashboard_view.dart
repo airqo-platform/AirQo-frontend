@@ -3,9 +3,10 @@ import 'dart:async';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/analytics/analytics_widgets.dart';
-import 'package:app/services/app_service.dart';
-import 'package:app/utils/date.dart';
-import 'package:app/widgets/dialogs.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,10 +14,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
 
-import '../../services/hive_service.dart';
-import '../../themes/app_theme.dart';
-import '../../themes/colors.dart';
-import '../../widgets/custom_widgets.dart';
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
 import '../kya/kya_title_page.dart';
@@ -42,7 +39,7 @@ class _DashboardViewState extends State<DashboardView> {
   final GlobalKey _nearestLocationShowcaseKey = GlobalKey();
   BuildContext? myContext;
 
-  final Stream _timeStream =
+  final Stream<int> _timeStream =
       Stream.periodic(const Duration(minutes: 5), (int count) {
     return count;
   });
@@ -83,7 +80,7 @@ class _DashboardViewState extends State<DashboardView> {
             ),
             Row(
               children: [
-                ValueListenableBuilder<Box>(
+                ValueListenableBuilder<Box<FavouritePlace>>(
                   valueListenable:
                       Hive.box<FavouritePlace>(HiveBox.favouritePlaces)
                           .listenable(),
@@ -118,7 +115,7 @@ class _DashboardViewState extends State<DashboardView> {
                 const SizedBox(
                   width: 16,
                 ),
-                ValueListenableBuilder<Box>(
+                ValueListenableBuilder<Box<Kya>>(
                   valueListenable: Hive.box<Kya>(HiveBox.kya).listenable(),
                   builder: (context, box, widget) {
                     final completeKya = box.values
@@ -190,7 +187,7 @@ class _DashboardViewState extends State<DashboardView> {
                         },
                         child: Container(),
                       ),
-                      ValueListenableBuilder<Box>(
+                      ValueListenableBuilder<Box<AirQualityReading>>(
                         valueListenable: Hive.box<AirQualityReading>(
                           HiveBox.nearByAirQualityReadings,
                         ).listenable(),
@@ -223,7 +220,7 @@ class _DashboardViewState extends State<DashboardView> {
                           return const SizedBox();
                         },
                       ),
-                      ValueListenableBuilder<Box>(
+                      ValueListenableBuilder<Box<Kya>>(
                         valueListenable:
                             Hive.box<Kya>(HiveBox.kya).listenable(),
                         builder: (context, box, widget) {

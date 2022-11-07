@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:app/models/models.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class Config {
@@ -93,4 +95,25 @@ class Config {
   static double refreshIndicatorPadding(int index) {
     return index == 0 ? 16.0 : 0.0;
   }
+}
+
+class AppConfig extends InheritedWidget {
+  const AppConfig({
+    Key? key,
+    required Widget child,
+    required this.environment,
+    required this.appTitle,
+  }) : super(
+          key: key,
+          child: child,
+        );
+  final Environment environment;
+  final String appTitle;
+
+  static AppConfig of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<AppConfig>()!;
+  }
+
+  @override
+  bool updateShouldNotify(covariant InheritedWidget oldWidget) => false;
 }
