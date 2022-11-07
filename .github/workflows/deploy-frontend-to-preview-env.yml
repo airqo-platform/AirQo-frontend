@@ -329,6 +329,20 @@ jobs:
             --memory=256Mi \
             --allow-unauthenticated
 
+      - name: Update corresponding helm values file
+        uses: fjogeleit/yaml-update-action@main
+        with:
+          valueFile: "k8s/platform/values-dev.yaml"
+          updateFile: true
+          branch: deployment/argocd
+          message: "Update (dev)next platform image for PR:${{ needs.branch-name.outputs.lowercase }}"
+          createPR: false
+          changes: |
+            {
+              "image.repository": "gcr.io/airqo-250220/pr-previews/next-platform-pr-previews",
+              "image.tag": "${{ github.sha }}"
+            }
+
       - name: Get preview service url
         id: preview-url
         run: |

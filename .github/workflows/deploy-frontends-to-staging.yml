@@ -332,16 +332,12 @@ jobs:
       - name: Update corresponding helm values file
         uses: fjogeleit/yaml-update-action@main
         with:
-          valueFile: "k8s/platform/stage-airqo-next-platform.yaml"
-          propertyPath: "spec.template.spec.containers[0].image"
-          value: gcr.io/airqo-250220/airqo-stage-next-platform:${{ needs.image-tag.outputs.build_id }}
+          valueFile: "k8s/platform/values-stage.yaml"
+          propertyPath: "image.tag"
+          value: ${{ needs.image-tag.outputs.build_id }}
           updateFile: true
           branch: deployment/argocd
-          targetBranch: staging
-          message: "Update Image Version to ${{ needs.image-tag.outputs.build_id }}"
-          title: "Next Platform Image version update"
-          labels: "devops, yaml-updates, chore, k8s, ready for merge, ready for review"
-          description: "This PR updates the staging next platform image to ${{ needs.image-tag.outputs.build_id }}"
+          message: "Update next platform staging image tag to ${{ needs.image-tag.outputs.build_id }}"
 
       - name: Login to K8S
         uses: azure/k8s-set-context@v1
@@ -349,9 +345,8 @@ jobs:
           method: kubeconfig
           kubeconfig: ${{ secrets.K8S_CONFIG_STAGE }}
 
-      - name: Deploy to K8S
+      - name: Update the corresponding configmap
         run: |
-          echo "=============== Update the corresponding configmap ==============="
           kubectl create configmap --dry-run=client -o yaml --from-env-file=platform/.env env-next-platform-staging | kubectl replace -f - -n staging
 
   ### build docs image ###

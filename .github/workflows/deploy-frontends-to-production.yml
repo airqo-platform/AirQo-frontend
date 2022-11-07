@@ -290,20 +290,25 @@ jobs:
           docker tag gcr.io/airqo-250220/airqo-next-platform:${{ needs.image-tag.outputs.build_id }} gcr.io/airqo-250220/airqo-next-platform:latest
           docker push gcr.io/airqo-250220/airqo-next-platform:latest
 
+      - name: Update corresponding helm values file
+        uses: fjogeleit/yaml-update-action@main
+        with:
+          valueFile: "k8s/platform/values-prod.yaml"
+          propertyPath: "image.tag"
+          value: ${{ needs.image-tag.outputs.build_id }}
+          updateFile: true
+          branch: deployment/argocd
+          message: "Update next platform production image tag to ${{ needs.image-tag.outputs.build_id }}"
+
       - name: Login to K8S
         uses: azure/k8s-set-context@v1
         with:
           method: kubeconfig
           kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
 
-      - name: Deploy to K8S
+      - name: Update the corresponding configmap
         run: |
-          echo "=============== Update the corresponding configmap ==============="
           kubectl create configmap --dry-run=client -o yaml --from-env-file=platform/.env env-next-platform-production | kubectl replace -f - -n production
-          echo "=============== Deploy the application ==============="          
-          kubectl apply -f k8s/platform/prod-airqo-next-platform.yaml
-          kubectl set image deployment/airqo-next-platform airqo-next-platform=gcr.io/airqo-250220/airqo-next-platform:${{ needs.image-tag.outputs.build_id }} -n production
-          kubectl annotate deployment/airqo-next-platform kubernetes.io/change-cause="Image updated to gcr.io/airqo-250220/airqo-next-platform:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n production
 
   ### build docs image ###
   docs:
