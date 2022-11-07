@@ -1,0 +1,89 @@
+###########################################################
+# Start deployment of calibrate app - production
+###########################################################
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airqo-calibrate-app
+  namespace: production
+spec:
+  selector:
+    matchLabels:
+      app: prod-calibrate-app
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: prod-calibrate-app
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 10
+              preference:
+                matchExpressions:
+                  - key: node-type
+                    operator: In
+                    values:
+                      - general-purpose
+            - weight: 1
+              preference:
+                matchExpressions:
+                  - key: node-type
+                    operator: In
+                    values:
+                      - high-memory
+      containers:
+        - name: prod-calibrate-app
+          image: us.gcr.io/airqo-250220/airqo-calibrate-app:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              name: prod-calibrate
+          resources:
+            requests:
+              # Average usage was 0.0001 vCPU and 25Mi over the last 30 days
+              cpu: 5m
+              memory: 25Mi
+            limits:
+              cpu: 50m
+              memory: 100Mi
+          envFrom:
+            - configMapRef:
+                name: env-calibrate-prod
+
+---
+kind: HorizontalPodAutoscaler
+apiVersion: autoscaling/v2
+metadata:
+  name: airqo-calibrate-app-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: airqo-calibrate-app
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 70
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: airqo-calibrate-app-svc
+  namespace: production
+spec:
+  selector:
+    app: prod-calibrate-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      nodePort: 30106
+  type: NodePort

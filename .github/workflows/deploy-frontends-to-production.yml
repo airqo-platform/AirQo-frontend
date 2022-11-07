@@ -81,10 +81,10 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           cd netmanager/
-          docker build --tag gcr.io/airqo-250220/airqo-platform-frontend:${{ needs.image-tag.outputs.build_id }} .
-          docker push gcr.io/airqo-250220/airqo-platform-frontend:${{ needs.image-tag.outputs.build_id }}
-          docker tag gcr.io/airqo-250220/airqo-platform-frontend:${{ needs.image-tag.outputs.build_id }} gcr.io/airqo-250220/airqo-platform-frontend:latest
-          docker push gcr.io/airqo-250220/airqo-platform-frontend:latest
+          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:${{ needs.image-tag.outputs.build_id }} .
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:${{ needs.image-tag.outputs.build_id }}
+          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:latest
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:latest
 
       - name: Update corresponding helm values file
         uses: fjogeleit/yaml-update-action@main
@@ -103,9 +103,14 @@ jobs:
           method: kubeconfig
           kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
 
-      - name: Update the corresponding configmap
+      - name: Deploy to K8S
         run: |
+          echo "=============== Update the corresponding configmap ==============="
           kubectl create configmap --dry-run=client -o yaml --from-env-file=netmanager/.env env-platform-production | kubectl replace -f - -n production
+          echo "=============== Deploy the application ==============="
+          kubectl apply -f k8s/netmanager/prod-airqo-platform-frontend.yaml
+          kubectl set image deployment/airqo-platform-frontend airqo-platform=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:${{ needs.image-tag.outputs.build_id }} -n production
+          kubectl annotate deployment/airqo-platform-frontend kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-platform-frontend:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n production
 
   ### deploy website ###
   website:
@@ -229,10 +234,10 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           cd calibrate/
-          docker build --tag gcr.io/airqo-250220/airqo-calibrate-app:${{ needs.image-tag.outputs.build_id }} .
-          docker push gcr.io/airqo-250220/airqo-calibrate-app:${{ needs.image-tag.outputs.build_id }}
-          docker tag gcr.io/airqo-250220/airqo-calibrate-app:${{ needs.image-tag.outputs.build_id }} gcr.io/airqo-250220/airqo-calibrate-app:latest
-          docker push gcr.io/airqo-250220/airqo-calibrate-app:latest
+          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-calibrate-app:${{ needs.image-tag.outputs.build_id }} .
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-calibrate-app:${{ needs.image-tag.outputs.build_id }}
+          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-calibrate-app:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-calibrate-app:latest
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-calibrate-app:latest
 
       - name: Update corresponding helm values file
         uses: fjogeleit/yaml-update-action@main
@@ -250,9 +255,14 @@ jobs:
           method: kubeconfig
           kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
 
-      - name: Update the corresponding configmap
+      - name: Deploy to K8S
         run: |
+          echo "=============== Update the corresponding configmap ==============="
           kubectl create configmap --dry-run=client -o yaml --from-env-file=calibrate/.env env-calibrate-prod | kubectl replace -f - -n production
+          echo "=============== Deploy the application ==============="          
+          kubectl apply -f k8s/calibrate/prod-airqo-calibrate-app.yaml
+          kubectl set image deployment/airqo-calibrate-app prod-calibrate-app=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-calibrate-app:${{ needs.image-tag.outputs.build_id }} -n production
+          kubectl annotate deployment/airqo-calibrate-app kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-calibrate-app:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n production
 
   ### deploy next platform ###
   next-platform:
@@ -285,10 +295,10 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           cd platform/
-          docker build --tag gcr.io/airqo-250220/airqo-next-platform:${{ needs.image-tag.outputs.build_id }} .
-          docker push gcr.io/airqo-250220/airqo-next-platform:${{ needs.image-tag.outputs.build_id }}
-          docker tag gcr.io/airqo-250220/airqo-next-platform:${{ needs.image-tag.outputs.build_id }} gcr.io/airqo-250220/airqo-next-platform:latest
-          docker push gcr.io/airqo-250220/airqo-next-platform:latest
+          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-next-platform:${{ needs.image-tag.outputs.build_id }} .
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-next-platform:${{ needs.image-tag.outputs.build_id }}
+          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-next-platform:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-next-platform:latest
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-next-platform:latest
 
       - name: Update corresponding helm values file
         uses: fjogeleit/yaml-update-action@main
@@ -306,11 +316,16 @@ jobs:
           method: kubeconfig
           kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
 
-      - name: Update the corresponding configmap
+      - name: Deploy to K8S
         run: |
+          echo "=============== Update the corresponding configmap ==============="
           kubectl create configmap --dry-run=client -o yaml --from-env-file=platform/.env env-next-platform-production | kubectl replace -f - -n production
+          echo "=============== Deploy the application ==============="          
+          kubectl apply -f k8s/platform/prod-airqo-next-platform.yaml
+          kubectl set image deployment/airqo-next-platform airqo-next-platform=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-next-platform:${{ needs.image-tag.outputs.build_id }} -n production
+          kubectl annotate deployment/airqo-next-platform kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-next-platform:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n production
 
-  ### build docs image ###
+  ### deploy docs ###
   docs:
     name: build-push-docs-image
     needs: [image-tag]
@@ -330,10 +345,10 @@ jobs:
       - name: Build and Push to GCR Registry
         run: |
           cd docs/
-          docker build --tag gcr.io/airqo-250220/airqo-prod-docs:${{ needs.image-tag.outputs.build_id }} .
-          docker push gcr.io/airqo-250220/airqo-prod-docs:${{ needs.image-tag.outputs.build_id }}
-          docker tag gcr.io/airqo-250220/airqo-prod-docs:${{ needs.image-tag.outputs.build_id }} gcr.io/airqo-250220/airqo-prod-docs:latest
-          docker push gcr.io/airqo-250220/airqo-prod-docs:latest
+          docker build --tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-prod-docs:${{ needs.image-tag.outputs.build_id }} .
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-prod-docs:${{ needs.image-tag.outputs.build_id }}
+          docker tag ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-prod-docs:${{ needs.image-tag.outputs.build_id }} ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-prod-docs:latest
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-prod-docs:latest
 
       - name: Update corresponding helm values file
         uses: fjogeleit/yaml-update-action@main
@@ -344,3 +359,9 @@ jobs:
           updateFile: true
           branch: deployment/argocd
           message: "Update docs production image tag to ${{ needs.image-tag.outputs.build_id }}"
+
+      - name: Deploy to K8S
+        run: |
+          kubectl apply -f k8s/docs/prod-airqo-docs.yaml
+          kubectl set image deployment/airqo-prod-docs airqo-prod-docs=${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-prod-docs:${{ needs.image-tag.outputs.build_id }} -n production
+          kubectl annotate deployment/airqo-prod-docs kubernetes.io/change-cause="Image updated to ${{ secrets.REGISTRY_URL }}/${{ secrets.PROJECT_ID }}/airqo-prod-docs:${{ needs.image-tag.outputs.build_id }} on ${{ needs.image-tag.outputs.datetime }}" -n production

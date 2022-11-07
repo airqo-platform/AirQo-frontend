@@ -1,67 +1,74 @@
 ###########################################################
-# Start deployment of next platform - staging
+# Start deployment of docs - staging
 ###########################################################
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: airqo-stage-next-platform
+  name: airqo-stage-docs
   namespace: staging
 spec:
   selector:
     matchLabels:
-      app: sta-next-platform
-  replicas: 2
+      app: sta-docs
+  replicas: 1
   template:
     metadata:
       labels:
-        app: sta-next-platform
+        app: sta-docs
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 10
+              preference:
+                matchExpressions:
+                  - key: node-type
+                    operator: In
+                    values:
+                      - general-purpose
       containers:
-        - name: sta-next-platform
-          image: us.gcr.io/airqo-250220/airqo-stage-next-platform:latest
+        - name: sta-docs
+          image: us.gcr.io/airqo-250220/airqo-stage-docs:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
-              name: next-platform
-          envFrom:
-            - configMapRef:
-                name: env-next-platform-staging
+              name: docs
           resources:
             requests:
-              cpu: 100m
-              memory: 250Mi
+              cpu: 10m
+              memory: 20Mi
             limits:
-              cpu: 200m
-              memory: 700Mi
+              cpu: 50m
+              memory: 100Mi
 
 ---
 kind: Service
 apiVersion: v1
 metadata:
-  name: airqo-stage-next-platform-svc
+  name: airqo-stage-docs-svc
   namespace: staging
 spec:
   selector:
-    app: sta-next-platform
+    app: sta-docs
   ports:
     - protocol: TCP
       port: 3000
       targetPort: 3000
-      nodePort: 31107
+      nodePort: 31104
   type: NodePort
 
 ---
 kind: HorizontalPodAutoscaler
 apiVersion: autoscaling/v2
 metadata:
-  name: airqo-stage-next-platform-hpa
+  name: airqo-stage-docs-hpa
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: airqo-stage-next-platform
+    name: airqo-stage-docs
   minReplicas: 1
-  maxReplicas: 3
+  maxReplicas: 2
   metrics:
     - type: Resource
       resource:
