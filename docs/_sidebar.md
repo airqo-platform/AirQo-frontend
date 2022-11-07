@@ -2,3 +2,4 @@
 - [Calibration](calibration/)
 - [Mobile App](mobile_app/)
 - [Platform](platform/)
+- [Hardware](hardware/)
