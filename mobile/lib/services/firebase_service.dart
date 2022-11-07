@@ -20,6 +20,7 @@ class CloudAnalytics {
     await FirebaseAnalytics.instance.logEvent(
       name: analyticsEvent.snakeCase(),
     );
+
     return true;
   }
 }
@@ -529,19 +530,17 @@ class CustomAuth {
   static Future<bool> deleteAccount() async {
     final profile = await Profile.getProfile();
     await getUser()?.delete().then((_) => profile.deleteAccount());
+
     return true;
   }
 
   static Future<bool> firebaseSignIn(
     AuthCredential? authCredential,
   ) async {
-    UserCredential userCredential;
-    if (authCredential == null) {
-      userCredential = await FirebaseAuth.instance.signInAnonymously();
-    } else {
-      userCredential =
-          await FirebaseAuth.instance.signInWithCredential(authCredential);
-    }
+    final UserCredential userCredential = authCredential == null
+        ? await FirebaseAuth.instance.signInAnonymously()
+        : await FirebaseAuth.instance.signInWithCredential(authCredential);
+
     return userCredential.user != null;
   }
 
@@ -562,6 +561,7 @@ class CustomAuth {
     if (user == null) {
       return false;
     }
+
     return !user.isAnonymous;
   }
 
@@ -574,12 +574,14 @@ class CustomAuth {
         stackTrace,
       );
     }
+
     return true;
   }
 
   static Future<bool> reAuthenticate(AuthCredential authCredential) async {
     final userCredential = await FirebaseAuth.instance.currentUser!
         .reauthenticateWithCredential(authCredential);
+
     return userCredential.user != null;
   }
 
@@ -635,7 +637,7 @@ class CustomAuth {
             break;
           case AuthProcedure.anonymousLogin:
           case AuthProcedure.logout:
-            // TODO: Handle this case.
+          case AuthProcedure.none:
             break;
         }
 
@@ -665,7 +667,7 @@ class CustomAuth {
             break;
           case AuthProcedure.anonymousLogin:
           case AuthProcedure.logout:
-            // TODO: Handle this case.
+          case AuthProcedure.none:
             break;
         }
       },
@@ -688,7 +690,7 @@ class CustomAuth {
             break;
           case AuthProcedure.anonymousLogin:
           case AuthProcedure.logout:
-            // TODO: Handle this case.
+          case AuthProcedure.none:
             break;
         }
       },
@@ -710,20 +712,20 @@ class CustomAuth {
         switch (authProcedure) {
           case AuthProcedure.login:
           case AuthProcedure.signup:
-            buildContext.read<EmailAuthBloc>().add(
-                const EmailValidationFailed(AuthenticationError.authFailure));
+            buildContext.read<EmailAuthBloc>().add(const EmailValidationFailed(
+                  AuthenticationError.authFailure,
+                ));
             break;
           case AuthProcedure.deleteAccount:
-            buildContext.read<SettingsBloc>().add(
-                const AccountPreDeletionFailed(
-                    AuthenticationError.authFailure));
+            buildContext
+                .read<SettingsBloc>()
+                .add(const AccountPreDeletionFailed(
+                  AuthenticationError.authFailure,
+                ));
             break;
           case AuthProcedure.anonymousLogin:
-            // TODO: Handle this case.
-            break;
-
           case AuthProcedure.logout:
-            // TODO: Handle this case.
+          case AuthProcedure.none:
             break;
         }
       } else {
@@ -745,11 +747,8 @@ class CustomAuth {
                 .add(const AccountPreDeletionPassed());
             break;
           case AuthProcedure.anonymousLogin:
-            // TODO: Handle this case.
-            break;
-
           case AuthProcedure.logout:
-            // TODO: Handle this case.
+          case AuthProcedure.none:
             break;
         }
       }

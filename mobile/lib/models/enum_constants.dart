@@ -318,24 +318,25 @@ enum AuthMethod {
     updateMessage:
         'You will not be able to sign in with your previous phone number after changing it',
     codeVerificationText: 'Enter the 6 digits code sent to your number',
-    editEntryText: 'Change Phone Number',
+    editEntryText: 'Change your number',
   ),
   email(
     updateMessage:
         'You will not be able to sign in with your previous email address after changing it',
-    codeVerificationText: '',
-    editEntryText: 'Enter the 6 digits code sent to your email',
+    codeVerificationText: 'Enter the 6 digits code sent to your email',
+    editEntryText: 'Change your email',
   ),
   none(
     updateMessage: 'You do not have an account. Consider creating one',
     codeVerificationText: '',
-    editEntryText: 'Enter the 6 digits code sent to your number',
+    editEntryText: '',
   );
 
-  const AuthMethod(
-      {required this.updateMessage,
-      required this.codeVerificationText,
-      required this.editEntryText});
+  const AuthMethod({
+    required this.updateMessage,
+    required this.codeVerificationText,
+    required this.editEntryText,
+  });
 
   final String updateMessage;
   final String codeVerificationText;
@@ -398,6 +399,12 @@ enum AuthProcedure {
     confirmationBody: 'You will lose all your saved places',
     confirmationOkayText: 'Proceed',
     confirmationCancelText: 'Cancel',
+  ),
+  none(
+    confirmationTitle: '',
+    confirmationBody: '',
+    confirmationOkayText: '',
+    confirmationCancelText: '',
   ),
   logout(
     confirmationTitle: 'Heads up!!!.. you are about to logout!',

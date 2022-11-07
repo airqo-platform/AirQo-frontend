@@ -20,28 +20,29 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
     return Scaffold(
       appBar: const OnBoardingTopBar(),
       body: WillPopScope(
-          onWillPop: _onWillPop,
-          child: AppSafeArea(
-            widget: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'All Set!',
-                    textAlign: TextAlign.center,
-                    style: _setUpCompleteTextStyle(),
+        onWillPop: _onWillPop,
+        child: AppSafeArea(
+          widget: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'All Set!',
+                  textAlign: TextAlign.center,
+                  style: _setUpCompleteTextStyle(),
+                ),
+                Text(
+                  'Breathe',
+                  textAlign: TextAlign.center,
+                  style: _setUpCompleteTextStyle()?.copyWith(
+                    color: CustomColors.appColorBlue,
                   ),
-                  Text(
-                    'Breathe',
-                    textAlign: TextAlign.center,
-                    style: _setUpCompleteTextStyle()?.copyWith(
-                      color: CustomColors.appColorBlue,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          )),
+          ),
+        ),
+      ),
     );
   }
 

@@ -14,8 +14,10 @@ class ValidateEmailAddress extends EmailAuthEvent {
 }
 
 class InitializeEmailAuth extends EmailAuthEvent {
-  const InitializeEmailAuth(
-      {required this.emailAddress, required this.authProcedure});
+  const InitializeEmailAuth({
+    required this.emailAddress,
+    required this.authProcedure,
+  });
   final String emailAddress;
   final AuthProcedure authProcedure;
   @override

@@ -25,7 +25,9 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     Emitter<SettingsState> emit,
   ) async {
     return emit(state.copyWith(
-        blocStatus: BlocStatus.error, error: event.authenticationError));
+      blocStatus: BlocStatus.error,
+      error: event.authenticationError,
+    ));
   }
 
   Future<void> _onAccountPreDeletionPassed(
@@ -115,7 +117,6 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           stackTrace,
         );
       }
-      return;
     } catch (exception, stackTrace) {
       emit(state.copyWith(
         error: AuthenticationError.authFailure,

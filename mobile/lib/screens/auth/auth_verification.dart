@@ -3,17 +3,12 @@ import 'dart:async';
 import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/auth/phone_auth_widget.dart';
-import 'package:app/widgets/dialogs.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../themes/app_theme.dart';
-import '../../themes/colors.dart';
-import '../../widgets/buttons.dart';
-import '../../widgets/custom_shimmer.dart';
-import '../../widgets/custom_widgets.dart';
-import '../../widgets/text_fields.dart';
 import '../home_page.dart';
 import '../on_boarding/on_boarding_widgets.dart';
 import '../on_boarding/profile_setup_screen.dart';
@@ -45,11 +40,13 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
         child: AppSafeArea(
           backgroundColor: Colors.white,
           widget: BlocConsumer<AuthCodeBloc, AuthCodeState>(
-            listener: (context, state) {},
+            listener: (context, state) {
+              return;
+            },
             buildWhen: (previous, current) {
-              return current.authStatus != BlocStatus.error ||
-                  current.authStatus != BlocStatus.success ||
-                  current.authStatus != BlocStatus.processing;
+              return current.blocStatus != BlocStatus.error ||
+                  current.blocStatus != BlocStatus.success ||
+                  current.blocStatus != BlocStatus.processing;
             },
             builder: (context, state) {
               final authOption = state.authMethod == AuthMethod.email
@@ -64,8 +61,10 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                 case AuthProcedure.anonymousLogin:
                 case AuthProcedure.deleteAccount:
                 case AuthProcedure.logout:
+                case AuthProcedure.none:
                   break;
               }
+
               return Center(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -80,7 +79,7 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                               loadingScreen(_loadingContext);
                             },
                             listenWhen: (previous, current) {
-                              return current.authStatus ==
+                              return current.blocStatus ==
                                   BlocStatus.processing;
                             },
                           ),
@@ -89,7 +88,7 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                               Navigator.pop(_loadingContext);
                             },
                             listenWhen: (previous, current) {
-                              return previous.authStatus ==
+                              return previous.blocStatus ==
                                   BlocStatus.processing;
                             },
                           ),
@@ -98,7 +97,7 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                               showSnackBar(context, state.error.message);
                             },
                             listenWhen: (previous, current) {
-                              return current.authStatus == BlocStatus.error &&
+                              return current.blocStatus == BlocStatus.error &&
                                   current.error != AuthenticationError.none;
                             },
                           ),
@@ -116,20 +115,24 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                                 case AuthProcedure.deleteAccount:
                                   nextPage = const PhoneSignUpWidget();
                                   break;
+                                case AuthProcedure.none:
                                 case AuthProcedure.logout:
                                   nextPage = const PhoneLoginWidget();
                                   break;
                               }
 
-                              Navigator.pushAndRemoveUntil(context,
-                                  MaterialPageRoute(
-                                builder: (context) {
-                                  return nextPage;
-                                },
-                              ), (r) => false);
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return nextPage;
+                                  },
+                                ),
+                                (r) => false,
+                              );
                             },
                             listenWhen: (previous, current) {
-                              return current.authStatus == BlocStatus.success;
+                              return current.blocStatus == BlocStatus.success;
                             },
                           ),
                         ],
@@ -269,9 +272,13 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                           }
                         },
                         child: NextButton(
-                            buttonColor: state.inputAuthCode.length >= 6
-                                ? CustomColors.appColorBlue
-                                : CustomColors.appColorDisabled),
+                          buttonColor: state.inputAuthCode.length >= 6
+                              ? CustomColors.appColorBlue
+                              : CustomColors.appColorDisabled,
+                        ),
+                      ),
+                      SizedBox(
+                        height: 12,
                       ),
                     ],
                   ),

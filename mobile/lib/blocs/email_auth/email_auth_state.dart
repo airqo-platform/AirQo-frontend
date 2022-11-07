@@ -15,9 +15,10 @@ class EmailAuthState extends Equatable {
     this.blocStatus = BlocStatus.initial,
   });
 
-  const EmailAuthState.initial(
-      {String? emailAddress, required AuthProcedure authProcedure})
-      : this._(
+  const EmailAuthState.initial({
+    String? emailAddress,
+    required AuthProcedure authProcedure,
+  }) : this._(
           blocStatus: BlocStatus.initial,
           emailAddress: emailAddress ?? '',
           authProcedure: authProcedure,

@@ -25,7 +25,6 @@ class AppService {
   static final AppService _instance = AppService._internal();
 
   Future<bool> authenticateUser({
-    required AuthMethod authMethod,
     required AuthProcedure authProcedure,
     AuthCredential? authCredential,
   }) async {
@@ -55,6 +54,7 @@ class AppService {
         break;
 
       case AuthProcedure.logout:
+      case AuthProcedure.none:
         authSuccessful = true;
         break;
     }
@@ -67,21 +67,24 @@ class AppService {
         case AuthProcedure.signup:
           await _postSignUpActions();
           break;
+        case AuthProcedure.logout:
+          return _postLogOutActions();
         case AuthProcedure.anonymousLogin:
           await _postAnonymousLoginActions();
           break;
         case AuthProcedure.deleteAccount:
+        case AuthProcedure.none:
           break;
-        case AuthProcedure.logout:
-          return _postLogOutActions();
       }
     }
 
     return authSuccessful;
   }
 
-  Future<bool> doesUserExist(
-      {String? phoneNumber, String? emailAddress}) async {
+  Future<bool> doesUserExist({
+    String? phoneNumber,
+    String? emailAddress,
+  }) async {
     try {
       if (emailAddress != null) {
         final methods = await FirebaseAuth.instance

@@ -25,14 +25,15 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
   }
 
   /// Email  verification
-  Future<void> _onUpdateEmailCredentials(
+  void _onUpdateEmailCredentials(
     UpdateEmailCredentials event,
     Emitter<AuthCodeState> emit,
-  ) async {
+  ) {
     emit(state.copyWith(
       validAuthCode: event.emailToken.toString(),
       validEmailLink: event.emailVerificationLink,
     ));
+
     return emit(state.copyWith(
       validAuthCode: event.emailToken.toString(),
       validEmailLink: event.emailVerificationLink,
@@ -45,17 +46,17 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return emit(state.copyWith(
-        authStatus: BlocStatus.error,
+        blocStatus: BlocStatus.error,
         error: AuthenticationError.noInternetConnection,
       ));
     }
 
-    emit(state.copyWith(authStatus: BlocStatus.processing));
+    emit(state.copyWith(blocStatus: BlocStatus.processing));
 
     if (state.inputAuthCode != state.validAuthCode) {
       return emit(state.copyWith(
         error: AuthenticationError.invalidAuthCode,
-        authStatus: BlocStatus.error,
+        blocStatus: BlocStatus.error,
       ));
     }
 
@@ -66,25 +67,23 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
       );
 
       final authenticationSuccessful = await AppService().authenticateUser(
-          authProcedure: state.authProcedure,
-          authMethod: AuthMethod.email,
-          authCredential: emailCredential);
+        authProcedure: state.authProcedure,
+        authCredential: emailCredential,
+      );
 
-      if (authenticationSuccessful) {
-        return emit(const AuthCodeState.initial()
-            .copyWith(authStatus: BlocStatus.success));
-      } else {
-        return emit(state.copyWith(
-          error: AuthenticationError.authFailure,
-          authStatus: BlocStatus.error,
-        ));
-      }
+      return emit(state.copyWith(
+        error: authenticationSuccessful
+            ? state.error
+            : AuthenticationError.authFailure,
+        blocStatus:
+            authenticationSuccessful ? BlocStatus.success : BlocStatus.error,
+      ));
     } on FirebaseAuthException catch (exception, stackTrace) {
       final authenticationError =
           CustomAuth.getErrorFromFirebaseCode(exception.code);
       emit(state.copyWith(
         error: authenticationError,
-        authStatus: BlocStatus.error,
+        blocStatus: BlocStatus.error,
       ));
 
       if (authenticationError == AuthenticationError.authFailure) {
@@ -93,24 +92,24 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
           stackTrace,
         );
       }
-      return;
     } catch (exception, stackTrace) {
       emit(state.copyWith(
         error: AuthenticationError.authFailure,
-        authStatus: BlocStatus.error,
+        blocStatus: BlocStatus.error,
       ));
       await logException(exception, stackTrace);
-      return;
     }
   }
 
   /// Phone number verification
-  Future<void> _onUpdateVerificationId(
+  void _onUpdateVerificationId(
     UpdateVerificationId event,
     Emitter<AuthCodeState> emit,
-  ) async {
+  ) {
     return emit(state.copyWith(
-        verificationId: event.verificationId, authStatus: BlocStatus.initial));
+      verificationId: event.verificationId,
+      blocStatus: BlocStatus.initial,
+    ));
   }
 
   Future<void> _verifyPhoneSmsCode(
@@ -119,12 +118,12 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return emit(state.copyWith(
-        authStatus: BlocStatus.error,
+        blocStatus: BlocStatus.error,
         error: AuthenticationError.noInternetConnection,
       ));
     }
 
-    emit(state.copyWith(authStatus: BlocStatus.processing));
+    emit(state.copyWith(blocStatus: BlocStatus.processing));
 
     try {
       final phoneCredential = PhoneAuthProvider.credential(
@@ -135,103 +134,84 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
 
       final authenticationSuccessful = await AppService().authenticateUser(
         authProcedure: state.authProcedure,
-        authMethod: AuthMethod.phone,
         authCredential: authCredential,
       );
 
-      if (authenticationSuccessful) {
-        return emit(state.copyWith(authStatus: BlocStatus.success));
-      } else {
-        return emit(state.copyWith(
-          error: AuthenticationError.authFailure,
-          authStatus: BlocStatus.error,
-        ));
-      }
+      return emit(state.copyWith(
+        error: authenticationSuccessful
+            ? state.error
+            : AuthenticationError.authFailure,
+        blocStatus:
+            authenticationSuccessful ? BlocStatus.success : BlocStatus.error,
+      ));
     } on FirebaseAuthException catch (exception, _) {
-      if (exception.code == 'invalid-verification-code') {
-        return emit(state.copyWith(
-          error: AuthenticationError.invalidAuthCode,
-          authStatus: BlocStatus.error,
-        ));
-      } else if (exception.code == 'session-expired') {
-        return emit(state.copyWith(
-          error: AuthenticationError.authSessionTimeout,
-          authStatus: BlocStatus.error,
-        ));
-      } else if (exception.code == 'account-exists-with-different-credential') {
-        return emit(state.copyWith(
-          error: AuthenticationError.phoneNumberTaken,
-          authStatus: BlocStatus.error,
-        ));
-      } else if (exception.code == 'user-disabled') {
-        return emit(state.copyWith(
-          error: AuthenticationError.accountInvalid,
-          authStatus: BlocStatus.error,
-        ));
-      } else {
-        emit(state.copyWith(
-          error: AuthenticationError.authFailure,
-          authStatus: BlocStatus.error,
-        ));
+      final error = CustomAuth.getErrorFromFirebaseCode(exception.code);
 
-        return;
-      }
+      return emit(state.copyWith(
+        error: error,
+        blocStatus: BlocStatus.error,
+      ));
     } catch (exception, stackTrace) {
       emit(state.copyWith(
         error: AuthenticationError.authFailure,
-        authStatus: BlocStatus.error,
+        blocStatus: BlocStatus.error,
       ));
       await logException(exception, stackTrace);
-      return;
     }
   }
 
   /// End
 
-  Future<void> _onInitializeAuthCodeState(
+  void _onInitializeAuthCodeState(
     InitializeAuthCodeState event,
     Emitter<AuthCodeState> emit,
-  ) async {
+  ) {
     emit(state.copyWith(
       phoneNumber: event.phoneNumber,
       authProcedure: event.authProcedure,
       emailAddress: event.emailAddress,
       authMethod: event.authMethod,
-      authStatus: BlocStatus.initial,
+      blocStatus: BlocStatus.initial,
       error: AuthenticationError.none,
       codeCountDown: 5,
     ));
   }
 
-  Future<void> _onClearAuthCodeState(
-    ClearAuthCodeState event,
+  void _onClearAuthCodeState(
+    ClearAuthCodeState _,
     Emitter<AuthCodeState> emit,
-  ) async {
+  ) {
     emit(const AuthCodeState.initial());
   }
 
   Future<void> _onGuestUserEvent(
-    GuestUserEvent event,
+    GuestUserEvent _,
     Emitter<AuthCodeState> emit,
   ) async {
     try {
       await AppService().authenticateUser(
-        authMethod: AuthMethod.none,
         authProcedure: AuthProcedure.anonymousLogin,
       );
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
     }
+
+    return emit(const AuthCodeState.initial());
   }
 
-  Future<void> _onUpdateAuthCode(
+  void _onUpdateAuthCode(
     UpdateAuthCode event,
     Emitter<AuthCodeState> emit,
-  ) async {
+  ) {
     emit(state.copyWith(
-        inputAuthCode: event.value, authStatus: BlocStatus.editing));
+      inputAuthCode: event.value,
+      blocStatus: BlocStatus.editing,
+    ));
+
     return emit(state.copyWith(
-        inputAuthCode: event.value, authStatus: BlocStatus.editing));
+      inputAuthCode: event.value,
+      blocStatus: BlocStatus.editing,
+    ));
   }
 
   Future<void> _onVerifyAuthCode(
@@ -251,10 +231,10 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
     }
   }
 
-  Future<void> _updateCountDown(
+  void _updateCountDown(
     UpdateCountDown event,
     Emitter<AuthCodeState> emit,
-  ) async {
+  ) {
     emit(state.copyWith(codeCountDown: event.countDown));
   }
 
@@ -262,12 +242,12 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
     ResendAuthCode event,
     Emitter<AuthCodeState> emit,
   ) async {
-    emit(state.copyWith(authStatus: BlocStatus.processing));
+    emit(state.copyWith(blocStatus: BlocStatus.processing));
 
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return emit(state.copyWith(
-        authStatus: BlocStatus.error,
+        blocStatus: BlocStatus.error,
         error: AuthenticationError.noInternetConnection,
       ));
     }

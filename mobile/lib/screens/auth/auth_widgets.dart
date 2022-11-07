@@ -65,6 +65,7 @@ class _PhoneInputFieldState extends State<PhoneInputField> {
             if (value == null || value.isEmpty) {
               return 'Please enter your phone number';
             }
+
             return null;
           },
           enableSuggestions: false,

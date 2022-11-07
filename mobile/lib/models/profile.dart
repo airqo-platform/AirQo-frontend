@@ -122,11 +122,11 @@ class Profile extends HiveObject {
   }
 
   Future<void> logOut() async {
-    _initialize();
+    await _initialize();
   }
 
   Future<void> deleteAccount() async {
-    _initialize();
+    await _initialize();
   }
 
   Future<void> updateName(String fullName) async {

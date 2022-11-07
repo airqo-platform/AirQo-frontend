@@ -5,8 +5,10 @@ abstract class PhoneAuthEvent extends Equatable {
 }
 
 class InitializePhoneAuth extends PhoneAuthEvent {
-  const InitializePhoneAuth(
-      {required this.phoneNumber, required this.authProcedure});
+  const InitializePhoneAuth({
+    required this.phoneNumber,
+    required this.authProcedure,
+  });
   final String phoneNumber;
   final AuthProcedure authProcedure;
   @override

@@ -235,7 +235,6 @@ class _ProfileViewState extends State<ProfileView> {
     loadingScreen(loadingContext);
 
     final successful = await AppService().authenticateUser(
-      authMethod: AuthMethod.none,
       authProcedure: AuthProcedure.logout,
     );
     if (successful) {

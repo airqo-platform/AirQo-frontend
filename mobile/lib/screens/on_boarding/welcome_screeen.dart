@@ -51,11 +51,15 @@ class WelcomeScreen extends StatelessWidget {
               Spacer(),
               GestureDetector(
                 onTap: () {
-                  Navigator.pushAndRemoveUntil(context, MaterialPageRoute(
-                    builder: (context) {
-                      return NotificationsSetupScreen();
-                    },
-                  ), (r) => false);
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return NotificationsSetupScreen();
+                      },
+                    ),
+                    (r) => false,
+                  );
                 },
                 child: NextButton(
                   text: 'Next',

@@ -6,8 +6,7 @@ class PhoneAuthState extends Equatable {
     this.countryCode = '',
     this.authProcedure = AuthProcedure.login,
     this.error = AuthenticationError.none,
-    this.authStatus = BlocStatus.initial,
-    this.isValidPhoneNumber = false,
+    this.blocStatus = BlocStatus.initial,
   });
 
   const PhoneAuthState({
@@ -15,47 +14,44 @@ class PhoneAuthState extends Equatable {
     this.countryCode = '',
     this.authProcedure = AuthProcedure.login,
     this.error = AuthenticationError.none,
-    this.authStatus = BlocStatus.initial,
-    this.isValidPhoneNumber = false,
+    this.blocStatus = BlocStatus.initial,
   });
 
-  const PhoneAuthState.initial(
-      {String? phoneNumber,
-      String? countryCode,
-      required AuthProcedure authProcedure})
-      : this._(
-          authStatus: BlocStatus.initial,
+  const PhoneAuthState.initial({
+    String? phoneNumber,
+    String? countryCode,
+    required AuthProcedure authProcedure,
+  }) : this._(
+          blocStatus: BlocStatus.initial,
           countryCode: countryCode ?? '+256',
           phoneNumber: phoneNumber ?? '',
           authProcedure: authProcedure,
         );
 
   const PhoneAuthState.verificationRequest()
-      : this._(authStatus: BlocStatus.processing);
+      : this._(blocStatus: BlocStatus.processing);
 
-  const PhoneAuthState.verifying() : this._(authStatus: BlocStatus.processing);
+  const PhoneAuthState.verifying() : this._(blocStatus: BlocStatus.processing);
 
   const PhoneAuthState.error(AuthenticationError error)
-      : this._(error: error, authStatus: BlocStatus.error);
+      : this._(error: error, blocStatus: BlocStatus.error);
 
   const PhoneAuthState.verificationSuccessful()
-      : this._(authStatus: BlocStatus.success);
+      : this._(blocStatus: BlocStatus.success);
 
   PhoneAuthState copyWith({
     String? phoneNumber,
     String? countryCode,
     AuthProcedure? authProcedure,
     AuthenticationError? error,
-    BlocStatus? authStatus,
-    bool? isValidPhoneNumber,
+    BlocStatus? blocStatus,
   }) {
     return PhoneAuthState(
       phoneNumber: phoneNumber ?? this.phoneNumber,
       countryCode: countryCode ?? this.countryCode,
       authProcedure: authProcedure ?? this.authProcedure,
       error: error ?? this.error,
-      authStatus: authStatus ?? this.authStatus,
-      isValidPhoneNumber: isValidPhoneNumber ?? this.isValidPhoneNumber,
+      blocStatus: blocStatus ?? this.blocStatus,
     );
   }
 
@@ -63,8 +59,7 @@ class PhoneAuthState extends Equatable {
   final String countryCode;
   final AuthProcedure authProcedure;
   final AuthenticationError error;
-  final BlocStatus authStatus;
-  final bool isValidPhoneNumber;
+  final BlocStatus blocStatus;
 
   @override
   List<Object?> get props => [
@@ -72,7 +67,6 @@ class PhoneAuthState extends Equatable {
         countryCode,
         error,
         authProcedure,
-        authStatus,
-        isValidPhoneNumber
+        blocStatus,
       ];
 }

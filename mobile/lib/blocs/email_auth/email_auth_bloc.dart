@@ -13,8 +13,9 @@ part 'email_auth_state.dart';
 
 class EmailAuthBloc extends Bloc<EmailAuthEvent, EmailAuthState> {
   EmailAuthBloc()
-      : super(
-            const EmailAuthState.initial(authProcedure: AuthProcedure.signup)) {
+      : super(const EmailAuthState.initial(
+          authProcedure: AuthProcedure.signup,
+        )) {
     on<ValidateEmailAddress>(_onValidateEmailAddress);
     on<EmailValidationFailed>(_onEmailValidationFailed);
     on<EmailValidationPassed>(_onEmailValidationPassed);
@@ -141,7 +142,7 @@ class EmailAuthBloc extends Bloc<EmailAuthEvent, EmailAuthState> {
                       emit(state.copyWith(
                         blocStatus: BlocStatus.error,
                         error: AuthenticationError.emailTaken,
-                      ))
+                      )),
                     }
                   else
                     {
@@ -150,14 +151,13 @@ class EmailAuthBloc extends Bloc<EmailAuthEvent, EmailAuthState> {
                         buildContext: event.context,
                         authProcedure: state.authProcedure,
                       ),
-                    }
+                    },
                 });
         break;
       case AuthProcedure.anonymousLogin:
-        break;
       case AuthProcedure.deleteAccount:
-        break;
       case AuthProcedure.logout:
+      case AuthProcedure.none:
         break;
     }
 

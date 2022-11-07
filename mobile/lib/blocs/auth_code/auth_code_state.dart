@@ -6,10 +6,10 @@ class AuthCodeState extends Equatable {
     this.phoneNumber = '',
     this.verificationId = '',
     this.phoneAuthCredential,
-    this.authProcedure = AuthProcedure.login,
+    this.authProcedure = AuthProcedure.none,
     this.inputAuthCode = '',
     this.error = AuthenticationError.none,
-    this.authStatus = BlocStatus.initial,
+    this.blocStatus = BlocStatus.initial,
     this.codeCountDown = 5,
     this.authMethod = AuthMethod.none,
     this.validAuthCode = '',
@@ -24,7 +24,7 @@ class AuthCodeState extends Equatable {
     this.authProcedure = AuthProcedure.login,
     this.inputAuthCode = '',
     this.error = AuthenticationError.none,
-    this.authStatus = BlocStatus.initial,
+    this.blocStatus = BlocStatus.initial,
     this.emailAddress = '',
     this.authMethod = AuthMethod.none,
     this.validAuthCode = '',
@@ -43,8 +43,7 @@ class AuthCodeState extends Equatable {
     String? emailAddress,
     String? inputAuthCode,
     AuthenticationError? error,
-    BlocStatus? authStatus,
-    bool? isValidPhoneNumber,
+    BlocStatus? blocStatus,
     AuthMethod? authMethod,
     String? validEmailLink,
   }) {
@@ -57,7 +56,7 @@ class AuthCodeState extends Equatable {
       inputAuthCode: inputAuthCode ?? this.inputAuthCode,
       validAuthCode: validAuthCode ?? this.validAuthCode,
       error: error ?? this.error,
-      authStatus: authStatus ?? this.authStatus,
+      blocStatus: blocStatus ?? this.blocStatus,
       emailAddress: emailAddress ?? this.emailAddress,
       authMethod: authMethod ?? this.authMethod,
       validEmailLink: validEmailLink ?? this.validEmailLink,
@@ -74,7 +73,7 @@ class AuthCodeState extends Equatable {
   final String inputAuthCode;
   final String validAuthCode;
   final AuthenticationError error;
-  final BlocStatus authStatus;
+  final BlocStatus blocStatus;
   final int codeCountDown;
 
   @override
@@ -85,7 +84,7 @@ class AuthCodeState extends Equatable {
         inputAuthCode,
         error,
         authProcedure,
-        authStatus,
+        blocStatus,
         codeCountDown,
         authMethod,
         validAuthCode,

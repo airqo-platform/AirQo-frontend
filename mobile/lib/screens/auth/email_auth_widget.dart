@@ -12,7 +12,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../on_boarding/on_boarding_widgets.dart';
-import '../on_boarding/profile_setup_screen.dart';
 
 import 'auth_verification.dart';
 import 'auth_widgets.dart';
@@ -53,7 +52,9 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
         child: AppSafeArea(
           backgroundColor: Colors.white,
           widget: BlocConsumer<EmailAuthBloc, EmailAuthState>(
-            listener: (context, state) {},
+            listener: (context, state) {
+              return;
+            },
             buildWhen: (previous, current) {
               return current.blocStatus != BlocStatus.error &&
                   current.blocStatus != BlocStatus.success &&
@@ -166,8 +167,11 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                               Navigator.pushAndRemoveUntil(
                                 context,
                                 PageRouteBuilder(
-                                  pageBuilder: (context, animation,
-                                          secondaryAnimation) =>
+                                  pageBuilder: (
+                                    context,
+                                    animation,
+                                    secondaryAnimation,
+                                  ) =>
                                       state.authProcedure == AuthProcedure.login
                                           ? const PhoneLoginWidget()
                                           : const PhoneSignUpWidget(),
@@ -224,6 +228,9 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
                         child: state.authProcedure == AuthProcedure.login
                             ? const LoginOptions(authMethod: AuthMethod.email)
                             : const SignUpOptions(authMethod: AuthMethod.email),
+                      ),
+                      SizedBox(
+                        height: state.blocStatus == BlocStatus.editing ? 12 : 0,
                       ),
                     ],
                   ),

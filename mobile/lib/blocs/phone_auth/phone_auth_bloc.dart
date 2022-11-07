@@ -13,8 +13,9 @@ part 'phone_auth_state.dart';
 
 class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
   PhoneAuthBloc()
-      : super(
-            const PhoneAuthState.initial(authProcedure: AuthProcedure.signup)) {
+      : super(const PhoneAuthState.initial(
+          authProcedure: AuthProcedure.signup,
+        )) {
     on<InitiatePhoneNumberVerification>(_onInitiatePhoneNumberVerification);
     on<UpdateCountryCode>(_onUpdateCountryCode);
     on<UpdatePhoneNumber>(_onUpdatePhoneNumber);
@@ -29,24 +30,29 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
     UpdateStatus event,
     Emitter<PhoneAuthState> emit,
   ) async {
-    return emit(state.copyWith(authStatus: event.authStatus));
+    return emit(state.copyWith(
+      blocStatus: event.authStatus,
+    ));
   }
 
   Future<void> _onInvalidPhoneNumber(
-    InvalidPhoneNumber event,
+    InvalidPhoneNumber _,
     Emitter<PhoneAuthState> emit,
   ) async {
     return emit(state.copyWith(
-        authStatus: BlocStatus.error,
-        error: AuthenticationError.invalidPhoneNumber));
+      blocStatus: BlocStatus.error,
+      error: AuthenticationError.invalidPhoneNumber,
+    ));
   }
 
   Future<void> _onClearPhoneNumberEvent(
     ClearPhoneNumberEvent _,
     Emitter<PhoneAuthState> emit,
   ) async {
-    return emit(
-        state.copyWith(phoneNumber: '', authStatus: BlocStatus.initial));
+    return emit(state.copyWith(
+      phoneNumber: '',
+      blocStatus: BlocStatus.initial,
+    ));
   }
 
   Future<void> _onUpdateCountryCode(
@@ -70,28 +76,22 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
     UpdatePhoneNumber event,
     Emitter<PhoneAuthState> emit,
   ) async {
-    if (event.phoneNumber.length >= 5) {
-      return emit(state.copyWith(
-          phoneNumber: event.phoneNumber,
-          isValidPhoneNumber: true,
-          authStatus: BlocStatus.editing));
-    }
     return emit(state.copyWith(
-        phoneNumber: event.phoneNumber,
-        isValidPhoneNumber: false,
-        authStatus: BlocStatus.editing));
+      phoneNumber: event.phoneNumber,
+      blocStatus: BlocStatus.editing,
+    ));
   }
 
   Future<void> _onInitiatePhoneNumberVerification(
     InitiatePhoneNumberVerification event,
     Emitter<PhoneAuthState> emit,
   ) async {
-    emit(state.copyWith(authStatus: BlocStatus.processing));
+    emit(state.copyWith(blocStatus: BlocStatus.processing));
 
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
       return emit(state.copyWith(
-        authStatus: BlocStatus.error,
+        blocStatus: BlocStatus.error,
         error: AuthenticationError.noInternetConnection,
       ));
     }
@@ -117,9 +117,9 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
                   if (exists)
                     {
                       emit(state.copyWith(
-                        authStatus: BlocStatus.error,
+                        blocStatus: BlocStatus.error,
                         error: AuthenticationError.phoneNumberTaken,
-                      ))
+                      )),
                     }
                   else
                     {
@@ -128,268 +128,16 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
                         buildContext: event.context,
                         authProcedure: state.authProcedure,
                       ),
-                    }
+                    },
                 });
         break;
       case AuthProcedure.anonymousLogin:
-        break;
       case AuthProcedure.deleteAccount:
-        break;
       case AuthProcedure.logout:
+      case AuthProcedure.none:
         break;
     }
 
     return;
   }
-
-  // Future<void> _onValidatePhoneNumber(
-  //     ValidatePhoneNumber event,
-  //     Emitter<PhoneAuthState> emit,
-  //     ) async {
-  //   emit(state.copyWith(authStatus: AuthStatus.processing));
-  //
-  //   final hasConnection = await hasNetworkConnection();
-  //   if(!hasConnection){
-  //     return emit(state.copyWith(authStatus: AuthStatus.error, error: AuthenticationError.noInternetConnection,));
-  //   }
-  //
-  //   final appService = AppService();
-  //   switch(state.authProcedure){
-  //
-  //     case AuthProcedure.login:
-  //       // TODO: Handle this case.
-  //       break;
-  //     case AuthProcedure.signup:
-  //       final phoneNumberTaken = await appService.doesUserExist(
-  //         phoneNumber: state.phoneNumber,
-  //       );
-  //       if(phoneNumberTaken){
-  //         return emit(state.copyWith(authStatus: AuthStatus.error, error: AuthenticationError.phoneNumberTaken,));
-  //       }
-  //       break;
-  //     case AuthProcedure.anonymousLogin:
-  //       break;
-  //     case AuthProcedure.deleteAccount:
-  //       break;
-  //     case AuthProcedure.logout:
-  //       break;
-  //   }
-  //
-  //
-  //   //
-  //   // var error = AuthenticationError.authFailure;
-  //   // final authCredential = event.credential == null ? state.credential : event.credential;
-  //   // try {
-  //   //   final authenticationSuccessful = await appService.authenticateUser(
-  //   //     authProcedure: state.authProcedure == AuthProcedure.login
-  //   //         ? AuthProcedure.login
-  //   //         : AuthProcedure.signup,
-  //   //     authMethod: AuthMethod.phone,
-  //   //     authCredential: authCredential,
-  //   //   );
-  //   //
-  //   //   if (authenticationSuccessful) {
-  //   //     return emit(const PhoneAuthState.verificationSuccessful());
-  //   //   } else {
-  //   //     return emit(const PhoneAuthState.error(AuthenticationError.authFailure));
-  //   //   }
-  //   // } on FirebaseAuthException catch (exception, stackTrace) {
-  //   //   if (exception.code == 'invalid-verification-code') {
-  //   //     error = AuthenticationError.invalidAuthCode;
-  //   //   } else if (exception.code == 'session-expired') {
-  //   //     error = AuthenticationError.authSessionTimeout;
-  //   //   } else if (exception.code == 'account-exists-with-different-credential') {
-  //   //     error = AuthenticationError.phoneNumberTaken;
-  //   //   } else if (exception.code == 'user-disabled') {
-  //   //     error = AuthenticationError.accountInvalid;
-  //   //   }
-  //   //
-  //   //   emit(PhoneAuthState.error(error));
-  //   //
-  //   //   debugPrint('$exception\n$stackTrace');
-  //   //   if (![
-  //   //     'invalid-verification-code',
-  //   //     'invalid-verification-code',
-  //   //     'account-exists-with-different-credential',
-  //   //   ].contains(exception.code)) {
-  //   //     await logException(
-  //   //       exception,
-  //   //       stackTrace,
-  //   //     );
-  //   //   }
-  //   //   return;
-  //   // } catch (exception, stackTrace) {
-  //   //   emit(PhoneAuthState.error(error));
-  //   //   await logException(exception, stackTrace);
-  //   //   return;
-  //   // }
-  // }
-
-  // Future<void> verifyPhoneFn(verificationId) {
-  //   setState(
-  //         () {
-  //       _verifyCode = true;
-  //       _verificationId = verificationId;
-  //     },
-  //   );
-  // }
-
-  // Future<void> _verifyPhoneNumberEvent(
-  //   VerifyPhoneNumber event,
-  //   Emitter<PhoneAuthState> emit,
-  // ) async {
-  //
-  //   emit(const PhoneAuthState.verifying());
-  //
-  //   final appService = AppService();
-  //
-  //   var error = AuthenticationError.authFailure;
-  //   final authCredential = event.credential == null ? state.credential : event.credential;
-  //   try {
-  //     final authenticationSuccessful = await appService.authenticateUser(
-  //       authProcedure: state.authProcedure == AuthProcedure.login
-  //           ? AuthProcedure.login
-  //           : AuthProcedure.signup,
-  //       authMethod: AuthMethod.phone,
-  //       authCredential: authCredential,
-  //     );
-  //
-  //     if (authenticationSuccessful) {
-  //       return emit(const PhoneAuthState.verificationSuccessful());
-  //     } else {
-  //       return emit(const PhoneAuthState.error(AuthenticationError.authFailure));
-  //     }
-  //   } on FirebaseAuthException catch (exception, stackTrace) {
-  //     if (exception.code == 'invalid-verification-code') {
-  //       error = AuthenticationError.invalidAuthCode;
-  //     } else if (exception.code == 'session-expired') {
-  //       error = AuthenticationError.authSessionTimeout;
-  //     } else if (exception.code == 'account-exists-with-different-credential') {
-  //       error = AuthenticationError.phoneNumberTaken;
-  //     } else if (exception.code == 'user-disabled') {
-  //       error = AuthenticationError.accountInvalid;
-  //     }
-  //
-  //     emit(PhoneAuthState.error(error));
-  //
-  //     debugPrint('$exception\n$stackTrace');
-  //     if (![
-  //       'invalid-verification-code',
-  //       'invalid-verification-code',
-  //       'account-exists-with-different-credential',
-  //     ].contains(exception.code)) {
-  //       await logException(
-  //         exception,
-  //         stackTrace,
-  //       );
-  //     }
-  //     return;
-  //   } catch (exception, stackTrace) {
-  //     emit(PhoneAuthState.error(error));
-  //     await logException(exception, stackTrace);
-  //     return;
-  //   }
-  // }
-
-  // Future<void> _requestVerification(
-  //     VerifyPhoneNumberEvent event,
-  //     Emitter<PhoneAuthState> emit,
-  //     ) async {
-  //
-  //
-  //   final authState = state as PhoneAuthState;
-  //   final phoneNumber = '${authState.countryCode} ${authState.phoneNumber}';
-  //   final appService = AppService();
-  //
-  //   if (authState.authProcedure == AuthProcedure.signup) {
-  //     final phoneNumberTaken = await appService.doesUserExist(
-  //       phoneNumber: phoneNumber,
-  //     );
-  //
-  //     if (phoneNumberTaken) {
-  //       final errorState = authState as PhoneAuthErrorState;
-  //       return emit(errorState.copyWith(
-  //         error: AuthenticationError.phoneNumberTaken,
-  //       ));
-  //     }
-  //   }
-  //
-  //   final success = await CustomAuth.requestPhoneAuthCode(
-  //     phoneNumber,
-  //     event.context,
-  //   );
-  // }
-  //
-  // Future<void> _resendVerificationCode() async {
-  //   final connected = await checkNetworkConnection(
-  //     context,
-  //     notifyUser: true,
-  //   );
-  //   if (!connected) {
-  //     return;
-  //   }
-  //
-  //   loadingScreen(_loadingContext);
-  //
-  //   final success = await CustomAuth.requestPhoneAuthCode(
-  //     '$_countryCode$_phoneNumber',
-  //     context,
-  //     verifyPhoneFn,
-  //     autoVerifyPhoneFn,
-  //   );
-  //
-  //   Navigator.pop(_loadingContext);
-  //
-  //   if (success) {
-  //     setState(
-  //       () {
-  //         _codeSent = true;
-  //       },
-  //     );
-  //   } else {
-  //     setState(
-  //       () {
-  //         _codeSent = false;
-  //       },
-  //     );
-  //   }
-  //
-  //   _startCodeSentCountDown();
-  // }
-  //
-  // Future<void> _verifySentCode() async {
-  //   final code = _phoneVerificationCode.join('');
-  //
-  //   if (code.length != 6) {
-  //     await showSnackBar(
-  //       context,
-  //       'Enter all the 6 digits',
-  //     );
-  //
-  //     return;
-  //   }
-  //
-  //   FocusScope.of(context).requestFocus(
-  //     FocusNode(),
-  //   );
-  //   setState(
-  //     () {
-  //       _nextBtnColor = CustomColors.appColorDisabled;
-  //       _showAuthOptions = true;
-  //     },
-  //   );
-  //
-  //   loadingScreen(_loadingContext);
-  //
-  //   final phoneCredential = PhoneAuthProvider.credential(
-  //     verificationId: _verificationId,
-  //     smsCode: _phoneVerificationCode.join(''),
-  //   );
-  //
-  //   await _authenticatePhoneNumber(phoneCredential);
-  // }
-  //
-  // void autoVerifyPhoneFn(PhoneAuthCredential credential) {
-  //   _authenticatePhoneNumber(credential);
-  // }
 }

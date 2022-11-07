@@ -4,13 +4,13 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../on_boarding/on_boarding_widgets.dart';
-import '../on_boarding/profile_setup_screen.dart';
 import 'auth_verification.dart';
 import 'auth_widgets.dart';
 import 'email_auth_widget.dart';
@@ -51,11 +51,13 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
         child: AppSafeArea(
           backgroundColor: Colors.white,
           widget: BlocConsumer<PhoneAuthBloc, PhoneAuthState>(
-            listener: (context, state) {},
+            listener: (context, state) {
+              return;
+            },
             buildWhen: (previous, current) {
-              return current.authStatus != BlocStatus.error &&
-                  current.authStatus != BlocStatus.success &&
-                  current.authStatus != BlocStatus.processing;
+              return current.blocStatus != BlocStatus.error &&
+                  current.blocStatus != BlocStatus.success &&
+                  current.blocStatus != BlocStatus.processing;
             },
             builder: (context, state) {
               return Center(
@@ -72,7 +74,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                               loadingScreen(_loadingContext);
                             },
                             listenWhen: (previous, current) {
-                              return current.authStatus ==
+                              return current.blocStatus ==
                                   BlocStatus.processing;
                             },
                           ),
@@ -81,7 +83,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                               Navigator.pop(_loadingContext);
                             },
                             listenWhen: (previous, current) {
-                              return previous.authStatus ==
+                              return previous.blocStatus ==
                                   BlocStatus.processing;
                             },
                           ),
@@ -90,7 +92,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                               showSnackBar(context, state.error.message);
                             },
                             listenWhen: (previous, current) {
-                              return current.authStatus == BlocStatus.error &&
+                              return current.blocStatus == BlocStatus.error &&
                                   current.error != AuthenticationError.none;
                             },
                           ),
@@ -113,7 +115,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                               );
                             },
                             listenWhen: (previous, current) {
-                              return current.authStatus == BlocStatus.success;
+                              return current.blocStatus == BlocStatus.success;
                             },
                           ),
                         ],
@@ -159,9 +161,11 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                               width: 64,
                               child: CountryCodePickerField(
                                 valueChange: (code) {
-                                  context.read<PhoneAuthBloc>().add(
-                                      UpdateCountryCode(
-                                          code ?? state.countryCode));
+                                  context
+                                      .read<PhoneAuthBloc>()
+                                      .add(UpdateCountryCode(
+                                        code ?? state.countryCode,
+                                      ));
                                 },
                                 placeholder: state.countryCode,
                               ),
@@ -185,8 +189,11 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                               Navigator.pushAndRemoveUntil(
                                 context,
                                 PageRouteBuilder(
-                                  pageBuilder: (context, animation,
-                                          secondaryAnimation) =>
+                                  pageBuilder: (
+                                    context,
+                                    animation,
+                                    secondaryAnimation,
+                                  ) =>
                                       state.authProcedure == AuthProcedure.login
                                           ? const EmailLoginWidget()
                                           : const EmailSignUpWidget(),
@@ -220,7 +227,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                       const Spacer(),
                       GestureDetector(
                         onTap: () async {
-                          if (state.isValidPhoneNumber) {
+                          if (state.phoneNumber.isValidPhoneNumber()) {
                             await showDialog<ConfirmationAction>(
                               context: context,
                               barrierDismissible: false,
@@ -231,34 +238,41 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
                                   authMethod: AuthMethod.phone,
                                 );
                               },
-                            ).then((action) => {
-                                  if (action != null ||
-                                      action == ConfirmationAction.ok)
-                                    {
-                                      context.read<PhoneAuthBloc>().add(
+                            ).then(
+                              (action) => {
+                                if (action != null ||
+                                    action == ConfirmationAction.ok)
+                                  {
+                                    context.read<PhoneAuthBloc>().add(
                                           InitiatePhoneNumberVerification(
-                                              context: context))
-                                    }
-                                });
+                                            context: context,
+                                          ),
+                                        ),
+                                  },
+                              },
+                            );
                           }
                         },
                         child: NextButton(
-                          buttonColor: state.isValidPhoneNumber
+                          buttonColor: state.phoneNumber.isValidPhoneNumber()
                               ? CustomColors.appColorBlue
                               : CustomColors.appColorDisabled,
                         ),
                       ),
                       Visibility(
-                        visible: state.authStatus != BlocStatus.editing,
+                        visible: state.blocStatus != BlocStatus.editing,
                         child: const SizedBox(
                           height: 16,
                         ),
                       ),
                       Visibility(
-                        visible: state.authStatus != BlocStatus.editing,
+                        visible: state.blocStatus != BlocStatus.editing,
                         child: state.authProcedure == AuthProcedure.login
                             ? const LoginOptions(authMethod: AuthMethod.phone)
                             : const SignUpOptions(authMethod: AuthMethod.phone),
+                      ),
+                      SizedBox(
+                        height: state.blocStatus == BlocStatus.editing ? 12 : 0,
                       ),
                     ],
                   ),
