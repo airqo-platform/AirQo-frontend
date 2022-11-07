@@ -6,6 +6,7 @@ calibrate:
   deployment_name: airqo-dev-calibrate-app
   labels: dev-calibrate-app
   namespace: development
+  configmap: env-calibrate-staging
 
 replicaCount: 1
 

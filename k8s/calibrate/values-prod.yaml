@@ -6,6 +6,7 @@ calibrate:
   deployment_name: airqo-calibrate-app
   labels: airqo-calibrate-app
   namespace: production
+  configmap: env-calibrate-prod
 
 replicaCount: 2
 
