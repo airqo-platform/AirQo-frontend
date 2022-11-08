@@ -357,7 +357,6 @@ class AppService {
         _loadKya(),
         _updateFavouritePlacesReferenceSites(),
       ]);
-      await setshowcase();
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }
@@ -365,9 +364,7 @@ class AppService {
 
   Future<void> setshowcase() async {
     final prefs = await SharedPreferences.getInstance();
-    if (prefs.getBool('showcase') == null) {
-      await prefs.setBool('showcase', true);
-    }
+    await prefs.setBool('showcase', true);
   }
 
   Future<void> stopshowcase() async {
@@ -391,8 +388,6 @@ class AppService {
         _logPlatformType(),
         _logGender(),
       ]);
-      await clearshowcase();
-      await setshowcase();
     } catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
     }

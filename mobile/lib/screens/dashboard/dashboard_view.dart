@@ -359,8 +359,7 @@ class _DashboardViewState extends State<DashboardView> {
 
   Future<void> showcasetoggle() async {
     final prefs = await SharedPreferences.getInstance();
-    var showcase = prefs.getBool('showcase');
-    if (showcase == true) {
+    if (prefs.getBool('showcase') == null) {
       _startShowcase();
     }
   }
