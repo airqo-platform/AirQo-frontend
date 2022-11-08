@@ -21,14 +21,7 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  await Future.wait([
-    HiveService.initialize(),
-    SystemProperties.setDefault(),
-    NotificationService.listenToNotifications(),
-    dotenv.load(fileName: Config.environmentFile),
-    // initializeBackgroundServices()
-  ]);
-  HttpOverrides.global = AppHttpOverrides();
+  await initializeMainMethod();
 
   const configuredApp = AppConfig(
     appTitle: 'AirQo',
