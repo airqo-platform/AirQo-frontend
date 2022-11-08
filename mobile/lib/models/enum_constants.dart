@@ -42,58 +42,6 @@ enum AnalyticsEvent {
   }
 }
 
-enum AuthenticationCode {
-  noInternetConnection(
-    code: 'Turn on location to get air quality near you',
-    message: 'Grant location access in your phone settings',
-    snackBarDuration: 5,
-  ),
-  accountInvalid(
-    code: 'Turn on location to get air quality near you',
-    message: 'Grant location access in your phone settings',
-    snackBarDuration: 5,
-  ),
-  invalidAuthCode(
-    code: 'Turn on location to get air quality near you',
-    message: 'Grant location access in your phone settings',
-    snackBarDuration: 5,
-  ),
-  authSessionTimeout(
-    code: 'Turn on location to get air quality near you',
-    message: 'Session time out. Sending annother verification code',
-    snackBarDuration: 5,
-  ),
-  none(
-    code: 'Turn on location to get air quality near you',
-    message: '',
-    snackBarDuration: 0,
-  ),
-  authFailure(
-    code: 'Turn on location to get air quality near you',
-    message: 'Authentication failed. Try again later',
-    snackBarDuration: 5,
-  ),
-  phoneNumberTaken(
-    code: 'Turn on location to get air quality near you',
-    message: 'Grant location access in your phone settings',
-    snackBarDuration: 5,
-  ),
-  emailTaken(
-    code: 'Turn on location to get air quality near you',
-    message: 'Turn on location to get air quality near you',
-    snackBarDuration: 5,
-  );
-
-  const AuthenticationCode({
-    required this.code,
-    required this.message,
-    required this.snackBarDuration,
-  });
-  final String code;
-  final String message;
-  final int snackBarDuration;
-}
-
 enum AppPermission {
   notification,
   location,
@@ -122,7 +70,7 @@ enum AuthenticationError {
     snackBarDuration: 5,
   ),
   authSessionTimeout(
-    message: 'Session time out. Sending annother verification code',
+    message: 'Session time out. Sending another verification code',
     snackBarDuration: 5,
   ),
   none(

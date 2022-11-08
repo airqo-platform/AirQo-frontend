@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:equatable/equatable.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 
 import 'package:app/models/models.dart';
@@ -100,42 +101,57 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
 
     final phoneNumber = '${state.countryCode} ${state.phoneNumber}';
 
-    switch (state.authProcedure) {
-      case AuthProcedure.login:
-        await CustomAuth.sendPhoneAuthCode(
-          phoneNumber: phoneNumber,
-          buildContext: event.context,
-          authProcedure: state.authProcedure,
-        );
-        break;
-      case AuthProcedure.signup:
-        await appService
-            .doesUserExist(
-              phoneNumber: state.phoneNumber,
-            )
-            .then((exists) => {
-                  if (exists)
-                    {
-                      emit(state.copyWith(
-                        blocStatus: BlocStatus.error,
-                        error: AuthenticationError.phoneNumberTaken,
-                      )),
-                    }
-                  else
-                    {
-                      CustomAuth.sendPhoneAuthCode(
-                        phoneNumber: phoneNumber,
-                        buildContext: event.context,
-                        authProcedure: state.authProcedure,
-                      ),
-                    },
-                });
-        break;
-      case AuthProcedure.anonymousLogin:
-      case AuthProcedure.deleteAccount:
-      case AuthProcedure.logout:
-      case AuthProcedure.none:
-        break;
+    try {
+      switch (state.authProcedure) {
+        case AuthProcedure.login:
+          await CustomAuth.sendPhoneAuthCode(
+            phoneNumber: phoneNumber,
+            buildContext: event.context,
+            authProcedure: state.authProcedure,
+          );
+          break;
+        case AuthProcedure.signup:
+          await appService
+              .doesUserExist(
+                phoneNumber: state.phoneNumber,
+              )
+              .then((exists) => {
+                    if (exists)
+                      {
+                        emit(state.copyWith(
+                          blocStatus: BlocStatus.error,
+                          error: AuthenticationError.phoneNumberTaken,
+                        )),
+                      }
+                    else
+                      {
+                        CustomAuth.sendPhoneAuthCode(
+                          phoneNumber: phoneNumber,
+                          buildContext: event.context,
+                          authProcedure: state.authProcedure,
+                        ),
+                      },
+                  });
+          break;
+        case AuthProcedure.anonymousLogin:
+        case AuthProcedure.deleteAccount:
+        case AuthProcedure.logout:
+        case AuthProcedure.none:
+          break;
+      }
+    } on FirebaseAuthException catch (exception, _) {
+      final error = CustomAuth.getFirebaseErrorCodeMessage(exception.code);
+
+      return emit(state.copyWith(
+        error: error,
+        blocStatus: BlocStatus.error,
+      ));
+    } catch (exception, stackTrace) {
+      emit(state.copyWith(
+        error: AuthenticationError.authFailure,
+        blocStatus: BlocStatus.error,
+      ));
+      await logException(exception, stackTrace);
     }
 
     return;

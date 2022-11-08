@@ -27,6 +27,7 @@ class LocationSetupScreenState extends State<LocationSetupScreen> {
       body: WillPopScope(
         onWillPop: onWillPop,
         child: AppSafeArea(
+          verticalPadding: 10,
           widget: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [

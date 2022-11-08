@@ -105,7 +105,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       }
     } on FirebaseAuthException catch (exception, stackTrace) {
       final authenticationError =
-          CustomAuth.getErrorFromFirebaseCode(exception.code);
+          CustomAuth.getFirebaseErrorCodeMessage(exception.code);
       emit(state.copyWith(
         error: authenticationError,
         blocStatus: BlocStatus.error,

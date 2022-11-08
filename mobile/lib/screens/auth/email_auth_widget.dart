@@ -51,6 +51,7 @@ class EmailAuthWidgetState<T extends EmailAuthWidget> extends State<T> {
         onWillPop: onWillPop,
         child: AppSafeArea(
           backgroundColor: Colors.white,
+          verticalPadding: 10,
           widget: BlocConsumer<EmailAuthBloc, EmailAuthState>(
             listener: (context, state) {
               return;

@@ -39,6 +39,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
         onWillPop: onWillPop,
         child: AppSafeArea(
           horizontalPadding: 24,
+          verticalPadding: 10,
           widget: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,

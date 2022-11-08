@@ -28,6 +28,7 @@ class IntroductionScreenState extends State<IntroductionScreen> {
         onWillPop: onWillPop,
         child: AppSafeArea(
           horizontalPadding: 24,
+          verticalPadding: 10,
           widget: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

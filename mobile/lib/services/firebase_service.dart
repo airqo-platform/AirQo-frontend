@@ -585,7 +585,7 @@ class CustomAuth {
     return userCredential.user != null;
   }
 
-  static AuthenticationError getErrorFromFirebaseCode(String code) {
+  static AuthenticationError getFirebaseErrorCodeMessage(String code) {
     switch (code) {
       case 'invalid-email':
         return AuthenticationError.invalidEmailAddress;
@@ -609,12 +609,12 @@ class CustomAuth {
         return AuthenticationError.logInRequired;
       case 'invalid-verification-id':
       case 'invalid-credential':
+      case 'missing-client-identifier':
       default:
         return AuthenticationError.authFailure;
     }
   }
 
-  // TODO: add error handling to callers
   static Future<void> sendPhoneAuthCode({
     required String phoneNumber,
     required BuildContext buildContext,
@@ -698,7 +698,6 @@ class CustomAuth {
     );
   }
 
-  // TODO: add error handling to callers
   static Future<void> sendEmailAuthCode({
     required String emailAddress,
     required BuildContext buildContext,

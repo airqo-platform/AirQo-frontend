@@ -28,6 +28,7 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
       body: WillPopScope(
         onWillPop: onWillPop,
         child: AppSafeArea(
+          verticalPadding: 10,
           widget: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [

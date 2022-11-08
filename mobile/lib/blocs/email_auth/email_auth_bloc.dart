@@ -5,6 +5,7 @@ import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:equatable/equatable.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -115,50 +116,57 @@ class EmailAuthBloc extends Bloc<EmailAuthEvent, EmailAuthState> {
 
     final appService = AppService();
 
-    /*
-          TODO: update status in case error occurs
-    *       buildContext
-          .read<EmailAuthBloc>()
-          .add(const EmailValidationFailed(AuthenticationError.authFailure));
-    *
-    * */
+    try {
+      switch (state.authProcedure) {
+        case AuthProcedure.login:
+          await CustomAuth.sendEmailAuthCode(
+            emailAddress: state.emailAddress,
+            buildContext: event.context,
+            authProcedure: state.authProcedure,
+          );
+          break;
+        case AuthProcedure.signup:
+          await appService
+              .doesUserExist(
+                emailAddress: state.emailAddress,
+              )
+              .then((exists) => {
+                    if (exists)
+                      {
+                        emit(state.copyWith(
+                          blocStatus: BlocStatus.error,
+                          error: AuthenticationError.emailTaken,
+                        )),
+                      }
+                    else
+                      {
+                        CustomAuth.sendEmailAuthCode(
+                          emailAddress: state.emailAddress,
+                          buildContext: event.context,
+                          authProcedure: state.authProcedure,
+                        ),
+                      },
+                  });
+          break;
+        case AuthProcedure.anonymousLogin:
+        case AuthProcedure.deleteAccount:
+        case AuthProcedure.logout:
+        case AuthProcedure.none:
+          break;
+      }
+    } on FirebaseAuthException catch (exception, _) {
+      final error = CustomAuth.getFirebaseErrorCodeMessage(exception.code);
 
-    switch (state.authProcedure) {
-      case AuthProcedure.login:
-        await CustomAuth.sendEmailAuthCode(
-          emailAddress: state.emailAddress,
-          buildContext: event.context,
-          authProcedure: state.authProcedure,
-        );
-        break;
-      case AuthProcedure.signup:
-        await appService
-            .doesUserExist(
-              emailAddress: state.emailAddress,
-            )
-            .then((exists) => {
-                  if (exists)
-                    {
-                      emit(state.copyWith(
-                        blocStatus: BlocStatus.error,
-                        error: AuthenticationError.emailTaken,
-                      )),
-                    }
-                  else
-                    {
-                      CustomAuth.sendEmailAuthCode(
-                        emailAddress: state.emailAddress,
-                        buildContext: event.context,
-                        authProcedure: state.authProcedure,
-                      ),
-                    },
-                });
-        break;
-      case AuthProcedure.anonymousLogin:
-      case AuthProcedure.deleteAccount:
-      case AuthProcedure.logout:
-      case AuthProcedure.none:
-        break;
+      return emit(state.copyWith(
+        error: error,
+        blocStatus: BlocStatus.error,
+      ));
+    } catch (exception, stackTrace) {
+      emit(state.copyWith(
+        error: AuthenticationError.authFailure,
+        blocStatus: BlocStatus.error,
+      ));
+      await logException(exception, stackTrace);
     }
 
     return;

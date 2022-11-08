@@ -80,7 +80,7 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
       ));
     } on FirebaseAuthException catch (exception, stackTrace) {
       final authenticationError =
-          CustomAuth.getErrorFromFirebaseCode(exception.code);
+          CustomAuth.getFirebaseErrorCodeMessage(exception.code);
       emit(state.copyWith(
         error: authenticationError,
         blocStatus: BlocStatus.error,
@@ -145,7 +145,7 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
             authenticationSuccessful ? BlocStatus.success : BlocStatus.error,
       ));
     } on FirebaseAuthException catch (exception, _) {
-      final error = CustomAuth.getErrorFromFirebaseCode(exception.code);
+      final error = CustomAuth.getFirebaseErrorCodeMessage(exception.code);
 
       return emit(state.copyWith(
         error: error,
@@ -252,23 +252,38 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
       ));
     }
 
-    switch (state.authMethod) {
-      case AuthMethod.phone:
-        await CustomAuth.sendPhoneAuthCode(
-          phoneNumber: state.phoneNumber,
-          buildContext: event.context,
-          authProcedure: state.authProcedure,
-        );
-        break;
-      case AuthMethod.email:
-        await CustomAuth.sendEmailAuthCode(
-          emailAddress: state.emailAddress,
-          buildContext: event.context,
-          authProcedure: state.authProcedure,
-        );
-        break;
-      case AuthMethod.none:
-        break;
+    try {
+      switch (state.authMethod) {
+        case AuthMethod.phone:
+          await CustomAuth.sendPhoneAuthCode(
+            phoneNumber: state.phoneNumber,
+            buildContext: event.context,
+            authProcedure: state.authProcedure,
+          );
+          break;
+        case AuthMethod.email:
+          await CustomAuth.sendEmailAuthCode(
+            emailAddress: state.emailAddress,
+            buildContext: event.context,
+            authProcedure: state.authProcedure,
+          );
+          break;
+        case AuthMethod.none:
+          break;
+      }
+    } on FirebaseAuthException catch (exception, _) {
+      final error = CustomAuth.getFirebaseErrorCodeMessage(exception.code);
+
+      return emit(state.copyWith(
+        error: error,
+        blocStatus: BlocStatus.error,
+      ));
+    } catch (exception, stackTrace) {
+      emit(state.copyWith(
+        error: AuthenticationError.authFailure,
+        blocStatus: BlocStatus.error,
+      ));
+      await logException(exception, stackTrace);
     }
   }
 }

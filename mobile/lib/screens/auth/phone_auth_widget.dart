@@ -50,6 +50,7 @@ class PhoneAuthWidgetState<T extends PhoneAuthWidget> extends State<T> {
         onWillPop: onWillPop,
         child: AppSafeArea(
           backgroundColor: Colors.white,
+          verticalPadding: 10,
           widget: BlocConsumer<PhoneAuthBloc, PhoneAuthState>(
             listener: (context, state) {
               return;

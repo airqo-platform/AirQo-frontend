@@ -63,7 +63,6 @@ class SplashScreenState extends State<SplashScreen> {
 
     Future.delayed(const Duration(seconds: 1), _updateWidget);
 
-    /// TODO add loading indicator to all onboarding pages
     Future.delayed(
       const Duration(seconds: 5),
       () {
