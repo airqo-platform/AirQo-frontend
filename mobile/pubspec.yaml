@@ -79,7 +79,6 @@ dependencies:
   app_repository:
     path: packages/app_repository
 
-  # https://pub.dev/packages/http_retry
   # https://pub.dev/packages/retry
 
 dev_dependencies:

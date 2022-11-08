@@ -227,13 +227,14 @@ class TaglineWidget extends StatelessWidget {
 }
 
 class OnBoardingTopBar extends StatelessWidget implements PreferredSizeWidget {
-  const OnBoardingTopBar({super.key});
+  const OnBoardingTopBar({super.key, this.backgroundColor});
+  final Color? backgroundColor;
 
   @override
   PreferredSizeWidget build(BuildContext context) {
     return AppBar(
       toolbarHeight: 0,
-      backgroundColor: CustomColors.appBodyColor,
+      backgroundColor: backgroundColor ?? CustomColors.appBodyColor,
     );
   }
 

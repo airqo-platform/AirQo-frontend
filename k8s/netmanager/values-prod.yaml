@@ -1,14 +1,11 @@
-# values for platform frontend.
-env:
-  deployment_name: airqo-platform-frontend
-  service_name: airqo-platform-ui-svc
-  labels: airqo-platform
-  secret: env-platform-production
+# Default values for platform.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
 
 replicaCount: 2
 
 image:
-  repository: us.gcr.io/airqo-250220/airqo-platform-frontend
+  repository: gcr.io/airqo-250220/airqo-platform-frontend
   tag: latest
   pullPolicy: Always
 
@@ -26,10 +23,43 @@ ingress:
   enabled: false
 
 nodeSelector: {}
-resources: {}
-affinity: {}
 torelations: {}
 
+resources:
+  requests:
+    # Average usage was 0.00001 vCPU and 60Mi over the last 30 days
+    cpu: 5m
+    memory: 60Mi
+  limits:
+    cpu: 100m
+    memory: 150Mi
 
-## Application level settings  
-appMode: production
+autoscaling:
+  minReplicas: 1
+  maxReplicas: 4
+  # targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 70
+
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 10
+        preference:
+          matchExpressions:
+            - key: node-type
+              operator: In
+              values:
+                - general-purpose
+      - weight: 1
+        preference:
+          matchExpressions:
+            - key: node-type
+              operator: In
+              values:
+                - high-memory
+
+app:
+  name: airqo-platform-frontend
+  label: airqo-platform
+  namespace: production
+  configmap: env-platform-production

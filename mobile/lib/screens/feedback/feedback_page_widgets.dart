@@ -178,7 +178,7 @@ class FeedbackCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(left: 16, right: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       height: 56,
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -241,7 +241,7 @@ class FeedbackForm extends StatelessWidget {
           return Container(
             height: 255,
             alignment: Alignment.center,
-            padding: const EdgeInsets.only(left: 15, right: 15),
+            padding: const EdgeInsets.symmetric(horizontal: 15),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: const BorderRadius.all(

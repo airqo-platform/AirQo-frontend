@@ -23,72 +23,71 @@ class NotificationsSetupScreenState extends State<NotificationsSetupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const OnBoardingTopBar(),
-      backgroundColor: CustomColors.appBodyColor,
       body: WillPopScope(
         onWillPop: onWillPop,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Spacer(),
-            const OnBoardingNotificationIcon(),
-            const SizedBox(
-              height: 26,
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 40, right: 40),
-              child: Text(
-                'Know your air in real time',
-                textAlign: TextAlign.center,
-                style: CustomTextStyle.headline7(context),
+        child: AppSafeArea(
+          verticalPadding: 10,
+          widget: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Spacer(),
+              const OnBoardingNotificationIcon(),
+              const SizedBox(
+                height: 26,
               ),
-            ),
-            const SizedBox(
-              height: 8,
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 40, right: 40),
-              child: Text(
-                'Get notified when air quality is getting better or worse',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyText1,
-              ),
-            ),
-            const Spacer(),
-            Padding(
-              padding: const EdgeInsets.only(left: 24, right: 24),
-              child: GestureDetector(
-                onTap: _allowNotifications,
-                child: NextButton(
-                  text: 'Yes, keep me updated',
-                  buttonColor: CustomColors.appColorBlue,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 40),
+                child: Text(
+                  'Know your air in real time',
+                  textAlign: TextAlign.center,
+                  style: CustomTextStyle.headline7(context),
                 ),
               ),
-            ),
-            const SizedBox(
-              height: 16,
-            ),
-            GestureDetector(
-              onTap: () {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) {
-                    return const LocationSetupScreen();
-                  }),
-                  (r) => false,
-                );
-              },
-              child: Text(
-                'No, thanks',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.caption?.copyWith(
-                      color: CustomColors.appColorBlue,
-                    ),
+              const SizedBox(
+                height: 8,
               ),
-            ),
-            const SizedBox(
-              height: 40,
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 40),
+                child: Text(
+                  'Get notified when air quality is getting better or worse',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyText1,
+                ),
+              ),
+              const Spacer(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: GestureDetector(
+                  onTap: _allowNotifications,
+                  child: NextButton(
+                    text: 'Yes, keep me updated',
+                    buttonColor: CustomColors.appColorBlue,
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 16,
+              ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) {
+                      return const LocationSetupScreen();
+                    }),
+                    (r) => false,
+                  );
+                },
+                child: Text(
+                  'No, thanks',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.caption?.copyWith(
+                        color: CustomColors.appColorBlue,
+                      ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

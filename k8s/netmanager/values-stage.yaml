@@ -1,14 +1,11 @@
-# values for platform frontend.
-env:
-  deployment_name: airqo-stage-platform-frontend
-  service_name: airqo-stage-platform-ui-svc
-  labels: sta-platform-ui
-  secret: env-platform-staging
+# Default values for platform.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
 
 replicaCount: 2
 
 image:
-  repository: us.gcr.io/airqo-250220/airqo-stage-platform-frontend
+  repository: gcr.io/airqo-250220/airqo-stage-platform-frontend
   tag: latest
   pullPolicy: Always
 
@@ -18,7 +15,7 @@ fullnameOverride: ""
 
 service:
   type: NodePort
-  nodePort: 31104
+  nodePort: 31101
   targetPort: 80
   port: 80
 
@@ -26,10 +23,43 @@ ingress:
   enabled: false
 
 nodeSelector: {}
-resources: {}
-affinity: {}
 torelations: {}
 
+resources:
+  requests:
+    # Average usage was 0.00001 vCPU and 50Mi over the last 30 days
+    cpu: 5m
+    memory: 20Mi
+  limits:
+    cpu: 50m
+    memory: 80Mi
 
-## Application level settings  
-appMode: staging
+autoscaling:
+  minReplicas: 1
+  maxReplicas: 3
+  # targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 10
+        preference:
+          matchExpressions:
+            - key: node-type
+              operator: In
+              values:
+                - general-purpose
+      - weight: 1
+        preference:
+          matchExpressions:
+            - key: node-type
+              operator: In
+              values:
+                - high-memory
+
+app:
+  name: airqo-stage-platform-frontend
+  label: airqo-platform
+  namespace: staging
+  configmap: env-platform-staging
