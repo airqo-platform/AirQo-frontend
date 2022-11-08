@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
@@ -12,6 +13,8 @@ import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+import 'utils/utils.dart';
 
 class AirQoApp extends StatelessWidget {
   const AirQoApp({super.key});
@@ -72,4 +75,9 @@ Future<void> initializeMainMethod() async {
   ]);
 
   HttpOverrides.global = AppHttpOverrides();
+
+  PlatformDispatcher.instance.onError = (error, stack) {
+    logException(error, stack);
+    return true;
+  };
 }
