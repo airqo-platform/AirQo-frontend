@@ -6,6 +6,63 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
+class FeedbackStartButton extends StatelessWidget {
+  const FeedbackStartButton({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<FeedbackBloc, FeedbackState>(
+      builder: (context, state) {
+        final Color buttonColor = state.feedbackType == FeedbackType.none
+            ? CustomColors.appColorBlue.withOpacity(0.24)
+            : CustomColors.appColorBlue;
+
+        return GestureDetector(
+          onTap: () {
+            context.read<FeedbackBloc>().add(const GoToChannelStep());
+          },
+          child: Container(
+            height: 48,
+            padding: const EdgeInsets.all(13),
+            decoration: BoxDecoration(
+              color: buttonColor,
+              borderRadius: const BorderRadius.all(
+                Radius.circular(8.0),
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Spacer(),
+                Text(
+                  'Next',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(
+                  width: 11,
+                ),
+                SvgPicture.asset(
+                  'assets/icon/next_arrow.svg',
+                  height: 17.42,
+                  width: 10.9,
+                  color: Colors.white,
+                ),
+                Spacer(),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 class FeedbackBackButton extends StatelessWidget {
   const FeedbackBackButton({
     super.key,
@@ -311,8 +368,8 @@ class FeedbackNavigationButton extends StatelessWidget {
     super.key,
     required this.text,
     required this.buttonColor,
-    this.svg,
     required this.textColor,
+    this.svg,
   });
 
   final Color buttonColor;

@@ -21,7 +21,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
   }
 
   Future<void> _onInitializeFeedback(
-    InitializeFeedback event,
+    InitializeFeedback _,
     Emitter<FeedbackState> emit,
   ) async {
     final profile = await Profile.getProfile();
@@ -48,7 +48,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
   }
 
   Future<void> _onSubmitFeedback(
-    SubmitFeedback event,
+    SubmitFeedback _,
     Emitter<FeedbackState> emit,
   ) async {
     _onClearErrors(emit);
@@ -127,6 +127,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     Emitter<FeedbackState> emit,
   ) {
     _onClearErrors(emit);
+
     return emit(
       state.copyWith(step: FeedbackStep.typeStep),
     );
@@ -137,6 +138,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     Emitter<FeedbackState> emit,
   ) {
     _onClearErrors(emit);
+
     return emit(
       state.copyWith(emailAddress: event.contact),
     );
@@ -147,6 +149,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     Emitter<FeedbackState> emit,
   ) {
     _onClearErrors(emit);
+
     return emit(state.copyWith(feedbackType: event.feedbackType));
   }
 
@@ -155,6 +158,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     Emitter<FeedbackState> emit,
   ) {
     _onClearErrors(emit);
+
     return emit(
       state.copyWith(feedback: event.feedback),
     );
@@ -176,6 +180,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     Emitter<FeedbackState> emit,
   ) {
     _onClearErrors(emit);
+
     return emit(
       state.copyWith(feedbackChannel: event.feedbackChannel),
     );

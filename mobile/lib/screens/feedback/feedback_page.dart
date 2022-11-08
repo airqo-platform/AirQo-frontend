@@ -29,11 +29,9 @@ class _FeedbackPageState extends State<FeedbackPage> {
       appBar: const AppTopBar('Send Feedback'),
       body: AppSafeArea(
         horizontalPadding: 16,
+        verticalPadding: 20,
         widget: Column(
           children: [
-            const SizedBox(
-              height: 20,
-            ),
             const FeedbackProgressBar(),
             const SizedBox(
               height: 27,
@@ -84,7 +82,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                 return;
               },
               buildWhen: (previous, current) {
-                return true;
+                return previous.step != current.step;
               },
               builder: (context, state) {
                 switch (state.step) {
@@ -98,15 +96,28 @@ class _FeedbackPageState extends State<FeedbackPage> {
               },
             ),
             const Spacer(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                FeedbackBackButton(),
-                FeedbackNextButton(),
-              ],
-            ),
-            const SizedBox(
-              height: 20,
+            BlocConsumer<FeedbackBloc, FeedbackState>(
+              listener: (context, state) {
+                return;
+              },
+              buildWhen: (previous, current) {
+                return previous.step != current.step;
+              },
+              builder: (context, state) {
+                switch (state.step) {
+                  case FeedbackStep.typeStep:
+                    return const FeedbackStartButton();
+                  case FeedbackStep.channelStep:
+                  case FeedbackStep.formStep:
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        FeedbackBackButton(),
+                        FeedbackNextButton(),
+                      ],
+                    );
+                }
+              },
             ),
           ],
         ),
