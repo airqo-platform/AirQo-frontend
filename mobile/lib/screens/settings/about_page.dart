@@ -28,12 +28,10 @@ class _AboutAirQoState extends State<AboutAirQo> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const AppTopBar('About'),
-      body: Container(
-        color: CustomColors.appBodyColor,
-        child: Center(
+      body: CustomSafeArea(
+        backgroundColor: CustomColors.appBodyColor,
+        widget: Center(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const Spacer(),
               SvgPicture.asset(
@@ -43,7 +41,7 @@ class _AboutAirQoState extends State<AboutAirQo> {
                 semanticsLabel: 'Home',
               ),
               const SizedBox(
-                height: 21.32,
+                height: 22,
               ),
               Text(
                 _packageInfo.appName,
@@ -81,7 +79,7 @@ class _AboutAirQoState extends State<AboutAirQo> {
                 ),
               ),
               const SizedBox(
-                height: 90,
+                height: 20,
               ),
             ],
           ),
