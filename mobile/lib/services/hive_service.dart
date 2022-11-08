@@ -2,11 +2,11 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:app/models/models.dart';
-import 'package:app/services/secure_storage.dart';
 import 'package:app_repository/app_repository.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'firebase_service.dart';
+import 'secure_storage.dart';
 
 class HiveService {
   static Future<void> initialize() async {
@@ -36,33 +36,38 @@ class HiveService {
         Hive.openBox<AirQualityReading>(HiveBox.nearByAirQualityReadings),
         Hive.openBox<Profile>(
           HiveBox.profile,
-          encryptionCipher: HiveAesCipher(
-            encryptionKey,
-          ),
+          encryptionCipher: encryptionKey == null
+              ? null
+              : HiveAesCipher(
+                  encryptionKey,
+                ),
         ),
       ],
     );
   }
 
-  static Future<Uint8List> getEncryptionKey() async {
-    final secureStorage = SecureStorage();
-    var encodedKey = await secureStorage.getValue(HiveBox.encryptionKey);
-    if (encodedKey == null) {
-      final secureKey = Hive.generateSecureKey();
-      await secureStorage.setValue(
-        key: HiveBox.encryptionKey,
-        value: base64UrlEncode(secureKey),
-      );
-    }
-    encodedKey = await secureStorage.getValue(HiveBox.encryptionKey);
+  static Future<Uint8List?>? getEncryptionKey() async {
+    try {
+      final secureStorage = SecureStorage();
+      var encodedKey = await secureStorage.getValue(HiveBox.encryptionKey);
+      if (encodedKey == null) {
+        final secureKey = Hive.generateSecureKey();
+        await secureStorage.setValue(
+          key: HiveBox.encryptionKey,
+          value: base64UrlEncode(secureKey),
+        );
+      }
+      encodedKey = await secureStorage.getValue(HiveBox.encryptionKey);
 
-    return base64Url.decode(encodedKey!);
+      return base64Url.decode(encodedKey!);
+    } catch (_, __) {
+      return null;
+    }
   }
 
   static Future<void> clearUserData() async {
     await Future.wait([
       Hive.box<AppNotification>(HiveBox.appNotifications).clear(),
-      Hive.box<Profile>(HiveBox.profile).clear(),
       Hive.box<Kya>(HiveBox.kya).clear(),
       Hive.box<Analytics>(HiveBox.analytics).clear(),
       Hive.box<FavouritePlace>(HiveBox.favouritePlaces).clear(),

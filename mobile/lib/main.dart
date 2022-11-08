@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:app/app_config.dart';
 import 'package:app/main_common.dart';
+import 'package:app/models/models.dart';
 import 'package:app/services/hive_service.dart';
 import 'package:app/services/native_api.dart';
 import 'package:app/services/notification_service.dart';
@@ -21,16 +21,9 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  await Future.wait([
-    HiveService.initialize(),
-    SystemProperties.setDefault(),
-    NotificationService.listenToNotifications(),
-    dotenv.load(fileName: Config.environmentFile),
-    // initializeBackgroundServices()
-  ]);
-  HttpOverrides.global = AppHttpOverrides();
+  await initializeMainMethod();
 
-  var configuredApp = const AppConfig(
+  const configuredApp = AppConfig(
     appTitle: 'AirQo',
     environment: Environment.prod,
     child: AirQoApp(),

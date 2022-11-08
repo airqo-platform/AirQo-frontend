@@ -1,9 +1,8 @@
 import 'dart:io';
 
+import 'package:app/models/models.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
-
-import '../models/profile.dart';
 
 extension DoubleExtension on double {
   bool isWithin(double start, double end) {
@@ -309,7 +308,7 @@ extension FileExtenion on File {
   }
 }
 
-extension StringCasingExtension on String {
+extension StringExt on String {
   bool inStatement(String statement) {
     final terms = toLowerCase().split(' ');
     final words = statement.toLowerCase().split(' ');
@@ -342,6 +341,10 @@ extension StringCasingExtension on String {
     }
 
     return false;
+  }
+
+  bool isValidPhoneNumber() {
+    return length >= 5;
   }
 
   bool isValidEmail() {

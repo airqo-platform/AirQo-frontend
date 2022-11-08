@@ -1,9 +1,8 @@
 import 'package:app/models/models.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-
-import '../../themes/colors.dart';
-import '../../widgets/text_fields.dart';
 
 OnBoardingPage getOnBoardingPageConstant(String value) {
   switch (value) {
@@ -234,13 +233,14 @@ class TaglineWidget extends StatelessWidget {
 }
 
 class OnBoardingTopBar extends StatelessWidget implements PreferredSizeWidget {
-  const OnBoardingTopBar({super.key});
+  const OnBoardingTopBar({super.key, this.backgroundColor});
+  final Color? backgroundColor;
 
   @override
   PreferredSizeWidget build(BuildContext context) {
     return AppBar(
       toolbarHeight: 0,
-      backgroundColor: CustomColors.appBodyColor,
+      backgroundColor: backgroundColor ?? CustomColors.appBodyColor,
     );
   }
 

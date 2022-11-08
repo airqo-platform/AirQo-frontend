@@ -121,13 +121,21 @@ class Profile extends HiveObject {
     }
   }
 
+  Future<void> logOut() async {
+    await _initialize();
+  }
+
+  Future<void> deleteAccount() async {
+    await _initialize();
+  }
+
   Future<void> updateName(String fullName) async {
     firstName = Profile.getNames(fullName).first;
     lastName = Profile.getNames(fullName).last;
     await update();
   }
 
-  Future<void> update({
+  Future<bool> update({
     bool logout = false,
     bool? enableNotification,
     bool? enableLocation,
@@ -161,6 +169,8 @@ class Profile extends HiveObject {
     } else {
       await Hive.box<Profile>(HiveBox.profile).put(HiveBox.profile, this);
     }
+
+    return true;
   }
 
   static List<String> getNames(String fullName) {
@@ -199,10 +209,6 @@ class Profile extends HiveObject {
     await profile.update();
 
     return profile;
-  }
-
-  static Profile parseUserDetails(dynamic jsonBody) {
-    return Profile.fromJson(jsonBody);
   }
 }
 

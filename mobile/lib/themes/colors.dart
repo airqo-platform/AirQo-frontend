@@ -200,6 +200,8 @@ class CustomColors {
 
   static Color get appPicColor => const Color(0xffFF79C1);
 
+  static Color get appErrorColor => const Color(0xffEF5DA8);
+
   static Color get darkGreyColor => const Color(0xffADAFB6);
 
   static Color get greyColor => const Color(0xffD1D3D9);

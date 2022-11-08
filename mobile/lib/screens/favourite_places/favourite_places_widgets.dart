@@ -1,13 +1,10 @@
 import 'package:app/models/models.dart';
-import 'package:app/widgets/custom_shimmer.dart';
-import 'package:app/widgets/dialogs.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../services/hive_service.dart';
-import '../../themes/app_theme.dart';
-import '../../themes/colors.dart';
-import '../../widgets/custom_widgets.dart';
 import '../search/search_page.dart';
 
 class EmptyFavouritePlaces extends StatelessWidget {
@@ -93,7 +90,9 @@ class EmptyFavouritePlace extends StatelessWidget {
             borderRadius: const BorderRadius.all(
               Radius.circular(8.0),
             ),
-            border: Border.all(color: Colors.transparent),
+            border: Border.fromBorderSide(
+              BorderSide(color: Colors.transparent),
+            ),
           ),
           child: Column(
             children: [
@@ -164,8 +163,8 @@ class EmptyFavouritePlace extends StatelessWidget {
                         borderRadius: const BorderRadius.all(
                           Radius.circular(3.0),
                         ),
-                        border: Border.all(
-                          color: Colors.transparent,
+                        border: Border.fromBorderSide(
+                          BorderSide(color: Colors.transparent),
                         ),
                       ),
                       child: const Icon(
@@ -191,7 +190,9 @@ class EmptyFavouritePlace extends StatelessWidget {
                         borderRadius: const BorderRadius.all(
                           Radius.circular(3.0),
                         ),
-                        border: Border.all(color: Colors.transparent),
+                        border: Border.fromBorderSide(
+                          BorderSide(color: Colors.transparent),
+                        ),
                       ),
                       child: SvgPicture.asset(
                         'assets/icon/more_arrow.svg',
@@ -217,7 +218,7 @@ class EmptyFavouritePlace extends StatelessWidget {
     await HiveService.updateFavouritePlaces(airQualityReading);
   }
 
-  void _navigateToInsights(BuildContext context) async {
-    await showSnackBar(context, 'No air quality for this place');
+  void _navigateToInsights(BuildContext context) {
+    showSnackBar(context, 'No air quality for this place');
   }
 }

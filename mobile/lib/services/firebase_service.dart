@@ -1,31 +1,32 @@
 import 'dart:io';
 
-import 'package:app/constants/config.dart';
+import 'package:app/blocs/blocs.dart';
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
-import 'package:app/utils/extensions.dart';
-import 'package:app/widgets/dialogs.dart';
+import 'package:app/services/services.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../utils/exception.dart';
-import '../utils/network.dart';
-import 'hive_service.dart';
-
 class CloudAnalytics {
-  static Future<void> logEvent(AnalyticsEvent analyticsEvent) async {
+  static Future<bool> logEvent(AnalyticsEvent analyticsEvent) async {
     await FirebaseAnalytics.instance.logEvent(
       name: analyticsEvent.snakeCase(),
     );
+
+    return true;
   }
 }
 
 class CloudStore {
-  static Future<void> deleteAccount() async {
+  static Future<bool> deleteAccount() async {
     try {
       final id = CustomAuth.getUser()?.uid;
       await Future.wait([
@@ -56,6 +57,8 @@ class CloudStore {
         stackTrace,
       );
     }
+
+    return true;
   }
 
   static Future<List<Kya>> _getReferenceKya() async {
@@ -217,6 +220,10 @@ class CloudStore {
   }
 
   static Future<Profile> getProfile() async {
+    if (!CustomAuth.isLoggedIn()) {
+      return Profile.getProfile();
+    }
+
     try {
       final uuid = CustomAuth.getUserId();
 
@@ -225,8 +232,8 @@ class CloudStore {
           .doc(uuid)
           .get();
 
-      return Profile.parseUserDetails(
-        userJson.data(),
+      return Profile.fromJson(
+        userJson.data()!,
       );
     } on FirebaseException catch (exception) {
       if (exception.code == 'not-found') {
@@ -277,11 +284,11 @@ class CloudStore {
     }
   }
 
-  static Future<void> updateFavouritePlaces() async {
+  static Future<bool> updateFavouritePlaces() async {
     final hasConnection = await hasNetworkConnection();
     final userId = CustomAuth.getUserId();
     if (!hasConnection || userId.trim().isEmpty) {
-      return;
+      return true;
     }
 
     final batch = FirebaseFirestore.instance.batch();
@@ -324,7 +331,9 @@ class CloudStore {
       }
     }
 
-    return batch.commit();
+    batch.commit();
+
+    return true;
   }
 
   static Future<void> updateCloudProfile() async {
@@ -362,36 +371,39 @@ class CloudStore {
     }
   }
 
-  static Future<void> updateCloudAnalytics() async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser != null) {
-      try {
-        final analytics = Hive.box<Analytics>(HiveBox.analytics)
-            .values
-            .toList()
-            .cast<Analytics>();
-        final profile = await Profile.getProfile();
-        for (final x in analytics) {
-          try {
-            await FirebaseFirestore.instance
-                .collection(Config.usersAnalyticsCollection)
-                .doc(profile.userId)
-                .collection(profile.userId)
-                .doc(x.site)
-                .set(
-                  x.toJson(),
-                );
-          } catch (exception) {
-            debugPrint(exception.toString());
-          }
-        }
-      } catch (exception, stackTrace) {
-        await logException(
-          exception,
-          stackTrace,
-        );
-      }
+  static Future<bool> updateCloudAnalytics() async {
+    final currentUser = CustomAuth.getUser();
+    if (currentUser == null) {
+      return true;
     }
+    try {
+      final analytics = Hive.box<Analytics>(HiveBox.analytics)
+          .values
+          .toList()
+          .cast<Analytics>();
+      final profile = await Profile.getProfile();
+      for (final x in analytics) {
+        try {
+          await FirebaseFirestore.instance
+              .collection(Config.usersAnalyticsCollection)
+              .doc(profile.userId)
+              .collection(profile.userId)
+              .doc(x.site)
+              .set(
+                x.toJson(),
+              );
+        } catch (exception) {
+          debugPrint(exception.toString());
+        }
+      }
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
+    }
+
+    return true;
   }
 
   static Future<void> updateCloudNotification(
@@ -515,59 +527,21 @@ class CustomAuth {
     return profile;
   }
 
-  static Future<void> deleteAccount() async {
-    try {
-      await getUser()?.delete();
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
+  static Future<bool> deleteAccount() async {
+    final profile = await Profile.getProfile();
+    await getUser()?.delete().then((_) => profile.deleteAccount());
+
+    return true;
   }
 
-  static Future<bool> emailAuthentication(
-    String emailAddress,
-    String link,
-    BuildContext context,
+  static Future<bool> firebaseSignIn(
+    AuthCredential? authCredential,
   ) async {
-    try {
-      final userCredential = await FirebaseAuth.instance
-          .signInWithEmailLink(emailLink: link, email: emailAddress);
+    final UserCredential userCredential = authCredential == null
+        ? await FirebaseAuth.instance.signInAnonymously()
+        : await FirebaseAuth.instance.signInWithCredential(authCredential);
 
-      return userCredential.user != null;
-    } on FirebaseAuthException catch (exception, stackTrace) {
-      if (exception.code == 'invalid-email') {
-        await showSnackBar(
-          context,
-          'Invalid Email. Try again',
-        );
-      } else if (exception.code == 'expired-action-code') {
-        await showSnackBar(
-          context,
-          'Your verification has timed out. Try again later',
-        );
-      } else if (exception.code == 'user-disabled') {
-        await showSnackBar(
-          context,
-          'Account has been disabled. PLease contact support',
-        );
-      } else {
-        await showSnackBar(
-          context,
-          Config.appErrorMessage,
-        );
-      }
-      debugPrint('$exception\n$stackTrace');
-      if (!['invalid-email', 'expired-action-code'].contains(exception.code)) {
-        await logException(
-          exception,
-          stackTrace,
-        );
-      }
-
-      return false;
-    }
+    return userCredential.user != null;
   }
 
   static User? getUser() {
@@ -583,10 +557,15 @@ class CustomAuth {
   }
 
   static bool isLoggedIn() {
-    return getUser() != null;
+    final user = getUser();
+    if (user == null) {
+      return false;
+    }
+
+    return !user.isAnonymous;
   }
 
-  static Future<void> logOut() async {
+  static Future<bool> logOut() async {
     try {
       await FirebaseAuth.instance.signOut();
     } catch (exception, stackTrace) {
@@ -595,181 +574,191 @@ class CustomAuth {
         stackTrace,
       );
     }
+
+    return true;
   }
 
-  static Future<bool> phoneNumberAuthentication(
-    AuthCredential authCredential,
-    BuildContext context,
-  ) async {
-    try {
-      final userCredential =
-          await FirebaseAuth.instance.signInWithCredential(authCredential);
+  static Future<bool> reAuthenticate(AuthCredential authCredential) async {
+    final userCredential = await FirebaseAuth.instance.currentUser!
+        .reauthenticateWithCredential(authCredential);
 
-      return userCredential.user != null;
-    } on FirebaseAuthException catch (exception, stackTrace) {
-      if (exception.code == 'invalid-verification-code') {
-        await showSnackBar(
-          context,
-          'Invalid Code',
-        );
-      } else if (exception.code == 'session-expired') {
-        await showSnackBar(
-          context,
-          'Your verification has timed out. Try again later',
-        );
-      } else if (exception.code == 'account-exists-with-different-credential') {
-        await showSnackBar(
-          context,
-          'Phone number is already linked to an email.',
-        );
-      } else if (exception.code == 'user-disabled') {
-        await showSnackBar(
-          context,
-          'Account has been disabled. PLease contact support',
-        );
-      } else {
-        await showSnackBar(
-          context,
-          Config.appErrorMessage,
-        );
-      }
+    return userCredential.user != null;
+  }
 
-      debugPrint('$exception\n$stackTrace');
-      if (![
-        'invalid-verification-code',
-        'invalid-verification-code',
-        'account-exists-with-different-credential',
-      ].contains(exception.code)) {
-        await logException(
-          exception,
-          stackTrace,
-        );
-      }
-
-      return false;
+  static AuthenticationError getFirebaseErrorCodeMessage(String code) {
+    switch (code) {
+      case 'invalid-email':
+        return AuthenticationError.invalidEmailAddress;
+      case 'email-already-in-use':
+        return AuthenticationError.emailTaken;
+      case 'credential-already-in-use':
+      case 'account-exists-with-different-credential':
+        return AuthenticationError.accountTaken;
+      case 'invalid-verification-code':
+        return AuthenticationError.invalidAuthCode;
+      case 'invalid-phone-number':
+        return AuthenticationError.invalidPhoneNumber;
+      case 'session-expired':
+      case 'expired-action-code':
+        return AuthenticationError.authSessionTimeout;
+      case 'user-disabled':
+      case 'user-mismatch':
+      case 'user-not-found':
+        return AuthenticationError.accountInvalid;
+      case 'requires-recent-login':
+        return AuthenticationError.logInRequired;
+      case 'invalid-verification-id':
+      case 'invalid-credential':
+      case 'missing-client-identifier':
+      default:
+        return AuthenticationError.authFailure;
     }
   }
 
-  static Future<bool> reAuthenticateWithEmailAddress(
-    String emailAddress,
-    String link,
-    BuildContext context,
-  ) async {
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return false;
-    }
+  static Future<void> sendPhoneAuthCode({
+    required String phoneNumber,
+    required BuildContext buildContext,
+    required AuthProcedure authProcedure,
+  }) async {
+    await FirebaseAuth.instance.verifyPhoneNumber(
+      phoneNumber: phoneNumber,
+      verificationCompleted: (PhoneAuthCredential credential) {
+        switch (authProcedure) {
+          case AuthProcedure.login:
+          case AuthProcedure.signup:
+            buildContext
+                .read<PhoneAuthBloc>()
+                .add(const UpdateStatus(BlocStatus.success));
+            break;
+          case AuthProcedure.deleteAccount:
+            buildContext
+                .read<SettingsBloc>()
+                .add(const AccountPreDeletionPassed());
+            break;
+          case AuthProcedure.anonymousLogin:
+          case AuthProcedure.logout:
+          case AuthProcedure.none:
+            break;
+        }
 
-    try {
-      final userCredential = await FirebaseAuth.instance.signInWithEmailLink(
-        emailLink: link,
-        email: emailAddress,
-      );
+        buildContext
+            .read<AuthCodeBloc>()
+            .add(VerifyAuthCode(credential: credential));
+      },
+      verificationFailed: (FirebaseAuthException exception) async {
+        throw exception;
+      },
+      codeSent: (String verificationId, int? resendToken) async {
+        buildContext
+            .read<AuthCodeBloc>()
+            .add(UpdateVerificationId(verificationId));
 
-      return userCredential.user != null;
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
+        switch (authProcedure) {
+          case AuthProcedure.login:
+          case AuthProcedure.signup:
+            buildContext
+                .read<PhoneAuthBloc>()
+                .add(const UpdateStatus(BlocStatus.success));
+            break;
+          case AuthProcedure.deleteAccount:
+            buildContext
+                .read<SettingsBloc>()
+                .add(const AccountPreDeletionPassed());
+            break;
+          case AuthProcedure.anonymousLogin:
+          case AuthProcedure.logout:
+          case AuthProcedure.none:
+            break;
+        }
+      },
+      codeAutoRetrievalTimeout: (String verificationId) async {
+        buildContext
+            .read<AuthCodeBloc>()
+            .add(UpdateVerificationId(verificationId));
 
-    return false;
-  }
-
-  static Future<bool> reAuthenticateWithPhoneNumber(
-    AuthCredential authCredential,
-    BuildContext context,
-  ) async {
-    final hasConnection = await hasNetworkConnection();
-    if (!hasConnection) {
-      return false;
-    }
-
-    try {
-      final userCredentials = await FirebaseAuth.instance.currentUser!
-          .reauthenticateWithCredential(authCredential);
-
-      // final userCredential =
-      //     await _firebaseAuth.signInWithCredential(authCredential);
-      return userCredentials.user != null;
-    } on FirebaseAuthException catch (exception) {
-      if (exception.code == 'invalid-verification-code') {
-        await showSnackBar(
-          context,
-          'Invalid Code',
-        );
-      }
-      if (exception.code == 'session-expired') {
-        await showSnackBar(
-          context,
-          'Your verification '
-          'has timed out. we have sent your'
-          ' another verification code',
-        );
-      }
-    } catch (exception, stackTrace) {
-      await logException(
-        exception,
-        stackTrace,
-      );
-    }
-
-    return false;
-  }
-
-  static Future<bool> requestPhoneVerification(
-    phoneNumber,
-    context,
-    callBackFn,
-    autoVerificationFn,
-  ) async {
-    final hasConnection = await checkNetworkConnection(
-      context,
-      notifyUser: true,
+        switch (authProcedure) {
+          case AuthProcedure.login:
+          case AuthProcedure.signup:
+            buildContext
+                .read<PhoneAuthBloc>()
+                .add(const UpdateStatus(BlocStatus.success));
+            break;
+          case AuthProcedure.deleteAccount:
+            buildContext
+                .read<SettingsBloc>()
+                .add(const AccountPreDeletionPassed());
+            break;
+          case AuthProcedure.anonymousLogin:
+          case AuthProcedure.logout:
+          case AuthProcedure.none:
+            break;
+        }
+      },
+      timeout: const Duration(seconds: 30),
     );
-    if (!hasConnection) {
-      return false;
-    }
+  }
 
+  static Future<void> sendEmailAuthCode({
+    required String emailAddress,
+    required BuildContext buildContext,
+    required AuthProcedure authProcedure,
+  }) async {
     try {
-      await FirebaseAuth.instance.verifyPhoneNumber(
-        phoneNumber: phoneNumber,
-        verificationCompleted: (PhoneAuthCredential credential) {
-          autoVerificationFn(credential);
-        },
-        verificationFailed: (FirebaseAuthException exception) async {
-          if (exception.code == 'invalid-phone-number') {
-            await showSnackBar(
-              context,
-              'Invalid phone number.',
-            );
-          } else {
-            await showSnackBar(
-              context,
-              'Cannot process your request.'
-              ' Try again later',
-            );
-            debugPrint(exception.toString());
-          }
-        },
-        codeSent: (String verificationId, int? resendToken) async {
-          callBackFn(verificationId);
-        },
-        codeAutoRetrievalTimeout: (String verificationId) async {
-          // TODO Implement auto code retrieval timeout
-        },
-        timeout: const Duration(minutes: 2),
-      );
+      final emailSignupResponse = await AirqoApiClient()
+          .requestEmailVerificationCode(emailAddress, false);
 
-      return true;
+      if (emailSignupResponse == null) {
+        switch (authProcedure) {
+          case AuthProcedure.login:
+          case AuthProcedure.signup:
+            buildContext.read<EmailAuthBloc>().add(const EmailValidationFailed(
+                  AuthenticationError.authFailure,
+                ));
+            break;
+          case AuthProcedure.deleteAccount:
+            buildContext
+                .read<SettingsBloc>()
+                .add(const AccountPreDeletionFailed(
+                  AuthenticationError.authFailure,
+                ));
+            break;
+          case AuthProcedure.anonymousLogin:
+          case AuthProcedure.logout:
+          case AuthProcedure.none:
+            break;
+        }
+      } else {
+        buildContext.read<AuthCodeBloc>().add(UpdateEmailCredentials(
+              emailVerificationLink: emailSignupResponse.loginLink,
+              emailToken: emailSignupResponse.token,
+            ));
+
+        switch (authProcedure) {
+          case AuthProcedure.login:
+          case AuthProcedure.signup:
+            buildContext
+                .read<EmailAuthBloc>()
+                .add(const EmailValidationPassed());
+            break;
+          case AuthProcedure.deleteAccount:
+            buildContext
+                .read<SettingsBloc>()
+                .add(const AccountPreDeletionPassed());
+            break;
+          case AuthProcedure.anonymousLogin:
+          case AuthProcedure.logout:
+          case AuthProcedure.none:
+            break;
+        }
+      }
     } catch (exception, stackTrace) {
+      buildContext
+          .read<EmailAuthBloc>()
+          .add(const EmailValidationFailed(AuthenticationError.authFailure));
       await logException(
         exception,
         stackTrace,
       );
-
-      return false;
     }
   }
 
@@ -829,7 +818,7 @@ class CustomAuth {
           break;
       }
 
-      await showSnackBar(
+      showSnackBar(
         context,
         error,
       );

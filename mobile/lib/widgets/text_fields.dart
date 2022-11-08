@@ -1,8 +1,8 @@
+import 'package:app/themes/theme.dart';
 import 'package:country_list_pick/country_list_pick.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../themes/colors.dart';
 import 'custom_widgets.dart';
 
 class PhoneNumberInputFormatter extends TextInputFormatter {
@@ -81,22 +81,17 @@ class CountryCodePickerField extends StatelessWidget {
 class OptField extends StatelessWidget {
   const OptField({
     super.key,
-    required this.codeSent,
     required this.callbackFn,
-    required this.position,
   });
-  final bool codeSent;
-  final Function(String value, int position) callbackFn;
-  final int position;
+  final bool codeSent = true;
+  final Function(String value) callbackFn;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: 64,
       child: TextFormField(
-        onChanged: (value) {
-          callbackFn(value, position);
-        },
+        onChanged: callbackFn,
         showCursor: codeSent,
         textAlign: TextAlign.center,
         maxLength: 6,

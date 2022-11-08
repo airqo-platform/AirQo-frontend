@@ -1,18 +1,17 @@
 import 'dart:async';
 
 import 'package:app/models/models.dart';
-import 'package:app/screens/profile/profile_widgets.dart';
-import 'package:app/widgets/custom_shimmer.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../services/firebase_service.dart';
-import '../../services/hive_service.dart';
-import '../../themes/colors.dart';
-import '../../utils/exception.dart';
-import '../../widgets/custom_widgets.dart';
 import '../home_page.dart';
+import 'profile_widgets.dart';
 
 class ProfileEditPage extends StatefulWidget {
   const ProfileEditPage({
@@ -32,7 +31,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<Box>(
+    return ValueListenableBuilder<Box<Profile>>(
       valueListenable: Hive.box<Profile>(HiveBox.profile).listenable(
         keys: [HiveBox.profile],
       ),

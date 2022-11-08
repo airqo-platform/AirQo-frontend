@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:app/models/models.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class Config {
@@ -76,7 +78,8 @@ class Config {
 
   static String get sentryDsn => dotenv.env['SENTRY_DSN'] ?? '';
 
-  static String get termsUrl => dotenv.env['TERMS_URL'] ?? '';
+  static String get termsUrl =>
+      'https://docs.airqo.net/#/mobile_app/privacy_policy';
 
   static String get usersCollection => dotenv.env['USERS_COLLECTION'] ?? '';
 
@@ -93,4 +96,25 @@ class Config {
   static double refreshIndicatorPadding(int index) {
     return index == 0 ? 16.0 : 0.0;
   }
+}
+
+class AppConfig extends InheritedWidget {
+  const AppConfig({
+    Key? key,
+    required Widget child,
+    required this.environment,
+    required this.appTitle,
+  }) : super(
+          key: key,
+          child: child,
+        );
+  final Environment environment;
+  final String appTitle;
+
+  static AppConfig of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<AppConfig>()!;
+  }
+
+  @override
+  bool updateShouldNotify(covariant InheritedWidget oldWidget) => false;
 }

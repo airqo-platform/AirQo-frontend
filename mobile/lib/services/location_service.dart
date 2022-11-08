@@ -1,18 +1,17 @@
 import 'dart:async';
 
-import 'package:app/constants/config.dart';
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
-import 'package:app/services/firebase_service.dart';
-import 'package:app/services/rest_api.dart';
-import 'package:app/utils/distance.dart';
+import 'package:app/utils/utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../utils/exception.dart';
+import 'firebase_service.dart';
 import 'hive_service.dart';
 import 'native_api.dart';
+import 'rest_api.dart';
 
 class LocationService {
   static Future<String> getAddress({
@@ -81,8 +80,8 @@ class LocationService {
       if (position == null) {
         final geoCoordinates = await AirqoApiClient().getLocation();
         position = Position(
-          longitude: geoCoordinates['longitude'],
-          latitude: geoCoordinates['latitude'],
+          longitude: geoCoordinates['longitude'] as double,
+          latitude: geoCoordinates['latitude'] as double,
           timestamp: DateTime.now(),
           accuracy: 0.0,
           altitude: 0.0,
@@ -129,7 +128,7 @@ class LocationService {
               .take(top)
               .toList();
       if (address.isNotEmpty) {
-        sortedReadings[0] = sortedReadings[0].copyWith(name: address);
+        sortedReadings.first = sortedReadings.first.copyWith(name: address);
       }
 
       return sortedReadings;

@@ -1,15 +1,12 @@
 import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
-import 'package:app/utils/exception.dart';
-import 'package:app/widgets/buttons.dart';
-import 'package:app/widgets/custom_shimmer.dart';
-import 'package:app/widgets/dialogs.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
-import '../../services/local_storage.dart';
-import '../../themes/app_theme.dart';
-import '../../themes/colors.dart';
 import 'notifications_setup_screen.dart';
 import 'on_boarding_widgets.dart';
 
@@ -38,24 +35,19 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const OnBoardingTopBar(),
-      backgroundColor: CustomColors.appBodyColor,
       body: WillPopScope(
         onWillPop: onWillPop,
-        child: Container(
-          padding: const EdgeInsets.only(left: 24, right: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.start,
+        child: AppSafeArea(
+          horizontalPadding: 24,
+          verticalPadding: 10,
+          widget: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const SizedBox(
-                height: 56,
-              ),
-              Center(
-                child: Text(
-                  'Great!\nPlease enter your name?',
-                  textAlign: TextAlign.center,
-                  style: CustomTextStyle.headline7(context),
-                ),
+              Text(
+                'Great!\nPlease enter your name?',
+                textAlign: TextAlign.center,
+                style: CustomTextStyle.headline7(context),
               ),
               const SizedBox(
                 height: 32,
@@ -89,24 +81,27 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
               ),
               Visibility(
                 visible: _showDropDown,
-                child: Container(
-                  padding: const EdgeInsets.only(left: 10, right: 10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xffF4F4F4),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 12,
-                      horizontal: 12,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xffF4F4F4),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.max,
+                          children: _getTitleOptions(),
+                        ),
+                      ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.max,
-                      children: _getTitleOptions(),
-                    ),
-                  ),
+                  ],
                 ),
               ),
               const Spacer(),
@@ -133,21 +128,13 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       (r) => false,
                     );
                   },
-                  child: Center(
-                    child: Text(
-                      'No, thanks',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.caption?.copyWith(
-                            color: CustomColors.appColorBlue,
-                          ),
-                    ),
+                  child: Text(
+                    'No, thanks',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.caption?.copyWith(
+                          color: CustomColors.appColorBlue,
+                        ),
                   ),
-                ),
-              ),
-              Visibility(
-                visible: _showOptions,
-                child: const SizedBox(
-                  height: 40,
                 ),
               ),
             ],
@@ -277,7 +264,7 @@ class ProfileSetupScreenState extends State<ProfileSetupScreen> {
           nextBtnColor = CustomColors.appColorBlue;
         },
       );
-      await showSnackBar(
+      showSnackBar(
         context,
         'Failed to update profile. Try again later',
       );

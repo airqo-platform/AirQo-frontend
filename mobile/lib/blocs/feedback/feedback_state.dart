@@ -4,85 +4,61 @@ class FeedbackState extends Equatable {
   const FeedbackState({
     required this.feedbackType,
     required this.feedbackChannel,
-    required this.contact,
+    required this.emailAddress,
     required this.feedback,
-    required this.loading,
+    required this.step,
+    required this.errorMessage,
+    required this.blocStatus,
   });
+
+  const FeedbackState._({
+    this.feedbackType = FeedbackType.none,
+    this.feedbackChannel = FeedbackChannel.none,
+    this.emailAddress = '',
+    this.feedback = '',
+    this.step = FeedbackStep.typeStep,
+    this.errorMessage = '',
+    this.blocStatus = BlocStatus.initial,
+  });
+
+  const FeedbackState.initial() : this._();
+
+  FeedbackState copyWith({
+    FeedbackType? feedbackType,
+    FeedbackChannel? feedbackChannel,
+    String? emailAddress,
+    String? feedback,
+    FeedbackStep? step,
+    String? errorMessage,
+    BlocStatus? blocStatus,
+  }) {
+    return FeedbackState(
+      feedbackType: feedbackType ?? this.feedbackType,
+      feedbackChannel: feedbackChannel ?? this.feedbackChannel,
+      emailAddress: emailAddress ?? this.emailAddress,
+      feedback: feedback ?? this.feedback,
+      blocStatus: blocStatus ?? this.blocStatus,
+      step: step ?? this.step,
+      errorMessage: errorMessage ?? this.errorMessage,
+    );
+  }
 
   final FeedbackType feedbackType;
   final FeedbackChannel feedbackChannel;
-  final String contact;
+  final String emailAddress;
   final String feedback;
-  final bool loading;
+  final FeedbackStep step;
+  final String errorMessage;
+  final BlocStatus blocStatus;
 
   @override
-  List<Object> get props => [];
-}
-
-class FeedbackTypeState extends FeedbackState {
-  const FeedbackTypeState({
-    required super.feedbackType,
-    required super.feedbackChannel,
-    required super.contact,
-    required super.feedback,
-    required super.loading,
-  });
-
-  @override
-  List<Object> get props => [];
-}
-
-class FeedbackErrorState extends FeedbackState {
-  const FeedbackErrorState(
-    this.error, {
-    required super.feedbackType,
-    required super.feedbackChannel,
-    required super.contact,
-    required super.feedback,
-    required super.loading,
-  });
-
-  final String error;
-
-  @override
-  List<Object> get props => [];
-}
-
-class FeedbackFormState extends FeedbackState {
-  const FeedbackFormState({
-    required super.feedbackType,
-    required super.feedbackChannel,
-    required super.contact,
-    required super.feedback,
-    required super.loading,
-  });
-
-  @override
-  List<Object> get props => [];
-}
-
-class FeedbackChannelState extends FeedbackState {
-  const FeedbackChannelState({
-    required super.feedbackType,
-    required super.feedbackChannel,
-    required super.contact,
-    required super.feedback,
-    required super.loading,
-  });
-
-  @override
-  List<Object> get props => [];
-}
-
-class FeedbackLoadingState extends FeedbackState {
-  const FeedbackLoadingState({
-    required super.feedbackType,
-    required super.feedbackChannel,
-    required super.contact,
-    required super.feedback,
-    required super.loading,
-  });
-
-  @override
-  List<Object> get props => [];
+  List<Object> get props => [
+        feedbackType,
+        feedbackChannel,
+        emailAddress,
+        feedback,
+        step,
+        errorMessage,
+        blocStatus,
+      ];
 }
