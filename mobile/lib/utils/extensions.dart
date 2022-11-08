@@ -308,7 +308,7 @@ extension FileExtenion on File {
   }
 }
 
-extension StringCasingExtension on String {
+extension StringExt on String {
   bool inStatement(String statement) {
     final terms = toLowerCase().split(' ');
     final words = statement.toLowerCase().split(' ');
@@ -341,6 +341,10 @@ extension StringCasingExtension on String {
     }
 
     return false;
+  }
+
+  bool isValidPhoneNumber() {
+    return length >= 5;
   }
 
   bool isValidEmail() {

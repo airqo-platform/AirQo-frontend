@@ -47,6 +47,83 @@ enum AppPermission {
   location,
 }
 
+enum BlocStatus {
+  initial,
+  editing,
+  processing,
+  error,
+  success,
+  accountPreDeletionSuccess,
+}
+
+enum FeedbackStep {
+  channelStep,
+  typeStep,
+  formStep;
+}
+
+enum AuthenticationError {
+  noInternetConnection(
+    message: 'Check your internet connection',
+    snackBarDuration: 5,
+  ),
+  accountInvalid(
+    message: 'Invalid Account',
+    snackBarDuration: 5,
+  ),
+  invalidAuthCode(
+    message: 'Invalid code',
+    snackBarDuration: 5,
+  ),
+  authSessionTimeout(
+    message: 'Session time out. Sending another verification code',
+    snackBarDuration: 5,
+  ),
+  none(
+    message: '',
+    snackBarDuration: 0,
+  ),
+  authFailure(
+    message: 'Authentication failed. Try again later',
+    snackBarDuration: 5,
+  ),
+  logInRequired(
+    message: 'Log in required.',
+    snackBarDuration: 5,
+  ),
+  phoneNumberTaken(
+    message: 'Phone number taken',
+    snackBarDuration: 5,
+  ),
+  invalidPhoneNumber(
+    message: 'Invalid phone number',
+    snackBarDuration: 5,
+  ),
+  invalidEmailAddress(
+    message: 'Invalid email address',
+    snackBarDuration: 5,
+  ),
+  accountTaken(
+    message: 'Invalid email address',
+    snackBarDuration: 5,
+  ),
+  emailTaken(
+    message: 'Email Taken',
+    snackBarDuration: 5,
+  );
+
+  const AuthenticationError({
+    required this.message,
+    required this.snackBarDuration,
+  });
+
+  final String message;
+  final int snackBarDuration;
+
+  @override
+  String toString() => message;
+}
+
 enum NearbyAirQualityError {
   locationDenied(
     message: 'Grant location access in your phone settings',
@@ -193,19 +270,31 @@ enum FeedbackChannel {
 enum AuthMethod {
   phone(
     updateMessage:
-        'You shall not be able to sign in with your previous phone number after changing it',
+        'You will not be able to sign in with your previous phone number after changing it',
+    codeVerificationText: 'Enter the 6 digits code sent to your number',
+    editEntryText: 'Change your number',
   ),
   email(
     updateMessage:
-        'You shall not be able to sign in with your previous email address after changing it',
+        'You will not be able to sign in with your previous email address after changing it',
+    codeVerificationText: 'Enter the 6 digits code sent to your email',
+    editEntryText: 'Change your email',
   ),
   none(
     updateMessage: 'You do not have an account. Consider creating one',
+    codeVerificationText: '',
+    editEntryText: '',
   );
 
-  const AuthMethod({required this.updateMessage});
+  const AuthMethod({
+    required this.updateMessage,
+    required this.codeVerificationText,
+    required this.editEntryText,
+  });
 
   final String updateMessage;
+  final String codeVerificationText;
+  final String editEntryText;
 
   String optionsText(AuthProcedure procedure) {
     switch (this) {
@@ -218,9 +307,7 @@ enum AuthMethod {
             ? 'Login with your email or mobile number'
             : 'Sign up with your email or mobile number';
       default:
-        throw UnimplementedError(
-          '$name does’nt have options text implementation',
-        );
+        return '';
     }
   }
 
@@ -266,6 +353,12 @@ enum AuthProcedure {
     confirmationBody: 'You will lose all your saved places',
     confirmationOkayText: 'Proceed',
     confirmationCancelText: 'Cancel',
+  ),
+  none(
+    confirmationTitle: '',
+    confirmationBody: '',
+    confirmationOkayText: '',
+    confirmationCancelText: '',
   ),
   logout(
     confirmationTitle: 'Heads up!!!.. you are about to logout!',

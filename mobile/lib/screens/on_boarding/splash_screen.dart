@@ -3,7 +3,6 @@ import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/screens/on_boarding/profile_setup_screen.dart';
 import 'package:app/screens/on_boarding/setup_complete_screeen.dart';
-import 'package:app/screens/on_boarding/welcome_screen.dart';
 import 'package:app/services/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,6 +10,7 @@ import 'package:flutter_svg/svg.dart';
 
 import '../auth/phone_auth_widget.dart';
 import '../home_page.dart';
+import 'introduction_screen.dart';
 import 'location_setup_screen.dart';
 import 'notifications_setup_screen.dart';
 import 'on_boarding_widgets.dart';
@@ -51,8 +51,8 @@ class SplashScreenState extends State<SplashScreen> {
     );
   }
 
-  Future<void> initialize() async {
-    context.read<FeedbackBloc>().add(const ClearFeedback());
+  Future<void> _initialize() async {
+    context.read<FeedbackBloc>().add(const InitializeFeedback());
     context.read<NearbyLocationBloc>().add(const CheckNearbyLocations());
 
     final isLoggedIn = CustomAuth.isLoggedIn();
@@ -63,7 +63,6 @@ class SplashScreenState extends State<SplashScreen> {
 
     Future.delayed(const Duration(seconds: 1), _updateWidget);
 
-    /// TODO add loading indicator to all onboarding pages
     Future.delayed(
       const Duration(seconds: 5),
       () {
@@ -71,7 +70,7 @@ class SplashScreenState extends State<SplashScreen> {
           context,
           MaterialPageRoute(builder: (context) {
             if (!isLoggedIn) {
-              return const WelcomeScreen();
+              return const IntroductionScreen();
             } else {
               switch (nextPage) {
                 case OnBoardingPage.signup:
@@ -87,7 +86,7 @@ class SplashScreenState extends State<SplashScreen> {
                 case OnBoardingPage.home:
                   return const HomePage(refresh: false);
                 default:
-                  return const WelcomeScreen();
+                  return const IntroductionScreen();
               }
             }
           }),
@@ -104,7 +103,7 @@ class SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    initialize();
+    _initialize();
   }
 
   void _updateWidget() {
