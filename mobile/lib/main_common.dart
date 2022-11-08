@@ -90,6 +90,7 @@ Future<void> initializeMainMethod() async {
 
   PlatformDispatcher.instance.onError = (error, stack) {
     logException(error, stack);
+
     return true;
   };
 }
