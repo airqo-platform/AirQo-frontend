@@ -51,6 +51,7 @@ class _DashboardViewState extends State<DashboardView> {
         _forYouShowcaseKey,
         _kyaShowcaseKey,
         _analyticsShowcaseKey,
+        // _nearestLocationShowcaseKey,
       ]);
     });
   }
@@ -245,7 +246,7 @@ class _DashboardViewState extends State<DashboardView> {
                                   'This is your current set of Know Your Air lessons',
                               child: DashboardKyaCard(
                                 kyaClickCallBack: _handleKyaOnClick,
-                                kya: incompleteKya[0],
+                                kya: incompleteKya.first,
                               ),
                             ),
                           );
@@ -268,8 +269,8 @@ class _DashboardViewState extends State<DashboardView> {
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: airQualityReadings.length,
                             itemBuilder: (BuildContext context, int index) {
-                              if (index == 0) {
-                                return Padding(
+                              return (index == 0)
+                                  ? Padding(
                                   padding: const EdgeInsets.only(top: 0),
                                   child: Showcase(
                                     key: _analyticsShowcaseKey,
@@ -283,9 +284,8 @@ class _DashboardViewState extends State<DashboardView> {
                                       false,
                                     ),
                                   ),
-                                );
-                              } else {
-                                return Padding(
+                                    )
+                                  : Padding(
                                   padding: const EdgeInsets.only(top: 16),
                                   child: AnalyticsCard(
                                     AirQualityReading.duplicate(
@@ -295,7 +295,7 @@ class _DashboardViewState extends State<DashboardView> {
                                     false,
                                   ),
                                 );
-                              }
+                              
                             },
                           );
                         },
