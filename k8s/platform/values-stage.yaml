@@ -5,40 +5,56 @@
 replicaCount: 1
 
 image:
-  repository: airqo-dev-platform-frontend
-  tag: latest
+  repository: gcr.io/airqo-250220/airqo-stage-next-platform
   pullPolicy: Always
+  tag: latest
 
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+podAnnotations: {}
+
+podSecurityContext:
+  {}
+  # fsGroup: 2000
+
+securityContext:
+  {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
 service:
   type: NodePort
-  nodePort: 32104
-  targetPort: 80
-  port: 80
+  port: 3000
+  protocol: TCP
+  targetPort: 3000
+  nodePort: 31107
 
 ingress:
   enabled: false
 
-nodeSelector: {}
-torelations: {}
-
 resources:
-  requests:
-    # Average usage was 0.00001 vCPU and 50Mi over the last 30 days
-    cpu: 5m
-    memory: 20Mi
   limits:
-    cpu: 50m
-    memory: 80Mi
+    cpu: 200m
+    memory: 700Mi
+  requests:
+    cpu: 100m
+    memory: 250Mi
 
 autoscaling:
   minReplicas: 1
-  maxReplicas: 2
-  # targetCPUUtilizationPercentage: 90
-  targetMemoryUtilizationPercentage: 90
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
 
 affinity:
   nodeAffinity:
@@ -59,7 +75,7 @@ affinity:
                 - high-memory
 
 app:
-  name: airqo-dev-platform-frontend
-  label: dev-platform-ui
-  namespace: development
-  configmap: env-platform-development
+  name: airqo-stage-next-platform
+  label: sta-next-platform
+  namespace: staging
+  configmap: env-next-platform-staging

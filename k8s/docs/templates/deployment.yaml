@@ -3,31 +3,37 @@ kind: Deployment
 metadata:
   name: {{ .Values.app.name }}
   namespace: {{ .Values.app.namespace }}
+  labels:
+    {{- include "airqo-docs.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 1
-  minReadySeconds: 5
   selector:
     matchLabels:
-      app: {{ .Values.app.label }}
+        app: {{ .Values.app.label }}
   template:
     metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       labels:
         app: {{ .Values.app.label }}
     spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Values.app.label }}
-          securityContext: 
+          securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - name: {{ .Values.app.label }}
-              containerPort: {{ .Values.service.targetPort }}
+            - containerPort: {{ .Values.service.targetPort }}
+              name: docs
           # livenessProbe:
           #   httpGet:
           #     path: /
@@ -36,9 +42,6 @@ spec:
           #   httpGet:
           #     path: /
           #     port: http
-          envFrom:
-            - configMapRef:
-                name: {{ .Values.app.configmap }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}

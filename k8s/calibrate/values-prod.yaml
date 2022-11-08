@@ -1,44 +1,61 @@
-# Default values for platform.
+# Default values for calibrate-app.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
 replicaCount: 2
 
 image:
-  repository: gcr.io/airqo-250220/airqo-platform-frontend
-  tag: latest
+  repository: gcr.io/airqo-250220/airqo-calibrate-app
   pullPolicy: Always
+  tag: latest
 
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
-service:
-  type: NodePort
-  nodePort: 30104
-  targetPort: 80
-  port: 80
+podAnnotations: {}
+
+podSecurityContext:
+  {}
+  # fsGroup: 2000
+
+securityContext:
+  {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
 
 ingress:
   enabled: false
 
-nodeSelector: {}
-torelations: {}
+service:
+  type: NodePort
+  protocol: TCP
+  port: 80
+  targetPort: 80
+  nodePort: 30106
 
 resources:
-  requests:
-    # Average usage was 0.00001 vCPU and 60Mi over the last 30 days
-    cpu: 5m
-    memory: 60Mi
   limits:
-    cpu: 100m
-    memory: 150Mi
+    cpu: 50m
+    memory: 100Mi
+  requests:
+    # Average usage was 0.0001 vCPU and 25Mi over the last 30 days
+    cpu: 5m
+    memory: 25Mi
 
 autoscaling:
   minReplicas: 1
-  maxReplicas: 4
+  maxReplicas: 3
   # targetCPUUtilizationPercentage: 70
   targetMemoryUtilizationPercentage: 70
+
+nodeSelector: {}
+
+tolerations: []
 
 affinity:
   nodeAffinity:
@@ -59,7 +76,7 @@ affinity:
                 - high-memory
 
 app:
-  name: airqo-platform-frontend
-  label: airqo-platform
+  name: airqo-calibrate-app
+  label: airqo-calibrate-app
   namespace: production
-  configmap: env-platform-production
+  configmap: env-calibrate-prod
