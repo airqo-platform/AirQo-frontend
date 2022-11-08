@@ -28,8 +28,7 @@ class _AboutAirQoState extends State<AboutAirQo> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const AppTopBar('About'),
-      body: CustomSafeArea(
-        backgroundColor: CustomColors.appBodyColor,
+      body: AppSafeArea(
         widget: Center(
           child: Column(
             children: [

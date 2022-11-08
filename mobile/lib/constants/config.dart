@@ -79,7 +79,7 @@ class Config {
   static String get sentryDsn => dotenv.env['SENTRY_DSN'] ?? '';
 
   static String get termsUrl =>
-      'https://staging-docs.airqo.net/#/mobile_app/privacy_policy';
+      'https://docs.airqo.net/#/mobile_app/privacy_policy';
 
   static String get usersCollection => dotenv.env['USERS_COLLECTION'] ?? '';
 
