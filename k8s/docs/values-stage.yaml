@@ -1,0 +1,46 @@
+replicaCount: 1
+image:
+  repository: gcr.io/airqo-250220/airqo-stage-docs
+  pullPolicy: Always
+  tag: stage-090ad16f-1667922055
+imagePullSecrets: []
+nameOverride: ''
+fullnameOverride: ''
+podAnnotations: {}
+podSecurityContext: {}
+securityContext: {}
+service:
+  type: NodePort
+  port: 3000
+  protocol: TCP
+  targetPort: 3000
+  nodePort: 31104
+ingress:
+  enabled: false
+resources:
+  limits:
+    cpu: 50m
+    memory: 100Mi
+  requests:
+    cpu: 10m
+    memory: 20Mi
+autoscaling:
+  minReplicas: 1
+  maxReplicas: 2
+  targetCPUUtilizationPercentage: 80
+nodeSelector: {}
+tolerations: []
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 10
+        preference:
+          matchExpressions:
+            - key: node-type
+              operator: In
+              values:
+                - general-purpose
+app:
+  name: airqo-stage-docs
+  label: sta-docs
+  namespace: staging
