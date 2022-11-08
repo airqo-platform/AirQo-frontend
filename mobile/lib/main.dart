@@ -1,15 +1,9 @@
-import 'dart:io';
-
 import 'package:app/main_common.dart';
 import 'package:app/models/models.dart';
-import 'package:app/services/hive_service.dart';
-import 'package:app/services/native_api.dart';
-import 'package:app/services/notification_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'constants/config.dart';
