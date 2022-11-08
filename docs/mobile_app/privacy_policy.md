@@ -40,7 +40,7 @@ We may request to send you push notifications regarding the Application. If you 
 
 ---
 
-### USE OF YOU INFORMATION
+### USE OF YOUR INFORMATION
 
 In general, the Personal and non-Personal Information you provide to us is used to:
 
@@ -83,4 +83,4 @@ The Project reserves the right to make changes to this Privacy Policy at any tim
 
 ### CONTACT US
 
-If you have any questions or comments regarding this Privacy Policy or the practices of the Apps, please contact us
+If you have any questions or comments regarding this Privacy Policy or the practices of the Apps, please contact us at info@airqo.net
