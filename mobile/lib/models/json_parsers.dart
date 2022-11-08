@@ -30,6 +30,14 @@ String frequencyFromJson(String frequency) {
   return frequency.toLowerCase();
 }
 
+Frequency frequencyFromString(String string) {
+  if (string.toLowerCase() == Frequency.daily.string) {
+    return Frequency.daily;
+  }
+
+  return Frequency.hourly;
+}
+
 String regionFromJson(dynamic json) {
   if (json == null) {
     return 'Central Region';
