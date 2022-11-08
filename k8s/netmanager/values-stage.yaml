@@ -1,35 +1,50 @@
-# values for platform frontend.
-env:
-  deployment_name: airqo-stage-platform-frontend
-  service_name: airqo-stage-platform-ui-svc
-  labels: sta-platform-ui
-  secret: env-platform-staging
-
 replicaCount: 2
-
 image:
-  repository: us.gcr.io/airqo-250220/airqo-stage-platform-frontend
-  tag: latest
+  repository: gcr.io/airqo-250220/airqo-stage-platform-frontend
+  tag: stage-45ddd0db-1667922355
   pullPolicy: Always
-
 imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
-
+nameOverride: ''
+fullnameOverride: ''
 service:
   type: NodePort
-  nodePort: 31104
+  nodePort: 31101
   targetPort: 80
   port: 80
-
 ingress:
   enabled: false
-
 nodeSelector: {}
-resources: {}
-affinity: {}
 torelations: {}
-
-
-## Application level settings  
-appMode: staging
+resources:
+  requests:
+    cpu: 5m
+    memory: 20Mi
+  limits:
+    cpu: 50m
+    memory: 80Mi
+autoscaling:
+  minReplicas: 1
+  maxReplicas: 3
+  targetMemoryUtilizationPercentage: 80
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 10
+        preference:
+          matchExpressions:
+            - key: node-type
+              operator: In
+              values:
+                - general-purpose
+      - weight: 1
+        preference:
+          matchExpressions:
+            - key: node-type
+              operator: In
+              values:
+                - high-memory
+app:
+  name: airqo-stage-platform-frontend
+  label: airqo-platform
+  namespace: staging
+  configmap: env-platform-staging
