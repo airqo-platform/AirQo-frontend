@@ -1,19 +1,28 @@
-name: build-android-artifacts
+name: build-android-artifact
 
 on:
-  push:
-    branches: [ "staging" ]
+  push: 
+    branches:["add-CI-CD-to-mobile-app"]
   pull_request:
     branches: [ "staging" ]
     types:
       closed
+
+defaults:
+  run:
+    working-directory: mobile
 
 jobs:
   
   build:
     name: android build
     runs-on: ubuntu-latest
-
+    env: 
+          KEY_ALIAS: ${{ secrets.MOBILE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.MOBILE_KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.MOBILE_STORE_PASSWORD }}
+          MAPS_KEY: ${{ secrets.MOBILE_MAPS_KEY}}
+          MAPS_KEY_DEV: ${{secrets.MOBILE_MAPS_KEY_DEV}}
     steps:
       - name: get flutter version
         uses: actions/checkout@v3
@@ -26,19 +35,22 @@ jobs:
       - name: Google login
         uses: google-github-actions/auth@v0
         with:
-          credentials_json: ${{secrets.GCP_MOBILE_CREDENTIALS}}
+          credentials_json: ${{secrets.GCP_SA_CREDENTIALS}}
       
       - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@v0
 
-      - name: Save mobile .env file
+      - name: Save mobile  prod .env file
         run: gcloud secrets versions access latest --secret="prod-env-mobile-app" > mobile/.env.prod
 
-      # - name: Retrieve keystore details
-        # run: gcloud secrets version access latest --secret="" > mobile/android/key.properties
-      
-      # - name: Get firebase details
-        # run:  
+      - name: Save 
+      - name: Decode Keystore
+        env:
+            ENCODED_STRING: ${{ secrets.KEYSTORE }}
+        run: |
+            TMP_KEYSTORE_FILE_PATH="${RUNNER_TEMP}"/keystore
+            mkdir "${TMP_KEYSTORE_FILE_PATH}"
+            echo $ENCODED_STRING | base64 -di > "${TMP_KEYSTORE_FILE_PATH}"/upload_keystore.jks
 
       - name: build-app
       - uses: actions/checkout@v3
@@ -50,14 +62,20 @@ jobs:
         with:
           flutter-version: '3.0.5'
       - run: flutter pub get
-      # - run: flutter build apk
+      - run: flutter build apk
       - run: flutter build appbundle --obfuscate --split-debug-info=${PWD}/obfuscate
       - name: Push APK to Releases
         uses: actions/checkout@v2
         uses: ncipollo/release-action@v1
         with:
           artifacts: "build/app/outputs/bundle/release/app.aab"
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }} 
+        commit:
+          - name: Upload app bundle artifact
+            uses: action/upload_artifact@v2
+            with:
+              name: appbundle
+              path: build/app/outputs/bundle/release/app.aab 
   # build-ios:
   #   name: ios build
   #   runs-on: macos-latest
