@@ -79,7 +79,6 @@ dependencies:
     path: packages/app_repository
   showcaseview: ^1.1.8
 
-  # https://pub.dev/packages/http_retry
   # https://pub.dev/packages/retry
 
 dev_dependencies:

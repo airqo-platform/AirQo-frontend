@@ -377,23 +377,28 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
   }
 }
 
-class CustomSafeArea extends StatelessWidget {
-  const CustomSafeArea({
+class AppSafeArea extends StatelessWidget {
+  const AppSafeArea({
     super.key,
     required this.widget,
     this.verticalPadding,
+    this.horizontalPadding,
     this.backgroundColor,
   });
   final Widget widget;
   final double? verticalPadding;
+  final double? horizontalPadding;
   final Color? backgroundColor;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: backgroundColor ?? Colors.white,
-      padding: EdgeInsets.symmetric(vertical: verticalPadding ?? 15),
+      color: backgroundColor ?? CustomColors.appBodyColor,
       child: SafeArea(
+        minimum: EdgeInsets.symmetric(
+          vertical: verticalPadding ?? 0,
+          horizontal: horizontalPadding ?? 0,
+        ),
         child: widget,
       ),
     );

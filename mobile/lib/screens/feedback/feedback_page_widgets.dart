@@ -182,7 +182,7 @@ class FeedbackCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(left: 16, right: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       height: 56,
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -245,7 +245,7 @@ class FeedbackForm extends StatelessWidget {
           return Container(
             height: 255,
             alignment: Alignment.center,
-            padding: const EdgeInsets.only(left: 15, right: 15),
+            padding: const EdgeInsets.symmetric(horizontal: 15),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: const BorderRadius.all(
@@ -456,7 +456,7 @@ class FeedbackNavigationButtons extends StatelessWidget {
 }
 
 class FeedbackTypeStep extends StatelessWidget {
-  const FeedbackTypeStep({Key? key}) : super(key: key);
+  const FeedbackTypeStep({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -530,7 +530,7 @@ class FeedbackTypeStep extends StatelessWidget {
 }
 
 class FeedbackChannelStep extends StatelessWidget {
-  const FeedbackChannelStep({Key? key}) : super(key: key);
+  const FeedbackChannelStep({super.key});
 
   @override
   Widget build(BuildContext context) {
