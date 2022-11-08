@@ -401,11 +401,11 @@ class CustomSafeArea extends StatelessWidget {
 }
 
 class CustomBottomNavBarItem extends StatelessWidget {
-  const CustomBottomNavBarItem(
-      {super.key,
-      required this.svg,
-      required this.selectedIndex,
-      required this.label,
+  const CustomBottomNavBarItem({
+    super.key,
+    required this.svg,
+    required this.selectedIndex,
+    required this.label,
     required this.index,
   });
   final String svg;
@@ -414,32 +414,28 @@ class CustomBottomNavBarItem extends StatelessWidget {
   final int index;
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 1, horizontal: 2),
-      child: ListView(
-        padding: const EdgeInsets.all(2),
-        shrinkWrap: true,
-        children: [
-          SvgPicture.asset(
-            svg,
+    return ListView(
+      shrinkWrap: true,
+      children: [
+        SvgPicture.asset(
+          svg,
+          color: selectedIndex == index
+              ? CustomColors.appColorBlue
+              : CustomColors.appColorBlack.withOpacity(0.3),
+          semanticsLabel: label,
+        ),
+        const SizedBox(height: 3),
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          style: TextStyle(
             color: selectedIndex == index
                 ? CustomColors.appColorBlue
                 : CustomColors.appColorBlack.withOpacity(0.3),
-            semanticsLabel: label,
+            fontSize: 9,
           ),
-          const SizedBox(height: 3),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: selectedIndex == index
-                  ? CustomColors.appColorBlue
-                  : CustomColors.appColorBlack.withOpacity(0.3),
-              fontSize: 9,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
