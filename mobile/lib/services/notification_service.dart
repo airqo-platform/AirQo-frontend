@@ -1,8 +1,8 @@
 import 'package:app/models/models.dart';
+import 'package:app/utils/utils.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-import '../utils/exception.dart';
 import 'firebase_service.dart';
 import 'native_api.dart';
 

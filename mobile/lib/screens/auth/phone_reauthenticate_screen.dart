@@ -1,14 +1,11 @@
-import 'package:app/models/profile.dart';
-import 'package:app/services/firebase_service.dart';
-import 'package:app/widgets/buttons.dart';
-import 'package:app/widgets/dialogs.dart';
-import 'package:app/widgets/text_fields.dart';
+import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../../themes/colors.dart';
-import '../../utils/network.dart';
-import '../../widgets/custom_widgets.dart';
 import 'auth_widgets.dart';
 
 class PhoneReAuthenticateScreen extends StatefulWidget {
@@ -44,7 +41,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
           _isVerifying = false;
         },
       );
-      await showSnackBar(
+      showSnackBar(
         context,
         'Failed to verify phone number.'
         ' Try again later',
@@ -176,7 +173,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
     }
   }
 
-  void verifyPhoneFn(verificationId) {
+  void verifyPhoneFn(String verificationId) {
     setState(
       () {
         _verificationId = verificationId;
@@ -297,7 +294,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
     final code = _phoneVerificationCode.join('');
 
     if (code.length != 6) {
-      await showSnackBar(
+      showSnackBar(
         context,
         'Enter all the 6 digits',
       );
@@ -332,7 +329,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
             _isVerifying = false;
           },
         );
-        await showSnackBar(
+        showSnackBar(
           context,
           'Failed to verify phone number.'
           ' Try again later',
@@ -341,7 +338,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
     } on FirebaseAuthException catch (exception, stackTrace) {
       debugPrint('$exception\n$stackTrace');
       if (exception.code == 'invalid-verification-code') {
-        await showSnackBar(
+        showSnackBar(
           context,
           'Invalid Code',
         );
@@ -359,7 +356,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
           verifyPhoneFn,
           autoVerifyPhoneFn,
         );
-        await showSnackBar(
+        showSnackBar(
           context,
           'Your verification '
           'has timed out. we have sent your'
@@ -373,7 +370,7 @@ class PhoneReAuthenticateScreenState extends State<PhoneReAuthenticateScreen> {
         );
       }
     } catch (exception, stackTrace) {
-      await showSnackBar(
+      showSnackBar(
         context,
         'Try again later',
       );

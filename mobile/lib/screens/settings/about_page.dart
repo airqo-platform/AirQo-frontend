@@ -1,12 +1,10 @@
 import 'package:app/constants/config.dart';
 import 'package:app/screens/web_view_page.dart';
-import 'package:app/widgets/custom_widgets.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-
-import '../../themes/app_theme.dart';
-import '../../themes/colors.dart';
 
 class AboutAirQo extends StatefulWidget {
   const AboutAirQo({

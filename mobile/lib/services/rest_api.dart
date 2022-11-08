@@ -2,23 +2,19 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 
-import 'package:app/constants/api.dart';
-import 'package:app/constants/config.dart';
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
-import 'package:app/utils/extensions.dart';
-import 'package:flutter/foundation.dart';
+import 'package:app/utils/utils.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-
-import '../utils/exception.dart';
 
 String addQueryParameters(Map<String, dynamic> queryParams, String url) {
   if (queryParams.isNotEmpty) {
     url = '$url?';
     queryParams.forEach(
       (key, value) {
-        url = queryParams.keys.elementAt(0).compareTo(key) == 0
+        url = queryParams.keys.first.compareTo(key) == 0
             ? '$url$key=$value'
             : '$url&$key=$value';
       },
@@ -57,7 +53,7 @@ class AirqoApiClient {
       final ipResponse = await httpClient.get(
         Uri.parse('https://jsonip.com/'),
       );
-      ipAddress = json.decode(ipResponse.body)['ip'];
+      ipAddress = json.decode(ipResponse.body)['ip'] as String;
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -66,9 +62,9 @@ class AirqoApiClient {
     }
 
     try {
-      var params = ipAddress.isNotEmpty
+      final params = ipAddress.isNotEmpty
           ? {'ip_address': ipAddress}
-          : {} as Map<String, dynamic>;
+          : <String, dynamic>{};
       final response =
           await _performGetRequest(params, AirQoUrls.ipGeoCoordinates);
 
@@ -91,7 +87,7 @@ class AirqoApiClient {
         headers: headers,
       );
 
-      return json.decode(response.body)['data']['carrier'];
+      return json.decode(response.body)['data']['carrier'] as String;
     } catch (exception, stackTrace) {
       await logException(
         exception,
@@ -136,7 +132,7 @@ class AirqoApiClient {
       throw Exception('Failed to perform action. Try again later');
     }
 
-    return json.decode(response.body)['status'];
+    return json.decode(response.body)['status'] as bool;
   }
 
   Future<List<Insights>> fetchSitesInsights(String siteIds) async {
@@ -193,11 +189,8 @@ class AirqoApiClient {
         body: jsonEncode(body),
       );
 
-      return compute(
-        EmailAuthModel.parseEmailAuthModel,
-        json.decode(
-          response.body,
-        ),
+      return EmailAuthModel.parseEmailAuthModel(
+        json.decode(response.body),
       );
     } catch (exception, stackTrace) {
       await logException(

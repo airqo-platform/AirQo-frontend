@@ -1,9 +1,9 @@
 import 'dart:io';
 
-import 'package:app/constants/config.dart';
+import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
-import 'package:app/utils/extensions.dart';
-import 'package:app/widgets/dialogs.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,8 +12,6 @@ import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/cupertino.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../utils/exception.dart';
-import '../utils/network.dart';
 import 'hive_service.dart';
 
 class CloudAnalytics {
@@ -538,22 +536,22 @@ class CustomAuth {
       return userCredential.user != null;
     } on FirebaseAuthException catch (exception, stackTrace) {
       if (exception.code == 'invalid-email') {
-        await showSnackBar(
+        showSnackBar(
           context,
           'Invalid Email. Try again',
         );
       } else if (exception.code == 'expired-action-code') {
-        await showSnackBar(
+        showSnackBar(
           context,
           'Your verification has timed out. Try again later',
         );
       } else if (exception.code == 'user-disabled') {
-        await showSnackBar(
+        showSnackBar(
           context,
           'Account has been disabled. PLease contact support',
         );
       } else {
-        await showSnackBar(
+        showSnackBar(
           context,
           Config.appErrorMessage,
         );
@@ -608,27 +606,27 @@ class CustomAuth {
       return userCredential.user != null;
     } on FirebaseAuthException catch (exception, stackTrace) {
       if (exception.code == 'invalid-verification-code') {
-        await showSnackBar(
+        showSnackBar(
           context,
           'Invalid Code',
         );
       } else if (exception.code == 'session-expired') {
-        await showSnackBar(
+        showSnackBar(
           context,
           'Your verification has timed out. Try again later',
         );
       } else if (exception.code == 'account-exists-with-different-credential') {
-        await showSnackBar(
+        showSnackBar(
           context,
           'Phone number is already linked to an email.',
         );
       } else if (exception.code == 'user-disabled') {
-        await showSnackBar(
+        showSnackBar(
           context,
           'Account has been disabled. PLease contact support',
         );
       } else {
-        await showSnackBar(
+        showSnackBar(
           context,
           Config.appErrorMessage,
         );
@@ -653,7 +651,6 @@ class CustomAuth {
   static Future<bool> reAuthenticateWithEmailAddress(
     String emailAddress,
     String link,
-    BuildContext context,
   ) async {
     final hasConnection = await hasNetworkConnection();
     if (!hasConnection) {
@@ -695,13 +692,13 @@ class CustomAuth {
       return userCredentials.user != null;
     } on FirebaseAuthException catch (exception) {
       if (exception.code == 'invalid-verification-code') {
-        await showSnackBar(
+        showSnackBar(
           context,
           'Invalid Code',
         );
       }
       if (exception.code == 'session-expired') {
-        await showSnackBar(
+        showSnackBar(
           context,
           'Your verification '
           'has timed out. we have sent your'
@@ -719,8 +716,8 @@ class CustomAuth {
   }
 
   static Future<bool> requestPhoneVerification(
-    phoneNumber,
-    context,
+    String phoneNumber,
+    BuildContext context,
     callBackFn,
     autoVerificationFn,
   ) async {
@@ -740,12 +737,12 @@ class CustomAuth {
         },
         verificationFailed: (FirebaseAuthException exception) async {
           if (exception.code == 'invalid-phone-number') {
-            await showSnackBar(
+            showSnackBar(
               context,
               'Invalid phone number.',
             );
           } else {
-            await showSnackBar(
+            showSnackBar(
               context,
               'Cannot process your request.'
               ' Try again later',
@@ -829,7 +826,7 @@ class CustomAuth {
           break;
       }
 
-      await showSnackBar(
+      showSnackBar(
         context,
         error,
       );

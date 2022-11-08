@@ -80,7 +80,7 @@ class Kya extends HiveObject {
     await Hive.box<Kya>(HiveBox.kya).putAll(newKyas);
 
     for (final kya in kyas) {
-      await CacheService.cacheKyaImages(kya);
+      CacheService.cacheKyaImages(kya);
     }
   }
 

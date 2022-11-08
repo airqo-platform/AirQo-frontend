@@ -1,15 +1,11 @@
-import 'package:app/models/enum_constants.dart';
-import 'package:app/utils/extensions.dart';
-import 'package:app/widgets/buttons.dart';
-import 'package:app/widgets/dialogs.dart';
-import 'package:app/widgets/text_fields.dart';
+import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
+import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../../services/firebase_service.dart';
-import '../../services/rest_api.dart';
-import '../../themes/colors.dart';
-import '../../widgets/custom_widgets.dart';
 import 'auth_widgets.dart';
 
 class ChangeEmailScreen extends StatefulWidget {
@@ -329,7 +325,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
     );
   }
 
-  void _emailValueChange(text) {
+  void _emailValueChange(String text) {
     if (text.toString().isEmpty || !_emailInputController.text.isValidEmail()) {
       setState(() => _nextBtnColor = CustomColors.appColorDisabled);
     } else {
@@ -364,7 +360,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
 
     if (_user!.email!.trim().toLowerCase() ==
         _emailAddress.trim().toLowerCase()) {
-      await showSnackBar(
+      showSnackBar(
         context,
         'Enter a different email address',
       );
@@ -383,7 +379,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
         .requestEmailVerificationCode(_emailAddress, false);
 
     if (emailVerificationResponse == null) {
-      await showSnackBar(
+      showSnackBar(
         context,
         'email verification failed',
       );
@@ -421,7 +417,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
         .requestEmailVerificationCode(_emailAddress, false);
 
     if (emailVerificationResponse == null) {
-      await showSnackBar(
+      showSnackBar(
         context,
         'Email verification failed',
       );
@@ -440,7 +436,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
     final code = _emailVerificationCode.join('');
 
     if (code.length != 6) {
-      await showSnackBar(
+      showSnackBar(
         context,
         'Enter all the 6 digits',
       );
@@ -460,7 +456,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
     );
 
     if (code != _emailToken.toString()) {
-      await showSnackBar(
+      showSnackBar(
         context,
         'Invalid Code',
       );
@@ -476,7 +472,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
     final user = CustomAuth.getUser();
 
     if (user == null) {
-      await showSnackBar(
+      showSnackBar(
         context,
         'Failed to update email address',
       );
@@ -499,7 +495,7 @@ class ChangeEmailScreenState extends State<ChangeEmailScreen> {
           _isVerifying = false;
         },
       );
-      await showSnackBar(
+      showSnackBar(
         context,
         'Failed to update email address',
       );

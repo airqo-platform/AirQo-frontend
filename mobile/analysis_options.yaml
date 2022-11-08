@@ -1,179 +1,114 @@
-include: package:flutter_lints/flutter.yaml
+include: package:lints/recommended.yaml
+#include: package:flutter_lints/flutter.yaml
 
 analyzer:
   exclude:
     - lib/firebase_options.dart
+    - lib/firebase_options_dev.dart
+    - [build/**]
+  language:
+    strict-casts: true
+    strict-raw-types: true
 
-linter:
-  rules:
-    - always_declare_return_types
-    - one_member_abstracts
-    - annotate_overrides
-    - avoid_empty_else
-    - avoid_function_literals_in_foreach_calls
-    - avoid_init_to_null
-    - avoid_null_checks_in_equality_operators
-    - avoid_relative_lib_imports
-    - avoid_renaming_method_parameters
-    - avoid_return_types_on_setters
-    - avoid_returning_null
-    - avoid_types_as_parameter_names
-    - avoid_unused_constructor_parameters
-    - await_only_futures
-    - camel_case_types
-    - cancel_subscriptions
-    - cascade_invocations
-    - comment_references
-    - constant_identifier_names
-    - control_flow_in_finally
-    - directives_ordering
-    - empty_catches
-    - empty_constructor_bodies
-    - empty_statements
-    - hash_and_equals
-    - implementation_imports
-    - invariant_booleans
-    - iterable_contains_unrelated_type
-    - library_names
-    - library_prefixes
-    - list_remove_unrelated_type
-    - lines_longer_than_80_chars
-    - no_adjacent_strings_in_list
-    - no_duplicate_case_values
-    - non_constant_identifier_names
-    - null_closures
-    - omit_local_variable_types
-    - only_throw_errors
-    - overridden_fields
-    - package_api_docs
-    - package_names
-    - package_prefixed_library_names
-    - prefer_adjacent_string_concatenation
-    - prefer_collection_literals
-    - prefer_conditional_assignment
-    - prefer_const_constructors
-    - prefer_contains
-    - prefer_equal_for_default_values
-    - prefer_final_fields
-    - prefer_initializing_formals
-    - prefer_interpolation_to_compose_strings
-    - prefer_is_empty
-    - prefer_is_not_empty
-    - prefer_single_quotes
-    - prefer_typing_uninitialized_variables
-    - recursive_getters
-    - slash_for_doc_comments
-    - sort_constructors_first
-    - test_types_in_equals
-    - throw_in_finally
-    - type_init_formals
-    - unawaited_futures
-    - unnecessary_brace_in_string_interps
-    - unnecessary_const
-    - unnecessary_getters_setters
-    - unnecessary_lambdas
-    - unnecessary_new
-    - unnecessary_null_aware_assignments
-    - unnecessary_statements
-    - unnecessary_this
-    - unrelated_type_equality_checks
-    - use_rethrow_when_possible
-    - valid_regexps
+#linter:
+#  rules:
+#   - https://dart-lang.github.io/linter/lints/options/options.html
 
 dart_code_metrics:
-  exclude:
+  metrics-exclude:
+    - test/**
     - lib/firebase_options.dart
+    - lib/firebase_options_dev.dart
+    - [build/**]
   anti-patterns:
     - long-method
     - long-parameter-list
   metrics:
     cyclomatic-complexity: 20
     maximum-nesting-level: 5
-    number-of-parameters: 10
+    number-of-parameters: 4
     source-lines-of-code: 400
     lines-of-code: 100
     halstead-volume: 150
     number-of-methods: 10
     weight-of-class: 0.33
-  metrics-exclude:
-    - test/**
+    maintainability-index: 50
+    technical-debt:
+      threshold: 1
+      todo-cost: 161
+      ignore-cost: 320
+      ignore-for-file-cost: 396
+      as-dynamic-cost: 322
+      deprecated-annotations-cost: 37
+      file-nullsafety-migration-cost: 41
+      unit-type: "USD"
   rules:
     - newline-before-return
     - no-boolean-literal-compare
     - no-empty-block
     - prefer-trailing-comma
     - prefer-conditional-expressions
+    - avoid-redundant-async
+    - avoid-global-state
+    - prefer-last
+    - prefer-first
     - no-equal-then-else
-    - always_declare_return_types
-    - one_member_abstracts
-    - annotate_overrides
-    - avoid_empty_else
-    - avoid_function_literals_in_foreach_calls
-    - avoid_init_to_null
-    - avoid_null_checks_in_equality_operators
-    - avoid_relative_lib_imports
-    - avoid_renaming_method_parameters
-    - avoid_return_types_on_setters
-    - avoid_returning_null
-    - avoid_types_as_parameter_names
-    - avoid_unused_constructor_parameters
-    - await_only_futures
-    - camel_case_types
-    - cancel_subscriptions
-    - cascade_invocations
-    - comment_references
-    - constant_identifier_names
-    - control_flow_in_finally
-    - directives_ordering
-    - empty_catches
-    - empty_constructor_bodies
-    - empty_statements
-    - hash_and_equals
-    - implementation_imports
-    - invariant_booleans
-    - iterable_contains_unrelated_type
-    - library_names
-    - library_prefixes
-    - list_remove_unrelated_type
-    - lines_longer_than_80_chars
-    - no_adjacent_strings_in_list
-    - no_duplicate_case_values
-    - non_constant_identifier_names
-    - null_closures
-    - omit_local_variable_types
-    - only_throw_errors
-    - overridden_fields
-    - package_api_docs
-    - package_names
-    - package_prefixed_library_names
-    - prefer_adjacent_string_concatenation
-    - prefer_collection_literals
-    - prefer_conditional_assignment
-    - prefer_const_constructors
-    - prefer_contains
-    - prefer_equal_for_default_values
-    - prefer_final_fields
-    - prefer_initializing_formals
-    - prefer_interpolation_to_compose_strings
-    - prefer_is_empty
-    - prefer_is_not_empty
-    - prefer_single_quotes
-    - prefer_typing_uninitialized_variables
-    - recursive_getters
-    - slash_for_doc_comments
-    - sort_constructors_first
-    - test_types_in_equals
-    - throw_in_finally
-    - type_init_formals
-    - unawaited_futures
-    - unnecessary_brace_in_string_interps
-    - unnecessary_const
-    - unnecessary_getters_setters
-    - unnecessary_lambdas
-    - unnecessary_new
-    - unnecessary_null_aware_assignments
-    - unnecessary_statements
-    - unnecessary_this
-    - unrelated_type_equality_checks
-    - use_rethrow_when_possible
-    - valid_regexps
+    - avoid-banned-imports
+    - avoid-cascade-after-if-null
+    - avoid-collection-methods-with-unrelated-types
+    - avoid-duplicate-exports
+    - avoid-global-state
+    - avoid-missing-enum-constant-in-map
+    - avoid-throw-in-catch-block
+    - avoid-top-level-members-in-tests
+    - tag-name
+    - prefer-trailing-comma
+    - prefer-last
+    - prefer-iterable-of
+    - prefer-immediate-return
+    - prefer-first
+    - prefer-enums-by-name
+    - prefer-correct-type-name
+    - prefer-correct-test-file-name
+    - prefer-conditional-expressions
+    - prefer-commenting-analyzer-ignores
+    - no-equal-then-else
+    - no-empty-block
+    - no-boolean-literal-compare
+    - missing-test-assertion
+    - double-literal-format
+    - binary-expression-operand-order
+    - ban-name
+    - avoid-unused-parameters
+    - avoid-unrelated-type-assertions
+    - avoid-unnecessary-type-casts
+    - avoid-unnecessary-type-assertions
+    - always-remove-listener
+    - avoid-unnecessary-setstate
+#    - avoid-nested-conditional-expressions
+#    - avoid-border-all
+#    - avoid-returning-widgets
+#    - avoid-shrink-wrap-in-lists
+#    - prefer-async-await
+#    - avoid-passing-async-when-sync-expected
+#    - avoid-non-null-assertion
+#    - no-equal-arguments
+#    - avoid-non-ascii-symbols
+#    - prefer-correct-identifier-length
+#    - member-ordering
+#    - format-comment
+#    - avoid-wrapping-in-padding
+#    - check-for-equals-in-render-object-setters
+#    - consistent-update-render-object
+#    - prefer-const-border-radius
+#    - prefer-correct-edge-insets-constructor
+#    - prefer-extracting-callbacks
+#    - prefer-single-widget-per-file
+#    - prefer-intl-name
+#    - provide-correct-intl-args
+#    - no-magic-number
+#    - prefer-match-file-name
+#    - avoid-ignoring-return-values
+#    - avoid-dynamic
+#    - avoid-late-keyword
+#    - prefer-moving-to-variable
