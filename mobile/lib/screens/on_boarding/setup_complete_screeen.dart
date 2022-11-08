@@ -2,12 +2,13 @@ import 'package:app/models/models.dart';
 import 'package:app/screens/home_page.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
+import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 
+import 'on_boarding_widgets.dart';
+
 class SetUpCompleteScreen extends StatefulWidget {
-  const SetUpCompleteScreen({
-    super.key,
-  });
+  const SetUpCompleteScreen({super.key});
 
   @override
   SetUpCompleteScreenState createState() => SetUpCompleteScreenState();
@@ -17,34 +18,35 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CustomColors.appBodyColor,
+      appBar: const OnBoardingTopBar(),
       body: WillPopScope(
-        onWillPop: onWillPop,
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                'All Set!',
-                textAlign: TextAlign.center,
-                style: _setUpCompleteTextStyle(),
-              ),
-              Text(
-                'Breathe',
-                textAlign: TextAlign.center,
-                style: _setUpCompleteTextStyle()?.copyWith(
-                  color: CustomColors.appColorBlue,
+        onWillPop: _onWillPop,
+        child: AppSafeArea(
+          widget: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'All Set!',
+                  textAlign: TextAlign.center,
+                  style: _setUpCompleteTextStyle(),
                 ),
-              ),
-            ],
+                Text(
+                  'Breathe',
+                  textAlign: TextAlign.center,
+                  style: _setUpCompleteTextStyle()?.copyWith(
+                    color: CustomColors.appColorBlue,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Future<void> initialize() async {
+  Future<void> _initialize() async {
     await SharedPreferencesHelper.updateOnBoardingPage(OnBoardingPage.complete);
     Future.delayed(const Duration(seconds: 4), _goToHome);
   }
@@ -52,10 +54,10 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
   @override
   void initState() {
     super.initState();
-    initialize();
+    _initialize();
   }
 
-  Future<bool> onWillPop() {
+  Future<bool> _onWillPop() {
     _goToHome();
 
     return Future.value(false);
@@ -72,16 +74,6 @@ class SetUpCompleteScreenState extends State<SetUpCompleteScreen> {
         ),
         (r) => false,
       );
-    }
-  }
-
-  @Deprecated('Functionality has been transferred to the backend')
-  Future<void> sendWelcomeEmail() async {
-    try {
-      final profile = await Profile.getProfile();
-      await AirqoApiClient().sendWelcomeMessage(profile);
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
     }
   }
 

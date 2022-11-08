@@ -20,7 +20,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
       resizeToAvoidBottomInset: false,
       appBar: const AppTopBar('Send Feedback'),
       body: Container(
-        padding: const EdgeInsets.only(left: 16, right: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         color: CustomColors.appBodyColor,
         child: Column(
           children: [
