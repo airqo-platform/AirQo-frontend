@@ -1,12 +1,11 @@
 name: build-android-artifact
 
-on:
-  push: 
-    branches:["add-CI-CD-to-mobile-app"]
-  pull_request:
-    branches: [ "staging" ]
-    types:
-      closed
+on: [push]
+  #   branches:["add-CI-CD-to-mobile-app"]
+  # pull_request:
+  #   branches: [ "staging" ]
+  #   types:
+  #     closed
 
 defaults:
   run:
