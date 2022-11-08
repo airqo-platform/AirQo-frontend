@@ -68,7 +68,6 @@ class HiveService {
   static Future<void> clearUserData() async {
     await Future.wait([
       Hive.box<AppNotification>(HiveBox.appNotifications).clear(),
-      Hive.box<Profile>(HiveBox.profile).clear(),
       Hive.box<Kya>(HiveBox.kya).clear(),
       Hive.box<Analytics>(HiveBox.analytics).clear(),
       Hive.box<FavouritePlace>(HiveBox.favouritePlaces).clear(),
