@@ -5,6 +5,7 @@ This is the AirQo mobile application privacy policy
 ---
 
 ### MOBILE APP PRIVACY POLICY
+#### Last updated: 18/07/2022
 
 AirQo (the “Project”) is committed to maintaining robust privacy protections for its users. Our Privacy Policy (“Privacy Policy”) is designed to help you understand how we collect, use and safeguard the information you provide to us and to assist you in making informed decisions when using our Service.
 
