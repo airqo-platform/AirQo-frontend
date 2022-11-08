@@ -45,15 +45,13 @@ resources:
   requests:
     cpu: 10m
     memory: 20Mi
-
+    
 autoscaling:
   minReplicas: 1
   maxReplicas: 2
   targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
-
+  
 nodeSelector: {}
-
 tolerations: []
 
 affinity:
@@ -66,7 +64,7 @@ affinity:
               operator: In
               values:
                 - general-purpose
-
+                
 app:
   name: airqo-stage-docs
   label: sta-docs
