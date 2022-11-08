@@ -299,11 +299,11 @@ class DailyAnalyticsGraph extends StatelessWidget {
                   charts.SelectionModelConfig(
                     changedListener: (charts.SelectionModel model) {
                       try {
-                        final value = model.selectedDatum[0].index;
+                        final value = model.selectedDatum.first.index;
                         if (value != null) {
                           context.read<DailyInsightsBloc>().add(
                                 UpdateSelectedInsight(
-                                  model.selectedSeries[0].data[value]
+                                  model.selectedSeries.first.data[value]
                                       as GraphInsightData,
                                 ),
                               );
@@ -424,7 +424,7 @@ class _HourlyInsightsGraphState extends State<HourlyInsightsGraph> {
 
     context.read<HourlyInsightsBloc>().add(const SetScrolling(true));
 
-    final selectedInsight = data[state.chartIndex][0].data.first;
+    final selectedInsight = data[state.chartIndex].first.data.first;
     context
         .read<HourlyInsightsBloc>()
         .add(UpdateSelectedInsight(selectedInsight));
@@ -838,7 +838,7 @@ class _DailyInsightsGraphState extends State<DailyInsightsGraph> {
 
     context.read<DailyInsightsBloc>().add(const SetScrolling(true));
 
-    final selectedInsight = data[state.chartIndex][0].data.first;
+    final selectedInsight = data[state.chartIndex].first.data.first;
     context
         .read<DailyInsightsBloc>()
         .add(UpdateSelectedInsight(selectedInsight));

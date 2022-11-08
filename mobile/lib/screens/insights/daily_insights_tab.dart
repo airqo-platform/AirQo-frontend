@@ -14,8 +14,7 @@ class DailyInsightsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomSafeArea(
-      backgroundColor: CustomColors.appBodyColor,
+    return AppSafeArea(
       widget: BlocConsumer<DailyInsightsBloc, InsightsState>(
         listenWhen: (previous, current) {
           return (current.insightsStatus == InsightsStatus.error ||
@@ -82,14 +81,14 @@ class DailyInsightsTab extends StatelessWidget {
               },
               childCount: 2,
             ),
-            onRefresh: () => _refreshPage(context),
+            onRefresh: () async {
+              context
+                  .read<DailyInsightsBloc>()
+                  .add(const RefreshInsightsCharts());
+            },
           );
         },
       ),
     );
-  }
-
-  Future<void> _refreshPage(BuildContext context) async {
-    context.read<DailyInsightsBloc>().add(const RefreshInsightsCharts());
   }
 }

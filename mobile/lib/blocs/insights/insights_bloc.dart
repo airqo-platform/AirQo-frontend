@@ -34,7 +34,7 @@ class InsightsBloc extends Bloc<InsightsEvent, InsightsState> {
   Future<void> _onRefreshInsights(
     RefreshInsightsCharts _,
     Emitter<InsightsState> emit,
-  ) async {
+  ) {
     return _refreshCharts(emit);
   }
 
