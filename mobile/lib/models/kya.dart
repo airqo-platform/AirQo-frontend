@@ -126,19 +126,3 @@ class KyaLesson {
     return 'kya-${kya.id}-${kya.lessons.indexOf(this)}-lesson-image-url';
   }
 }
-
-@JsonSerializable(explicitToJson: true)
-class UserKya {
-  factory UserKya.fromJson(Map<String, dynamic> json) =>
-      _$UserKyaFromJson(json);
-
-  UserKya(
-    this.id,
-    this.progress,
-  );
-  @JsonKey(defaultValue: 0)
-  int progress;
-  String id;
-
-  Map<String, dynamic> toJson() => _$UserKyaToJson(this);
-}

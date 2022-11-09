@@ -1,11 +1,10 @@
+import 'package:app/models/air_quality_reading.dart';
 import 'package:app/models/place_details.dart';
-import 'package:app/services/firebase_service.dart';
-import 'package:app/utils/exception.dart';
+import 'package:app/services/services.dart';
+import 'package:app/utils/utils.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:uuid/uuid.dart';
-
-import '../services/hive_service.dart';
 
 part 'analytics.g.dart';
 
@@ -100,6 +99,21 @@ class Analytics extends HiveObject {
     );
 
     return analytics;
+  }
+
+  static List<Analytics> fromAirQualityReadings() {
+    return Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+        .values
+        .map((airQualityReading) => Analytics(
+              id: airQualityReading.placeId,
+              site: airQualityReading.referenceSite,
+              name: airQualityReading.name,
+              location: airQualityReading.location,
+              createdAt: airQualityReading.dateTime,
+              longitude: airQualityReading.longitude,
+              latitude: airQualityReading.latitude,
+            ))
+        .toList();
   }
 
   static Future<void> load(List<Analytics> analytics) async {

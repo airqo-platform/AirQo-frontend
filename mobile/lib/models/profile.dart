@@ -1,13 +1,9 @@
-import 'package:app/utils/extensions.dart';
+import 'package:app/services/services.dart';
+import 'package:app/utils/utils.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
 
-import '../services/firebase_service.dart';
-import '../services/hive_service.dart';
-import '../services/native_api.dart';
-import '../utils/network.dart';
 import 'enum_constants.dart';
 
 part 'profile.g.dart';
@@ -153,11 +149,7 @@ class Profile extends HiveObject {
       ..utcOffset = DateTime.now().getUtcOffset();
 
     final user = CustomAuth.getUser();
-    if (user != null) {
-      Sentry.configureScope(
-        (scope) =>
-            scope.setUser(SentryUser(id: user.uid, email: user.email ?? '')),
-      );
+    if (user != null && !CustomAuth.isGuestUser()) {
       this
         ..userId = user.uid
         ..phoneNumber = user.phoneNumber ?? ''
@@ -184,6 +176,30 @@ class Profile extends HiveObject {
       default:
         return [namesArray.first, namesArray[1]];
     }
+  }
+
+  static Future<Profile> initializeGuestProfile() async {
+    final user = CustomAuth.getUser();
+    final userId = user != null ? user.uid : Uuid().v4();
+
+    return Profile(
+      title: '',
+      firstName: '',
+      lastName: '',
+      userId: userId,
+      emailAddress: '',
+      phoneNumber: '',
+      device: await CloudMessaging.getDeviceToken() ?? '',
+      preferences: UserPreferences(
+        notifications:
+            await PermissionService.checkPermission(AppPermission.notification),
+        location:
+            await PermissionService.checkPermission(AppPermission.location),
+        aqShares: 0,
+      ),
+      utcOffset: DateTime.now().getUtcOffset(),
+      photoUrl: '',
+    );
   }
 
   static Future<Profile> _initialize() async {
@@ -244,4 +260,23 @@ class UserPreferences extends HiveObject {
       aqShares: 0,
     );
   }
+}
+
+Profile initializeDefault() {
+  return Profile(
+    title: '',
+    firstName: '',
+    lastName: '',
+    userId: const Uuid().v4(),
+    emailAddress: '',
+    phoneNumber: '',
+    device: '',
+    preferences: UserPreferences(
+      notifications: false,
+      location: false,
+      aqShares: 0,
+    ),
+    utcOffset: DateTime.now().getUtcOffset(),
+    photoUrl: '',
+  );
 }

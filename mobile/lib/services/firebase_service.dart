@@ -80,13 +80,13 @@ class CloudStore {
     return referenceKya;
   }
 
-  static Future<List<UserKya>> _getUserKya() async {
+  static Future<List<Kya>> _getUserKya() async {
     final userId = CustomAuth.getUserId();
     if (userId.isEmpty) {
       return [];
     }
 
-    final userOnGoingKya = <UserKya>[];
+    final userOnGoingKya = <Kya>[];
 
     try {
       final userKyaCollection = await FirebaseFirestore.instance
@@ -102,7 +102,7 @@ class CloudStore {
           }
           try {
             userOnGoingKya.add(
-              UserKya.fromJson(
+              Kya.fromJson(
                 userKyaDoc.data(),
               ),
             );
@@ -110,7 +110,7 @@ class CloudStore {
             final userKyaData = userKyaDoc.data();
             userKyaData['progress'] =
                 (userKyaData['progress'] as double).ceil();
-            userOnGoingKya.add(UserKya.fromJson(userKyaData));
+            userOnGoingKya.add(Kya.fromJson(userKyaData));
           }
         } catch (exception, stackTrace) {
           debugPrint('$exception\n$stackTrace');
@@ -124,30 +124,18 @@ class CloudStore {
   }
 
   static Future<List<Kya>> getKya() async {
-    final userKya = <Kya>[];
-    final userOnGoingKya = await _getUserKya();
     final referenceKya = await _getReferenceKya();
 
-    if (userOnGoingKya.isEmpty) {
-      for (final kya in referenceKya) {
-        kya.progress = 0;
-        userKya.add(kya);
-      }
-    } else {
-      for (final kya in referenceKya) {
-        try {
-          final onGoingKya = userOnGoingKya.firstWhere(
-            (element) => element.id == kya.id,
-            orElse: () => UserKya(kya.id, 0),
-          );
-
-          kya.progress = onGoingKya.progress;
-          userKya.add(kya);
-        } catch (exception, stackTrace) {
-          debugPrint('$exception\n$stackTrace');
-        }
-      }
+    if (CustomAuth.isGuestUser()) {
+      return referenceKya;
     }
+
+    final userKya = await _getUserKya();
+
+    final List<String> userKyaIds = userKya.map((kya) => kya.id).toList();
+    referenceKya.removeWhere((kya) => userKyaIds.contains(kya.id));
+
+    userKya.addAll(referenceKya);
 
     return userKya;
   }
@@ -220,10 +208,6 @@ class CloudStore {
   }
 
   static Future<Profile> getProfile() async {
-    if (!CustomAuth.isLoggedIn()) {
-      return Profile.getProfile();
-    }
-
     try {
       final uuid = CustomAuth.getUserId();
 
@@ -442,12 +426,12 @@ class CloudStore {
   }
 
   static Future<void> updateKyaProgress(Kya kya) async {
-    final userId = CustomAuth.getUserId();
-
-    if (userId.isEmpty) {
+    if (CustomAuth.isGuestUser()) {
       return;
     }
-    final userKya = UserKya(kya.id, kya.progress);
+
+    final userId = CustomAuth.getUserId();
+
     try {
       await FirebaseFirestore.instance
           .collection(Config.usersKyaCollection)
@@ -455,9 +439,10 @@ class CloudStore {
           .collection(userId)
           .doc(kya.id)
           .update(
-            userKya.toJson(),
+            kya.toJson(),
           );
     } on FirebaseException catch (exception, stackTrace) {
+      // TODO : Add to authentication decryption enum
       if (exception.code.contains('not-found')) {
         await FirebaseFirestore.instance
             .collection(Config.usersKyaCollection)
@@ -465,7 +450,7 @@ class CloudStore {
             .collection(userId)
             .doc(kya.id)
             .set(
-              userKya.toJson(),
+              kya.toJson(),
             );
       } else {
         await logException(
@@ -565,6 +550,15 @@ class CustomAuth {
     return !user.isAnonymous;
   }
 
+  static bool isGuestUser() {
+    final user = getUser();
+    if (user == null) {
+      return true;
+    }
+
+    return user.isAnonymous;
+  }
+
   static Future<bool> logOut() async {
     try {
       await FirebaseAuth.instance.signOut();
@@ -632,8 +626,8 @@ class CustomAuth {
             break;
           case AuthProcedure.deleteAccount:
             buildContext
-                .read<SettingsBloc>()
-                .add(const AccountPreDeletionPassed());
+                .read<AccountBloc>()
+                .add(const AccountDeletionCheck(passed: true));
             break;
           case AuthProcedure.anonymousLogin:
           case AuthProcedure.logout:
@@ -662,8 +656,8 @@ class CustomAuth {
             break;
           case AuthProcedure.deleteAccount:
             buildContext
-                .read<SettingsBloc>()
-                .add(const AccountPreDeletionPassed());
+                .read<AccountBloc>()
+                .add(const AccountDeletionCheck(passed: true));
             break;
           case AuthProcedure.anonymousLogin:
           case AuthProcedure.logout:
@@ -685,8 +679,8 @@ class CustomAuth {
             break;
           case AuthProcedure.deleteAccount:
             buildContext
-                .read<SettingsBloc>()
-                .add(const AccountPreDeletionPassed());
+                .read<AccountBloc>()
+                .add(const AccountDeletionCheck(passed: true));
             break;
           case AuthProcedure.anonymousLogin:
           case AuthProcedure.logout:
@@ -716,11 +710,8 @@ class CustomAuth {
                 ));
             break;
           case AuthProcedure.deleteAccount:
-            buildContext
-                .read<SettingsBloc>()
-                .add(const AccountPreDeletionFailed(
-                  AuthenticationError.authFailure,
-                ));
+            buildContext.read<AccountBloc>().add(const AccountDeletionCheck(
+                error: AuthenticationError.authFailure, passed: false));
             break;
           case AuthProcedure.anonymousLogin:
           case AuthProcedure.logout:
@@ -742,8 +733,8 @@ class CustomAuth {
             break;
           case AuthProcedure.deleteAccount:
             buildContext
-                .read<SettingsBloc>()
-                .add(const AccountPreDeletionPassed());
+                .read<AccountBloc>()
+                .add(const AccountDeletionCheck(passed: true));
             break;
           case AuthProcedure.anonymousLogin:
           case AuthProcedure.logout:

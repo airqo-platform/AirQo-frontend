@@ -199,7 +199,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   MultiBlocListener(
                     listeners: [
-                      BlocListener<SettingsBloc, SettingsState>(
+                      BlocListener<AccountBloc, AccountState>(
                         listener: (context, state) {
                           loadingScreen(_loadingContext);
                         },
@@ -207,7 +207,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           return current.blocStatus == BlocStatus.processing;
                         },
                       ),
-                      BlocListener<SettingsBloc, SettingsState>(
+                      BlocListener<AccountBloc, AccountState>(
                         listener: (context, state) {
                           Navigator.pop(_loadingContext);
                         },
@@ -215,16 +215,16 @@ class _SettingsPageState extends State<SettingsPage> {
                           return previous.blocStatus == BlocStatus.processing;
                         },
                       ),
-                      BlocListener<SettingsBloc, SettingsState>(
+                      BlocListener<AccountBloc, AccountState>(
                         listener: (context, state) {
-                          showSnackBar(context, state.error.message);
+                          showSnackBar(context, state.blocError.message);
                         },
                         listenWhen: (previous, current) {
                           return current.blocStatus == BlocStatus.error &&
-                              current.error != AuthenticationError.none;
+                              current.blocError != AuthenticationError.none;
                         },
                       ),
-                      BlocListener<SettingsBloc, SettingsState>(
+                      BlocListener<AccountBloc, AccountState>(
                         listener: (context, state) {
                           Navigator.push(
                             context,
@@ -235,7 +235,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         },
                         listenWhen: (previous, current) {
                           return current.blocStatus ==
-                              BlocStatus.accountPreDeletionSuccess;
+                              BlocStatus.accountDeletionCheckSuccess;
                         },
                       ),
                     ],
@@ -251,6 +251,6 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _deleteAccount() {
-    context.read<SettingsBloc>().add(DeleteAccount(context: context));
+    context.read<AccountBloc>().add(DeleteAccount(context: context));
   }
 }

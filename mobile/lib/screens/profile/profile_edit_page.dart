@@ -1,16 +1,13 @@
-import 'dart:async';
-
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
-import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/adapters.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../home_page.dart';
 import 'profile_widgets.dart';
 
 class ProfileEditPage extends StatefulWidget {
@@ -23,189 +20,147 @@ class ProfileEditPage extends StatefulWidget {
 }
 
 class _ProfileEditPageState extends State<ProfileEditPage> {
-  final _formKey = GlobalKey<FormState>();
-  String _profilePic = '';
-  bool _updateImage = false;
-  bool _changedProfile = false;
-  late Profile _profile;
+  late BuildContext _loadingContext;
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<Box<Profile>>(
-      valueListenable: Hive.box<Profile>(HiveBox.profile).listenable(
-        keys: [HiveBox.profile],
-      ),
-      builder: (context, box, widget) {
-        if (box.values.isEmpty || !CustomAuth.isLoggedIn()) {
-          return const Scaffold(
-            appBar: AppTopBar('Profile'),
-            body: LoadingWidget(),
-          );
-        }
-        final profile = box.values.toList().cast<Profile>().first;
-        _profile = profile;
-        _profilePic = profile.photoUrl;
-
-        return Scaffold(
-          appBar: EditProfileAppBar(
-            updateProfile: _updateProfile,
-            hasChangedProfile: _changedProfile,
-          ),
-          body: Container(
+    return Scaffold(
+      appBar: const EditProfileAppBar(),
+      body: BlocConsumer<AccountBloc, AccountState>(
+        builder: (context, state) {
+          var profile = state.profile;
+          if (profile == null) {
+            context.read<AccountBloc>().add(const LoadAccountInfo());
+            return const LoadingWidget();
+          }
+          return Container(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             color: CustomColors.appBodyColor,
-            child: Form(
-              key: _formKey,
-              child: ListView(
-                physics: const BouncingScrollPhysics(),
-                children: <Widget>[
-                  const SizedBox(
-                    height: 26,
-                  ),
-                  EditProfilePicSection(
+            child: ListView(
+              physics: const BouncingScrollPhysics(),
+              children: <Widget>[
+                MultiBlocListener(listeners: [
+                  BlocListener<AccountBloc, AccountState>(
+                      listenWhen: (previous, current) {
+                    return current.blocError != AuthenticationError.none &&
+                        current.blocStatus == BlocStatus.error;
+                  }, listener: (context, state) {
+                    showSnackBar(context, state.blocError.message);
+                  }),
+                  BlocListener<AccountBloc, AccountState>(
+                      listenWhen: (previous, current) {
+                    return current.blocStatus == BlocStatus.processing;
+                  }, listener: (context, state) {
+                    loadingScreen(_loadingContext);
+                  }),
+                  BlocListener<AccountBloc, AccountState>(
+                      listenWhen: (previous, current) {
+                    return previous.blocStatus == BlocStatus.processing;
+                  }, listener: (context, state) {
+                    Navigator.pop(_loadingContext);
+                  }),
+                ], child: Container()),
+                const SizedBox(
+                  height: 26,
+                ),
+                EditProfilePicSection(
+                  profile: profile,
+                  getFromGallery: _getImageFromGallery,
+                ),
+                const SizedBox(
+                  height: 40,
+                ),
+                Visibility(
+                  visible: profile.phoneNumber.isNotEmpty,
+                  child: EditCredentialsField(
                     profile: profile,
-                    getFromGallery: _getImageFromGallery,
+                    authMethod: AuthMethod.phone,
                   ),
-                  const SizedBox(
-                    height: 40,
+                ),
+                Visibility(
+                  visible: profile.emailAddress.isNotEmpty,
+                  child: EditCredentialsField(
+                    profile: profile,
+                    authMethod: AuthMethod.email,
                   ),
-                  Visibility(
-                    visible: profile.phoneNumber.isNotEmpty,
-                    child: EditCredentialsField(
-                      profile: profile,
-                      authMethod: AuthMethod.phone,
-                    ),
+                ),
+                const SizedBox(
+                  height: 16,
+                ),
+                Text(
+                  'First Name',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: CustomColors.inactiveColor,
                   ),
-                  Visibility(
-                    visible: profile.emailAddress.isNotEmpty,
-                    child: EditCredentialsField(
-                      profile: profile,
-                      authMethod: AuthMethod.email,
-                    ),
+                ),
+                const SizedBox(
+                  height: 4,
+                ),
+                NameEditField(
+                  value: profile.firstName,
+                  valueChange: (firstName) {
+                    context
+                        .read<AccountBloc>()
+                        .add(EditProfile(firstName: firstName));
+                  },
+                ),
+                const SizedBox(
+                  height: 16,
+                ),
+                Text(
+                  'Last Name',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: CustomColors.inactiveColor,
                   ),
-                  const SizedBox(
-                    height: 16,
-                  ),
-                  Text(
-                    'First Name',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: CustomColors.inactiveColor,
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 4,
-                  ),
-                  NameEditField(
-                    value: profile.firstName,
-                    valueChange: _updateFirstName,
-                  ),
-                  const SizedBox(
-                    height: 16,
-                  ),
-                  Text(
-                    'Last Name',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: CustomColors.inactiveColor,
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 4,
-                  ),
-                  NameEditField(
-                    value: profile.lastName,
-                    valueChange: _updateLastName,
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(
+                  height: 4,
+                ),
+                NameEditField(
+                  value: profile.lastName,
+                  valueChange: (lastName) {
+                    context
+                        .read<AccountBloc>()
+                        .add(EditProfile(lastName: lastName));
+                  },
+                ),
+              ],
             ),
-          ),
-        );
-      },
+          );
+        },
+        listener: (context, state) {
+          return;
+        },
+      ),
     );
   }
 
-  void _updateFirstName(String value) {
-    setState(() {
-      _profile.firstName = value;
-      _changedProfile = true;
-    });
-  }
-
-  void _updateLastName(String value) {
-    setState(() {
-      _profile.lastName = value;
-      _changedProfile = true;
-    });
-  }
-
-  Future<void> _updateProfile() async {
-    if (_formKey.currentState!.validate()) {
-      final dialogContext = context;
-      loadingScreen(dialogContext);
-      await Future.wait(
-        [
-          _profile.update(),
-          _uploadPicture(),
-        ],
-      ).then(
-        (value) => {
-          Navigator.pop(dialogContext),
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(
-              builder: (context) {
-                return const HomePage();
-              },
-            ),
-            (r) => false,
-          ),
-        },
-      );
-    }
-  }
-
-  Future<void> _uploadPicture() async {
-    if (_updateImage) {
-      try {
-        final imageUrl = await CloudStore.uploadProfilePicture(_profilePic);
-
-        if (imageUrl.isNotEmpty) {
-          _profile.photoUrl = imageUrl;
-          await Future.wait(
-            [
-              CloudAnalytics.logEvent(
-                AnalyticsEvent.uploadProfilePicture,
-              ),
-              _profile.update(),
-            ],
-          );
-        }
-      } catch (exception, stackTrace) {
-        await logException(
-          exception,
-          stackTrace,
-        );
-      }
-    }
-  }
+  @override
+  void initState() {
+    super.initState();
+    _loadingContext = context;
+  } // @override
 
   void _getImageFromGallery() async {
-    final pickedFile = await ImagePicker().pickImage(
+    await ImagePicker()
+        .pickImage(
       source: ImageSource.gallery,
       maxWidth: 1800,
       maxHeight: 1800,
-    );
-    if (pickedFile != null) {
-      setState(
-        () {
-          _profile.photoUrl = pickedFile.path;
-          _profilePic = pickedFile.path;
-          _updateImage = true;
-          _changedProfile = true;
-        },
-      );
-    }
+    )
+        .then((file) {
+      if (file != null) {
+        context.read<AccountBloc>().add(EditProfile(photoUrl: file.path));
+      }
+    }).catchError((error) async {
+      if (error is PlatformException) {
+        await PermissionService.checkPermission(
+          AppPermission.photosStorage,
+          request: true,
+        );
+      }
+    });
   }
 }

@@ -323,6 +323,14 @@ extension StringExt on String {
     return false;
   }
 
+  bool isValidName() {
+    if (isNull()) {
+      return false;
+    }
+
+    return true;
+  }
+
   bool equalsIgnoreCase(String value) {
     if (toLowerCase() == value.toLowerCase()) {
       return true;

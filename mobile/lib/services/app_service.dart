@@ -317,6 +317,7 @@ class AppService {
   }
 
   Future<bool> _postLogOutActions() async {
+    // TODO Login anonymously
     try {
       final profile = await Profile.getProfile();
       final placesUpdated = await CloudStore.updateFavouritePlaces();

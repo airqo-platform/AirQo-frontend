@@ -1,4 +1,5 @@
 export 'auth_code/auth_code_bloc.dart';
+export 'account/account_bloc.dart';
 export 'dashboard/dashboard_bloc.dart';
 export 'settings/settings_bloc.dart';
 export 'email_auth/email_auth_bloc.dart';

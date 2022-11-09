@@ -35,7 +35,7 @@ class AirQoApp extends StatelessWidget {
           create: (BuildContext context) => NearbyLocationBloc(),
         ),
         BlocProvider(
-          create: (BuildContext context) => SettingsBloc(),
+          create: (BuildContext context) => AccountBloc(),
         ),
         BlocProvider(
           create: (BuildContext context) => AuthCodeBloc(),

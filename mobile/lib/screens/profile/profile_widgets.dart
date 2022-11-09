@@ -1,12 +1,17 @@
 import 'dart:io';
 
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
+import 'package:app/screens/notification/notification_page.dart';
+import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 import '../auth/phone_auth_widget.dart';
 import '../favourite_places/favourite_places_page.dart';
@@ -230,66 +235,130 @@ class DummyProfilePicture extends StatelessWidget {
   }
 }
 
-class ProfilePicture extends StatelessWidget {
-  const ProfilePicture({
+class ViewProfilePicture extends StatelessWidget {
+  const ViewProfilePicture({
     super.key,
-    required this.userDetails,
   });
-  final Profile userDetails;
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      alignment: AlignmentDirectional.center,
-      children: [
-        if (userDetails.photoUrl == '')
-          RotationTransition(
-            turns: const AlwaysStoppedAnimation(-5 / 360),
-            child: Container(
-              padding: const EdgeInsets.all(2.0),
-              decoration: BoxDecoration(
-                color: userDetails.photoUrl == ''
-                    ? CustomColors.appPicColor
-                    : Colors.transparent,
-                shape: BoxShape.rectangle,
-                borderRadius: const BorderRadius.all(
-                  Radius.circular(27.0),
+    // TODO: Set profile pic avatar
+    return BlocBuilder<AccountBloc, AccountState>(
+        buildWhen: (previous, current) {
+      // TODO: Validate comparison
+      return previous.profile != current.profile;
+    }, builder: (context, state) {
+      final profile = state.profile;
+      if (state.guestUser || profile == null) {
+        return Stack(
+          alignment: AlignmentDirectional.center,
+          children: [
+            RotationTransition(
+              turns: const AlwaysStoppedAnimation(-5 / 360),
+              child: Container(
+                padding: const EdgeInsets.all(2.0),
+                decoration: BoxDecoration(
+                  color: CustomColors.appPicColor,
+                  shape: BoxShape.rectangle,
+                  borderRadius: const BorderRadius.all(
+                    Radius.circular(27.0),
+                  ),
+                ),
+                child: Container(
+                  height: 40,
+                  width: 40,
+                  color: Colors.transparent,
                 ),
               ),
-              child: Container(
-                height: 40,
-                width: 40,
-                color: Colors.transparent,
+            ),
+            Text(
+              'A',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                fontSize: 17.0,
               ),
             ),
-          ),
-        if (userDetails.photoUrl == '')
-          Text(
-            userDetails.getInitials(),
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              fontSize: 17.0,
-            ),
-          ),
-        if (userDetails.photoUrl != '')
+          ],
+        );
+      }
+
+      return Stack(
+        alignment: AlignmentDirectional.center,
+        children: [
           Container(
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
             ),
             child: const CircularLoadingAnimation(size: 40),
           ),
-        if (userDetails.photoUrl != '')
           CircleAvatar(
             radius: 27.0,
             backgroundColor: Colors.transparent,
             foregroundColor: Colors.transparent,
             backgroundImage: CachedNetworkImageProvider(
-              userDetails.photoUrl,
+              profile.photoUrl,
             ),
           ),
-      ],
-    );
+        ],
+      );
+    });
+  }
+}
+
+class ViewNotificationIcon extends StatelessWidget {
+  const ViewNotificationIcon({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<AccountBloc, AccountState>(
+        buildWhen: (previous, current) {
+      final previousUnReadNotifications = previous.notifications
+          .where((element) => !element.read)
+          .toList()
+          .length;
+      final currentUnReadNotifications = current.notifications
+          .where((element) => !element.read)
+          .toList()
+          .length;
+      return previousUnReadNotifications != currentUnReadNotifications;
+    }, builder: (context, state) {
+      final unReadNotifications =
+          state.notifications.where((element) => !element.read).toList();
+
+      return GestureDetector(
+        onTap: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) {
+                return const NotificationPage();
+              },
+            ),
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.all(10),
+          height: 40,
+          width: 40,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.all(
+              Radius.circular(8.0),
+            ),
+          ),
+          child: SvgPicture.asset(
+            unReadNotifications.isEmpty
+                ? 'assets/icon/empty_notifications.svg'
+                : 'assets/icon/has_notifications.svg',
+            height: 20,
+            width: 16,
+          ),
+        ),
+      );
+    });
   }
 }
 
@@ -549,11 +618,7 @@ class EditCredentialsIcon extends StatelessWidget {
 class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
   const EditProfileAppBar({
     super.key,
-    required this.updateProfile,
-    required this.hasChangedProfile,
   });
-  final VoidCallback updateProfile;
-  final bool hasChangedProfile;
 
   @override
   Widget build(BuildContext context) {
@@ -567,21 +632,42 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
         children: [
           const AppBackButton(),
           const Spacer(),
-          Text(
-            'Edit Profile',
-            style: CustomTextStyle.headline8(context),
-          ),
-          const Spacer(),
-          GestureDetector(
-            onTap: updateProfile,
-            child: Text(
-              'Save',
-              style: Theme.of(context).textTheme.subtitle2?.copyWith(
-                    color: hasChangedProfile
-                        ? CustomColors.appColorBlue
-                        : CustomColors.appColorBlack.withOpacity(0.2),
-                  ),
-            ),
+          BlocBuilder<AccountBloc, AccountState>(
+            builder: (context, state) {
+              final profile = state.profile;
+              final hiveProfile =
+                  Hive.box<Profile>(HiveBox.profile).get(HiveBox.profile);
+
+              if (profile == null || hiveProfile == null) {
+                return const SizedBox();
+              }
+              return GestureDetector(
+                onTap: () {
+                  if (profile != hiveProfile) {
+                    context.read<AccountBloc>().add(const UpdateProfile());
+                  }
+                },
+                child: Text(
+                  'Save',
+                  style: Theme.of(context).textTheme.subtitle2?.copyWith(
+                        color: profile != hiveProfile
+                            ? CustomColors.appColorBlue
+                            : CustomColors.appColorBlack.withOpacity(0.2),
+                      ),
+                ),
+              );
+            },
+            buildWhen: (previous, current) {
+              final hiveProfile =
+                  Hive.box<Profile>(HiveBox.profile).get(HiveBox.profile);
+
+              if (hiveProfile == null) {
+                return false;
+              }
+
+              return previous.profile != hiveProfile ||
+                  current.profile != hiveProfile;
+            },
           ),
         ],
       ),
@@ -733,4 +819,64 @@ InputDecoration inactiveFormFieldDecoration() {
       borderRadius: BorderRadius.circular(8.0),
     ),
   );
+}
+
+class GuestProfileView extends StatelessWidget {
+  const GuestProfileView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        toolbarHeight: 90,
+        centerTitle: false,
+        elevation: 0,
+        backgroundColor: CustomColors.appBodyColor,
+        automaticallyImplyLeading: false,
+        title: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(
+              height: 20,
+            ),
+            Row(
+              children: const [
+                DummyProfilePicture(
+                  text: 'A',
+                ),
+                Spacer(),
+              ],
+            ),
+            const SizedBox(
+              height: 5,
+            ),
+            Text(
+              'Guest',
+              style: CustomTextStyle.headline9(context),
+            ),
+          ],
+        ),
+      ),
+      body: Container(
+        color: CustomColors.appBodyColor,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Column(
+            children: const <Widget>[
+              SizedBox(
+                height: 24,
+              ),
+              SignUpSection(),
+              SizedBox(
+                height: 16,
+              ),
+              SettingsButton(),
+              Spacer(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
