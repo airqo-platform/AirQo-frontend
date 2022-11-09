@@ -1,2 +1,1 @@
-- [Binos Outdoor Air Monitor](hardware/binos_outdoor_air_monitor.md)
-- [AirQo Outdoor Monitor](hardware/airQo_outdoor_monitor.md)
+- [Monitor](hardware/monitor.md)
