@@ -10,7 +10,7 @@ extreme weather. Powered by either mains or solar, the monitor is optimised to w
 in settings characterised by unreliable power. It runs on a 2G GSM network
 configuration for IoT simards.
 
-![monitor_1](../_media/monitor_1.png)
+![monitor image](../_media/monitor_1.png)
 
 ## Technical Specifications
 
@@ -142,39 +142,32 @@ sensor.
 - Ensure there are no physical damages to the monitor.
 - Take the monitor out of the packaging
 - Set up the installation location such as a pole, wall, or mount on a flat surface
-- Make sure the installation location can allow at least 270-degree airflow around the
-  monitor inlet.
+- Make sure the installation location can allow at least 270-degree airflow around the monitor inlet.
 - Check the battery specification to understand whether the monitor is solar, or mains powered. Bigger battery specifications are normally reserved mainly for solar-powered monitors. It is worthy to note there are no limitations in having a solar-powered monitor powered by mains. This is a chosen design option by the AirQo team to
 
 ## Installation setup procedure
 
-![Image]()
-![Image]()
-![Image]()
-![Image]()
+![monitor installation procedure](../_media/monitor_2.png)
 
-## 2.3 Post-installation of the monitor
+## Post-installation of the monitor
 
-### 3.3.1 Powering the monitor
+### Powering the monitor
 
 - Powering the monitor
-- Plug the provided power adapter into a socket and power cord into the monitor. If
-  using a plug other than that provided by AirQo, make sure the plug specifications are
-  5V, 2A
+- Plug the provided power adapter into a socket and power cord into the monitor. If using a plug other than that provided by AirQo, make sure the plug specifications are 5V, 2A
 - The monitor should beep twice to indicate power-up and battery charging
-- Deeping on the number of beeps, the status of the monitor can be known as
-  summarised in the table below
+- Deeping on the number of beeps, the status of the monitor can be known as summarised in the table below
 
-<b>Monitor alarms are summarised in the table below</b>
+**Monitor alarms are summarised in the table below**
 
 | Alarms               | Alarm Tones                    | Tone Details  | Duration   |
-| -------------------- | ------------------------------ | ------------- | ---------- |
+| :------------------- | :----------------------------- | :------------ | :--------- |
 | Power on             | One beep                       | High          | 0.5 second |
 | Transmission failure | One beep                       | Low           | 0.5 second |
 | Low battery          | Two beeps (repeated 8 seconds) | Low High      | 1 second   |
 | Monitor restart      | Three beeps                    | High Low High | 1.5 second |
 
-### 3.3.2 Maintenance
+### Maintenance
 
 To ensure safety of the system, maintenance should never be performed when the
 monitor is powered or connected to the power adapter. The AirQo monitor contains
@@ -182,29 +175,29 @@ very sensitive sensors that damage when exposed to electro-static discharge and
 extra precautions should be observed to protect sensors susceptible to electro-static
 discharge.
 
-<b>Basic maintenance toolkit</b>
+**Basic maintenance toolkit**
 
 Essential tools: Simple dust blowing mechanism
 Optional tools: spare sensors
 
-<b>Troubleshooting</b>
+**Troubleshooting**
 
 (i) Monitor not transmitting data at all
 
 | Issue         | Identification of the issue                                                             | Solution                                                                                                                                                                                 |
-| ------------- | --------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| :------------ | :-------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Power Issue   | Check whether the monitor is plugged, Check the solar panels                            | Check whether the cable from the panels is clearly plugged in the monitor. Plug the monitor if unplugged, Clean the solar panels using soft cloth or squeegee to clean the upper surface |
 | Communication | Sim-card out of data, Sim-card non functional/ cut off by the provider, GSM malfunction | Load data if local sim-card used, Reach out to AirQo, Listen to the sound made by the monitor to know whether it is a GSM issue                                                          |
 | Sensor Issue  | No data being reported by the sensors ( PM levels = 0.0)                                | Replace the sensors                                                                                                                                                                      |
 
 (ii) Incorrect/inconsistent data
 | Issue | Identification of the issue |Solution|
-| ----------- | ----------- |----------- |
-| Communication | Monitor taking long to post (possible cause is low battery and the monitor will be making bulk updates) |> Leave the monitor to fully charge and re-evaluate |
-|Sensor Issue |> Low intra sensor correlation (< 0.98), Sensor reporting low or higher data than expected |> Replacing the sensors, Blowing dust off the sensor inlets |
+| :----------- | :----------- |:---------- |
+| Communication | Monitor taking long to post (possible cause is low battery and the monitor will be making bulk updates) | Leave the monitor to fully charge and re-evaluate |
+|Sensor Issue | Low intra sensor correlation (< 0.98), Sensor reporting low or higher data than expected | Replacing the sensors, Blowing dust off the sensor inlets |
 
-<b>Guide to maintaining the AirQo Monitor</b>
-<b>Power issues</b>
+**Guide to maintaining the AirQo Monitor**
+**Power issues**
 
 - Use a soft cloth or squeegee to clean the upper surface of the solar panel
 - Check whether the cable from the panels is clearly plugged in the monitor.
@@ -213,7 +206,7 @@ Optional tools: spare sensors
 ![Image]()
 ![Image]()
 
-<b>Replacing the Sensors and battery</b>
+**Replacing the Sensors and battery**
 ![Image]()
 ![Image]()
 
@@ -243,7 +236,7 @@ password to your net-manager account.
 
 ## 1.1 Platform Features
 
-<b>The Dashboard</b>
+**The Dashboard**
 The dashboard feature allows you to develop graphical representations of datasets
 from your monitors. This feature enables you to select and display different types of
 graphs for a specific region and monitor datasets. The Live AQI section indicates the
@@ -255,13 +248,13 @@ selected networks or monitors.
 
 ![Image]()
 
-<b>Visualisation</b>
+**Visualisation**
 To set up an account on the AirQo platform, follow this link: [https://platform.airqo.net](https://platform.airqo.net).
 You will be presented with a dashboard like pictured below.
 
 ![Image]()
 
-<b>Data Export</b>
+**Data Export**
 To set up an account on the AirQo platform, follow this link: https://platform.airqo.net.
 You will be presented with a dashboard like pictured below.
 
@@ -272,8 +265,8 @@ You will be presented with a dashboard like pictured below.
 Log into AirQo net-manager
 Check the device map to see whether the device is connected.
 
-<b>Congratulations, you can now access your air quality data on the AirQo app,
-website and API!</b>
+**Congratulations, you can now access your air quality data on the AirQo app,
+website and API!**
 
 ### 3.2 Data Access through the AirQo API
 
@@ -281,7 +274,7 @@ In addition to the existence of the platform, data access is also available via 
 API. To utilise the AirQo API for data access, please review the documentation
 accessed via this link: [https://docs.airqo.net/airqo-rest-api-documentation/](https://docs.airqo.net/airqo-rest-api-documentation/)
 
-<b>Map</b>
+**Map**
 Map shows the air quality status and distribution of AirQo devices and other affiliated
 devices across the world. To check if your device is working and is registered on the
 platform for data access and visualisation, log into AirQo net-manager and check if
