@@ -91,16 +91,6 @@ class Analytics extends HiveObject {
     }
   }
 
-  static List<Analytics> sort(List<Analytics> analytics) {
-    analytics.sort(
-      (x, y) {
-        return -(x.createdAt.compareTo(y.createdAt));
-      },
-    );
-
-    return analytics;
-  }
-
   static List<Analytics> fromAirQualityReadings() {
     return Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
         .values

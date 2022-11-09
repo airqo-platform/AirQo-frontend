@@ -84,12 +84,6 @@ class Kya extends HiveObject {
     }
   }
 
-  static Future<List<Kya>> getIncompleteKya() async {
-    return Hive.box<Kya>(HiveBox.kya).values.where((element) {
-      return element.progress != -1;
-    }).toList();
-  }
-
   String imageUrlCacheKey() {
     return 'kya-$id-image-url';
   }

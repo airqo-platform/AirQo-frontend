@@ -1,4 +1,3 @@
-import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 
@@ -25,10 +24,9 @@ class _ForYouPageState extends State<ForYouPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const AppTopBar('For You'),
-      body: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        color: CustomColors.appBodyColor,
-        child: Column(
+      body: AppSafeArea(
+        horizontalPadding: 16,
+        widget: Column(
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 10),
@@ -45,11 +43,7 @@ class _ForYouPageState extends State<ForYouPage>
                   labelPadding: const EdgeInsets.all(3.0),
                   physics: const NeverScrollableScrollPhysics(),
                   onTap: (value) {
-                    if (value == 0) {
-                      setState(() => _analytics = true);
-                    } else {
-                      setState(() => _analytics = false);
-                    }
+                    setState(() => _analytics = value == 0 ? true : false);
                   },
                   tabs: <Widget>[
                     TabButton(

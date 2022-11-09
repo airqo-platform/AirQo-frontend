@@ -5,6 +5,7 @@ import 'package:app/constants/config.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -29,20 +30,22 @@ class AnalyticsView extends StatelessWidget {
           context.read<AccountBloc>().add(RefreshAnalytics());
         }
 
+        final analytics = state.analytics.sortByDateTime();
+
         return Column(
           children: [
             Visibility(
-              visible: state.analytics.isEmpty,
+              visible: analytics.isEmpty,
               child: Container(), // TODO replace with error page
             ),
             Visibility(
-              visible: state.analytics.isNotEmpty,
+              visible: analytics.isNotEmpty,
               child: AppRefreshIndicator(
                 sliverChildDelegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final airQualityReading =
                         Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-                            .get(state.analytics[index].site);
+                            .get(analytics[index].site);
 
                     if (airQualityReading == null) {
                       return Container();
@@ -60,7 +63,7 @@ class AnalyticsView extends StatelessWidget {
                       ),
                     );
                   },
-                  childCount: state.analytics.length,
+                  childCount: analytics.length,
                 ),
                 onRefresh: () async {
                   await _refresh(context);

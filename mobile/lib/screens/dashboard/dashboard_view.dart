@@ -60,18 +60,69 @@ class _DashboardViewState extends State<DashboardView> {
             const SizedBox(
               height: 16,
             ),
+            BlocBuilder<AccountBloc, AccountState>(
+              buildWhen: (previous, current) {
+                return previous.favouritePlaces.length !=
+                        current.favouritePlaces.length ||
+                    previous.kya.filterCompleteKya().length !=
+                        current.kya.filterCompleteKya().length;
+              },
+              builder: (context, state) {
+                final favouritePlaces = favouritePlacesWidgets(
+                    state.favouritePlaces.take(3).toList());
+                final kyaWidgets = completeKyaWidgets(
+                    state.kya.filterCompleteKya().take(3).toList());
+                return Row(
+                  children: [
+                    DashboardTopCard(
+                      toolTipType: ToolTipType.favouritePlaces,
+                      title: 'Favorites',
+                      widgetKey: _favToolTipKey,
+                      nextScreenClickHandler: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) {
+                              return const FavouritePlacesPage();
+                            },
+                          ),
+                        );
+                      },
+                      children: favouritePlaces,
+                    ),
+                    const SizedBox(
+                      width: 16,
+                    ),
+                    DashboardTopCard(
+                      toolTipType: ToolTipType.forYou,
+                      title: 'For You',
+                      widgetKey: _kyaToolTipKey,
+                      nextScreenClickHandler: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) {
+                              return const ForYouPage(analytics: false);
+                            },
+                          ),
+                        );
+                      },
+                      children: kyaWidgets,
+                    ),
+                  ],
+                );
+              },
+            ),
             Row(
               children: [
-                ValueListenableBuilder<Box<FavouritePlace>>(
-                  valueListenable:
-                      Hive.box<FavouritePlace>(HiveBox.favouritePlaces)
-                          .listenable(),
-                  builder: (context, box, widget) {
-                    final favouritePlaces =
-                        box.values.cast<FavouritePlace>().take(3).toList();
-
-                    final widgets = favouritePlacesWidgets(favouritePlaces);
-
+                BlocBuilder<AccountBloc, AccountState>(
+                  buildWhen: (previous, current) {
+                    return previous.favouritePlaces.length !=
+                        current.favouritePlaces.length;
+                  },
+                  builder: (context, state) {
+                    final widgets = favouritePlacesWidgets(
+                        state.favouritePlaces.take(3).toList());
                     return DashboardTopCard(
                       toolTipType: ToolTipType.favouritePlaces,
                       title: 'Favorites',
@@ -189,24 +240,28 @@ class _DashboardViewState extends State<DashboardView> {
                           return const SizedBox();
                         },
                       ),
-                      ValueListenableBuilder<Box<Kya>>(
-                        valueListenable:
-                            Hive.box<Kya>(HiveBox.kya).listenable(),
-                        builder: (context, box, widget) {
-                          final incompleteKya = box.values
-                              .toList()
-                              .cast<Kya>()
-                              .where((element) => element.progress != -1)
-                              .toList();
+                      BlocBuilder<AccountBloc, AccountState>(
+                        buildWhen: (previous, current) {
+                          return previous.kya.filterIncompleteKya().length !=
+                              current.kya.filterIncompleteKya().length;
+                        },
+                        builder: (context, state) {
+                          final incompleteKya = state.kya.filterIncompleteKya();
                           if (incompleteKya.isEmpty) {
                             return const SizedBox();
                           }
+
+                          final Kya kya = incompleteKya.reduce(
+                              (value, element) =>
+                                  value.progress < element.progress
+                                      ? value
+                                      : element);
 
                           return Padding(
                             padding: const EdgeInsets.only(top: 16),
                             child: DashboardKyaCard(
                               kyaClickCallBack: _handleKyaOnClick,
-                              kya: incompleteKya.first,
+                              kya: kya,
                             ),
                           );
                         },
