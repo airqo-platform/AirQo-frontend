@@ -10,6 +10,12 @@ class LoadAccountInfo extends AccountEvent {
   List<Object?> get props => [];
 }
 
+class RefreshAnalytics extends AccountEvent {
+  const RefreshAnalytics();
+  @override
+  List<Object?> get props => [];
+}
+
 class LogOutAccount extends AccountEvent {
   const LogOutAccount({
     required this.context,

@@ -21,10 +21,26 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     on<AccountDeletionCheck>(_accountDeletionCheck);
     on<EditProfile>(_onEditProfile);
     on<UpdateProfile>(_onUpdateProfile);
+    on<RefreshAnalytics>(_onRefreshAnalytics);
   }
 
   Future<Profile> _getProfile() async {
     return state.profile ?? await Profile.initializeGuestProfile();
+  }
+
+  Future<void> _onRefreshAnalytics(
+    RefreshAnalytics event,
+    Emitter<AccountState> emit,
+  ) async {
+    // TODO: refresh analytics
+    /*
+
+    await Future.wait([
+      AppService().refreshAirQualityReadings(),
+      AppService().refreshAnalytics(context),
+    ]);
+
+    */
   }
 
   Future<void> _onUpdateProfile(
