@@ -1,7 +1,7 @@
 replicaCount: 1
 image:
   repository: gcr.io/airqo-250220/pr-previews/netmanager-pr-previews
-  tag: 026cd1a8bba22c3c0e58083a2f8ead4cff253d36
+  tag: 73bd1d530aab69adaad813fb080b0b57dd061760
   pullPolicy: Always
 imagePullSecrets: []
 nameOverride: ''
