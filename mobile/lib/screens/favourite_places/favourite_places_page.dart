@@ -18,63 +18,66 @@ class FavouritePlacesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final appColors = Theme.of(context).extension<AppColors>()!;
 
-    return Container(
-      color: appColors.appBodyColor,
-      child: BlocBuilder<AccountBloc, AccountState>(
-          buildWhen: (previous, current) {
-        return previous.favouritePlaces != current.favouritePlaces;
-      }, builder: (context, state) {
-        if (state.favouritePlaces.isEmpty) {
-          context.read<AccountBloc>().add(RefreshFavouritePlaces());
-        }
+    return Scaffold(
+      appBar: const AppTopBar('Favorites'),
+      body: AppSafeArea(
+        widget: BlocBuilder<AccountBloc, AccountState>(
+            buildWhen: (previous, current) {
+          return previous.favouritePlaces != current.favouritePlaces;
+        }, builder: (context, state) {
+          if (state.favouritePlaces.isEmpty) {
+            context.read<AccountBloc>().add(RefreshFavouritePlaces());
+          }
 
-        return Column(
-          children: [
-            Visibility(
-              visible: state.favouritePlaces.isEmpty,
-              child: Container(), // TODO replace with error page
-            ),
-            Visibility(
-              visible: state.favouritePlaces.isNotEmpty,
-              child: AppRefreshIndicator(
-                sliverChildDelegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final airQualityReading =
-                        Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-                            .get(state.favouritePlaces[index].referenceSite);
-                    final favouritePlace = state.favouritePlaces[index];
-
-                    if (airQualityReading == null) {
-                      return EmptyFavouritePlace(
-                        airQualityReading: AirQualityReading.fromFavouritePlace(
-                            favouritePlace),
-                      );
-                    }
-
-                    return Padding(
-                      padding: EdgeInsets.fromLTRB(
-                        16,
-                        Config.refreshIndicatorPadding(index),
-                        16,
-                        0,
-                      ),
-                      child: MiniAnalyticsCard(
-                        airQualityReading
-                            .populateFavouritePlace(favouritePlace),
-                        animateOnClick: false,
-                      ),
-                    );
-                  },
-                  childCount: state.favouritePlaces.length,
-                ),
-                onRefresh: () async {
-                  await _refresh(context);
-                },
+          return Column(
+            children: [
+              Visibility(
+                visible: state.favouritePlaces.isEmpty,
+                child: Container(), // TODO replace with error page
               ),
-            ),
-          ],
-        );
-      }),
+              Visibility(
+                visible: state.favouritePlaces.isNotEmpty,
+                child: AppRefreshIndicator(
+                  sliverChildDelegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final airQualityReading = Hive.box<AirQualityReading>(
+                              HiveBox.airQualityReadings)
+                          .get(state.favouritePlaces[index].referenceSite);
+                      final favouritePlace = state.favouritePlaces[index];
+
+                      if (airQualityReading == null) {
+                        return EmptyFavouritePlace(
+                          airQualityReading:
+                              AirQualityReading.fromFavouritePlace(
+                                  favouritePlace),
+                        );
+                      }
+
+                      return Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          16,
+                          Config.refreshIndicatorPadding(index),
+                          16,
+                          0,
+                        ),
+                        child: MiniAnalyticsCard(
+                          airQualityReading
+                              .populateFavouritePlace(favouritePlace),
+                          animateOnClick: false,
+                        ),
+                      );
+                    },
+                    childCount: state.favouritePlaces.length,
+                  ),
+                  onRefresh: () async {
+                    await _refresh(context);
+                  },
+                ),
+              ),
+            ],
+          );
+        }),
+      ),
     );
   }
 

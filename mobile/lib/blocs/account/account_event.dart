@@ -16,6 +16,12 @@ class RefreshAnalytics extends AccountEvent {
   List<Object?> get props => [];
 }
 
+class RefreshNotifications extends AccountEvent {
+  const RefreshNotifications();
+  @override
+  List<Object?> get props => [];
+}
+
 class RefreshFavouritePlaces extends AccountEvent {
   const RefreshFavouritePlaces();
   @override
