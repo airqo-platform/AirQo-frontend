@@ -56,6 +56,12 @@ enum BlocStatus {
   accountPreDeletionSuccess,
 }
 
+enum FeedbackStep {
+  channelStep,
+  typeStep,
+  formStep;
+}
+
 enum AuthenticationError {
   noInternetConnection(
     message: 'Check your internet connection',

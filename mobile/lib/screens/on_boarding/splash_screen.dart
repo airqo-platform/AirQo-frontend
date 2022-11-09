@@ -51,8 +51,8 @@ class SplashScreenState extends State<SplashScreen> {
     );
   }
 
-  Future<void> initialize() async {
-    context.read<FeedbackBloc>().add(const ClearFeedback());
+  Future<void> _initialize() async {
+    context.read<FeedbackBloc>().add(const InitializeFeedback());
     context.read<NearbyLocationBloc>().add(const CheckNearbyLocations());
 
     final isLoggedIn = CustomAuth.isLoggedIn();
@@ -103,7 +103,7 @@ class SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    initialize();
+    _initialize();
   }
 
   void _updateWidget() {
