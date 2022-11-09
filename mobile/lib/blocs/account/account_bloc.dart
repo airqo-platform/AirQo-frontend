@@ -22,10 +22,23 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     on<EditProfile>(_onEditProfile);
     on<UpdateProfile>(_onUpdateProfile);
     on<RefreshAnalytics>(_onRefreshAnalytics);
+    on<RefreshKya>(_onRefreshKya);
   }
 
   Future<Profile> _getProfile() async {
     return state.profile ?? await Profile.initializeGuestProfile();
+  }
+
+  Future<void> _onRefreshKya(
+    RefreshKya event,
+    Emitter<AccountState> emit,
+  ) async {
+    // TODO: refresh analytics
+    /*
+
+    await _appService.refreshKyaView(context);
+
+    */
   }
 
   Future<void> _onRefreshAnalytics(

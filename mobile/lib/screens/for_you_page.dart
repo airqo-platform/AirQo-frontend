@@ -26,12 +26,12 @@ class _ForYouPageState extends State<ForYouPage>
     return Scaffold(
       appBar: const AppTopBar('For You'),
       body: Container(
-        padding: const EdgeInsets.only(right: 16, left: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         color: CustomColors.appBodyColor,
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.only(top: 10, bottom: 10),
+              padding: const EdgeInsets.symmetric(vertical: 10),
               child: Material(
                 color: Colors.white,
                 borderRadius: const BorderRadius.all(
