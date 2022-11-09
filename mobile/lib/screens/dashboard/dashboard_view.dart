@@ -51,7 +51,7 @@ class _DashboardViewState extends State<DashboardView> {
         _forYouShowcaseKey,
         _kyaShowcaseKey,
         _analyticsShowcaseKey,
-        // _nearestLocationShowcaseKey,
+        _nearestLocationShowcaseKey,
       ]);
     });
   }
@@ -132,7 +132,7 @@ class _DashboardViewState extends State<DashboardView> {
 
                       return Showcase(
                         key: _forYouShowcaseKey,
-                        description: 'This is content speacilized for you.',
+                        description: 'This is content specialized for you.',
                         child: DashboardTopCard(
                           toolTipType: ToolTipType.forYou,
                           title: 'For You',
@@ -212,7 +212,7 @@ class _DashboardViewState extends State<DashboardView> {
                               child: Showcase(
                                 key: _nearestLocationShowcaseKey,
                                 description:
-                                    'This shows the airquality of your nearest location',
+                                    'This shows the air quality of your nearest location',
                                 child: AnalyticsCard(
                                   sortedReadings.first,
                                   false,
