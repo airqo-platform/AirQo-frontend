@@ -19,7 +19,7 @@ class NotificationPage extends StatelessWidget {
         }, builder: (context, state) {
           if (state.notifications.isEmpty) {
             context.read<AccountBloc>().add(RefreshNotifications());
-            return const EmptyNotifications(); // TODO replace with error page
+            return const EmptyNotifications();
           }
 
           return AppRefreshIndicator(

@@ -113,68 +113,6 @@ class _DashboardViewState extends State<DashboardView> {
                 );
               },
             ),
-            Row(
-              children: [
-                BlocBuilder<AccountBloc, AccountState>(
-                  buildWhen: (previous, current) {
-                    return previous.favouritePlaces.length !=
-                        current.favouritePlaces.length;
-                  },
-                  builder: (context, state) {
-                    final widgets = favouritePlacesWidgets(
-                        state.favouritePlaces.take(3).toList());
-                    return DashboardTopCard(
-                      toolTipType: ToolTipType.favouritePlaces,
-                      title: 'Favorites',
-                      widgetKey: _favToolTipKey,
-                      nextScreenClickHandler: () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) {
-                              return const FavouritePlacesPage();
-                            },
-                          ),
-                        );
-                      },
-                      children: widgets,
-                    );
-                  },
-                ),
-                const SizedBox(
-                  width: 16,
-                ),
-                ValueListenableBuilder<Box<Kya>>(
-                  valueListenable: Hive.box<Kya>(HiveBox.kya).listenable(),
-                  builder: (context, box, widget) {
-                    final completeKya = box.values
-                        .cast<Kya>()
-                        .where((element) => element.progress == -1)
-                        .take(3)
-                        .toList();
-
-                    final widgets = completeKyaWidgets(completeKya);
-
-                    return DashboardTopCard(
-                      toolTipType: ToolTipType.forYou,
-                      title: 'For You',
-                      widgetKey: _kyaToolTipKey,
-                      nextScreenClickHandler: () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) {
-                              return const ForYouPage(analytics: false);
-                            },
-                          ),
-                        );
-                      },
-                      children: widgets,
-                    );
-                  },
-                ),
-              ],
-            ),
             const SizedBox(
               height: 24,
             ),

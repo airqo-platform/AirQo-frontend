@@ -86,6 +86,9 @@ class _ProfileViewState extends State<ProfileView> {
                     ViewNotificationIcon(),
                   ],
                 ),
+                SizedBox(
+                  height: 8,
+                ),
                 AutoSizeText(
                   profile.getProfileViewName(),
                   maxLines: 2,

@@ -252,13 +252,29 @@ class EmptyNotifications extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: CustomColors.appBodyColor,
-      padding: const EdgeInsets.all(40.0),
-      child: Center(
-        child: Text(
-          'No Notifications',
-          style: Theme.of(context).textTheme.bodyText1,
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 33),
+        child: Column(
+          children: [
+            Spacer(),
+            SvgPicture.asset(
+              'assets/icon/empty_notifications.svg',
+              semanticsLabel: 'Empty notifications',
+            ),
+            SizedBox(height: 53),
+            Text(
+              'No notifications',
+              textAlign: TextAlign.center,
+              style: CustomTextStyle.headline7(context),
+            ),
+            SizedBox(height: 23),
+            Text(
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyText2,
+                'Here you’ll find all updates on our Air Quality network.'),
+            Spacer(),
+          ],
         ),
       ),
     );

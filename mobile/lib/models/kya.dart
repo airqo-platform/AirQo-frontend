@@ -1,9 +1,7 @@
-import 'package:app/services/firebase_service.dart';
+import 'package:app/services/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import '../services/hive_service.dart';
-import '../services/native_api.dart';
 import 'enum_constants.dart';
 
 part 'kya.g.dart';

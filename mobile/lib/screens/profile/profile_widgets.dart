@@ -5,6 +5,7 @@ import 'package:app/models/models.dart';
 import 'package:app/screens/notification/notification_page.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -279,6 +280,57 @@ class ViewProfilePicture extends StatelessWidget {
         );
       }
 
+      if (!profile.photoUrl.isValidUri()) {
+        return Stack(
+          alignment: AlignmentDirectional.center,
+          children: [
+            RotationTransition(
+              turns: const AlwaysStoppedAnimation(-5 / 360),
+              child: Container(
+                padding: const EdgeInsets.all(2.0),
+                decoration: BoxDecoration(
+                  color: CustomColors.appPicColor,
+                  shape: BoxShape.rectangle,
+                  borderRadius: const BorderRadius.all(
+                    Radius.circular(20.0),
+                  ),
+                ),
+                child: Container(
+                  height: 44,
+                  width: 44,
+                  color: Colors.transparent,
+                ),
+              ),
+            ),
+            Text(
+              profile.getInitials(),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                fontSize: 17.0,
+              ),
+            ),
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.all(2.0),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.white),
+                  color: CustomColors.appColorBlue,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.add,
+                  size: 10,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        );
+      }
+
       return Stack(
         alignment: AlignmentDirectional.center,
         children: [
@@ -347,7 +399,7 @@ class ViewNotificationIcon extends StatelessWidget {
           ),
           child: SvgPicture.asset(
             unReadNotifications.isEmpty
-                ? 'assets/icon/empty_notifications.svg'
+                ? 'assets/icon/empty_notifications_icon.svg'
                 : 'assets/icon/has_notifications.svg',
             height: 20,
             width: 16,
@@ -543,7 +595,7 @@ class EditProfilePicSection extends StatelessWidget {
                       ),
                     ),
                   )
-                : profile.photoUrl.startsWith('http')
+                : profile.photoUrl.isValidUri()
                     ? CircleAvatar(
                         radius: 44,
                         backgroundColor: CustomColors.appPicColor,
