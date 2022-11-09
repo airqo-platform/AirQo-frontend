@@ -30,7 +30,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
         builder: (context, state) {
           var profile = state.profile;
           if (profile == null) {
-            context.read<AccountBloc>().add(const LoadAccountInfo());
+            context.read<AccountBloc>().add(const FetchAccountInfo());
             return const LoadingWidget();
           }
           return Container(

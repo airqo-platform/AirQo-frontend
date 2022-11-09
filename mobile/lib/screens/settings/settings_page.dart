@@ -37,14 +37,12 @@ class _SettingsPageState extends State<SettingsPage> {
       body: AppSafeArea(
           verticalPadding: 8.0,
           horizontalPadding: 16.0,
-          widget: BlocBuilder<AccountBloc, AccountState>(
-              buildWhen: (previous, current) {
-            return previous.guestUser != current.guestUser;
-          }, builder: (context, state) {
+          widget:
+              BlocBuilder<AccountBloc, AccountState>(builder: (context, state) {
             final profile = state.profile;
 
             if (profile == null) {
-              Profile.getProfile(); // TODO reload profile
+              context.read<AccountBloc>().add(RefreshProfile());
               return Container(); // TODO replace with error page
             }
 

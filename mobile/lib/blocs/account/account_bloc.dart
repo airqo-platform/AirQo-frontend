@@ -15,6 +15,7 @@ part 'account_state.dart';
 
 class AccountBloc extends Bloc<AccountEvent, AccountState> {
   AccountBloc() : super(AccountState.initial()) {
+    on<FetchAccountInfo>(_onFetchAccountInfo);
     on<LoadAccountInfo>(_onLoadAccountInfo);
     on<LogOutAccount>(_onLogOutAccount);
     on<DeleteAccount>(_onDeleteAccount);
@@ -22,66 +23,149 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     on<EditProfile>(_onEditProfile);
     on<UpdateProfile>(_onUpdateProfile);
     on<RefreshAnalytics>(_onRefreshAnalytics);
-    on<RefreshNotifications>(_refreshNotifications);
-    on<RefreshFavouritePlaces>(_refreshFavouritePlaces);
+    on<RefreshNotifications>(_onRefreshNotifications);
+    on<RefreshFavouritePlaces>(_onRefreshFavouritePlaces);
     on<RefreshKya>(_onRefreshKya);
+    on<RefreshProfile>(_onRefreshProfile);
   }
 
   Future<Profile> _getProfile() async {
     return state.profile ?? await Profile.initializeGuestProfile();
   }
 
-  Future<void> _refreshNotifications(
+  Future<void> _onLoadAccountInfo(
+    LoadAccountInfo _,
+    Emitter<AccountState> emit,
+  ) async {
+    final favouritePlaces =
+        Hive.box<FavouritePlace>(HiveBox.favouritePlaces).values.toList();
+
+    final analytics = Hive.box<Analytics>(HiveBox.analytics).values.toList();
+
+    final notifications =
+        Hive.box<AppNotification>(HiveBox.appNotifications).values.toList();
+
+    final kya = Hive.box<Kya>(HiveBox.kya).values.toList();
+
+    final profile = await Profile.getProfile();
+
+    return emit(AccountState.initial().copyWith(
+      notifications: notifications,
+      kya: kya,
+      favouritePlaces: favouritePlaces,
+      analytics: analytics,
+      profile: profile,
+      guestUser: CustomAuth.isGuestUser(),
+    ));
+  }
+
+  Future<void> _onRefreshNotifications(
     RefreshNotifications event,
     Emitter<AccountState> emit,
   ) async {
-    // TODO: refresh
-    /*
-    await AppService().refreshNotifications(context);
+    final hasConnection = await hasNetworkConnection();
+    if (!hasConnection) {
+      return emit(state.copyWith(
+        blocStatus: BlocStatus.error,
+        blocError: AuthenticationError.noInternetConnection,
+      ));
+    }
 
-    */
+    final notifications =
+        Hive.box<AppNotification>(HiveBox.appNotifications).values.toList();
+
+    final cloudNotifications = await CloudStore.getNotifications();
+    final notificationsIds = notifications.map((e) => e.id).toList();
+
+    cloudNotifications.removeWhere((x) => notificationsIds.contains(x.id));
+
+    notifications.addAll(cloudNotifications);
+
+    emit(state.copyWith(notifications: notifications));
+
+    await HiveService.loadNotifications(notifications);
   }
 
-  Future<void> _refreshFavouritePlaces(
+  Future<void> _onRefreshFavouritePlaces(
     RefreshFavouritePlaces event,
     Emitter<AccountState> emit,
   ) async {
-    // TODO: refresh
-    /*
-    await _appService.refreshFavouritePlaces(context);
+    final hasConnection = await hasNetworkConnection();
+    if (!hasConnection) {
+      return emit(state.copyWith(
+        blocStatus: BlocStatus.error,
+        blocError: AuthenticationError.noInternetConnection,
+      ));
+    }
+    final AppService appService = AppService();
+    await appService.fetchFavPlacesInsights();
+    await appService.updateFavouritePlacesReferenceSites();
+  }
 
-    */
+  Future<void> _onRefreshProfile(
+    RefreshProfile _,
+    Emitter<AccountState> emit,
+  ) async {
+    final hasConnection = await hasNetworkConnection();
+    if (!hasConnection) {
+      return emit(state.copyWith(
+        blocStatus: BlocStatus.error,
+        blocError: AuthenticationError.noInternetConnection,
+      ));
+    }
+    final profile = await Profile.getProfile();
+    return emit(
+        state.copyWith(profile: profile, guestUser: CustomAuth.isGuestUser()));
   }
 
   Future<void> _onRefreshKya(
-    RefreshKya event,
+    RefreshKya _,
     Emitter<AccountState> emit,
   ) async {
-    // TODO: refresh analytics
-    /*
+    final hasConnection = await hasNetworkConnection();
+    if (!hasConnection) {
+      return emit(state.copyWith(
+        blocStatus: BlocStatus.error,
+        blocError: AuthenticationError.noInternetConnection,
+      ));
+    }
 
-    await _appService.refreshKyaView(context);
+    final kya = state.kya;
+    final cloudKya = await CloudStore.getKya();
 
-    */
+    final List<String> kyaIds = kya.map((kya) => kya.id).toList();
+    cloudKya.removeWhere((kya) => kyaIds.contains(kya.id));
+
+    kya.addAll(cloudKya);
+
+    emit(state.copyWith(kya: kya));
+
+    await HiveService.loadKya(kya);
+
+    // TODO: update cloud KYA
   }
 
   Future<void> _onRefreshAnalytics(
-    RefreshAnalytics event,
+    RefreshAnalytics _,
     Emitter<AccountState> emit,
   ) async {
-    // TODO: refresh analytics
-    /*
+    final hasConnection = await hasNetworkConnection();
+    if (!hasConnection) {
+      return emit(state.copyWith(
+        blocStatus: BlocStatus.error,
+        blocError: AuthenticationError.noInternetConnection,
+      ));
+    }
 
-    await Future.wait([
-      AppService().refreshAirQualityReadings(),
-      AppService().refreshAnalytics(context),
-    ]);
+    final AppService appService = AppService();
+    await appService.refreshAirQualityReadings();
+    await appService.fetchFavPlacesInsights();
 
-    */
+    // TODO: update cloud Analytics
   }
 
   Future<void> _onUpdateProfile(
-    UpdateProfile event,
+    UpdateProfile _,
     Emitter<AccountState> emit,
   ) async {
     emit(state.copyWith(blocStatus: BlocStatus.processing));
@@ -175,7 +259,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     }
   }
 
-  Future<void> _loadAccountInfo(
+  Future<void> _fetchAccountInfo(
     Emitter<AccountState> emit,
   ) async {
     emit(AccountState.initial().copyWith(guestUser: CustomAuth.isGuestUser()));
@@ -189,11 +273,11 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     ]);
   }
 
-  Future<void> _onLoadAccountInfo(
-    LoadAccountInfo event,
+  Future<void> _onFetchAccountInfo(
+    FetchAccountInfo event,
     Emitter<AccountState> emit,
   ) async {
-    _loadAccountInfo(emit);
+    await _fetchAccountInfo(emit);
   }
 
   Future<void> _onLogOutAccount(
@@ -232,14 +316,16 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     );
 
     if (successful) {
-      await _loadAccountInfo(emit);
+      await _fetchAccountInfo(emit);
+      return emit(state.copyWith(
+        blocStatus: BlocStatus.success,
+        blocError: AuthenticationError.none,
+      ));
     }
 
     return emit(state.copyWith(
-      blocStatus: successful ? BlocStatus.success : BlocStatus.error,
-      blocError: successful
-          ? AuthenticationError.none
-          : AuthenticationError.logoutFailed,
+      blocStatus: BlocStatus.error,
+      blocError: AuthenticationError.logoutFailed,
     ));
   }
 
@@ -344,7 +430,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
       analytics: analytics,
     ));
 
-    // TODO update hive storage
+    await HiveService.loadAnalytics(analytics);
     return;
   }
 
@@ -355,8 +441,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     emit(state.copyWith(
       kya: kya,
     ));
-    Kya.load(kya);
-    // TODO update hive storage
+    await HiveService.loadKya(kya);
     return;
   }
 
@@ -370,8 +455,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     emit(state.copyWith(
       profile: profile,
     ));
-    // TODO update hive profile
-    return;
+    await HiveService.loadProfile(profile);
   }
 
   Future<void> _fetchFavouritePlaces(
@@ -383,8 +467,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     emit(state.copyWith(
       favouritePlaces: favouritePlaces,
     ));
-    // TODO update hive storage
-    return;
+    await HiveService.loadFavouritePlaces(favouritePlaces);
   }
 
   Future<void> _fetchNotifications(
@@ -397,7 +480,6 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
       notifications: notifications,
     ));
 
-    // TODO update hive storage
-    return;
+    await HiveService.loadNotifications(notifications);
   }
 }

@@ -106,7 +106,7 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                               late Widget nextPage;
                               context
                                   .read<AccountBloc>()
-                                  .add(LoadAccountInfo());
+                                  .add(FetchAccountInfo());
                               switch (state.authProcedure) {
                                 case AuthProcedure.anonymousLogin:
                                 case AuthProcedure.login:

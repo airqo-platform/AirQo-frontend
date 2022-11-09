@@ -4,6 +4,12 @@ abstract class AccountEvent extends Equatable {
   const AccountEvent();
 }
 
+class FetchAccountInfo extends AccountEvent {
+  const FetchAccountInfo();
+  @override
+  List<Object?> get props => [];
+}
+
 class LoadAccountInfo extends AccountEvent {
   const LoadAccountInfo();
   @override
@@ -30,6 +36,12 @@ class RefreshFavouritePlaces extends AccountEvent {
 
 class RefreshKya extends AccountEvent {
   const RefreshKya();
+  @override
+  List<Object?> get props => [];
+}
+
+class RefreshProfile extends AccountEvent {
+  const RefreshProfile();
   @override
   List<Object?> get props => [];
 }

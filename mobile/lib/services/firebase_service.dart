@@ -23,6 +23,55 @@ class CloudAnalytics {
 
     return true;
   }
+
+  static Future<void> logNetworkProvider() async {
+    final profile = Hive.box<Profile>(HiveBox.profile).getAt(0);
+    if (profile != null) {
+      final carrier = await AirqoApiClient().getCarrier(profile.phoneNumber);
+      if (carrier.toLowerCase().contains('airtel')) {
+        await logEvent(AnalyticsEvent.airtelUser);
+      } else if (carrier.toLowerCase().contains('mtn')) {
+        await logEvent(AnalyticsEvent.mtnUser);
+      } else {
+        await logEvent(
+          AnalyticsEvent.otherNetwork,
+        );
+      }
+    }
+  }
+
+  static Future<void> logPlatformType() async {
+    if (Platform.isAndroid) {
+      await logEvent(
+        AnalyticsEvent.androidUser,
+      );
+    } else if (Platform.isIOS) {
+      await logEvent(
+        AnalyticsEvent.iosUser,
+      );
+    } else {
+      debugPrint('Unknown Platform');
+    }
+  }
+
+  static Future<void> logGender() async {
+    final profile = Hive.box<Profile>(HiveBox.profile).getAt(0);
+    if (profile != null) {
+      if (profile.getGender() == Gender.male) {
+        await logEvent(
+          AnalyticsEvent.maleUser,
+        );
+      } else if (profile.getGender() == Gender.female) {
+        await logEvent(
+          AnalyticsEvent.femaleUser,
+        );
+      } else {
+        await logEvent(
+          AnalyticsEvent.undefinedGender,
+        );
+      }
+    }
+  }
 }
 
 class CloudStore {
@@ -194,7 +243,6 @@ class CloudStore {
           cloudAnalytics.add(analytics);
         }
       }
-      await Analytics.load(cloudAnalytics);
 
       return cloudAnalytics;
     } catch (exception, stackTrace) {

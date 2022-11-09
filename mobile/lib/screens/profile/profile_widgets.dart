@@ -243,11 +243,7 @@ class ViewProfilePicture extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // TODO: Set profile pic avatar
-    return BlocBuilder<AccountBloc, AccountState>(
-        buildWhen: (previous, current) {
-      // TODO: Validate comparison
-      return previous.profile != current.profile;
-    }, builder: (context, state) {
+    return BlocBuilder<AccountBloc, AccountState>(builder: (context, state) {
       final profile = state.profile;
       if (state.guestUser || profile == null) {
         return Stack(

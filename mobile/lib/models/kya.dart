@@ -69,27 +69,6 @@ class Kya extends HiveObject {
     }
   }
 
-  static Future<void> load(List<Kya> kyas) async {
-    await Hive.box<Kya>(HiveBox.kya).clear();
-    final newKyas = <dynamic, Kya>{};
-
-    for (final kya in kyas) {
-      newKyas[kya.id] = kya;
-    }
-
-    await Hive.box<Kya>(HiveBox.kya).putAll(newKyas);
-
-    for (final kya in kyas) {
-      CacheService.cacheKyaImages(kya);
-    }
-  }
-
-  static Future<List<Kya>> getIncompleteKya() async {
-    return Hive.box<Kya>(HiveBox.kya).values.where((element) {
-      return element.progress != -1;
-    }).toList();
-  }
-
   String imageUrlCacheKey() {
     return 'kya-$id-image-url';
   }

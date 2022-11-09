@@ -16,7 +16,32 @@ extension IntExt on int {
   }
 }
 
-extension DateTimeExtension on DateTime {
+extension KyaListExt on List<Kya> {
+  List<Kya> filterIncompleteKya() {
+    return where((element) {
+      return element.progress != -1;
+    }).toList();
+  }
+
+  List<Kya> filterCompleteKya() {
+    return where((element) {
+      return element.progress == -1;
+    }).toList();
+  }
+}
+
+extension AnalyticsListExt on List<Analytics> {
+  List<Analytics> sortByDateTime() {
+    sort(
+      (x, y) {
+        return -(x.createdAt.compareTo(y.createdAt));
+      },
+    );
+    return this;
+  }
+}
+
+extension DateTimeExt on DateTime {
   DateTime getDateOfFirstDayOfWeek() {
     var firstDate = this;
     final weekday = firstDate.weekday;
@@ -302,7 +327,7 @@ extension DateTimeExtension on DateTime {
   }
 }
 
-extension FileExtenion on File {
+extension FileExt on File {
   String getExtension() {
     return path.substring(path.lastIndexOf('.'));
   }

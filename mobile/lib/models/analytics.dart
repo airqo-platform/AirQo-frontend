@@ -91,16 +91,6 @@ class Analytics extends HiveObject {
     }
   }
 
-  static List<Analytics> sort(List<Analytics> analytics) {
-    analytics.sort(
-      (x, y) {
-        return -(x.createdAt.compareTo(y.createdAt));
-      },
-    );
-
-    return analytics;
-  }
-
   static List<Analytics> fromAirQualityReadings() {
     return Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
         .values
@@ -114,15 +104,5 @@ class Analytics extends HiveObject {
               latitude: airQualityReading.latitude,
             ))
         .toList();
-  }
-
-  static Future<void> load(List<Analytics> analytics) async {
-    final newAnalytics = <dynamic, Analytics>{};
-
-    for (final analytic in analytics) {
-      newAnalytics[analytic.site] = analytic;
-    }
-
-    await Hive.box<Analytics>(HiveBox.analytics).putAll(newAnalytics);
   }
 }

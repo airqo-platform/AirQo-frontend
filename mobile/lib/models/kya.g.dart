@@ -138,13 +138,3 @@ Map<String, dynamic> _$KyaLessonToJson(KyaLesson instance) => <String, dynamic>{
       'imageUrl': instance.imageUrl,
       'body': instance.body,
     };
-
-UserKya _$UserKyaFromJson(Map<String, dynamic> json) => UserKya(
-      json['id'] as String,
-      json['progress'] as int? ?? 0,
-    );
-
-Map<String, dynamic> _$UserKyaToJson(UserKya instance) => <String, dynamic>{
-      'progress': instance.progress,
-      'id': instance.id,
-    };

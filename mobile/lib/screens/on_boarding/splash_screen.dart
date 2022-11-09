@@ -54,6 +54,7 @@ class SplashScreenState extends State<SplashScreen> {
   Future<void> _initialize() async {
     context.read<FeedbackBloc>().add(const InitializeFeedback());
     context.read<NearbyLocationBloc>().add(const CheckNearbyLocations());
+    context.read<AccountBloc>().add(const LoadAccountInfo());
 
     final isLoggedIn = CustomAuth.isLoggedIn();
 

@@ -2,11 +2,9 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:app/models/models.dart';
+import 'package:app/services/services.dart';
 import 'package:app_repository/app_repository.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-
-import 'firebase_service.dart';
-import 'secure_storage.dart';
 
 class HiveService {
   static Future<void> initialize() async {
@@ -91,25 +89,6 @@ class HiveService {
         .putAll(airQualityReadings);
   }
 
-  static Future<void> loadFavouritePlaces(
-    List<FavouritePlace> favouritePlaces, {
-    bool reload = false,
-  }) async {
-    final favouritePlacesMap = <dynamic, FavouritePlace>{};
-
-    for (final favouritePlace in favouritePlaces) {
-      favouritePlacesMap[favouritePlace.placeId] = favouritePlace;
-    }
-
-    if (reload) {
-      await Hive.box<FavouritePlace>(HiveBox.favouritePlaces).clear();
-    }
-
-    await Hive.box<FavouritePlace>(HiveBox.favouritePlaces)
-        .putAll(favouritePlacesMap)
-        .then((value) => CloudStore.updateFavouritePlaces());
-  }
-
   static Future<void> updateFavouritePlaces(
     AirQualityReading airQualityReading,
   ) async {
@@ -154,21 +133,75 @@ class HiveService {
   }
 
   static Future<void> loadNotifications(
-    List<AppNotification> notifications, {
-    bool reload = false,
-  }) async {
-    final newNotifications = <dynamic, AppNotification>{};
+      List<AppNotification> notifications) async {
+    if (notifications.isEmpty) {
+      return;
+    }
+    await Hive.box<AppNotification>(HiveBox.appNotifications).clear();
+
+    final notificationsMap = <String, AppNotification>{};
 
     for (final notification in notifications) {
-      newNotifications[notification.id] = notification;
+      notificationsMap[notification.id] = notification;
     }
-
-    if (reload) {
-      await Hive.box<AppNotification>(HiveBox.appNotifications).clear();
-    }
-
     await Hive.box<AppNotification>(HiveBox.appNotifications)
-        .putAll(newNotifications);
+        .putAll(notificationsMap);
+  }
+
+  static Future<void> loadKya(List<Kya> kya) async {
+    if (kya.isEmpty) {
+      return;
+    }
+
+    await Hive.box<Kya>(HiveBox.kya).clear();
+    final kyaMap = <String, Kya>{};
+
+    for (final x in kya) {
+      kyaMap[x.id] = x;
+    }
+
+    await Hive.box<Kya>(HiveBox.kya).putAll(kyaMap);
+
+    for (final kya in kya) {
+      CacheService.cacheKyaImages(kya);
+    }
+  }
+
+  static Future<void> loadProfile(Profile profile) async {
+    await Hive.box<Profile>(HiveBox.profile).put(HiveBox.profile, profile);
+  }
+
+  static Future<void> loadFavouritePlaces(
+      List<FavouritePlace> favouritePlaces) async {
+    if (favouritePlaces.isEmpty) {
+      return;
+    }
+    await Hive.box<FavouritePlace>(HiveBox.favouritePlaces).clear();
+
+    final favouritePlacesMap = <String, FavouritePlace>{};
+
+    for (final favouritePlace in favouritePlaces) {
+      favouritePlacesMap[favouritePlace.placeId] = favouritePlace;
+    }
+
+    await Hive.box<FavouritePlace>(HiveBox.favouritePlaces)
+        .putAll(favouritePlacesMap)
+        .then((value) => CloudStore.updateFavouritePlaces());
+  }
+
+  static Future<void> loadAnalytics(List<Analytics> analytics) async {
+    if (analytics.isEmpty) {
+      return;
+    }
+    await Hive.box<Analytics>(HiveBox.analytics).clear();
+
+    final analyticsMap = <String, Analytics>{};
+
+    for (final analytic in analytics) {
+      analyticsMap[analytic.site] = analytic;
+    }
+
+    await Hive.box<Analytics>(HiveBox.analytics).putAll(analyticsMap);
   }
 }
 
