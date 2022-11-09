@@ -453,7 +453,7 @@ class _ProfileSectionState extends State<ProfileSection> {
                 context,
                 MaterialPageRoute(
                   builder: (context) {
-                    return const FavouritePlaces();
+                    return const FavouritePlacesPage();
                   },
                 ),
               );
