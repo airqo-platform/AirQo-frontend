@@ -175,12 +175,12 @@ very sensitive sensors that damage when exposed to electro-static discharge and
 extra precautions should be observed to protect sensors susceptible to electro-static
 discharge.
 
-**Basic maintenance toolkit**
+#### Basic maintenance toolkit
 
 Essential tools: Simple dust blowing mechanism
 Optional tools: spare sensors
 
-**Troubleshooting**
+##### Troubleshooting
 
 (i) Monitor not transmitting data at all
 
@@ -192,92 +192,25 @@ Optional tools: spare sensors
 
 (ii) Incorrect/inconsistent data
 | Issue | Identification of the issue |Solution|
-| :----------- | :----------- |:---------- |
+| :------------ | :----------- |:---------- |
 | Communication | Monitor taking long to post (possible cause is low battery and the monitor will be making bulk updates) | Leave the monitor to fully charge and re-evaluate |
 |Sensor Issue | Low intra sensor correlation (< 0.98), Sensor reporting low or higher data than expected | Replacing the sensors, Blowing dust off the sensor inlets |
 
-**Guide to maintaining the AirQo Monitor**
-**Power issues**
+#### Guide to maintaining the AirQo Monitor
+
+##### Power issues
 
 - Use a soft cloth or squeegee to clean the upper surface of the solar panel
 - Check whether the cable from the panels is clearly plugged in the monitor.
 - Replace the batteries if issue is not resolved
 
-![Image]()
-![Image]()
+![Fixing power issues](../_media/monitor_3.png)
 
-**Replacing the Sensors and battery**
-![Image]()
-![Image]()
+#### Replacing the Sensors and battery
+
+![Replacing the sensors and battery](../_media/monitor_3.png)
 
 # Data Access
 
-## 4.1 Joining the AirQo platform
-
-To set up an account on the AirQo platform, follow this link: https://platform.airqo.net.
-You will be presented with a dashboard like pictured below.
-
-![Image]()
-
-Air quality monitoring location selection often requires several site scoping
-considerations to be undertaken. These include;
-
-![Image]()
-
-After filing in the required details, click REQUEST to register. Upon registration, you
-will receive an email as illustrated below with access requested and received
-confirmation.
-
-![Image]()
-
-After approval by the AirQo, you will receive a followup email on the next steps which
-include access details with temporary password and illustration on how to set a new
-password to your net-manager account.
-
-## 1.1 Platform Features
-
-**The Dashboard**
-The dashboard feature allows you to develop graphical representations of datasets
-from your monitors. This feature enables you to select and display different types of
-graphs for a specific region and monitor datasets. The Live AQI section indicates the
-distribution of the status of air pollution reported based on the AQI index. The mean
-daily PM<small>2.5</small> and exceedance graphs display the mean daily particulate matter
-concentration and how much these readings are above the WHO recommended
-pollution levels respectively. The other sections can be customised to display only
-selected networks or monitors.
-
-![Image]()
-
-**Visualisation**
-To set up an account on the AirQo platform, follow this link: [https://platform.airqo.net](https://platform.airqo.net).
-You will be presented with a dashboard like pictured below.
-
-![Image]()
-
-**Data Export**
-To set up an account on the AirQo platform, follow this link: https://platform.airqo.net.
-You will be presented with a dashboard like pictured below.
-
-![Image]()
-
-### 3.1.1 Testing on the device
-
-Log into AirQo net-manager
-Check the device map to see whether the device is connected.
-
-**Congratulations, you can now access your air quality data on the AirQo app,
-website and API!**
-
-### 3.2 Data Access through the AirQo API
-
-In addition to the existence of the platform, data access is also available via the AirQo
-API. To utilise the AirQo API for data access, please review the documentation
-accessed via this link: [https://docs.airqo.net/airqo-rest-api-documentation/](https://docs.airqo.net/airqo-rest-api-documentation/)
-
-**Map**
-Map shows the air quality status and distribution of AirQo devices and other affiliated
-devices across the world. To check if your device is working and is registered on the
-platform for data access and visualisation, log into AirQo net-manager and check if
-the device appears on the Map to see whether the device is connected.
-
-![Image]()
+To access the monitor data, you need to join the platform. Refer to the [join the platform guide](../platform/join.md#joining-the-platform).
+For analytics and data visualization, refer to the [analytics guide](../platform/analytics.md).
