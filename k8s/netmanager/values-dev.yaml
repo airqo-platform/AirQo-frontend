@@ -1,45 +1,31 @@
-# Default values for platform.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
-
 replicaCount: 1
-
 image:
-  repository: airqo-dev-platform-frontend
-  tag: latest
+  repository: gcr.io/airqo-250220/pr-previews/netmanager-pr-previews
+  tag: 026cd1a8bba22c3c0e58083a2f8ead4cff253d36
   pullPolicy: Always
-
 imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
-
+nameOverride: ''
+fullnameOverride: ''
 service:
   type: NodePort
   nodePort: 32104
   targetPort: 80
   port: 80
-
 ingress:
   enabled: false
-
 nodeSelector: {}
 torelations: {}
-
 resources:
   requests:
-    # Average usage was 0.00001 vCPU and 50Mi over the last 30 days
     cpu: 5m
     memory: 20Mi
   limits:
     cpu: 50m
     memory: 80Mi
-
 autoscaling:
   minReplicas: 1
   maxReplicas: 2
-  # targetCPUUtilizationPercentage: 90
   targetMemoryUtilizationPercentage: 90
-
 affinity:
   nodeAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
@@ -57,7 +43,6 @@ affinity:
               operator: In
               values:
                 - high-memory
-
 app:
   name: airqo-dev-platform-frontend
   label: dev-platform-ui
