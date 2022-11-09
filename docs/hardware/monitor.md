@@ -1,14 +1,8 @@
-The **AirQo Outdoor monitor** is also known as the **Binos Outdoor Air monitor**.
+# AirQo Outdoor Air Monitor
 
-# Know your Monitor
+## Know your Monitor
 
-The AirQo Outdoor Air Monitor is a low-cost air quality monitor that measures
-Particulate Matter PM2.5 and PM10, as well as ambient meteorological conditions
-such as humidity and atmospheric pressure. The monitor is locally built and uniquely
-designed to withstand environmental and physical conditions such as dust and
-extreme weather. Powered by either mains or solar, the monitor is optimised to work
-in settings characterised by unreliable power. It runs on a 2G GSM network
-configuration for IoT simards.
+The AirQo Outdoor Air Monitor, also known as the Binos Outdoor Air monitor, is a low-cost air quality monitor that measures Particulate Matter PM2.5 and PM10, as well as ambient meteorological conditions such as humidity and atmospheric pressure. The monitor is locally built and uniquely designed to withstand environmental and physical conditions such as dust and extreme weather. Powered by either mains or solar, the monitor is optimised to work in settings characterised by unreliable power. It runs on a 2G GSM network configuration for IoT simards.
 
 ![monitor image](../_media/monitor_1.png)
 
@@ -23,13 +17,13 @@ configuration for IoT simards.
 
 ### Air quality measurements
 
-|                                                    |                                                               |
-| :------------------------------------------------- | ------------------------------------------------------------: |
-| Particulate matter                                 | Range of measurement 0.3~1.0;1.0~2.5;2.5~10 in Micrometer(μm) |
-| Effective range for PM<small>2.5</small>           |                                                   0~500 μg/m3 |
-| Maximum range for PM<small>2.5</small>             |                                                    ≥1000μg/m3 |
-| Maximum consistency error for PM<small>2.5</small> |                        ±10%@100~500μg/m3, ±10μg/m3@0~100μg/m3 |
-| Standard volume                                    |                                                           01l |
+|                                                    |                                                                  |
+| :------------------------------------------------- | ---------------------------------------------------------------: |
+| Particulate matter                                 | Range of measurement 0.3\~1.0;1.0\~2.5;2.5\~10 in Micrometer(μm) |
+| Effective range for PM<small>2.5</small>           |                                                      0~500 μg/m3 |
+| Maximum range for PM<small>2.5</small>             |                                                       ≥1000μg/m3 |
+| Maximum consistency error for PM<small>2.5</small> |                         ±10%@100\~500μg/m3, ±10μg/m3@0\~100μg/m3 |
+| Standard volume                                    |                                                              01l |
 
 ### Other measured parameters
 
@@ -74,7 +68,7 @@ configuration for IoT simards.
 | Operating temperature |                                                  0-45 oC |
 | Safety                | Not compatible with fire, flames, and immersion in water |
 
-## 1.2 Monitor Package contents
+## Monitor Package contents
 
 - 1X AirQo Gen5 outdoor monitor
 - 2X Solar Panels with mounting parts
@@ -191,10 +185,11 @@ Optional tools: spare sensors
 | Sensor Issue  | No data being reported by the sensors ( PM levels = 0.0)                                | Replace the sensors                                                                                                                                                                      |
 
 (ii) Incorrect/inconsistent data
-| Issue | Identification of the issue |Solution|
-| :------------ | :----------- |:---------- |
-| Communication | Monitor taking long to post (possible cause is low battery and the monitor will be making bulk updates) | Leave the monitor to fully charge and re-evaluate |
-|Sensor Issue | Low intra sensor correlation (< 0.98), Sensor reporting low or higher data than expected | Replacing the sensors, Blowing dust off the sensor inlets |
+
+| Issue         | Identification of the issue                                                                             | Solution                                                  |
+| :------------ | :------------------------------------------------------------------------------------------------------ | :-------------------------------------------------------- |
+| Communication | Monitor taking long to post (possible cause is low battery and the monitor will be making bulk updates) | Leave the monitor to fully charge and re-evaluate         |
+| Sensor Issue  | Low intra sensor correlation (< 0.98), Sensor reporting low or higher data than expected                | Replacing the sensors, Blowing dust off the sensor inlets |
 
 #### Guide to maintaining the AirQo Monitor
 
