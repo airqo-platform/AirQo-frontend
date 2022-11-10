@@ -15,7 +15,7 @@
 - [ ] The title of the PR states what changed and the related issues number (used for the release note).
 - [ ] I've included "closes #ISSUE-NUMBER" or "fixes #ISSUE-NUMBER" in the description to [link the issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword) and automatically close it.
 - [ ] I've updated corresponding documentation for the changes in this PR.
-- [ ] I have written unit and/or e2e tests for my change. PRs without these are unlikely to be merged.
+- [ ] I have written unit and/or e2e tests for my change(s). PRs without these are unlikely to be merged.
 
 #### How should this be manually tested?
 
