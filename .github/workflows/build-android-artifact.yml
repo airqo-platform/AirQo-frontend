@@ -1,88 +1,135 @@
 name: build-android-artifact
 
 on: [push]
-  #   branches:["add-CI-CD-to-mobile-app"]
-  # pull_request:
-  #   branches: [ "staging" ]
-  #   types:
-  #     closed
-
-defaults:
-  run:
-    working-directory: mobile
 
 jobs:
   
   build:
     name: android build
     runs-on: ubuntu-latest
-    env: 
-          KEY_ALIAS: ${{ secrets.MOBILE_KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.MOBILE_KEY_PASSWORD }}
-          STORE_PASSWORD: ${{ secrets.MOBILE_STORE_PASSWORD }}
-          MAPS_KEY: ${{ secrets.MOBILE_MAPS_KEY}}
-          MAPS_KEY_DEV: ${{secrets.MOBILE_MAPS_KEY_DEV}}
     steps:
-      - name: get flutter version
-        uses: actions/checkout@v3
-        uses: subosito/flutter-action@v2
+      - name: Checkout
+        uses: 'actions/checkout@v3'
+
+      - name: set up JDK 
+        uses: actions/setup-java@v3
         with:
-          flutter-version: '3.0.5'
+          distribution: 'temurin'
+          java-version: '17'  
+
+      - name: Install ruby for fastlane
+        uses: ruby/setup-ruby@v1.121.0
+        with:
+          ruby-version: "3.0"
+          bundler-cache: true
+          working-directory: mobile/android/
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2.8.0
+        with:
+          flutter-version: '3.3.7'
           channel: 'stable'
-        run: flutter --version
 
-      - name: Google login
-        uses: google-github-actions/auth@v0
-        with:
-          credentials_json: ${{secrets.GCP_SA_CREDENTIALS}}
-      
-      - name: Setup gcloud
-        uses: google-github-actions/setup-gcloud@v0
-
-      - name: Save mobile  prod .env file
-        run: gcloud secrets versions access latest --secret="prod-env-mobile-app" > mobile/.env.prod
-
-      - name: Save 
-      - name: Decode Keystore
+      - name: Add google-services.json for Firebase
+        run: echo "$FIREBASE_JSON" > mobile/android/app/google-services.json 
         env:
-            ENCODED_STRING: ${{ secrets.KEYSTORE }}
-        run: |
-            TMP_KEYSTORE_FILE_PATH="${RUNNER_TEMP}"/keystore
-            mkdir "${TMP_KEYSTORE_FILE_PATH}"
-            echo $ENCODED_STRING | base64 -di > "${TMP_KEYSTORE_FILE_PATH}"/upload_keystore.jks
+          FIREBASE_JSON: ${{ secrets.FIREBASE_JSON }}
+          
 
-      - name: build-app
-      - uses: actions/checkout@v3
-      - uses: actions/setup-java@v2
-        with:
-          distribution: 'zulu'
-          java-version: '11'
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.0.5'
-      - run: flutter pub get
-      - run: flutter build apk
-      - run: flutter build appbundle --obfuscate --split-debug-info=${PWD}/obfuscate
-      - name: Push APK to Releases
-        uses: actions/checkout@v2
-        uses: ncipollo/release-action@v1
-        with:
-          artifacts: "build/app/outputs/bundle/release/app.aab"
-          token: ${{ secrets.GITHUB_TOKEN }} 
-        commit:
-          - name: Upload app bundle artifact
-            uses: action/upload_artifact@v2
-            with:
-              name: appbundle
-              path: build/app/outputs/bundle/release/app.aab 
-  # build-ios:
-  #   name: ios build
-  #   runs-on: macos-latest
-  #   steps:
-  #   - uses: actions/checkout@v3
-  #   - uses: subosito/flutter-action@v2
-  #     with:
-  #       channel: 'stable'
-  #       architecture: x64
-  #   - run: flutter pub get
-  #   - run: flutter build ios --release --no-codesign
+      - name: Configure staging keystore files
+        run: |
+          cd mobile/android/
+          echo "storePassword=$STORE_PASSWORD_DEV" >> key.properties
+          echo "keyPassword=$KEY_PASSWORD_DEV" >> key.properties
+          echo "keyAlias=$KEY_ALIAS_DEV" >> app/key.properties
+          echo "$KEYSTORE_DEV" | base64 -di > airqo-dev-keystore.jks
+          echo "storeFile=airqo-dev-keystore.jks" >> key.properties
+          echo "google.maps.key=$MAPS_KEY" >> key.properties
+          echo "google.maps.key_dev=$MAPS_KEY_DEV"=$MAPS_KEY_DEV >> key.properties
+
+        env: 
+          KEYSTORE_DEV: ${{ secrets.KEYSTORE_DEV }}
+          KEY_ALIAS_DEV: ${{ secrets.KEY_ALIAS_DEV }}
+          KEY_PASSWORD_DEV: ${{ secrets.KEY_PASSWORD_DEV }}
+          STORE_PASSWORD_DEV: ${{ secrets.STORE_PASSWORD_DEV }}
+          MAPS_KEY: ${{ secrets.MAPS_KEY }}
+          MAPS_KEY_DEV: ${{ secrets.MAPS_KEY_DEV }}
+
+
+      - name: Configure production keystore files
+        run: |
+          cd mobile/android/
+          echo "storePassword=$STORE_PASSWORD" >> prod_key.properties
+          echo "keyPassword=$KEY_PASSWORD" >> prod_key.properties
+          echo "keyAlias=$KEY_ALIAS" >> prod_key.properties
+          echo "$KEYSTORE" | base64 -di > app/upload-keystore.jks
+          echo "storeFile=upload-keystore.jks" >> prod_key.properties
+          echo "google.maps.key=$PROD_MAPS_KEY" >> prod_key.properties
+          echo "google.maps.key_dev=$MAPS_KEY"=$MAPS_KEY_DEV>> prod_key.properties
+        env:
+          KEYSTORE: ${{ secrets.KEYSTORE }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          PROD_MAPS_KEY: ${{ secrets.PROD_MAPS_KEY }}
+          MAPS_KEY_DEV: ${{ secrets.MAPS_KEY_DEV }}
+
+      - name: Add firebase options files
+        run: |
+          cd mobile/lib/
+          echo "$FIREBASE_OPT" > firebase_options.dart
+          echo "$FIREBASE_OPT_DEV" > firebase_options_dev.dart
+        env:
+          FIREBASE_OPT: ${{ secrets.FIREBASE_OPT }}
+          FIREBASE_OPT_DEV: ${{ secrets.FIREBASE_OPT_DEV }}
+
+      - name: Add .env files
+        run: |
+          cd mobile/
+          echo "$MOB_ENV" > .env.prod
+          echo "$MOB_ENV_DEV" > .env.dev
+        env: 
+          MOB_ENV: ${{ secrets.MOB_ENV}}
+          MOB_ENV_DEV: ${{ secrets.MOB_ENV_DEV}}
+
+#TODO: Uncomment for final merge
+      # - name: Build app
+      #   run: |
+      #     cd mobile/
+      #     flutter pub get
+      #     flutter build appbundle --flavor airqo
+
+      # - name: Upload artifact
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: app-bundle
+      #     path: mobile/build/app/outputs/bundle/airqoRelease/app-airqo-release.aab
+      #     retention-days: 3
+
+      # - name: Setup fastlane
+      #   uses: maierj/fastlane-action@v2.3.0
+      #   with:
+      #     lane: 'upload_to_google_play_store'
+      #     subdirectory: mobile/android/
+
+
+          
+
+      #- name: Google login
+       # uses: google-github-actions/auth@v1
+        #with:
+         # credentials_json: ${{secrets.GCP_SA_CREDENTIALS}}
+         # credentials_json: ${{secrets.GCP_SA_CREDENTIALS}}
+      
+      #- name: Setup gcloud
+       # uses: google-github-actions/setup-gcloud@v1
+        
+      #- name: Save mobile  prod .env file
+       # run: gcloud secrets versions access latest --secret="prod-env-mobile-app" > mobile/.env.prod
+
+      # #- name: Save key.properties
+      #  # run: gcloud secret versions access latest --secret="prod-key-mobile-CI" > mobile/android/key.properties
+      
+      # #- name: Save Firebase JSON file
+      #  # run: gcloud secret versions access latest --secret="prod-env-mobile-android-firebase-json" > mobile/android/app/google-services.json
+
