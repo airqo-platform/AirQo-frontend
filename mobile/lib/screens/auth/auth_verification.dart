@@ -104,6 +104,9 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                           BlocListener<AuthCodeBloc, AuthCodeState>(
                             listener: (context, state) {
                               late Widget nextPage;
+                              context
+                                  .read<AccountBloc>()
+                                  .add(const FetchAccountInfo());
                               switch (state.authProcedure) {
                                 case AuthProcedure.anonymousLogin:
                                 case AuthProcedure.login:
@@ -277,7 +280,7 @@ class _AuthVerificationWidgetState extends State<AuthVerificationWidget> {
                               : CustomColors.appColorDisabled,
                         ),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 12,
                       ),
                     ],

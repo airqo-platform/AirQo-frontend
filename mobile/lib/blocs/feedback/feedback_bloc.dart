@@ -32,7 +32,7 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
 
     if (state.blocStatus == BlocStatus.success) {
       return emit(
-        FeedbackState.initial().copyWith(
+        const FeedbackState.initial().copyWith(
           emailAddress: profile.emailAddress,
           feedbackChannel: FeedbackChannel.email,
         ),

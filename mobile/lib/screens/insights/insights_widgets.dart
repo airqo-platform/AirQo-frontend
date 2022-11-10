@@ -1,3 +1,4 @@
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
@@ -6,6 +7,7 @@ import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -196,7 +198,7 @@ class InsightsAvatar extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: containerColor,
-        border: Border.fromBorderSide(
+        border: const Border.fromBorderSide(
           BorderSide(color: Colors.transparent),
         ),
       ),
@@ -286,9 +288,9 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: const BorderRadius.all(
+        borderRadius: BorderRadius.all(
           Radius.circular(8.0),
         ),
         border: Border.fromBorderSide(
@@ -355,17 +357,17 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
     }
   }
 
-  void _updateFavPlace() async {
-    if (!Hive.box<FavouritePlace>(HiveBox.favouritePlaces)
-        .keys
-        .contains(widget.airQualityReading.placeId)) {
-      setState(() => _showHeartAnimation = true);
-      Future.delayed(const Duration(seconds: 2), () {
+  void _updateFavPlace() {
+    setState(() => _showHeartAnimation = true);
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
         setState(() => _showHeartAnimation = false);
-      });
-    }
+      }
+    });
 
-    await HiveService.updateFavouritePlaces(widget.airQualityReading);
+    context
+        .read<AccountBloc>()
+        .add(UpdateFavouritePlace(widget.airQualityReading));
   }
 }
 
