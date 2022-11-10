@@ -215,7 +215,7 @@ class EmptyFavouritePlace extends StatelessWidget {
     );
   }
 
-  void _updateFavPlace(BuildContext context) async {
+  void _updateFavPlace(BuildContext context) {
     context.read<AccountBloc>().add(UpdateFavouritePlace(airQualityReading));
   }
 

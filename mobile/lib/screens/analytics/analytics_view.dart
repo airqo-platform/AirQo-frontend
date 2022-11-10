@@ -18,52 +18,54 @@ class AnalyticsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AccountBloc, AccountState>(
-        buildWhen: (previous, current) {
-      return previous.analytics != current.analytics;
-    }, builder: (context, state) {
-      if (state.analytics.isEmpty) {
-        context.read<AccountBloc>().add(const RefreshAnalytics());
-      }
+      buildWhen: (previous, current) {
+        return previous.analytics != current.analytics;
+      },
+      builder: (context, state) {
+        if (state.analytics.isEmpty) {
+          context.read<AccountBloc>().add(const RefreshAnalytics());
+        }
 
-      final analytics = state.analytics.sortByDateTime();
+        final analytics = state.analytics.sortByDateTime();
 
-      if (analytics.isEmpty) {
-        return Container(); // TODO replace with error page
-      }
+        if (analytics.isEmpty) {
+          return Container(); // TODO replace with error page
+        }
 
-      return AppRefreshIndicator(
-        sliverChildDelegate: SliverChildBuilderDelegate(
-          (context, index) {
-            final airQualityReading =
-                Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-                    .get(analytics[index].site);
+        return AppRefreshIndicator(
+          sliverChildDelegate: SliverChildBuilderDelegate(
+            (context, index) {
+              final airQualityReading =
+                  Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+                      .get(analytics[index].site);
 
-            if (airQualityReading == null) {
-              return Container();
-            }
+              if (airQualityReading == null) {
+                return Container();
+              }
 
-            return Padding(
-              padding: EdgeInsets.only(
-                top: Config.refreshIndicatorPadding(
-                  index,
+              return Padding(
+                padding: EdgeInsets.only(
+                  top: Config.refreshIndicatorPadding(
+                    index,
+                  ),
                 ),
-              ),
-              child: MiniAnalyticsCard(
-                airQualityReading,
-                animateOnClick: true,
-              ),
-            );
+                child: MiniAnalyticsCard(
+                  airQualityReading,
+                  animateOnClick: true,
+                ),
+              );
+            },
+            childCount: analytics.length,
+          ),
+          onRefresh: () async {
+            _refresh(context);
           },
-          childCount: analytics.length,
-        ),
-        onRefresh: () async {
-          await _refresh(context);
-        },
-      );
-    });
+        );
+      },
+    );
   }
 
-  Future<void> _refresh(BuildContext context) async {
+  void _refresh(BuildContext context) {
     context.read<AccountBloc>().add(const RefreshAnalytics());
   }
 }

@@ -361,51 +361,54 @@ class ViewNotificationIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AccountBloc, AccountState>(
-        buildWhen: (previous, current) {
-      final previousUnReadNotifications = previous.notifications
-          .where((element) => !element.read)
-          .toList()
-          .length;
-      final currentUnReadNotifications = current.notifications
-          .where((element) => !element.read)
-          .toList()
-          .length;
-      return previousUnReadNotifications != currentUnReadNotifications;
-    }, builder: (context, state) {
-      final unReadNotifications =
-          state.notifications.where((element) => !element.read).toList();
+      buildWhen: (previous, current) {
+        final previousUnReadNotifications = previous.notifications
+            .where((element) => !element.read)
+            .toList()
+            .length;
+        final currentUnReadNotifications = current.notifications
+            .where((element) => !element.read)
+            .toList()
+            .length;
 
-      return GestureDetector(
-        onTap: () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) {
-                return const NotificationPage();
-              },
+        return previousUnReadNotifications != currentUnReadNotifications;
+      },
+      builder: (context, state) {
+        final unReadNotifications =
+            state.notifications.where((element) => !element.read).toList();
+
+        return GestureDetector(
+          onTap: () async {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) {
+                  return const NotificationPage();
+                },
+              ),
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            height: 40,
+            width: 40,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.all(
+                Radius.circular(8.0),
+              ),
             ),
-          );
-        },
-        child: Container(
-          padding: const EdgeInsets.all(10),
-          height: 40,
-          width: 40,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.all(
-              Radius.circular(8.0),
+            child: SvgPicture.asset(
+              unReadNotifications.isEmpty
+                  ? 'assets/icon/empty_notifications_icon.svg'
+                  : 'assets/icon/has_notifications.svg',
+              height: 20,
+              width: 16,
             ),
           ),
-          child: SvgPicture.asset(
-            unReadNotifications.isEmpty
-                ? 'assets/icon/empty_notifications_icon.svg'
-                : 'assets/icon/has_notifications.svg',
-            height: 20,
-            width: 16,
-          ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 }
 
@@ -688,6 +691,7 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
               if (profile == null || hiveProfile == null) {
                 return const SizedBox();
               }
+
               return GestureDetector(
                 onTap: () {
                   context.read<AccountBloc>().add(const UpdateProfile());

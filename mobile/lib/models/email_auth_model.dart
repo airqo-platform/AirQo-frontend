@@ -1,6 +1,5 @@
+import 'package:app/utils/utils.dart';
 import 'package:json_annotation/json_annotation.dart';
-
-import '../utils/exception.dart';
 
 part 'email_auth_model.g.dart';
 

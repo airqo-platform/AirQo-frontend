@@ -23,6 +23,7 @@ extension KyaListExt on List<Kya> {
     for (final element in progressList) {
       sum = sum + element;
     }
+
     return sum;
   }
 
@@ -46,6 +47,7 @@ extension AnalyticsListExt on List<Analytics> {
         return -(x.createdAt.compareTo(y.createdAt));
       },
     );
+
     return this;
   }
 }

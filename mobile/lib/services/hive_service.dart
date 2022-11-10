@@ -107,7 +107,8 @@ class HiveService {
   }
 
   static Future<void> loadNotifications(
-      List<AppNotification> notifications) async {
+    List<AppNotification> notifications,
+  ) async {
     if (notifications.isEmpty) {
       return;
     }
@@ -146,7 +147,8 @@ class HiveService {
   }
 
   static Future<void> loadFavouritePlaces(
-      List<FavouritePlace> favouritePlaces) async {
+    List<FavouritePlace> favouritePlaces,
+  ) async {
     if (favouritePlaces.isEmpty) {
       return;
     }

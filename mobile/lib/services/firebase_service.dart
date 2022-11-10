@@ -745,7 +745,9 @@ class CustomAuth {
             break;
           case AuthProcedure.deleteAccount:
             buildContext.read<AccountBloc>().add(const AccountDeletionCheck(
-                error: AuthenticationError.authFailure, passed: false));
+                  error: AuthenticationError.authFailure,
+                  passed: false,
+                ));
             break;
           case AuthProcedure.anonymousLogin:
           case AuthProcedure.logout:

@@ -38,14 +38,12 @@ class _SettingsPageState extends State<SettingsPage> {
         verticalPadding: 8.0,
         horizontalPadding: 16.0,
         widget: BlocBuilder<AccountBloc, AccountState>(
-          buildWhen: (previous, current) {
-            return previous.profile != current.profile;
-          },
           builder: (context, state) {
             final profile = state.profile;
 
             if (profile == null) {
               context.read<AccountBloc>().add(const RefreshProfile());
+
               return Container(); // TODO replace with error page
             }
 
@@ -78,15 +76,16 @@ class _SettingsPageState extends State<SettingsPage> {
                                 activeColor: CustomColors.appColorBlue,
                                 onChanged: (bool value) async {
                                   context.read<AccountBloc>().add(
-                                      UpdateProfilePreferences(
-                                          location: value));
+                                        UpdateProfilePreferences(
+                                          location: value,
+                                        ),
+                                      );
                                   if (value) {
                                     await PermissionService.checkPermission(
                                       AppPermission.location,
                                       request: true,
                                     );
                                   }
-                                  setState(() {});
                                 },
                                 value: profile.preferences.location,
                               ),
@@ -104,15 +103,16 @@ class _SettingsPageState extends State<SettingsPage> {
                                 activeColor: CustomColors.appColorBlue,
                                 onChanged: (bool value) async {
                                   context.read<AccountBloc>().add(
-                                      UpdateProfilePreferences(
-                                          notifications: value));
+                                        UpdateProfilePreferences(
+                                          notifications: value,
+                                        ),
+                                      );
                                   if (value) {
                                     await PermissionService.checkPermission(
                                       AppPermission.notification,
                                       request: true,
                                     );
                                   }
-                                  setState(() {});
                                 },
                                 value: profile.preferences.notifications,
                               ),

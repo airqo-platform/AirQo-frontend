@@ -357,10 +357,12 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
     }
   }
 
-  void _updateFavPlace() async {
+  void _updateFavPlace() {
     setState(() => _showHeartAnimation = true);
     Future.delayed(const Duration(seconds: 2), () {
-      setState(() => _showHeartAnimation = false);
+      if (mounted) {
+        setState(() => _showHeartAnimation = false);
+      }
     });
 
     context

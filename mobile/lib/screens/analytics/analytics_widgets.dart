@@ -929,9 +929,10 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
   void _updateFavPlace() async {
     setState(() => _showHeartAnimation = true);
 
-    if (!mounted) return;
     Future.delayed(const Duration(seconds: 2), () {
-      setState(() => _showHeartAnimation = false);
+      if (mounted) {
+        setState(() => _showHeartAnimation = false);
+      }
     });
 
     context

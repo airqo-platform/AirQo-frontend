@@ -339,12 +339,10 @@ class _DashboardKyaProgressBarState extends State<DashboardKyaProgressBar> {
   @override
   void initState() {
     super.initState();
-    if (widget.kya.progress == -1 ||
-        widget.kya.progress == widget.kya.lessons.length) {
-      progress = 1;
-    } else {
-      progress = widget.kya.progress / widget.kya.lessons.length;
-    }
+    progress = widget.kya.progress == -1 ||
+            widget.kya.progress == widget.kya.lessons.length
+        ? 1
+        : widget.kya.progress / widget.kya.lessons.length;
   }
 
   @override
@@ -394,6 +392,7 @@ class DashboardKyaCard extends StatelessWidget {
         builder: (context, state) {
           final viewKya =
               state.kya.firstWhere((element) => element.id == kya.id);
+
           return Container(
             padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
             decoration: const BoxDecoration(

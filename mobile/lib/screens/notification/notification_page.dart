@@ -14,51 +14,54 @@ class NotificationPage extends StatelessWidget {
       appBar: const AppTopBar('Notifications'),
       body: AppSafeArea(
         widget: BlocBuilder<AccountBloc, AccountState>(
-            buildWhen: (previous, current) {
-          return previous.notifications != current.notifications;
-        }, builder: (context, state) {
-          if (state.notifications.isEmpty) {
-            context.read<AccountBloc>().add(const RefreshNotifications());
-            return const EmptyNotifications();
-          }
+          buildWhen: (previous, current) {
+            return previous.notifications != current.notifications;
+          },
+          builder: (context, state) {
+            if (state.notifications.isEmpty) {
+              context.read<AccountBloc>().add(const RefreshNotifications());
 
-          return AppRefreshIndicator(
-            sliverChildDelegate: SliverChildBuilderDelegate(
-              (context, index) {
-                return Padding(
-                  padding:
-                      EdgeInsets.fromLTRB(16, index == 0 ? 24.0 : 4, 16, 4),
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) {
-                            return NotificationView(
-                              appNotification: state.notifications[index],
-                            );
-                          },
-                        ),
-                      );
-                    },
-                    child: NotificationCard(
-                      appNotification: state.notifications[index],
+              return const EmptyNotifications();
+            }
+
+            return AppRefreshIndicator(
+              sliverChildDelegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  return Padding(
+                    padding:
+                        EdgeInsets.fromLTRB(16, index == 0 ? 24.0 : 4, 16, 4),
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) {
+                              return NotificationView(
+                                appNotification: state.notifications[index],
+                              );
+                            },
+                          ),
+                        );
+                      },
+                      child: NotificationCard(
+                        appNotification: state.notifications[index],
+                      ),
                     ),
-                  ),
-                );
+                  );
+                },
+                childCount: state.notifications.length,
+              ),
+              onRefresh: () async {
+                _refresh(context);
               },
-              childCount: state.notifications.length,
-            ),
-            onRefresh: () async {
-              await _refresh(context);
-            },
-          );
-        }),
+            );
+          },
+        ),
       ),
     );
   }
 
-  Future<void> _refresh(BuildContext context) async {
+  void _refresh(BuildContext context) {
     context.read<AccountBloc>().add(const RefreshNotifications());
   }
 }

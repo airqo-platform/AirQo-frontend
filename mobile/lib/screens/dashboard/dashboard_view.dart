@@ -51,6 +51,7 @@ class _DashboardViewState extends State<DashboardView> {
                 final profile = state.profile;
                 final greetings =
                     profile == null ? 'Hello' : profile.greetings();
+
                 return AutoSizeText(
                   greetings,
                   maxLines: 2,
@@ -65,9 +66,12 @@ class _DashboardViewState extends State<DashboardView> {
             BlocBuilder<AccountBloc, AccountState>(
               builder: (context, state) {
                 final favouritePlaces = favouritePlacesWidgets(
-                    state.favouritePlaces.take(3).toList());
+                  state.favouritePlaces.take(3).toList(),
+                );
                 final kyaWidgets = completeKyaWidgets(
-                    state.kya.filterCompleteKya().take(3).toList());
+                  state.kya.filterCompleteKya().take(3).toList(),
+                );
+
                 return Row(
                   children: [
                     DashboardTopCard(
@@ -182,10 +186,11 @@ class _DashboardViewState extends State<DashboardView> {
                           }
 
                           final Kya kya = incompleteKya.reduce(
-                              (value, element) =>
-                                  value.progress > element.progress
-                                      ? value
-                                      : element);
+                            (value, element) =>
+                                value.progress > element.progress
+                                    ? value
+                                    : element,
+                          );
 
                           return Padding(
                             padding: const EdgeInsets.only(top: 16),

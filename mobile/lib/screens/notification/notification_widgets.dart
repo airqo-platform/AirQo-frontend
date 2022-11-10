@@ -268,9 +268,10 @@ class EmptyNotifications extends StatelessWidget {
             ),
             const SizedBox(height: 23),
             Text(
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyText2,
-                'Here you’ll find all updates on our Air Quality network.'),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyText2,
+              'Here you’ll find all updates on our Air Quality network.',
+            ),
             const Spacer(),
           ],
         ),

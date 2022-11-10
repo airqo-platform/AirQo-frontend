@@ -43,7 +43,8 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
 
     if (placesIds.contains(event.airQualityReading.placeId)) {
       favouritePlaces.removeWhere(
-          (element) => element.placeId == event.airQualityReading.placeId);
+        (element) => element.placeId == event.airQualityReading.placeId,
+      );
     } else {
       favouritePlaces
           .add(FavouritePlace.fromAirQualityReading(event.airQualityReading));
@@ -173,7 +174,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
   }
 
   Future<void> _onRefreshNotifications(
-    RefreshNotifications event,
+    RefreshNotifications _,
     Emitter<AccountState> emit,
   ) async {
     final hasConnection = await hasNetworkConnection();
@@ -200,7 +201,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
   }
 
   Future<void> _onRefreshFavouritePlaces(
-    RefreshFavouritePlaces event,
+    RefreshFavouritePlaces _,
     Emitter<AccountState> emit,
   ) async {
     final hasConnection = await hasNetworkConnection();
@@ -229,6 +230,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     emit(state.copyWith(blocStatus: BlocStatus.updatingData));
 
     final profile = await Profile.getProfile();
+
     return emit(state.copyWith(
       profile: profile,
       guestUser: CustomAuth.isGuestUser(),
@@ -383,17 +385,12 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     AccountDeletionCheck event,
     Emitter<AccountState> emit,
   ) async {
-    if (event.passed) {
-      return emit(state.copyWith(
-        blocStatus: BlocStatus.accountDeletionCheckSuccess,
-        blocError: AuthenticationError.none,
-      ));
-    } else {
-      return emit(state.copyWith(
-        blocStatus: BlocStatus.error,
-        blocError: event.error,
-      ));
-    }
+    return emit(state.copyWith(
+      blocStatus: event.passed
+          ? BlocStatus.accountDeletionCheckSuccess
+          : BlocStatus.error,
+      blocError: event.passed ? AuthenticationError.none : event.error,
+    ));
   }
 
   Future<void> _fetchAccountInfo(
@@ -412,7 +409,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
   }
 
   Future<void> _onFetchAccountInfo(
-    FetchAccountInfo event,
+    FetchAccountInfo _,
     Emitter<AccountState> emit,
   ) async {
     await _fetchAccountInfo(emit);
@@ -455,6 +452,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
 
     if (successful) {
       await _fetchAccountInfo(emit);
+
       return emit(state.copyWith(
         blocStatus: BlocStatus.success,
         blocError: AuthenticationError.none,
@@ -569,7 +567,6 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     ));
 
     await HiveService.loadAnalytics(analytics);
-    return;
   }
 
   Future<void> _fetchKya(
@@ -580,7 +577,6 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
       kya: kya,
     ));
     await HiveService.loadKya(kya);
-    return;
   }
 
   Future<void> _fetchProfile(

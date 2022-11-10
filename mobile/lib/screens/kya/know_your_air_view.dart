@@ -16,6 +16,7 @@ class KnowYourAirView extends StatelessWidget {
       builder: (context, state) {
         if (state.kya.isEmpty) {
           context.read<AccountBloc>().add(const RefreshKya());
+
           return Container(); // TODO replace with error page
         }
 
@@ -42,14 +43,14 @@ class KnowYourAirView extends StatelessWidget {
             childCount: kya.length,
           ),
           onRefresh: () async {
-            await _refresh(context);
+            _refresh(context);
           },
         );
       },
     );
   }
 
-  Future<void> _refresh(BuildContext context) async {
+  void _refresh(BuildContext context) {
     context.read<AccountBloc>().add(const RefreshKya());
   }
 }

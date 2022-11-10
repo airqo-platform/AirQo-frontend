@@ -23,6 +23,7 @@ class FavouritePlacesPage extends StatelessWidget {
           builder: (context, state) {
             if (state.favouritePlaces.isEmpty) {
               context.read<AccountBloc>().add(const RefreshFavouritePlaces());
+
               return const EmptyFavouritePlaces(); // TODO replace with error page
             }
 
@@ -54,7 +55,7 @@ class FavouritePlacesPage extends StatelessWidget {
                 childCount: state.favouritePlaces.length,
               ),
               onRefresh: () async {
-                await _refresh(context);
+                _refresh(context);
               },
             );
           },
@@ -63,7 +64,7 @@ class FavouritePlacesPage extends StatelessWidget {
     );
   }
 
-  Future<void> _refresh(BuildContext context) async {
+  void _refresh(BuildContext context) {
     context.read<AccountBloc>().add(const RefreshFavouritePlaces());
   }
 }

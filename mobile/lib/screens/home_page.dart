@@ -132,6 +132,7 @@ class _HomePageState extends State<HomePage> {
                               .isEmpty
                           ? Colors.transparent
                           : CustomColors.aqiRed;
+
                       return Positioned(
                         right: 0.0,
                         child: Container(

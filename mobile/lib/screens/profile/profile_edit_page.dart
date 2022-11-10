@@ -29,8 +29,10 @@ class ProfileEditPage extends StatelessWidget {
           var profile = state.profile;
           if (profile == null) {
             context.read<AccountBloc>().add(const FetchAccountInfo());
+
             return const LoadingWidget();
           }
+
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             color: CustomColors.appBodyColor,

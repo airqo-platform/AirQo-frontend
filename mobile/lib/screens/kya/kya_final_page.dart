@@ -70,11 +70,13 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
   void initState() {
     super.initState();
     context.read<AccountBloc>().add(UpdateKyaProgress(
-        kya: widget.kya, progress: widget.kya.lessons.length));
+          kya: widget.kya,
+          progress: widget.kya.lessons.length,
+        ));
     _initialize();
   }
 
-  Future<void> _initialize() async {
+  void _initialize() {
     Future.delayed(
       const Duration(seconds: 4),
       () {

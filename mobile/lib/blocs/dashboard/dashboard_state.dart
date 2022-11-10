@@ -12,7 +12,6 @@ class DashboardState extends Equatable {
 
   DashboardState copyWith({
     String? greetings,
-    List<Kya>? incompleteKya,
     List<AirQualityReading>? airQualityReadings,
     bool? loading,
   }) {
