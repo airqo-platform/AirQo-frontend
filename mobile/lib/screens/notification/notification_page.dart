@@ -18,7 +18,7 @@ class NotificationPage extends StatelessWidget {
           return previous.notifications != current.notifications;
         }, builder: (context, state) {
           if (state.notifications.isEmpty) {
-            context.read<AccountBloc>().add(RefreshNotifications());
+            context.read<AccountBloc>().add(const RefreshNotifications());
             return const EmptyNotifications();
           }
 
@@ -59,6 +59,6 @@ class NotificationPage extends StatelessWidget {
   }
 
   Future<void> _refresh(BuildContext context) async {
-    context.read<AccountBloc>().add(RefreshNotifications());
+    context.read<AccountBloc>().add(const RefreshNotifications());
   }
 }

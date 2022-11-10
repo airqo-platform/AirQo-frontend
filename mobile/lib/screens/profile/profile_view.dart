@@ -35,7 +35,7 @@ class _ProfileViewState extends State<ProfileView> {
       builder: (context, state) {
         final profile = state.profile;
         if (state.guestUser || profile == null) {
-          return GuestProfileView();
+          return const GuestProfileView();
         }
 
         return Scaffold(
@@ -80,13 +80,13 @@ class _ProfileViewState extends State<ProfileView> {
                   child: Container(),
                 ),
                 Row(
-                  children: [
+                  children: const [
                     ViewProfilePicture(),
-                    const Spacer(),
+                    Spacer(),
                     ViewNotificationIcon(),
                   ],
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 8,
                 ),
                 AutoSizeText(
@@ -111,27 +111,24 @@ class _ProfileViewState extends State<ProfileView> {
               ],
             ),
           ),
-          body: Container(
-            color: CustomColors.appBodyColor,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                children: <Widget>[
-                  ProfileSection(
-                    userDetails: profile,
-                  ),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () => context
-                        .read<AccountBloc>()
-                        .add(LogOutAccount(context: context)),
-                    child: const LogoutButton(),
-                  ),
-                  const SizedBox(
-                    height: 32,
-                  ),
-                ],
-              ),
+          body: AppSafeArea(
+            horizontalPadding: 16,
+            widget: Column(
+              children: <Widget>[
+                ProfileSection(
+                  userDetails: profile,
+                ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () => context
+                      .read<AccountBloc>()
+                      .add(LogOutAccount(context: context)),
+                  child: const LogoutButton(),
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+              ],
             ),
           ),
         );

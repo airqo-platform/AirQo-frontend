@@ -6,6 +6,8 @@ import 'package:app/constants/constants.dart';
 import 'package:app/screens/on_boarding/splash_screen.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
+import 'package:equatable/equatable.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,8 +15,6 @@ import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-
-import 'utils/utils.dart';
 
 class AirQoApp extends StatelessWidget {
   const AirQoApp({super.key});
@@ -87,6 +87,8 @@ Future<void> initializeMainMethod() async {
   ]);
 
   HttpOverrides.global = AppHttpOverrides();
+
+  EquatableConfig.stringify = true;
 
   PlatformDispatcher.instance.onError = (error, stack) {
     logException(error, stack);

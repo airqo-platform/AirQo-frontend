@@ -1,14 +1,12 @@
-import 'package:app/services/services.dart';
+import 'package:equatable/equatable.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
-
-import 'enum_constants.dart';
 
 part 'kya.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 @HiveType(typeId: 30, adapterName: 'KyaAdapter')
-class Kya extends HiveObject {
+class Kya extends HiveObject with EquatableMixin {
   factory Kya.fromJson(Map<String, dynamic> json) => _$KyaFromJson(json);
 
   Kya({
@@ -50,23 +48,6 @@ class Kya extends HiveObject {
 
   Map<String, dynamic> toJson() => _$KyaToJson(this);
 
-  Future<void> saveKya() async {
-    if (progress == lessons.length) {
-      await Future.wait([
-        Hive.box<Kya>(HiveBox.kya).put(id, this).then(
-              (_) => CloudStore.updateKyaProgress(this),
-            ),
-        CloudAnalytics.logEvent(
-          AnalyticsEvent.completeOneKYA,
-        ),
-      ]);
-    } else {
-      await Hive.box<Kya>(HiveBox.kya)
-          .put(id, this)
-          .then((_) => CloudStore.updateKyaProgress(this));
-    }
-  }
-
   String imageUrlCacheKey() {
     return 'kya-$id-image-url';
   }
@@ -74,32 +55,50 @@ class Kya extends HiveObject {
   String secondaryImageUrlCacheKey() {
     return 'kya-$id-secondary-image_url';
   }
+
+  @override
+  List<Object?> get props => [
+        progress,
+        title,
+        completionMessage,
+        lessons,
+        id,
+        secondaryImageUrl,
+        imageUrl,
+      ];
 }
 
 @JsonSerializable(explicitToJson: true)
 @HiveType(typeId: 130, adapterName: 'KyaLessonAdapter')
-class KyaLesson {
-  KyaLesson(
-    this.title,
-    this.imageUrl,
-    this.body,
-  );
+class KyaLesson extends Equatable {
+  const KyaLesson({
+    required this.title,
+    required this.imageUrl,
+    required this.body,
+  });
 
   factory KyaLesson.fromJson(Map<String, dynamic> json) =>
       _$KyaLessonFromJson(json);
 
   @HiveField(0)
-  String title;
+  final String title;
 
   @HiveField(1)
-  String imageUrl;
+  final String imageUrl;
 
   @HiveField(2)
-  String body;
+  final String body;
 
   Map<String, dynamic> toJson() => _$KyaLessonToJson(this);
 
   String imageUrlCacheKey(Kya kya) {
     return 'kya-${kya.id}-${kya.lessons.indexOf(this)}-lesson-image-url';
   }
+
+  @override
+  List<Object?> get props => [
+        title,
+        imageUrl,
+        body,
+      ];
 }

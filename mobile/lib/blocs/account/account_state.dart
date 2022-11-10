@@ -59,7 +59,10 @@ class AccountState extends Equatable {
   @override
   List<Object?> get props => [
         profile,
-        kya,
+        kya.filterIncompleteKya().totalProgress(),
+        kya.filterCompleteKya().totalProgress(),
+        kya.filterIncompleteKya().length,
+        kya.filterCompleteKya().length,
         favouritePlaces,
         notifications,
         analytics,

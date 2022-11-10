@@ -196,7 +196,7 @@ class InsightsAvatar extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: containerColor,
-        border: Border.fromBorderSide(
+        border: const Border.fromBorderSide(
           BorderSide(color: Colors.transparent),
         ),
       ),
@@ -286,9 +286,9 @@ class _InsightsActionBarState extends State<InsightsActionBar> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: const BorderRadius.all(
+        borderRadius: BorderRadius.all(
           Radius.circular(8.0),
         ),
         border: Border.fromBorderSide(

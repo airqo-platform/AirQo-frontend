@@ -268,9 +268,9 @@ class ViewProfilePicture extends StatelessWidget {
                 ),
               ),
             ),
-            Text(
+            const Text(
               'A',
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
                 fontSize: 17.0,
@@ -691,9 +691,7 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
               }
               return GestureDetector(
                 onTap: () {
-                  if (profile != hiveProfile) {
-                    context.read<AccountBloc>().add(const UpdateProfile());
-                  }
+                  context.read<AccountBloc>().add(const UpdateProfile());
                 },
                 child: Text(
                   'Save',
@@ -710,7 +708,7 @@ class EditProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
                   Hive.box<Profile>(HiveBox.profile).get(HiveBox.profile);
 
               if (hiveProfile == null) {
-                return false;
+                return true;
               }
 
               return previous.profile != hiveProfile ||
@@ -841,14 +839,8 @@ class NameEditField extends StatelessWidget {
           ),
         ),
       ),
+      onFieldSubmitted: valueChange,
       onChanged: valueChange,
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Required';
-        }
-
-        return null;
-      },
     );
   }
 }

@@ -196,7 +196,7 @@ class AuthCodeBloc extends Bloc<AuthCodeEvent, AuthCodeState> {
     } catch (exception, stackTrace) {
       await logException(exception, stackTrace);
     } finally {
-      event.context.read<AccountBloc>().add(FetchAccountInfo());
+      event.context.read<AccountBloc>().add(const FetchAccountInfo());
       emit(const AuthCodeState.initial());
     }
   }

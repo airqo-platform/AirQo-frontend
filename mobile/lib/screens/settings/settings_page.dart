@@ -42,7 +42,7 @@ class _SettingsPageState extends State<SettingsPage> {
             final profile = state.profile;
 
             if (profile == null) {
-              context.read<AccountBloc>().add(RefreshProfile());
+              context.read<AccountBloc>().add(const RefreshProfile());
               return Container(); // TODO replace with error page
             }
 

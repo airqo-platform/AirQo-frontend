@@ -1,10 +1,8 @@
 import 'package:app/models/air_quality_reading.dart';
-import 'package:app/models/place_details.dart';
 import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:uuid/uuid.dart';
 
 part 'analytics.g.dart';
 
@@ -46,40 +44,6 @@ class Analytics extends HiveObject {
   DateTime createdAt;
 
   Map<String, dynamic> toJson() => _$AnalyticsToJson(this);
-
-  static Analytics init() {
-    return Analytics(
-      id: const Uuid().v4(),
-      site: '',
-      name: '',
-      location: '',
-      latitude: 0.0,
-      longitude: 0.0,
-      createdAt: DateTime.now().toUtc(),
-    );
-  }
-
-  PlaceDetails toPlaceDetails() {
-    return PlaceDetails(
-      name: name,
-      location: location,
-      siteId: site,
-      placeId: id,
-      latitude: latitude,
-      longitude: longitude,
-    );
-  }
-
-  Future<void> add() async {
-    final analytics = Hive.box<Analytics>(HiveBox.analytics).values
-      ..where((element) => element.site == site).toList();
-    if (analytics.isEmpty) {
-      await Hive.box<Analytics>(HiveBox.analytics)
-          .put(site, this)
-          .then((value) => CloudStore.updateCloudAnalytics());
-      // TODO send notification
-    }
-  }
 
   static Analytics? parseAnalytics(Map<String, dynamic> jsonBody) {
     try {

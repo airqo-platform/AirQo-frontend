@@ -1,3 +1,4 @@
+import 'package:app/blocs/blocs.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
@@ -6,10 +7,12 @@ import 'package:app/widgets/widgets.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../kya/kya_title_page.dart';
 import '../kya/kya_widgets.dart';
 import '../search/search_page.dart';
 
@@ -321,103 +324,161 @@ class DashboardTopBar extends StatelessWidget implements PreferredSizeWidget {
   Size get preferredSize => const Size.fromHeight(72);
 }
 
-class DashboardKyaCard extends StatelessWidget {
-  const DashboardKyaCard({
-    super.key,
-    required this.kya,
-    required this.kyaClickCallBack,
-  });
+class DashboardKyaProgressBar extends StatefulWidget {
+  const DashboardKyaProgressBar(this.kya, {super.key});
   final Kya kya;
-  final Function(Kya) kyaClickCallBack;
+
+  @override
+  State<DashboardKyaProgressBar> createState() =>
+      _DashboardKyaProgressBarState();
+}
+
+class _DashboardKyaProgressBarState extends State<DashboardKyaProgressBar> {
+  double progress = 0.1;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.kya.progress == -1 ||
+        widget.kya.progress == widget.kya.lessons.length) {
+      progress = 1;
+    } else {
+      progress = widget.kya.progress / widget.kya.lessons.length;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Visibility(
+      visible: progress != 1 && progress != 0,
+      child: SizedBox(
+        height: 4,
+        child: LinearProgressIndicator(
+          color: CustomColors.appColorBlue,
+          value: progress,
+          backgroundColor: CustomColors.appColorDisabled.withOpacity(0.2),
+        ),
+      ),
+    );
+  }
+}
+
+class DashboardKyaCard extends StatelessWidget {
+  const DashboardKyaCard(this.kya, {super.key});
+  final Kya kya;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () async {
-        await kyaClickCallBack(kya);
+        if (kya.progress >= kya.lessons.length) {
+          context.read<AccountBloc>().add(UpdateKyaProgress(
+                kya: kya,
+                progress: -1,
+              ));
+        } else {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) {
+                return KyaTitlePage(kya);
+              },
+            ),
+          );
+        }
       },
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(
-            Radius.circular(16.0),
-          ),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: 40,
-                    child: AutoSizeText(
-                      kya.title,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: CustomTextStyle.headline8(context),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 28,
-                  ),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.start,
+      child: BlocBuilder<AccountBloc, AccountState>(
+        buildWhen: (previous, current) {
+          return previous.kya.totalProgress() != current.kya.totalProgress();
+        },
+        builder: (context, state) {
+          final viewKya =
+              state.kya.firstWhere((element) => element.id == kya.id);
+          return Container(
+            padding: const EdgeInsets.fromLTRB(16.0, 8.0, 8.0, 8.0),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.all(
+                Radius.circular(16.0),
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Column(
                     children: [
-                      KyaMessage(
-                        kya: kya,
+                      SizedBox(
+                        height: 40,
+                        child: AutoSizeText(
+                          viewKya.title,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: CustomTextStyle.headline8(context),
+                        ),
                       ),
                       const SizedBox(
-                        width: 6,
+                        height: 28,
                       ),
-                      SvgPicture.asset(
-                        'assets/icon/more_arrow.svg',
-                        semanticsLabel: 'more',
-                        height: 6.99,
-                        width: 4,
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          KyaMessage(
+                            kya: viewKya,
+                          ),
+                          const SizedBox(
+                            width: 6,
+                          ),
+                          SvgPicture.asset(
+                            'assets/icon/more_arrow.svg',
+                            semanticsLabel: 'more',
+                            height: 6.99,
+                            width: 4,
+                          ),
+                        ],
                       ),
+                      SizedBox(
+                        height: getKyaMessage(kya: viewKya).toLowerCase() ==
+                                'continue'
+                            ? 2
+                            : 0,
+                      ),
+                      DashboardKyaProgressBar(viewKya),
                     ],
                   ),
-                  SizedBox(
-                    height: getKyaMessage(kya: kya).toLowerCase() == 'continue'
-                        ? 2
-                        : 0,
-                  ),
-                  KyaProgressBar(kya: kya),
-                ],
-              ),
-            ),
-            const SizedBox(
-              width: 16,
-            ),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8.0),
-              child: CachedNetworkImage(
-                fit: BoxFit.cover,
-                width: 104,
-                height: 104,
-                placeholder: (context, url) => const SizedBox(
-                  width: 104,
-                  height: 104,
-                  child: ContainerLoadingAnimation(height: 104, radius: 8),
                 ),
-                imageUrl: kya.imageUrl,
-                errorWidget: (context, url, error) => Icon(
-                  Icons.error_outline,
-                  color: CustomColors.aqiRed,
+                const SizedBox(
+                  width: 16,
                 ),
-                cacheKey: kya.imageUrlCacheKey(),
-                cacheManager: CacheManager(
-                  CacheService.cacheConfig(
-                    kya.imageUrlCacheKey(),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8.0),
+                  child: CachedNetworkImage(
+                    fit: BoxFit.cover,
+                    width: 104,
+                    height: 104,
+                    placeholder: (context, url) => const SizedBox(
+                      width: 104,
+                      height: 104,
+                      child: ContainerLoadingAnimation(height: 104, radius: 8),
+                    ),
+                    imageUrl: viewKya.imageUrl,
+                    errorWidget: (context, url, error) => Icon(
+                      Icons.error_outline,
+                      color: CustomColors.aqiRed,
+                    ),
+                    cacheKey: kya.imageUrlCacheKey(),
+                    cacheManager: CacheManager(
+                      CacheService.cacheConfig(
+                        viewKya.imageUrlCacheKey(),
+                      ),
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

@@ -14,7 +14,7 @@ part 'account_event.dart';
 part 'account_state.dart';
 
 class AccountBloc extends Bloc<AccountEvent, AccountState> {
-  AccountBloc() : super(AccountState.initial()) {
+  AccountBloc() : super(const AccountState.initial()) {
     on<FetchAccountInfo>(_onFetchAccountInfo);
     on<LoadAccountInfo>(_onLoadAccountInfo);
     on<LogOutAccount>(_onLogOutAccount);
@@ -27,10 +27,47 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     on<RefreshFavouritePlaces>(_onRefreshFavouritePlaces);
     on<RefreshKya>(_onRefreshKya);
     on<RefreshProfile>(_onRefreshProfile);
+    on<UpdateKyaProgress>(_onUpdateKyaProgress);
   }
 
   Future<Profile> _getProfile() async {
     return state.profile ?? await Profile.initializeGuestProfile();
+  }
+
+  Future<void> _onUpdateKyaProgress(
+    UpdateKyaProgress event,
+    Emitter<AccountState> emit,
+  ) async {
+    final progress =
+        event.progress > event.kya.lessons.length ? -1 : event.progress;
+
+    if (progress < -1) {
+      return;
+    }
+
+    final stateKya = state.kya;
+    Kya kya = stateKya.firstWhere((element) => element.id == event.kya.id);
+
+    if (kya.progress == -1) {
+      return;
+    }
+
+    kya.progress = progress;
+    stateKya.removeWhere((element) => element.id == kya.id);
+    stateKya.add(kya);
+
+    emit(state.copyWith(kya: stateKya));
+
+    await HiveService.loadKya(stateKya);
+
+    if (progress == -1) {
+      await CloudAnalytics.logEvent(AnalyticsEvent.completeOneKYA);
+    }
+
+    final hasConnection = await hasNetworkConnection();
+    if (hasConnection) {
+      await CloudStore.updateKya(kya);
+    }
   }
 
   Future<void> _onLoadAccountInfo(
@@ -49,7 +86,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
 
     final profile = await Profile.getProfile();
 
-    return emit(AccountState.initial().copyWith(
+    return emit(const AccountState.initial().copyWith(
       notifications: notifications,
       kya: kya,
       favouritePlaces: favouritePlaces,
@@ -168,7 +205,13 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     UpdateProfile _,
     Emitter<AccountState> emit,
   ) async {
-    emit(state.copyWith(blocStatus: BlocStatus.processing));
+    final hasConnection = await hasNetworkConnection();
+    if (!hasConnection) {
+      return emit(state.copyWith(
+        blocStatus: BlocStatus.error,
+        blocError: AuthenticationError.noInternetConnection,
+      ));
+    }
 
     final profile = await _getProfile();
 
@@ -186,17 +229,24 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
       ));
     }
 
-    // TODO verify profile updating
+    final user = CustomAuth.getUser();
+    if (user != null && !CustomAuth.isGuestUser()) {
+      profile
+        ..userId = user.uid
+        ..phoneNumber = user.phoneNumber ?? ''
+        ..emailAddress = user.email ?? '';
+    }
 
-    final hiveProfile = Hive.box<Profile>(HiveBox.profile).get(HiveBox.profile);
+    profile
+      ..device = await CloudMessaging.getDeviceToken() ?? ''
+      ..utcOffset = DateTime.now().getUtcOffset();
 
-    if (hiveProfile != null && hiveProfile.photoUrl != profile.photoUrl) {
+    final hiveProfile =
+        Hive.box<Profile>(HiveBox.profile).get(HiveBox.profile) ?? profile;
+
+    if (hiveProfile.photoUrl != profile.photoUrl) {
       await profile.update();
       await _uploadPicture(emit: emit);
-
-      // await Future.wait(
-      //     [profile.update(), _uploadPicture(profile: profile, emit: emit)])
-      //     .whenComplete(() => _initializeProfile(emit));
     } else {
       await profile.update();
     }
@@ -262,7 +312,8 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
   Future<void> _fetchAccountInfo(
     Emitter<AccountState> emit,
   ) async {
-    emit(AccountState.initial().copyWith(guestUser: CustomAuth.isGuestUser()));
+    emit(const AccountState.initial()
+        .copyWith(guestUser: CustomAuth.isGuestUser()));
 
     await Future.wait([
       _fetchProfile(emit),
@@ -417,7 +468,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
       );
     }
 
-    return emit(AccountState.initial());
+    return emit(const AccountState.initial());
   }
 
   Future<void> _fetchAnalytics(

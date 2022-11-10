@@ -138,7 +138,7 @@ class AqiStringContainer extends StatelessWidget {
               airQualityReading.pm2_5,
             )
             .withOpacity(0.4),
-        border: Border.fromBorderSide(
+        border: const Border.fromBorderSide(
           BorderSide(color: Colors.transparent),
         ),
       ),
@@ -209,7 +209,7 @@ class MiniAnalyticsAvatar extends StatelessWidget {
         color: Pollutant.pm2_5.color(
           airQualityReading.pm2_5,
         ),
-        border: Border.fromBorderSide(
+        border: const Border.fromBorderSide(
           BorderSide(color: Colors.transparent),
         ),
       ),

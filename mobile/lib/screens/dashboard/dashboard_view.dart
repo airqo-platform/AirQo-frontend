@@ -14,7 +14,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../favourite_places/favourite_places_page.dart';
 import '../for_you_page.dart';
-import '../kya/kya_title_page.dart';
 import 'dashboard_widgets.dart';
 
 class DashboardView extends StatefulWidget {
@@ -47,10 +46,13 @@ class _DashboardViewState extends State<DashboardView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            BlocBuilder<DashboardBloc, DashboardState>(
+            BlocBuilder<AccountBloc, AccountState>(
               builder: (context, state) {
+                final profile = state.profile;
+                final greetings =
+                    profile == null ? 'Hello' : profile.greetings();
                 return AutoSizeText(
-                  state.greetings,
+                  greetings,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: CustomTextStyle.headline7(context),
@@ -180,8 +182,8 @@ class _DashboardViewState extends State<DashboardView> {
                       ),
                       BlocBuilder<AccountBloc, AccountState>(
                         buildWhen: (previous, current) {
-                          return previous.kya.filterIncompleteKya().length !=
-                              current.kya.filterIncompleteKya().length;
+                          return previous.kya.filterIncompleteKya() !=
+                              current.kya.filterIncompleteKya();
                         },
                         builder: (context, state) {
                           final incompleteKya = state.kya.filterIncompleteKya();
@@ -191,16 +193,13 @@ class _DashboardViewState extends State<DashboardView> {
 
                           final Kya kya = incompleteKya.reduce(
                               (value, element) =>
-                                  value.progress < element.progress
+                                  value.progress > element.progress
                                       ? value
                                       : element);
 
                           return Padding(
                             padding: const EdgeInsets.only(top: 16),
-                            child: DashboardKyaCard(
-                              kyaClickCallBack: _handleKyaOnClick,
-                              kya: kya,
-                            ),
+                            child: DashboardKyaCard(kya),
                           );
                         },
                       ),
@@ -271,22 +270,6 @@ class _DashboardViewState extends State<DashboardView> {
       await _appService.refreshDashboard(context);
     });
     context.read<NearbyLocationBloc>().add(const SearchNearbyLocations());
-  }
-
-  Future<void> _handleKyaOnClick(Kya kya) async {
-    if (kya.progress >= kya.lessons.length) {
-      kya.progress = -1;
-      await kya.saveKya();
-    } else {
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) {
-            return KyaTitlePage(kya);
-          },
-        ),
-      );
-    }
   }
 
   Future<void> _refresh() async {

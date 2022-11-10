@@ -1,5 +1,6 @@
 import 'package:app/services/services.dart';
 import 'package:app/utils/utils.dart';
+import 'package:equatable/equatable.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:uuid/uuid.dart';
@@ -10,7 +11,7 @@ part 'profile.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 @HiveType(typeId: 20, adapterName: 'ProfileAdapter')
-class Profile extends HiveObject {
+class Profile extends HiveObject with EquatableMixin {
   factory Profile.fromJson(Map<String, dynamic> json) =>
       _$ProfileFromJson(json);
 
@@ -157,7 +158,7 @@ class Profile extends HiveObject {
 
       await Hive.box<Profile>(HiveBox.profile)
           .put(HiveBox.profile, this)
-          .then((_) => CloudStore.updateCloudProfile());
+          .whenComplete(() => CloudStore.updateCloudProfile());
     } else {
       await Hive.box<Profile>(HiveBox.profile).put(HiveBox.profile, this);
     }
@@ -180,7 +181,7 @@ class Profile extends HiveObject {
 
   static Future<Profile> initializeGuestProfile() async {
     final user = CustomAuth.getUser();
-    final userId = user != null ? user.uid : Uuid().v4();
+    final userId = user != null ? user.uid : const Uuid().v4();
 
     return Profile(
       title: '',
@@ -226,11 +227,25 @@ class Profile extends HiveObject {
 
     return profile;
   }
+
+  @override
+  List<Object?> get props => [
+        title,
+        firstName,
+        userId,
+        lastName,
+        emailAddress,
+        photoUrl,
+        phoneNumber,
+        utcOffset,
+        device,
+        preferences,
+      ];
 }
 
 @JsonSerializable(explicitToJson: true)
 @HiveType(typeId: 120, adapterName: 'UserPreferencesTypeAdapter')
-class UserPreferences extends HiveObject {
+class UserPreferences extends HiveObject with EquatableMixin {
   UserPreferences({
     required this.notifications,
     required this.location,
@@ -260,23 +275,11 @@ class UserPreferences extends HiveObject {
       aqShares: 0,
     );
   }
-}
 
-Profile initializeDefault() {
-  return Profile(
-    title: '',
-    firstName: '',
-    lastName: '',
-    userId: const Uuid().v4(),
-    emailAddress: '',
-    phoneNumber: '',
-    device: '',
-    preferences: UserPreferences(
-      notifications: false,
-      location: false,
-      aqShares: 0,
-    ),
-    utcOffset: DateTime.now().getUtcOffset(),
-    photoUrl: '',
-  );
+  @override
+  List<Object?> get props => [
+        aqShares,
+        location,
+        notifications,
+      ];
 }

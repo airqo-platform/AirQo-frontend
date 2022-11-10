@@ -46,7 +46,9 @@ class SplashScreenState extends State<SplashScreen> {
             child: child,
           );
         },
-        child: _widgetId == 0 ? LogoWidget() : TaglineWidget(visible: _visible),
+        child: _widgetId == 0
+            ? const LogoWidget()
+            : TaglineWidget(visible: _visible),
       ),
     );
   }

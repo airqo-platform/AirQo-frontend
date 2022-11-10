@@ -81,7 +81,11 @@ class AccountDeletionCheck extends AccountEvent {
 }
 
 class EditProfile extends AccountEvent {
-  const EditProfile({this.firstName, this.lastName, this.photoUrl});
+  const EditProfile({
+    this.firstName,
+    this.lastName,
+    this.photoUrl,
+  });
 
   final String? firstName;
   final String? lastName;
@@ -96,4 +100,16 @@ class UpdateProfile extends AccountEvent {
 
   @override
   List<Object?> get props => [];
+}
+
+class UpdateKyaProgress extends AccountEvent {
+  const UpdateKyaProgress({
+    required this.kya,
+    required this.progress,
+  });
+  final int progress;
+  final Kya kya;
+
+  @override
+  List<Object?> get props => [progress, kya];
 }

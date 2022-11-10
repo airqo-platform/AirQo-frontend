@@ -17,6 +17,15 @@ extension IntExt on int {
 }
 
 extension KyaListExt on List<Kya> {
+  int totalProgress() {
+    final List<int> progressList = map((element) => element.progress).toList();
+    var sum = 0;
+    for (final element in progressList) {
+      sum = sum + element;
+    }
+    return sum;
+  }
+
   List<Kya> filterIncompleteKya() {
     return where((element) {
       return element.progress != -1;
@@ -38,6 +47,26 @@ extension AnalyticsListExt on List<Analytics> {
       },
     );
     return this;
+  }
+}
+
+extension ProfileExt on Profile {
+  String greetings() {
+    final hour = DateTime.now().hour;
+
+    if (00 <= hour && hour < 12) {
+      return 'Good morning $firstName'.trim();
+    }
+
+    if (12 <= hour && hour < 16) {
+      return 'Good afternoon $firstName'.trim();
+    }
+
+    if (16 <= hour && hour <= 23) {
+      return 'Good evening $firstName'.trim();
+    }
+
+    return 'Hello $firstName'.trim();
   }
 }
 
@@ -349,7 +378,7 @@ extension StringExt on String {
   }
 
   bool isValidName() {
-    if (isNull()) {
+    if (trim().isNull()) {
       return false;
     }
 

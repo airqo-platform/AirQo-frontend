@@ -71,9 +71,9 @@ class KyaLessonAdapter extends TypeAdapter<KyaLesson> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return KyaLesson(
-      fields[0] as String,
-      fields[1] as String,
-      fields[2] as String,
+      title: fields[0] as String,
+      imageUrl: fields[1] as String,
+      body: fields[2] as String,
     );
   }
 
@@ -128,9 +128,9 @@ Map<String, dynamic> _$KyaToJson(Kya instance) => <String, dynamic>{
     };
 
 KyaLesson _$KyaLessonFromJson(Map<String, dynamic> json) => KyaLesson(
-      json['title'] as String,
-      json['imageUrl'] as String,
-      json['body'] as String,
+      title: json['title'] as String,
+      imageUrl: json['imageUrl'] as String,
+      body: json['body'] as String,
     );
 
 Map<String, dynamic> _$KyaLessonToJson(KyaLesson instance) => <String, dynamic>{

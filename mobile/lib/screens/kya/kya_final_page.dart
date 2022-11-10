@@ -1,13 +1,14 @@
 import 'package:app/models/models.dart';
 import 'package:app/themes/theme.dart';
+import 'package:app/widgets/custom_widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../blocs/account/account_bloc.dart';
+
 class KyaFinalPage extends StatefulWidget {
-  const KyaFinalPage({
-    super.key,
-    required this.kya,
-  });
+  const KyaFinalPage(this.kya, {super.key});
   final Kya kya;
 
   @override
@@ -15,8 +16,6 @@ class KyaFinalPage extends StatefulWidget {
 }
 
 class _KyaFinalPageState extends State<KyaFinalPage> {
-  late Kya kya;
-
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -27,43 +26,40 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
           toolbarHeight: 0,
           backgroundColor: CustomColors.appBodyColor,
         ),
-        body: Container(
-          color: CustomColors.appBodyColor,
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                SvgPicture.asset(
-                  'assets/icon/learn_complete.svg',
-                  height: 133,
-                  width: 221,
+        body: AppSafeArea(
+          widget: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SvgPicture.asset(
+                'assets/icon/learn_complete.svg',
+                height: 133,
+                width: 221,
+              ),
+              const SizedBox(
+                height: 33.61,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 40),
+                child: Text(
+                  'Congrats!',
+                  style: CustomTextStyle.headline11(context),
                 ),
-                const SizedBox(
-                  height: 33.61,
+              ),
+              const SizedBox(
+                height: 8.0,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 60),
+                child: Text(
+                  widget.kya.completionMessage,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                        color: CustomColors.appColorBlack.withOpacity(0.5),
+                      ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 40, right: 40),
-                  child: Text(
-                    'Congrats!',
-                    style: CustomTextStyle.headline11(context),
-                  ),
-                ),
-                const SizedBox(
-                  height: 8.0,
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 60, right: 60),
-                  child: Text(
-                    widget.kya.completionMessage,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.subtitle1?.copyWith(
-                          color: CustomColors.appColorBlack.withOpacity(0.5),
-                        ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -73,8 +69,8 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
   @override
   void initState() {
     super.initState();
-    kya = widget.kya
-      ..progress = widget.kya.progress == -1 ? -1 : widget.kya.lessons.length;
+    context.read<AccountBloc>().add(UpdateKyaProgress(
+        kya: widget.kya, progress: widget.kya.lessons.length));
     _initialize();
   }
 
@@ -85,7 +81,6 @@ class _KyaFinalPageState extends State<KyaFinalPage> {
         Navigator.pop(context);
       },
     );
-    await kya.saveKya();
   }
 
   Future<bool> _onWillPop() {

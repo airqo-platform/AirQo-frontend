@@ -1,6 +1,6 @@
 import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
-import 'package:app/themes/theme.dart';
+import 'package:app/utils/utils.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,54 +12,42 @@ class KnowYourAirView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final appColors = Theme.of(context).extension<AppColors>()!;
+    return BlocBuilder<AccountBloc, AccountState>(builder: (context, state) {
+      if (state.kya.isEmpty) {
+        context.read<AccountBloc>().add(const RefreshKya());
+        return Container(); // TODO replace with error page
+      }
 
-    return Container(
-      color: appColors.appBodyColor,
-      child: BlocBuilder<AccountBloc, AccountState>(
-          buildWhen: (previous, current) {
-        return previous.kya != current.kya;
-      }, builder: (context, state) {
-        if (state.kya.isEmpty) {
-          context.read<AccountBloc>().add(RefreshKya());
-        }
+      final kya = state.kya.filterCompleteKya();
 
-        return Column(
-          children: [
-            Visibility(
-              visible: state.kya.isEmpty,
-              child: Container(), // TODO replace with error page
-            ),
-            Visibility(
-              visible: state.kya.isNotEmpty,
-              child: AppRefreshIndicator(
-                sliverChildDelegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    return Padding(
-                      padding: EdgeInsets.only(
-                        top: Config.refreshIndicatorPadding(
-                          index,
-                        ),
-                      ),
-                      child: KyaViewWidget(
-                        kya: state.kya[index],
-                      ),
-                    );
-                  },
-                  childCount: state.kya.length,
+      if (kya.isEmpty) {
+        return const EmptyKya(); // TODO replace with error page
+      }
+
+      return AppRefreshIndicator(
+        sliverChildDelegate: SliverChildBuilderDelegate(
+          (context, index) {
+            return Padding(
+              padding: EdgeInsets.only(
+                top: Config.refreshIndicatorPadding(
+                  index,
                 ),
-                onRefresh: () async {
-                  await _refresh(context);
-                },
               ),
-            ),
-          ],
-        );
-      }),
-    );
+              child: KyaViewWidget(
+                kya[index],
+              ),
+            );
+          },
+          childCount: kya.length,
+        ),
+        onRefresh: () async {
+          await _refresh(context);
+        },
+      );
+    });
   }
 
   Future<void> _refresh(BuildContext context) async {
-    context.read<AccountBloc>().add(RefreshKya());
+    context.read<AccountBloc>().add(const RefreshKya());
   }
 }

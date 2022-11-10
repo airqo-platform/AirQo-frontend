@@ -85,9 +85,9 @@ class EmptyFavouritePlace extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: Colors.white,
-            borderRadius: const BorderRadius.all(
+            borderRadius: BorderRadius.all(
               Radius.circular(8.0),
             ),
             border: Border.fromBorderSide(
@@ -163,7 +163,7 @@ class EmptyFavouritePlace extends StatelessWidget {
                         borderRadius: const BorderRadius.all(
                           Radius.circular(3.0),
                         ),
-                        border: Border.fromBorderSide(
+                        border: const Border.fromBorderSide(
                           BorderSide(color: Colors.transparent),
                         ),
                       ),
@@ -190,7 +190,7 @@ class EmptyFavouritePlace extends StatelessWidget {
                         borderRadius: const BorderRadius.all(
                           Radius.circular(3.0),
                         ),
-                        border: Border.fromBorderSide(
+                        border: const Border.fromBorderSide(
                           BorderSide(color: Colors.transparent),
                         ),
                       ),

@@ -10,23 +10,21 @@ import 'package:image_picker/image_picker.dart';
 
 import 'profile_widgets.dart';
 
-class ProfileEditPage extends StatefulWidget {
-  const ProfileEditPage({
-    super.key,
-  });
-
-  @override
-  State<ProfileEditPage> createState() => _ProfileEditPageState();
-}
-
-class _ProfileEditPageState extends State<ProfileEditPage> {
-  late BuildContext _loadingContext;
+class ProfileEditPage extends StatelessWidget {
+  const ProfileEditPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const EditProfileAppBar(),
       body: BlocConsumer<AccountBloc, AccountState>(
+        listenWhen: (previous, current) {
+          return current.blocError != AuthenticationError.none &&
+              current.blocStatus == BlocStatus.error;
+        },
+        listener: (context, state) {
+          showSnackBar(context, state.blocError.message);
+        },
         builder: (context, state) {
           var profile = state.profile;
           if (profile == null) {
@@ -39,33 +37,14 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
             child: ListView(
               physics: const BouncingScrollPhysics(),
               children: <Widget>[
-                MultiBlocListener(listeners: [
-                  BlocListener<AccountBloc, AccountState>(
-                      listenWhen: (previous, current) {
-                    return current.blocError != AuthenticationError.none &&
-                        current.blocStatus == BlocStatus.error;
-                  }, listener: (context, state) {
-                    showSnackBar(context, state.blocError.message);
-                  }),
-                  BlocListener<AccountBloc, AccountState>(
-                      listenWhen: (previous, current) {
-                    return current.blocStatus == BlocStatus.processing;
-                  }, listener: (context, state) {
-                    loadingScreen(_loadingContext);
-                  }),
-                  BlocListener<AccountBloc, AccountState>(
-                      listenWhen: (previous, current) {
-                    return previous.blocStatus == BlocStatus.processing;
-                  }, listener: (context, state) {
-                    Navigator.pop(_loadingContext);
-                  }),
-                ], child: Container()),
                 const SizedBox(
                   height: 26,
                 ),
                 EditProfilePicSection(
                   profile: profile,
-                  getFromGallery: _getImageFromGallery,
+                  getFromGallery: () {
+                    _getImageFromGallery(context);
+                  },
                 ),
                 const SizedBox(
                   height: 40,
@@ -130,20 +109,11 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
             ),
           );
         },
-        listener: (context, state) {
-          return;
-        },
       ),
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _loadingContext = context;
-  } // @override
-
-  void _getImageFromGallery() async {
+  void _getImageFromGallery(BuildContext context) async {
     await ImagePicker()
         .pickImage(
       source: ImageSource.gallery,

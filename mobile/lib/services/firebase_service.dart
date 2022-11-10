@@ -135,41 +135,27 @@ class CloudStore {
       return [];
     }
 
-    final userOnGoingKya = <Kya>[];
+    final kya = <Kya>[];
 
-    try {
-      final userKyaCollection = await FirebaseFirestore.instance
-          .collection(Config.usersKyaCollection)
-          .doc(userId)
-          .collection(userId)
-          .get();
+    final userKyaCollection = await FirebaseFirestore.instance
+        .collection(Config.usersKyaCollection)
+        .doc(userId)
+        .collection(userId)
+        .get();
 
-      for (final userKyaDoc in userKyaCollection.docs) {
-        try {
-          if (userKyaDoc.data().isEmpty) {
-            continue;
-          }
-          try {
-            userOnGoingKya.add(
-              Kya.fromJson(
-                userKyaDoc.data(),
-              ),
-            );
-          } catch (e) {
-            final userKyaData = userKyaDoc.data();
-            userKyaData['progress'] =
-                (userKyaData['progress'] as double).ceil();
-            userOnGoingKya.add(Kya.fromJson(userKyaData));
-          }
-        } catch (exception, stackTrace) {
-          debugPrint('$exception\n$stackTrace');
-        }
+    for (final kyaDoc in userKyaCollection.docs) {
+      try {
+        kya.add(
+          Kya.fromJson(
+            kyaDoc.data(),
+          ),
+        );
+      } catch (exception, stackTrace) {
+        debugPrint('$exception\n$stackTrace');
       }
-    } catch (exception, stackTrace) {
-      debugPrint('$exception\n$stackTrace');
     }
 
-    return userOnGoingKya;
+    return kya;
   }
 
   static Future<List<Kya>> getKya() async {
@@ -473,7 +459,7 @@ class CloudStore {
     }
   }
 
-  static Future<void> updateKyaProgress(Kya kya) async {
+  static Future<void> updateKya(Kya kya) async {
     if (CustomAuth.isGuestUser()) {
       return;
     }

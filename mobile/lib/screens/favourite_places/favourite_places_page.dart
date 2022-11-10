@@ -18,60 +18,46 @@ class FavouritePlacesPage extends StatelessWidget {
     return Scaffold(
       appBar: const AppTopBar('Favorites'),
       body: AppSafeArea(
+        horizontalPadding: 16,
         widget: BlocBuilder<AccountBloc, AccountState>(
             buildWhen: (previous, current) {
           return previous.favouritePlaces != current.favouritePlaces;
         }, builder: (context, state) {
           if (state.favouritePlaces.isEmpty) {
-            context.read<AccountBloc>().add(RefreshFavouritePlaces());
+            context.read<AccountBloc>().add(const RefreshFavouritePlaces());
+            return const EmptyFavouritePlaces(); // TODO replace with error page
           }
 
-          return Column(
-            children: [
-              Visibility(
-                visible: state.favouritePlaces.isEmpty,
-                child: Container(), // TODO replace with error page
-              ),
-              Visibility(
-                visible: state.favouritePlaces.isNotEmpty,
-                child: AppRefreshIndicator(
-                  sliverChildDelegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final airQualityReading = Hive.box<AirQualityReading>(
-                              HiveBox.airQualityReadings)
-                          .get(state.favouritePlaces[index].referenceSite);
-                      final favouritePlace = state.favouritePlaces[index];
+          return AppRefreshIndicator(
+            sliverChildDelegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final airQualityReading =
+                    Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+                        .get(state.favouritePlaces[index].referenceSite);
+                final favouritePlace = state.favouritePlaces[index];
 
-                      if (airQualityReading == null) {
-                        return EmptyFavouritePlace(
-                          airQualityReading:
-                              AirQualityReading.fromFavouritePlace(
-                                  favouritePlace),
-                        );
-                      }
+                if (airQualityReading == null) {
+                  return EmptyFavouritePlace(
+                    airQualityReading:
+                        AirQualityReading.fromFavouritePlace(favouritePlace),
+                  );
+                }
 
-                      return Padding(
-                        padding: EdgeInsets.fromLTRB(
-                          16,
-                          Config.refreshIndicatorPadding(index),
-                          16,
-                          0,
-                        ),
-                        child: MiniAnalyticsCard(
-                          airQualityReading
-                              .populateFavouritePlace(favouritePlace),
-                          animateOnClick: false,
-                        ),
-                      );
-                    },
-                    childCount: state.favouritePlaces.length,
+                return Padding(
+                  padding: EdgeInsets.only(
+                    top: Config.refreshIndicatorPadding(index),
                   ),
-                  onRefresh: () async {
-                    await _refresh(context);
-                  },
-                ),
-              ),
-            ],
+                  child: MiniAnalyticsCard(
+                    airQualityReading.populateFavouritePlace(favouritePlace),
+                    animateOnClick: false,
+                  ),
+                );
+              },
+              childCount: state.favouritePlaces.length,
+            ),
+            onRefresh: () async {
+              await _refresh(context);
+            },
           );
         }),
       ),
@@ -79,6 +65,6 @@ class FavouritePlacesPage extends StatelessWidget {
   }
 
   Future<void> _refresh(BuildContext context) async {
-    context.read<AccountBloc>().add(RefreshFavouritePlaces());
+    context.read<AccountBloc>().add(const RefreshFavouritePlaces());
   }
 }

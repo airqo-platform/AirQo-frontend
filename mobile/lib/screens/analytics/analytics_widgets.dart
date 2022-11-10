@@ -30,7 +30,7 @@ class AnalyticsAvatar extends StatelessWidget {
         color: Pollutant.pm2_5.color(
           airQualityReading.pm2_5,
         ),
-        border: Border.fromBorderSide(
+        border: const Border.fromBorderSide(
           BorderSide(color: Colors.transparent),
         ),
       ),
@@ -175,9 +175,9 @@ class AnalyticsShareCard extends StatelessWidget {
         vertical: 5,
         horizontal: 8,
       ),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: const BorderRadius.all(
+        borderRadius: BorderRadius.all(
           Radius.circular(16.0),
         ),
         border: Border.fromBorderSide(
