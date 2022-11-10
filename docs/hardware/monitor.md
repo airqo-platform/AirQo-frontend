@@ -98,21 +98,6 @@ mounting. Before installation, take note of the following pre-installation preca
 - Mount the monitor at normal human breathing height (about 1.5-2m above the
   ground)
 
-### Scoping Considerations
-
-Air quality monitoring location selection often requires several site scoping
-considerations to be undertaken. These include;
-
-| Considerations                                | Description                                                                                                                                                                                                |
-| :-------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Local needs assessment                        | Planning, environmental priorities                                                                                                                                                                         |
-| Population distribution and density           | To ensure monitoring exposure assessment & other epidemiological studies can be carried out and large number of people have access to air quality data                                                     |
-| Location and nature of pollution sources      | Proximity to pollutions sources is vital in case one of the objective of monitoring is understanding the emission contributors e.g nature of economic activities, transportation setup & volume of traffic |
-| Land-use characteristics                      | Critical for understanding the air quality variations across the various land-use patterns, Commercial, background, residential, Industrial, slums,reserved areas, etc.                                    |
-| Terrain and Landforms                         | The nature of topography, terrain and landforms should be considered i.e. hill, mountain, vallies, green spaces, water bodies etc                                                                          |
-| Legal framework and monitoring infrastructure | Number of existing air quality monitors in the city/area, Types pollutants measured/monitored, Existing legal framework                                                                                    |
-| Weather and climate                           | Wind direction & speed, Temperature, rainfall, humidity levels                                                                                                                                             |
-
 ### Installation site guidelines
 
 The process of finding an appropriate place to site and install the AirQo outdoor air
