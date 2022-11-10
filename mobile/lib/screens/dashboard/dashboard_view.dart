@@ -94,7 +94,8 @@ class _DashboardViewState extends State<DashboardView> {
 
                       return Showcase(
                         key: _favoritesShowcaseKey,
-                        description: 'These are your favorite places',
+                        description:
+                            'Find the latest air quality from your favorite locations',
                         child: DashboardTopCard(
                           toolTipType: ToolTipType.favouritePlaces,
                           title: 'Favorites',
@@ -132,7 +133,8 @@ class _DashboardViewState extends State<DashboardView> {
 
                       return Showcase(
                         key: _forYouShowcaseKey,
-                        description: 'This is content specialized for you.',
+                        description:
+                            'Find amazing content specifically designed for you here.',
                         child: DashboardTopCard(
                           toolTipType: ToolTipType.forYou,
                           title: 'For You',
@@ -212,7 +214,7 @@ class _DashboardViewState extends State<DashboardView> {
                               child: Showcase(
                                 key: _nearestLocationShowcaseKey,
                                 description:
-                                    'This shows the air quality of your nearest location',
+                                    'This card shows the air quality of your nearest location',
                                 child: AnalyticsCard(
                                   sortedReadings.first,
                                   false,
@@ -243,7 +245,7 @@ class _DashboardViewState extends State<DashboardView> {
                             child: Showcase(
                               key: _kyaShowcaseKey,
                               description:
-                                  'This is your current set of Know Your Air lessons',
+                                  'Do you want to know more about air quality? Know your air in this section',
                               child: DashboardKyaCard(
                                 kyaClickCallBack: _handleKyaOnClick,
                                 kya: incompleteKya.first,
@@ -275,7 +277,7 @@ class _DashboardViewState extends State<DashboardView> {
                                   child: Showcase(
                                     key: _analyticsShowcaseKey,
                                     description:
-                                        'This shows airquality of other different locations across your country.',
+                                            'Find the air quality of different locations across Africa here.',
                                     child: AnalyticsCard(
                                       AirQualityReading.duplicate(
                                         airQualityReadings[index],
