@@ -33,7 +33,7 @@ If you spot a problem with any of our products, check the [existing issues](http
 
 Scan through the [existing issues](https://github.com/airqo-platform/AirQo-frontend/issues) to find one that interests you. You can narrow down the search using `labels` as filters. If you find an issue to work on, you are welcome to open a PR with a fix.
 
-Note that you don't need to be assigned to this issue to work on it. Simply raise a PR that address it and add Closes `#issue-number` in the PR description to automatically link your PR to the issue, or mention the PR in this issue.
+**Note** that you don't need to be assigned to this issue to work on it. Simply raise a PR that address it and add `closes #issue-number` in the PR description to [automatically link your PR to the issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword).
 
 ### Make Changes
 
