@@ -20,46 +20,45 @@ class FavouritePlacesPage extends StatelessWidget {
       body: AppSafeArea(
         horizontalPadding: 16,
         widget: BlocBuilder<AccountBloc, AccountState>(
-            buildWhen: (previous, current) {
-          return previous.favouritePlaces != current.favouritePlaces;
-        }, builder: (context, state) {
-          if (state.favouritePlaces.isEmpty) {
-            context.read<AccountBloc>().add(const RefreshFavouritePlaces());
-            return const EmptyFavouritePlaces(); // TODO replace with error page
-          }
+          builder: (context, state) {
+            if (state.favouritePlaces.isEmpty) {
+              context.read<AccountBloc>().add(const RefreshFavouritePlaces());
+              return const EmptyFavouritePlaces(); // TODO replace with error page
+            }
 
-          return AppRefreshIndicator(
-            sliverChildDelegate: SliverChildBuilderDelegate(
-              (context, index) {
-                final airQualityReading =
-                    Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
-                        .get(state.favouritePlaces[index].referenceSite);
-                final favouritePlace = state.favouritePlaces[index];
+            return AppRefreshIndicator(
+              sliverChildDelegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final airQualityReading =
+                      Hive.box<AirQualityReading>(HiveBox.airQualityReadings)
+                          .get(state.favouritePlaces[index].referenceSite);
+                  final favouritePlace = state.favouritePlaces[index];
 
-                if (airQualityReading == null) {
-                  return EmptyFavouritePlace(
-                    airQualityReading:
-                        AirQualityReading.fromFavouritePlace(favouritePlace),
+                  if (airQualityReading == null) {
+                    return EmptyFavouritePlace(
+                      airQualityReading:
+                          AirQualityReading.fromFavouritePlace(favouritePlace),
+                    );
+                  }
+
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      top: Config.refreshIndicatorPadding(index),
+                    ),
+                    child: MiniAnalyticsCard(
+                      airQualityReading.populateFavouritePlace(favouritePlace),
+                      animateOnClick: false,
+                    ),
                   );
-                }
-
-                return Padding(
-                  padding: EdgeInsets.only(
-                    top: Config.refreshIndicatorPadding(index),
-                  ),
-                  child: MiniAnalyticsCard(
-                    airQualityReading.populateFavouritePlace(favouritePlace),
-                    animateOnClick: false,
-                  ),
-                );
+                },
+                childCount: state.favouritePlaces.length,
+              ),
+              onRefresh: () async {
+                await _refresh(context);
               },
-              childCount: state.favouritePlaces.length,
-            ),
-            onRefresh: () async {
-              await _refresh(context);
-            },
-          );
-        }),
+            );
+          },
+        ),
       ),
     );
   }

@@ -113,3 +113,22 @@ class UpdateKyaProgress extends AccountEvent {
   @override
   List<Object?> get props => [progress, kya];
 }
+
+class UpdateProfilePreferences extends AccountEvent {
+  const UpdateProfilePreferences({
+    this.notifications,
+    this.location,
+  });
+  final bool? notifications;
+  final bool? location;
+
+  @override
+  List<Object?> get props => [location, notifications];
+}
+
+class UpdateFavouritePlace extends AccountEvent {
+  const UpdateFavouritePlace(this.airQualityReading);
+  final AirQualityReading airQualityReading;
+  @override
+  List<Object?> get props => [airQualityReading];
+}

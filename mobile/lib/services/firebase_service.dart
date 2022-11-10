@@ -354,38 +354,38 @@ class CloudStore {
     return true;
   }
 
-  static Future<void> updateCloudProfile() async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser != null) {
+  static Future<void> updateProfile(Profile profile) async {
+    final currentUser = CustomAuth.getUser();
+    if (currentUser == null || CustomAuth.isGuestUser()) {
+      return;
+    }
+    try {
       try {
-        final profile = await Profile.getProfile();
-        try {
-          await Future.wait([
-            currentUser.updateDisplayName(profile.firstName),
-            FirebaseFirestore.instance
-                .collection(Config.usersCollection)
-                .doc(profile.userId)
-                .update(
-                  profile.toJson(),
-                ),
-          ]);
-        } catch (exception) {
-          await Future.wait([
-            currentUser.updateDisplayName(profile.firstName),
-            FirebaseFirestore.instance
-                .collection(Config.usersCollection)
-                .doc(profile.userId)
-                .set(
-                  profile.toJson(),
-                ),
-          ]);
-        }
-      } catch (exception, stackTrace) {
-        await logException(
-          exception,
-          stackTrace,
-        );
+        await Future.wait([
+          currentUser.updateDisplayName(profile.firstName),
+          FirebaseFirestore.instance
+              .collection(Config.usersCollection)
+              .doc(profile.userId)
+              .update(
+                profile.toJson(),
+              ),
+        ]);
+      } catch (exception) {
+        await Future.wait([
+          currentUser.updateDisplayName(profile.firstName),
+          FirebaseFirestore.instance
+              .collection(Config.usersCollection)
+              .doc(profile.userId)
+              .set(
+                profile.toJson(),
+              ),
+        ]);
       }
+    } catch (exception, stackTrace) {
+      await logException(
+        exception,
+        stackTrace,
+      );
     }
   }
 

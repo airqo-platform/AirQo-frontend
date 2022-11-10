@@ -51,6 +51,7 @@ enum BlocStatus {
   initial,
   editing,
   processing,
+  updatingData,
   error,
   success,
   accountDeletionCheckSuccess,

@@ -35,10 +35,13 @@ class _SettingsPageState extends State<SettingsPage> {
     return Scaffold(
       appBar: const AppTopBar('Settings'),
       body: AppSafeArea(
-          verticalPadding: 8.0,
-          horizontalPadding: 16.0,
-          widget:
-              BlocBuilder<AccountBloc, AccountState>(builder: (context, state) {
+        verticalPadding: 8.0,
+        horizontalPadding: 16.0,
+        widget: BlocBuilder<AccountBloc, AccountState>(
+          buildWhen: (previous, current) {
+            return previous.profile != current.profile;
+          },
+          builder: (context, state) {
             final profile = state.profile;
 
             if (profile == null) {
@@ -73,15 +76,17 @@ class _SettingsPageState extends State<SettingsPage> {
                               ),
                               trailing: CupertinoSwitch(
                                 activeColor: CustomColors.appColorBlue,
-                                onChanged: (bool value) {
-                                  switch (value) {
-                                    case true:
-                                      LocationService.allowLocationAccess();
-                                      break;
-                                    case false:
-                                      LocationService.revokePermission();
-                                      break;
+                                onChanged: (bool value) async {
+                                  context.read<AccountBloc>().add(
+                                      UpdateProfilePreferences(
+                                          location: value));
+                                  if (value) {
+                                    await PermissionService.checkPermission(
+                                      AppPermission.location,
+                                      request: true,
+                                    );
                                   }
+                                  setState(() {});
                                 },
                                 value: profile.preferences.location,
                               ),
@@ -97,15 +102,17 @@ class _SettingsPageState extends State<SettingsPage> {
                               ),
                               trailing: CupertinoSwitch(
                                 activeColor: CustomColors.appColorBlue,
-                                onChanged: (bool value) {
-                                  switch (value) {
-                                    case true:
-                                      NotificationService.allowNotifications();
-                                      break;
-                                    case false:
-                                      NotificationService.revokePermission();
-                                      break;
+                                onChanged: (bool value) async {
+                                  context.read<AccountBloc>().add(
+                                      UpdateProfilePreferences(
+                                          notifications: value));
+                                  if (value) {
+                                    await PermissionService.checkPermission(
+                                      AppPermission.notification,
+                                      request: true,
+                                    );
                                   }
+                                  setState(() {});
                                 },
                                 value: profile.preferences.notifications,
                               ),
@@ -211,7 +218,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               ],
             );
-          })),
+          },
+        ),
+      ),
     );
   }
 

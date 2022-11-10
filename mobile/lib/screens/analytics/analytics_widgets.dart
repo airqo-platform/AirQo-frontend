@@ -927,18 +927,16 @@ class _MiniAnalyticsCard extends State<MiniAnalyticsCard> {
   }
 
   void _updateFavPlace() async {
-    if (!Hive.box<FavouritePlace>(HiveBox.favouritePlaces)
-        .keys
-        .contains(widget.airQualityReading.placeId)) {
-      setState(() => _showHeartAnimation = true);
+    setState(() => _showHeartAnimation = true);
 
-      if (!mounted) return;
-      Future.delayed(const Duration(seconds: 2), () {
-        setState(() => _showHeartAnimation = false);
-      });
-    }
+    if (!mounted) return;
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() => _showHeartAnimation = false);
+    });
 
-    await HiveService.updateFavouritePlaces(widget.airQualityReading);
+    context
+        .read<AccountBloc>()
+        .add(UpdateFavouritePlace(widget.airQualityReading));
   }
 }
 

@@ -12,39 +12,41 @@ class KnowYourAirView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AccountBloc, AccountState>(builder: (context, state) {
-      if (state.kya.isEmpty) {
-        context.read<AccountBloc>().add(const RefreshKya());
-        return Container(); // TODO replace with error page
-      }
+    return BlocBuilder<AccountBloc, AccountState>(
+      builder: (context, state) {
+        if (state.kya.isEmpty) {
+          context.read<AccountBloc>().add(const RefreshKya());
+          return Container(); // TODO replace with error page
+        }
 
-      final kya = state.kya.filterCompleteKya();
+        final kya = state.kya.filterCompleteKya();
 
-      if (kya.isEmpty) {
-        return const EmptyKya(); // TODO replace with error page
-      }
+        if (kya.isEmpty) {
+          return const EmptyKya(); // TODO replace with error page
+        }
 
-      return AppRefreshIndicator(
-        sliverChildDelegate: SliverChildBuilderDelegate(
-          (context, index) {
-            return Padding(
-              padding: EdgeInsets.only(
-                top: Config.refreshIndicatorPadding(
-                  index,
+        return AppRefreshIndicator(
+          sliverChildDelegate: SliverChildBuilderDelegate(
+            (context, index) {
+              return Padding(
+                padding: EdgeInsets.only(
+                  top: Config.refreshIndicatorPadding(
+                    index,
+                  ),
                 ),
-              ),
-              child: KyaViewWidget(
-                kya[index],
-              ),
-            );
+                child: KyaViewWidget(
+                  kya[index],
+                ),
+              );
+            },
+            childCount: kya.length,
+          ),
+          onRefresh: () async {
+            await _refresh(context);
           },
-          childCount: kya.length,
-        ),
-        onRefresh: () async {
-          await _refresh(context);
-        },
-      );
-    });
+        );
+      },
+    );
   }
 
   Future<void> _refresh(BuildContext context) async {

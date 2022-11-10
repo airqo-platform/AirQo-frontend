@@ -63,12 +63,6 @@ class _DashboardViewState extends State<DashboardView> {
               height: 16,
             ),
             BlocBuilder<AccountBloc, AccountState>(
-              buildWhen: (previous, current) {
-                return previous.favouritePlaces.length !=
-                        current.favouritePlaces.length ||
-                    previous.kya.filterCompleteKya().length !=
-                        current.kya.filterCompleteKya().length;
-              },
               builder: (context, state) {
                 final favouritePlaces = favouritePlacesWidgets(
                     state.favouritePlaces.take(3).toList());
@@ -181,10 +175,6 @@ class _DashboardViewState extends State<DashboardView> {
                         },
                       ),
                       BlocBuilder<AccountBloc, AccountState>(
-                        buildWhen: (previous, current) {
-                          return previous.kya.filterIncompleteKya() !=
-                              current.kya.filterIncompleteKya();
-                        },
                         builder: (context, state) {
                           final incompleteKya = state.kya.filterIncompleteKya();
                           if (incompleteKya.isEmpty) {

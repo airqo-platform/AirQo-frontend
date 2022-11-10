@@ -158,7 +158,7 @@ class Profile extends HiveObject with EquatableMixin {
 
       await Hive.box<Profile>(HiveBox.profile)
           .put(HiveBox.profile, this)
-          .whenComplete(() => CloudStore.updateCloudProfile());
+          .whenComplete(() => CloudStore.updateProfile(this));
     } else {
       await Hive.box<Profile>(HiveBox.profile).put(HiveBox.profile, this);
     }

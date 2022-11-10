@@ -1,8 +1,9 @@
+import 'package:app/blocs/account/account_bloc.dart';
 import 'package:app/models/models.dart';
-import 'package:app/services/services.dart';
 import 'package:app/themes/theme.dart';
 import 'package:app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../search/search_page.dart';
@@ -130,7 +131,7 @@ class EmptyFavouritePlace extends StatelessWidget {
                       ),
                     ),
                     InkWell(
-                      onTap: () async => _updateFavPlace(),
+                      onTap: () async => _updateFavPlace(context),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 32,
@@ -214,8 +215,8 @@ class EmptyFavouritePlace extends StatelessWidget {
     );
   }
 
-  void _updateFavPlace() async {
-    await HiveService.updateFavouritePlaces(airQualityReading);
+  void _updateFavPlace(BuildContext context) async {
+    context.read<AccountBloc>().add(UpdateFavouritePlace(airQualityReading));
   }
 
   void _navigateToInsights(BuildContext context) {

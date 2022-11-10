@@ -89,32 +89,6 @@ class HiveService {
         .putAll(airQualityReadings);
   }
 
-  static Future<void> updateFavouritePlaces(
-    AirQualityReading airQualityReading,
-  ) async {
-    if (Hive.box<FavouritePlace>(HiveBox.favouritePlaces)
-        .keys
-        .contains(airQualityReading.placeId)) {
-      await Hive.box<FavouritePlace>(HiveBox.favouritePlaces)
-          .delete(airQualityReading.placeId);
-    } else {
-      await Hive.box<FavouritePlace>(HiveBox.favouritePlaces).put(
-        airQualityReading.placeId,
-        FavouritePlace.fromAirQualityReading(
-          airQualityReading,
-        ),
-      );
-    }
-
-    await CloudStore.updateFavouritePlaces();
-
-    if (Hive.box<FavouritePlace>(HiveBox.favouritePlaces).length >= 5) {
-      await CloudAnalytics.logEvent(
-        AnalyticsEvent.savesFiveFavorites,
-      );
-    }
-  }
-
   static Future<void> updateNearbyAirQualityReadings(
     List<AirQualityReading> nearbyAirQualityReadings,
   ) async {

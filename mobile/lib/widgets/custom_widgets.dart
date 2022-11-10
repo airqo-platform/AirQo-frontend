@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:app/blocs/blocs.dart';
 import 'package:app/constants/constants.dart';
 import 'package:app/models/models.dart';
 import 'package:app/services/services.dart';
@@ -8,6 +9,7 @@ import 'package:app/utils/utils.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:lottie/lottie.dart';
@@ -338,7 +340,7 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
         ),
         Expanded(
           child: InkWell(
-            onTap: () async => _updateFavPlace(),
+            onTap: () async => _updateFavPlace(context),
             child: IconTextButton(
               iconWidget: HeartIcon(
                 showAnimation: _showHeartAnimation,
@@ -363,17 +365,15 @@ class _AnalyticsCardFooterState extends State<AnalyticsCardFooter> {
     }
   }
 
-  Future<void> _updateFavPlace() async {
-    if (!Hive.box<FavouritePlace>(HiveBox.favouritePlaces)
-        .keys
-        .contains(widget.airQualityReading.placeId)) {
-      setState(() => _showHeartAnimation = true);
-      Future.delayed(const Duration(seconds: 2), () {
-        setState(() => _showHeartAnimation = false);
-      });
-    }
+  Future<void> _updateFavPlace(BuildContext context) async {
+    setState(() => _showHeartAnimation = true);
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() => _showHeartAnimation = false);
+    });
 
-    await HiveService.updateFavouritePlaces(widget.airQualityReading);
+    context
+        .read<AccountBloc>()
+        .add(UpdateFavouritePlace(widget.airQualityReading));
   }
 }
 

@@ -56,7 +56,8 @@ class _ProfileViewState extends State<ProfileView> {
                         loadingScreen(_loadingContext);
                       },
                       listenWhen: (previous, current) {
-                        return current.blocStatus == BlocStatus.processing;
+                        return current.blocStatus == BlocStatus.processing &&
+                            mounted;
                       },
                     ),
                     BlocListener<AccountBloc, AccountState>(
@@ -64,7 +65,8 @@ class _ProfileViewState extends State<ProfileView> {
                         Navigator.pop(_loadingContext);
                       },
                       listenWhen: (previous, current) {
-                        return previous.blocStatus == BlocStatus.processing;
+                        return previous.blocStatus == BlocStatus.processing &&
+                            mounted;
                       },
                     ),
                     BlocListener<AccountBloc, AccountState>(
@@ -73,7 +75,8 @@ class _ProfileViewState extends State<ProfileView> {
                       },
                       listenWhen: (previous, current) {
                         return current.blocStatus == BlocStatus.error &&
-                            current.blocError != AuthenticationError.none;
+                            current.blocError != AuthenticationError.none &&
+                            mounted;
                       },
                     ),
                   ],
